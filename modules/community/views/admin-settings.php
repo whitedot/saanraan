@@ -238,54 +238,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php $isRewardAsset = in_array((string) $assetPrefix, ['post_reward', 'comment_reward'], true); ?>
                 <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? '', true); ?>
                 <div class="admin-form-row">
-                    <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml($assetLabel, $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
+                    <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml($assetLabel, $communitySettingsHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?> 사용</span></div>
                     <div class="admin-form-field">
                         <div class="admin-asset-setting-line">
-                            <div class="admin-asset-setting-control<?php echo $isRewardAsset ? '' : ' admin-asset-setting-control-full'; ?>">
+                            <div class="admin-asset-setting-control">
                                 <div class="admin-asset-setting-primary">
                                     <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
                                         <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html($isRewardAsset ? ($assetPrefix === 'post_reward' ? sr_t('community::ui.active.3ed52f4b') : sr_t('community::ui.active.1549f7df')) : $assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                     </label>
-                                    <?php if ($isRewardAsset) { ?>
-                                        <div class="admin-asset-setting-target admin-asset-single-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
-                                            <select id="<?php echo sr_e($assetSourceId); ?>" name="<?php echo sr_e((string) $assetPrefix); ?>_asset_module" class="form-select" data-admin-asset-unit-select>
-                                                <option value=""><?php echo sr_e($assetModuleOptions === [] ? sr_t('community::ui.text.3e195cdd') : sr_t('community::ui.text.asset_none')); ?></option>
-                                                <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
-                                                    <option value="<?php echo sr_e((string) $assetModule); ?>" data-admin-asset-unit="<?php echo sr_e((string) ($assetOption['unit_label'] ?? '')); ?>"<?php echo (string) ($settings[$assetPrefix . '_asset_module'] ?? '') === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
-                                                <?php } ?>
-                                            </select>
-                                            <?php echo sr_community_asset_single_amount_input_group_html((string) $assetPrefix . '_amount', (int) ($settings[$assetPrefix . '_amount'] ?? 0), $assetModuleOptions, (string) ($settings[$assetPrefix . '_asset_module'] ?? ''), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>
-                                        </div>
-                                    <?php } ?>
                                 </div>
-                                <?php if ($isRewardAsset) { ?>
-                                    <div class="admin-asset-setting-secondary">
-                                        <label class="admin-form-check form-label" for="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>">
-                                            <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-checkbox"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
-                                        </label>
-                                    </div>
-                                <?php } else { ?>
-                                    <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
-                                        <?php echo sr_community_asset_grouped_amount_inputs_html($assetSourceId, (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $settings[$assetPrefix . '_amounts_json'] ?? '', (int) ($settings[$assetPrefix . '_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
-                                    </div>
-                                    <div class="admin-asset-setting-secondary">
-                                        <input type="hidden" name="<?php echo sr_e((string) $assetPrefix); ?>_amount" value="<?php echo sr_e((string) ($settings[$assetPrefix . '_amount'] ?? 0)); ?>">
-                                    </div>
-                                    <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
-                                <?php } ?>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('community_settings_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('멤버 그룹별 적용'); ?></label>
-                    <div class="admin-form-field admin-policy-set-field">
-                        <?php echo sr_community_asset_policy_set_checkboxes_html('community_settings_' . (string) $assetPrefix . '_policy_set_ids', (string) $assetPrefix . '_policy_set_ids', $assetPolicySets ?? [], sr_community_asset_policy_set_ids_with_legacy($settings[$assetPrefix . '_group_policies_json'] ?? '', (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0)), $isRewardAsset ? 'grant' : 'use', '#' . $assetSourceId, $pdo); ?>
-                        <p class="admin-form-help">도움말: 선택한 멤버 그룹별 적용이 멤버의 그룹, 레벨, 대상 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 멤버 그룹별 적용 화면에서 관리합니다.</p>
+                <?php if ($isRewardAsset) { ?>
+                    <div class="admin-form-row">
+                        <span class="form-label"><?php echo sr_e($assetLabel . ' 회수'); ?></span>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label" for="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>">
+                                <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-checkbox"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
+                            </label>
+                        </div>
                     </div>
-                </div>
+                <?php } ?>
                 <?php if ($assetPrefix === 'paid_read') { ?>
                     <div class="admin-form-row">
                         <label class="form-label" for="modules_community_admin_settings_paid_read_charge_policy"><?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?></label>
@@ -307,19 +284,48 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                 <?php } ?>
+                <div class="admin-form-row">
+                    <span class="form-label"><?php echo sr_e($assetLabel . ' 자산 설정'); ?></span>
+                    <div class="admin-form-field">
+                        <?php if ($isRewardAsset) { ?>
+                            <div class="admin-asset-setting-target admin-asset-single-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
+                                <select id="<?php echo sr_e($assetSourceId); ?>" name="<?php echo sr_e((string) $assetPrefix); ?>_asset_module" class="form-select" data-admin-asset-unit-select>
+                                    <option value=""><?php echo sr_e($assetModuleOptions === [] ? sr_t('community::ui.text.3e195cdd') : sr_t('community::ui.text.asset_none')); ?></option>
+                                    <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                                        <option value="<?php echo sr_e((string) $assetModule); ?>" data-admin-asset-unit="<?php echo sr_e((string) ($assetOption['unit_label'] ?? '')); ?>"<?php echo (string) ($settings[$assetPrefix . '_asset_module'] ?? '') === (string) $assetModule ? ' selected' : ''; ?>><?php echo sr_e((string) $assetOption['label']); ?></option>
+                                    <?php } ?>
+                                </select>
+                                <?php echo sr_community_asset_single_amount_input_group_html((string) $assetPrefix . '_amount', (int) ($settings[$assetPrefix . '_amount'] ?? 0), $assetModuleOptions, (string) ($settings[$assetPrefix . '_asset_module'] ?? ''), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel])); ?>
+                            </div>
+                        <?php } else { ?>
+                            <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
+                                <?php echo sr_community_asset_grouped_amount_inputs_html($assetSourceId, (string) $assetPrefix . '_asset_module', (string) $assetPrefix . '_amounts', $assetModuleOptions, $selectedAssetModules, $settings[$assetPrefix . '_amounts_json'] ?? '', (int) ($settings[$assetPrefix . '_amount'] ?? 0), sr_t('community::ui.asset.amount.0df01f4b', ['label' => $assetLabel]), sr_t('community::ui.text.3e195cdd')); ?>
+                            </div>
+                            <input type="hidden" name="<?php echo sr_e((string) $assetPrefix); ?>_amount" value="<?php echo sr_e((string) ($settings[$assetPrefix . '_amount'] ?? 0)); ?>">
+                            <p class="admin-form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
+                        <?php } ?>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e('community_settings_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('멤버 그룹별 적용'); ?></label>
+                    <div class="admin-form-field admin-policy-set-field">
+                        <?php echo sr_community_asset_policy_set_checkboxes_html('community_settings_' . (string) $assetPrefix . '_policy_set_ids', (string) $assetPrefix . '_policy_set_ids', $assetPolicySets ?? [], sr_community_asset_policy_set_ids_with_legacy($settings[$assetPrefix . '_group_policies_json'] ?? '', (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0)), $isRewardAsset ? 'grant' : 'use', '#' . $assetSourceId, $pdo); ?>
+                        <p class="admin-form-help">도움말: 선택한 멤버 그룹별 적용이 멤버의 그룹, 레벨, 대상 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 멤버 그룹별 적용 화면에서 관리합니다.</p>
+                    </div>
+                </div>
             <?php } ?>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="modules_community_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
-                    <?php foreach (sr_community_once_history_policy_values() as $policyKey => $policyLabel) { ?>
-                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($settings['once_history_policy'] ?? 'all_access') === (string) $policyKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $policyLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <select id="modules_community_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
+                        <?php foreach (sr_community_once_history_policy_values() as $policyKey => $policyLabel) { ?>
+                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($settings['once_history_policy'] ?? 'all_access') === (string) $policyKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $policyLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
+                </div>
             </div>
         </div>
     </section>

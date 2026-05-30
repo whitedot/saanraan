@@ -701,7 +701,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php $usesGroupedAssetAmounts = $usesCompositeAsset; ?>
                     <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($boardField($formBoard, $assetPrefix . '_asset_module', ''), true); ?>
                     <div class="admin-form-row">
-                        <div class="form-label admin-form-label-help"><?php echo $communityBoardHelpButtonHtml($assetLabel, $communityBoardHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
+                        <div class="form-label admin-form-label-help"><?php echo $communityBoardHelpButtonHtml($assetLabel, $communityBoardHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?> 사용</span></div>
                         <div class="admin-form-field">
                             <div class="admin-asset-setting-line">
                                 <div class="admin-asset-setting-control">
@@ -722,7 +722,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <span class="form-label"><?php echo sr_e($assetLabel . ' 항목'); ?></span>
+                        <span class="form-label"><?php echo sr_e($assetLabel . ' 자산 설정'); ?></span>
                         <div class="admin-form-field">
                             <?php if ($usesGroupedAssetAmounts) { ?>
                                 <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">

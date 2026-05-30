@@ -285,6 +285,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-page-file-charge-amount{width:10rem}
 .admin-page-file-charge-policy{width:auto}
 .admin-asset-setting-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
+.admin-form .admin-form-row>.admin-form-field>.admin-asset-setting-line{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-setting-source-options{margin-left:0}
 .admin-asset-setting-control{display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1.25);min-width:18rem}

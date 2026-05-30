@@ -278,7 +278,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </h2>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('content::ui.active.923da40e')); ?></span>
+                <span class="form-label"><?php echo sr_e(sr_t('content::ui.member.4eda7ba7')); ?> 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_group_asset_access_enabled">
                         <input id="content_group_asset_access_enabled" type="checkbox" name="group_asset_access_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_access_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -299,7 +299,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_group_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
+                <label class="form-label" for="content_group_asset_module"><?php echo sr_e(sr_t('content::ui.member.4eda7ba7')); ?> 자산 설정</label>
                 <div class="admin-form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_access_enabled" data-admin-asset-enable-submit-check="always">
                         <input id="content_group_asset_access_amount" type="hidden" name="group_asset_access_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'asset_access_amount', '0')); ?>">
@@ -315,8 +315,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="admin-form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹과 선택한 포인트/금액 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 콘텐츠 회원 그룹별 적용 화면에서 관리합니다.</p>
                 </div>
             </div>
+        </section>
+        <section class="admin-card card">
+            <h2>
+                <span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></span>
+                <?php if ($contentGroupAssetAuditUrl !== '') { ?>
+                    <span class="admin-form-actions">
+                        <a href="<?php echo sr_e($contentGroupAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 변경 이력'); ?></a>
+                    </span>
+                <?php } ?>
+            </h2>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('content::ui.active.904d506b')); ?></span>
+                <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?> 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_group_asset_action_enabled">
                         <input id="content_group_asset_action_enabled" type="checkbox" name="group_asset_action_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_action_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -343,7 +353,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_group_asset_action_module"><?php echo sr_e(sr_t('content::ui.text.2f2b6193')); ?></label>
+                <label class="form-label" for="content_group_asset_action_module"><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?> 자산 설정</label>
                 <div class="admin-form-field">
                     <?php $contentGroupActionAssetModules = sr_content_asset_module_keys_from_value($groupSettingValue($groupSettings, 'asset_action_module', '')); ?>
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_asset_action_enabled" data-admin-asset-enable-submit-check="always">
@@ -371,7 +381,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </h2>
             <div class="admin-form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.d07eab27')); ?></span>
+                <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?> 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_group_file_asset_download_enabled">
                         <input id="content_group_file_asset_download_enabled" type="checkbox" name="group_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'file_asset_download_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -392,7 +402,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_group_file_asset_module"><?php echo sr_e(sr_t('content::ui.text.7d96defe')); ?></label>
+                <label class="form-label" for="content_group_file_asset_module"><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?> 자산 설정</label>
                 <div class="admin-form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_group_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
                         <input id="content_group_file_asset_download_amount" type="hidden" name="group_file_asset_download_amount" value="<?php echo sr_e($groupSettingValue($groupSettings, 'file_asset_download_amount', '0')); ?>">

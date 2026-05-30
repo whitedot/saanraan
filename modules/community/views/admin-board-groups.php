@@ -576,7 +576,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php $usesGroupedAssetAmounts = $usesCompositeAsset; ?>
                         <?php $selectedAssetModules = sr_community_asset_module_keys_from_value($groupSettingValue($formGroupSettings, $assetPrefix . '_asset_module', ''), true); ?>
                         <div class="admin-form-row">
-                            <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml($assetLabel, $communityBoardGroupHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?></span></div>
+                            <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml($assetLabel, $communityBoardGroupHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?> 사용</span></div>
                             <div class="admin-form-field">
                                 <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
                                     <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
@@ -588,7 +588,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <span class="form-label"><?php echo sr_e($assetLabel . ' 항목'); ?></span>
+                            <span class="form-label"><?php echo sr_e($assetLabel . ' 자산 설정'); ?></span>
                             <div class="admin-form-field">
                                 <?php if ($usesGroupedAssetAmounts) { ?>
                                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">

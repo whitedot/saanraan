@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2>다운로드 과금</h2>
             <div class="admin-form-row">
-                <span class="form-label">유료 다운로드</span>
+                <span class="form-label">유료 다운로드 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_download_file_asset_download_enabled">
                         <input id="content_download_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo (int) ($formValues['asset_download_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
@@ -85,7 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">차감 항목</span>
+                <span class="form-label">유료 다운로드 자산 설정</span>
                 <div class="admin-form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_download_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
                         <?php echo sr_content_asset_grouped_amount_inputs_html('content_download_file_asset_amounts_grouped', 'new_content_file_asset_module', 'new_content_file_asset_download_amounts', $assetModuleOptions, $selectedAssetModules, $formValues['asset_download_amounts_json'] ?? '', (int) ($formValues['asset_download_amount'] ?? 0), '차감 금액', sr_t('content::ui.text.3e195cdd')); ?>
