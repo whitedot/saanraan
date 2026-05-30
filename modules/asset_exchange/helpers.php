@@ -17,6 +17,82 @@ function sr_asset_exchange_execute_rate_limit_max_attempts(): int
     return 10;
 }
 
+function sr_asset_exchange_submit_token_lifetime_seconds(): int
+{
+    return 600;
+}
+
+function sr_asset_exchange_quote_token_hash(int $policyId, int $amount, array $quote): string
+{
+    return hash('sha256', implode('|', [
+        (string) $policyId,
+        (string) $amount,
+        (string) ((int) ($quote['request_amount'] ?? 0)),
+        (string) ((int) ($quote['deposit_before_fee'] ?? 0)),
+        (string) ((int) ($quote['fee_amount'] ?? 0)),
+        (string) ((int) ($quote['deposit_amount'] ?? 0)),
+    ]));
+}
+
+function sr_asset_exchange_submit_tokens(): array
+{
+    return isset($_SESSION['sr_asset_exchange_submit_tokens']) && is_array($_SESSION['sr_asset_exchange_submit_tokens'])
+        ? $_SESSION['sr_asset_exchange_submit_tokens']
+        : [];
+}
+
+function sr_asset_exchange_prune_submit_tokens(array $tokens): array
+{
+    $cutoff = time() - sr_asset_exchange_submit_token_lifetime_seconds();
+    foreach ($tokens as $token => $payload) {
+        $createdAt = is_array($payload) ? (int) ($payload['created_at'] ?? 0) : (int) $payload;
+        if ($createdAt < $cutoff) {
+            unset($tokens[$token]);
+        }
+    }
+
+    if (count($tokens) > 10) {
+        uasort($tokens, static function (mixed $left, mixed $right): int {
+            $leftCreatedAt = is_array($left) ? (int) ($left['created_at'] ?? 0) : (int) $left;
+            $rightCreatedAt = is_array($right) ? (int) ($right['created_at'] ?? 0) : (int) $right;
+            return $leftCreatedAt <=> $rightCreatedAt;
+        });
+        $tokens = array_slice($tokens, -10, null, true);
+    }
+
+    return $tokens;
+}
+
+function sr_asset_exchange_store_submit_token(int $policyId, int $amount, array $quote): string
+{
+    $token = bin2hex(random_bytes(16));
+    $tokens = sr_asset_exchange_prune_submit_tokens(sr_asset_exchange_submit_tokens());
+    $tokens[$token] = [
+        'created_at' => time(),
+        'policy_id' => $policyId,
+        'amount' => $amount,
+        'quote_hash' => sr_asset_exchange_quote_token_hash($policyId, $amount, $quote),
+    ];
+    $_SESSION['sr_asset_exchange_submit_tokens'] = $tokens;
+
+    return $token;
+}
+
+function sr_asset_exchange_consume_submit_token(string $token, int $policyId, int $amount, array $quote): bool
+{
+    $tokens = sr_asset_exchange_prune_submit_tokens(sr_asset_exchange_submit_tokens());
+    $payload = isset($tokens[$token]) && is_array($tokens[$token]) ? $tokens[$token] : null;
+    unset($tokens[$token]);
+    $_SESSION['sr_asset_exchange_submit_tokens'] = $tokens;
+    if (!is_array($payload)) {
+        return false;
+    }
+
+    return (int) ($payload['policy_id'] ?? 0) === $policyId
+        && (int) ($payload['amount'] ?? 0) === $amount
+        && hash_equals((string) ($payload['quote_hash'] ?? ''), sr_asset_exchange_quote_token_hash($policyId, $amount, $quote));
+}
+
 function sr_asset_exchange_execute_rate_limited(PDO $pdo, int $accountId): bool
 {
     if ($accountId < 1) {

@@ -37,6 +37,30 @@ function sr_coupon_issue_statuses(): array
     return ['active', 'used', 'expired', 'revoked', 'withdrawn_expired', 'refund_requested', 'refunded'];
 }
 
+function sr_coupon_expire_active_issues(PDO $pdo, ?int $accountId = null): int
+{
+    if (!sr_coupon_tables_available($pdo)) {
+        return 0;
+    }
+
+    $where = "status = 'active' AND expires_at IS NOT NULL AND expires_at < :now_value";
+    $params = ['now_value' => sr_now()];
+    if ($accountId !== null && $accountId > 0) {
+        $where .= ' AND account_id = :account_id';
+        $params['account_id'] = $accountId;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_coupon_issues
+         SET status = \'expired\',
+             updated_at = :now_value
+         WHERE ' . $where
+    );
+    $stmt->execute($params);
+
+    return $stmt->rowCount();
+}
+
 function sr_coupon_target_types(?PDO $pdo = null): array
 {
     $targetTypes = [
@@ -405,6 +429,8 @@ function sr_coupon_admin_issue_default_sort(): array
 
 function sr_coupon_admin_issues(PDO $pdo, array $runtimeConfig, array $filters, int $limit = 100, array $sort = []): array
 {
+    sr_coupon_expire_active_issues($pdo);
+
     $limit = max(1, min(300, $limit));
     $where = [];
     $params = [];
@@ -676,6 +702,8 @@ function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 
         return [];
     }
 
+    sr_coupon_expire_active_issues($pdo, $accountId);
+
     $limit = max(1, min(300, $limit));
     $stmt = $pdo->prepare(
         "SELECT i.*, d.coupon_key, d.title, d.description, d.coupon_type, d.target_type, d.target_id, d.refundable_policy, d.max_uses_per_issue
@@ -701,6 +729,8 @@ function sr_coupon_active_account_issue_count(PDO $pdo, int $accountId): int
     if ($accountId <= 0 || !sr_coupon_tables_available($pdo)) {
         return 0;
     }
+
+    sr_coupon_expire_active_issues($pdo, $accountId);
 
     $stmt = $pdo->prepare(
         "SELECT COUNT(*)
@@ -1011,6 +1041,8 @@ function sr_coupon_redeem_for_target(PDO $pdo, int $accountId, string $targetTyp
     if ($accountId <= 0 || $targetType === '' || $dedupeKey === '' || !sr_coupon_tables_available($pdo)) {
         return ['allowed' => false, 'processed' => false, 'message' => ''];
     }
+
+    sr_coupon_expire_active_issues($pdo, $accountId);
 
     if (sr_coupon_has_redemption($pdo, $accountId, $dedupeKey)) {
         return ['allowed' => true, 'processed' => false, 'already_redeemed' => true, 'message' => ''];

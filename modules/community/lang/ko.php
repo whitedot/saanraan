@@ -5,7 +5,7 @@ return [
     'action.error.attachment_view_forbidden' => '첨부 파일을 볼 수 없습니다.',
     'action.error.asset_balance_low' => '선택한 항목의 잔액이 부족합니다.',
     'action.error.asset_charge_failed' => '포인트/금액 차감에 실패했습니다.',
-    'action.error.asset_confirmation_required' => '반복 차감은 확인 요청으로만 처리할 수 있습니다.',
+    'action.error.asset_confirmation_required' => '유료 접근은 확인 요청으로만 처리할 수 있습니다.',
     'action.error.asset_modules_unavailable' => '선택한 포인트/금액 항목을 모두 사용할 수 없습니다.',
     'action.error.asset_processing_failed' => '포인트/금액 처리에 실패했습니다.',
     'action.error.board_group_not_found' => '게시판 그룹을 찾을 수 없습니다.',

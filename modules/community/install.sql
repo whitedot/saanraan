@@ -257,6 +257,7 @@ CREATE TABLE IF NOT EXISTS sr_community_asset_logs (
     direction VARCHAR(20) NOT NULL,
     charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',
     amount BIGINT NOT NULL,
+    log_status VARCHAR(20) NOT NULL DEFAULT 'completed',
     group_policy_snapshot_json TEXT NULL,
     dedupe_key VARCHAR(160) NOT NULL,
     created_at DATETIME NOT NULL,

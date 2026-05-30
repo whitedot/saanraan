@@ -665,12 +665,22 @@ function sr_community_asset_charge_policy(string $value, string $fallback = 'onc
 
 function sr_community_asset_policy_requires_confirmation(string $chargePolicy): bool
 {
-    return in_array($chargePolicy, ['every_view', 'every_download', 'every_action'], true);
+    return in_array($chargePolicy, ['once', 'every_view', 'every_download', 'every_action'], true);
 }
 
 function sr_community_asset_confirmation_required_message(): string
 {
     return sr_t('community::action.error.asset_confirmation_required');
+}
+
+function sr_community_asset_log_status_completed(): string
+{
+    return 'completed';
+}
+
+function sr_community_asset_log_status_pending(): string
+{
+    return 'pending';
 }
 
 function sr_community_asset_confirmation_session_key(string $eventKey, string $subjectType, int $accountId, int $subjectId): string
@@ -1391,7 +1401,9 @@ function sr_community_has_asset_event(PDO $pdo, string $assetModule, int $accoun
 {
     $log = sr_community_asset_log($pdo, sr_community_asset_dedupe_key($assetModule, $accountId, $eventKey, $subjectId));
 
-    return is_array($log) && ((int) ($log['transaction_id'] ?? 0) > 0 || (int) ($log['amount'] ?? -1) === 0);
+    return is_array($log)
+        && (string) ($log['log_status'] ?? sr_community_asset_log_status_completed()) === sr_community_asset_log_status_completed()
+        && ((int) ($log['transaction_id'] ?? 0) > 0 || (int) ($log['amount'] ?? -1) === 0);
 }
 
 function sr_community_has_asset_event_for_modules(PDO $pdo, array $assetModules, int $accountId, string $eventKey, int $subjectId): bool
@@ -1424,6 +1436,7 @@ function sr_community_has_asset_event_history(PDO $pdo, array $assetModules, int
            AND event_key = :event_key
            AND subject_id = :subject_id
            AND direction = \'use\'
+           AND log_status = \'completed\'
            AND (transaction_id > 0 OR amount = 0)'
         . ' LIMIT 1'
     );
@@ -1686,9 +1699,9 @@ function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_community_asset_logs
-            (account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, group_policy_snapshot_json, dedupe_key, created_at)
+            (account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:account_id, :asset_module, 0, :reference_type, :reference_id, :subject_type, :subject_id, :event_key, :direction, :charge_policy, :amount, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:account_id, :asset_module, 0, :reference_type, :reference_id, :subject_type, :subject_id, :event_key, :direction, :charge_policy, :amount, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'account_id' => (int) $row['account_id'],
@@ -1701,6 +1714,7 @@ function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
         'direction' => (string) $row['direction'],
         'charge_policy' => (string) $row['charge_policy'],
         'amount' => (int) $row['amount'],
+        'log_status' => sr_community_asset_log_status_pending(),
         'group_policy_snapshot_json' => (string) ($row['group_policy_snapshot_json'] ?? ''),
         'dedupe_key' => (string) $row['dedupe_key'],
         'created_at' => sr_now(),
@@ -1713,11 +1727,28 @@ function sr_community_update_asset_log_transaction(PDO $pdo, string $dedupeKey, 
 {
     $stmt = $pdo->prepare(
         'UPDATE sr_community_asset_logs
-         SET transaction_id = :transaction_id
+         SET transaction_id = :transaction_id,
+             log_status = :log_status
          WHERE dedupe_key = :dedupe_key'
     );
     $stmt->execute([
         'transaction_id' => $transactionId,
+        'log_status' => sr_community_asset_log_status_completed(),
+        'dedupe_key' => $dedupeKey,
+    ]);
+}
+
+function sr_community_complete_zero_asset_log(PDO $pdo, string $dedupeKey): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_asset_logs
+         SET log_status = :log_status
+         WHERE dedupe_key = :dedupe_key
+           AND transaction_id = 0
+           AND amount = 0'
+    );
+    $stmt->execute([
+        'log_status' => sr_community_asset_log_status_completed(),
         'dedupe_key' => $dedupeKey,
     ]);
 }
@@ -1727,9 +1758,12 @@ function sr_community_delete_asset_log_placeholder(PDO $pdo, string $dedupeKey):
     $stmt = $pdo->prepare(
         'DELETE FROM sr_community_asset_logs
          WHERE dedupe_key = :dedupe_key
-           AND transaction_id = 0'
+           AND log_status = :log_status'
     );
-    $stmt->execute(['dedupe_key' => $dedupeKey]);
+    $stmt->execute([
+        'dedupe_key' => $dedupeKey,
+        'log_status' => sr_community_asset_log_status_pending(),
+    ]);
 }
 
 function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason): array
@@ -1806,6 +1840,7 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
                 'group_policy_snapshot_json' => $policySnapshotJson,
                 'dedupe_key' => $dedupeKey,
             ]);
+            sr_community_complete_zero_asset_log($pdo, $dedupeKey);
             if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
                 sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
             }
@@ -1839,6 +1874,19 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
             'amount' => 0,
             'direction' => $direction,
+            'message' => '',
+        ];
+    }
+
+    if ($alreadyProcessed) {
+        return [
+            'allowed' => true,
+            'processed' => false,
+            'already_processed' => true,
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => $amount,
+            'confirmation_fingerprint' => $confirmationFingerprint,
             'message' => '',
         ];
     }

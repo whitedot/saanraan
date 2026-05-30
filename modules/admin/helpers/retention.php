@@ -190,7 +190,28 @@ function sr_admin_retention_rate_limits_table_exists(PDO $pdo): bool
     }
 }
 
-function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable, bool $hasRuntimeSessionsTable = false, bool $hasRateLimitsTable = false): array
+function sr_admin_retention_content_asset_tables_exist(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT log_status FROM sr_content_asset_access_logs LIMIT 1');
+        $pdo->query('SELECT log_status FROM sr_content_asset_action_logs LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function sr_admin_retention_community_asset_tables_exist(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT log_status FROM sr_community_asset_logs LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable, bool $hasRuntimeSessionsTable = false, bool $hasRateLimitsTable = false, bool $hasContentAssetTables = false, bool $hasCommunityAssetTables = false): array
 {
     return [
         'auth_logs' => [
@@ -314,6 +335,75 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
                 'expired_cutoff' => 'sessions',
             ],
         ],
+        'content_asset_access_pending_logs' => [
+            'enabled' => $hasContentAssetTables,
+            'auto_scope' => 'admin',
+            'cutoff_key' => 'sessions',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM sr_content_asset_access_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'sessions',
+            ],
+            'delete_sql' => 'DELETE FROM sr_content_asset_access_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_content_asset_access_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff
+             ORDER BY id ASC
+             LIMIT {limit}',
+            'delete_params' => [
+                'cutoff' => 'sessions',
+            ],
+        ],
+        'content_asset_action_pending_logs' => [
+            'enabled' => $hasContentAssetTables,
+            'auto_scope' => 'admin',
+            'cutoff_key' => 'sessions',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM sr_content_asset_action_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'sessions',
+            ],
+            'delete_sql' => 'DELETE FROM sr_content_asset_action_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_content_asset_action_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff
+             ORDER BY id ASC
+             LIMIT {limit}',
+            'delete_params' => [
+                'cutoff' => 'sessions',
+            ],
+        ],
+        'community_asset_pending_logs' => [
+            'enabled' => $hasCommunityAssetTables,
+            'auto_scope' => 'admin',
+            'cutoff_key' => 'sessions',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM sr_community_asset_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'sessions',
+            ],
+            'delete_sql' => 'DELETE FROM sr_community_asset_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_community_asset_logs
+             WHERE log_status = \'pending\'
+               AND created_at < :cutoff
+             ORDER BY id ASC
+             LIMIT {limit}',
+            'delete_params' => [
+                'cutoff' => 'sessions',
+            ],
+        ],
         'notifications' => [
             'enabled' => $hasNotificationTables,
             'auto_scope' => 'public',
@@ -405,6 +495,9 @@ function sr_admin_retention_cleanup_target_keys(?string $autoScope = null): arra
         'sessions',
         'runtime_sessions',
         'rate_limits',
+        'content_asset_access_pending_logs',
+        'content_asset_action_pending_logs',
+        'community_asset_pending_logs',
         'notification_deliveries',
         'notification_reads',
         'notifications',
@@ -416,7 +509,7 @@ function sr_admin_retention_cleanup_target_keys(?string $autoScope = null): arra
     }
 
     $scopedKeys = [];
-    $targets = sr_admin_retention_target_definitions(true, true, true, true);
+    $targets = sr_admin_retention_target_definitions(true, true, true, true, true, true);
     foreach ($targetKeys as $targetKey) {
         if ((string) ($targets[$targetKey]['auto_scope'] ?? '') === $autoScope) {
             $scopedKeys[] = $targetKey;
@@ -542,7 +635,9 @@ function sr_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, bool
         $hasNotificationTables,
         sr_member_sessions_table_exists($pdo),
         sr_admin_retention_runtime_sessions_table_exists($pdo),
-        sr_admin_retention_rate_limits_table_exists($pdo)
+        sr_admin_retention_rate_limits_table_exists($pdo),
+        sr_admin_retention_content_asset_tables_exist($pdo),
+        sr_admin_retention_community_asset_tables_exist($pdo)
     );
 
     foreach ($targets as $key => $target) {
@@ -574,7 +669,9 @@ function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNo
         $hasNotificationTables,
         sr_member_sessions_table_exists($pdo),
         sr_admin_retention_runtime_sessions_table_exists($pdo),
-        sr_admin_retention_rate_limits_table_exists($pdo)
+        sr_admin_retention_rate_limits_table_exists($pdo),
+        sr_admin_retention_content_asset_tables_exist($pdo),
+        sr_admin_retention_community_asset_tables_exist($pdo)
     );
     $deletedCounts = [];
     foreach (sr_admin_retention_cleanup_target_keys($autoScope) as $key) {

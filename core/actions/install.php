@@ -82,13 +82,13 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.05.017',
+        'version' => '2026.05.018',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.05.024',
+        'version' => '2026.05.025',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],

@@ -23,17 +23,25 @@ if (sr_request_method() === 'POST') {
     $policyId = (int) sr_post_string('policy_id', 30);
     $amount = sr_asset_exchange_int_string(sr_post_string('amount', 30));
     $submitToken = sr_post_string('exchange_submit_token', 80);
-    $validTokens = isset($_SESSION['sr_asset_exchange_submit_tokens']) && is_array($_SESSION['sr_asset_exchange_submit_tokens'])
-        ? $_SESSION['sr_asset_exchange_submit_tokens']
-        : [];
     $selectedPolicy = sr_asset_exchange_policy($pdo, $policyId);
-    if ($submitToken === '' || !isset($validTokens[$submitToken])) {
-        $errors[] = '이미 처리했거나 만료된 환전 요청입니다. 예상 금액을 다시 확인하세요.';
-    } elseif (!is_array($selectedPolicy)) {
+    if (!is_array($selectedPolicy)) {
         $errors[] = '환전 정책을 선택하세요.';
     } else {
-        unset($validTokens[$submitToken]);
-        $_SESSION['sr_asset_exchange_submit_tokens'] = $validTokens;
+        try {
+            $quote = sr_asset_exchange_quote($pdo, $selectedPolicy, (int) $account['id'], $amount);
+        } catch (Throwable $exception) {
+            $quote = null;
+            $errors[] = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 예상 금액을 계산할 수 없습니다.';
+        }
+    }
+
+    if (is_array($selectedPolicy) && is_array($quote ?? null)) {
+        if ($submitToken === '' || !sr_asset_exchange_consume_submit_token($submitToken, (int) $selectedPolicy['id'], $amount, $quote)) {
+            $errors[] = '이미 처리했거나 만료된 환전 요청입니다. 예상 금액을 다시 확인하세요.';
+        }
+    }
+
+    if ($errors === [] && is_array($selectedPolicy)) {
         if (sr_asset_exchange_execute_rate_limited($pdo, (int) $account['id'])) {
             $errors[] = '환전 요청이 너무 많습니다. 잠시 후 다시 시도하세요.';
         } else {
@@ -84,16 +92,9 @@ if (sr_request_method() === 'POST') {
 
 $exchangeSubmitToken = '';
 if (is_array($selectedPolicy) && is_array($quote)) {
-    $exchangeSubmitToken = bin2hex(random_bytes(16));
-    $validTokens = isset($_SESSION['sr_asset_exchange_submit_tokens']) && is_array($_SESSION['sr_asset_exchange_submit_tokens'])
-        ? $_SESSION['sr_asset_exchange_submit_tokens']
-        : [];
-    $validTokens[$exchangeSubmitToken] = time();
-    if (count($validTokens) > 10) {
-        asort($validTokens);
-        $validTokens = array_slice($validTokens, -10, null, true);
-    }
-    $_SESSION['sr_asset_exchange_submit_tokens'] = $validTokens;
+    $exchangeSubmitToken = sr_asset_exchange_store_submit_token((int) $selectedPolicy['id'], (int) $quote['request_amount'], $quote);
+} else {
+    $_SESSION['sr_asset_exchange_submit_tokens'] = sr_asset_exchange_prune_submit_tokens(sr_asset_exchange_submit_tokens());
 }
 
 $balances = [];

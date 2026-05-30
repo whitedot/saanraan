@@ -58,10 +58,11 @@ function sr_deposit_create_transaction(PDO $pdo, array $data): int
             'created_by_account_id' => $createdByAccountId,
         ]);
 
-        sr_deposit_notify_transaction_created($pdo, $transactionId);
-
         if ($startedTransaction) {
             $pdo->commit();
+            sr_deposit_notify_transaction_created($pdo, $transactionId);
+        } else {
+            sr_deposit_defer_transaction_notification($pdo, $transactionId);
         }
     } catch (Throwable $exception) {
         if ($startedTransaction && $pdo->inTransaction()) {
@@ -72,6 +73,20 @@ function sr_deposit_create_transaction(PDO $pdo, array $data): int
     }
 
     return $transactionId;
+}
+
+function sr_deposit_defer_transaction_notification(PDO $pdo, int $transactionId): void
+{
+    if ($transactionId <= 0) {
+        return;
+    }
+
+    register_shutdown_function(static function () use ($pdo, $transactionId): void {
+        if ($pdo->inTransaction()) {
+            return;
+        }
+        sr_deposit_notify_transaction_created($pdo, $transactionId);
+    });
 }
 
 function sr_deposit_transaction_type_allows_amount(string $transactionType, int $amount): bool

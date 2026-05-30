@@ -21,6 +21,11 @@ if (!is_string($helper)) {
     if (strpos($helper, 'SELECT id FROM sr_coupon_definitions WHERE coupon_key = :coupon_key LIMIT 1') === false) {
         $errors[] = 'Coupon definitions must reject duplicate coupon_key values before insert.';
     }
+    if (strpos($helper, 'function sr_coupon_expire_active_issues(PDO $pdo, ?int $accountId = null): int') === false
+        || substr_count($helper, 'sr_coupon_expire_active_issues($pdo') < 4
+    ) {
+        $errors[] = 'Coupon issue queries and redemption must transition expired active issues.';
+    }
 }
 
 $action = file_get_contents($root . '/modules/coupon/actions/admin-coupons.php');
@@ -54,6 +59,13 @@ if (!is_string($module)
 }
 if (!is_string($update) || strpos($update, "WHERE module_key = 'coupon'") === false) {
     $errors[] = 'Coupon validation update must include a module version marker update.';
+}
+$expiryUpdate = file_get_contents($root . '/modules/coupon/updates/2026.05.006.sql');
+if (!is_string($expiryUpdate)
+    || strpos($expiryUpdate, "SET status = 'expired'") === false
+    || strpos($expiryUpdate, "WHERE module_key = 'coupon'") === false
+) {
+    $errors[] = 'Coupon expiry update must transition existing expired active issues and bump the module version.';
 }
 
 if ($errors !== []) {

@@ -54,6 +54,20 @@ if (!is_string($smokeTest) || strpos($smokeTest, '짧은 시간 반복 실행은
     $errors[] = 'Smoke test docs must include asset exchange account rate limit coverage.';
 }
 
+if (
+    !is_string($helper)
+    || strpos($helper, 'function sr_asset_exchange_submit_token_lifetime_seconds(): int') === false
+    || strpos($helper, 'function sr_asset_exchange_quote_token_hash(int $policyId, int $amount, array $quote): string') === false
+    || strpos($helper, 'function sr_asset_exchange_consume_submit_token(string $token, int $policyId, int $amount, array $quote): bool') === false
+    || strpos($helper, "'quote_hash' => sr_asset_exchange_quote_token_hash") === false
+) {
+    $errors[] = 'Asset exchange submit tokens must expire and be bound to policy, amount, and quote.';
+}
+
+if (!is_string($accountAction) || strpos($accountAction, 'sr_asset_exchange_consume_submit_token($submitToken, (int) $selectedPolicy[\'id\'], $amount, $quote)') === false) {
+    $errors[] = 'Asset exchange account action must verify the bound quote token before execution.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "asset exchange log checks failed:\n");
     foreach ($errors as $error) {

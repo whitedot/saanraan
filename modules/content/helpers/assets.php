@@ -46,12 +46,22 @@ function sr_content_asset_download_charge_policies(): array
 
 function sr_content_asset_policy_requires_confirmation(string $chargePolicy): bool
 {
-    return in_array($chargePolicy, ['every_view', 'every_download'], true);
+    return in_array($chargePolicy, ['once', 'every_view', 'every_download'], true);
 }
 
 function sr_content_asset_confirmation_required_message(): string
 {
     return sr_t('content::action.error.asset_confirmation_required');
+}
+
+function sr_content_asset_log_status_completed(): string
+{
+    return 'completed';
+}
+
+function sr_content_asset_log_status_pending(): string
+{
+    return 'pending';
 }
 
 function sr_content_asset_confirmation_session_key(string $accessKind, int $accountId, int $subjectId): string
@@ -1400,9 +1410,9 @@ function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_access_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, group_policy_snapshot_json, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -1413,6 +1423,7 @@ function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $
         'access_kind' => $accessKind,
         'charge_policy' => $chargePolicy,
         'amount' => $amount,
+        'log_status' => sr_content_asset_log_status_pending(),
         'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,
         'created_at' => sr_now(),
@@ -1425,11 +1436,28 @@ function sr_content_update_asset_access_transaction(PDO $pdo, string $dedupeKey,
 {
     $stmt = $pdo->prepare(
         'UPDATE sr_content_asset_access_logs
-         SET transaction_id = :transaction_id
+         SET transaction_id = :transaction_id,
+             log_status = :log_status
          WHERE dedupe_key = :dedupe_key'
     );
     $stmt->execute([
         'transaction_id' => $transactionId,
+        'log_status' => sr_content_asset_log_status_completed(),
+        'dedupe_key' => $dedupeKey,
+    ]);
+}
+
+function sr_content_complete_zero_asset_access_log(PDO $pdo, string $dedupeKey): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE sr_content_asset_access_logs
+         SET log_status = :log_status
+         WHERE dedupe_key = :dedupe_key
+           AND transaction_id = 0
+           AND amount = 0'
+    );
+    $stmt->execute([
+        'log_status' => sr_content_asset_log_status_completed(),
         'dedupe_key' => $dedupeKey,
     ]);
 }
@@ -1439,9 +1467,12 @@ function sr_content_delete_asset_access_placeholder(PDO $pdo, string $dedupeKey)
     $stmt = $pdo->prepare(
         'DELETE FROM sr_content_asset_access_logs
          WHERE dedupe_key = :dedupe_key
-           AND transaction_id = 0'
+           AND log_status = :log_status'
     );
-    $stmt->execute(['dedupe_key' => $dedupeKey]);
+    $stmt->execute([
+        'dedupe_key' => $dedupeKey,
+        'log_status' => sr_content_asset_log_status_pending(),
+    ]);
 }
 
 function sr_content_asset_access_result(PDO $pdo, bool $allowed, bool $charged, string $assetModuleValue, int $amount, string $message = '', array $extra = []): array
@@ -1500,6 +1531,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         }
         try {
             sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, 0, $chargePolicy, $dedupeKey, 'content.view', null, 'view', $policySnapshotJson);
+            sr_content_complete_zero_asset_access_log($pdo, $dedupeKey);
             sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content', $pageId, 'view', 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
             if ($startedTransaction) {
                 $pdo->commit();
@@ -1517,16 +1549,16 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true]);
     }
 
+    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
+        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
+    }
+
     if (sr_content_asset_policy_requires_confirmation($chargePolicy) && sr_request_method() !== 'POST') {
         if (sr_content_consume_asset_confirmation_session('view', $accountId, $pageId, $confirmationFingerprint)) {
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
-    }
-
-    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
-        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
     }
 
     $startedTransaction = !$pdo->inTransaction();
@@ -1697,6 +1729,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         }
         try {
             sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, 0, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download', $policySnapshotJson);
+            sr_content_complete_zero_asset_access_log($pdo, $dedupeKey);
             sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
             $accessLog = sr_content_asset_access_log($pdo, $dedupeKey);
             if (is_array($accessLog)) {
@@ -1718,16 +1751,16 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
     }
 
+    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
+        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
+    }
+
     if (sr_content_asset_policy_requires_confirmation($chargePolicy) && sr_request_method() !== 'POST') {
         if (sr_content_consume_asset_confirmation_session('download', $accountId, $fileId, $confirmationFingerprint)) {
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
-    }
-
-    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
-        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
     }
 
     $allocations = $amounts !== []
@@ -1823,7 +1856,9 @@ function sr_content_has_completed_asset_action(PDO $pdo, string $assetModule, in
 {
     $log = sr_content_asset_action_log($pdo, sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId));
 
-    return is_array($log) && ((int) ($log['transaction_id'] ?? 0) > 0 || (int) ($log['amount'] ?? -1) === 0);
+    return is_array($log)
+        && (string) ($log['log_status'] ?? sr_content_asset_log_status_completed()) === sr_content_asset_log_status_completed()
+        && ((int) ($log['transaction_id'] ?? 0) > 0 || (int) ($log['amount'] ?? -1) === 0);
 }
 
 function sr_content_has_completed_asset_action_for_modules(PDO $pdo, array $assetModules, int $accountId, int $pageId): bool
@@ -1841,9 +1876,9 @@ function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_action_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, group_policy_snapshot_json, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -1854,6 +1889,7 @@ function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $
         'action_key' => 'complete',
         'direction' => $direction,
         'amount' => $amount,
+        'log_status' => sr_content_asset_log_status_pending(),
         'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,
         'created_at' => sr_now(),
@@ -1866,11 +1902,28 @@ function sr_content_update_asset_action_transaction(PDO $pdo, string $dedupeKey,
 {
     $stmt = $pdo->prepare(
         'UPDATE sr_content_asset_action_logs
-         SET transaction_id = :transaction_id
+         SET transaction_id = :transaction_id,
+             log_status = :log_status
          WHERE dedupe_key = :dedupe_key'
     );
     $stmt->execute([
         'transaction_id' => $transactionId,
+        'log_status' => sr_content_asset_log_status_completed(),
+        'dedupe_key' => $dedupeKey,
+    ]);
+}
+
+function sr_content_complete_zero_asset_action_log(PDO $pdo, string $dedupeKey): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE sr_content_asset_action_logs
+         SET log_status = :log_status
+         WHERE dedupe_key = :dedupe_key
+           AND transaction_id = 0
+           AND amount = 0'
+    );
+    $stmt->execute([
+        'log_status' => sr_content_asset_log_status_completed(),
         'dedupe_key' => $dedupeKey,
     ]);
 }
@@ -1880,9 +1933,12 @@ function sr_content_delete_asset_action_placeholder(PDO $pdo, string $dedupeKey)
     $stmt = $pdo->prepare(
         'DELETE FROM sr_content_asset_action_logs
          WHERE dedupe_key = :dedupe_key
-           AND transaction_id = 0'
+           AND log_status = :log_status'
     );
-    $stmt->execute(['dedupe_key' => $dedupeKey]);
+    $stmt->execute([
+        'dedupe_key' => $dedupeKey,
+        'log_status' => sr_content_asset_log_status_pending(),
+    ]);
 }
 
 function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): array
@@ -1937,6 +1993,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
         sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, 0, $dedupeKey, sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
+        sr_content_complete_zero_asset_action_log($pdo, $dedupeKey);
         return [
             'allowed' => true,
             'completed' => true,
@@ -1964,6 +2021,11 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
     }
 
     $dedupeKey = '';
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
     try {
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
@@ -1990,8 +2052,14 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             ]);
             sr_content_update_asset_action_transaction($pdo, $dedupeKey, $transactionId);
         }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
     } catch (Throwable $exception) {
-        if ($dedupeKey !== '') {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_action_placeholder($pdo, $dedupeKey);
         }
         if (function_exists('sr_log_exception')) {

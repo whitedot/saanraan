@@ -32,6 +32,18 @@ if (!is_string($contentDownload)) {
     }
 }
 
+$contentAssets = file_get_contents($root . '/modules/content/helpers/assets.php');
+if (!is_string($contentAssets)) {
+    $errors[] = 'Content asset helper cannot be read.';
+} else {
+    if (strpos($contentAssets, "return in_array(\$chargePolicy, ['once', 'every_view', 'every_download'], true);") === false) {
+        $errors[] = 'Content paid access must require POST confirmation for once and repeated charge policies.';
+    }
+    if (strpos($contentAssets, "log_status = :log_status") === false || strpos($contentAssets, 'sr_content_asset_log_status_pending()') === false) {
+        $errors[] = 'Content asset logs must distinguish pending placeholders from completed zero-amount logs.';
+    }
+}
+
 $communityAttachment = file_get_contents($root . '/modules/community/actions/attachment.php');
 if (!is_string($communityAttachment)) {
     $errors[] = 'Community attachment action cannot be read.';
@@ -47,6 +59,18 @@ if (!is_string($communityAttachment)) {
     }
     if (!sr_check_order($communityAttachment, 'sr_community_run_asset_event(', 'readfile($filePath)')) {
         $errors[] = 'Community attachments must charge before streaming a prepared local file.';
+    }
+}
+
+$communityAssets = file_get_contents($root . '/modules/community/helpers/assets.php');
+if (!is_string($communityAssets)) {
+    $errors[] = 'Community asset helper cannot be read.';
+} else {
+    if (strpos($communityAssets, "return in_array(\$chargePolicy, ['once', 'every_view', 'every_download', 'every_action'], true);") === false) {
+        $errors[] = 'Community paid access must require POST confirmation for once and repeated charge policies.';
+    }
+    if (strpos($communityAssets, "log_status = :log_status") === false || strpos($communityAssets, 'sr_community_asset_log_status_pending()') === false) {
+        $errors[] = 'Community asset logs must distinguish pending placeholders from completed zero-amount logs.';
     }
 }
 

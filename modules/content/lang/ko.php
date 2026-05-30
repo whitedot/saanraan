@@ -3,7 +3,7 @@
 return [
     'action.error.download_file_not_found' => '다운로드할 파일을 찾을 수 없습니다.',
     'action.error.download_forbidden' => '파일을 다운로드할 수 없습니다.',
-    'action.error.asset_confirmation_required' => '반복 차감은 확인 요청으로만 처리할 수 있습니다.',
+    'action.error.asset_confirmation_required' => '유료 접근은 확인 요청으로만 처리할 수 있습니다.',
     'action.error.content_complete_not_found' => '완료 버튼을 처리할 콘텐츠를 찾을 수 없습니다.',
     'action.error.content_edit_not_found' => '수정할 콘텐츠를 찾을 수 없습니다.',
     'action.error.content_group_edit_not_found' => '수정할 콘텐츠 그룹을 찾을 수 없습니다.',
