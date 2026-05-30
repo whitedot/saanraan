@@ -12,7 +12,9 @@ if (sr_request_method() === 'POST') {
 
 $fileIdValue = sr_request_method() === 'POST' ? sr_post_string('id', 20) : sr_get_string('id', 20);
 $fileId = preg_match('/\A[1-9][0-9]*\z/', $fileIdValue) === 1 ? (int) $fileIdValue : 0;
-$file = sr_content_published_file_by_id($pdo, $fileId);
+$contentIdValue = sr_request_method() === 'POST' ? sr_post_string('content_id', 20) : sr_get_string('content_id', 20);
+$contentId = preg_match('/\A[1-9][0-9]*\z/', $contentIdValue) === 1 ? (int) $contentIdValue : 0;
+$file = sr_content_published_file_by_id($pdo, $fileId, $contentId);
 if (!is_array($file)) {
     sr_render_error(404, sr_t('content::action.error.download_file_not_found'));
 }
@@ -53,14 +55,19 @@ if ($driver === 's3') {
     }
 }
 
+$downloadAccountId = null;
+$downloadAccess = [];
+$downloadAlreadyRecorded = false;
 if (sr_content_file_download_required($file)) {
     $account = sr_member_require_login($pdo);
+    $downloadAccountId = (int) $account['id'];
     $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id']);
     if (empty($downloadAccess['allowed'])) {
         if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
             $assetConfirmationMessage = (string) ($downloadAccess['message'] ?? sr_content_asset_confirmation_required_message());
             $assetConfirmationAction = '/content/download';
             $assetConfirmationId = (int) $file['id'];
+            $assetConfirmationContentId = (int) ($file['content_id'] ?? 0);
             include SR_ROOT . '/modules/content/views/asset-confirmation.php';
             return;
         }
@@ -73,8 +80,19 @@ if (sr_content_file_download_required($file)) {
         if (sr_content_asset_policy_requires_confirmation((string) ($file['asset_charge_policy'] ?? 'once'))) {
             sr_content_mark_asset_confirmation_session('download', (int) $account['id'], (int) $file['id'], (string) ($downloadAccess['confirmation_fingerprint'] ?? ''));
         }
-        sr_redirect('/content/download?id=' . rawurlencode((string) $file['id']));
+        sr_content_record_file_download($pdo, $file, $downloadAccountId, $downloadAccess);
+        $downloadAlreadyRecorded = true;
+        sr_redirect('/content/download?id=' . rawurlencode((string) $file['id']) . '&content_id=' . rawurlencode((string) (int) ($file['content_id'] ?? 0)));
     }
+} else {
+    $currentAccount = sr_member_current_account($pdo);
+    if (is_array($currentAccount)) {
+        $downloadAccountId = (int) $currentAccount['id'];
+    }
+}
+
+if (!$downloadAlreadyRecorded && empty($downloadAccess['confirmed_access'])) {
+    sr_content_record_file_download($pdo, $file, $downloadAccountId, $downloadAccess);
 }
 
 if ($downloadUrl !== '') {

@@ -192,6 +192,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) $downloadFile['updated_at']); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
+                                        <a href="<?php echo sr_e(sr_url('/admin/content/file-downloads?file_id=' . rawurlencode((string) (int) $downloadFile['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="다운로드 내역" title="다운로드 내역"><?php echo sr_material_icon_html('history'); ?></a>
                                         <a href="<?php echo sr_e(sr_url('/admin/content/files?id=' . rawurlencode((string) (int) $downloadFile['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
                                         <?php if ($downloadFileStatus === 'active') { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-inline-form">

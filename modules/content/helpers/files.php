@@ -131,10 +131,38 @@ function sr_content_files_for_content(PDO $pdo, int $pageId): array
     return $stmt->fetchAll();
 }
 
-function sr_content_file_by_id(PDO $pdo, int $fileId): ?array
+function sr_content_file_by_id(PDO $pdo, int $fileId, int $contentId = 0): ?array
 {
     if ($fileId < 1) {
         return null;
+    }
+
+    if ($contentId > 0) {
+        $stmt = $pdo->prepare(
+            "SELECT f.*,
+                    :content_id_result AS content_id,
+                    p.slug,
+                    p.title AS content_title,
+                    p.status AS content_status
+             FROM sr_content_files f
+             INNER JOIN sr_content_items p ON p.id = :content_id
+             LEFT JOIN sr_content_file_links l
+               ON l.file_id = f.id
+              AND l.content_id = p.id
+              AND l.status = 'active'
+             WHERE f.id = :id
+               AND f.status = 'active'
+               AND (l.id IS NOT NULL OR f.content_id = p.id)
+             LIMIT 1"
+        );
+        $stmt->execute([
+            'content_id_result' => $contentId,
+            'content_id' => $contentId,
+            'id' => $fileId,
+        ]);
+        $row = $stmt->fetch();
+
+        return is_array($row) ? $row : null;
     }
 
     $stmt = $pdo->prepare(
@@ -168,9 +196,9 @@ function sr_content_file_by_id(PDO $pdo, int $fileId): ?array
     return is_array($row) ? $row : null;
 }
 
-function sr_content_published_file_by_id(PDO $pdo, int $fileId): ?array
+function sr_content_published_file_by_id(PDO $pdo, int $fileId, int $contentId = 0): ?array
 {
-    $file = sr_content_file_by_id($pdo, $fileId);
+    $file = sr_content_file_by_id($pdo, $fileId, $contentId);
     if (!is_array($file) || (string) ($file['content_status'] ?? '') !== 'published') {
         return null;
     }
@@ -608,6 +636,423 @@ function sr_content_admin_download_file_by_id(PDO $pdo, int $fileId): ?array
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_content_file_download_logs_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT 1 FROM sr_content_file_download_logs LIMIT 1');
+        $exists = $stmt !== false;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId, array $accessResult = []): void
+{
+    if (!sr_content_file_download_logs_table_exists($pdo)) {
+        return;
+    }
+
+    $accessLogIds = [];
+    foreach ((array) ($accessResult['access_log_ids'] ?? []) as $accessLogId) {
+        $accessLogId = (int) $accessLogId;
+        if ($accessLogId > 0) {
+            $accessLogIds[$accessLogId] = $accessLogId;
+        }
+    }
+    $accessLogIdsJson = json_encode(array_values($accessLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $downloadType = (int) ($file['asset_download_enabled'] ?? 0) === 1 ? 'paid' : 'free';
+    $amount = $downloadType === 'paid' && $accessLogIds !== [] ? (int) ($accessResult['amount'] ?? 0) : 0;
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_content_file_download_logs
+            (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at)
+         VALUES
+            (:content_id, :file_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :created_at)'
+    );
+    $stmt->execute([
+        'content_id' => (int) ($file['content_id'] ?? 0),
+        'file_id' => (int) ($file['id'] ?? 0),
+        'account_id' => $accountId !== null && $accountId > 0 ? $accountId : null,
+        'download_type' => $downloadType,
+        'charge_policy' => (string) ($file['asset_charge_policy'] ?? 'once'),
+        'asset_module' => (string) ($accessResult['asset_module'] ?? $file['asset_module'] ?? ''),
+        'amount' => $amount,
+        'asset_access_log_ids_json' => is_string($accessLogIdsJson) ? $accessLogIdsJson : '[]',
+        'created_at' => sr_now(),
+    ]);
+}
+
+function sr_content_admin_file_download_log_sort_options(): array
+{
+    return [
+        'created_at' => ['label' => '다운로드 시각', 'columns' => ['d.created_at', 'd.id']],
+        'content_title' => ['label' => '콘텐츠', 'columns' => ['p.title', 'd.id']],
+        'file_title' => ['label' => '파일', 'columns' => ['f.title', 'd.id']],
+        'account_id' => ['label' => '회원', 'columns' => ['d.account_id', 'd.id']],
+        'download_type' => ['label' => '구분', 'columns' => ['d.download_type', 'd.id']],
+        'amount' => ['label' => '금액', 'columns' => ['d.amount', 'd.id']],
+    ];
+}
+
+function sr_content_admin_file_download_log_default_sort(): array
+{
+    return sr_admin_sort_default('created_at', 'desc');
+}
+
+function sr_content_admin_file_download_log_where_sql(array $filters): array
+{
+    $conditions = [];
+    $params = [];
+
+    $contentId = (int) ($filters['content_id'] ?? 0);
+    if ($contentId > 0) {
+        $conditions[] = 'd.content_id = :content_id';
+        $params['content_id'] = $contentId;
+    }
+
+    $fileId = (int) ($filters['file_id'] ?? 0);
+    if ($fileId > 0) {
+        $conditions[] = 'd.file_id = :file_id';
+        $params['file_id'] = $fileId;
+    }
+
+    $accountId = (int) ($filters['account_id'] ?? 0);
+    if ($accountId > 0) {
+        $conditions[] = 'd.account_id = :account_id';
+        $params['account_id'] = $accountId;
+    }
+
+    $downloadType = (string) ($filters['download_type'] ?? '');
+    if (in_array($downloadType, ['free', 'paid'], true)) {
+        $conditions[] = 'd.download_type = :download_type';
+        $params['download_type'] = $downloadType;
+    }
+
+    $refundStatus = (string) ($filters['refund_status'] ?? '');
+    if (in_array($refundStatus, ['none', 'refunded', 'access_revoked'], true)) {
+        if ($refundStatus === 'none') {
+            $conditions[] = "d.refund_status = ''";
+        } else {
+            $conditions[] = 'd.refund_status = :refund_status';
+            $params['refund_status'] = $refundStatus;
+        }
+    }
+
+    $dateFrom = (string) ($filters['date_from'] ?? '');
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $dateFrom) === 1) {
+        $conditions[] = 'd.created_at >= :date_from';
+        $params['date_from'] = $dateFrom . ' 00:00:00';
+    }
+
+    $dateTo = (string) ($filters['date_to'] ?? '');
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $dateTo) === 1) {
+        $conditions[] = 'd.created_at <= :date_to';
+        $params['date_to'] = $dateTo . ' 23:59:59';
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        $conditions[] = '(p.title LIKE :q OR p.slug LIKE :q OR f.title LIKE :q OR f.original_name LIKE :q OR a.email LIKE :q OR a.display_name LIKE :q)';
+        $params['q'] = '%' . $q . '%';
+    }
+
+    return [
+        'sql' => $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '',
+        'params' => $params,
+    ];
+}
+
+function sr_content_admin_file_download_log_count(PDO $pdo, array $filters): int
+{
+    if (!sr_content_file_download_logs_table_exists($pdo)) {
+        return 0;
+    }
+
+    $where = sr_content_admin_file_download_log_where_sql($filters);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_content_file_download_logs d
+         LEFT JOIN sr_content_items p ON p.id = d.content_id
+         LEFT JOIN sr_content_files f ON f.id = d.file_id
+         LEFT JOIN sr_member_accounts a ON a.id = d.account_id
+         ' . $where['sql']
+    );
+    $stmt->execute($where['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limit, int $offset, array $sort = []): array
+{
+    if (!sr_content_file_download_logs_table_exists($pdo)) {
+        return [];
+    }
+
+    $where = sr_content_admin_file_download_log_where_sql($filters);
+    $stmt = $pdo->prepare(
+        'SELECT d.*,
+                p.title AS content_title,
+                p.slug AS content_slug,
+                p.status AS content_status,
+                f.title AS file_title,
+                f.original_name,
+                f.status AS file_status,
+                a.email,
+                a.display_name,
+                rb.display_name AS refunded_by_display_name,
+                GROUP_CONCAT(CONCAT(al.asset_module, ":", al.transaction_id, ":", al.amount, ":", COALESCE(al.group_policy_snapshot_json, "")) ORDER BY al.id ASC SEPARATOR "\n") AS access_log_summary
+         FROM sr_content_file_download_logs d
+         LEFT JOIN sr_content_items p ON p.id = d.content_id
+         LEFT JOIN sr_content_files f ON f.id = d.file_id
+         LEFT JOIN sr_member_accounts a ON a.id = d.account_id
+         LEFT JOIN sr_member_accounts rb ON rb.id = d.refunded_by_account_id
+         LEFT JOIN sr_content_asset_access_logs al
+           ON al.access_kind = \'download\'
+          AND al.reference_type = \'content.download\'
+          AND al.reference_id = CAST(d.file_id AS CHAR)
+          AND al.account_id = d.account_id
+          AND al.content_id = d.content_id
+          AND (
+                d.asset_access_log_ids_json = CONCAT(\'[\', al.id, \']\')
+             OR d.asset_access_log_ids_json LIKE CONCAT(\'[\', al.id, \',%\')
+             OR d.asset_access_log_ids_json LIKE CONCAT(\'%,\', al.id, \',%\')
+             OR d.asset_access_log_ids_json LIKE CONCAT(\'%,\', al.id, \']\')
+          )
+         ' . $where['sql'] . '
+         GROUP BY d.id
+         ' . sr_admin_sort_order_sql(sr_content_admin_file_download_log_sort_options(), $sort, sr_content_admin_file_download_log_default_sort()) . '
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($where['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_admin_file_download_log_by_id_for_update(PDO $pdo, int $downloadLogId): ?array
+{
+    if ($downloadLogId <= 0 || !sr_content_file_download_logs_table_exists($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_content_file_download_logs WHERE id = :id LIMIT 1 FOR UPDATE');
+    $stmt->execute(['id' => $downloadLogId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_file_download_log_access_log_ids(array $downloadLog): array
+{
+    $decoded = json_decode((string) ($downloadLog['asset_access_log_ids_json'] ?? '[]'), true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($decoded as $value) {
+        $id = (int) $value;
+        if ($id > 0) {
+            $ids[$id] = $id;
+        }
+    }
+
+    return array_values($ids);
+}
+
+function sr_content_file_download_access_logs_for_refund(PDO $pdo, array $downloadLog): array
+{
+    $ids = sr_content_file_download_log_access_log_ids($downloadLog);
+    if ($ids === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = [
+        'content_id' => (int) ($downloadLog['content_id'] ?? 0),
+        'file_id' => (string) (int) ($downloadLog['file_id'] ?? 0),
+        'account_id' => (int) ($downloadLog['account_id'] ?? 0),
+    ];
+    foreach ($ids as $index => $id) {
+        $key = 'id_' . (string) $index;
+        $placeholders[] = ':' . $key;
+        $params[$key] = $id;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_content_asset_access_logs
+         WHERE id IN (' . implode(', ', $placeholders) . ')
+           AND content_id = :content_id
+           AND reference_type = \'content.download\'
+           AND reference_id = :file_id
+           AND access_kind = \'download\'
+           AND account_id = :account_id
+         ORDER BY id ASC'
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $adminAccountId, string $refundNote): array
+{
+    $refundNote = sr_content_clean_single_line($refundNote, 255);
+    if ($downloadLogId <= 0) {
+        return ['ok' => false, 'message' => '환불할 다운로드 내역을 선택하세요.'];
+    }
+    if ($adminAccountId <= 0) {
+        return ['ok' => false, 'message' => '처리 관리자 정보를 확인할 수 없습니다.'];
+    }
+    if ($refundNote === '') {
+        return ['ok' => false, 'message' => '환불 사유를 입력하세요.'];
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $downloadLog = sr_content_admin_file_download_log_by_id_for_update($pdo, $downloadLogId);
+        if (!is_array($downloadLog)) {
+            throw new RuntimeException('환불할 다운로드 내역을 찾을 수 없습니다.');
+        }
+        if ((string) ($downloadLog['download_type'] ?? '') !== 'paid') {
+            throw new RuntimeException('무료 다운로드는 환불 대상이 아닙니다.');
+        }
+        if ((string) ($downloadLog['refund_status'] ?? '') !== '') {
+            throw new RuntimeException('이미 환불 또는 접근권 회수 처리된 다운로드입니다.');
+        }
+
+        $accountId = (int) ($downloadLog['account_id'] ?? 0);
+        $contentId = (int) ($downloadLog['content_id'] ?? 0);
+        $fileId = (int) ($downloadLog['file_id'] ?? 0);
+        if ($accountId <= 0 || $contentId <= 0 || $fileId <= 0) {
+            throw new RuntimeException('환불 대상 회원 또는 콘텐츠 파일 정보를 확인할 수 없습니다.');
+        }
+
+        if (sr_content_file_download_log_access_log_ids($downloadLog) === []) {
+            throw new RuntimeException('연결된 차감 또는 접근권 로그가 없어 환불/회수할 수 없습니다.');
+        }
+
+        $accessLogs = sr_content_file_download_access_logs_for_refund($pdo, $downloadLog);
+        if ($accessLogs === []) {
+            throw new RuntimeException('연결된 차감 또는 접근권 로그를 찾을 수 없습니다.');
+        }
+
+        $refundTransactionIds = [];
+        foreach ($accessLogs as $accessLog) {
+            $amount = (int) ($accessLog['amount'] ?? 0);
+            $transactionId = (int) ($accessLog['transaction_id'] ?? 0);
+            if ($amount <= 0 || $transactionId <= 0) {
+                continue;
+            }
+
+            $assetModule = (string) ($accessLog['asset_module'] ?? '');
+            if (!sr_content_asset_module_is_available($pdo, $assetModule)) {
+                throw new RuntimeException('환불할 차감 항목을 사용할 수 없습니다: ' . $assetModule);
+            }
+
+            $assetOption = sr_content_asset_modules($pdo)[$assetModule];
+            $refundTransactionId = sr_content_create_asset_transaction($pdo, $assetModule, [
+                'account_id' => $accountId,
+                'amount' => $amount,
+                'transaction_type' => (string) ($assetOption['refund_type'] ?? 'refund'),
+                'reason' => '콘텐츠 파일 다운로드 환불: ' . $refundNote,
+                'reference_type' => 'refund',
+                'reference_id' => $assetModule . '_transaction:' . (string) $transactionId,
+                'created_by_account_id' => $adminAccountId,
+            ]);
+            $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
+        }
+
+        $accessRevoked = false;
+        if ((string) ($downloadLog['charge_policy'] ?? '') === 'once' || (int) ($downloadLog['amount'] ?? 0) <= 0) {
+            $accessRevoked = sr_content_revoke_file_download_access_entitlement($pdo, $accountId, $contentId, $fileId) > 0;
+        }
+
+        if ($refundTransactionIds === [] && !$accessRevoked) {
+            throw new RuntimeException('환불할 원장 거래나 회수할 접근권을 찾을 수 없습니다.');
+        }
+
+        $refundTransactionIdsJson = json_encode($refundTransactionIds, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $now = sr_now();
+        $refundStatus = $refundTransactionIds !== [] ? 'refunded' : 'access_revoked';
+        $stmt = $pdo->prepare(
+            'UPDATE sr_content_file_download_logs
+             SET refund_status = :refund_status,
+                 refund_transaction_ids_json = :refund_transaction_ids_json,
+                 refund_note = :refund_note,
+                 refunded_by_account_id = :refunded_by_account_id,
+                 refunded_at = :refunded_at,
+                 access_revoked_at = :access_revoked_at
+             WHERE id = :id
+               AND refund_status = \'\''
+        );
+        $stmt->execute([
+            'refund_status' => $refundStatus,
+            'refund_transaction_ids_json' => is_string($refundTransactionIdsJson) ? $refundTransactionIdsJson : '[]',
+            'refund_note' => $refundNote,
+            'refunded_by_account_id' => $adminAccountId,
+            'refunded_at' => $now,
+            'access_revoked_at' => $accessRevoked ? $now : null,
+            'id' => $downloadLogId,
+        ]);
+        if ($stmt->rowCount() < 1) {
+            throw new RuntimeException('이미 처리된 다운로드입니다.');
+        }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        try {
+            sr_audit_log($pdo, [
+                'actor_account_id' => $adminAccountId,
+                'actor_type' => 'admin',
+                'event_type' => 'content_file_download.refunded',
+                'target_type' => 'content_file_download',
+                'target_id' => (string) $downloadLogId,
+                'result' => 'success',
+                'message' => 'Content file download refunded.',
+                'metadata' => [
+                    'content_id' => $contentId,
+                    'file_id' => $fileId,
+                    'account_id' => $accountId,
+                    'refund_status' => $refundStatus,
+                    'refund_transaction_ids' => $refundTransactionIds,
+                    'access_revoked' => $accessRevoked,
+                ],
+            ]);
+        } catch (Throwable $auditException) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($auditException, 'content_file_download_refund_audit_failed');
+            }
+        }
+
+        return ['ok' => true, 'message' => $refundStatus === 'refunded' ? '다운로드 차감을 환불 처리했습니다.' : '다운로드 접근권을 회수했습니다.'];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        return ['ok' => false, 'message' => $exception->getMessage()];
+    }
 }
 
 function sr_content_all_active_download_files(PDO $pdo, int $limit = 200): array

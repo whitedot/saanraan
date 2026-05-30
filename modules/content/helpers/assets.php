@@ -1237,6 +1237,29 @@ function sr_content_revoke_coupon_access_entitlements(PDO $pdo, int $accountId, 
     return $stmt->rowCount();
 }
 
+function sr_content_revoke_file_download_access_entitlement(PDO $pdo, int $accountId, int $contentId, int $fileId): int
+{
+    if ($accountId <= 0 || $contentId <= 0 || $fileId <= 0 || !sr_content_access_entitlements_table_exists($pdo)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "DELETE FROM sr_content_access_entitlements
+         WHERE account_id = :account_id
+           AND content_id = :content_id
+           AND subject_type = 'content_file'
+           AND subject_id = :subject_id
+           AND access_kind = 'download'"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'content_id' => $contentId,
+        'subject_id' => $fileId,
+    ]);
+
+    return $stmt->rowCount();
+}
+
 function sr_content_anonymize_access_entitlements(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0 || !sr_content_access_entitlements_table_exists($pdo)) {
@@ -1667,6 +1690,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download');
+        $accessLogIds = [];
         $startedTransaction = !$pdo->inTransaction();
         if ($startedTransaction) {
             $pdo->beginTransaction();
@@ -1674,6 +1698,10 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         try {
             sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, 0, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download', $policySnapshotJson);
             sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'asset_group_policy', $assetModule, $chargePolicy, $dedupeKey);
+            $accessLog = sr_content_asset_access_log($pdo, $dedupeKey);
+            if (is_array($accessLog)) {
+                $accessLogIds[] = (int) ($accessLog['id'] ?? 0);
+            }
             if ($startedTransaction) {
                 $pdo->commit();
             }
@@ -1687,7 +1715,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
 
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 접근권 처리에 실패했습니다.');
         }
-        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true]);
+        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
     }
 
     if (sr_content_asset_policy_requires_confirmation($chargePolicy) && sr_request_method() !== 'POST') {
@@ -1710,6 +1738,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
     }
 
     $dedupeKey = '';
+    $accessLogIds = [];
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
@@ -1740,6 +1769,10 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             ]);
             sr_content_update_asset_access_transaction($pdo, $dedupeKey, $transactionId);
             sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
+            $accessLog = sr_content_asset_access_log($pdo, $dedupeKey);
+            if (is_array($accessLog)) {
+                $accessLogIds[] = (int) ($accessLog['id'] ?? 0);
+            }
         }
 
         if ($startedTransaction) {
@@ -1758,7 +1791,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 차감에 실패해 파일을 다운로드할 수 없습니다.');
     }
 
-    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint]);
+    return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
 }
 
 function sr_content_asset_action_required(array $page): bool

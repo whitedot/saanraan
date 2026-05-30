@@ -88,12 +88,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         <form method="post" action="<?php echo sr_e(sr_url('/content/download')); ?>">
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="id" value="<?php echo sr_e((string) $contentFile['id']); ?>">
+                                            <input type="hidden" name="content_id" value="<?php echo sr_e((string) (int) ($page['id'] ?? 0)); ?>">
                                             <button type="submit" class="btn btn-solid-light">
                                                 <?php echo sr_e((string) $contentFile['title']); ?>
                                             </button>
                                         </form>
                                     <?php } else { ?>
-                                        <a href="<?php echo sr_e(sr_url('/content/download?id=' . rawurlencode((string) $contentFile['id']))); ?>">
+                                        <a href="<?php echo sr_e(sr_url('/content/download?id=' . rawurlencode((string) $contentFile['id']) . '&content_id=' . rawurlencode((string) (int) ($page['id'] ?? 0)))); ?>">
                                             <?php echo sr_e((string) $contentFile['title']); ?>
                                         </a>
                                     <?php } ?>

@@ -20,6 +20,11 @@ return [
             'order' => 25,
         ],
         [
+            'label' => '파일 다운로드 내역',
+            'path' => '/admin/content/file-downloads',
+            'order' => 27,
+        ],
+        [
             'label' => '환경설정',
             'path' => '/admin/content/settings',
             'order' => 30,

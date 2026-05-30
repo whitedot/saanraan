@@ -7,6 +7,7 @@ return static function (PDO $pdo, int $accountId): array {
         return [
             'access_entitlements' => [],
             'asset_access_logs' => [],
+            'file_download_logs' => [],
             'asset_action_logs' => [],
         ];
     }
@@ -44,6 +45,26 @@ return static function (PDO $pdo, int $accountId): array {
 
     $accessLogs = $stmt->fetchAll();
 
+    $fileDownloadLogs = [];
+    if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT d.id, d.content_id, p.slug, p.title, d.file_id, f.title AS file_title,
+                    f.original_name, d.account_id, d.download_type, d.charge_policy,
+                    d.asset_module, d.amount, d.asset_access_log_ids_json,
+                    d.refund_status, d.refund_transaction_ids_json, d.refund_note,
+                    d.refunded_by_account_id, d.refunded_at, d.access_revoked_at,
+                    d.created_at
+             FROM sr_content_file_download_logs d
+             LEFT JOIN sr_content_items p ON p.id = d.content_id
+             LEFT JOIN sr_content_files f ON f.id = d.file_id
+             WHERE d.account_id = :account_id
+             ORDER BY d.id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $fileDownloadLogs = $stmt->fetchAll();
+    }
+
     $stmt = $pdo->prepare(
         'SELECT l.id, l.content_id, p.slug, p.title, l.account_id, l.asset_module, l.transaction_id,
                 l.reference_type, l.reference_id, l.action_key, l.direction, l.amount,
@@ -59,6 +80,7 @@ return static function (PDO $pdo, int $accountId): array {
     return [
         'access_entitlements' => $accessEntitlements,
         'asset_access_logs' => $accessLogs,
+        'file_download_logs' => $fileDownloadLogs,
         'asset_action_logs' => $stmt->fetchAll(),
     ];
 };
