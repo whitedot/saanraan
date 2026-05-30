@@ -14,6 +14,43 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $assets = sr_asset_exchange_assets($pdo);
 $editPolicy = null;
+$assetExchangeGetList = static function (string $key, int $maxLength = 40): array {
+    $rawValues = $_GET[$key] ?? [];
+    if (!is_array($rawValues)) {
+        $rawValues = [(string) $rawValues];
+    }
+
+    $values = [];
+    foreach ($rawValues as $rawValue) {
+        $value = sr_asset_exchange_clean_module_key(substr((string) $rawValue, 0, $maxLength));
+        if ($value !== '') {
+            $values[$value] = true;
+        }
+    }
+
+    return array_keys($values);
+};
+$assetExchangeStatusList = static function (): array {
+    $rawValues = $_GET['status'] ?? [];
+    if (!is_array($rawValues)) {
+        $rawValues = [(string) $rawValues];
+    }
+
+    $values = [];
+    foreach ($rawValues as $rawValue) {
+        $value = (string) $rawValue;
+        if (in_array($value, ['enabled', 'disabled'], true)) {
+            $values[$value] = true;
+        }
+    }
+
+    return array_keys($values);
+};
+$policyFilters = [
+    'status' => $assetExchangeStatusList(),
+    'from_module_key' => $assetExchangeGetList('from_module_key'),
+    'to_module_key' => $assetExchangeGetList('to_module_key'),
+];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -82,6 +119,34 @@ $editPolicyId = (int) ($_GET['edit'] ?? 0);
 if ($editPolicy === null && $editPolicyId > 0) {
     $editPolicy = sr_asset_exchange_policy($pdo, $editPolicyId);
 }
-$policies = sr_asset_exchange_policies($pdo);
+$allPolicies = sr_asset_exchange_policies($pdo);
+$policyFilterOptions = $assets;
+foreach ($allPolicies as $policy) {
+    foreach (['from_module_key', 'to_module_key'] as $moduleKeyField) {
+        $moduleKey = (string) ($policy[$moduleKeyField] ?? '');
+        if ($moduleKey !== '' && !isset($policyFilterOptions[$moduleKey])) {
+            $policyFilterOptions[$moduleKey] = [
+                'module_key' => $moduleKey,
+                'label' => $moduleKey . ' (비활성)',
+            ];
+        }
+    }
+}
+uasort($policyFilterOptions, static function (array $left, array $right): int {
+    return strcmp((string) ($left['label'] ?? ''), (string) ($right['label'] ?? ''));
+});
+$policies = array_values(array_filter($allPolicies, static function (array $policy) use ($policyFilters): bool {
+    if ($policyFilters['status'] !== [] && !in_array((string) ($policy['status'] ?? ''), $policyFilters['status'], true)) {
+        return false;
+    }
+    if ($policyFilters['from_module_key'] !== [] && !in_array((string) ($policy['from_module_key'] ?? ''), $policyFilters['from_module_key'], true)) {
+        return false;
+    }
+    if ($policyFilters['to_module_key'] !== [] && !in_array((string) ($policy['to_module_key'] ?? ''), $policyFilters['to_module_key'], true)) {
+        return false;
+    }
+
+    return true;
+}));
 
 include SR_ROOT . '/modules/asset_exchange/views/admin-asset-exchange.php';

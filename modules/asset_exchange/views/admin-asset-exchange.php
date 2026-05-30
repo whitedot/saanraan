@@ -1,6 +1,7 @@
 <?php
 
 $adminPageTitle = '포인트/금액 환전 정책';
+$adminContainerClass = 'admin-page-asset-exchange admin-ui-scope';
 $editPolicy = isset($editPolicy) && is_array($editPolicy) ? $editPolicy : [];
 $policyForm = array_merge([
     'id' => '',
@@ -36,6 +37,20 @@ $feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'r
 $feeBasisLabels = ['from_amount' => '출금액 기준', 'to_amount' => '입금액 기준'];
 $feeTypeLabels = ['rate' => '정률', 'fixed' => '정액'];
 $policyPagination = ['total' => count($policies), 'start' => count($policies) > 0 ? 1 : 0, 'end' => count($policies)];
+$policyFilters = isset($policyFilters) && is_array($policyFilters) ? $policyFilters : ['status' => [], 'from_module_key' => [], 'to_module_key' => []];
+$policyFilters['status'] = is_array($policyFilters['status'] ?? null) ? $policyFilters['status'] : [];
+$policyFilters['from_module_key'] = is_array($policyFilters['from_module_key'] ?? null) ? $policyFilters['from_module_key'] : [];
+$policyFilters['to_module_key'] = is_array($policyFilters['to_module_key'] ?? null) ? $policyFilters['to_module_key'] : [];
+$policyFilterOptions = isset($policyFilterOptions) && is_array($policyFilterOptions) ? $policyFilterOptions : $assets;
+$policyModalOpen = $editPolicy !== [];
+$policyModalId = 'asset-exchange-policy-modal';
+$policyModalClass = 'modal-overlay modal-overlay-fade overlay';
+$policyModalClass .= $policyModalOpen ? ' overlay-open open' : ' hidden pointer-events-none opacity-0';
+$policyModalAriaHidden = $policyModalOpen ? 'false' : 'true';
+$policyModalInert = $policyModalOpen ? '' : ' inert';
+$policyFilterActive = $policyFilters['status'] !== []
+    || $policyFilters['from_module_key'] !== []
+    || $policyFilters['to_module_key'] !== [];
 $assetExchangeHelpOpenLabel = '도움말';
 $assetExchangeHelpBodyHtml = static function (array $paragraphs): string {
     $html = '';
@@ -140,149 +155,61 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-form ui-form-theme" data-asset-exchange-policy-form>
-    <?php echo sr_csrf_field(); ?>
-    <input type="hidden" name="id" value="<?php echo sr_e((string) $policyForm['id']); ?>">
-    <section class="admin-card card">
-        <div class="card-header">
-            <h2 class="card-title"><?php echo (int) ($policyForm['id'] ?? 0) > 0 ? '환전 정책 수정' : '환전 정책 등록'; ?></h2>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_from_module_key', '출금 항목', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="asset_exchange_from_module_key" name="from_module_key" class="form-select" required>
-                    <option value="">선택</option>
-                    <?php foreach ($fromAssetOptions as $asset) { ?>
-                        <option value="<?php echo sr_e((string) $asset['module_key']); ?>"<?php echo (string) $policyForm['from_module_key'] === (string) $asset['module_key'] ? ' selected' : ''; ?>><?php echo sr_e((string) $asset['label']); ?></option>
-                    <?php } ?>
-                </select>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-filter admin-asset-exchange-filter ui-form-theme">
+    <div class="admin-filter-grid admin-asset-exchange-search-grid">
+        <fieldset class="admin-filter-field admin-asset-exchange-filter-status">
+            <legend class="admin-filter-label">상태</legend>
+            <div class="admin-check-list admin-filter-check-list">
+                <?php foreach ($policyStatusLabels as $value => $label) { ?>
+                    <?php $inputId = 'asset_exchange_filter_status_' . (string) $value; ?>
+                    <label class="admin-form-check form-label" for="<?php echo sr_e($inputId); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($value); ?>" class="form-checkbox"<?php echo in_array($value, $policyFilters['status'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_e($label); ?>
+                    </label>
+                <?php } ?>
             </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_to_module_key', '입금 항목', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="asset_exchange_to_module_key" name="to_module_key" class="form-select" required>
-                    <option value="">선택</option>
-                    <?php foreach ($toAssetOptions as $asset) { ?>
-                        <option value="<?php echo sr_e((string) $asset['module_key']); ?>"<?php echo (string) $policyForm['to_module_key'] === (string) $asset['module_key'] ? ' selected' : ''; ?>><?php echo sr_e((string) $asset['label']); ?></option>
-                    <?php } ?>
-                </select>
+        </fieldset>
+        <fieldset class="admin-filter-field admin-asset-exchange-filter-from">
+            <legend class="admin-filter-label">출금 항목</legend>
+            <div class="admin-check-list admin-filter-check-list">
+                <?php foreach ($policyFilterOptions as $asset) { ?>
+                    <?php
+                    $moduleKey = (string) ($asset['module_key'] ?? '');
+                    $inputId = 'asset_exchange_filter_from_' . preg_replace('/[^a-z0-9_\-]/', '_', $moduleKey);
+                    ?>
+                    <label class="admin-form-check form-label" for="<?php echo sr_e($inputId); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="from_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-checkbox"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_e((string) $asset['label']); ?>
+                    </label>
+                <?php } ?>
             </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_status', '상태', $assetExchangeHelp['status']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="asset_exchange_status" name="status" class="form-select" required>
-                    <?php foreach ($policyStatusLabels as $value => $label) { ?>
-                        <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['status'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                    <?php } ?>
-                </select>
+        </fieldset>
+        <fieldset class="admin-filter-field admin-asset-exchange-filter-to">
+            <legend class="admin-filter-label">입금 항목</legend>
+            <div class="admin-check-list admin-filter-check-list">
+                <?php foreach ($policyFilterOptions as $asset) { ?>
+                    <?php
+                    $moduleKey = (string) ($asset['module_key'] ?? '');
+                    $inputId = 'asset_exchange_filter_to_' . preg_replace('/[^a-z0-9_\-]/', '_', $moduleKey);
+                    ?>
+                    <label class="admin-form-check form-label" for="<?php echo sr_e($inputId); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="to_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-checkbox"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_e((string) $asset['label']); ?>
+                    </label>
+                <?php } ?>
             </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_rounding_mode', '반올림', $assetExchangeHelp['rounding']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="asset_exchange_rounding_mode" name="rounding_mode" class="form-select" required>
-                    <?php foreach ($roundingModeLabels as $value => $label) { ?>
-                        <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['rounding_mode'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_rate_ratio', '환전 비율', $assetExchangeHelp['rate']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_rate_ratio" type="text" name="rate_ratio" value="<?php echo sr_e((string) $policyForm['rate_ratio']); ?>" class="form-input" maxlength="80" pattern="[0-9]+\s*[:/]\s*[0-9]+" required placeholder="100:1">
-                <span class="admin-form-help">출금 기준량:입금 환산량 형식입니다. 예: 100:1</span>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_min_amount', '최소 환전량', $assetExchangeHelp['amount_limit']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_min_amount" type="number" name="min_amount" value="<?php echo sr_e((string) $policyForm['min_amount']); ?>" class="form-input" min="1" required>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_max_amount', '최대 환전량', $assetExchangeHelp['amount_limit']['id'], $assetExchangeHelpOpenLabel); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_max_amount" type="number" name="max_amount" value="<?php echo sr_e((string) $policyForm['max_amount']); ?>" class="form-input" min="0">
-                <span class="admin-form-help">비워두면 1회 최대 금액을 제한하지 않습니다.</span>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_fee_trigger', '수수료 적용', $assetExchangeHelp['fee_trigger']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="asset_exchange_fee_trigger" name="fee_trigger" class="form-select" required>
-                    <?php foreach ($feeTriggerLabels as $value => $label) { ?>
-                        <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_trigger'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="rate">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_fee_basis', '수수료 기준', $assetExchangeHelp['fee_basis']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="asset_exchange_fee_basis" name="fee_basis" class="form-select" required>
-                    <?php foreach ($feeBasisLabels as $value => $label) { ?>
-                        <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_basis'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row" data-asset-exchange-fee-setting>
-            <?php echo sr_admin_form_label_help_html('asset_exchange_fee_type', '수수료 방식', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <select id="asset_exchange_fee_type" name="fee_type" class="form-select" required>
-                    <?php foreach ($feeTypeLabels as $value => $label) { ?>
-                        <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_type'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="rate">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_fee_rate_numerator', '정률 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_fee_rate_numerator" type="number" name="fee_rate_numerator" value="<?php echo sr_e((string) $policyForm['fee_rate_numerator']); ?>" class="form-input" min="0">
-                <span class="admin-form-help">5%라면 5를 입력합니다.</span>
-            </div>
-        </div>
-        <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="fixed">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_fee_fixed_amount', '정액 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_fee_fixed_amount" type="number" name="fee_fixed_amount" value="<?php echo sr_e((string) $policyForm['fee_fixed_amount']); ?>" class="form-input" min="0">
-            </div>
-        </div>
-        <div class="admin-form-row" data-asset-exchange-fee-setting>
-            <?php echo sr_admin_form_label_help_html('asset_exchange_fee_min_amount', '최소 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_fee_min_amount" type="number" name="fee_min_amount" value="<?php echo sr_e((string) $policyForm['fee_min_amount']); ?>" class="form-input" min="0">
-            </div>
-        </div>
-        <div class="admin-form-row" data-asset-exchange-fee-setting>
-            <?php echo sr_admin_form_label_help_html('asset_exchange_fee_max_amount', '최대 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_fee_max_amount" type="number" name="fee_max_amount" value="<?php echo sr_e((string) $policyForm['fee_max_amount']); ?>" class="form-input" min="0">
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_sort_order', '정렬순서', $assetExchangeHelp['sort_order']['id'], $assetExchangeHelpOpenLabel); ?>
-            <div class="admin-form-field">
-                <input id="asset_exchange_sort_order" type="number" name="sort_order" value="<?php echo sr_e((string) $policyForm['sort_order']); ?>" class="form-input">
-            </div>
-        </div>
-    </section>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <?php if ((int) ($policyForm['id'] ?? 0) > 0) { ?>
-            <a href="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="btn btn-solid-light">새 정책</a>
-        <?php } else { ?>
-            <a href="<?php echo sr_e(sr_url('/admin/asset-exchange/logs')); ?>" class="btn btn-solid-light">환전 로그</a>
-        <?php } ?>
-        <button type="submit" class="btn btn-solid-primary">저장</button>
+        </fieldset>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>
 
 <section class="admin-card admin-list-card card admin-list-form">
-    <div class="card-header"><h2 class="card-title">정책 목록</h2></div>
+    <div class="card-header">
+        <h2 class="card-title">정책 목록</h2>
+        <div class="card-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $policyModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($policyModalId); ?>" data-overlay="#<?php echo sr_e($policyModalId); ?>">정책 등록</button>
+        </div>
+    </div>
     <div class="admin-list-summary-row">
         <?php echo sr_admin_pagination_summary_html($policyPagination); ?>
     </div>
@@ -302,7 +229,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($policies === []) { ?>
-                    <tr><td colspan="8" class="admin-empty-state">등록된 환전 정책이 없습니다.</td></tr>
+                    <tr><td colspan="8" class="admin-empty-state"><?php echo $policyFilterActive ? '조건에 맞는 환전 정책이 없습니다.' : '등록된 환전 정책이 없습니다.'; ?></td></tr>
                 <?php } ?>
                 <?php foreach ($policies as $policy) { ?>
                     <?php
@@ -343,6 +270,154 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
     </div>
 </section>
+
+<div id="<?php echo sr_e($policyModalId); ?>" class="<?php echo sr_e($policyModalClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($policyModalId); ?>_title" aria-hidden="<?php echo sr_e($policyModalAriaHidden); ?>"<?php echo $policyModalInert; ?>>
+    <div class="modal-dialog">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="modal-content ui-form-theme" data-asset-exchange-policy-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="id" value="<?php echo sr_e((string) $policyForm['id']); ?>">
+            <div class="modal-header">
+                <h3 id="<?php echo sr_e($policyModalId); ?>_title" class="modal-title"><?php echo (int) ($policyForm['id'] ?? 0) > 0 ? '환전 정책 수정' : '환전 정책 등록'; ?></h3>
+                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($policyModalId); ?>">
+                    <?php echo sr_material_icon_html('close'); ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_from_module_key', '출금 항목', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_from_module_key" name="from_module_key" class="form-select" required data-overlay-focus>
+                            <option value="">선택</option>
+                            <?php foreach ($fromAssetOptions as $asset) { ?>
+                                <option value="<?php echo sr_e((string) $asset['module_key']); ?>"<?php echo (string) $policyForm['from_module_key'] === (string) $asset['module_key'] ? ' selected' : ''; ?>><?php echo sr_e((string) $asset['label']); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_to_module_key', '입금 항목', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_to_module_key" name="to_module_key" class="form-select" required>
+                            <option value="">선택</option>
+                            <?php foreach ($toAssetOptions as $asset) { ?>
+                                <option value="<?php echo sr_e((string) $asset['module_key']); ?>"<?php echo (string) $policyForm['to_module_key'] === (string) $asset['module_key'] ? ' selected' : ''; ?>><?php echo sr_e((string) $asset['label']); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_status', '상태', $assetExchangeHelp['status']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_status" name="status" class="form-select" required>
+                            <?php foreach ($policyStatusLabels as $value => $label) { ?>
+                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['status'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_rounding_mode', '반올림', $assetExchangeHelp['rounding']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_rounding_mode" name="rounding_mode" class="form-select" required>
+                            <?php foreach ($roundingModeLabels as $value => $label) { ?>
+                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['rounding_mode'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_rate_ratio', '환전 비율', $assetExchangeHelp['rate']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_rate_ratio" type="text" name="rate_ratio" value="<?php echo sr_e((string) $policyForm['rate_ratio']); ?>" class="form-input" maxlength="80" pattern="[0-9]+\s*[:/]\s*[0-9]+" required placeholder="100:1">
+                        <span class="admin-form-help">출금 기준량:입금 환산량 형식입니다. 예: 100:1</span>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_min_amount', '최소 환전량', $assetExchangeHelp['amount_limit']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_min_amount" type="number" name="min_amount" value="<?php echo sr_e((string) $policyForm['min_amount']); ?>" class="form-input" min="1" required>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_max_amount', '최대 환전량', $assetExchangeHelp['amount_limit']['id'], $assetExchangeHelpOpenLabel); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_max_amount" type="number" name="max_amount" value="<?php echo sr_e((string) $policyForm['max_amount']); ?>" class="form-input" min="0">
+                        <span class="admin-form-help">비워두면 1회 최대 금액을 제한하지 않습니다.</span>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_trigger', '수수료 적용', $assetExchangeHelp['fee_trigger']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_fee_trigger" name="fee_trigger" class="form-select" required>
+                            <?php foreach ($feeTriggerLabels as $value => $label) { ?>
+                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_trigger'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="rate">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_basis', '수수료 기준', $assetExchangeHelp['fee_basis']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_fee_basis" name="fee_basis" class="form-select" required>
+                            <?php foreach ($feeBasisLabels as $value => $label) { ?>
+                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_basis'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row" data-asset-exchange-fee-setting>
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_type', '수수료 방식', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_fee_type" name="fee_type" class="form-select" required>
+                            <?php foreach ($feeTypeLabels as $value => $label) { ?>
+                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_type'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="rate">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_rate_numerator', '정률 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_fee_rate_numerator" type="number" name="fee_rate_numerator" value="<?php echo sr_e((string) $policyForm['fee_rate_numerator']); ?>" class="form-input" min="0">
+                        <span class="admin-form-help">5%라면 5를 입력합니다.</span>
+                    </div>
+                </div>
+                <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="fixed">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_fixed_amount', '정액 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_fee_fixed_amount" type="number" name="fee_fixed_amount" value="<?php echo sr_e((string) $policyForm['fee_fixed_amount']); ?>" class="form-input" min="0">
+                    </div>
+                </div>
+                <div class="admin-form-row" data-asset-exchange-fee-setting>
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_min_amount', '최소 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_fee_min_amount" type="number" name="fee_min_amount" value="<?php echo sr_e((string) $policyForm['fee_min_amount']); ?>" class="form-input" min="0">
+                    </div>
+                </div>
+                <div class="admin-form-row" data-asset-exchange-fee-setting>
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_max_amount', '최대 수수료', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_fee_max_amount" type="number" name="fee_max_amount" value="<?php echo sr_e((string) $policyForm['fee_max_amount']); ?>" class="form-input" min="0">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_sort_order', '정렬순서', $assetExchangeHelp['sort_order']['id'], $assetExchangeHelpOpenLabel); ?>
+                    <div class="admin-form-field">
+                        <input id="asset_exchange_sort_order" type="number" name="sort_order" value="<?php echo sr_e((string) $policyForm['sort_order']); ?>" class="form-input">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <?php if ((int) ($policyForm['id'] ?? 0) > 0) { ?>
+                    <a href="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="btn btn-solid-light modal-action">새 정책</a>
+                <?php } else { ?>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($policyModalId); ?>">취소</button>
+                <?php } ?>
+                <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php foreach ($assetExchangeHelp as $assetExchangeHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $assetExchangeHelpModal['id'], (string) $assetExchangeHelpModal['title'], (string) $assetExchangeHelpModal['body_html']); ?>
