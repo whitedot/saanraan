@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS sr_asset_exchange_policies (
     fee_trigger VARCHAR(20) NOT NULL DEFAULT 'none',
     fee_basis VARCHAR(20) NOT NULL DEFAULT 'to_amount',
     fee_rate_numerator BIGINT UNSIGNED NOT NULL DEFAULT 0,
-    fee_rate_denominator BIGINT UNSIGNED NOT NULL DEFAULT 1,
+    fee_rate_denominator BIGINT UNSIGNED NOT NULL DEFAULT 100,
     fee_fixed_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
     fee_min_amount BIGINT UNSIGNED NULL,
     fee_max_amount BIGINT UNSIGNED NULL,

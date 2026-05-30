@@ -2,7 +2,7 @@
 
 return [
     'name' => '자산 환전',
-    'version' => '2026.05.002',
+    'version' => '2026.05.003',
     'type' => 'module',
     'description' => '설치된 자산 모듈 간 환전 정책과 실행 로그를 관리합니다.',
     'admin' => [

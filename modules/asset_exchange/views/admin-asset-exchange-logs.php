@@ -1,10 +1,12 @@
 <?php
 
 $adminPageTitle = '자산 환전 로그';
+$logStatusLabels = ['completed' => '완료', 'failed' => '실패'];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<section class="admin-card admin-list-card card">
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header"><h2 class="card-title">환전 로그 목록</h2></div>
     <div class="admin-list-summary-row">
         <?php echo sr_admin_pagination_summary_html($pagination); ?>
     </div>
@@ -30,15 +32,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php foreach ($logs as $log) { ?>
                     <?php $failureReason = trim((string) ($log['failure_reason'] ?? '')); ?>
                     <tr>
-                        <td><?php echo sr_e((string) $log['created_at']); ?></td>
-                        <td><?php echo sr_e(sr_admin_member_display_name_preview($log)); ?><br><?php echo sr_e(sr_admin_member_email_display($log)); ?></td>
-                        <td><?php echo sr_e((string) $log['exchange_group_id']); ?></td>
-                        <td><?php echo sr_e(sr_asset_exchange_asset_label($assets, (string) $log['from_module_key']) . ' -> ' . sr_asset_exchange_asset_label($assets, (string) $log['to_module_key'])); ?></td>
-                        <td><?php echo sr_e(number_format((int) $log['request_amount'])); ?></td>
-                        <td><?php echo sr_e(number_format((int) $log['deposit_amount'])); ?></td>
-                        <td><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
-                        <td><?php echo sr_e((string) $log['status']); ?></td>
-                        <td><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_e((string) $log['created_at']); ?></td>
+                        <td>
+                            <?php echo sr_e(sr_admin_member_display_name_preview($log)); ?><br>
+                            <small><?php echo sr_e(sr_admin_member_email_display($log)); ?></small>
+                        </td>
+                        <td class="admin-table-nowrap"><code><?php echo sr_e((string) $log['exchange_group_id']); ?></code></td>
+                        <td>
+                            <?php echo sr_e(sr_asset_exchange_asset_label($assets, (string) $log['from_module_key']) . ' -> ' . sr_asset_exchange_asset_label($assets, (string) $log['to_module_key'])); ?>
+                        </td>
+                        <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) $log['request_amount'])); ?></td>
+                        <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) $log['deposit_amount'])); ?></td>
+                        <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo (string) $log['status'] === 'completed' ? 'is-normal' : 'is-blocked'; ?>"><?php echo sr_e((string) ($logStatusLabels[(string) $log['status']] ?? $log['status'])); ?></span></td>
+                        <td class="admin-table-break"><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
                     </tr>
                 <?php } ?>
             </tbody>

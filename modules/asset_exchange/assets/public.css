@@ -1,0 +1,177 @@
+.sr-asset-exchange-page {
+    padding: clamp(24px, 5vw, 56px) clamp(16px, 5vw, 40px);
+}
+
+.sr-asset-exchange-shell {
+    display: grid;
+    gap: 18px;
+    margin: 0 auto;
+    max-width: 1120px;
+}
+
+.sr-asset-exchange-heading {
+    align-items: flex-start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.sr-asset-exchange-heading h1 {
+    color: var(--public-ui-text);
+    font-size: clamp(1.75rem, 4vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.2 !important;
+    margin: 0;
+}
+
+.sr-asset-exchange-button-icon {
+    font-size: 1.1em;
+}
+
+.sr-asset-exchange-section-head {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.sr-asset-exchange-assets {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.sr-asset-exchange-asset {
+    background: var(--public-ui-surface-soft);
+    border: 1px solid var(--public-ui-border);
+    border-radius: 8px;
+    display: grid;
+    gap: 4px;
+    min-height: 108px;
+    padding: 16px;
+}
+
+.sr-asset-exchange-asset-label,
+.sr-asset-exchange-unit {
+    color: var(--public-ui-muted);
+    font-size: .88rem;
+}
+
+.sr-asset-exchange-asset strong {
+    color: var(--public-ui-text);
+    font-size: 1.55rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.sr-asset-exchange-form {
+    align-items: end;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(220px, 1.4fr) minmax(160px, .8fr) auto;
+}
+
+.sr-asset-exchange-form .btn {
+    min-height: calc(var(--spacing) * 9.25);
+}
+
+.sr-asset-exchange-quote {
+    background: color-mix(in oklab, var(--public-ui-primary) 7%, var(--public-ui-surface));
+    border: 1px solid color-mix(in oklab, var(--public-ui-primary) 20%, var(--public-ui-border));
+    border-radius: 8px;
+    display: grid;
+    gap: 14px;
+    margin-top: 4px;
+    padding: 16px;
+}
+
+.sr-asset-exchange-quote-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sr-asset-exchange-quote-grid div {
+    background: var(--public-ui-surface);
+    border: 1px solid var(--public-ui-border);
+    border-radius: 8px;
+    display: grid;
+    gap: 5px;
+    min-height: 82px;
+    padding: 12px;
+}
+
+.sr-asset-exchange-quote-grid dt {
+    color: var(--public-ui-muted);
+    font-size: .82rem;
+    font-weight: 700;
+}
+
+.sr-asset-exchange-quote-grid dd {
+    color: var(--public-ui-text);
+    font-size: 1.25rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.sr-asset-exchange-quote-grid .sr-asset-exchange-quote-total {
+    border-color: color-mix(in oklab, var(--color-success) 45%, var(--public-ui-border));
+}
+
+.sr-asset-exchange-table {
+    min-width: 720px;
+}
+
+.sr-asset-exchange-number {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.sr-asset-exchange-status {
+    align-items: center;
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: .78rem;
+    font-weight: 800;
+    min-height: 1.5rem;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+
+.sr-asset-exchange-status-completed,
+.sr-asset-exchange-status-success {
+    background: color-mix(in oklab, var(--color-success) 14%, transparent);
+    color: var(--color-success);
+}
+
+.sr-asset-exchange-status-failed {
+    background: color-mix(in oklab, var(--color-danger) 12%, transparent);
+    color: var(--color-danger);
+}
+
+.sr-asset-exchange-empty {
+    background: var(--public-ui-surface-soft);
+    border: 1px dashed var(--public-ui-border);
+    border-radius: 8px;
+    color: var(--public-ui-muted);
+    margin: 0;
+    padding: 18px;
+    text-align: center;
+}
+
+@media (max-width: 760px) {
+    .sr-asset-exchange-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .sr-asset-exchange-heading .btn {
+        width: fit-content;
+    }
+
+    .sr-asset-exchange-form,
+    .sr-asset-exchange-quote-grid {
+        grid-template-columns: 1fr;
+    }
+}

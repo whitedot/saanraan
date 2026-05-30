@@ -80,6 +80,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     $roundingMode = (string) ($data['rounding_mode'] ?? 'floor');
     $feeTrigger = (string) ($data['fee_trigger'] ?? 'none');
     $feeBasis = (string) ($data['fee_basis'] ?? 'to_amount');
+    $feeType = (string) ($data['fee_type'] ?? 'rate');
 
     if ($fromModuleKey === '' || $toModuleKey === '' || $fromModuleKey === $toModuleKey) {
         throw new InvalidArgumentException('출금 자산과 입금 자산을 서로 다르게 선택하세요.');
@@ -102,8 +103,19 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     if (!in_array($feeTrigger, ['none', 'always', 'reexchange'], true)) {
         throw new InvalidArgumentException('수수료 적용 조건이 올바르지 않습니다.');
     }
-    if (!in_array($feeBasis, ['from_amount', 'to_amount'], true)) {
-        throw new InvalidArgumentException('수수료 계산 기준이 올바르지 않습니다.');
+    if ($feeTrigger === 'none') {
+        $feeBasis = 'to_amount';
+        $feeType = 'rate';
+    } else {
+        if (!in_array($feeType, ['rate', 'fixed'], true)) {
+            throw new InvalidArgumentException('수수료 방식이 올바르지 않습니다.');
+        }
+        if ($feeType === 'rate' && !in_array($feeBasis, ['from_amount', 'to_amount'], true)) {
+            throw new InvalidArgumentException('수수료 계산 기준이 올바르지 않습니다.');
+        }
+        if ($feeType === 'fixed') {
+            $feeBasis = 'to_amount';
+        }
     }
 
     $assets = sr_asset_exchange_assets($pdo);
@@ -117,24 +129,40 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         }
     }
 
-    $rateNumerator = sr_asset_exchange_positive_int($data['rate_numerator'] ?? 0, '비율 분자는 1 이상이어야 합니다.');
-    $rateDenominator = sr_asset_exchange_positive_int($data['rate_denominator'] ?? 0, '비율 분모는 1 이상이어야 합니다.');
+    [$rateNumerator, $rateDenominator] = sr_asset_exchange_rate_parts($data);
     $minAmount = sr_asset_exchange_positive_int($data['min_amount'] ?? 0, '최소 환전량은 1 이상이어야 합니다.');
     $maxAmount = sr_asset_exchange_nullable_int($data['max_amount'] ?? null, '최대 환전량은 0 이상의 정수로 입력하세요.');
     if ($maxAmount !== null && $maxAmount < $minAmount) {
         throw new InvalidArgumentException('최대 환전량은 최소 환전량 이상이어야 합니다.');
     }
 
-    $feeRateNumerator = sr_asset_exchange_optional_non_negative_int($data['fee_rate_numerator'] ?? null, 0, '수수료율 분자는 0 이상의 정수로 입력하세요.');
-    $feeRateDenominator = sr_asset_exchange_optional_positive_int($data['fee_rate_denominator'] ?? null, 1, '수수료율 분모는 1 이상의 정수로 입력하세요.');
+    $feeRateDenominator = 100;
+    $feeRateNumerator = sr_asset_exchange_optional_non_negative_int($data['fee_rate_numerator'] ?? null, 0, '정률 수수료는 0 이상의 정수로 입력하세요.');
     $feeFixedAmount = sr_asset_exchange_optional_non_negative_int($data['fee_fixed_amount'] ?? null, 0, '정액 수수료는 0 이상의 정수로 입력하세요.');
+    if ($feeTrigger === 'none') {
+        $feeRateNumerator = 0;
+        $feeFixedAmount = 0;
+        $feeBasis = 'to_amount';
+    } elseif ($feeType === 'rate') {
+        $feeFixedAmount = 0;
+    } else {
+        $feeRateNumerator = 0;
+        $feeBasis = 'to_amount';
+    }
     $feeMinAmount = sr_asset_exchange_nullable_int($data['fee_min_amount'] ?? null, '최소 수수료는 0 이상의 정수로 입력하세요.');
     $feeMaxAmount = sr_asset_exchange_nullable_int($data['fee_max_amount'] ?? null, '최대 수수료는 0 이상의 정수로 입력하세요.');
+    if ($feeTrigger === 'none') {
+        $feeMinAmount = null;
+        $feeMaxAmount = null;
+    }
     if ($feeMaxAmount !== null && $feeMinAmount !== null && $feeMaxAmount < $feeMinAmount) {
         throw new InvalidArgumentException('최대 수수료는 최소 수수료 이상이어야 합니다.');
     }
-    if ($feeTrigger !== 'none' && $feeRateNumerator === 0 && $feeFixedAmount === 0 && ($feeMinAmount ?? 0) === 0) {
-        throw new InvalidArgumentException('수수료를 적용하려면 정률, 정액, 최소 수수료 중 하나를 입력하세요.');
+    if ($feeTrigger !== 'none' && $feeType === 'rate' && $feeRateNumerator === 0) {
+        throw new InvalidArgumentException('정률 수수료를 1 이상 입력하세요.');
+    }
+    if ($feeTrigger !== 'none' && $feeType === 'fixed' && $feeFixedAmount === 0) {
+        throw new InvalidArgumentException('정액 수수료를 1 이상 입력하세요.');
     }
 
     $stmt = $pdo->prepare(
@@ -205,6 +233,26 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     $stmt->execute($params);
 
     return (int) $pdo->lastInsertId();
+}
+
+function sr_asset_exchange_rate_parts(array $data): array
+{
+    $rateRatio = trim((string) ($data['rate_ratio'] ?? ''));
+    if ($rateRatio !== '') {
+        if (preg_match('/\A([0-9]+)\s*[:\/]\s*([0-9]+)\z/', $rateRatio, $matches) !== 1) {
+            throw new InvalidArgumentException('환전 비율은 출금 기준량:입금 환산량 형식으로 입력하세요. 예: 100:1');
+        }
+
+        $rateDenominator = sr_asset_exchange_positive_int($matches[1], '출금 기준량은 1 이상이어야 합니다.');
+        $rateNumerator = sr_asset_exchange_positive_int($matches[2], '입금 환산량은 1 이상이어야 합니다.');
+
+        return [$rateNumerator, $rateDenominator];
+    }
+
+    return [
+        sr_asset_exchange_positive_int($data['rate_numerator'] ?? 0, '입금 환산량은 1 이상이어야 합니다.'),
+        sr_asset_exchange_positive_int($data['rate_denominator'] ?? 0, '출금 기준량은 1 이상이어야 합니다.'),
+    ];
 }
 
 function sr_asset_exchange_quote(PDO $pdo, array $policy, int $accountId, int $amount): array
@@ -455,7 +503,7 @@ function sr_asset_exchange_fee_amount(array $policy, int $fromAmount, int $toAmo
     $basis = (string) ($policy['fee_basis'] ?? 'to_amount') === 'from_amount' ? $fromAmount : $toAmount;
     $fee = (int) ($policy['fee_fixed_amount'] ?? 0);
     $rateNumerator = (int) ($policy['fee_rate_numerator'] ?? 0);
-    $rateDenominator = max(1, (int) ($policy['fee_rate_denominator'] ?? 1));
+    $rateDenominator = 100;
     if ($rateNumerator > 0) {
         $fee += intdiv($basis * $rateNumerator, $rateDenominator);
     }
