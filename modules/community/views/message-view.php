@@ -6,7 +6,8 @@ $seo = [
     'canonical' => '/community/message?id=' . (string) $message['id'],
     'robots' => 'noindex, nofollow',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+$communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings));
 ?>
     <main>
         <p>

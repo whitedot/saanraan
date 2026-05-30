@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.05.014',
+    'version' => '2026.05.015',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -24,6 +24,9 @@ return [
     'settings' => [
         'editor' => 'textarea',
         'once_history_policy' => 'all_access',
+        'layout_primary_menu_key' => 'header',
+        'layout_secondary_menu_key' => '',
+        'layout_tertiary_menu_key' => '',
     ],
     'contracts' => [
         'provides' => [

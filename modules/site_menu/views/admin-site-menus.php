@@ -162,8 +162,8 @@ $siteMenuModalCloseButton = static function (string $modalId): void {
 
 $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuModalCloseButton): void {
     $editingMenu = is_array($menu);
-    $menuKey = $editingMenu ? (string) ($menu['menu_key'] ?? '') : 'header';
-    $label = $editingMenu ? (string) ($menu['label'] ?? '') : sr_t('site_menu::ui.menu.8b97d7f8');
+    $menuKey = $editingMenu ? (string) ($menu['menu_key'] ?? '') : '';
+    $label = $editingMenu ? (string) ($menu['label'] ?? '') : '';
     $statusValue = $editingMenu ? (string) ($menu['status'] ?? 'enabled') : 'enabled';
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>_title" aria-hidden="true" inert>

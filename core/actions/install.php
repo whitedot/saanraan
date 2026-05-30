@@ -34,7 +34,7 @@ $optionalModules = [
     ],
     'site_menu' => [
         'name' => '사이트 메뉴',
-        'version' => '2026.04.003',
+        'version' => '2026.05.001',
         'label' => sr_t('install.module.site_menu.label'),
         'description' => '헤더 등 사이트 공통 메뉴를 관리하는 관리자 화면을 설치합니다.',
     ],
@@ -82,13 +82,13 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.05.009',
+        'version' => '2026.05.015',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.05.023',
+        'version' => '2026.05.024',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],

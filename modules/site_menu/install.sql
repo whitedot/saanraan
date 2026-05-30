@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS sr_site_menu_items (
 );
 
 INSERT INTO sr_site_menus (menu_key, label, status, created_at, updated_at)
-VALUES ('header', '헤더 메뉴', 'enabled', NOW(), NOW())
+VALUES ('header', '상단 메뉴', 'enabled', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
     label = VALUES(label),
     status = VALUES(status),

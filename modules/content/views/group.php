@@ -10,7 +10,8 @@ $seo = [
         'type' => 'website',
     ],
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+$contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings));
 ?>
 
 <main class="content-group">

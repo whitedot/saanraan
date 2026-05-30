@@ -16,9 +16,10 @@ $pageLayoutKey = sr_public_layout_normalize_key((string) ($page['layout_key'] ??
 if ($pageLayoutKey === '' || !isset(sr_public_layout_options($pdo ?? null)[$pageLayoutKey])) {
     $pageLayoutKey = sr_public_layout_key($site ?? null, $pdo ?? null);
 }
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+$contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => $pageLayoutKey,
-]);
+]));
 ?>
 <main class="content-public content-public-basic">
     <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>

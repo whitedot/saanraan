@@ -9,6 +9,18 @@ $contentOnceHistoryPolicyHelpBody = '<p>유료 열람이나 다운로드를 최�
     . '<li><strong>현재 결제수단 이력만</strong>: 지금 선택한 결제수단으로 최초 1회 결제한 이력만 인정합니다. 예를 들어 지금 포인트만 받으면 예전에 포인트로 결제한 회원만 다시 결제하지 않습니다.</li>'
     . '</ul>'
     . '<p>이 설정은 앞으로의 재결제 여부만 바꾸며, 기존 원장 거래와 쿠폰 사용 로그를 환불하거나 추가 차감하지 않습니다.</p>';
+$contentSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($contentSiteMenuOptions): void {
+    ?>
+    <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>사용 안 함</option>
+    <?php foreach ($contentSiteMenuOptions as $menuKey => $menu) { ?>
+        <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
+        <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
+            <?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?>
+        </option>
+    <?php } ?>
+    <?php
+};
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -26,6 +38,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_e((string) $editorLabel); ?>
                         </option>
                     <?php } ?>
+                </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_layout_primary_menu_key">상단 사이트 메뉴</label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
+                    <?php $contentSiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
+                </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_layout_secondary_menu_key">하단 사이트 메뉴</label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_layout_secondary_menu_key" name="layout_secondary_menu_key" class="form-select">
+                    <?php $contentSiteMenuSelectOptions((string) ($settings['layout_secondary_menu_key'] ?? '')); ?>
+                </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_layout_tertiary_menu_key">보조 사이트 메뉴</label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_layout_tertiary_menu_key" name="layout_tertiary_menu_key" class="form-select">
+                    <?php $contentSiteMenuSelectOptions((string) ($settings['layout_tertiary_menu_key'] ?? '')); ?>
                 </select>
             </div>
         </div>

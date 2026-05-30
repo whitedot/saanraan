@@ -30,6 +30,44 @@ function sr_site_menu_clean_asset_type(string $value): string
     return preg_match('/\A[a-z][a-z0-9_]{0,59}\z/', $value) === 1 ? $value : 'link';
 }
 
+function sr_site_menu_layout_slot_menu_key(string $slotKey): string
+{
+    $slotKey = strtolower(trim($slotKey));
+    $map = [
+        'navigation' => 'header',
+        'primary_navigation' => 'header',
+        'secondary_navigation' => 'footer',
+        'tertiary_navigation' => 'utility',
+    ];
+
+    return (string) ($map[$slotKey] ?? '');
+}
+
+function sr_site_menu_options(PDO $pdo): array
+{
+    try {
+        $stmt = $pdo->query('SELECT menu_key, label, status FROM sr_site_menus ORDER BY menu_key ASC');
+    } catch (Throwable $exception) {
+        return [];
+    }
+
+    $menus = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $menuKey = sr_site_menu_clean_key((string) ($row['menu_key'] ?? ''));
+        if ($menuKey === '') {
+            continue;
+        }
+
+        $menus[$menuKey] = [
+            'menu_key' => $menuKey,
+            'label' => sr_site_menu_clean_label((string) ($row['label'] ?? $menuKey)),
+            'status' => (string) ($row['status'] ?? 'enabled'),
+        ];
+    }
+
+    return $menus;
+}
+
 function sr_site_menu_link_suggestions(PDO $pdo): array
 {
     $suggestions = [];
@@ -104,7 +142,7 @@ function sr_site_menu_current_login_next_path(): string
     return sr_is_safe_relative_url($path) ? $path : '';
 }
 
-function sr_site_menu_render(PDO $pdo, string $menuKey): string
+function sr_site_menu_render(PDO $pdo, string $menuKey, string $layoutSlotKey = ''): string
 {
     $menuKey = sr_site_menu_clean_key($menuKey);
     if ($menuKey === '') {
@@ -134,7 +172,10 @@ function sr_site_menu_render(PDO $pdo, string $menuKey): string
         return '';
     }
 
-    $html = '<nav class="sr-site-menu sr-site-menu-' . sr_e($menuKey) . '" aria-label="' . sr_e($menuKey) . '">';
+    $slotClass = $layoutSlotKey !== '' && preg_match('/\A[a-z0-9_]{1,80}\z/', $layoutSlotKey) === 1
+        ? ' sr-site-menu-slot-' . str_replace('_', '-', sr_e($layoutSlotKey))
+        : '';
+    $html = '<nav class="sr-site-menu sr-site-menu-' . sr_e($menuKey) . $slotClass . '" aria-label="' . sr_e($menuKey) . '">';
     $html .= sr_site_menu_render_item_list($itemsByParent, 0, 1);
     $html .= '</nav>';
 

@@ -13,6 +13,11 @@ $errors = [];
 $notice = '';
 $settings = sr_content_settings($pdo);
 $editorOptions = sr_editor_options($pdo);
+$siteMenuOptions = [];
+if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+    require_once SR_ROOT . '/modules/site_menu/helpers.php';
+    $siteMenuOptions = sr_site_menu_options($pdo);
+}
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings', 'edit');
@@ -23,6 +28,9 @@ if (sr_request_method() === 'POST') {
     $postedSettings = [
         'editor' => sr_editor_normalize_key($postedEditorInput),
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
+        'layout_primary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
+        'layout_secondary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
+        'layout_tertiary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
     ];
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
@@ -30,6 +38,13 @@ if (sr_request_method() === 'POST') {
     }
     if ($postedOnceHistoryPolicyInput !== (string) $postedSettings['once_history_policy']) {
         $errors[] = '기존 이용자 재결제 기준 값이 올바르지 않습니다.';
+    }
+    foreach (['layout_primary_menu_key', 'layout_secondary_menu_key', 'layout_tertiary_menu_key'] as $menuSettingKey) {
+        $menuKey = (string) $postedSettings[$menuSettingKey];
+        if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey])) {
+            $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
+            break;
+        }
     }
 
     if ($errors === []) {

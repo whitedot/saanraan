@@ -132,6 +132,7 @@ modules/board/
 공개 화면 디자인 책임은 public layout, 모듈 theme, 모듈 skin을 구분한다.
 
 - public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
+- public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 위치 구분으로 `primary_navigation`, `secondary_navigation`, `tertiary_navigation` output slot을 사용할 수 있다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`, `site_menus.secondary`, `site_menus.tertiary`로 전달한다.
 - public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 개발자 화면이며 admin 모듈에 의존하지 않는다.
 - 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `community.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
 - 모듈 theme는 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
@@ -1234,6 +1235,7 @@ return [
 
 - 링크 자산 제공은 메뉴 항목 자동 생성을 의미하지 않는다.
 - 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정한다.
+- 콘텐츠와 커뮤니티 환경설정에서 레이아웃의 상단, 하단, 보조 사이트 메뉴를 선택할 수 있다. 이 구분은 메뉴 항목의 부모/자식 관계가 아니라 레이아웃 표시 위치다.
 - 사이트 메뉴 항목은 `parent_id` 기반으로 최대 3단계까지 구성할 수 있으며, 관리자 화면은 메뉴 묶음과 항목을 단일 계층 테이블에서 관리한다.
 - `asset_type`과 `asset_type_label`을 제공하면 항목 모달에서 서비스 안의 대상 종류를 나눠서 선택할 수 있다. 예를 들어 커뮤니티는 `게시판 그룹`, `게시판`, 콘텐츠는 `콘텐츠 그룹`, `콘텐츠`로 표시한다.
 - `url`은 내부 상대 경로 또는 허용된 외부 URL이어야 한다.

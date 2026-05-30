@@ -6,7 +6,8 @@ $seo = [
     'canonical' => $box === 'sent' ? '/community/messages?box=sent' : '/community/messages',
     'robots' => 'noindex, nofollow',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+$communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings));
 ?>
     <main>
         <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>

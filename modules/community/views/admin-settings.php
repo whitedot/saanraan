@@ -2,6 +2,18 @@
 
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $adminPageTitle = $communitySettingsPage === 'levels' ? sr_t('community::ui.community.c1f4d427') : sr_t('community::ui.community.settings.af4e5ebd');
+$communitySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($communitySiteMenuOptions): void {
+    ?>
+    <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>사용 안 함</option>
+    <?php foreach ($communitySiteMenuOptions as $menuKey => $menu) { ?>
+        <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
+        <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
+            <?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?>
+        </option>
+    <?php } ?>
+    <?php
+};
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
@@ -324,6 +336,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                                 </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="community_admin_settings_layout_primary_menu_key">상단 사이트 메뉴</label>
+            <div class="admin-form-field">
+                <select id="community_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
+                    <?php $communitySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
+                </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="community_admin_settings_layout_secondary_menu_key">하단 사이트 메뉴</label>
+            <div class="admin-form-field">
+                <select id="community_admin_settings_layout_secondary_menu_key" name="layout_secondary_menu_key" class="form-select">
+                    <?php $communitySiteMenuSelectOptions((string) ($settings['layout_secondary_menu_key'] ?? '')); ?>
+                </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="community_admin_settings_layout_tertiary_menu_key">보조 사이트 메뉴</label>
+            <div class="admin-form-field">
+                <select id="community_admin_settings_layout_tertiary_menu_key" name="layout_tertiary_menu_key" class="form-select">
+                    <?php $communitySiteMenuSelectOptions((string) ($settings['layout_tertiary_menu_key'] ?? '')); ?>
+                </select>
             </div>
         </div>
         <div class="admin-form-row">

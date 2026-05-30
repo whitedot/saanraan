@@ -60,6 +60,30 @@
     min-width: 0;
 }
 
+.public-site-footer {
+    border-top: 1px solid var(--sr-border, var(--color-default-300));
+    display: grid;
+    gap: 12px;
+    margin: 32px auto 0;
+    padding: 20px clamp(1rem, 4vw, 2.5rem);
+    width: min(1080px, 100%);
+}
+
+.public-site-header .sr-site-menu,
+.public-site-footer .sr-site-menu {
+    margin: 0;
+    width: auto;
+}
+
+.public-site-footer .sr-site-menu-list {
+    gap: 6px 10px;
+}
+
+.public-site-footer .sr-site-menu-slot-tertiary-navigation {
+    color: var(--sr-muted, var(--color-default-600));
+    font-size: .92rem;
+}
+
 @media (max-width: 767px) {
     .public-site-header {
         align-items: flex-start;
