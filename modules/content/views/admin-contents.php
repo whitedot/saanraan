@@ -19,36 +19,7 @@ if ($hasSubmittedValues) {
 $editing = is_array($editPage);
 $contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.asset_settings.updated', 'content', (string) (int) ($editPage['id'] ?? 0)) : '';
 if ($values === []) {
-    $values = $editing ? $editPage : [
-        'title' => '',
-        'content_group_scope' => 'here_only',
-        'content_group_id' => 0,
-        'slug' => '',
-        'summary' => '',
-        'body_text' => '',
-        'status' => 'draft',
-        'layout_key' => sr_content_default_layout_key($pdo, $site ?? null),
-        'asset_access_enabled' => 0,
-        'asset_module' => '',
-        'asset_access_amount' => 0,
-        'asset_access_amounts_json' => '',
-        'asset_access_group_policies_json' => '',
-        'asset_access_policy_set_id' => 0,
-        'asset_charge_policy' => 'once',
-        'asset_action_enabled' => 0,
-        'asset_action_module' => '',
-        'asset_action_amount' => 0,
-        'asset_action_amounts_json' => '',
-        'asset_action_group_policies_json' => '',
-        'asset_action_policy_set_id' => 0,
-        'asset_action_direction' => 'grant',
-        'asset_action_label' => sr_t('content::ui.text.727333ab'),
-        'banner_before_content_id' => 0,
-        'banner_after_content_id' => 0,
-        'popup_layer_id' => 0,
-        'seo_title' => '',
-        'seo_description' => '',
-    ];
+    $values = $editing ? $editPage : sr_content_default_values($pdo, $site ?? null);
 }
 
 $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')) : sr_t('content::ui.content.6c84a1b3');
@@ -136,7 +107,7 @@ $pageSettingSourceRadioHtml = static function (string $name, string $selectedSou
 
     return $html . '</div>';
 };
-$values['content_group_scope'] = sr_content_group_apply_scope((string) ($values['content_group_scope'] ?? ((int) ($values['content_group_id'] ?? 0) > 0 ? 'group' : 'here_only')));
+$values['content_group_scope'] = sr_content_group_apply_scope((string) ($values['content_group_scope'] ?? 'here_only'));
 $legacyAssetPolicySource = sr_content_normalize_setting_source((string) ($values['asset_policy_source'] ?? 'content'));
 foreach (sr_content_group_asset_access_setting_keys() as $settingKey) {
     $values['source_' . $settingKey] = $pageSettingSource($values, (string) $settingKey);
@@ -687,7 +658,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <h2 class="card-title"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></h2>
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('content::ui.status.content.slug.d9329b0b')); ?></p>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/content/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/content/new' . ((int) ($filters['content_group_id'] ?? 0) > 0 ? '?content_group_id=' . rawurlencode((string) (int) $filters['content_group_id']) : ''))); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.content.530929bb')); ?></a>
         </div>
         <div class="admin-content-list-summary">
             <?php if (empty($contentSort['is_default'])) { ?>

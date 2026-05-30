@@ -177,92 +177,21 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
     return $html . '</select>';
 };
 $selectedBoard = is_array($editBoard ?? null) ? $editBoard : [];
-$newBoardDefaultSettings = $settings;
-$newBoardPostEditor = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
-$formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : [
-    'board_group_id' => 0,
+$newBoardGroupId = isset($newBoardGroupId) ? (int) $newBoardGroupId : 0;
+$newBoardDefaults = sr_community_board_default_settings(
+    $settings,
+    $newBoardGroupId > 0 && is_array($boardGroupSettings[$newBoardGroupId] ?? null) ? $boardGroupSettings[$newBoardGroupId] : []
+);
+$formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : array_merge($newBoardDefaults, [
+    'board_group_id' => $newBoardGroupId,
     'board_key' => '',
     'title' => '',
     'description' => '',
-    'status' => 'enabled',
-    'read_policy' => (string) ($allowedReadPolicies[0] ?? 'public'),
-    'write_policy' => (string) ($allowedWritePolicies[0] ?? 'member'),
-    'comment_policy' => (string) ($allowedCommentPolicies[0] ?? 'member'),
-    'image_uploads_enabled' => 1,
-    'attachment_max_bytes' => 2097152,
-    'attachment_max_count' => 1,
-    'banner_before_list_id' => 0,
-    'banner_after_list_id' => 0,
-    'popup_layer_list_id' => 0,
-    'banner_before_view_id' => 0,
-    'banner_after_view_id' => 0,
-    'popup_layer_view_id' => 0,
-    'banner_before_form_id' => 0,
-    'banner_after_form_id' => 0,
-    'popup_layer_form_id' => 0,
-    'file_uploads_enabled' => '0',
-    'file_attachment_max_bytes' => 5242880,
-    'file_attachment_max_count' => 3,
-    'file_allowed_extensions' => ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'],
     'sort_order' => 0,
-    'read_group_keys' => [],
-    'write_group_keys' => [],
-    'comment_group_keys' => [],
-    'read_min_level' => 0,
-    'write_min_level' => 0,
-    'comment_min_level' => 0,
-    'level_post_score' => (string) ($settings['level_post_score'] ?? 10),
-    'level_comment_score' => (string) ($settings['level_comment_score'] ?? 2),
-    'skin_key' => 'basic',
-    'post_editor' => $newBoardPostEditor,
-    'post_reward_enabled' => !empty($newBoardDefaultSettings['post_reward_enabled']) ? '1' : '0',
-    'post_reward_asset_module' => (string) ($newBoardDefaultSettings['post_reward_asset_module'] ?? ''),
-    'post_reward_amount' => (string) ($newBoardDefaultSettings['post_reward_amount'] ?? 0),
-    'post_reward_group_policies_json' => (string) ($newBoardDefaultSettings['post_reward_group_policies_json'] ?? ''),
-    'post_reward_policy_set_id' => (string) ($newBoardDefaultSettings['post_reward_policy_set_id'] ?? 0),
-    'post_reward_amounts_json' => (string) ($newBoardDefaultSettings['post_reward_amounts_json'] ?? ''),
-    'comment_reward_enabled' => !empty($newBoardDefaultSettings['comment_reward_enabled']) ? '1' : '0',
-    'comment_reward_asset_module' => (string) ($newBoardDefaultSettings['comment_reward_asset_module'] ?? ''),
-    'comment_reward_amount' => (string) ($newBoardDefaultSettings['comment_reward_amount'] ?? 0),
-    'comment_reward_group_policies_json' => (string) ($newBoardDefaultSettings['comment_reward_group_policies_json'] ?? ''),
-    'comment_reward_policy_set_id' => (string) ($newBoardDefaultSettings['comment_reward_policy_set_id'] ?? 0),
-    'comment_reward_amounts_json' => (string) ($newBoardDefaultSettings['comment_reward_amounts_json'] ?? ''),
-    'write_charge_enabled' => !empty($newBoardDefaultSettings['write_charge_enabled']) ? '1' : '0',
-    'write_charge_asset_module' => (string) ($newBoardDefaultSettings['write_charge_asset_module'] ?? ''),
-    'write_charge_amount' => (string) ($newBoardDefaultSettings['write_charge_amount'] ?? 0),
-    'write_charge_amounts_json' => (string) ($newBoardDefaultSettings['write_charge_amounts_json'] ?? ''),
-    'write_charge_group_policies_json' => (string) ($newBoardDefaultSettings['write_charge_group_policies_json'] ?? ''),
-    'write_charge_policy_set_id' => (string) ($newBoardDefaultSettings['write_charge_policy_set_id'] ?? 0),
-    'comment_charge_enabled' => !empty($newBoardDefaultSettings['comment_charge_enabled']) ? '1' : '0',
-    'comment_charge_asset_module' => (string) ($newBoardDefaultSettings['comment_charge_asset_module'] ?? ''),
-    'comment_charge_amount' => (string) ($newBoardDefaultSettings['comment_charge_amount'] ?? 0),
-    'comment_charge_amounts_json' => (string) ($newBoardDefaultSettings['comment_charge_amounts_json'] ?? ''),
-    'comment_charge_group_policies_json' => (string) ($newBoardDefaultSettings['comment_charge_group_policies_json'] ?? ''),
-    'comment_charge_policy_set_id' => (string) ($newBoardDefaultSettings['comment_charge_policy_set_id'] ?? 0),
-    'paid_read_enabled' => !empty($newBoardDefaultSettings['paid_read_enabled']) ? '1' : '0',
-    'paid_read_asset_module' => (string) ($newBoardDefaultSettings['paid_read_asset_module'] ?? ''),
-    'paid_read_amount' => (string) ($newBoardDefaultSettings['paid_read_amount'] ?? 0),
-    'paid_read_amounts_json' => (string) ($newBoardDefaultSettings['paid_read_amounts_json'] ?? ''),
-    'paid_read_group_policies_json' => (string) ($newBoardDefaultSettings['paid_read_group_policies_json'] ?? ''),
-    'paid_read_policy_set_id' => (string) ($newBoardDefaultSettings['paid_read_policy_set_id'] ?? 0),
-    'paid_read_charge_policy' => (string) ($newBoardDefaultSettings['paid_read_charge_policy'] ?? 'once'),
-    'paid_attachment_download_enabled' => !empty($newBoardDefaultSettings['paid_attachment_download_enabled']) ? '1' : '0',
-    'paid_attachment_download_asset_module' => (string) ($newBoardDefaultSettings['paid_attachment_download_asset_module'] ?? ''),
-    'paid_attachment_download_amount' => (string) ($newBoardDefaultSettings['paid_attachment_download_amount'] ?? 0),
-    'paid_attachment_download_amounts_json' => (string) ($newBoardDefaultSettings['paid_attachment_download_amounts_json'] ?? ''),
-    'paid_attachment_download_group_policies_json' => (string) ($newBoardDefaultSettings['paid_attachment_download_group_policies_json'] ?? ''),
-    'paid_attachment_download_policy_set_id' => (string) ($newBoardDefaultSettings['paid_attachment_download_policy_set_id'] ?? 0),
-    'paid_attachment_download_charge_policy' => (string) ($newBoardDefaultSettings['paid_attachment_download_charge_policy'] ?? 'once'),
-];
+]);
 $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     ? sr_admin_asset_settings_audit_url('community.board.asset_settings.updated', 'community_board', (string) (int) ($formBoard['id'] ?? 0))
     : '';
-if ($communityBoardsPage !== 'edit') {
-    foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
-        $formBoard['source_' . $assetSettingKey] = 'board';
-    }
-}
-
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -326,7 +255,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.a62deef1')); ?></h2>
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/community/boards/new' . ((int) ($boardListFilters['group_id'] ?? 0) > 0 ? '?group_id=' . rawurlencode((string) (int) $boardListFilters['group_id']) : ''))); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('community::ui.text.97f92efb')); ?></a>
         </div>
         <div class="admin-list-summary-row">
             <?php if (empty($boardSort['is_default'])) { ?>
@@ -810,11 +739,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
 <script>
 (function () {
-    var isNewBoard = <?php echo $communityBoardsPage === 'new' ? 'true' : 'false'; ?>;
-    var defaultLevelPostScore = '<?php echo sr_e((string) ($settings['level_post_score'] ?? 10)); ?>';
-    var defaultLevelCommentScore = '<?php echo sr_e((string) ($settings['level_comment_score'] ?? 2)); ?>';
-    var levelScoreTouched = {post: false, comment: false};
-
     function syncBoardGroupRequired() {
         var groupSelect = document.querySelector('[data-community-board-group-select]');
         var label = document.querySelector('[data-community-board-group-required]');
@@ -847,23 +771,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         groupSelect.required = needed;
         if (label) {
             label.hidden = !needed;
-        }
-    }
-
-    function syncLevelScoreDefaults(force) {
-        var groupSelect = document.querySelector('[data-community-board-group-select]');
-        var post = document.querySelector('[data-community-level-score="post"]');
-        var comment = document.querySelector('[data-community-level-score="comment"]');
-        if (!isNewBoard || !groupSelect) {
-            return;
-        }
-
-        var option = groupSelect.options[groupSelect.selectedIndex] || null;
-        if (post && (force || !levelScoreTouched.post)) {
-            post.value = option && option.dataset.levelPostScore ? option.dataset.levelPostScore : defaultLevelPostScore;
-        }
-        if (comment && (force || !levelScoreTouched.comment)) {
-            comment.value = option && option.dataset.levelCommentScore ? option.dataset.levelCommentScore : defaultLevelCommentScore;
         }
     }
 
@@ -966,25 +873,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     syncPolicy('read');
     syncBoardGroupRequired();
     var groupSelect = document.querySelector('[data-community-board-group-select]');
-    var postScore = document.querySelector('[data-community-level-score="post"]');
-    var commentScore = document.querySelector('[data-community-level-score="comment"]');
-    if (postScore) {
-        postScore.addEventListener('input', function () {
-            levelScoreTouched.post = true;
-        });
-    }
-    if (commentScore) {
-        commentScore.addEventListener('input', function () {
-            levelScoreTouched.comment = true;
-        });
-    }
     if (groupSelect) {
         groupSelect.addEventListener('change', function () {
-            syncLevelScoreDefaults(false);
             syncBoardGroupRequired();
         });
     }
-    syncLevelScoreDefaults(false);
     var count = document.getElementById('community_admin_boards_file_attachment_max_count');
     var enabled = document.getElementById('modules_community_admin_boards_file_uploads_enabled');
     if (count) {

@@ -301,6 +301,53 @@ function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null
     return $settings;
 }
 
+function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array $groupSettings = []): array
+{
+    $defaults = sr_content_group_default_settings($site, $pdo);
+    foreach (sr_content_group_setting_keys() as $settingKey) {
+        if (array_key_exists((string) $settingKey, $groupSettings)) {
+            $defaults[(string) $settingKey] = (string) $groupSettings[(string) $settingKey];
+        }
+    }
+
+    $values = [
+        'title' => '',
+        'content_group_scope' => 'here_only',
+        'content_group_id' => 0,
+        'slug' => '',
+        'summary' => '',
+        'body_text' => '',
+        'status' => (string) ($defaults['status'] ?? 'draft'),
+        'layout_key' => (string) ($defaults['layout_key'] ?? ($pdo instanceof PDO ? sr_content_default_layout_key($pdo, $site) : '')),
+        'asset_access_enabled' => (int) ($defaults['asset_access_enabled'] ?? 0),
+        'asset_module' => (string) ($defaults['asset_module'] ?? ''),
+        'asset_access_amount' => (int) ($defaults['asset_access_amount'] ?? 0),
+        'asset_access_amounts_json' => (string) ($defaults['asset_access_amounts_json'] ?? ''),
+        'asset_access_group_policies_json' => (string) ($defaults['asset_access_group_policies_json'] ?? ''),
+        'asset_access_policy_set_id' => (int) ($defaults['asset_access_policy_set_id'] ?? 0),
+        'asset_charge_policy' => (string) ($defaults['asset_charge_policy'] ?? 'once'),
+        'asset_action_enabled' => (int) ($defaults['asset_action_enabled'] ?? 0),
+        'asset_action_module' => (string) ($defaults['asset_action_module'] ?? ''),
+        'asset_action_amount' => (int) ($defaults['asset_action_amount'] ?? 0),
+        'asset_action_amounts_json' => (string) ($defaults['asset_action_amounts_json'] ?? ''),
+        'asset_action_group_policies_json' => (string) ($defaults['asset_action_group_policies_json'] ?? ''),
+        'asset_action_policy_set_id' => (int) ($defaults['asset_action_policy_set_id'] ?? 0),
+        'asset_action_direction' => (string) ($defaults['asset_action_direction'] ?? 'grant'),
+        'asset_action_label' => (string) ($defaults['asset_action_label'] ?? sr_t('content::ui.text.727333ab')),
+        'banner_before_content_id' => (int) ($defaults['banner_before_content_id'] ?? 0),
+        'banner_after_content_id' => (int) ($defaults['banner_after_content_id'] ?? 0),
+        'popup_layer_id' => (int) ($defaults['popup_layer_id'] ?? 0),
+        'seo_title' => '',
+        'seo_description' => '',
+    ];
+
+    foreach (sr_content_group_setting_keys() as $settingKey) {
+        $values['source_' . (string) $settingKey] = 'content';
+    }
+
+    return sr_content_normalize_asset_values($values);
+}
+
 function sr_content_reserved_slugs(): array
 {
     return ['account', 'action', 'admin', 'api', 'assets', 'community', 'content', 'download', 'group', 'login', 'logout', 'modules', 'pages', 'register'];

@@ -107,6 +107,11 @@ function sr_community_board_group_all_setting_keys(): array
     )));
 }
 
+function sr_community_board_group_copy_setting_keys_for_new_board(): array
+{
+    return array_values(array_diff(sr_community_board_group_all_setting_keys(), ['status', 'skin_key']));
+}
+
 function sr_community_board_group_default_settings(array $settings): array
 {
     $fileAllowedExtensions = $settings['file_allowed_extensions'] ?? ['pdf', 'txt', 'csv', 'zip', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'hwp'];
@@ -149,6 +154,38 @@ function sr_community_board_group_default_settings(array $settings): array
         }
 
         $defaults[(string) $settingKey] = (string) $value;
+    }
+
+    return $defaults;
+}
+
+function sr_community_board_default_settings(array $settings, array $groupSettings = []): array
+{
+    $defaults = sr_community_board_group_default_settings($settings);
+    $defaults['status'] = (string) ($settings['board_status'] ?? 'enabled');
+    $defaults['skin_key'] = 'basic';
+
+    foreach (sr_community_board_group_copy_setting_keys_for_new_board() as $settingKey) {
+        if (array_key_exists((string) $settingKey, $groupSettings)) {
+            $defaults[(string) $settingKey] = (string) $groupSettings[(string) $settingKey];
+        }
+    }
+
+    $arrayKeys = ['read_group_keys', 'write_group_keys', 'comment_group_keys'];
+    foreach ($arrayKeys as $settingKey) {
+        $value = (string) ($defaults[$settingKey] ?? '');
+        $decoded = json_decode($value, true);
+        $defaults[$settingKey] = sr_community_normalize_board_group_keys(is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value));
+    }
+
+    $fileAllowedExtensions = (string) ($defaults['file_allowed_extensions'] ?? '');
+    $defaults['file_allowed_extensions'] = sr_community_file_extensions_from_input($fileAllowedExtensions);
+
+    foreach (sr_community_board_group_setting_keys() as $settingKey) {
+        $defaults['source_' . (string) $settingKey] = 'board';
+    }
+    foreach (sr_community_asset_setting_keys() as $settingKey) {
+        $defaults['source_' . (string) $settingKey] = 'board';
     }
 
     return $defaults;

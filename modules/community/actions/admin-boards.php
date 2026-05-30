@@ -80,6 +80,7 @@ $boardListFilters = [
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
+$newBoardGroupId = $communityBoardsPage === 'new' ? $boardGroupFilterId : 0;
 if ($boardListFilters['status'] !== '' && !in_array($boardListFilters['status'], $allowedStatuses, true)) {
     $boardListFilters['status'] = '';
 }

@@ -144,6 +144,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($pageGroup['updated_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
+                                        <a href="<?php echo sr_e(sr_url('/admin/content/new?content_group_id=' . rawurlencode((string) $pageGroup['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="이 그룹에 콘텐츠 추가" title="이 그룹에 콘텐츠 추가"><?php echo sr_material_icon_html('add'); ?></a>
                                         <?php if ((string) ($pageGroup['status'] ?? '') === 'enabled') { ?>
                                             <a href="<?php echo sr_e(sr_url(sr_content_group_path((string) $pageGroup['group_key']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
                                         <?php } ?>
