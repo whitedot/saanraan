@@ -654,7 +654,7 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communitySettingsPermissionPath, 'edit')",
     'sr_require_csrf()',
     'sr_community_message_write_policy(sr_post_string(\'message_write_policy\', 40))',
-    'sr_community_update_level_min_scores($pdo, $minScoresById)',
+    'sr_community_update_level_min_scores($pdo, $minScoresById',
     "'event_type' => 'community.settings.updated'",
 ], 'Community admin settings policy');
 sr_community_release_file_contains('modules/community/actions/admin-posts.php', [

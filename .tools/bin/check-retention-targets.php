@@ -23,13 +23,16 @@ $expectedKeys = [
     'sessions',
     'runtime_sessions',
     'rate_limits',
+    'content_asset_access_placeholders',
+    'content_asset_action_placeholders',
+    'community_asset_placeholders',
     'notifications',
     'notification_deliveries',
     'notification_reads',
     'module_backups',
 ];
 
-$targets = sr_admin_retention_target_definitions(true, true, true, true);
+$targets = sr_admin_retention_target_definitions(true, true, true, true, true, true);
 if (array_keys($targets) !== $expectedKeys) {
     sr_retention_check_error($errors, 'Retention target keys changed unexpectedly.');
 }
@@ -69,13 +72,15 @@ foreach ($targets as $key => $target) {
     ]);
     foreach ($forbiddenRetentionTables as $tableName) {
         if (preg_match('/\b' . preg_quote($tableName, '/') . '\b/', $targetSql) === 1) {
-            sr_retention_check_error($errors, 'Retention target must not delete asset history table ' . $tableName . ': ' . $key);
+            if (!str_ends_with($key, '_placeholders') || strpos($targetSql, 'transaction_id = 0') === false) {
+                sr_retention_check_error($errors, 'Retention target must not delete asset history table ' . $tableName . ': ' . $key);
+            }
         }
     }
 }
 
-$disabledTargets = sr_admin_retention_target_definitions(false, false, false, false);
-foreach (['sessions', 'runtime_sessions', 'rate_limits', 'notifications', 'notification_deliveries', 'notification_reads'] as $key) {
+$disabledTargets = sr_admin_retention_target_definitions(false, false, false, false, false, false);
+foreach (['sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_placeholders', 'content_asset_action_placeholders', 'community_asset_placeholders', 'notifications', 'notification_deliveries', 'notification_reads'] as $key) {
     if ($disabledTargets[$key]['enabled'] !== false) {
         sr_retention_check_error($errors, 'Retention optional target should be disabled: ' . $key);
     }

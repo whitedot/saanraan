@@ -34,23 +34,28 @@ if (sr_request_method() === 'POST') {
     } else {
         unset($validTokens[$submitToken]);
         $_SESSION['sr_asset_exchange_submit_tokens'] = $validTokens;
-        try {
-            $logId = sr_asset_exchange_execute($pdo, $selectedPolicy, (int) $account['id'], $amount, (int) $account['id']);
-            $_SESSION['sr_asset_exchange_flash'] = [
-                'notice' => '환전이 완료되었습니다.',
-                'errors' => [],
-                'log_id' => $logId,
-            ];
-            sr_redirect('/account/asset-exchange');
-        } catch (Throwable $exception) {
-            $message = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException
-                ? $exception->getMessage()
-                : '환전 처리에 실패했습니다.';
-            $errors[] = $message;
+        if (sr_asset_exchange_execute_rate_limited($pdo, (int) $account['id'])) {
+            $errors[] = '환전 요청이 너무 많습니다. 잠시 후 다시 시도하세요.';
+        } else {
+            sr_asset_exchange_record_execute_attempt($pdo, (int) $account['id']);
             try {
-                sr_asset_exchange_record_failure($pdo, $selectedPolicy, (int) $account['id'], $amount, $message, (int) $account['id']);
-            } catch (Throwable $logException) {
-                sr_log_exception($logException, 'asset_exchange_failure_log_failed');
+                $logId = sr_asset_exchange_execute($pdo, $selectedPolicy, (int) $account['id'], $amount, (int) $account['id']);
+                $_SESSION['sr_asset_exchange_flash'] = [
+                    'notice' => '환전이 완료되었습니다.',
+                    'errors' => [],
+                    'log_id' => $logId,
+                ];
+                sr_redirect('/account/asset-exchange');
+            } catch (Throwable $exception) {
+                $message = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException
+                    ? $exception->getMessage()
+                    : '환전 처리에 실패했습니다.';
+                $errors[] = $message;
+                try {
+                    sr_asset_exchange_record_failure($pdo, $selectedPolicy, (int) $account['id'], $amount, $message, (int) $account['id']);
+                } catch (Throwable $logException) {
+                    sr_log_exception($logException, 'asset_exchange_failure_log_failed');
+                }
             }
         }
     }

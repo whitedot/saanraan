@@ -2,6 +2,49 @@
 
 declare(strict_types=1);
 
+function sr_asset_exchange_execute_rate_limit_bucket(): string
+{
+    return 'asset_exchange.execute.account';
+}
+
+function sr_asset_exchange_execute_rate_limit_window_seconds(): int
+{
+    return 60;
+}
+
+function sr_asset_exchange_execute_rate_limit_max_attempts(): int
+{
+    return 10;
+}
+
+function sr_asset_exchange_execute_rate_limited(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1) {
+        return true;
+    }
+
+    return sr_rate_limit_count(
+        $pdo,
+        sr_asset_exchange_execute_rate_limit_bucket(),
+        (string) $accountId,
+        sr_asset_exchange_execute_rate_limit_window_seconds()
+    ) >= sr_asset_exchange_execute_rate_limit_max_attempts();
+}
+
+function sr_asset_exchange_record_execute_attempt(PDO $pdo, int $accountId): void
+{
+    if ($accountId < 1) {
+        return;
+    }
+
+    sr_rate_limit_increment(
+        $pdo,
+        sr_asset_exchange_execute_rate_limit_bucket(),
+        (string) $accountId,
+        sr_asset_exchange_execute_rate_limit_window_seconds()
+    );
+}
+
 function sr_asset_exchange_assets(PDO $pdo): array
 {
     $assets = [];
