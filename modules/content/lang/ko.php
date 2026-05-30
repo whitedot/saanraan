@@ -78,6 +78,8 @@ return [
     'help.seo_description.body.1' => 'SEO 설명은 검색 결과나 공유 미리보기에서 콘텐츠를 소개할 때 사용할 수 있는 짧은 설명입니다.',
     'help.seo_description.body.2' => '비워 두면 사이트나 SEO 모듈의 기본 설명이 사용될 수 있습니다. 방문자가 내용을 이해할 수 있게 한두 문장으로 적으세요.',
     'help.seo_description.title' => 'SEO 설명 도움말',
+    'layout.basic.label' => '콘텐츠 기본 레이아웃',
+    'layout.provider' => '콘텐츠',
     'help.seo_title.body.1' => 'SEO 제목은 검색 결과나 공유 미리보기에서 사용할 별도 제목입니다.',
     'help.seo_title.body.2' => '비워 두면 콘텐츠 제목이 기준이 됩니다. 검색 노출용으로 더 자연스러운 제목이 필요할 때 입력하세요.',
     'help.seo_title.title' => 'SEO 제목 도움말',

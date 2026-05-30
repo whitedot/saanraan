@@ -21,6 +21,7 @@ $contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($
     <?php } ?>
     <?php
 };
+$contentLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -39,6 +40,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_layout_key">기본 콘텐츠 레이아웃 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_layout_key" name="layout_key" class="form-select" required>
+                    <?php foreach ($contentLayoutOptions as $layoutKey => $layoutOption) { ?>
+                        <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help">새 콘텐츠와 새 콘텐츠 그룹을 만들 때 먼저 채울 공개 레이아웃입니다. 기존 콘텐츠와 그룹은 자동 변경되지 않습니다.</p>
             </div>
         </div>
         <div class="admin-form-row">

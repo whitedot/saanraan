@@ -227,7 +227,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <select id="content_group_layout_key" name="group_layout_key" class="form-select">
                         <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
-                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $groupSettingValue($groupSettings, 'layout_key', sr_public_layout_key($site ?? null, $pdo ?? null)) === (string) $layoutKey ? ' selected' : ''; ?>>
+                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $groupSettingValue($groupSettings, 'layout_key', sr_content_default_layout_key($pdo, $site ?? null)) === (string) $layoutKey ? ' selected' : ''; ?>>
                                 <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
                             </option>
                         <?php } ?>

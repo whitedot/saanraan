@@ -27,7 +27,7 @@ if ($values === []) {
         'summary' => '',
         'body_text' => '',
         'status' => 'draft',
-        'layout_key' => sr_public_layout_key($site ?? null, $pdo ?? null),
+        'layout_key' => sr_content_default_layout_key($pdo, $site ?? null),
         'asset_access_enabled' => 0,
         'asset_module' => '',
         'asset_access_amount' => 0,

@@ -20,6 +20,7 @@ function sr_content_default_settings(): array
     return [
         'editor' => 'textarea',
         'once_history_policy' => 'all_access',
+        'layout_key' => 'content.basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
         'layout_tertiary_menu_key' => '',
@@ -37,11 +38,25 @@ function sr_content_settings(PDO $pdo): array
     $settings = array_merge(sr_content_default_settings(), sr_module_settings($pdo, 'content'));
     $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
     $settings['once_history_policy'] = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
+    $settings['layout_key'] = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic'));
+    if (!isset(sr_public_layout_options($pdo)[$settings['layout_key']])) {
+        $settings['layout_key'] = sr_public_layout_key(null, $pdo);
+    }
     $settings['layout_primary_menu_key'] = sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'));
     $settings['layout_secondary_menu_key'] = sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? ''));
     $settings['layout_tertiary_menu_key'] = sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? ''));
 
     return $settings;
+}
+
+function sr_content_default_layout_key(PDO $pdo, ?array $site = null): string
+{
+    $layoutKey = sr_public_layout_normalize_key((string) (sr_content_settings($pdo)['layout_key'] ?? ''));
+    if ($layoutKey !== '' && isset(sr_public_layout_options($pdo)[$layoutKey])) {
+        return $layoutKey;
+    }
+
+    return sr_public_layout_key($site, $pdo);
 }
 
 function sr_content_public_layout_context(array $settings, array $context = []): array
@@ -69,6 +84,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
     $rows = [
         ['editor', sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea')), 'string'],
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
+        ['layout_key', sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic')), 'string'],
         ['layout_primary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')), 'string'],
         ['layout_secondary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')), 'string'],
         ['layout_tertiary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')), 'string'],
@@ -250,9 +266,10 @@ function sr_content_group_setting_keys(): array
 
 function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null): array
 {
+    $layoutKey = $pdo instanceof PDO ? sr_content_default_layout_key($pdo, $site) : sr_public_layout_key($site, $pdo);
     $settings = [
         'status' => 'draft',
-        'layout_key' => sr_public_layout_key($site, $pdo),
+        'layout_key' => $layoutKey,
         'asset_access_enabled' => '0',
         'asset_module' => '',
         'asset_access_amount' => '0',
