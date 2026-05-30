@@ -31,7 +31,7 @@
 - placeholder 커밋 후 차감 전 하드 크래시가 나면 `transaction_id = 0` placeholder만 남을 수 있다.
 - 이후 같은 once 요청에서 INSERT IGNORE가 중복으로 무시되면 차감 없이 허용되는 흐름이 생길 수 있다.
 - 2026-05-28 보강: placeholder와 차감을 단일 트랜잭션에 넣고, once 정책에서 중복 placeholder가 발견되면 완료 접근권이 없는 한 실패로 처리한다.
-- 2026-05-31 보강: 관리자 보존 정책 정리 대상에 `transaction_id = 0`인 콘텐츠 접근/액션, 커뮤니티 자산 미완료 로그를 추가했다. 실제 원장 transaction과 연결된 자산 이력은 삭제하지 않고 미완료 placeholder만 보관 기간 기준으로 정리한다.
+- 남은 조치: 기존 운영 DB에 남아 있을 수 있는 `transaction_id = 0` 미완료 placeholder 정리 절차가 필요하다. 단, 현재 `transaction_id = 0`은 그룹 정책으로 최종 금액이 0원이 된 정상 로그에도 쓰이므로, 정리 절차를 추가하려면 정상 0원 처리와 미완료 상태를 구분하는 별도 마커가 먼저 필요하다.
 
 ## 중간 위험
 

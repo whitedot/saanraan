@@ -135,7 +135,7 @@
 - [ ] `/admin/updates` 업데이트
 - [ ] `/admin/roles` 관리자 권한
 - [ ] `/admin/audit-logs` 감사 로그
-- [ ] `/admin/retention` 보존 정책과 콘텐츠/커뮤니티 미완료 자산 로그 정리 대상
+- [ ] `/admin/retention` 보존 정책
 - [ ] 관리자 헤더 / 사이드 메뉴 / 푸터
 - [ ] 관리자 화면 모바일 폭 메뉴 동작
 

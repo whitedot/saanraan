@@ -243,21 +243,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
                                 <td><?php echo sr_e((string) $previewCounts['rate_limits']); ?></td>
                             </tr>
-                            <tr>
-                                <td><?php echo sr_e('콘텐츠 접근 미완료 자산 로그'); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['content_asset_access_placeholders']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e('콘텐츠 액션 미완료 자산 로그'); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['content_asset_action_placeholders']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e('커뮤니티 미완료 자산 로그'); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['community_asset_placeholders']); ?></td>
-                            </tr>
                             <?php if ($hasNotificationTables) { ?>
                                 <tr>
                                     <td><?php echo sr_e(sr_t('admin::ui.notification.12ddd6ca')); ?></td>
