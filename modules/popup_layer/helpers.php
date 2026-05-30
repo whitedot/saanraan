@@ -155,7 +155,47 @@ function sr_popup_layer_settings(PDO $pdo): array
     $metadata = sr_module_metadata('popup_layer');
     $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
 
-    return array_merge(['popup_layer_skin_key' => 'basic'], $defaults, sr_module_settings($pdo, 'popup_layer'));
+    return array_merge(sr_popup_layer_default_settings(), $defaults, sr_module_settings($pdo, 'popup_layer'));
+}
+
+function sr_popup_layer_default_settings(): array
+{
+    return [
+        'popup_layer_skin_key' => 'basic',
+        'popup_layer_default_status' => 'draft',
+        'popup_layer_default_target_option' => sr_popup_layer_public_target_option_value(),
+        'popup_layer_default_match_type' => 'all',
+        'popup_layer_default_dismiss_cookie_days' => 1,
+    ];
+}
+
+function sr_popup_layer_default_status(array $settings): string
+{
+    $status = (string) ($settings['popup_layer_default_status'] ?? 'draft');
+
+    return in_array($status, ['draft', 'enabled', 'disabled'], true) ? $status : 'draft';
+}
+
+function sr_popup_layer_default_target_option(array $settings, array $availableTargets): string
+{
+    $targetOption = (string) ($settings['popup_layer_default_target_option'] ?? sr_popup_layer_public_target_option_value());
+    if (sr_popup_layer_is_public_target_option($targetOption)) {
+        return sr_popup_layer_public_target_option_value();
+    }
+
+    return sr_popup_layer_find_target($availableTargets, $targetOption) !== null ? $targetOption : sr_popup_layer_public_target_option_value();
+}
+
+function sr_popup_layer_default_match_type(array $settings): string
+{
+    $matchType = (string) ($settings['popup_layer_default_match_type'] ?? 'all');
+
+    return in_array($matchType, ['all', 'exact'], true) ? $matchType : 'all';
+}
+
+function sr_popup_layer_default_dismiss_cookie_days(array $settings): int
+{
+    return max(0, min(365, (int) ($settings['popup_layer_default_dismiss_cookie_days'] ?? 1)));
 }
 
 function sr_popup_layer_skin_options(): array
@@ -196,7 +236,13 @@ function sr_popup_layer_skin_view(string $skinKey, string $viewKey): string
 
 function sr_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void
 {
-    $skinKey = sr_popup_layer_skin_key(['popup_layer_skin_key' => $skinKey]);
+    sr_popup_layer_save_settings($pdo, [
+        'popup_layer_skin_key' => $skinKey,
+    ]);
+}
+
+function sr_popup_layer_save_settings(PDO $pdo, array $settings): void
+{
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'popup_layer' LIMIT 1");
     $stmt->execute();
     $module = $stmt->fetch();
@@ -215,14 +261,33 @@ function sr_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void
             updated_at = VALUES(updated_at)'
     );
     $now = sr_now();
-    $stmt->execute([
-        'module_id' => (int) $module['id'],
-        'setting_key' => 'popup_layer_skin_key',
-        'setting_value' => $skinKey,
-        'value_type' => 'string',
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
+    $rows = [];
+    if (array_key_exists('popup_layer_skin_key', $settings)) {
+        $rows[] = ['popup_layer_skin_key', sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) $settings['popup_layer_skin_key']]), 'string'];
+    }
+    if (array_key_exists('popup_layer_default_status', $settings)) {
+        $rows[] = ['popup_layer_default_status', sr_popup_layer_default_status($settings), 'string'];
+    }
+    if (array_key_exists('popup_layer_default_target_option', $settings)) {
+        $rows[] = ['popup_layer_default_target_option', (string) $settings['popup_layer_default_target_option'], 'string'];
+    }
+    if (array_key_exists('popup_layer_default_match_type', $settings)) {
+        $rows[] = ['popup_layer_default_match_type', sr_popup_layer_default_match_type($settings), 'string'];
+    }
+    if (array_key_exists('popup_layer_default_dismiss_cookie_days', $settings)) {
+        $rows[] = ['popup_layer_default_dismiss_cookie_days', (string) sr_popup_layer_default_dismiss_cookie_days($settings), 'int'];
+    }
+
+    foreach ($rows as $row) {
+        $stmt->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $row[0],
+            'setting_value' => (string) $row[1],
+            'value_type' => (string) $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
     sr_clear_module_settings_cache('popup_layer');
 }
 

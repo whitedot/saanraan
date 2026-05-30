@@ -2,7 +2,7 @@
 
 return [
     'name' => '배너',
-    'version' => '2026.05.003',
+    'version' => '2026.05.004',
     'type' => 'module',
     'description' => '공개 출력 슬롯용 배너 관리 모듈입니다.',
     'admin' => [
@@ -34,5 +34,9 @@ return [
     ],
     'settings' => [
         'banner_skin_key' => 'basic',
+        'banner_default_status' => 'draft',
+        'banner_default_target_option' => '__public__',
+        'banner_default_match_type' => 'all',
+        'banner_default_sort_order' => 100,
     ],
 ];

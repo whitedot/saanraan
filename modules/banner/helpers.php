@@ -607,7 +607,47 @@ function sr_banner_settings(PDO $pdo): array
     $metadata = sr_module_metadata('banner');
     $defaults = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
 
-    return array_merge(['banner_skin_key' => 'basic'], $defaults, sr_module_settings($pdo, 'banner'));
+    return array_merge(sr_banner_default_settings(), $defaults, sr_module_settings($pdo, 'banner'));
+}
+
+function sr_banner_default_settings(): array
+{
+    return [
+        'banner_skin_key' => 'basic',
+        'banner_default_status' => 'draft',
+        'banner_default_target_option' => sr_banner_public_target_option_value(),
+        'banner_default_match_type' => 'all',
+        'banner_default_sort_order' => 100,
+    ];
+}
+
+function sr_banner_default_status(array $settings): string
+{
+    $status = (string) ($settings['banner_default_status'] ?? 'draft');
+
+    return in_array($status, ['draft', 'enabled', 'disabled'], true) ? $status : 'draft';
+}
+
+function sr_banner_default_target_option(array $settings, array $availableTargets): string
+{
+    $targetOption = (string) ($settings['banner_default_target_option'] ?? sr_banner_public_target_option_value());
+    if (sr_banner_is_public_target_option($targetOption)) {
+        return sr_banner_public_target_option_value();
+    }
+
+    return sr_banner_find_target($availableTargets, $targetOption) !== null ? $targetOption : sr_banner_public_target_option_value();
+}
+
+function sr_banner_default_match_type(array $settings): string
+{
+    $matchType = (string) ($settings['banner_default_match_type'] ?? 'all');
+
+    return in_array($matchType, ['all', 'exact'], true) ? $matchType : 'all';
+}
+
+function sr_banner_default_sort_order(array $settings): int
+{
+    return max(-100000, min(100000, (int) ($settings['banner_default_sort_order'] ?? 100)));
 }
 
 function sr_banner_skin_options(): array
@@ -684,7 +724,13 @@ function sr_banner_skin_options_for_placement(string $placementKind): array
 
 function sr_banner_save_skin_key(PDO $pdo, string $skinKey): void
 {
-    $skinKey = sr_banner_skin_key(['banner_skin_key' => $skinKey]);
+    sr_banner_save_settings($pdo, [
+        'banner_skin_key' => $skinKey,
+    ]);
+}
+
+function sr_banner_save_settings(PDO $pdo, array $settings): void
+{
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'banner' LIMIT 1");
     $stmt->execute();
     $module = $stmt->fetch();
@@ -703,14 +749,33 @@ function sr_banner_save_skin_key(PDO $pdo, string $skinKey): void
             updated_at = VALUES(updated_at)'
     );
     $now = sr_now();
-    $stmt->execute([
-        'module_id' => (int) $module['id'],
-        'setting_key' => 'banner_skin_key',
-        'setting_value' => $skinKey,
-        'value_type' => 'string',
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
+    $rows = [];
+    if (array_key_exists('banner_skin_key', $settings)) {
+        $rows[] = ['banner_skin_key', sr_banner_skin_key(['banner_skin_key' => (string) $settings['banner_skin_key']]), 'string'];
+    }
+    if (array_key_exists('banner_default_status', $settings)) {
+        $rows[] = ['banner_default_status', sr_banner_default_status($settings), 'string'];
+    }
+    if (array_key_exists('banner_default_target_option', $settings)) {
+        $rows[] = ['banner_default_target_option', (string) $settings['banner_default_target_option'], 'string'];
+    }
+    if (array_key_exists('banner_default_match_type', $settings)) {
+        $rows[] = ['banner_default_match_type', sr_banner_default_match_type($settings), 'string'];
+    }
+    if (array_key_exists('banner_default_sort_order', $settings)) {
+        $rows[] = ['banner_default_sort_order', (string) sr_banner_default_sort_order($settings), 'int'];
+    }
+
+    foreach ($rows as $row) {
+        $stmt->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $row[0],
+            'setting_value' => (string) $row[1],
+            'value_type' => (string) $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
     sr_clear_module_settings_cache('banner');
 }
 

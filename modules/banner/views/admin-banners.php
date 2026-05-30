@@ -18,11 +18,13 @@ $bannerDefaultSort = isset($bannerDefaultSort) && is_array($bannerDefaultSort) ?
 $bannerSort = isset($bannerSort) && is_array($bannerSort) ? $bannerSort : $bannerDefaultSort;
 $bannerStatusCounts = isset($bannerStatusCounts) && is_array($bannerStatusCounts) ? $bannerStatusCounts : [];
 $totalBanners = (int) ($bannerStatusCounts['total'] ?? count($banners ?? []));
-$selectedTargetOption = sr_banner_public_target_option_value();
+$selectedTargetOption = isset($bannerDefaultTargetOption) ? (string) $bannerDefaultTargetOption : sr_banner_public_target_option_value();
 if ($editing && (string) ($editBanner['module_key'] ?? '') !== '') {
     $selectedTargetOption = (string) ($editBanner['module_key'] ?? '') . '|' . (string) ($editBanner['point_key'] ?? '') . '|' . (string) ($editBanner['slot_key'] ?? '');
+} elseif ($editing) {
+    $selectedTargetOption = sr_banner_public_target_option_value();
 }
-$currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all';
+$currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : (isset($bannerDefaultMatchType) ? (string) $bannerDefaultMatchType : 'all');
 $subjectRequired = !sr_banner_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
 $bannerHelpOpenLabel = sr_t('banner::help.open');
 $bannerHelpButtonHtml = static function (string $label, string $modalId) use ($bannerHelpOpenLabel): string {
@@ -182,7 +184,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <select id="banner_admin_banners_status" name="status" class="form-select">
                                             <?php foreach ($allowedStatuses as $status) { ?>
-                                                <?php $currentStatus = $editing ? (string) $editBanner['status'] : 'draft'; ?>
+                                                <?php $currentStatus = $editing ? (string) $editBanner['status'] : (isset($bannerDefaultStatus) ? (string) $bannerDefaultStatus : 'draft'); ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
                                                     <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
                                                 </option>
@@ -223,7 +225,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_sort_order', sr_t('banner::ui.text.3788952d'), $bannerHelp['sort_order']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_sort_order" type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : '100'; ?>" class="form-input">
+                    <input id="banner_admin_banners_sort_order" type="number" name="sort_order" value="<?php echo $editing ? sr_e((string) $editBanner['sort_order']) : sr_e((string) ($bannerDefaultSortOrder ?? 100)); ?>" class="form-input">
                 </div>
             </div>
         </section>

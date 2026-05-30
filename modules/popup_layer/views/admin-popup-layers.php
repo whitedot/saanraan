@@ -22,11 +22,13 @@ $targetLabels = [];
 foreach ($availableTargets as $target) {
     $targetLabels[sr_popup_layer_target_option_value($target)] = sr_popup_layer_target_option_label($target);
 }
-$selectedTargetOption = sr_popup_layer_public_target_option_value();
+$selectedTargetOption = isset($popupLayerDefaultTargetOption) ? (string) $popupLayerDefaultTargetOption : sr_popup_layer_public_target_option_value();
 if ($editing && (string) ($editPopup['module_key'] ?? '') !== '') {
     $selectedTargetOption = (string) ($editPopup['module_key'] ?? '') . '|' . (string) ($editPopup['point_key'] ?? '') . '|' . (string) ($editPopup['slot_key'] ?? '');
+} elseif ($editing) {
+    $selectedTargetOption = sr_popup_layer_public_target_option_value();
 }
-$currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : 'all';
+$currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : (isset($popupLayerDefaultMatchType) ? (string) $popupLayerDefaultMatchType : 'all');
 $subjectRequired = !sr_popup_layer_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
 $popupLayerHelpOpenLabel = sr_t('popup_layer::help.open');
 $popupLayerHelpButtonHtml = static function (string $label, string $modalId) use ($popupLayerHelpOpenLabel): string {
@@ -114,7 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <select id="popup_layer_admin_popup_layers_status" name="status" class="form-select">
                                                     <?php foreach ($allowedStatuses as $status) { ?>
-                                                        <?php $currentStatus = $editing ? (string) $editPopup['status'] : 'draft'; ?>
+                                                        <?php $currentStatus = $editing ? (string) $editPopup['status'] : (isset($popupLayerDefaultStatus) ? (string) $popupLayerDefaultStatus : 'draft'); ?>
                                                         <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
                                                             <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
                                                         </option>
@@ -197,7 +199,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_dismiss_cookie_days', sr_t('popup_layer::ui.close.06cddc6e'), $popupLayerHelp['dismiss_cookie_days']['id'], $popupLayerHelpOpenLabel); ?>
                     <div class="admin-form-field">
-                        <input id="popup_layer_admin_popup_layers_dismiss_cookie_days" type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : '1'; ?>" class="form-input" min="0" max="365">
+                        <input id="popup_layer_admin_popup_layers_dismiss_cookie_days" type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : sr_e((string) ($popupLayerDefaultDismissCookieDays ?? 1)); ?>" class="form-input" min="0" max="365">
                     </div>
                 </div>
         </section>

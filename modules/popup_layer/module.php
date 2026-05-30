@@ -2,7 +2,7 @@
 
 return [
     'name' => '팝업레이어',
-    'version' => '2026.05.002',
+    'version' => '2026.05.003',
     'type' => 'module',
     'description' => '팝업레이어 관리와 출력 모듈입니다.',
     'admin' => [
@@ -34,5 +34,9 @@ return [
     ],
     'settings' => [
         'popup_layer_skin_key' => 'basic',
+        'popup_layer_default_status' => 'draft',
+        'popup_layer_default_target_option' => '__public__',
+        'popup_layer_default_match_type' => 'all',
+        'popup_layer_default_dismiss_cookie_days' => 1,
     ],
 ];
