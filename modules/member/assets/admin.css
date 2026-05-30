@@ -1,7 +1,7 @@
-.admin-list-form .member-level{font-weight:var(--font-weight-semibold);color:var(--color-default-700)}
+.admin-list-form .member-level{font-weight:var(--font-weight-semibold);color:var(--text-strong)}
 .member-rule-param-panels{display:grid;flex:1 1 100%;gap:.75rem;min-width:0}
 .member-rule-param-panel{display:grid;gap:.75rem;max-width:36rem}
-.member-rule-param-panel p{margin:0;color:var(--admin-muted-text);font-size:var(--text-sm);line-height:var(--text-sm--line-height)}
+.member-rule-param-panel p{margin:0;color:var(--admin-muted-text);font-size:var(--type-small-size);line-height:var(--type-small-line-height)}
 .member-rule-param-panel .admin-filter-field{max-width:26rem}
 
 .admin-page-member-list .admin-member-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}

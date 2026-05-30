@@ -143,6 +143,8 @@ modules/board/
 
 CSS class는 범위를 드러내는 이름을 사용한다. 모듈 전용 class는 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용 class는 `{module_key}-skin-{skin_key}-*` 형식을 우선한다. 모듈 skin은 전역 `body`, `a`, `.container`, `.btn`처럼 넓은 선택자를 직접 재정의하지 않고, 필요한 경우 자기 wrapper 아래에서만 스타일을 제한한다.
 
+모듈 CSS에서 제목, 본문, 도움말, 메타, 캡션, 코드 텍스트를 새로 정의해야 할 때는 먼저 공통 역할 class인 `.type-page-title`, `.type-section-title`, `.type-card-title`, `.type-body`, `.type-small`, `.type-meta`, `.type-caption`, `.type-code` 또는 `assets/tokens.css`의 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 토큰을 사용한다. 모듈 고유 CSS에 `.8125rem` 같은 임의 크기나 새 회색값을 반복하기 전에 `/admin/ui-kit`와 `/ui-kit`의 Typography 섹션에서 기존 역할이 맞는지 확인한다.
+
 모듈 theme나 skin에 전용 CSS가 필요하면 view에서 `sr_public_layout_begin()`의 네 번째 인자로 stylesheet를 요청한다. public layout은 `<head>` 출력만 담당하고, 파일 선택과 key 검증은 모듈 helper의 allowlist가 담당한다.
 
 ```php

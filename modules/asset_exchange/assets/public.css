@@ -16,14 +16,6 @@
     justify-content: space-between;
 }
 
-.sr-asset-exchange-heading h1 {
-    color: var(--public-ui-text);
-    font-size: clamp(1.75rem, 4vw, 2.4rem);
-    font-weight: 800;
-    line-height: 1.2 !important;
-    margin: 0;
-}
-
 .sr-asset-exchange-button-icon {
     font-size: 1.1em;
 }
@@ -54,13 +46,14 @@
 .sr-asset-exchange-asset-label,
 .sr-asset-exchange-unit {
     color: var(--public-ui-muted);
-    font-size: .88rem;
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
 }
 
 .sr-asset-exchange-asset strong {
     color: var(--public-ui-text);
-    font-size: 1.55rem;
-    line-height: 1.15;
+    font-size: var(--type-page-title-size);
+    line-height: var(--type-page-title-line-height);
     overflow-wrap: anywhere;
 }
 
@@ -103,14 +96,16 @@
 
 .sr-asset-exchange-quote-grid dt {
     color: var(--public-ui-muted);
-    font-size: .82rem;
-    font-weight: 700;
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-caption-line-height);
 }
 
 .sr-asset-exchange-quote-grid dd {
     color: var(--public-ui-text);
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-size: var(--type-section-title-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-section-title-line-height);
     overflow-wrap: anywhere;
 }
 
@@ -132,8 +127,9 @@
     align-items: center;
     border-radius: 999px;
     display: inline-flex;
-    font-size: .78rem;
-    font-weight: 800;
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-caption-line-height);
     min-height: 1.5rem;
     padding: 2px 8px;
     white-space: nowrap;

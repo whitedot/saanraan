@@ -28,7 +28,7 @@
 
 .logo-manager-current-item small,
 .logo-manager-empty {
-    color: var(--color-default-600);
+    color: var(--text-muted);
 }
 
 .logo-manager-thumb {

@@ -14,7 +14,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <div class="sr-asset-exchange-shell">
             <div class="sr-asset-exchange-heading">
                 <div>
-                    <h1><?php echo sr_e($pageTitle); ?></h1>
+                    <h1 class="type-page-title-fluid"><?php echo sr_e($pageTitle); ?></h1>
                 </div>
                 <a href="<?php echo sr_e(sr_url('/account')); ?>" class="btn btn-outline-default">
                     <?php echo sr_material_icon_html('arrow_back', 'sr-asset-exchange-button-icon'); ?>

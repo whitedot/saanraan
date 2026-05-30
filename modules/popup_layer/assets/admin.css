@@ -46,28 +46,29 @@
 
 .popup-layer-dashboard-content p {
     color: var(--color-info);
-    font-size: var(--text-xs);
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
     font-weight: var(--font-weight-semibold);
     margin: 0 0 calc(var(--spacing) * 1.5);
 }
 
 .popup-layer-dashboard-content h2 {
-    font-size: var(--text-lg);
-    line-height: var(--text-lg--line-height);
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
 .popup-layer-dashboard-content strong {
     color: var(--color-info);
     display: block;
-    font-size: var(--text-3xl);
+    font-size: var(--type-display-size);
     line-height: 1;
     margin-top: calc(var(--spacing) * 3);
 }
 
 .popup-layer-dashboard-content span,
 .popup-layer-dashboard-content small {
-    color: var(--color-default-700);
+    color: var(--text-muted);
     display: block;
     margin-top: calc(var(--spacing) * 1);
 }

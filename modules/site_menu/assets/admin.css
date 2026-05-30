@@ -14,19 +14,20 @@
 
 .site-menu-dashboard-kicker {
     color: var(--color-primary);
-    font-size: var(--text-xs);
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
     font-weight: var(--font-weight-semibold);
     margin: 0 0 calc(var(--spacing) * 1.5);
 }
 
 .site-menu-dashboard-copy h2 {
-    font-size: var(--text-xl);
-    line-height: var(--text-xl--line-height);
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
 .site-menu-dashboard-copy p:last-child {
-    color: var(--color-default-700);
+    color: var(--text-muted);
     margin: calc(var(--spacing) * 2) 0 0;
 }
 
@@ -43,14 +44,15 @@
 .site-menu-dashboard-meter span {
     color: var(--color-primary);
     display: block;
-    font-size: var(--text-3xl);
+    font-size: var(--type-display-size);
     font-weight: var(--font-weight-bold);
     line-height: 1;
 }
 
 .site-menu-dashboard-meter strong {
     display: block;
-    font-size: var(--text-sm);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
     margin-top: calc(var(--spacing) * 2);
 }
 

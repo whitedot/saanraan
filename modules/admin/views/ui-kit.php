@@ -5,6 +5,7 @@ $adminPageSubtitle = sr_t('admin::ui.admin.ui.kit.6edaa059');
 $adminContainerClass = 'admin-page-ui-kit';
 
 $uiKitSamples = [
+    'typography' => 'Typography',
     'ui-buttons' => 'Buttons',
     'ui-cards' => 'Cards',
     'ui-alerts' => 'Alerts',

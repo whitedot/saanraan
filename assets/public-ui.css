@@ -50,9 +50,9 @@
 
 .public-site-brand-text {
     color: var(--sr-text, var(--color-default-900));
-    font-size: var(--text-lg);
+    font-size: var(--type-section-title-size);
     font-weight: var(--font-weight-bold);
-    line-height: 1.2;
+    line-height: var(--type-section-title-line-height);
     overflow-wrap: anywhere;
 }
 
@@ -81,7 +81,8 @@
 
 .public-site-footer .sr-site-menu-slot-tertiary-navigation {
     color: var(--sr-muted, var(--color-default-600));
-    font-size: .92rem;
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
 }
 
 @media (max-width: 767px) {
@@ -106,6 +107,10 @@
     gap: 10px;
 }
 
+.public-ui-scope :is(.type-display, .type-display-fluid, .type-page-title, .type-page-title-fluid, .type-section-title, .type-card-title) {
+    color: var(--public-ui-text);
+}
+
 .public-ui-scope .public-ui-card {
     background: var(--public-ui-surface);
     border: 1px solid var(--public-ui-border);
@@ -118,16 +123,16 @@
 
 .public-ui-scope .public-ui-title {
     color: var(--public-ui-text);
-    font-size: 1.25rem;
-    font-weight: 700;
-    line-height: 1.3;
+    font-size: var(--type-section-title-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
 .public-ui-scope .public-ui-copy {
     color: var(--public-ui-muted);
-    font-size: .95rem;
-    line-height: 1.55;
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-line-height);
     margin: 0;
 }
 
@@ -155,8 +160,9 @@
 
 .public-ui-scope .public-ui-field > span {
     color: var(--public-ui-text);
-    font-size: .92rem;
-    font-weight: 700;
+    font-size: var(--type-small-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-small-line-height);
 }
 
 .public-ui-scope .public-ui-input {
@@ -170,7 +176,7 @@
     border-radius: 6px;
     color: var(--public-ui-on-primary);
     display: inline-flex;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
     justify-content: center;
     padding: 9px 14px;
     text-decoration: none;
@@ -197,27 +203,16 @@
 
 .public-home-eyebrow {
     color: var(--public-ui-primary);
-    font-size: var(--text-sm);
+    font-size: var(--type-small-size);
     font-weight: var(--font-weight-semibold);
-}
-
-.public-home h1 {
-    color: var(--public-ui-text);
-    font-size: 2.5rem;
-    line-height: 1.15 !important;
-    font-weight: var(--font-weight-semibold);
-}
-
-@media (min-width: 48rem) {
-    .public-home h1 {
-        font-size: 3.5rem;
-    }
+    line-height: var(--type-small-line-height);
 }
 
 .public-home-hero > p:not(.public-home-eyebrow) {
     color: var(--public-ui-muted);
     max-width: 42rem;
-    font-size: var(--text-lg);
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
 }
 
 .public-home-actions {

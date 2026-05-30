@@ -31,15 +31,16 @@
 }
 
 .banner-dashboard-kicker {
-    color: var(--color-default-600);
-    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
     font-weight: var(--font-weight-semibold);
     margin: 0 0 calc(var(--spacing) * 1.5);
 }
 
 .banner-dashboard-body h2 {
-    font-size: var(--text-lg);
-    line-height: var(--text-lg--line-height);
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
@@ -52,13 +53,13 @@
 
 .banner-dashboard-value strong {
     color: var(--color-warning);
-    font-size: var(--text-3xl);
+    font-size: var(--type-display-size);
     line-height: 1;
 }
 
 .banner-dashboard-value span,
 .banner-dashboard-body p {
-    color: var(--color-default-700);
+    color: var(--text-muted);
 }
 
 .banner-dashboard-body p {

@@ -117,14 +117,14 @@
 html,
 body {
     color: var(--sr-text);
-    font-size: 16px;
+    font-size: var(--type-body-size);
 }
 
 body {
     margin: 0;
     background: var(--sr-bg);
-    font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-    line-height: 1.55;
+    font-family: var(--font-body);
+    line-height: var(--type-body-line-height);
 }
 
 a {
@@ -148,7 +148,7 @@ main {
 h1,
 h2 {
     margin: 0 0 16px;
-    line-height: 1.25;
+    line-height: var(--type-page-title-line-height);
 }
 
 section,
@@ -305,7 +305,7 @@ dl {
 }
 
 dt {
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
 }
 
 dd {
@@ -348,8 +348,9 @@ dd {
 .sr-install-kicker {
     margin: 0 0 6px;
     color: var(--sr-muted-soft);
-    font-size: 13px;
-    font-weight: 700;
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-meta-line-height);
     letter-spacing: 0;
 }
 
@@ -381,8 +382,8 @@ dd {
     border-radius: 50%;
     background: var(--sr-primary);
     color: var(--sr-on-primary);
-    font-size: 13px;
-    font-weight: 700;
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-bold);
 }
 
 .sr-install-alert {
@@ -474,7 +475,8 @@ dd {
 .sr-install-module p,
 .sr-install-help {
     color: var(--sr-muted-soft);
-    font-size: 14px;
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
 }
 
 .sr-install-check-guide {
@@ -486,8 +488,9 @@ dd {
     display: block;
     margin-bottom: 4px;
     color: var(--sr-muted-strong);
-    font-size: 12px;
-    font-weight: 700;
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-caption-line-height);
 }
 
 .sr-install-status {
@@ -495,8 +498,9 @@ dd {
     border: 1px solid transparent;
     border-radius: 999px;
     padding: 2px 8px;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-caption-line-height);
 }
 
 .sr-install-status-ok {
@@ -525,8 +529,8 @@ dd {
 
 .sr-install-permission-guide h3 {
     margin: 0 0 8px;
-    font-size: 17px;
-    line-height: 1.35;
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
 }
 
 .sr-install-permission-guide p {
@@ -538,13 +542,13 @@ dd {
 .sr-install-field-grid label {
     display: block;
     margin-bottom: 6px;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
 }
 
 .sr-install-field-label {
     display: block;
     margin-bottom: 6px;
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
 }
 
 .sr-install-field-grid input,
@@ -584,16 +588,18 @@ dd {
     margin-top: 12px;
     padding-top: 12px;
     color: var(--sr-text);
-    font-size: 14px;
-    font-weight: 700;
+    font-size: var(--type-small-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-small-line-height);
 }
 
 .sr-install-main-page-option small {
     display: block;
     margin-top: 2px;
     color: var(--sr-muted-soft);
-    font-size: 12px;
-    font-weight: 500;
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--type-caption-line-height);
 }
 
 .sr-install-home-default {
@@ -602,7 +608,7 @@ dd {
     border-radius: 6px;
     padding: 8px 10px;
     background: var(--sr-surface-soft);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
 }
 
 .sr-install-actions {
@@ -624,7 +630,7 @@ dd {
     border-color: var(--sr-primary);
     background: var(--sr-primary);
     color: var(--sr-on-primary);
-    font-weight: 700;
+    font-weight: var(--font-weight-bold);
 }
 
 .sr-popup-layer-stack {
@@ -648,7 +654,8 @@ dd {
 
 .sr-popup-layer h2 {
     margin: 0 0 8px;
-    font-size: 18px;
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
 }
 
 .sr-popup-layer-body {
@@ -688,7 +695,8 @@ dd {
 .content-group-kicker {
     margin: 0 0 8px;
     color: var(--sr-muted);
-    font-size: 14px;
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
 }
 
 .content-group-header h1 {
@@ -712,7 +720,8 @@ dd {
 
 .content-group-item h2 {
     margin: 0 0 8px;
-    font-size: 22px;
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
 }
 
 .content-group-item p,

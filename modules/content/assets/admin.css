@@ -38,7 +38,7 @@
 .admin-content-file-charge-control>.admin-form-help{margin-top:calc(var(--spacing) * 1.5)}
 .admin-asset-amount-grid{display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));width:100%}
 .admin-asset-amount-field{display:grid;gap:calc(var(--spacing) * 1)}
-.admin-asset-amount-field span{font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--admin-muted-text)}
+.admin-asset-amount-field span{font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);color:var(--admin-muted-text)}
 
 @media (max-width:1023px){
     .admin-content-list .admin-content-search-grid,.admin-content-group-list .admin-content-group-search-grid,.admin-content-download-files .admin-content-download-file-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}

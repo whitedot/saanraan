@@ -9,8 +9,8 @@
     --admin-ui-surface: var(--color-card);
     --admin-ui-surface-soft: var(--color-default-100);
     --admin-ui-border: var(--color-default-300);
-    --admin-ui-text: var(--color-default-900);
-    --admin-ui-muted: var(--color-default-600);
+    --admin-ui-text: var(--text-strong);
+    --admin-ui-muted: var(--text-muted);
 }
 
 .admin-ui-scope .admin-ui-actions {
@@ -31,16 +31,16 @@
 
 .admin-ui-scope .admin-ui-title {
     color: var(--admin-ui-text);
-    font-size: var(--text-sm);
+    font-size: var(--type-card-title-size);
     font-weight: var(--font-weight-semibold);
-    line-height: var(--text-sm--line-height);
+    line-height: var(--type-card-title-line-height);
     margin: 0;
 }
 
 .admin-ui-scope .admin-ui-copy {
     color: var(--admin-ui-muted);
-    font-size: var(--text-sm);
-    line-height: var(--text-sm--line-height);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
     margin: 0;
 }
 
@@ -56,7 +56,7 @@
 
 .admin-ui-scope .admin-ui-table-note {
     color: var(--admin-ui-muted);
-    font-size: var(--text-xs);
-    line-height: var(--text-xs--line-height);
+    font-size: var(--type-caption-size);
+    line-height: var(--type-caption-line-height);
     margin-top: calc(var(--spacing) * 2);
 }

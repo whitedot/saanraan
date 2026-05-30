@@ -236,8 +236,8 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
         </div>
 
         <div id="container" class="admin-content <?php echo sr_e((string) $adminShell['container_class']); ?>">
-            <h1 id="container_title" class="admin-content-title"><?php echo sr_e((string) $adminShell['page_title']); ?></h1>
+            <h1 id="container_title" class="admin-content-title type-page-title"><?php echo sr_e((string) $adminShell['page_title']); ?></h1>
             <?php if ((string) $adminShell['page_subtitle'] !== '') { ?>
-                <p id="container_subtitle" class="admin-content-subtitle"><?php echo sr_e((string) $adminShell['page_subtitle']); ?></p>
+                <p id="container_subtitle" class="admin-content-subtitle type-small"><?php echo sr_e((string) $adminShell['page_subtitle']); ?></p>
             <?php } ?>
             <?php sr_admin_begin_content_capture(); ?>
