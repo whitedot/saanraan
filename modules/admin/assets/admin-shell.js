@@ -192,7 +192,7 @@ window.AdminShell = {
             }
 
             const message = (root ? root.getAttribute('data-admin-asset-enable-confirm') : '')
-                || '자산을 선택하면 이 항목의 사용/과금 체크가 함께 켜집니다. 계속할까요?';
+                || '포인트/금액 항목을 선택하면 이 항목의 사용/과금 체크가 함께 켜집니다. 계속할까요?';
             if (!window.confirm(message)) {
                 restoreAssetEnableSelection(control);
                 rememberAssetEnableValue(control);
@@ -222,7 +222,7 @@ window.AdminShell = {
                 return true;
             }
 
-            const message = '사용/과금 체크가 꺼진 항목에 선택된 자산이 있습니다. 저장하면 해당 자산 선택은 적용되지 않습니다. 그래도 저장할까요?';
+            const message = '사용/과금 체크가 꺼진 항목에 선택된 포인트/금액 항목이 있습니다. 저장하면 해당 선택은 적용되지 않습니다. 그래도 저장할까요?';
             return window.confirm(message);
         };
 

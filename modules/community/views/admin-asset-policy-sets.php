@@ -113,7 +113,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $assetGroupPolicyGroups = $memberGroups ?? [];
         $assetGroupPolicyAssetModules = $assetModuleOptions ?? [];
         $assetGroupPolicyShowMinLevel = true;
-        $assetGroupPolicyHelpText = '이 규칙을 선택한 커뮤니티 자산 항목에서 멤버 그룹별로 기본 금액을 조정합니다.';
+        $assetGroupPolicyHelpText = '이 규칙을 선택한 커뮤니티 포인트/금액 항목에서 멤버 그룹별로 기본 금액을 조정합니다.';
         include SR_ROOT . '/modules/admin/views/asset-group-policy-editor.php';
         ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">

@@ -178,7 +178,7 @@ if (sr_request_method() === 'POST') {
         $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
 
         if ($assetId <= 0) {
-            $errors[] = '적용할 로고 자산을 선택하세요.';
+            $errors[] = '적용할 로고 이미지를 선택하세요.';
         }
         if (!in_array($status, $assignmentStatuses, true)) {
             $errors[] = '적용 상태 값이 올바르지 않습니다.';
@@ -200,7 +200,7 @@ if (sr_request_method() === 'POST') {
             $stmt = $pdo->prepare('SELECT id FROM sr_logo_manager_assets WHERE id = :id AND status = :status LIMIT 1');
             $stmt->execute(['id' => $assetId, 'status' => 'active']);
             if (!is_array($stmt->fetch())) {
-                $errors[] = '사용 가능한 로고 자산을 찾을 수 없습니다.';
+                $errors[] = '사용 가능한 로고 이미지를 찾을 수 없습니다.';
             }
         }
 
@@ -248,7 +248,7 @@ if (sr_request_method() === 'POST') {
         $assetId = (int) sr_post_string('asset_id', 20);
         $status = sr_post_string('status', 30);
         if ($assetId <= 0 || !in_array($status, $assetStatuses, true)) {
-            $errors[] = '자산 상태 변경 값이 올바르지 않습니다.';
+            $errors[] = '이미지 상태 변경 값이 올바르지 않습니다.';
         } else {
             $stmt = $pdo->prepare('UPDATE sr_logo_manager_assets SET status = :status, updated_at = :updated_at WHERE id = :id');
             $stmt->execute(['status' => $status, 'updated_at' => $now, 'id' => $assetId]);
@@ -262,7 +262,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Logo asset status changed.',
                 'metadata' => ['status' => $status],
             ]);
-            $notice = '로고 자산 상태를 변경했습니다.';
+            $notice = '로고 이미지 상태를 변경했습니다.';
         }
     } elseif ($intent === 'assignment_status') {
         $assignmentId = (int) sr_post_string('assignment_id', 20);

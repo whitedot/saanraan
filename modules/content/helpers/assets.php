@@ -141,7 +141,7 @@ function sr_content_asset_module_options(PDO $pdo): array
 function sr_content_asset_module_label(string $assetModule, ?PDO $pdo = null): string
 {
     $options = sr_content_asset_modules($pdo);
-    return isset($options[$assetModule]) ? (string) $options[$assetModule]['label'] : '회원 자산';
+    return isset($options[$assetModule]) ? (string) $options[$assetModule]['label'] : '포인트/금액';
 }
 
 function sr_content_asset_module_unit_label(string $assetModule, ?PDO $pdo = null): string
@@ -213,7 +213,7 @@ function sr_content_asset_module_labels(string $assetModuleValue, ?PDO $pdo = nu
         $labels[] = sr_content_asset_module_label($assetModule, $pdo);
     }
 
-    return $labels !== [] ? implode(', ', $labels) : '회원 자산';
+    return $labels !== [] ? implode(', ', $labels) : '포인트/금액';
 }
 
 function sr_content_require_asset_group_policy_helpers(): void
@@ -1460,7 +1460,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
     }
 
     if (!sr_content_asset_modules_available($pdo, $assetModules)) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 자산 모듈을 모두 사용할 수 없어 콘텐츠를 열람할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 포인트/금액 항목을 모두 사용할 수 없어 콘텐츠를 열람할 수 없습니다.');
     }
 
     $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($page['asset_access_amount'] ?? 0), $page['asset_access_group_policies_json'] ?? '', (int) ($page['asset_access_policy_set_id'] ?? 0));
@@ -1489,7 +1489,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
                 sr_log_exception($exception, 'content_asset_group_access_failed');
             }
 
-            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '회원 자산 접근권 처리에 실패했습니다.');
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 접근권 처리에 실패했습니다.');
         }
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true]);
     }
@@ -1549,7 +1549,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId)
         : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
     if ($allocations === []) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 자산 잔액이 부족해 콘텐츠를 열람할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 항목의 잔액이 부족해 콘텐츠를 열람할 수 없습니다.');
     }
 
     $dedupeKey = '';
@@ -1598,7 +1598,7 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
             sr_log_exception($exception, 'content_asset_access_charge_failed');
         }
 
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '회원 자산 차감에 실패해 콘텐츠를 열람할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 차감에 실패해 콘텐츠를 열람할 수 없습니다.');
     }
 
     return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint]);
@@ -1656,7 +1656,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
     }
 
     if (!sr_content_asset_modules_available($pdo, $assetModules)) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 자산 모듈을 모두 사용할 수 없어 파일을 다운로드할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 포인트/금액 항목을 모두 사용할 수 없어 파일을 다운로드할 수 없습니다.');
     }
 
     $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($file['asset_download_amount'] ?? 0), $file['asset_download_group_policies_json'] ?? '', (int) ($file['asset_download_policy_set_id'] ?? 0));
@@ -1685,7 +1685,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
                 sr_log_exception($exception, 'content_file_group_access_failed');
             }
 
-            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '회원 자산 접근권 처리에 실패했습니다.');
+            return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 접근권 처리에 실패했습니다.');
         }
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true]);
     }
@@ -1706,7 +1706,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId)
         : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
     if ($allocations === []) {
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 자산 잔액이 부족해 파일을 다운로드할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 항목의 잔액이 부족해 파일을 다운로드할 수 없습니다.');
     }
 
     $dedupeKey = '';
@@ -1755,7 +1755,7 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             sr_log_exception($exception, 'content_file_download_charge_failed');
         }
 
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '회원 자산 차감에 실패해 파일을 다운로드할 수 없습니다.');
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 차감에 실패해 파일을 다운로드할 수 없습니다.');
     }
 
     return sr_content_asset_access_result($pdo, true, true, $assetModuleValue, $amount, '', ['confirmation_fingerprint' => $confirmationFingerprint]);
@@ -1880,7 +1880,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
-            'message' => '선택한 자산 모듈을 모두 사용할 수 없어 완료 처리할 수 없습니다.',
+            'message' => '선택한 포인트/금액 항목을 모두 사용할 수 없어 완료 처리할 수 없습니다.',
         ];
     }
 
@@ -1926,7 +1926,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
-            'message' => '선택한 자산 잔액이 부족해 완료 처리할 수 없습니다.',
+            'message' => '선택한 항목의 잔액이 부족해 완료 처리할 수 없습니다.',
         ];
     }
 
@@ -1971,7 +1971,7 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             'asset_module' => $assetModuleValue,
             'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
             'amount' => $amount,
-            'message' => '회원 자산 처리에 실패했습니다.',
+            'message' => '포인트/금액 처리에 실패했습니다.',
         ];
     }
 

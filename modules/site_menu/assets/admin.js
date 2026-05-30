@@ -38,7 +38,7 @@
             });
             if (assetTypeSelect.options[0]) {
                 assetTypeSelect.options[0].textContent = selectedModule
-                    ? (hasModuleTypes ? '종류 선택' : '연결 가능한 자산 없음')
+                    ? (hasModuleTypes ? '종류 선택' : '연결 가능한 대상 없음')
                     : '서비스를 먼저 선택';
             }
 
@@ -63,7 +63,7 @@
                 if (index === 0) {
                     option.hidden = false;
                     option.disabled = false;
-                    option.textContent = selectedAssetType ? '자산 선택' : '종류를 먼저 선택';
+                    option.textContent = selectedAssetType ? '대상 선택' : '종류를 먼저 선택';
                     return;
                 }
 

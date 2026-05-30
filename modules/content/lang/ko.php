@@ -23,7 +23,7 @@ return [
     'help.asset_access_enabled.body.2' => '로그인하지 않은 방문자는 로그인 화면으로 이동합니다. 무료로 보여줄 콘텐츠라면 사용하지 않음으로 두세요.',
     'help.asset_access_enabled.title' => '유료 열람 사용 도움말',
     'help.asset_action_amount.body.1' => '금액은 회원이 완료 버튼을 눌렀을 때 늘리거나 줄일 포인트, 적립금, 예치금 같은 항목의 값입니다. 선택한 항목마다 금액을 따로 입력합니다.',
-    'help.asset_action_amount.body.2' => '처리 방향이 지급이면 회원 잔액이 늘고, 차감이면 회원 잔액이 줄어듭니다. 단순히 콘텐츠를 본 것만으로는 처리되지 않습니다.',
+    'help.asset_action_amount.body.2' => '처리 방향이 지급이면 회원 보유분이 늘고, 차감이면 회원 보유분이 줄어듭니다. 단순히 콘텐츠를 본 것만으로는 처리되지 않습니다.',
     'help.asset_action_amount.title' => '완료 버튼 금액 도움말',
     'help.asset_action_direction.body.1' => '처리 방향은 완료 버튼을 누른 회원의 잔액을 늘릴지 줄일지를 정합니다.',
     'help.asset_action_direction.body.2' => '지급은 이벤트 보상이나 학습 완료 보상처럼 한 항목에 지급할 때 사용합니다. 차감은 신청 완료나 자료 이용 확인처럼 버튼을 누를 때 비용을 받는 경우에 사용합니다.',

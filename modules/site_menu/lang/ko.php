@@ -52,7 +52,7 @@ return [
     'ui.save.964f6f83' => '항목 저장',
     'ui.save.cc86610d' => '순서 적용하기',
     'ui.select.635a3c01' => '종류 선택',
-    'ui.select.a33d6c70' => '자산 선택',
+    'ui.select.a33d6c70' => '대상 선택',
     'ui.status.e10195a1' => '상태',
     'ui.text.06aff97f' => '서비스',
     'ui.text.2281025b' => '범위',
@@ -72,7 +72,7 @@ return [
     'ui.text.b2c8d45c' => '사이트',
     'ui.text.baef0d03' => '드래그해서 순서 변경',
     'ui.text.d8b14d7a' => '최상위',
-    'ui.text.ea61edcb' => '연결 자산',
+    'ui.text.ea61edcb' => '연결 대상',
     'ui.text.eb613054' => '직접 입력',
     'ui.text.ff0e602e' => '표시 순서',
 ];

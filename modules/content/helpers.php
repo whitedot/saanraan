@@ -1370,9 +1370,9 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     }
     foreach ([
         'file_asset_download_enabled' => '파일 다운로드 사용',
-        'file_asset_module' => '파일 다운로드 자산',
+        'file_asset_module' => '파일 다운로드 항목',
         'file_asset_download_amount' => '파일 다운로드 금액',
-        'file_asset_download_amounts_json' => '파일 다운로드 자산별 금액',
+        'file_asset_download_amounts_json' => '파일 다운로드 항목별 금액',
         'file_asset_charge_policy' => '파일 다운로드 과금 방식',
         'asset_action_label' => '완료 버튼 문구',
     ] as $settingKey => $sourceLabel) {
@@ -1407,9 +1407,9 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     if ((int) ($values['asset_access_enabled'] ?? 0) === 1) {
         $assetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? '');
         if ($assetModules === []) {
-            $errors[] = '유료 열람 자산이 올바르지 않습니다.';
+            $errors[] = '유료 열람 항목이 올바르지 않습니다.';
         } elseif (!sr_content_asset_modules_available($pdo, $assetModules)) {
-            $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 유료 열람 자산으로 사용할 수 있습니다.';
+            $errors[] = '선택한 포인트/금액 항목이 모두 활성 상태일 때만 유료 열람 항목으로 사용할 수 있습니다.';
         }
 
         $amount = (int) ($values['asset_access_amount'] ?? 0);
@@ -1418,7 +1418,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         }
         $amounts = sr_content_asset_amounts_from_value($values['asset_access_amounts_json'] ?? '', $assetModules);
         if (count($amounts) < count($assetModules)) {
-            $errors[] = '유료 열람 자산별 금액은 선택한 자산마다 1 이상으로 입력하세요.';
+            $errors[] = '유료 열람 항목별 금액은 선택한 항목마다 1 이상으로 입력하세요.';
         }
 
         if (!isset(sr_content_asset_view_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {

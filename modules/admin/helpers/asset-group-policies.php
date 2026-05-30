@@ -229,7 +229,7 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
         }
 
         if ($assetModule !== '' && $assetModuleOptions !== [] && !isset($assetModuleOptions[$assetModule])) {
-            $errors[] = $rowLabel . '의 대상이 사용 가능한 자산이 아닙니다.';
+            $errors[] = $rowLabel . '의 대상이 사용 가능한 포인트/금액 항목이 아닙니다.';
         }
 
         if ($minLevel > 0 && function_exists('sr_community_max_level_value') && $minLevel > sr_community_max_level_value()) {
@@ -250,14 +250,14 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
 
         foreach ($filledAssetValues as $assetValue) {
             if ($mode === 'fixed' && preg_match('/\A-?\d+\z/', $assetValue) !== 1) {
-                $errors[] = $rowLabel . '의 자산별 금액은 정수로 입력하세요.';
+                $errors[] = $rowLabel . '의 항목별 금액은 정수로 입력하세요.';
                 break;
             }
         }
 
         foreach ($filledAssetValues as $assetValue) {
             if ($mode === 'delta' && preg_match('/\A\d+\z/', $assetValue) !== 1) {
-                $errors[] = $rowLabel . '의 자산별 조정값은 0 이상의 정수로 입력하세요.';
+                $errors[] = $rowLabel . '의 항목별 조정값은 0 이상의 정수로 입력하세요.';
                 break;
             }
         }
@@ -268,7 +268,7 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
 
         foreach ($filledAssetValues as $assetValue) {
             if ($mode === 'fixed' && (int) $assetValue < 0) {
-                $errors[] = $rowLabel . '의 자산별 최종 금액은 0 이상이어야 합니다.';
+                $errors[] = $rowLabel . '의 항목별 최종 금액은 0 이상이어야 합니다.';
                 break;
             }
         }
@@ -283,7 +283,7 @@ function sr_admin_asset_group_policy_validation_errors(PDO $pdo, array $policies
 
         foreach ($filledAssetValues as $assetValue) {
             if ($mode === 'multiplier' && preg_match('/\A\d+(?:\.\d{1,4})?\z/', $assetValue) !== 1) {
-                $errors[] = $rowLabel . '의 자산별 배율은 0 이상의 숫자로 입력하세요.';
+                $errors[] = $rowLabel . '의 항목별 배율은 0 이상의 숫자로 입력하세요.';
                 break;
             }
         }

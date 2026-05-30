@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => '자산 환전',
+    'name' => '포인트/금액 환전',
     'version' => '2026.05.003',
     'type' => 'module',
-    'description' => '설치된 자산 모듈 간 환전 정책과 실행 로그를 관리합니다.',
+    'description' => '설치된 포인트/금액 항목 간 환전 정책과 실행 로그를 관리합니다.',
     'admin' => [
         'category' => 'member',
         'category_label' => '회원',

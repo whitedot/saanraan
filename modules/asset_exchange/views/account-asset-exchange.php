@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = '자산 환전';
+$pageTitle = '포인트/금액 환전';
 $seo = [
     'title' => $pageTitle,
     'canonical' => sr_canonical_url($site, '/account/asset-exchange'),
@@ -31,10 +31,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 
             <section class="public-ui-card sr-asset-exchange-balance-card">
                 <div class="sr-asset-exchange-section-head">
-                    <h2 class="public-ui-title">보유 자산</h2>
+                    <h2 class="public-ui-title">보유 포인트/금액</h2>
                 </div>
                 <?php if ($assets === []) { ?>
-                    <p class="sr-asset-exchange-empty">환전 가능한 자산 모듈이 없습니다.</p>
+                    <p class="sr-asset-exchange-empty">환전 가능한 포인트/금액 항목이 없습니다.</p>
                 <?php } else { ?>
                     <div class="sr-asset-exchange-assets">
                         <?php foreach ($assets as $asset) { ?>
@@ -121,7 +121,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                             <thead>
                             <tr>
                                 <th>일시</th>
-                                <th>자산</th>
+                                <th>항목</th>
                                 <th>출금</th>
                                 <th>입금</th>
                                 <th>수수료</th>

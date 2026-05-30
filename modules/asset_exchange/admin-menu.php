@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'label' => '자산 환전',
+    'label' => '포인트/금액 환전',
     'order' => 60,
     'items' => [
         [

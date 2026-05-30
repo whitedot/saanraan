@@ -83,7 +83,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     $feeType = (string) ($data['fee_type'] ?? 'rate');
 
     if ($fromModuleKey === '' || $toModuleKey === '' || $fromModuleKey === $toModuleKey) {
-        throw new InvalidArgumentException('출금 자산과 입금 자산을 서로 다르게 선택하세요.');
+        throw new InvalidArgumentException('출금 항목과 입금 항목을 서로 다르게 선택하세요.');
     }
 
     $existingPolicy = null;
@@ -125,7 +125,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
             && (string) ($existingPolicy['to_module_key'] ?? '') === $toModuleKey
             && $status === 'disabled';
         if (!$editingSameInactivePair) {
-            throw new InvalidArgumentException('설치되어 있고 활성화된 자산 모듈만 환전 정책에 사용할 수 있습니다.');
+            throw new InvalidArgumentException('설치되어 있고 활성화된 포인트/금액 항목만 환전 정책에 사용할 수 있습니다.');
         }
     }
 
@@ -178,7 +178,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
         'id' => $policyId,
     ]);
     if (is_array($stmt->fetch())) {
-        throw new InvalidArgumentException('이미 같은 자산 조합의 환전 정책이 있습니다.');
+        throw new InvalidArgumentException('이미 같은 항목 조합의 환전 정책이 있습니다.');
     }
 
     $now = sr_now();
@@ -267,11 +267,11 @@ function sr_asset_exchange_quote(PDO $pdo, array $policy, int $accountId, int $a
     $fromModuleKey = (string) ($policy['from_module_key'] ?? '');
     $toModuleKey = (string) ($policy['to_module_key'] ?? '');
     if (!isset($assets[$fromModuleKey], $assets[$toModuleKey])) {
-        throw new InvalidArgumentException('환전 대상 자산 모듈이 활성 상태가 아닙니다.');
+        throw new InvalidArgumentException('환전 대상 포인트/금액 항목이 활성 상태가 아닙니다.');
     }
     $balanceFunction = (string) $assets[$fromModuleKey]['balance_function'];
     if ($accountId > 0 && $balanceFunction($pdo, $accountId) < $amount) {
-        throw new InvalidArgumentException('출금 자산 잔액이 부족합니다.');
+        throw new InvalidArgumentException('출금 항목의 잔액이 부족합니다.');
     }
     if ($amount < (int) ($policy['min_amount'] ?? 1)) {
         throw new InvalidArgumentException('최소 환전량보다 작습니다.');
@@ -313,7 +313,7 @@ function sr_asset_exchange_execute(PDO $pdo, array $policy, int $accountId, int 
     $fromModuleKey = (string) ($policy['from_module_key'] ?? '');
     $toModuleKey = (string) ($policy['to_module_key'] ?? '');
     if (!isset($assets[$fromModuleKey], $assets[$toModuleKey])) {
-        throw new RuntimeException('환전 대상 자산 모듈이 활성 상태가 아닙니다.');
+        throw new RuntimeException('환전 대상 포인트/금액 항목이 활성 상태가 아닙니다.');
     }
 
     $quote = sr_asset_exchange_quote($pdo, $policy, $accountId, $amount);
@@ -331,7 +331,7 @@ function sr_asset_exchange_execute(PDO $pdo, array $policy, int $accountId, int 
             'account_id' => $accountId,
             'amount' => -$amount,
             'transaction_type' => (string) $assets[$fromModuleKey]['exchange_out_type'],
-            'reason' => '자산 환전 출금',
+            'reason' => '포인트/금액 환전 출금',
             'reference_type' => 'asset_exchange',
             'reference_id' => $groupId,
             'created_by_account_id' => $createdByAccountId,
@@ -340,7 +340,7 @@ function sr_asset_exchange_execute(PDO $pdo, array $policy, int $accountId, int 
             'account_id' => $accountId,
             'amount' => (int) $quote['deposit_before_fee'],
             'transaction_type' => (string) $assets[$toModuleKey]['exchange_in_type'],
-            'reason' => '자산 환전 입금',
+            'reason' => '포인트/금액 환전 입금',
             'reference_type' => 'asset_exchange',
             'reference_id' => $groupId,
             'created_by_account_id' => $createdByAccountId,
@@ -351,7 +351,7 @@ function sr_asset_exchange_execute(PDO $pdo, array $policy, int $accountId, int 
                 'account_id' => $accountId,
                 'amount' => -(int) $quote['fee_amount'],
                 'transaction_type' => (string) $assets[$toModuleKey]['exchange_fee_type'],
-                'reason' => '자산 환전 업무 수수료',
+                'reason' => '포인트/금액 환전 업무 수수료',
                 'reference_type' => 'asset_exchange',
                 'reference_id' => $groupId,
                 'created_by_account_id' => $createdByAccountId,

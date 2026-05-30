@@ -557,7 +557,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span><?php echo sr_e(sr_t('community::ui.member.4eda7ba7')); ?></span>
                 <?php if ($communityBoardGroupAssetAuditUrl !== '') { ?>
                     <span class="admin-form-actions">
-                        <a href="<?php echo sr_e($communityBoardGroupAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('자산 변경 이력'); ?></a>
+                        <a href="<?php echo sr_e($communityBoardGroupAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 설정 변경 이력'); ?></a>
                     </span>
                 <?php } ?>
             </h2>
@@ -588,7 +588,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <span class="form-label"><?php echo sr_e($assetLabel . ' 자산'); ?></span>
+                            <span class="form-label"><?php echo sr_e($assetLabel . ' 항목'); ?></span>
                             <div class="admin-form-field">
                                 <?php if ($usesGroupedAssetAmounts) { ?>
                                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
@@ -616,7 +616,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <label class="form-label" for="<?php echo sr_e('community_board_group_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('멤버 그룹별 적용'); ?></label>
                             <div class="admin-form-field admin-policy-set-field">
                                 <?php echo sr_community_asset_policy_set_checkboxes_html('community_board_group_' . (string) $assetPrefix . '_policy_set_ids', 'group_' . (string) $assetPrefix . '_policy_set_ids', $assetPolicySets ?? [], sr_community_asset_policy_set_ids_with_legacy($groupSettingValue($formGroupSettings, $assetPrefix . '_group_policies_json', (string) ($settings[$assetPrefix . '_group_policies_json'] ?? '')), (int) $groupSettingValue($formGroupSettings, $assetPrefix . '_policy_set_id', (string) ($settings[$assetPrefix . '_policy_set_id'] ?? 0))), $usesCompositeAsset ? 'use' : 'grant', '#' . $assetSourceId, $pdo); ?>
-                                <p class="admin-form-help">도움말: 선택한 멤버 그룹별 적용이 멤버의 그룹, 레벨, 대상 자산에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 멤버 그룹별 적용 화면에서 관리합니다.</p>
+                                <p class="admin-form-help">도움말: 선택한 멤버 그룹별 적용이 멤버의 그룹, 레벨, 대상 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 멤버 그룹별 적용 화면에서 관리합니다.</p>
                             </div>
                         </div>
                         <?php if ($assetPrefix === 'paid_read') { ?>

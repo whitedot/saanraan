@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '자산 환전 로그';
+$adminPageTitle = '포인트/금액 환전 로그';
 $logStatusLabels = ['completed' => '완료', 'failed' => '실패'];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -17,7 +17,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>처리일</th>
                     <th>회원</th>
                     <th>환전 묶음 ID</th>
-                    <th>자산</th>
+                    <th>항목</th>
                     <th>출금</th>
                     <th>입금</th>
                     <th>수수료</th>
@@ -53,6 +53,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<?php echo sr_admin_pagination_html($pagination, '자산 환전 로그 페이지'); ?>
+<?php echo sr_admin_pagination_html($pagination, '포인트/금액 환전 로그 페이지'); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

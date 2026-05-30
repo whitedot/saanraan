@@ -208,9 +208,9 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
 
     $assetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? '');
     if ($assetModules === []) {
-        $errors[] = $labelPrefix . ' 자산이 올바르지 않습니다.';
+        $errors[] = $labelPrefix . ' 항목이 올바르지 않습니다.';
     } elseif (!sr_content_asset_modules_available($pdo, $assetModules)) {
-        $errors[] = '선택한 자산 모듈이 모두 활성 상태일 때만 ' . $labelPrefix . ' 자산으로 사용할 수 있습니다.';
+        $errors[] = '선택한 포인트/금액 항목이 모두 활성 상태일 때만 ' . $labelPrefix . ' 항목으로 사용할 수 있습니다.';
     }
 
     $amount = (int) ($values['asset_download_amount'] ?? 0);
@@ -219,7 +219,7 @@ function sr_content_file_asset_validation_errors(PDO $pdo, array $values, string
     }
     $amounts = sr_content_asset_amounts_from_value($values['asset_download_amounts_json'] ?? '', $assetModules);
     if (count($amounts) < count($assetModules)) {
-        $errors[] = $labelPrefix . ' 자산별 금액은 선택한 자산마다 1 이상으로 입력하세요.';
+        $errors[] = $labelPrefix . ' 항목별 금액은 선택한 항목마다 1 이상으로 입력하세요.';
     }
 
     if (!isset(sr_content_asset_download_charge_policies()[(string) ($values['asset_charge_policy'] ?? '')])) {

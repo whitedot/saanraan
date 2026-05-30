@@ -22,7 +22,7 @@ $result = sr_content_run_asset_action($pdo, $page, (int) $account['id']);
 if (!empty($result['completed'])) {
     sr_content_member_group_evaluate_after_activity($pdo, (int) $account['id']);
     $directionLabel = (string) ($result['direction'] ?? '') === 'use' ? '차감' : '지급';
-    $_SESSION['sr_content_action_notice'] = (string) ($result['asset_label'] ?? '회원 자산') . ' '
+    $_SESSION['sr_content_action_notice'] = (string) ($result['asset_label'] ?? '포인트/금액') . ' '
         . number_format((int) ($result['amount'] ?? 0)) . ' ' . $directionLabel . ' 처리되었습니다.';
 } elseif (!empty($result['already_completed'])) {
     $_SESSION['sr_content_action_notice'] = (string) ($result['message'] ?? '이미 완료 처리되었습니다.');

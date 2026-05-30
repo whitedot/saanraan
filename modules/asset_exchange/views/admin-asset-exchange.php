@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '자산 환전 정책';
+$adminPageTitle = '포인트/금액 환전 정책';
 $editPolicy = isset($editPolicy) && is_array($editPolicy) ? $editPolicy : [];
 $policyForm = array_merge([
     'id' => '',
@@ -32,7 +32,7 @@ $fromAssetOptions = $assets;
 $toAssetOptions = $assets;
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
 $roundingModeLabels = ['floor' => '버림', 'round' => '반올림', 'ceil' => '올림'];
-$feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'reexchange' => '환금성 자산 재환전만 적용'];
+$feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'reexchange' => '환금성 항목 재환전만 적용'];
 $feeBasisLabels = ['from_amount' => '출금액 기준', 'to_amount' => '입금액 기준'];
 $feeTypeLabels = ['rate' => '정률', 'fixed' => '정액'];
 $policyPagination = ['total' => count($policies), 'start' => count($policies) > 0 ? 1 : 0, 'end' => count($policies)];
@@ -48,10 +48,10 @@ $assetExchangeHelpBodyHtml = static function (array $paragraphs): string {
 $assetExchangeHelp = [
     'asset_pair' => [
         'id' => 'asset-exchange-help-asset-pair-modal',
-        'title' => '출금/입금 자산',
+        'title' => '출금/입금 항목',
         'body_html' => $assetExchangeHelpBodyHtml([
-            '출금 자산은 회원 잔액에서 차감되는 자산이고, 입금 자산은 환전 결과가 더해지는 자산입니다.',
-            '같은 출금/입금 조합은 하나의 정책만 저장할 수 있습니다. 비활성화된 자산이 포함된 기존 정책은 목록에서 실행 불가로 표시됩니다.',
+            '출금 항목은 회원 보유분에서 차감되고, 입금 항목은 환전 결과가 더해지는 항목입니다.',
+            '같은 출금/입금 조합은 하나의 정책만 저장할 수 있습니다. 비활성화된 항목이 포함된 기존 정책은 목록에서 실행 불가로 표시됩니다.',
         ]),
     ],
     'status' => [
@@ -83,7 +83,7 @@ $assetExchangeHelp = [
         'id' => 'asset-exchange-help-amount-limit-modal',
         'title' => '환전량 제한',
         'body_html' => $assetExchangeHelpBodyHtml([
-            '최소 환전량은 회원이 한 번에 신청할 수 있는 출금 자산 기준 최소 금액입니다.',
+            '최소 환전량은 회원이 한 번에 신청할 수 있는 출금 항목 기준 최소 금액입니다.',
             '최대 환전량을 비워두면 1회 신청 상한을 두지 않습니다. 최대값을 입력하면 최소값보다 크거나 같아야 합니다.',
         ]),
     ],
@@ -101,7 +101,7 @@ $assetExchangeHelp = [
         'title' => '수수료 적용',
         'body_html' => $assetExchangeHelpBodyHtml([
             '사용 안 함은 수수료를 계산하지 않습니다. 항상 적용은 모든 환전에 수수료를 적용합니다.',
-            '환금성 자산 재환전만 적용은 환금성 자산에서 다른 자산으로 다시 환전하는 경우에만 수수료를 적용합니다.',
+            '환금성 항목 재환전만 적용은 환금성 항목에서 다른 항목으로 다시 환전하는 경우에만 수수료를 적용합니다.',
         ]),
     ],
     'fee_basis' => [
@@ -148,7 +148,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo (int) ($policyForm['id'] ?? 0) > 0 ? '환전 정책 수정' : '환전 정책 등록'; ?></h2>
         </div>
         <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_from_module_key', '출금 자산', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('asset_exchange_from_module_key', '출금 항목', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="asset_exchange_from_module_key" name="from_module_key" class="form-select" required>
                     <option value="">선택</option>
@@ -159,7 +159,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('asset_exchange_to_module_key', '입금 자산', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('asset_exchange_to_module_key', '입금 항목', $assetExchangeHelp['asset_pair']['id'], $assetExchangeHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="asset_exchange_to_module_key" name="to_module_key" class="form-select" required>
                     <option value="">선택</option>
@@ -290,8 +290,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>출금 자산</th>
-                    <th>입금 자산</th>
+                    <th>출금 항목</th>
+                    <th>입금 항목</th>
                     <th>비율</th>
                     <th>금액 제한</th>
                     <th>수수료</th>
