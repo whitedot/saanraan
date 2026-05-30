@@ -14,5 +14,10 @@ return [
             'path' => '/admin/asset-exchange/logs',
             'order' => 20,
         ],
+        [
+            'label' => '환경설정',
+            'path' => '/admin/asset-exchange/settings',
+            'order' => 30,
+        ],
     ],
 ];

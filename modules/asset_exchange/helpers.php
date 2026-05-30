@@ -47,6 +47,213 @@ function sr_asset_exchange_assets(PDO $pdo): array
     return $assets;
 }
 
+function sr_asset_exchange_default_settings(): array
+{
+    return [
+        'policy_default_status' => 'disabled',
+        'policy_default_rate_ratio' => '1:1',
+        'policy_default_min_amount' => '1',
+        'policy_default_max_amount' => '',
+        'policy_default_rounding_mode' => 'floor',
+        'policy_default_fee_trigger' => 'none',
+        'policy_default_fee_basis' => 'to_amount',
+        'policy_default_fee_type' => 'rate',
+        'policy_default_fee_rate_numerator' => '0',
+        'policy_default_fee_fixed_amount' => '0',
+        'policy_default_fee_min_amount' => '',
+        'policy_default_fee_max_amount' => '',
+        'policy_default_sort_order' => '0',
+    ];
+}
+
+function sr_asset_exchange_settings(PDO $pdo): array
+{
+    return sr_asset_exchange_normalize_settings(array_merge(
+        sr_asset_exchange_default_settings(),
+        sr_module_settings($pdo, 'asset_exchange')
+    ));
+}
+
+function sr_asset_exchange_normalize_settings(array $settings): array
+{
+    $defaults = sr_asset_exchange_default_settings();
+    $normalized = array_merge($defaults, $settings);
+
+    $status = (string) ($normalized['policy_default_status'] ?? 'disabled');
+    $normalized['policy_default_status'] = in_array($status, ['enabled', 'disabled'], true) ? $status : 'disabled';
+
+    $roundingMode = (string) ($normalized['policy_default_rounding_mode'] ?? 'floor');
+    $normalized['policy_default_rounding_mode'] = in_array($roundingMode, ['floor', 'round', 'ceil'], true) ? $roundingMode : 'floor';
+
+    $feeTrigger = (string) ($normalized['policy_default_fee_trigger'] ?? 'none');
+    $normalized['policy_default_fee_trigger'] = in_array($feeTrigger, ['none', 'always', 'reexchange'], true) ? $feeTrigger : 'none';
+
+    $feeType = (string) ($normalized['policy_default_fee_type'] ?? 'rate');
+    $normalized['policy_default_fee_type'] = in_array($feeType, ['rate', 'fixed'], true) ? $feeType : 'rate';
+
+    $feeBasis = (string) ($normalized['policy_default_fee_basis'] ?? 'to_amount');
+    $normalized['policy_default_fee_basis'] = in_array($feeBasis, ['from_amount', 'to_amount'], true) ? $feeBasis : 'to_amount';
+    if ($normalized['policy_default_fee_trigger'] === 'none') {
+        $normalized['policy_default_fee_basis'] = 'to_amount';
+        $normalized['policy_default_fee_type'] = 'rate';
+        $normalized['policy_default_fee_rate_numerator'] = '0';
+        $normalized['policy_default_fee_fixed_amount'] = '0';
+        $normalized['policy_default_fee_min_amount'] = '';
+        $normalized['policy_default_fee_max_amount'] = '';
+    } elseif ($normalized['policy_default_fee_type'] === 'fixed') {
+        $normalized['policy_default_fee_basis'] = 'to_amount';
+        $normalized['policy_default_fee_rate_numerator'] = '0';
+    } else {
+        $normalized['policy_default_fee_fixed_amount'] = '0';
+    }
+
+    foreach ([
+        'policy_default_min_amount',
+        'policy_default_fee_rate_numerator',
+        'policy_default_fee_fixed_amount',
+        'policy_default_sort_order',
+    ] as $key) {
+        $normalized[$key] = trim((string) ($normalized[$key] ?? $defaults[$key]));
+    }
+    foreach ([
+        'policy_default_max_amount',
+        'policy_default_fee_min_amount',
+        'policy_default_fee_max_amount',
+    ] as $key) {
+        $normalized[$key] = trim((string) ($normalized[$key] ?? ''));
+    }
+
+    $normalized['policy_default_rate_ratio'] = trim((string) ($normalized['policy_default_rate_ratio'] ?? '1:1'));
+    if ($normalized['policy_default_rate_ratio'] === '') {
+        $normalized['policy_default_rate_ratio'] = '1:1';
+    }
+
+    return $normalized;
+}
+
+function sr_asset_exchange_policy_defaults_from_settings(array $settings): array
+{
+    $settings = sr_asset_exchange_normalize_settings($settings);
+
+    return [
+        'id' => '',
+        'from_module_key' => '',
+        'to_module_key' => '',
+        'status' => (string) $settings['policy_default_status'],
+        'rate_ratio' => (string) $settings['policy_default_rate_ratio'],
+        'min_amount' => (string) $settings['policy_default_min_amount'],
+        'max_amount' => (string) $settings['policy_default_max_amount'],
+        'rounding_mode' => (string) $settings['policy_default_rounding_mode'],
+        'fee_trigger' => (string) $settings['policy_default_fee_trigger'],
+        'fee_basis' => (string) $settings['policy_default_fee_basis'],
+        'fee_type' => (string) $settings['policy_default_fee_type'],
+        'fee_rate_numerator' => (string) $settings['policy_default_fee_rate_numerator'],
+        'fee_fixed_amount' => (string) $settings['policy_default_fee_fixed_amount'],
+        'fee_min_amount' => (string) $settings['policy_default_fee_min_amount'],
+        'fee_max_amount' => (string) $settings['policy_default_fee_max_amount'],
+        'sort_order' => (string) $settings['policy_default_sort_order'],
+    ];
+}
+
+function sr_asset_exchange_validate_settings(array $settings): array
+{
+    $rawStatus = (string) ($settings['policy_default_status'] ?? '');
+    if (!in_array($rawStatus, ['enabled', 'disabled'], true)) {
+        throw new InvalidArgumentException('기본 상태가 올바르지 않습니다.');
+    }
+    $rawRoundingMode = (string) ($settings['policy_default_rounding_mode'] ?? '');
+    if (!in_array($rawRoundingMode, ['floor', 'round', 'ceil'], true)) {
+        throw new InvalidArgumentException('기본 반올림 방식이 올바르지 않습니다.');
+    }
+    $rawFeeTrigger = (string) ($settings['policy_default_fee_trigger'] ?? '');
+    if (!in_array($rawFeeTrigger, ['none', 'always', 'reexchange'], true)) {
+        throw new InvalidArgumentException('기본 수수료 적용 조건이 올바르지 않습니다.');
+    }
+    if ($rawFeeTrigger !== 'none') {
+        $rawFeeType = (string) ($settings['policy_default_fee_type'] ?? '');
+        if (!in_array($rawFeeType, ['rate', 'fixed'], true)) {
+            throw new InvalidArgumentException('기본 수수료 방식이 올바르지 않습니다.');
+        }
+        $rawFeeBasis = (string) ($settings['policy_default_fee_basis'] ?? '');
+        if ($rawFeeType === 'rate' && !in_array($rawFeeBasis, ['from_amount', 'to_amount'], true)) {
+            throw new InvalidArgumentException('기본 수수료 기준이 올바르지 않습니다.');
+        }
+    }
+
+    $settings = sr_asset_exchange_normalize_settings($settings);
+
+    sr_asset_exchange_rate_parts(['rate_ratio' => (string) $settings['policy_default_rate_ratio']]);
+    $minAmount = sr_asset_exchange_positive_int($settings['policy_default_min_amount'], '기본 최소 환전량은 1 이상이어야 합니다.');
+    $maxAmount = sr_asset_exchange_nullable_int($settings['policy_default_max_amount'], '기본 최대 환전량은 0 이상의 정수로 입력하세요.');
+    if ($maxAmount !== null && $maxAmount < $minAmount) {
+        throw new InvalidArgumentException('기본 최대 환전량은 기본 최소 환전량 이상이어야 합니다.');
+    }
+
+    sr_asset_exchange_optional_int($settings['policy_default_sort_order'], 0, '기본 정렬순서는 정수로 입력하세요.');
+
+    if ((string) $settings['policy_default_fee_trigger'] !== 'none') {
+        if ((string) $settings['policy_default_fee_type'] === 'rate') {
+            $feeRateNumerator = sr_asset_exchange_optional_non_negative_int($settings['policy_default_fee_rate_numerator'], 0, '기본 정률 수수료는 0 이상의 정수로 입력하세요.');
+            if ($feeRateNumerator <= 0) {
+                throw new InvalidArgumentException('수수료 기본값을 정률로 쓰려면 기본 정률 수수료를 1 이상 입력하세요.');
+            }
+        } else {
+            $feeFixedAmount = sr_asset_exchange_optional_non_negative_int($settings['policy_default_fee_fixed_amount'], 0, '기본 정액 수수료는 0 이상의 정수로 입력하세요.');
+            if ($feeFixedAmount <= 0) {
+                throw new InvalidArgumentException('수수료 기본값을 정액으로 쓰려면 기본 정액 수수료를 1 이상 입력하세요.');
+            }
+        }
+        $feeMinAmount = sr_asset_exchange_nullable_int($settings['policy_default_fee_min_amount'], '기본 최소 수수료는 0 이상의 정수로 입력하세요.');
+        $feeMaxAmount = sr_asset_exchange_nullable_int($settings['policy_default_fee_max_amount'], '기본 최대 수수료는 0 이상의 정수로 입력하세요.');
+        if ($feeMaxAmount !== null && $feeMinAmount !== null && $feeMaxAmount < $feeMinAmount) {
+            throw new InvalidArgumentException('기본 최대 수수료는 기본 최소 수수료 이상이어야 합니다.');
+        }
+    }
+
+    return $settings;
+}
+
+function sr_asset_exchange_save_settings(PDO $pdo, array $settings): void
+{
+    $settings = sr_asset_exchange_validate_settings($settings);
+
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'asset_exchange' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('포인트/금액 환전 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $rows = [];
+    foreach (sr_asset_exchange_default_settings() as $key => $defaultValue) {
+        $rows[] = [$key, (string) ($settings[$key] ?? $defaultValue), 'string'];
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    foreach ($rows as $row) {
+        $stmt->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $row[0],
+            'setting_value' => (string) $row[1],
+            'value_type' => (string) $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    sr_clear_module_settings_cache('asset_exchange');
+}
+
 function sr_asset_exchange_policy(PDO $pdo, int $policyId): ?array
 {
     if ($policyId <= 0) {

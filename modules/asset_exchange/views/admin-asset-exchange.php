@@ -3,6 +3,7 @@
 $adminPageTitle = '포인트/금액 환전 정책';
 $adminContainerClass = 'admin-page-asset-exchange admin-ui-scope';
 $editPolicy = isset($editPolicy) && is_array($editPolicy) ? $editPolicy : [];
+$policyDefaults = isset($policyDefaults) && is_array($policyDefaults) ? $policyDefaults : [];
 $policyForm = array_merge([
     'id' => '',
     'from_module_key' => '',
@@ -21,7 +22,7 @@ $policyForm = array_merge([
     'fee_min_amount' => '',
     'fee_max_amount' => '',
     'sort_order' => 0,
-], $editPolicy);
+], $policyDefaults, $editPolicy);
 $policyForm['rate_ratio'] = (string) ($policyForm['rate_ratio'] ?? '');
 if ($policyForm['rate_ratio'] === '') {
     $policyForm['rate_ratio'] = (string) ($policyForm['rate_denominator'] ?? 1) . ':' . (string) ($policyForm['rate_numerator'] ?? 1);

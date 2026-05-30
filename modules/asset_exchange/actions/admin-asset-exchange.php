@@ -13,6 +13,8 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $assets = sr_asset_exchange_assets($pdo);
+$settings = sr_asset_exchange_settings($pdo);
+$policyDefaults = sr_asset_exchange_policy_defaults_from_settings($settings);
 $editPolicy = null;
 $assetExchangeGetList = static function (string $key, int $maxLength = 40): array {
     $rawValues = $_GET[$key] ?? [];
