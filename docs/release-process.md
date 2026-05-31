@@ -35,9 +35,10 @@ Git을 사용하는 운영자는 전체 브랜치를 pull/merge하지 않고 릴
 
 포함 기준:
 
-- `index.php`, `bootstrap/`, `core/`, `database/`, `modules/`
+- `index.php`, `core/`, `database/`, `modules/`
 - `.htaccess`
 - `config/` 디렉터리
+- `assets/`, `lang/`, `layouts/`
 - `docs/`, `examples/`, `README.md`, `LICENSE`
 - 배포자가 릴리스 검증에 쓰는 `.tools/` 파일
 

@@ -64,7 +64,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 | --- | --- | --- |
 | 시스템 | `admin` | 관리자 대시보드, 권한, 메뉴, 모듈 관리, 업데이트 |
 | 회원 | `member` | 회원 계정, 인증, 프로필, 회원 그룹, 탈퇴 |
-| 회원 | `point`, `reward`, `deposit` | 포인트/적립금/예치금 잔액과 거래 원장 |
+| 회원 | `point`, `reward`, `deposit`, `asset_exchange` | 포인트/적립금/예치금 잔액과 거래 원장, 포인트/금액 항목 간 환전 |
 | 회원 | `coupon` | 쿠폰·이용권 종류, 회원 지급, 사용 이력, 열람권 우선 적용 |
 | 사이트 | `site_menu`, `logo_manager`, `content`, `banner`, `popup_layer`, `seo` | 사이트 메뉴, 로고, 콘텐츠, 출력 슬롯, 검색 노출 보조 |
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지, 레벨/회원 그룹 규칙 |
@@ -93,7 +93,7 @@ php .tools/bin/check.php
 | 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
 | 보안 | [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [DB 접근 정책](docs/database-access-policy.md) |
 | 배포와 릴리스 | [배포 보호 기준](docs/deployment-protection.md), [릴리스 절차](docs/release-process.md) |
-| 검증 | [스모크 테스트 기준](docs/smoke-test.md) |
+| 검증 | [스모크 테스트 기준](docs/smoke-test.md), [수동 화면 점검 체크리스트](manual-check.md) |
 | 예제 | [sample_module](examples/sample_module/README.md) |
 
 구현 상태를 설명하는 DB 명세, 관리자 화면별 항목 설명, 개발자 가이드는 GitHub Wiki를 우선합니다. 저장소의 `docs/`는 설계 결정, 정책, 점검 기준, 구현 전 계획 문서를 보관합니다.

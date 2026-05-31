@@ -15,7 +15,7 @@
 
 ## 번들 모듈
 
-현재 저장소에는 다음 16개 모듈 또는 플러그인이 포함되어 있다.
+현재 저장소에는 다음 17개 모듈 또는 플러그인이 포함되어 있다.
 
 | 분류 | key | 성격 |
 | --- | --- | --- |
@@ -24,6 +24,7 @@
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
+| 회원 | `asset_exchange` | 포인트/금액 항목 간 환전 정책과 실행 로그 |
 | 회원 | `coupon` | 쿠폰·이용권 종류, 지급, 사용 이력 |
 | 사이트 | `site_menu` | 사이트 공통 메뉴 |
 | 사이트 | `logo_manager` | 기본 로고와 이벤트 로고 |
@@ -49,8 +50,8 @@
 | 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/admin/content`, `/admin/content/settings`, `/admin/content-groups` |
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-groups`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
-| 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` |
-| 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
+| 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/asset-exchange`, `/account/coupons` |
+| 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/asset-exchange`, `/admin/asset-exchange/settings`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
 | 알림/개인정보 | `/account/notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests`, `/admin/privacy-requests` |
 
@@ -64,9 +65,9 @@
 | 관리자 | `sr_admin_account_permissions`, `sr_admin_account_roles`, `sr_admin_menu_overrides` |
 | 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_sessions`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
 | 개인정보 | `sr_privacy_requests` |
-| 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs` |
-| 커뮤니티 | `sr_community_boards`, `sr_community_board_groups`, `sr_community_board_settings`, `sr_community_board_group_settings`, `sr_community_board_setting_sources`, `sr_community_posts`, `sr_community_comments`, `sr_community_attachments`, `sr_community_reports`, `sr_community_scraps`, `sr_community_messages`, `sr_community_member_nicknames`, `sr_community_levels`, `sr_community_account_levels`, `sr_community_level_logs`, `sr_community_asset_logs`, `sr_community_access_entitlements` |
-| 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
+| 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs` |
+| 커뮤니티 | `sr_community_boards`, `sr_community_board_groups`, `sr_community_board_settings`, `sr_community_board_group_settings`, `sr_community_board_setting_sources`, `sr_community_asset_policy_sets`, `sr_community_posts`, `sr_community_comments`, `sr_community_attachments`, `sr_community_reports`, `sr_community_scraps`, `sr_community_messages`, `sr_community_member_nicknames`, `sr_community_levels`, `sr_community_account_levels`, `sr_community_level_logs`, `sr_community_asset_logs`, `sr_community_access_entitlements` |
+| 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
 | 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_assets`, `sr_logo_manager_assignments`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
 | 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates` |
 

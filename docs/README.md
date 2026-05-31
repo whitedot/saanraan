@@ -36,6 +36,28 @@
 | [관리자 UI 작성 기준](admin-ui-guide.md) | 관리자 화면 공통 UI 작성 기준 |
 | [관리자 목록 컬럼 기준](admin-list-columns.md) | 관리자 목록별 노출 컬럼과 좁은 화면 기준 |
 
+## 루트 보조 문서
+
+루트에는 저장소 전체를 처음 보는 사람이 바로 확인해야 하거나, 작업 중 자주 여는 보조 문서를 둔다.
+
+현재 루트 보조 문서:
+
+| 문서 | 성격 |
+| --- | --- |
+| [수동 화면 점검 체크리스트](../manual-check.md) | 브라우저 수동 확인용 살아있는 체크리스트 |
+
+`manual-check.md`는 특정 날짜의 결과 기록이 아니라 다음 점검 때 다시 사용하는 작업 목록이므로 `docs/records/`로 옮기지 않는다. 수동 점검을 완료해 날짜별 결과를 남겨야 할 때는 별도 기록 문서를 `docs/records/`에 추가한다.
+
+## 모듈/예제 문서
+
+특정 모듈이나 예제에만 적용되는 문서는 해당 폴더 안에 둔다.
+
+현재 모듈/예제 문서:
+
+- [sample_module README](../examples/sample_module/README.md)
+- [content README](../modules/content/README.md)
+- [ckeditor README](../modules/ckeditor/README.md)
+
 ## 임시 보관 계획 문서
 
 아직 구현하지 않은 기능 계획은 구현 전까지 `docs/plans/`에 보관한다.
@@ -54,6 +76,8 @@
 
 - [관리자 화면 레이아웃 점검 기록 - 2026-05-18](records/admin-layout-audit-2026-05-18.md)
 - [자산 시스템 운영/보안/정합성 점검 기록 - 2026-05-28](records/asset-system-risk-review-2026-05-28.md)
+- [이슈 #42 전체 정합성 점검 기록 - 2026-05-28](records/issue-42-full-review-2026-05-28.md)
+- [릴리스 게이트 점검 기록 - 2026-05-31](records/release-gate-check-2026-05-31.md)
 
 ## Wiki로 충분한 문서
 
