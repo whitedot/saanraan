@@ -1111,7 +1111,7 @@ window.AdminShell = {
                 toggle.setAttribute('title', label);
                 toggle.classList.toggle('is-collapsed', collapsed);
                 if (icon) {
-                    icon.textContent = collapsed ? 'add_box' : 'indeterminate_check_box';
+                    icon.textContent = collapsed ? 'unfold_more' : 'unfold_less';
                 }
             };
 
@@ -1130,6 +1130,38 @@ window.AdminShell = {
 
                     syncMenuToggleButton(row);
                 });
+
+                document.querySelectorAll('[data-admin-menu-toggle-all]').forEach(button => {
+                    const hasCollapsedRows = currentSortableRows().some(row => {
+                        return row.dataset.sortHasChildren === '1' && collapsedMenuRows.has(sortableRowKey(row));
+                    });
+                    const label = button.getAttribute(hasCollapsedRows ? 'data-expand-label' : 'data-collapse-label') || '';
+                    const icon = button.querySelector('[data-sr-material-icon]');
+                    const labelNode = button.querySelector('[data-admin-menu-toggle-all-label]');
+                    if (icon) {
+                        icon.textContent = hasCollapsedRows ? 'unfold_more' : 'unfold_less';
+                    }
+                    if (labelNode) {
+                        labelNode.textContent = label;
+                    }
+                    button.setAttribute('aria-label', label);
+                    button.setAttribute('title', label);
+                });
+            };
+
+            const setAllMenuRowsCollapsed = collapsed => {
+                collapsedMenuRows = new Set();
+                if (collapsed) {
+                    currentSortableRows().forEach(row => {
+                        if (row.dataset.sortHasChildren === '1') {
+                            collapsedMenuRows.add(sortableRowKey(row));
+                        }
+                    });
+                }
+
+                saveCollapsedMenuRows();
+                syncMenuCollapsedRows();
+                refreshMoveButtons();
             };
 
             const refreshMoveButtons = () => {
@@ -1304,6 +1336,15 @@ window.AdminShell = {
                         refreshMoveButtons();
                     });
                 }
+            });
+
+            document.querySelectorAll('[data-admin-menu-toggle-all]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const hasCollapsedRows = currentSortableRows().some(row => {
+                        return row.dataset.sortHasChildren === '1' && collapsedMenuRows.has(sortableRowKey(row));
+                    });
+                    setAllMenuRowsCollapsed(!hasCollapsedRows);
+                });
             });
 
             sortableContainers.forEach(container => {
