@@ -5,6 +5,14 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 
 $errors = [];
+$installErrorSteps = [];
+$addInstallError = function (string $message, string $stepKey) use (&$errors, &$installErrorSteps): void {
+    $errors[] = $message;
+    if (!isset($installErrorSteps[$stepKey])) {
+        $installErrorSteps[$stepKey] = [];
+    }
+    $installErrorSteps[$stepKey][] = $message;
+};
 $requiredModules = [
     'member' => [
         'name' => '회원',
@@ -293,12 +301,12 @@ if (sr_request_method() === 'POST') {
     $postedOptionalModules = $_POST['optional_modules'] ?? [];
     $selectedOptionalModuleKeys = [];
     if (!is_array($postedOptionalModules)) {
-        $errors[] = '선택 모듈 값이 올바르지 않습니다.';
+        $addInstallError('선택 모듈 값이 올바르지 않습니다.', 'account_modules');
     } else {
         foreach ($postedOptionalModules as $moduleKey) {
             $moduleKey = is_string($moduleKey) ? $moduleKey : '';
             if (!array_key_exists($moduleKey, $optionalModules)) {
-                $errors[] = '선택할 수 없는 모듈이 포함되어 있습니다.';
+                $addInstallError('선택할 수 없는 모듈이 포함되어 있습니다.', 'account_modules');
                 continue;
             }
 
@@ -312,7 +320,7 @@ if (sr_request_method() === 'POST') {
     foreach ($requiredModules as $moduleKey => $module) {
         $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
         foreach ($moduleErrors as $moduleError) {
-            $errors[] = (string) $module['label'] . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError;
+            $addInstallError((string) $module['label'] . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'account_modules');
         }
     }
 
@@ -320,7 +328,7 @@ if (sr_request_method() === 'POST') {
         $module = $optionalModules[$moduleKey] ?? null;
         $moduleErrors = is_array($module) && isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : [];
         foreach ($moduleErrors as $moduleError) {
-            $errors[] = (string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError;
+            $addInstallError((string) ($module['label'] ?? $moduleKey) . '(' . (string) $moduleKey . ') 모듈 메타데이터 확인 필요: ' . (string) $moduleError, 'account_modules');
         }
     }
 
@@ -328,68 +336,68 @@ if (sr_request_method() === 'POST') {
     $adminPasswordConfirm = sr_post_string_without_truncation('admin_password_confirm', 255);
 
     if (!extension_loaded('pdo_mysql')) {
-        $errors[] = 'pdo_mysql PHP 확장을 사용할 수 없습니다.';
+        $addInstallError('pdo_mysql PHP 확장을 사용할 수 없습니다.', 'environment');
     }
 
     if (!$phpVersionSupported) {
-        $errors[] = 'PHP 8.1 이상에서만 설치할 수 있습니다.';
+        $addInstallError('PHP 8.1 이상에서만 설치할 수 있습니다.', 'environment');
     }
 
     if (!$configWritable) {
-        $errors[] = 'config/config.php 파일을 만들 수 있도록 config 디렉터리 권한을 확인하세요.';
+        $addInstallError('config/config.php 파일을 만들 수 있도록 config 디렉터리 권한을 확인하세요.', 'environment');
     }
 
     if (!$storageWritable) {
-        $errors[] = 'storage 디렉터리에 설치 잠금 파일을 만들 수 있도록 권한을 확인하세요.';
+        $addInstallError('storage 디렉터리에 설치 잠금 파일을 만들 수 있도록 권한을 확인하세요.', 'environment');
     }
 
     if (is_file($configPath) !== is_file($installedLockPath)) {
-        $errors[] = '설치 상태 파일이 일치하지 않습니다. config/config.php와 storage/installed.lock 상태를 확인한 뒤 수동 복구하세요.';
+        $addInstallError('설치 상태 파일이 일치하지 않습니다. config/config.php와 storage/installed.lock 상태를 확인한 뒤 수동 복구하세요.', 'environment');
     }
 
     if ($values['db_host'] === '' || $values['db_name'] === '' || $values['db_user'] === '') {
-        $errors[] = 'DB host, DB 이름, DB 사용자를 입력하세요.';
+        $addInstallError('DB host, DB 이름, DB 사용자를 입력하세요.', 'basic');
     }
 
     if (!sr_is_safe_table_prefix($values['db_table_prefix'])) {
-        $errors[] = 'DB 테이블 prefix는 영문 소문자로 시작하고, 영문 소문자/숫자를 사용하며, underscore로 끝나야 합니다. 예: sr_';
+        $addInstallError('DB 테이블 prefix는 영문 소문자로 시작하고, 영문 소문자/숫자를 사용하며, underscore로 끝나야 합니다. 예: sr_', 'basic');
     }
 
     if ($values['site_name'] === '') {
-        $errors[] = '사이트 이름을 입력하세요.';
+        $addInstallError('사이트 이름을 입력하세요.', 'basic');
     }
 
     if (!filter_var($values['admin_email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = '관리자 이메일 형식이 올바르지 않습니다.';
+        $addInstallError('관리자 이메일 형식이 올바르지 않습니다.', 'account_modules');
     }
 
     if ($values['admin_display_name'] === '') {
-        $errors[] = '관리자 표시 이름을 입력하세요.';
+        $addInstallError('관리자 표시 이름을 입력하세요.', 'account_modules');
     }
 
     $values['member_login_identifier'] = sr_member_normalize_login_identifier_setting($values['member_login_identifier']);
     $values['admin_login_id'] = sr_member_normalize_login_id($values['admin_login_id']);
     if ($values['admin_login_id'] !== '' && !sr_member_is_valid_login_id($values['admin_login_id'])) {
-        $errors[] = '관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.';
+        $addInstallError('관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.', 'account_modules');
     }
 
     if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {
-        $errors[] = 'timezone 값이 올바르지 않습니다.';
+        $addInstallError('timezone 값이 올바르지 않습니다.', 'basic');
     }
 
     if (
         preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $values['default_locale']) !== 1
         || !in_array($values['default_locale'], $localeOptions, true)
     ) {
-        $errors[] = '기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.';
+        $addInstallError('기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.', 'basic');
     }
 
     if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
-        $errors[] = '공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.';
+        $addInstallError('공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.', 'basic');
     }
 
     if (!isset($mainPageOptions[$values['main_page_path']])) {
-        $errors[] = '메인 페이지 값을 선택하세요.';
+        $addInstallError('메인 페이지 값을 선택하세요.', 'basic');
     } else {
         $mainPageModuleKey = (string) $mainPageOptions[$values['main_page_path']]['module_key'];
         if (
@@ -397,22 +405,22 @@ if (sr_request_method() === 'POST') {
             && !array_key_exists($mainPageModuleKey, $requiredModules)
             && empty($selectedOptionalModuleMap[$mainPageModuleKey])
         ) {
-            $errors[] = '메인 페이지로 사용할 모듈을 설치할 기능에서 함께 선택하세요.';
+            $addInstallError('메인 페이지로 사용할 모듈을 설치할 기능에서 함께 선택하세요.', 'account_modules');
         }
     }
 
     if ($adminPassword === null || $adminPasswordConfirm === null) {
-        $errors[] = '관리자 비밀번호는 255자 이하로 입력하세요.';
+        $addInstallError('관리자 비밀번호는 255자 이하로 입력하세요.', 'account_modules');
         $adminPassword = '';
         $adminPasswordConfirm = '';
     }
 
     if (strlen($adminPassword) < 8) {
-        $errors[] = '관리자 비밀번호는 8자 이상이어야 합니다.';
+        $addInstallError('관리자 비밀번호는 8자 이상이어야 합니다.', 'account_modules');
     }
 
     if ($adminPassword !== $adminPasswordConfirm) {
-        $errors[] = '관리자 비밀번호 확인이 일치하지 않습니다.';
+        $addInstallError('관리자 비밀번호 확인이 일치하지 않습니다.', 'account_modules');
     }
 
     if ($errors === []) {
@@ -422,7 +430,7 @@ if (sr_request_method() === 'POST') {
                 $publicFindings = sr_public_internal_access_findings($checkBaseUrl);
                 if ($publicFindings !== []) {
                     foreach ($publicFindings as $finding) {
-                        $errors[] = '내부 파일이 웹에서 직접 열립니다: ' . (string) $finding['url'];
+                        $addInstallError('내부 파일이 웹에서 직접 열립니다: ' . (string) $finding['url'], 'environment');
                     }
                 }
             }
@@ -658,12 +666,16 @@ if (sr_request_method() === 'POST') {
                 'config_written' => is_file(SR_ROOT . '/config/config.php'),
                 'installed_lock_written' => is_file(SR_ROOT . '/storage/installed.lock'),
             ]);
-            $errors[] = '설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.';
+            $addInstallError('설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.', 'confirm');
             if ($installStage === 'check_existing_owner') {
-                $errors[] = '기존 소유자 계정이 있거나 설치 상태를 확인할 수 없는 DB에는 공개 설치 화면에서 다시 설치할 수 없습니다. 기존 설치 파일 상태를 수동 복구하세요.';
+                $addInstallError('기존 소유자 계정이 있거나 설치 상태를 확인할 수 없는 DB에는 공개 설치 화면에서 다시 설치할 수 없습니다. 기존 설치 파일 상태를 수동 복구하세요.', 'confirm');
             }
             if (!empty($config['debug'])) {
                 $errors[] = sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500));
+                if (!isset($installErrorSteps['confirm'])) {
+                    $installErrorSteps['confirm'] = [];
+                }
+                $installErrorSteps['confirm'][] = (string) end($errors);
             }
         }
     }

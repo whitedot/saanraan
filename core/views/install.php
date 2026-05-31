@@ -6,6 +6,31 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
+$selectedMainPageOption = $mainPageOptions[$values['main_page_path']] ?? $mainPageOptions['/'];
+$installStepLabels = [
+    'environment' => '환경 확인',
+    'basic' => '기본 정보',
+    'account_modules' => '관리자와 모듈',
+    'confirm' => '확인 및 설치',
+];
+$firstErrorStepKey = 'environment';
+if ($installErrorSteps !== []) {
+    $firstErrorStepKey = (string) array_key_first($installErrorSteps);
+}
+$initialInstallStepKey = array_key_exists($firstErrorStepKey, $installStepLabels) ? $firstErrorStepKey : 'environment';
+$hasEnvironmentBlockingError = is_file($configPath) !== is_file($installedLockPath);
+foreach ($installChecks as $check) {
+    if ((string) $check['status'] === 'error') {
+        $hasEnvironmentBlockingError = true;
+        break;
+    }
+}
+$selectedOptionalModuleLabels = [];
+foreach ($selectedOptionalModuleKeys as $moduleKey) {
+    if (isset($optionalModules[$moduleKey])) {
+        $selectedOptionalModuleLabels[] = (string) $optionalModules[$moduleKey]['label'];
+    }
+}
 ?>
 <!doctype html>
 <html lang="ko" data-color-scheme="system">
@@ -17,7 +42,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
     <?php echo sr_material_icon_bootstrap_script(); ?>
 </head>
 <body class="sr-install-page">
-    <main class="sr-install-shell">
+    <main class="sr-install-shell" data-install-current-step="<?php echo sr_e($initialInstallStepKey); ?>">
         <section class="sr-install-intro">
             <div>
                 <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.settings.7abc12e1')); ?></p>
@@ -25,11 +50,18 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 <p><?php echo sr_e(sr_t('ui.saanraan.db.admin.settings.c039e13f')); ?></p>
             </div>
             <ol class="sr-install-steps" aria-label="<?php echo sr_e(sr_t('ui.text.4421f64e')); ?>">
-                <li><?php echo sr_e(sr_t('ui.text.3971a7b8')); ?></li>
-                <li><?php echo sr_e(sr_t('ui.db.bdaa9695')); ?></li>
-                <li><?php echo sr_e(sr_t('ui.settings.4738c9b6')); ?></li>
-                <li><?php echo sr_e(sr_t('ui.admin.07f66a66')); ?></li>
-                <li><?php echo sr_e(sr_t('ui.text.50c8b5b0')); ?></li>
+                <?php foreach ($installStepLabels as $stepKey => $stepLabel) { ?>
+                    <?php $stepHasErrors = !empty($installErrorSteps[$stepKey]); ?>
+                    <li data-install-step-indicator="<?php echo sr_e($stepKey); ?>"<?php echo $stepHasErrors ? ' data-install-step-error="1"' : ''; ?>>
+                        <button type="button" data-install-step-target="<?php echo sr_e($stepKey); ?>">
+                            <span class="sr-install-step-number"></span>
+                            <span>
+                                <strong><?php echo sr_e($stepLabel); ?></strong>
+                                <small data-install-step-state><?php echo $stepHasErrors ? '오류 확인 필요' : '대기'; ?></small>
+                            </span>
+                        </button>
+                    </li>
+                <?php } ?>
             </ol>
         </section>
 
@@ -60,7 +92,7 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
         <?php } ?>
 
         <?php if ($errors !== []) { ?>
-            <section class="sr-install-alert sr-install-alert-error">
+            <section class="sr-install-alert sr-install-alert-error" data-install-error-summary>
                 <h2><?php echo sr_e(sr_t('ui.text.84dd6e38')); ?></h2>
                 <ul>
                     <?php foreach ($errors as $error) { ?>
@@ -81,248 +113,229 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
             </section>
         <?php } ?>
 
-        <section class="sr-install-panel">
-            <div class="sr-install-panel-head">
-                <div>
-                    <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.3971a7b8')); ?></p>
-                    <h2><?php echo sr_e(sr_t('ui.status.8ec133e8')); ?></h2>
-                </div>
-                <p><?php echo sr_e(sr_t('ui.text.c754b4d6')); ?></p>
-            </div>
-            <div class="sr-install-check-grid">
-                <?php foreach ($installChecks as $check) { ?>
-                    <div class="sr-install-check">
-                        <span class="sr-install-status sr-install-status-<?php echo sr_e((string) $check['status']); ?>">
-                            <?php echo ((string) $check['status'] === 'ok') ? sr_t('ui.text.f2c10bf5') : (((string) $check['status'] === 'warning') ? sr_t('ui.text.acc90fbf') : sr_t('ui.text.3ceb8b2c')); ?>
-                        </span>
-                        <strong><?php echo sr_e((string) $check['label']); ?></strong>
-                        <p><?php echo sr_e((string) $check['message']); ?></p>
-                        <?php if ((string) ($check['guide'] ?? '') !== '') { ?>
-                            <p class="sr-install-check-guide">
-                                <span><?php echo sr_e(sr_t('ui.text.6530a534')); ?></span>
-                                <?php echo sr_e((string) $check['guide']); ?>
-                            </p>
-                        <?php } ?>
-                    </div>
-                <?php } ?>
-            </div>
-            <div class="sr-install-permission-guide">
-                <h3><?php echo sr_e(sr_t('ui.settings.848e94fa')); ?></h3>
-                <p>
-                    <?php echo sr_e(sr_t('ui.text.91850b91')); ?> <code>config</code><?php echo sr_e(sr_t('ui.text.d536e625')); ?> <code>storage</code> <?php echo sr_e(sr_t('ui.admin.09db1e62')); ?> <code>755</code><?php echo sr_e(sr_t('ui.settings.9a99606d')); ?>
-                </p>
-                <p>
-                    <?php echo sr_e(sr_t('ui.text.6b72e57d')); ?> <code>775</code> <?php echo sr_e(sr_t('ui.text.82d047b9')); ?> <code>777</code><?php echo sr_e(sr_t('ui.text.df2c2877')); ?> <code>755</code><?php echo sr_e(sr_t('ui.text.9083af79')); ?> <code>config/config.php</code><?php echo sr_e(sr_t('ui.text.6ef5924e')); ?> <code>600</code> <?php echo sr_e(sr_t('ui.text.2f925894')); ?>
-                </p>
-                <p>
-                    <code>config</code><?php echo sr_e(sr_t('ui.db.password.save.1dd78ffa')); ?> <code>storage</code><?php echo sr_e(sr_t('ui.save.settings.98d5defa')); ?>
-                </p>
-            </div>
-        </section>
-
-        <form method="post" action="<?php echo sr_e(sr_url('/')); ?>" class="sr-install-form">
+        <form method="post" action="<?php echo sr_e(sr_url('/')); ?>" class="sr-install-form" data-install-form>
             <?php echo sr_csrf_field(); ?>
 
-            <section class="sr-install-panel">
+            <section class="sr-install-panel sr-install-step" data-install-step="environment" data-install-step-blocked="<?php echo $hasEnvironmentBlockingError ? '1' : '0'; ?>">
                 <div class="sr-install-panel-head">
                     <div>
-                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.cb53ca6f')); ?></p>
-                        <h2><?php echo sr_e(sr_t('ui.db.1ec96d5d')); ?></h2>
+                        <p class="sr-install-kicker">1단계</p>
+                        <h2>환경 확인</h2>
                     </div>
-                    <p><?php echo sr_e(sr_t('ui.db.saanraan.active.af3cd57e')); ?> <code>sr_</code><?php echo sr_e(sr_t('ui.text.66341384')); ?></p>
+                    <p>설치 전에 PHP, DB 확장, 파일 권한, 현재 접속 URL을 확인합니다.</p>
                 </div>
 
-                <div class="sr-install-field-grid">
-                    <p>
-                        <label for="db_host">DB host <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="db_host" type="text" name="db_host" value="<?php echo sr_e($values['db_host']); ?>" autocomplete="off" required>
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.active.d13269d0')); ?></span>
-                    </p>
-                    <p>
-                        <label for="db_name">DB name <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="db_name" type="text" name="db_name" value="<?php echo sr_e($values['db_name']); ?>" autocomplete="off" required>
-                    </p>
-                    <p>
-                        <label for="db_user">DB user <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="db_user" type="text" name="db_user" value="<?php echo sr_e($values['db_user']); ?>" autocomplete="off" required>
-                    </p>
-                    <p>
-                        <label for="db_password">DB password</label>
-                        <input id="db_password" type="password" name="db_password" autocomplete="new-password">
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.password.215ab9d4')); ?></span>
-                    </p>
-                    <p>
-                        <label for="db_table_prefix"><?php echo sr_e(sr_t('ui.prefix.49bc3888')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" inputmode="latin" autocapitalize="none" spellcheck="false" required data-install-table-prefix-input>
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.sr.sr.site1.c9aaa2e0')); ?></span>
-                    </p>
-                </div>
-            </section>
-
-            <section class="sr-install-panel">
-                <div class="sr-install-panel-head">
-                    <div>
-                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.b2c8d45c')); ?></p>
-                        <h2><?php echo sr_e(sr_t('ui.text.601b9971')); ?></h2>
-                    </div>
-                    <p><?php echo sr_e(sr_t('ui.admin.settings.ca628f95')); ?></p>
-                </div>
-
-                <div class="sr-install-field-grid">
-                    <p>
-                        <label for="site_name"><?php echo sr_e(sr_t('ui.name.51f4c6af')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="site_name" type="text" name="site_name" value="<?php echo sr_e($values['site_name']); ?>" required>
-                    </p>
-                    <p>
-                        <label for="base_url"><?php echo sr_e(sr_t('ui.url.3f618a18')); ?></label>
-                        <input id="base_url" type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" placeholder="https://example.com">
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.canonical.og.url.https.e51da311')); ?></span>
-                    </p>
-                    <p>
-                        <label for="timezone">timezone <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <select id="timezone" name="timezone" required>
-                            <?php foreach ($timezoneOptions as $timezoneOption) { ?>
-                                <option value="<?php echo sr_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
-                                    <?php echo sr_e($timezoneOption); ?>
-                                </option>
+                <?php if (!empty($installErrorSteps['environment'])) { ?>
+                    <div class="sr-install-step-errors">
+                        <strong>이 단계에서 확인할 항목</strong>
+                        <ul>
+                            <?php foreach ($installErrorSteps['environment'] as $error) { ?>
+                                <li><?php echo sr_e($error); ?></li>
                             <?php } ?>
-                        </select>
-                    </p>
-                    <p>
-                        <label for="default_locale"><?php echo sr_e(sr_t('ui.locale.c7cd39b4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <select id="default_locale" name="default_locale" required>
-                            <?php foreach ($localeOptions as $localeOption) { ?>
-                                <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
-                                    <?php echo sr_e($localeOption); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </p>
-                    <p>
-                        <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.text.214b5fb8')); ?></span>
-                        <input type="hidden" name="main_page_path" value="/">
-                        <span class="sr-install-home-default"><?php echo sr_e(sr_t('ui.page.018d240a')); ?></span>
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.community.settings.12c9fe17')); ?></span>
-                    </p>
-                </div>
-            </section>
-
-            <section class="sr-install-panel">
-                <div class="sr-install-panel-head">
-                    <div>
-                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.admin.78496a61')); ?></p>
-                        <h2><?php echo sr_e(sr_t('ui.admin.7954926f')); ?></h2>
+                        </ul>
                     </div>
-                    <p><?php echo sr_e(sr_t('ui.text.f039b723')); ?></p>
-                </div>
+                <?php } ?>
 
-                <div class="sr-install-field-grid">
-                    <p>
-                        <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.login.2a15bdbd')); ?></span>
-                        <strong><?php echo sr_e(sr_t('ui.email.login.d1f22b60')); ?></strong>
-                        <input type="hidden" name="member_login_identifier" value="both">
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.email.login.login.login.44f3662f')); ?></span>
-                    </p>
-                    <p>
-                        <label for="admin_email"><?php echo sr_e(sr_t('ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="admin_email" type="email" name="admin_email" value="<?php echo sr_e($values['admin_email']); ?>" autocomplete="email" required>
-                    </p>
-                    <p>
-                        <label for="admin_login_id"><?php echo sr_e(sr_t('ui.login.0cdb28b5')); ?></label>
-                        <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-install-key-input>
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.select.email.login.active.admin.9a22f604')); ?></span>
-                    </p>
-                    <p>
-                        <label for="admin_password"><?php echo sr_e(sr_t('ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="admin_password" type="password" name="admin_password" autocomplete="new-password" minlength="8" required>
-                        <span class="sr-install-help"><?php echo sr_e(sr_t('ui.text.1e3d8fb2')); ?></span>
-                    </p>
-                    <p>
-                        <label for="admin_password_confirm"><?php echo sr_e(sr_t('ui.password.61081c91')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="admin_password_confirm" type="password" name="admin_password_confirm" autocomplete="new-password" minlength="8" required>
-                    </p>
-                    <p>
-                        <label for="admin_display_name"><?php echo sr_e(sr_t('ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                        <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" required>
-                    </p>
-                </div>
-            </section>
-
-            <section class="sr-install-panel">
-                <div class="sr-install-panel-head">
-                    <div>
-                        <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.text.6d2d8bf4')); ?></p>
-                        <h2><?php echo sr_e(sr_t('ui.text.e58a52d0')); ?></h2>
-                    </div>
-                    <p><?php echo sr_e(sr_t('ui.select.admin.b336c7a1')); ?></p>
-                </div>
-
-                <h3><?php echo sr_e(sr_t('ui.required.9b1c157b')); ?></h3>
-                <div class="sr-install-module-grid">
-                    <?php foreach ($requiredModules as $moduleKey => $module) { ?>
-                        <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                        <div class="sr-install-module">
-                            <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? sr_t('ui.required.9825053d') : sr_t('ui.text.84dd6e38'); ?></span>
-                            <strong><?php echo sr_e((string) $module['label']); ?></strong>
-                            <code><?php echo sr_e((string) $moduleKey); ?></code>
-                            <p><?php echo sr_e((string) $module['description']); ?></p>
-                            <?php if ($moduleErrors !== []) { ?>
-                                <ul>
-                                    <?php foreach ($moduleErrors as $moduleError) { ?>
-                                        <li><?php echo sr_e((string) $moduleError); ?></li>
-                                    <?php } ?>
-                                </ul>
+                <div class="sr-install-check-grid">
+                    <?php foreach ($installChecks as $check) { ?>
+                        <div class="sr-install-check">
+                            <span class="sr-install-status sr-install-status-<?php echo sr_e((string) $check['status']); ?>">
+                                <?php echo ((string) $check['status'] === 'ok') ? sr_t('ui.text.f2c10bf5') : (((string) $check['status'] === 'warning') ? sr_t('ui.text.acc90fbf') : sr_t('ui.text.3ceb8b2c')); ?>
+                            </span>
+                            <strong><?php echo sr_e((string) $check['label']); ?></strong>
+                            <p><?php echo sr_e((string) $check['message']); ?></p>
+                            <?php if ((string) ($check['guide'] ?? '') !== '') { ?>
+                                <p class="sr-install-check-guide">
+                                    <span><?php echo sr_e(sr_t('ui.text.6530a534')); ?></span>
+                                    <?php echo sr_e((string) $check['guide']); ?>
+                                </p>
                             <?php } ?>
                         </div>
                     <?php } ?>
                 </div>
 
-                <h3><?php echo sr_e(sr_t('ui.select.d37edab7')); ?></h3>
-                <?php if ($optionalModules === []) { ?>
-                    <p><?php echo sr_e(sr_t('ui.select.select.feaab9be')); ?> <code>modules/{module_key}</code><?php echo sr_e(sr_t('ui.admin.2253b218')); ?></p>
-                <?php } else { ?>
-                    <div class="sr-install-module-grid">
-                        <?php foreach ($optionalModules as $moduleKey => $module) { ?>
-                            <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
-                            <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
-                            <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
-                            <?php $moduleHomeCheckboxId = 'main_page_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
-                            <div class="sr-install-module sr-install-module-option">
-                                <span class="sr-install-module-title">
-                                    <input
-                                        id="<?php echo sr_e($moduleCheckboxId); ?>"
-                                        type="checkbox"
-                                        name="optional_modules[]"
-                                        value="<?php echo sr_e((string) $moduleKey); ?>"
-                                        class="form-checkbox"
-                                        <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
-                                        <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
-                                    >
-                                    <label for="<?php echo sr_e($moduleCheckboxId); ?>"><strong><?php echo sr_e((string) $module['label']); ?></strong></label>
-                                </span>
-                                <?php if ($moduleErrors !== []) { ?>
-                                    <span class="sr-install-status sr-install-status-error"><?php echo sr_e(sr_t('ui.text.b4052951')); ?></span>
+                <details class="sr-install-permission-guide">
+                    <summary><?php echo sr_e(sr_t('ui.settings.848e94fa')); ?></summary>
+                    <p>
+                        <?php echo sr_e(sr_t('ui.text.91850b91')); ?> <code>config</code><?php echo sr_e(sr_t('ui.text.d536e625')); ?> <code>storage</code> <?php echo sr_e(sr_t('ui.admin.09db1e62')); ?> <code>755</code><?php echo sr_e(sr_t('ui.settings.9a99606d')); ?>
+                    </p>
+                    <p>
+                        <?php echo sr_e(sr_t('ui.text.6b72e57d')); ?> <code>775</code> <?php echo sr_e(sr_t('ui.text.82d047b9')); ?> <code>777</code><?php echo sr_e(sr_t('ui.text.df2c2877')); ?> <code>755</code><?php echo sr_e(sr_t('ui.text.9083af79')); ?> <code>config/config.php</code><?php echo sr_e(sr_t('ui.text.6ef5924e')); ?> <code>600</code> <?php echo sr_e(sr_t('ui.text.2f925894')); ?>
+                    </p>
+                    <p>
+                        <code>config</code><?php echo sr_e(sr_t('ui.db.password.save.1dd78ffa')); ?> <code>storage</code><?php echo sr_e(sr_t('ui.save.settings.98d5defa')); ?>
+                    </p>
+                </details>
+
+                <div class="sr-install-step-actions sr-install-step-action-js">
+                    <span class="sr-install-step-note" data-install-blocked-message<?php echo $hasEnvironmentBlockingError ? '' : ' hidden'; ?>>환경 오류를 해결한 뒤 다음 단계로 이동할 수 있습니다.</span>
+                    <button type="button" data-install-next<?php echo $hasEnvironmentBlockingError ? ' disabled' : ''; ?>>다음</button>
+                </div>
+            </section>
+
+            <section class="sr-install-panel sr-install-step" data-install-step="basic">
+                <div class="sr-install-panel-head">
+                    <div>
+                        <p class="sr-install-kicker">2단계</p>
+                        <h2>기본 정보</h2>
+                    </div>
+                    <p>DB 연결 정보와 사이트 기본값을 한 번에 입력합니다.</p>
+                </div>
+
+                <?php if (!empty($installErrorSteps['basic'])) { ?>
+                    <div class="sr-install-step-errors">
+                        <strong>이 단계에서 확인할 항목</strong>
+                        <ul>
+                            <?php foreach ($installErrorSteps['basic'] as $error) { ?>
+                                <li><?php echo sr_e($error); ?></li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                <?php } ?>
+
+                <div class="sr-install-subsection">
+                    <h3><?php echo sr_e(sr_t('ui.db.1ec96d5d')); ?></h3>
+                    <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.db.saanraan.active.af3cd57e')); ?> <code>sr_</code><?php echo sr_e(sr_t('ui.text.66341384')); ?></p>
+                    <div class="sr-install-field-grid">
+                        <p>
+                            <label for="db_host">DB host <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="db_host" type="text" name="db_host" value="<?php echo sr_e($values['db_host']); ?>" autocomplete="off" required data-summary-source="db_host">
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.active.d13269d0')); ?></span>
+                        </p>
+                        <p>
+                            <label for="db_name">DB name <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="db_name" type="text" name="db_name" value="<?php echo sr_e($values['db_name']); ?>" autocomplete="off" required data-summary-source="db_name">
+                        </p>
+                        <p>
+                            <label for="db_user">DB user <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="db_user" type="text" name="db_user" value="<?php echo sr_e($values['db_user']); ?>" autocomplete="off" required data-summary-source="db_user">
+                        </p>
+                        <p>
+                            <label for="db_password">DB password</label>
+                            <input id="db_password" type="password" name="db_password" autocomplete="new-password">
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.password.215ab9d4')); ?></span>
+                        </p>
+                        <p>
+                            <label for="db_table_prefix"><?php echo sr_e(sr_t('ui.prefix.49bc3888')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" inputmode="latin" autocapitalize="none" spellcheck="false" required data-install-table-prefix-input data-summary-source="db_table_prefix">
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.sr.sr.site1.c9aaa2e0')); ?></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="sr-install-subsection">
+                    <h3><?php echo sr_e(sr_t('ui.text.601b9971')); ?></h3>
+                    <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.admin.settings.ca628f95')); ?></p>
+                    <div class="sr-install-field-grid">
+                        <p>
+                            <label for="site_name"><?php echo sr_e(sr_t('ui.name.51f4c6af')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="site_name" type="text" name="site_name" value="<?php echo sr_e($values['site_name']); ?>" required data-summary-source="site_name">
+                        </p>
+                        <p>
+                            <label for="base_url"><?php echo sr_e(sr_t('ui.url.3f618a18')); ?></label>
+                            <input id="base_url" type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" placeholder="https://example.com" data-summary-source="base_url">
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.canonical.og.url.https.e51da311')); ?></span>
+                        </p>
+                        <p>
+                            <label for="timezone">timezone <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <select id="timezone" name="timezone" required data-summary-source="timezone">
+                                <?php foreach ($timezoneOptions as $timezoneOption) { ?>
+                                    <option value="<?php echo sr_e($timezoneOption); ?>"<?php echo $values['timezone'] === $timezoneOption ? ' selected' : ''; ?>>
+                                        <?php echo sr_e($timezoneOption); ?>
+                                    </option>
                                 <?php } ?>
+                            </select>
+                        </p>
+                        <p>
+                            <label for="default_locale"><?php echo sr_e(sr_t('ui.locale.c7cd39b4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <select id="default_locale" name="default_locale" required data-summary-source="default_locale">
+                                <?php foreach ($localeOptions as $localeOption) { ?>
+                                    <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
+                                        <?php echo sr_e($localeOption); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </p>
+                        <p>
+                            <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.text.214b5fb8')); ?></span>
+                            <input type="hidden" name="main_page_path" value="/">
+                            <span class="sr-install-home-default" data-install-main-page-summary><?php echo sr_e((string) $selectedMainPageOption['label']); ?> · <?php echo sr_e((string) $selectedMainPageOption['path']); ?></span>
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.community.settings.12c9fe17')); ?></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="sr-install-step-actions sr-install-step-action-js">
+                    <button type="button" class="sr-install-secondary-button" data-install-prev>이전</button>
+                    <button type="button" data-install-next>다음</button>
+                </div>
+            </section>
+
+            <section class="sr-install-panel sr-install-step" data-install-step="account_modules">
+                <div class="sr-install-panel-head">
+                    <div>
+                        <p class="sr-install-kicker">3단계</p>
+                        <h2>관리자와 모듈</h2>
+                    </div>
+                    <p>최초 owner 계정과 설치할 기본 모듈 구성을 정합니다.</p>
+                </div>
+
+                <?php if (!empty($installErrorSteps['account_modules'])) { ?>
+                    <div class="sr-install-step-errors">
+                        <strong>이 단계에서 확인할 항목</strong>
+                        <ul>
+                            <?php foreach ($installErrorSteps['account_modules'] as $error) { ?>
+                                <li><?php echo sr_e($error); ?></li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                <?php } ?>
+
+                <div class="sr-install-subsection">
+                    <h3><?php echo sr_e(sr_t('ui.admin.7954926f')); ?></h3>
+                    <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.text.f039b723')); ?></p>
+                    <div class="sr-install-field-grid">
+                        <p>
+                            <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.login.2a15bdbd')); ?></span>
+                            <strong><?php echo sr_e(sr_t('ui.email.login.d1f22b60')); ?></strong>
+                            <input type="hidden" name="member_login_identifier" value="both">
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.email.login.login.login.44f3662f')); ?></span>
+                        </p>
+                        <p>
+                            <label for="admin_email"><?php echo sr_e(sr_t('ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="admin_email" type="email" name="admin_email" value="<?php echo sr_e($values['admin_email']); ?>" autocomplete="email" required data-summary-source="admin_email">
+                        </p>
+                        <p>
+                            <label for="admin_login_id"><?php echo sr_e(sr_t('ui.login.0cdb28b5')); ?></label>
+                            <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-install-key-input data-summary-source="admin_login_id">
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.select.email.login.active.admin.9a22f604')); ?></span>
+                        </p>
+                        <p>
+                            <label for="admin_password"><?php echo sr_e(sr_t('ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="admin_password" type="password" name="admin_password" autocomplete="new-password" minlength="8" required>
+                            <span class="sr-install-help"><?php echo sr_e(sr_t('ui.text.1e3d8fb2')); ?></span>
+                        </p>
+                        <p>
+                            <label for="admin_password_confirm"><?php echo sr_e(sr_t('ui.password.61081c91')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="admin_password_confirm" type="password" name="admin_password_confirm" autocomplete="new-password" minlength="8" required>
+                        </p>
+                        <p>
+                            <label for="admin_display_name"><?php echo sr_e(sr_t('ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" required data-summary-source="admin_display_name">
+                        </p>
+                    </div>
+                </div>
+
+                <div class="sr-install-subsection">
+                    <h3><?php echo sr_e(sr_t('ui.required.9b1c157b')); ?></h3>
+                    <div class="sr-install-module-grid">
+                        <?php foreach ($requiredModules as $moduleKey => $module) { ?>
+                            <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                            <div class="sr-install-module">
+                                <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? sr_t('ui.required.9825053d') : sr_t('ui.text.84dd6e38'); ?></span>
+                                <strong><?php echo sr_e((string) $module['label']); ?></strong>
                                 <code><?php echo sr_e((string) $moduleKey); ?></code>
                                 <p><?php echo sr_e((string) $module['description']); ?></p>
-                                <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
-                                    <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
-                                        <input
-                                            id="<?php echo sr_e($moduleHomeCheckboxId); ?>"
-                                            type="checkbox"
-                                            name="main_page_candidate_path"
-                                            value="<?php echo sr_e((string) $moduleMainPageOption['path']); ?>"
-                                            class="form-checkbox"
-                                            data-sr-install-main-page
-                                            data-sr-install-module-checkbox="<?php echo sr_e($moduleCheckboxId); ?>"
-                                            <?php echo $values['main_page_path'] === (string) $moduleMainPageOption['path'] ? 'checked' : ''; ?>
-                                        >
-                                        <span>
-                                            <?php echo sr_e(sr_t('ui.settings.a81574ca')); ?>
-                                            <small><?php echo sr_e((string) $moduleMainPageOption['path']); ?></small>
-                                        </span>
-                                    </label>
-                                <?php } ?>
                                 <?php if ($moduleErrors !== []) { ?>
                                     <ul>
                                         <?php foreach ($moduleErrors as $moduleError) { ?>
@@ -333,17 +346,174 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                             </div>
                         <?php } ?>
                     </div>
-                <?php } ?>
+
+                    <h3><?php echo sr_e(sr_t('ui.select.d37edab7')); ?></h3>
+                    <?php if ($optionalModules === []) { ?>
+                        <p><?php echo sr_e(sr_t('ui.select.select.feaab9be')); ?> <code>modules/{module_key}</code><?php echo sr_e(sr_t('ui.admin.2253b218')); ?></p>
+                    <?php } else { ?>
+                        <div class="sr-install-module-grid">
+                            <?php foreach ($optionalModules as $moduleKey => $module) { ?>
+                                <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                                <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
+                                <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
+                                <?php $moduleHomeCheckboxId = 'main_page_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
+                                <div class="sr-install-module sr-install-module-option">
+                                    <span class="sr-install-module-title">
+                                        <input
+                                            id="<?php echo sr_e($moduleCheckboxId); ?>"
+                                            type="checkbox"
+                                            name="optional_modules[]"
+                                            value="<?php echo sr_e((string) $moduleKey); ?>"
+                                            class="form-checkbox"
+                                            data-install-module-option
+                                            data-install-module-label="<?php echo sr_e((string) $module['label']); ?>"
+                                            <?php echo isset($selectedOptionalModuleMap[$moduleKey]) ? 'checked' : ''; ?>
+                                            <?php echo $moduleErrors === [] ? '' : 'disabled'; ?>
+                                        >
+                                        <label for="<?php echo sr_e($moduleCheckboxId); ?>"><strong><?php echo sr_e((string) $module['label']); ?></strong></label>
+                                    </span>
+                                    <?php if ($moduleErrors !== []) { ?>
+                                        <span class="sr-install-status sr-install-status-error"><?php echo sr_e(sr_t('ui.text.b4052951')); ?></span>
+                                    <?php } ?>
+                                    <code><?php echo sr_e((string) $moduleKey); ?></code>
+                                    <p><?php echo sr_e((string) $module['description']); ?></p>
+                                    <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
+                                        <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
+                                            <input
+                                                id="<?php echo sr_e($moduleHomeCheckboxId); ?>"
+                                                type="checkbox"
+                                                name="main_page_candidate_path"
+                                                value="<?php echo sr_e((string) $moduleMainPageOption['path']); ?>"
+                                                class="form-checkbox"
+                                                data-sr-install-main-page
+                                                data-sr-install-main-page-label="<?php echo sr_e((string) $moduleMainPageOption['label']); ?>"
+                                                data-sr-install-module-checkbox="<?php echo sr_e($moduleCheckboxId); ?>"
+                                                <?php echo $values['main_page_path'] === (string) $moduleMainPageOption['path'] ? 'checked' : ''; ?>
+                                            >
+                                            <span>
+                                                <?php echo sr_e(sr_t('ui.settings.a81574ca')); ?>
+                                                <small><?php echo sr_e((string) $moduleMainPageOption['path']); ?></small>
+                                            </span>
+                                        </label>
+                                    <?php } ?>
+                                    <?php if ($moduleErrors !== []) { ?>
+                                        <ul>
+                                            <?php foreach ($moduleErrors as $moduleError) { ?>
+                                                <li><?php echo sr_e((string) $moduleError); ?></li>
+                                            <?php } ?>
+                                        </ul>
+                                    <?php } ?>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+                </div>
+
+                <div class="sr-install-step-actions sr-install-step-action-js">
+                    <button type="button" class="sr-install-secondary-button" data-install-prev>이전</button>
+                    <button type="button" data-install-next>다음</button>
+                </div>
             </section>
 
-            <div class="sr-install-actions">
-                <p><?php echo sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
-                <button type="submit"><?php echo sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
-            </div>
+            <section class="sr-install-panel sr-install-step" data-install-step="confirm">
+                <div class="sr-install-panel-head">
+                    <div>
+                        <p class="sr-install-kicker">4단계</p>
+                        <h2>확인 및 설치</h2>
+                    </div>
+                    <p>입력값과 선택 모듈을 확인한 뒤 설치를 시작합니다.</p>
+                </div>
+
+                <?php if (!empty($installErrorSteps['confirm'])) { ?>
+                    <div class="sr-install-step-errors">
+                        <strong>이 단계에서 확인할 항목</strong>
+                        <ul>
+                            <?php foreach ($installErrorSteps['confirm'] as $error) { ?>
+                                <li><?php echo sr_e($error); ?></li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                <?php } ?>
+
+                <div class="sr-install-summary-grid">
+                    <div>
+                        <h3>DB</h3>
+                        <dl>
+                            <dt>Host</dt>
+                            <dd data-summary-target="db_host"><?php echo sr_e($values['db_host']); ?></dd>
+                            <dt>Name</dt>
+                            <dd data-summary-target="db_name"><?php echo sr_e($values['db_name'] !== '' ? $values['db_name'] : '-'); ?></dd>
+                            <dt>User</dt>
+                            <dd data-summary-target="db_user"><?php echo sr_e($values['db_user'] !== '' ? $values['db_user'] : '-'); ?></dd>
+                            <dt>Prefix</dt>
+                            <dd data-summary-target="db_table_prefix"><?php echo sr_e($values['db_table_prefix']); ?></dd>
+                        </dl>
+                    </div>
+                    <div>
+                        <h3>사이트</h3>
+                        <dl>
+                            <dt>이름</dt>
+                            <dd data-summary-target="site_name"><?php echo sr_e($values['site_name']); ?></dd>
+                            <dt>URL</dt>
+                            <dd data-summary-target="base_url"><?php echo sr_e($values['base_url'] !== '' ? $values['base_url'] : '-'); ?></dd>
+                            <dt>Timezone</dt>
+                            <dd data-summary-target="timezone"><?php echo sr_e($values['timezone']); ?></dd>
+                            <dt>Locale</dt>
+                            <dd data-summary-target="default_locale"><?php echo sr_e($values['default_locale']); ?></dd>
+                            <dt>초기화면</dt>
+                            <dd data-summary-target="main_page_path"><?php echo sr_e((string) $selectedMainPageOption['label']); ?> · <?php echo sr_e((string) $selectedMainPageOption['path']); ?></dd>
+                        </dl>
+                    </div>
+                    <div>
+                        <h3>관리자</h3>
+                        <dl>
+                            <dt>Email</dt>
+                            <dd data-summary-target="admin_email"><?php echo sr_e($values['admin_email'] !== '' ? $values['admin_email'] : '-'); ?></dd>
+                            <dt>Login ID</dt>
+                            <dd data-summary-target="admin_login_id"><?php echo sr_e($values['admin_login_id'] !== '' ? $values['admin_login_id'] : '-'); ?></dd>
+                            <dt>표시 이름</dt>
+                            <dd data-summary-target="admin_display_name"><?php echo sr_e($values['admin_display_name']); ?></dd>
+                        </dl>
+                    </div>
+                    <div>
+                        <h3>모듈</h3>
+                        <dl>
+                            <dt>필수</dt>
+                            <dd><?php echo sr_e(implode(', ', array_map(static function (array $module): string { return (string) $module['label']; }, $requiredModules))); ?></dd>
+                            <dt>선택</dt>
+                            <dd data-summary-target="optional_modules"><?php echo sr_e($selectedOptionalModuleLabels !== [] ? implode(', ', $selectedOptionalModuleLabels) : '선택 없음'); ?></dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="sr-install-progress" data-install-progress hidden>
+                    <strong>설치 중입니다</strong>
+                    <ol>
+                        <li>설정 파일 작성 준비</li>
+                        <li>DB 연결 및 코어 스키마 설치</li>
+                        <li>필수 모듈 설치: member → admin → privacy</li>
+                        <li>선택 모듈 설치</li>
+                        <li>사이트 설정 저장</li>
+                        <li>관리자 계정과 owner 권한 생성</li>
+                        <li>설치 lock 작성</li>
+                        <li>완료 후 관리자 로그인 화면으로 이동</li>
+                    </ol>
+                </div>
+
+                <div class="sr-install-actions">
+                    <p><?php echo sr_e(sr_t('ui.settings.db.admin.login.e8b89000')); ?></p>
+                    <div class="sr-install-final-actions">
+                        <button type="button" class="sr-install-secondary-button sr-install-step-action-js" data-install-prev>이전</button>
+                        <button type="submit" data-install-submit><?php echo sr_e(sr_t('ui.text.99d5ac5c')); ?></button>
+                    </div>
+                </div>
+            </section>
         </form>
     </main>
     <script>
         (function () {
+            document.body.classList.add('sr-install-enhanced');
+
             function syncRestrictedInput(input, normalizeValue) {
                 if (!input || input.readOnly || input.disabled) {
                     return;
@@ -375,10 +545,120 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 return nextValue + (hasTrailingUnderscore ? '_' : '');
             }
 
+            var stepOrder = ['environment', 'basic', 'account_modules', 'confirm'];
+            var shell = document.querySelector('[data-install-current-step]');
+            var form = document.querySelector('[data-install-form]');
+            var currentStep = shell ? shell.getAttribute('data-install-current-step') : 'environment';
+
+            function stepPanel(stepKey) {
+                return document.querySelector('[data-install-step="' + stepKey + '"]');
+            }
+
+            function stepIndex(stepKey) {
+                var index = stepOrder.indexOf(stepKey);
+                return index === -1 ? 0 : index;
+            }
+
+            function setStep(stepKey, shouldScroll) {
+                if (stepOrder.indexOf(stepKey) === -1) {
+                    stepKey = 'environment';
+                }
+                currentStep = stepKey;
+                var activeIndex = stepIndex(stepKey);
+                document.querySelectorAll('[data-install-step]').forEach(function (panel) {
+                    panel.hidden = panel.getAttribute('data-install-step') !== stepKey;
+                });
+                document.querySelectorAll('[data-install-step-indicator]').forEach(function (indicator) {
+                    var indicatorStep = indicator.getAttribute('data-install-step-indicator');
+                    var indicatorIndex = stepIndex(indicatorStep);
+                    var button = indicator.querySelector('button');
+                    var state = indicator.querySelector('[data-install-step-state]');
+                    indicator.classList.toggle('is-current', indicatorStep === stepKey);
+                    indicator.classList.toggle('is-complete', indicatorIndex < activeIndex);
+                    indicator.classList.toggle('is-waiting', indicatorIndex > activeIndex);
+                    if (button) {
+                        button.setAttribute('aria-current', indicatorStep === stepKey ? 'step' : 'false');
+                    }
+                    if (state) {
+                        if (indicator.getAttribute('data-install-step-error') === '1') {
+                            state.textContent = '오류 확인 필요';
+                        } else if (indicatorStep === stepKey) {
+                            state.textContent = '현재 단계';
+                        } else if (indicatorIndex < activeIndex) {
+                            state.textContent = '완료';
+                        } else {
+                            state.textContent = '대기';
+                        }
+                    }
+                });
+                updateSummary();
+                var activePanel = stepPanel(stepKey);
+                if (shouldScroll && activePanel) {
+                    activePanel.scrollIntoView({block: 'start'});
+                }
+            }
+
+            function inputStep(input) {
+                var panel = input.closest('[data-install-step]');
+                return panel ? panel.getAttribute('data-install-step') : 'environment';
+            }
+
+            function openFirstInvalidStep() {
+                if (!form) {
+                    return false;
+                }
+                var invalid = form.querySelector(':invalid');
+                if (!invalid) {
+                    return false;
+                }
+                setStep(inputStep(invalid), true);
+                window.setTimeout(function () {
+                    if (typeof invalid.reportValidity === 'function') {
+                        invalid.reportValidity();
+                    } else {
+                        invalid.focus();
+                    }
+                }, 40);
+                return true;
+            }
+
+            function updateTextSummary(key, value) {
+                document.querySelectorAll('[data-summary-target="' + key + '"]').forEach(function (target) {
+                    target.textContent = value || '-';
+                });
+            }
+
+            function updateSummary() {
+                document.querySelectorAll('[data-summary-source]').forEach(function (input) {
+                    updateTextSummary(input.getAttribute('data-summary-source'), input.value);
+                });
+
+                var checkedHome = document.querySelector('[data-sr-install-main-page]:checked');
+                if (checkedHome) {
+                    var homeLabel = checkedHome.getAttribute('data-sr-install-main-page-label') || '선택 모듈';
+                    updateTextSummary('main_page_path', homeLabel + ' · ' + checkedHome.value);
+                    document.querySelectorAll('[data-install-main-page-summary]').forEach(function (target) {
+                        target.textContent = homeLabel + ' · ' + checkedHome.value;
+                    });
+                } else {
+                    updateTextSummary('main_page_path', '기본 홈 · /');
+                    document.querySelectorAll('[data-install-main-page-summary]').forEach(function (target) {
+                        target.textContent = '기본 홈 · /';
+                    });
+                }
+
+                var moduleLabels = [];
+                document.querySelectorAll('[data-install-module-option]:checked').forEach(function (input) {
+                    moduleLabels.push(input.getAttribute('data-install-module-label') || input.value);
+                });
+                updateTextSummary('optional_modules', moduleLabels.length ? moduleLabels.join(', ') : '선택 없음');
+            }
+
             document.querySelectorAll('[data-install-key-input]').forEach(function (input) {
                 syncRestrictedInput(input, normalizeKeyValue);
                 input.addEventListener('input', function () {
                     syncRestrictedInput(input, normalizeKeyValue);
+                    updateSummary();
                 });
             });
 
@@ -386,7 +666,13 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                 syncRestrictedInput(input, normalizeTablePrefixValue);
                 input.addEventListener('input', function () {
                     syncRestrictedInput(input, normalizeTablePrefixValue);
+                    updateSummary();
                 });
+            });
+
+            document.querySelectorAll('[data-summary-source]').forEach(function (input) {
+                input.addEventListener('input', updateSummary);
+                input.addEventListener('change', updateSummary);
             });
 
             var mainPageInputs = document.querySelectorAll('[data-sr-install-main-page]');
@@ -401,11 +687,13 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                         if (!moduleCheckbox.checked) {
                             input.checked = false;
                         }
+                        updateSummary();
                     });
                 }
 
                 input.addEventListener('change', function () {
                     if (!input.checked) {
+                        updateSummary();
                         return;
                     }
 
@@ -418,8 +706,58 @@ $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
                     if (moduleCheckbox) {
                         moduleCheckbox.checked = true;
                     }
+                    updateSummary();
                 });
             });
+
+            document.querySelectorAll('[data-install-module-option]').forEach(function (input) {
+                input.addEventListener('change', updateSummary);
+            });
+
+            document.querySelectorAll('[data-install-step-target]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    setStep(button.getAttribute('data-install-step-target'), true);
+                });
+            });
+
+            document.querySelectorAll('[data-install-next]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var activePanel = stepPanel(currentStep);
+                    if (activePanel && activePanel.getAttribute('data-install-step-blocked') === '1') {
+                        return;
+                    }
+                    var nextIndex = Math.min(stepIndex(currentStep) + 1, stepOrder.length - 1);
+                    setStep(stepOrder[nextIndex], true);
+                });
+            });
+
+            document.querySelectorAll('[data-install-prev]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var previousIndex = Math.max(stepIndex(currentStep) - 1, 0);
+                    setStep(stepOrder[previousIndex], true);
+                });
+            });
+
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    if (openFirstInvalidStep()) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    var submitButton = form.querySelector('[data-install-submit]');
+                    var progress = form.querySelector('[data-install-progress]');
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.textContent = '설치 중';
+                    }
+                    if (progress) {
+                        progress.hidden = false;
+                    }
+                });
+            }
+
+            setStep(currentStep, false);
         }());
     </script>
 </body>
