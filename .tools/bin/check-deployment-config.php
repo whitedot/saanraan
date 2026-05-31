@@ -32,8 +32,8 @@ if (!is_array($config)) {
     if ($password !== '' && $passwordEnv === '') {
         $errors[] = 'config/config.php stores db.password without db.password_env fallback.';
     }
-    if ($passwordEnv !== '' && getenv($passwordEnv) === false) {
-        $errors[] = 'Configured DB password environment variable is not available: ' . $passwordEnv;
+    if ($password === '' && $passwordEnv !== '' && getenv($passwordEnv) === false) {
+        $errors[] = 'Configured DB password environment variable is not available and db.password fallback is empty: ' . $passwordEnv;
     }
 }
 
