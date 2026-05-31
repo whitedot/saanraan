@@ -1847,7 +1847,7 @@ window.AdminShell = {
                 });
 
                 handle.addEventListener('dragend', () => {
-                    finishDashboardDrag(false);
+                    finishDashboardDrag(currentDropPosition !== null);
                 });
             });
 
@@ -1863,6 +1863,24 @@ window.AdminShell = {
 
             dashboardSectionsRoot.addEventListener('drop', event => {
                 if (!draggedSection) {
+                    return;
+                }
+
+                event.preventDefault();
+                finishDashboardDrag(true);
+            });
+
+            document.addEventListener('dragover', event => {
+                if (!draggedSection || currentDropPosition === null) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            });
+
+            document.addEventListener('drop', event => {
+                if (!draggedSection || currentDropPosition === null) {
                     return;
                 }
 
