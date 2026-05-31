@@ -493,8 +493,10 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     </div>
                 </div>
 
-                <div class="sr-install-progress" data-install-progress hidden>
+                <div class="sr-install-progress" data-install-progress role="status" aria-live="polite" hidden>
                     <strong>설치 중입니다</strong>
+                    <span class="sr-install-progress-message">설치 요청을 보내는 중입니다. 완료되면 관리자 로그인 화면으로 이동합니다.</span>
+                    <span class="sr-install-progress-bar" aria-hidden="true"><span></span></span>
                     <ol>
                         <li>설정 파일 작성 준비</li>
                         <li>DB 연결 및 코어 스키마 설치</li>
@@ -787,21 +789,52 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
             });
 
             if (form) {
+                var installSubmitting = false;
                 form.addEventListener('submit', function (event) {
+                    if (installSubmitting) {
+                        return;
+                    }
+
                     if (openFirstInvalidStep()) {
                         event.preventDefault();
                         return;
                     }
+
+                    event.preventDefault();
+                    installSubmitting = true;
+                    setStep('confirm', false);
 
                     var submitButton = form.querySelector('[data-install-submit]');
                     var progress = form.querySelector('[data-install-progress]');
                     if (submitButton) {
                         submitButton.disabled = true;
                         submitButton.textContent = '설치 중';
+                        submitButton.setAttribute('aria-busy', 'true');
                     }
                     if (progress) {
                         progress.hidden = false;
+                        progress.scrollIntoView({block: 'nearest'});
                     }
+                    form.querySelectorAll('button').forEach(function (button) {
+                        button.disabled = true;
+                    });
+                    document.querySelectorAll('[data-install-step-indicator]').forEach(function (indicator) {
+                        var state = indicator.querySelector('[data-install-step-state]');
+                        if (indicator.getAttribute('data-install-step-indicator') === 'confirm' && state) {
+                            state.textContent = '설치 중';
+                        }
+                    });
+                    form.setAttribute('aria-busy', 'true');
+
+                    window.requestAnimationFrame(function () {
+                        window.setTimeout(function () {
+                            if (typeof HTMLFormElement !== 'undefined' && HTMLFormElement.prototype.submit) {
+                                HTMLFormElement.prototype.submit.call(form);
+                                return;
+                            }
+                            form.submit();
+                        }, 60);
+                    });
                 });
             }
 

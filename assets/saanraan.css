@@ -794,7 +794,32 @@ dd {
 
 .sr-install-progress strong {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+}
+
+.sr-install-progress-message {
+    display: block;
+    color: var(--sr-muted);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+}
+
+.sr-install-progress-bar {
+    display: block;
+    overflow: hidden;
+    border-radius: 999px;
+    height: 6px;
+    margin: 12px 0;
+    background: var(--sr-surface-muted);
+}
+
+.sr-install-progress-bar span {
+    display: block;
+    width: 42%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--sr-primary);
+    animation: sr-install-progress-bar 1.1s ease-in-out infinite;
 }
 
 .sr-install-progress ol {
@@ -803,6 +828,16 @@ dd {
     margin: 0;
     padding-left: 20px;
     color: var(--sr-muted);
+}
+
+@keyframes sr-install-progress-bar {
+    0% {
+        transform: translateX(-110%);
+    }
+
+    100% {
+        transform: translateX(250%);
+    }
 }
 
 @media (max-width: 720px) {
