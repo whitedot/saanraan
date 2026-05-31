@@ -8,6 +8,21 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
     $navigationItems = sr_admin_shell_navigation_items($pdo, $currentPath, $accountId);
     $auxiliaryLinks = sr_admin_shell_auxiliary_links($currentPath);
 
+    $profileUrl = sr_url('/account');
+    if ($accountId > 0 && sr_admin_has_permission($pdo, $accountId, '/admin/members', 'view')) {
+        $profileUrl = sr_url('/admin/members/edit?id=' . rawurlencode((string) $accountId));
+    }
+    $accountDisplayName = '';
+    if ($accountId > 0) {
+        try {
+            $stmt = $pdo->prepare('SELECT display_name FROM sr_member_accounts WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $accountId]);
+            $accountDisplayName = trim((string) $stmt->fetchColumn());
+        } catch (Throwable $exception) {
+            $accountDisplayName = '';
+        }
+    }
+
     return [
         'site_title' => sr_admin_shell_site_title($site),
         'page_title' => $pageTitle !== '' ? $pageTitle : '관리자',
@@ -15,8 +30,9 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         'container_class' => sr_admin_shell_class_attr($containerClass),
         'dashboard_url' => sr_url('/admin'),
         'site_home_url' => sr_url('/'),
-        'profile_url' => sr_url('/account'),
+        'profile_url' => $profileUrl,
         'logout_url' => sr_url('/logout'),
+        'account_display_name' => $accountDisplayName,
         'navigation_items' => $navigationItems,
         'auxiliary_links' => $auxiliaryLinks,
     ];

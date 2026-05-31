@@ -18,8 +18,6 @@ window.AdminShell = {
         const desktopToggle = document.getElementById('btn_gnb');
         const mobileToggle = document.getElementById('btn_gnb_mobile');
         const sidebarBackdrop = document.getElementById('adminSidebarBackdrop');
-        const profileButton = document.querySelector('.tnb_mb_btn');
-        const profileMenu = document.querySelector('.tnb_mb_area');
         const scrollWrap = document.querySelector('#gnb .gnb_menu_scroll_wrap');
         const menuScroll = document.getElementById('gnbMenuScroll');
         const scrollbar = scrollWrap ? scrollWrap.querySelector('.gnb_scrollbar') : null;
@@ -661,17 +659,25 @@ window.AdminShell = {
             }
         };
 
-        if (profileButton && profileMenu) {
-            profileButton.addEventListener('click', () => {
-                profileMenu.classList.toggle('hidden');
-            });
+        const closeProfileDropdown = () => {
+            const profileDropdown = document.querySelector('#tnb .admin-profile-dropdown[open]');
+            if (profileDropdown) {
+                profileDropdown.removeAttribute('open');
+            }
+        };
 
-            document.addEventListener('click', event => {
-                if (!event.target.closest('.tnb_li.relative')) {
-                    profileMenu.classList.add('hidden');
-                }
-            });
-        }
+        document.addEventListener('click', event => {
+            const profileDropdown = document.querySelector('#tnb .admin-profile-dropdown[open]');
+            if (profileDropdown && !profileDropdown.contains(event.target)) {
+                closeProfileDropdown();
+            }
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeProfileDropdown();
+            }
+        });
 
         if (desktopToggle) {
             desktopToggle.addEventListener('click', () => {

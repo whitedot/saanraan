@@ -16,12 +16,17 @@ $adminShell = [
     'site_home_url' => sr_url('/'),
     'profile_url' => sr_url('/account'),
     'logout_url' => sr_url('/logout'),
+    'account_display_name' => '',
     'navigation_items' => [],
     'auxiliary_links' => [],
 ];
 if (isset($pdo) && $pdo instanceof PDO) {
     $adminShellAccountId = isset($account) && is_array($account) ? (int) ($account['id'] ?? 0) : 0;
     $adminShell = sr_admin_shell_view($pdo, $site ?? null, (string) $adminPageTitle, (string) $adminPageSubtitle, (string) $adminContainerClass, $adminShellAccountId);
+}
+$adminShellAccountDisplayName = trim((string) ($adminShell['account_display_name'] ?? ''));
+if ($adminShellAccountDisplayName === '' && isset($account) && is_array($account)) {
+    $adminShellAccountDisplayName = trim((string) ($account['display_name'] ?? ''));
 }
 $adminBrandLogoHtml = '';
 $adminFaviconHtml = '';
@@ -217,18 +222,34 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                             </a>
                         </li>
                         <li class="tnb_li admin-toolbar-item relative">
-                            <button type="button" class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">
-                                <?php echo sr_material_icon_html('person', 'admin-shell-control-icon'); ?>
-                            </button>
-                            <ul class="tnb_mb_area admin-toolbar-menu hidden">
-                                <li><a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>"><?php echo sr_e(sr_t('admin::ui.text.25914f73')); ?></a></li>
-                                <li>
-                                    <form method="post" action="<?php echo sr_e((string) $adminShell['logout_url']); ?>">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <button type="submit"><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></button>
-                                    </form>
-                                </li>
-                            </ul>
+                            <details class="admin-profile-dropdown">
+                                <summary class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">
+                                    <?php echo sr_material_icon_html('person', 'admin-shell-control-icon'); ?>
+                                    <?php if ($adminShellAccountDisplayName !== '') { ?>
+                                        <span class="admin-profile-name">
+                                            <span class="admin-profile-name-text"><?php echo sr_e($adminShellAccountDisplayName); ?></span>
+                                            <span class="admin-profile-name-suffix">님</span>
+                                        </span>
+                                    <?php } ?>
+                                </summary>
+                                <ul class="tnb_mb_area admin-toolbar-menu" role="menu" aria-orientation="vertical">
+                                    <li>
+                                        <a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>">
+                                            <?php echo sr_material_icon_html('manage_accounts', 'admin-profile-menu-icon'); ?>
+                                            <span><?php echo sr_e(sr_t('admin::ui.text.25914f73')); ?></span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <form method="post" action="<?php echo sr_e((string) $adminShell['logout_url']); ?>">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <button type="submit">
+                                                <?php echo sr_material_icon_html('logout', 'admin-profile-menu-icon'); ?>
+                                                <span><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></span>
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </details>
                         </li>
                     </ul>
                 </div>
