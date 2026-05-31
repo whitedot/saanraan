@@ -30,6 +30,113 @@ function sr_reward_admin_adjustment_approval_threshold(): int
     return 1000000;
 }
 
+function sr_reward_withdrawal_min_amount(): int
+{
+    return 1000;
+}
+
+function sr_reward_withdrawal_max_amount(): int
+{
+    return 10000000;
+}
+
+function sr_reward_default_settings(): array
+{
+    return [
+        'withdrawal_allowed_group_keys_json' => '[]',
+    ];
+}
+
+function sr_reward_settings(PDO $pdo): array
+{
+    $settings = array_merge(sr_reward_default_settings(), sr_module_settings($pdo, 'reward'));
+    $settings['withdrawal_allowed_group_keys'] = sr_reward_normalize_group_keys(
+        sr_reward_json_array((string) ($settings['withdrawal_allowed_group_keys_json'] ?? '[]'))
+    );
+
+    return $settings;
+}
+
+function sr_reward_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'reward' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('적립금 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $allowedGroupKeys = sr_reward_normalize_group_keys($settings['withdrawal_allowed_group_keys'] ?? []);
+    foreach ($allowedGroupKeys as $groupKey) {
+        if (!sr_member_group_exists($pdo, $groupKey)) {
+            throw new InvalidArgumentException('Reward withdrawal group does not exist.');
+        }
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'withdrawal_allowed_group_keys_json',
+        'setting_value' => json_encode(array_values($allowedGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    sr_clear_module_settings_cache('reward');
+}
+
+function sr_reward_json_array(string $json): array
+{
+    $decoded = json_decode($json, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function sr_reward_normalize_group_keys(mixed $groupKeys): array
+{
+    if (!is_array($groupKeys)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($groupKeys as $groupKey) {
+        $groupKey = (string) $groupKey;
+        if (sr_member_group_key_is_valid($groupKey)) {
+            $normalized[$groupKey] = true;
+        }
+    }
+
+    return array_keys($normalized);
+}
+
+function sr_reward_withdrawal_allowed_group_keys(PDO $pdo): array
+{
+    $settings = sr_reward_settings($pdo);
+    return isset($settings['withdrawal_allowed_group_keys']) && is_array($settings['withdrawal_allowed_group_keys'])
+        ? $settings['withdrawal_allowed_group_keys']
+        : [];
+}
+
+function sr_reward_account_can_request_withdrawal(PDO $pdo, int $accountId): bool
+{
+    $allowedGroupKeys = sr_reward_withdrawal_allowed_group_keys($pdo);
+    if ($allowedGroupKeys === []) {
+        return true;
+    }
+
+    return sr_member_account_in_any_group($pdo, $accountId, $allowedGroupKeys);
+}
+
 function sr_reward_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfig, int $adminAccountId, string $permissionPath, int $amount, string $approvalIdentifier = '', string $approvalNote = ''): array
 {
     $absoluteAmount = abs($amount);
@@ -166,7 +273,7 @@ function sr_reward_transaction_type_allows_amount(string $transactionType, int $
         return $amount > 0;
     }
 
-    if (in_array($transactionType, ['use', 'expire', 'exchange_out', 'exchange_fee'], true)) {
+    if (in_array($transactionType, ['use', 'expire', 'withdraw', 'exchange_out', 'exchange_fee'], true)) {
         return $amount < 0;
     }
 
@@ -203,6 +310,299 @@ function sr_reward_clean_text(string $value, int $maxLength): string
     }
 
     return substr($value, 0, $maxLength);
+}
+
+function sr_reward_pending_withdrawal_amount(PDO $pdo, int $accountId): int
+{
+    if ($accountId <= 0) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COALESCE(SUM(amount), 0) AS pending_amount
+         FROM sr_reward_withdrawal_requests
+         WHERE account_id = :account_id
+           AND status = 'pending'"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['pending_amount'] ?? 0) : 0;
+}
+
+function sr_reward_withdrawal_available_amount(PDO $pdo, int $accountId): int
+{
+    return max(0, sr_reward_balance($pdo, $accountId) - sr_reward_pending_withdrawal_amount($pdo, $accountId));
+}
+
+function sr_reward_request_status_label(string $status): string
+{
+    $labels = [
+        'pending' => '대기',
+        'completed' => '완료',
+        'rejected' => '반려',
+        'canceled' => '취소',
+    ];
+
+    return $labels[$status] ?? $status;
+}
+
+function sr_reward_create_withdrawal_request(PDO $pdo, int $accountId, array $data): int
+{
+    $amount = (int) ($data['amount'] ?? 0);
+    $bankName = sr_reward_clean_text((string) ($data['bank_name'] ?? ''), 80);
+    $bankAccountNumber = sr_reward_clean_text((string) ($data['bank_account_number'] ?? ''), 80);
+    $bankAccountHolder = sr_reward_clean_text((string) ($data['bank_account_holder'] ?? ''), 80);
+    $requesterNote = sr_reward_clean_text((string) ($data['requester_note'] ?? ''), 255);
+
+    if ($accountId <= 0) {
+        throw new InvalidArgumentException('Account id is required.');
+    }
+    if ($amount < sr_reward_withdrawal_min_amount()) {
+        throw new InvalidArgumentException('Reward withdrawal amount is below minimum.');
+    }
+    if ($amount > sr_reward_withdrawal_max_amount()) {
+        throw new InvalidArgumentException('Reward withdrawal amount is above maximum.');
+    }
+    if ($bankName === '' || $bankAccountNumber === '' || $bankAccountHolder === '') {
+        throw new InvalidArgumentException('Reward withdrawal bank fields are required.');
+    }
+    if (!sr_reward_account_can_request_withdrawal($pdo, $accountId)) {
+        throw new RuntimeException('Reward withdrawal account is not in an allowed group.');
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT balance FROM sr_reward_balances WHERE account_id = :account_id LIMIT 1 FOR UPDATE');
+        $stmt->execute(['account_id' => $accountId]);
+        $row = $stmt->fetch();
+        $balance = is_array($row) ? (int) ($row['balance'] ?? 0) : 0;
+        $availableAmount = max(0, $balance - sr_reward_pending_withdrawal_amount($pdo, $accountId));
+        if ($amount > $availableAmount) {
+            throw new RuntimeException('Reward withdrawal amount exceeds available balance.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $stmt = $pdo->prepare(
+            "INSERT INTO sr_reward_withdrawal_requests
+             (account_id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, requested_at, updated_at)
+             VALUES
+             (:account_id, :amount, :bank_name, :bank_account_number, :bank_account_holder, :requester_note, 'pending', :requested_at, :updated_at)"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'amount' => $amount,
+            'bank_name' => $bankName,
+            'bank_account_number' => $bankAccountNumber,
+            'bank_account_holder' => $bankAccountHolder,
+            'requester_note' => $requesterNote,
+            'requested_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $requestId = (int) $pdo->lastInsertId();
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
+
+    return $requestId;
+}
+
+function sr_reward_withdrawal_requests_for_account(PDO $pdo, int $accountId, int $limit = 20): array
+{
+    if ($accountId <= 0) {
+        return [];
+    }
+
+    $limit = max(1, min(100, $limit));
+    $stmt = $pdo->prepare(
+        'SELECT id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, admin_note, transaction_id, requested_at, processed_at, updated_at
+         FROM sr_reward_withdrawal_requests
+         WHERE account_id = :account_id
+         ORDER BY id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return $stmt->fetchAll();
+}
+
+function sr_reward_admin_withdrawal_request_count(PDO $pdo, string $status): int
+{
+    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_reward_withdrawal_requests WHERE status = :status');
+        $stmt->execute(['status' => $status]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    return (int) $pdo->query('SELECT COUNT(*) FROM sr_reward_withdrawal_requests')->fetchColumn();
+}
+
+function sr_reward_admin_withdrawal_request_rows(PDO $pdo, array $runtimeConfig, string $status, array $pagination): array
+{
+    $where = '';
+    $params = [];
+    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
+        $where = 'WHERE r.status = :status';
+        $params['status'] = $status;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT r.id, r.account_id, r.amount, r.bank_name, r.bank_account_number, r.bank_account_holder,
+                r.requester_note, r.status, r.admin_note, r.transaction_id, r.processed_by_account_id,
+                r.requested_at, r.processed_at, r.updated_at,
+                a.email, a.display_name, a.login_id, a.status AS account_status
+         FROM sr_reward_withdrawal_requests r
+         LEFT JOIN sr_member_accounts a ON a.id = r.account_id
+         {$where}
+         ORDER BY CASE WHEN r.status = 'pending' THEN 0 ELSE 1 END, r.id DESC
+         LIMIT :limit OFFSET :offset"
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit', max(1, (int) ($pagination['per_page'] ?? 20)), PDO::PARAM_INT);
+    $stmt->bindValue(':offset', sr_admin_pagination_offset($pagination), PDO::PARAM_INT);
+    $stmt->execute();
+    $rows = $stmt->fetchAll();
+
+    foreach ($rows as $index => $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $rows[$index]['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
+    }
+
+    return $rows;
+}
+
+function sr_reward_complete_withdrawal_request(PDO $pdo, int $requestId, int $adminAccountId, string $adminNote): int
+{
+    $adminNote = sr_reward_clean_text($adminNote, 255);
+    if ($requestId <= 0 || $adminAccountId <= 0) {
+        throw new InvalidArgumentException('Reward withdrawal request and admin account are required.');
+    }
+    if ($adminNote === '') {
+        throw new InvalidArgumentException('Reward withdrawal admin note is required.');
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM sr_reward_withdrawal_requests WHERE id = :id LIMIT 1 FOR UPDATE');
+        $stmt->execute(['id' => $requestId]);
+        $request = $stmt->fetch();
+        if (!is_array($request) || (string) ($request['status'] ?? '') !== 'pending') {
+            throw new RuntimeException('Reward withdrawal request is not pending.');
+        }
+
+        $transactionId = sr_reward_create_transaction($pdo, [
+            'account_id' => (int) $request['account_id'],
+            'amount' => -abs((int) $request['amount']),
+            'transaction_type' => 'withdraw',
+            'reason' => '적립금 출금 신청 #' . (string) $requestId . ' 완료',
+            'reference_type' => 'reward_withdrawal',
+            'reference_id' => 'reward_withdrawal:' . (string) $requestId,
+            'created_by_account_id' => $adminAccountId,
+        ]);
+
+        $now = date('Y-m-d H:i:s');
+        $stmt = $pdo->prepare(
+            "UPDATE sr_reward_withdrawal_requests
+             SET status = 'completed',
+                 admin_note = :admin_note,
+                 transaction_id = :transaction_id,
+                 processed_by_account_id = :processed_by_account_id,
+                 processed_at = :processed_at,
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            'admin_note' => $adminNote,
+            'transaction_id' => $transactionId,
+            'processed_by_account_id' => $adminAccountId,
+            'processed_at' => $now,
+            'updated_at' => $now,
+            'id' => $requestId,
+        ]);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
+
+    return $transactionId;
+}
+
+function sr_reward_reject_withdrawal_request(PDO $pdo, int $requestId, int $adminAccountId, string $adminNote): void
+{
+    $adminNote = sr_reward_clean_text($adminNote, 255);
+    if ($requestId <= 0 || $adminAccountId <= 0) {
+        throw new InvalidArgumentException('Reward withdrawal request and admin account are required.');
+    }
+    if ($adminNote === '') {
+        throw new InvalidArgumentException('Reward withdrawal rejection note is required.');
+    }
+
+    $now = date('Y-m-d H:i:s');
+    $stmt = $pdo->prepare(
+        "UPDATE sr_reward_withdrawal_requests
+         SET status = 'rejected',
+             admin_note = :admin_note,
+             processed_by_account_id = :processed_by_account_id,
+             processed_at = :processed_at,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = 'pending'"
+    );
+    $stmt->execute([
+        'admin_note' => $adminNote,
+        'processed_by_account_id' => $adminAccountId,
+        'processed_at' => $now,
+        'updated_at' => $now,
+        'id' => $requestId,
+    ]);
+    if ($stmt->rowCount() < 1) {
+        throw new RuntimeException('Reward withdrawal request is not pending.');
+    }
+}
+
+function sr_reward_cancel_withdrawal_request(PDO $pdo, int $requestId, int $accountId): void
+{
+    if ($requestId <= 0 || $accountId <= 0) {
+        throw new InvalidArgumentException('Reward withdrawal request and account are required.');
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_reward_withdrawal_requests
+         SET status = 'canceled',
+             updated_at = :updated_at
+         WHERE id = :id
+           AND account_id = :account_id
+           AND status = 'pending'"
+    );
+    $stmt->execute([
+        'updated_at' => date('Y-m-d H:i:s'),
+        'id' => $requestId,
+        'account_id' => $accountId,
+    ]);
+    if ($stmt->rowCount() < 1) {
+        throw new RuntimeException('Reward withdrawal request could not be canceled.');
+    }
 }
 
 function sr_reward_transaction_by_id(PDO $pdo, int $transactionId): ?array

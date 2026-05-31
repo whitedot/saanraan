@@ -30,6 +30,16 @@ function sr_deposit_admin_adjustment_approval_threshold(): int
     return 1000000;
 }
 
+function sr_deposit_refund_min_amount(): int
+{
+    return 1000;
+}
+
+function sr_deposit_refund_max_amount(): int
+{
+    return 10000000;
+}
+
 function sr_deposit_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfig, int $adminAccountId, string $permissionPath, int $amount, string $approvalIdentifier = '', string $approvalNote = ''): array
 {
     $absoluteAmount = abs($amount);
@@ -203,6 +213,296 @@ function sr_deposit_clean_text(string $value, int $maxLength): string
     }
 
     return substr($value, 0, $maxLength);
+}
+
+function sr_deposit_pending_refund_amount(PDO $pdo, int $accountId): int
+{
+    if ($accountId <= 0) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COALESCE(SUM(amount), 0) AS pending_amount
+         FROM sr_deposit_refund_requests
+         WHERE account_id = :account_id
+           AND status = 'pending'"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['pending_amount'] ?? 0) : 0;
+}
+
+function sr_deposit_refund_available_amount(PDO $pdo, int $accountId): int
+{
+    return max(0, sr_deposit_balance($pdo, $accountId) - sr_deposit_pending_refund_amount($pdo, $accountId));
+}
+
+function sr_deposit_request_status_label(string $status): string
+{
+    $labels = [
+        'pending' => '대기',
+        'completed' => '완료',
+        'rejected' => '반려',
+        'canceled' => '취소',
+    ];
+
+    return $labels[$status] ?? $status;
+}
+
+function sr_deposit_create_refund_request(PDO $pdo, int $accountId, array $data): int
+{
+    $amount = (int) ($data['amount'] ?? 0);
+    $bankName = sr_deposit_clean_text((string) ($data['bank_name'] ?? ''), 80);
+    $bankAccountNumber = sr_deposit_clean_text((string) ($data['bank_account_number'] ?? ''), 80);
+    $bankAccountHolder = sr_deposit_clean_text((string) ($data['bank_account_holder'] ?? ''), 80);
+    $requesterNote = sr_deposit_clean_text((string) ($data['requester_note'] ?? ''), 255);
+
+    if ($accountId <= 0) {
+        throw new InvalidArgumentException('Account id is required.');
+    }
+    if ($amount < sr_deposit_refund_min_amount()) {
+        throw new InvalidArgumentException('Deposit refund amount is below minimum.');
+    }
+    if ($amount > sr_deposit_refund_max_amount()) {
+        throw new InvalidArgumentException('Deposit refund amount is above maximum.');
+    }
+    if ($bankName === '' || $bankAccountNumber === '' || $bankAccountHolder === '') {
+        throw new InvalidArgumentException('Deposit refund bank fields are required.');
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT balance FROM sr_deposit_balances WHERE account_id = :account_id LIMIT 1 FOR UPDATE');
+        $stmt->execute(['account_id' => $accountId]);
+        $row = $stmt->fetch();
+        $balance = is_array($row) ? (int) ($row['balance'] ?? 0) : 0;
+        $availableAmount = max(0, $balance - sr_deposit_pending_refund_amount($pdo, $accountId));
+        if ($amount > $availableAmount) {
+            throw new RuntimeException('Deposit refund amount exceeds available balance.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $stmt = $pdo->prepare(
+            "INSERT INTO sr_deposit_refund_requests
+             (account_id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, requested_at, updated_at)
+             VALUES
+             (:account_id, :amount, :bank_name, :bank_account_number, :bank_account_holder, :requester_note, 'pending', :requested_at, :updated_at)"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'amount' => $amount,
+            'bank_name' => $bankName,
+            'bank_account_number' => $bankAccountNumber,
+            'bank_account_holder' => $bankAccountHolder,
+            'requester_note' => $requesterNote,
+            'requested_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $requestId = (int) $pdo->lastInsertId();
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
+
+    return $requestId;
+}
+
+function sr_deposit_refund_requests_for_account(PDO $pdo, int $accountId, int $limit = 20): array
+{
+    if ($accountId <= 0) {
+        return [];
+    }
+
+    $limit = max(1, min(100, $limit));
+    $stmt = $pdo->prepare(
+        'SELECT id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, admin_note, transaction_id, requested_at, processed_at, updated_at
+         FROM sr_deposit_refund_requests
+         WHERE account_id = :account_id
+         ORDER BY id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return $stmt->fetchAll();
+}
+
+function sr_deposit_admin_refund_request_count(PDO $pdo, string $status): int
+{
+    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_deposit_refund_requests WHERE status = :status');
+        $stmt->execute(['status' => $status]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    return (int) $pdo->query('SELECT COUNT(*) FROM sr_deposit_refund_requests')->fetchColumn();
+}
+
+function sr_deposit_admin_refund_request_rows(PDO $pdo, array $runtimeConfig, string $status, array $pagination): array
+{
+    $where = '';
+    $params = [];
+    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
+        $where = 'WHERE r.status = :status';
+        $params['status'] = $status;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT r.id, r.account_id, r.amount, r.bank_name, r.bank_account_number, r.bank_account_holder,
+                r.requester_note, r.status, r.admin_note, r.transaction_id, r.processed_by_account_id,
+                r.requested_at, r.processed_at, r.updated_at,
+                a.email, a.display_name, a.login_id, a.status AS account_status
+         FROM sr_deposit_refund_requests r
+         LEFT JOIN sr_member_accounts a ON a.id = r.account_id
+         {$where}
+         ORDER BY CASE WHEN r.status = 'pending' THEN 0 ELSE 1 END, r.id DESC
+         LIMIT :limit OFFSET :offset"
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit', max(1, (int) ($pagination['per_page'] ?? 20)), PDO::PARAM_INT);
+    $stmt->bindValue(':offset', sr_admin_pagination_offset($pagination), PDO::PARAM_INT);
+    $stmt->execute();
+    $rows = $stmt->fetchAll();
+
+    foreach ($rows as $index => $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $rows[$index]['account_public_hash'] = sr_admin_member_public_hash($runtimeConfig, (int) ($row['account_id'] ?? 0));
+    }
+
+    return $rows;
+}
+
+function sr_deposit_complete_refund_request(PDO $pdo, int $requestId, int $adminAccountId, string $adminNote): int
+{
+    $adminNote = sr_deposit_clean_text($adminNote, 255);
+    if ($requestId <= 0 || $adminAccountId <= 0) {
+        throw new InvalidArgumentException('Deposit refund request and admin account are required.');
+    }
+    if ($adminNote === '') {
+        throw new InvalidArgumentException('Deposit refund admin note is required.');
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM sr_deposit_refund_requests WHERE id = :id LIMIT 1 FOR UPDATE');
+        $stmt->execute(['id' => $requestId]);
+        $request = $stmt->fetch();
+        if (!is_array($request) || (string) ($request['status'] ?? '') !== 'pending') {
+            throw new RuntimeException('Deposit refund request is not pending.');
+        }
+
+        $transactionId = sr_deposit_create_transaction($pdo, [
+            'account_id' => (int) $request['account_id'],
+            'amount' => -abs((int) $request['amount']),
+            'transaction_type' => 'withdraw',
+            'reason' => '예치금 환불 신청 #' . (string) $requestId . ' 완료',
+            'reference_type' => 'deposit_refund',
+            'reference_id' => 'deposit_refund:' . (string) $requestId,
+            'created_by_account_id' => $adminAccountId,
+        ]);
+
+        $now = date('Y-m-d H:i:s');
+        $stmt = $pdo->prepare(
+            "UPDATE sr_deposit_refund_requests
+             SET status = 'completed',
+                 admin_note = :admin_note,
+                 transaction_id = :transaction_id,
+                 processed_by_account_id = :processed_by_account_id,
+                 processed_at = :processed_at,
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            'admin_note' => $adminNote,
+            'transaction_id' => $transactionId,
+            'processed_by_account_id' => $adminAccountId,
+            'processed_at' => $now,
+            'updated_at' => $now,
+            'id' => $requestId,
+        ]);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
+
+    return $transactionId;
+}
+
+function sr_deposit_reject_refund_request(PDO $pdo, int $requestId, int $adminAccountId, string $adminNote): void
+{
+    $adminNote = sr_deposit_clean_text($adminNote, 255);
+    if ($requestId <= 0 || $adminAccountId <= 0) {
+        throw new InvalidArgumentException('Deposit refund request and admin account are required.');
+    }
+    if ($adminNote === '') {
+        throw new InvalidArgumentException('Deposit refund rejection note is required.');
+    }
+
+    $now = date('Y-m-d H:i:s');
+    $stmt = $pdo->prepare(
+        "UPDATE sr_deposit_refund_requests
+         SET status = 'rejected',
+             admin_note = :admin_note,
+             processed_by_account_id = :processed_by_account_id,
+             processed_at = :processed_at,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = 'pending'"
+    );
+    $stmt->execute([
+        'admin_note' => $adminNote,
+        'processed_by_account_id' => $adminAccountId,
+        'processed_at' => $now,
+        'updated_at' => $now,
+        'id' => $requestId,
+    ]);
+    if ($stmt->rowCount() < 1) {
+        throw new RuntimeException('Deposit refund request is not pending.');
+    }
+}
+
+function sr_deposit_cancel_refund_request(PDO $pdo, int $requestId, int $accountId): void
+{
+    if ($requestId <= 0 || $accountId <= 0) {
+        throw new InvalidArgumentException('Deposit refund request and account are required.');
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_deposit_refund_requests
+         SET status = 'canceled',
+             updated_at = :updated_at
+         WHERE id = :id
+           AND account_id = :account_id
+           AND status = 'pending'"
+    );
+    $stmt->execute([
+        'updated_at' => date('Y-m-d H:i:s'),
+        'id' => $requestId,
+        'account_id' => $accountId,
+    ]);
+    if ($stmt->rowCount() < 1) {
+        throw new RuntimeException('Deposit refund request could not be canceled.');
+    }
 }
 
 function sr_deposit_transaction_by_id(PDO $pdo, int $transactionId): ?array

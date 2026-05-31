@@ -14,5 +14,15 @@ return [
             'path' => '/admin/rewards/transactions',
             'order' => 30,
         ],
+        [
+            'label' => '적립금 출금 신청',
+            'path' => '/admin/rewards/withdrawal-requests',
+            'order' => 40,
+        ],
+        [
+            'label' => '환경설정',
+            'path' => '/admin/rewards/settings',
+            'order' => 50,
+        ],
     ],
 ];

@@ -14,5 +14,10 @@ return [
             'path' => '/admin/deposits/transactions',
             'order' => 30,
         ],
+        [
+            'label' => '예치금 환불 신청',
+            'path' => '/admin/deposits/refund-requests',
+            'order' => 40,
+        ],
     ],
 ];
