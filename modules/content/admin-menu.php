@@ -2,7 +2,7 @@
 
 return [
     'label' => sr_t('content::ui.content.6c84a1b3'),
-    'order' => 30,
+    'order' => 5,
     'items' => [
         [
             'label' => '콘텐츠 관리',

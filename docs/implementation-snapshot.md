@@ -27,10 +27,10 @@
 | 회원 | `coupon` | 쿠폰·이용권 종류, 지급, 사용 이력 |
 | 사이트 | `site_menu` | 사이트 공통 메뉴 |
 | 사이트 | `logo_manager` | 기본 로고와 이벤트 로고 |
-| 사이트 | `content` | 콘텐츠 작성, 공개 URL, 콘텐츠 그룹 |
 | 사이트 | `banner` | 출력 슬롯용 배너 |
 | 사이트 | `popup_layer` | 팝업레이어 |
 | 사이트 | `seo` | robots, sitemap, SEO 보조 |
+| 서비스 | `content` | 콘텐츠 작성, 공개 URL, 콘텐츠 그룹 |
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지 |
 | 운영 | `notification` | 사이트 알림, 이메일 delivery queue |
 | 운영 | `privacy` | 개인정보 요청과 사본 제공 조정 |
