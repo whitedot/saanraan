@@ -29,7 +29,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span><?php echo sr_e((string) ($group['title'] ?? $groupKey)); ?> (<?php echo sr_e($groupKey); ?>)</span>
                         </label>
                     <?php } ?>
-                    <p class="admin-form-help">선택한 그룹 중 하나에 속한 회원만 적립금 출금 신청을 할 수 있습니다. 아무 그룹도 선택하지 않으면 모든 회원이 신청할 수 있습니다.</p>
+                    <p class="admin-form-help">선택한 그룹 중 하나에 속한 회원만 적립금 출금 신청을 할 수 있습니다. 아무 그룹도 선택하지 않으면 회원이 출금 신청을 할 수 없습니다.</p>
                 <?php } ?>
             </div>
         </div>

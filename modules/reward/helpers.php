@@ -131,7 +131,7 @@ function sr_reward_account_can_request_withdrawal(PDO $pdo, int $accountId): boo
 {
     $allowedGroupKeys = sr_reward_withdrawal_allowed_group_keys($pdo);
     if ($allowedGroupKeys === []) {
-        return true;
+        return false;
     }
 
     return sr_member_account_in_any_group($pdo, $accountId, $allowedGroupKeys);

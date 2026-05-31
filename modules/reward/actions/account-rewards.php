@@ -6,6 +6,7 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/reward/helpers.php';
 
 $account = sr_member_require_login($pdo);
+sr_member_group_evaluate_account($pdo, (int) $account['id']);
 $errors = [];
 $notice = '';
 
