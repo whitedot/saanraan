@@ -12,21 +12,21 @@ $assets = [
         'action' => 'modules/point/actions/admin-points.php',
         'function' => 'sr_point_validate_admin_adjustment_limit',
         'table' => 'sr_point_transactions',
-        'version' => '2026.05.004',
+        'version' => '2026.05.005',
     ],
     'reward' => [
         'helper' => 'modules/reward/helpers.php',
         'action' => 'modules/reward/actions/admin-rewards.php',
         'function' => 'sr_reward_validate_admin_adjustment_limit',
         'table' => 'sr_reward_transactions',
-        'version' => '2026.05.004',
+        'version' => '2026.05.005',
     ],
     'deposit' => [
         'helper' => 'modules/deposit/helpers.php',
         'action' => 'modules/deposit/actions/admin-deposits.php',
         'function' => 'sr_deposit_validate_admin_adjustment_limit',
         'table' => 'sr_deposit_transactions',
-        'version' => '2026.05.004',
+        'version' => '2026.05.005',
     ],
 ];
 
@@ -38,16 +38,30 @@ foreach ($assets as $moduleKey => $asset) {
 
     if (
         !is_string($helper)
-        || strpos($helper, 'function ' . $asset['function'] . '(PDO $pdo, int $adminAccountId, int $amount): ?string') === false
+        || strpos($helper, 'function ' . $asset['function'] . '(PDO $pdo, array $runtimeConfig, int $adminAccountId, string $permissionPath, int $amount') === false
         || strpos($helper, $asset['table']) === false
         || strpos($helper, 'created_by_account_id = :admin_account_id') === false
         || strpos($helper, "created_at >= :started_at") === false
+        || strpos($helper, 'approval_threshold') === false
+        || strpos($helper, "SELECT status FROM sr_member_accounts WHERE id = :id LIMIT 1") === false
+        || strpos($helper, 'sr_admin_has_permission($pdo, $approvalAccountId, $permissionPath, \'edit\')') === false
     ) {
-        $errors[] = $moduleKey . ' helper must enforce one-time and daily admin adjustment limits.';
+        $errors[] = $moduleKey . ' helper must enforce one-time, daily, and dual-approval admin adjustment policy.';
     }
 
-    if (!is_string($action) || strpos($action, $asset['function'] . '($pdo, (int) $account[\'id\'], $amount)') === false) {
-        $errors[] = $moduleKey . ' admin action must call the server-side adjustment limit validator before saving.';
+    if (
+        !is_string($action)
+        || strpos($action, $asset['function'] . '($pdo, $runtimeConfig, (int) $account[\'id\']') === false
+        || strpos($action, "sr_post_string('approval_account_identifier', 80)") === false
+        || strpos($action, "'approval_account_id' => \$approvalAccountId") === false
+    ) {
+        $errors[] = $moduleKey . ' admin action must call the server-side adjustment approval validator before saving.';
+    }
+
+    $viewPath = $root . '/modules/' . $moduleKey . '/views/admin-' . ($moduleKey === 'point' ? 'points' : $moduleKey . 's') . '.php';
+    $view = file_get_contents($viewPath);
+    if (!is_string($view) || strpos($view, 'name="approval_account_identifier"') === false || strpos($view, 'name="approval_note"') === false) {
+        $errors[] = $moduleKey . ' admin view must expose dual-approval fields for large adjustments.';
     }
 
     if (!is_string($module) || strpos($module, "'version' => '" . $asset['version'] . "'") === false) {

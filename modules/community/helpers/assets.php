@@ -668,6 +668,44 @@ function sr_community_asset_policy_requires_confirmation(string $chargePolicy): 
     return in_array($chargePolicy, ['once', 'every_view', 'every_download', 'every_action'], true);
 }
 
+function sr_community_asset_transaction_retry_max_attempts(): int
+{
+    return 3;
+}
+
+function sr_community_asset_is_retryable_transaction_exception(Throwable $exception): bool
+{
+    if (!$exception instanceof PDOException) {
+        return false;
+    }
+
+    $sqlState = (string) $exception->getCode();
+    $driverCode = isset($exception->errorInfo[1]) ? (int) $exception->errorInfo[1] : 0;
+
+    return $sqlState === '40001' || in_array($driverCode, [1205, 1213], true);
+}
+
+function sr_community_asset_retry_operation(PDO $pdo, callable $operation): array
+{
+    if ($pdo->inTransaction()) {
+        return $operation();
+    }
+
+    $maxAttempts = sr_community_asset_transaction_retry_max_attempts();
+    for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        try {
+            return $operation();
+        } catch (Throwable $exception) {
+            if ($attempt >= $maxAttempts || !sr_community_asset_is_retryable_transaction_exception($exception)) {
+                throw $exception;
+            }
+            usleep(50000 * $attempt);
+        }
+    }
+
+    throw new RuntimeException('커뮤니티 자산 처리 재시도 횟수를 초과했습니다.');
+}
+
 function sr_community_asset_confirmation_required_message(): string
 {
     return sr_t('community::action.error.asset_confirmation_required');
@@ -1768,6 +1806,13 @@ function sr_community_delete_asset_log_placeholder(PDO $pdo, string $dedupeKey):
 
 function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason): array
 {
+    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason): array {
+        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason);
+    });
+}
+
+function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason): array
+{
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
     $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
     $amounts = is_array($config['amounts'] ?? null) ? $config['amounts'] : [];
@@ -1850,6 +1895,9 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
         } catch (Throwable $exception) {
             if ($startedTransaction && $pdo->inTransaction()) {
                 $pdo->rollBack();
+            }
+            if ($startedTransaction && sr_community_asset_is_retryable_transaction_exception($exception)) {
+                throw $exception;
             }
             if (function_exists('sr_log_exception')) {
                 sr_log_exception($exception, 'community_asset_group_event_failed');
@@ -1997,6 +2045,9 @@ function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, s
             $pdo->rollBack();
         } elseif ($dedupeKey !== '') {
             sr_community_delete_asset_log_placeholder($pdo, $dedupeKey);
+        }
+        if ($startedTransaction && sr_community_asset_is_retryable_transaction_exception($exception)) {
+            throw $exception;
         }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'community_asset_event_failed');

@@ -361,6 +361,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_account_identifier">대액 승인자</label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_account_identifier" type="text" name="approval_account_identifier" maxlength="80" class="form-input">
+                                <p class="admin-form-help">1,000,000 <?php echo sr_e($pointUnitLabel); ?> 초과 조정에는 처리자와 다른 편집 권한 보유 승인자의 회원 식별자가 필요합니다.</p>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_note">승인 사유</label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_note" type="text" name="approval_note" maxlength="255" class="form-input form-control-full">
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
                             <div class="form-label admin-form-label-help"><?php echo $pointHelpButtonHtml(sr_t('point::ui.text.200e7df1'), $pointHelp['reference_type']['id']); ?><label for="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>"><?php echo sr_e(sr_t('point::ui.text.200e7df1')); ?> <span class="sr-required-label" data-admin-reference-type-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label></div>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" name="reference_type" class="form-select" data-admin-reference-type>

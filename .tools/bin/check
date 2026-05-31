@@ -76,6 +76,7 @@ fi
 "${PHP_BIN}" .tools/bin/check-member-auth-policy.php
 "${PHP_BIN}" .tools/bin/check-admin-action-security.php
 "${PHP_BIN}" .tools/bin/check-admin-asset-limits.php
+"${PHP_BIN}" .tools/bin/check-asset-deadlock-retry.php
 "${PHP_BIN}" .tools/bin/check-asset-exchange-logs.php
 "${PHP_BIN}" .tools/bin/check-paid-download-delivery.php
 "${PHP_BIN}" .tools/bin/check-coupon-admin-validation.php

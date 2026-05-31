@@ -49,6 +49,44 @@ function sr_content_asset_policy_requires_confirmation(string $chargePolicy): bo
     return in_array($chargePolicy, ['once', 'every_view', 'every_download'], true);
 }
 
+function sr_content_asset_transaction_retry_max_attempts(): int
+{
+    return 3;
+}
+
+function sr_content_asset_is_retryable_transaction_exception(Throwable $exception): bool
+{
+    if (!$exception instanceof PDOException) {
+        return false;
+    }
+
+    $sqlState = (string) $exception->getCode();
+    $driverCode = isset($exception->errorInfo[1]) ? (int) $exception->errorInfo[1] : 0;
+
+    return $sqlState === '40001' || in_array($driverCode, [1205, 1213], true);
+}
+
+function sr_content_asset_retry_operation(PDO $pdo, callable $operation): array
+{
+    if ($pdo->inTransaction()) {
+        return $operation();
+    }
+
+    $maxAttempts = sr_content_asset_transaction_retry_max_attempts();
+    for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        try {
+            return $operation();
+        } catch (Throwable $exception) {
+            if ($attempt >= $maxAttempts || !sr_content_asset_is_retryable_transaction_exception($exception)) {
+                throw $exception;
+            }
+            usleep(50000 * $attempt);
+        }
+    }
+
+    throw new RuntimeException('콘텐츠 자산 처리 재시도 횟수를 초과했습니다.');
+}
+
 function sr_content_asset_confirmation_required_message(): string
 {
     return sr_t('content::action.error.asset_confirmation_required');
@@ -1498,6 +1536,13 @@ function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, str
 
 function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): array
 {
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId): array {
+        return sr_content_charge_view_access_once($pdo, $page, $accountId);
+    });
+}
+
+function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId): array
+{
     $pageId = (int) ($page['id'] ?? 0);
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
     $assetModuleValue = sr_content_asset_module_value_from_keys($assetModules);
@@ -1539,6 +1584,9 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         } catch (Throwable $exception) {
             if ($startedTransaction && $pdo->inTransaction()) {
                 $pdo->rollBack();
+            }
+            if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+                throw $exception;
             }
             if (function_exists('sr_log_exception')) {
                 sr_log_exception($exception, 'content_asset_group_access_failed');
@@ -1592,6 +1640,9 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
     } catch (Throwable $exception) {
         if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
+        }
+        if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+            throw $exception;
         }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'content_coupon_entitlement_failed');
@@ -1649,6 +1700,9 @@ function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): a
         } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_access_placeholder($pdo, $dedupeKey);
         }
+        if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+            throw $exception;
+        }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'content_asset_access_charge_failed');
         }
@@ -1693,6 +1747,13 @@ function sr_content_file_download_required(array $file): bool
 }
 
 function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId): array
+{
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId): array {
+        return sr_content_charge_file_download_once($pdo, $file, $accountId);
+    });
+}
+
+function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId): array
 {
     $pageId = (int) ($file['content_id'] ?? 0);
     $fileId = (int) ($file['id'] ?? 0);
@@ -1741,6 +1802,9 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
         } catch (Throwable $exception) {
             if ($startedTransaction && $pdo->inTransaction()) {
                 $pdo->rollBack();
+            }
+            if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+                throw $exception;
             }
             if (function_exists('sr_log_exception')) {
                 sr_log_exception($exception, 'content_file_group_access_failed');
@@ -1816,6 +1880,9 @@ function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId):
             $pdo->rollBack();
         } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_access_placeholder($pdo, $dedupeKey);
+        }
+        if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+            throw $exception;
         }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'content_file_download_charge_failed');
@@ -1943,6 +2010,13 @@ function sr_content_delete_asset_action_placeholder(PDO $pdo, string $dedupeKey)
 
 function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): array
 {
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId): array {
+        return sr_content_run_asset_action_once($pdo, $page, $accountId);
+    });
+}
+
+function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId): array
+{
     $pageId = (int) ($page['id'] ?? 0);
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_action_module'] ?? '');
     $direction = (string) ($page['asset_action_direction'] ?? 'grant');
@@ -2061,6 +2135,9 @@ function sr_content_run_asset_action(PDO $pdo, array $page, int $accountId): arr
             $pdo->rollBack();
         } elseif ($dedupeKey !== '') {
             sr_content_delete_asset_action_placeholder($pdo, $dedupeKey);
+        }
+        if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+            throw $exception;
         }
         if (function_exists('sr_log_exception')) {
             sr_log_exception($exception, 'content_asset_action_failed');

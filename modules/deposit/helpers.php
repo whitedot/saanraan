@@ -17,7 +17,7 @@ function sr_deposit_balance(PDO $pdo, int $accountId): int
 
 function sr_deposit_admin_adjustment_once_limit(): int
 {
-    return 1000000;
+    return 10000000;
 }
 
 function sr_deposit_admin_adjustment_daily_limit(): int
@@ -25,11 +25,16 @@ function sr_deposit_admin_adjustment_daily_limit(): int
     return 10000000;
 }
 
-function sr_deposit_validate_admin_adjustment_limit(PDO $pdo, int $adminAccountId, int $amount): ?string
+function sr_deposit_admin_adjustment_approval_threshold(): int
+{
+    return 1000000;
+}
+
+function sr_deposit_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfig, int $adminAccountId, string $permissionPath, int $amount, string $approvalIdentifier = '', string $approvalNote = ''): array
 {
     $absoluteAmount = abs($amount);
     if ($absoluteAmount > sr_deposit_admin_adjustment_once_limit()) {
-        return '예치금 관리자 조정 금액이 1회 상한을 초과했습니다.';
+        return ['error' => '예치금 관리자 조정 금액이 1회 상한을 초과했습니다.', 'approval_account_id' => 0];
     }
 
     $stmt = $pdo->prepare(
@@ -47,10 +52,34 @@ function sr_deposit_validate_admin_adjustment_limit(PDO $pdo, int $adminAccountI
     $usedAmount = is_array($row) ? (int) ($row['total_amount'] ?? 0) : 0;
 
     if ($usedAmount + $absoluteAmount > sr_deposit_admin_adjustment_daily_limit()) {
-        return '예치금 관리자 조정 금액이 일일 상한을 초과했습니다.';
+        return ['error' => '예치금 관리자 조정 금액이 일일 상한을 초과했습니다.', 'approval_account_id' => 0];
     }
 
-    return null;
+    if ($absoluteAmount <= sr_deposit_admin_adjustment_approval_threshold()) {
+        return ['error' => null, 'approval_account_id' => 0];
+    }
+
+    $approvalAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $approvalIdentifier);
+    if ($approvalAccountId <= 0) {
+        return ['error' => '대액 예치금 조정은 승인자 식별자가 필요합니다.', 'approval_account_id' => 0];
+    }
+    if ($approvalAccountId === $adminAccountId) {
+        return ['error' => '대액 예치금 조정은 처리자와 다른 승인자가 필요합니다.', 'approval_account_id' => 0];
+    }
+    $stmt = $pdo->prepare("SELECT status FROM sr_member_accounts WHERE id = :id LIMIT 1");
+    $stmt->execute(['id' => $approvalAccountId]);
+    $approvalAccount = $stmt->fetch();
+    if (!is_array($approvalAccount) || (string) ($approvalAccount['status'] ?? '') !== 'active') {
+        return ['error' => '대액 예치금 조정 승인자 계정이 활성 상태가 아닙니다.', 'approval_account_id' => 0];
+    }
+    if (!sr_admin_has_permission($pdo, $approvalAccountId, $permissionPath, 'edit')) {
+        return ['error' => '대액 예치금 조정 승인자에게 해당 관리자 편집 권한이 없습니다.', 'approval_account_id' => 0];
+    }
+    if (sr_deposit_clean_text($approvalNote, 255) === '') {
+        return ['error' => '대액 예치금 조정은 승인 사유가 필요합니다.', 'approval_account_id' => 0];
+    }
+
+    return ['error' => null, 'approval_account_id' => $approvalAccountId];
 }
 
 function sr_deposit_create_transaction(PDO $pdo, array $data): int

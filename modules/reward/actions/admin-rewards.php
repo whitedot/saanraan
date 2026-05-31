@@ -41,6 +41,9 @@ if (sr_request_method() === 'POST') {
     $reason = sr_reward_clean_text(sr_post_string('reason', 255), 255);
     $referenceType = sr_reward_clean_key(sr_post_string('reference_type', 60), 60);
     $referenceId = sr_reward_clean_reference_id(sr_post_string('reference_id', 120), 120);
+    $approvalIdentifier = sr_post_string('approval_account_identifier', 80);
+    $approvalNote = sr_reward_clean_text(sr_post_string('approval_note', 255), 255);
+    $approvalAccountId = 0;
     if (!in_array($referenceType, $allowedReferenceTypes, true)) {
         $referenceType = '';
     }
@@ -99,10 +102,11 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === []) {
-        $limitError = sr_reward_validate_admin_adjustment_limit($pdo, (int) $account['id'], $amount);
-        if ($limitError !== null) {
-            $errors[] = $limitError;
+        $limitResult = sr_reward_validate_admin_adjustment_limit($pdo, $runtimeConfig, (int) $account['id'], $rewardPermissionPath, $amount, $approvalIdentifier, $approvalNote);
+        if ($limitResult['error'] !== null) {
+            $errors[] = (string) $limitResult['error'];
         }
+        $approvalAccountId = (int) ($limitResult['approval_account_id'] ?? 0);
     }
 
     if ($errors === []) {
@@ -130,6 +134,8 @@ if (sr_request_method() === 'POST') {
                     'base_amount' => $baseAmount,
                     'amount' => $amount,
                     'transaction_type' => $transactionType,
+                    'approval_account_id' => $approvalAccountId,
+                    'approval_note' => $approvalAccountId > 0 ? $approvalNote : '',
                 ],
             ]);
 
