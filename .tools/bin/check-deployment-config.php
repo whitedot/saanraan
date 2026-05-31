@@ -6,6 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $configFile = $root . '/config/config.php';
 $errors = [];
+$warnings = [];
 
 if (!is_file($configFile)) {
     echo "config/config.php is not present; deployment config check skipped.\n";
@@ -29,11 +30,17 @@ if (!is_array($config)) {
     $db = isset($config['db']) && is_array($config['db']) ? $config['db'] : [];
     $password = (string) ($db['password'] ?? '');
     $passwordEnv = (string) ($db['password_env'] ?? '');
-    if ($password !== '' && $passwordEnv === '') {
-        $errors[] = 'config/config.php stores db.password without db.password_env fallback.';
+    $envAvailable = $passwordEnv !== '' && getenv($passwordEnv) !== false;
+    if ($password === '' && !$envAvailable) {
+        $errors[] = $passwordEnv === ''
+            ? 'DB password is not configured. Set db.password_env or db.password.'
+            : 'Configured DB password environment variable is not available and db.password fallback is empty: ' . $passwordEnv;
     }
-    if ($password === '' && $passwordEnv !== '' && getenv($passwordEnv) === false) {
-        $errors[] = 'Configured DB password environment variable is not available and db.password fallback is empty: ' . $passwordEnv;
+    if ($password !== '' && $passwordEnv === '') {
+        $warnings[] = 'config/config.php stores db.password directly. This is acceptable for shared hosting only when config/ is blocked from web access and config/config.php is mode 600 where possible.';
+    }
+    if ($password !== '' && $passwordEnv !== '' && !$envAvailable) {
+        $warnings[] = 'Configured DB password environment variable is not available; db.password fallback will be used.';
     }
 }
 
@@ -42,6 +49,10 @@ if ($errors !== []) {
         fwrite(STDERR, $error . "\n");
     }
     exit(1);
+}
+
+foreach ($warnings as $warning) {
+    fwrite(STDERR, 'Warning: ' . $warning . "\n");
 }
 
 echo "Deployment config check passed.\n";

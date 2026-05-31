@@ -83,9 +83,11 @@ Nginx: server/location 규칙
 
 로드밸런서나 reverse proxy 뒤에서 운영할 때는 `trusted_proxies`에 신뢰할 수 있는 proxy IP/CIDR만 등록한다. 산란은 신뢰된 proxy에서 온 `X-Forwarded-Proto`와 `X-Forwarded-For`만 HTTPS 여부와 클라이언트 IP 판단에 사용한다.
 
-DB 비밀번호는 `config/config.php`의 `db.password_env`에 지정한 환경변수가 있으면 그 값을 우선 사용한다. 운영 환경에서는 `SR_DB_PASSWORD` 같은 환경변수로 DB 비밀번호를 주입하고, `config/config.php`는 웹 서버 사용자만 읽을 수 있도록 가능한 한 `600` 권한으로 둔다. 공유호스팅에서 환경변수 주입이 불가능해 `db.password`에 값을 저장해야 하는 경우에는 `config/` 직접 접근 차단과 파일 권한을 반드시 함께 점검한다.
+DB 비밀번호는 `config/config.php`의 `db.password_env`에 지정한 환경변수가 있으면 그 값을 우선 사용한다. VPS, 클라우드, PHP-FPM 설정을 직접 제어할 수 있는 서버에서는 `SR_DB_PASSWORD` 같은 환경변수로 DB 비밀번호를 주입하고 `db.password`를 비워 둔다.
 
-배포 후에는 다음 로컬 점검으로 `config/config.php` 파일 권한과 DB 비밀번호 환경변수 설정을 확인한다.
+카페24 일반 웹호스팅처럼 환경변수 주입을 보장하기 어려운 공유호스팅에서는 `db.password`에 DB 비밀번호를 저장하는 fallback을 허용한다. 이 경우 `config/config.php`는 웹 서버 사용자만 읽을 수 있도록 가능한 한 `600` 권한으로 두고, `config/` 직접 접근 차단과 `.htaccess` 적용 여부를 반드시 함께 점검한다.
+
+배포 후에는 다음 로컬 점검으로 `config/config.php` 파일 권한과 DB 비밀번호 설정을 확인한다. 환경변수가 없고 `db.password` fallback이 있으면 공유호스팅용 경고를 출력하되 통과한다.
 
 ```bash
 php .tools/bin/check-deployment-config.php
