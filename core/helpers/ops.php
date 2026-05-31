@@ -115,6 +115,11 @@ function sr_write_config(array $config): void
         throw new RuntimeException('config file cannot be written.');
     }
 
+    if (!chmod($temporary, 0600)) {
+        unlink($temporary);
+        throw new RuntimeException('config file permission cannot be changed.');
+    }
+
     if (!rename($temporary, $target)) {
         if (is_file($temporary)) {
             unlink($temporary);

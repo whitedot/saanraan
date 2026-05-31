@@ -85,6 +85,12 @@ Nginx: server/location 규칙
 
 DB 비밀번호는 `config/config.php`의 `db.password_env`에 지정한 환경변수가 있으면 그 값을 우선 사용한다. 운영 환경에서는 `SR_DB_PASSWORD` 같은 환경변수로 DB 비밀번호를 주입하고, `config/config.php`는 웹 서버 사용자만 읽을 수 있도록 가능한 한 `600` 권한으로 둔다. 공유호스팅에서 환경변수 주입이 불가능해 `db.password`에 값을 저장해야 하는 경우에는 `config/` 직접 접근 차단과 파일 권한을 반드시 함께 점검한다.
 
+배포 후에는 다음 로컬 점검으로 `config/config.php` 파일 권한과 DB 비밀번호 환경변수 설정을 확인한다.
+
+```bash
+php .tools/bin/check-deployment-config.php
+```
+
 메일을 HTTP API transport로 보낼 때는 `mail.transport`를 `http_api`로 설정할 수 있다. 이 경우 endpoint는 공개 HTTPS URL이어야 하며, private/reserved/loopback/link-local/CGNAT/documentation/multicast 주소는 허용하지 않는다.
 
 파일 저장소를 S3로 바꾸려면 `storage.default`를 `s3`로 설정하고 bucket, region, endpoint, credential env를 지정한다. 운영 환경에서는 `endpoint`와 `public_base_url`이 HTTPS여야 하며, HTTP S3-compatible endpoint는 개발 환경 검증용으로만 사용한다. 배너 이미지는 공개 URL이 있으면 `public_base_url`을 사용할 수 있고, 커뮤니티 첨부는 권한 확인 후 짧은 presigned URL로 전달한다.
