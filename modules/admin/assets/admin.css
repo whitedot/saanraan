@@ -578,6 +578,11 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-sort-placeholder-cell{border-top:3px solid var(--color-primary);height:0;padding:0!important}
 .admin-list-card.admin-menu-form{overflow:visible}
 .admin-menu-form-actions>button[name="intent"][value="save_menu_overrides"]{margin-left:auto}
+.admin-menu-move-controls{align-items:center;gap:.125rem;display:inline-flex;white-space:nowrap}
+.admin-menu-move-button:disabled,.admin-menu-toggle-button:disabled{opacity:.38;pointer-events:none}
+.admin-menu-toggle-button .sr-icon,.admin-menu-move-button .sr-icon{font-size:var(--text-lg);line-height:1}
+.admin-menu-toggle-button{color:var(--color-info-hover)}
+@media (hover:hover){.admin-menu-toggle-button:hover{background:var(--color-info-50);color:var(--color-info-hover)}}
 .admin-drag-handle-icon{font-size:var(--text-xl);line-height:1}
 .scroll_top{border-radius:var(--radius-lg);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-default-100);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 1.5);font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-medium);color:var(--color-default-600);transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);align-items:center;display:inline-flex}
 @media (hover:hover){.scroll_top:hover{background-color:var(--color-default-200)}}

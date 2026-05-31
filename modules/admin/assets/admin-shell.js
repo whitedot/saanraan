@@ -11,6 +11,7 @@ window.AdminShell = {
         this.initialized = true;
 
         const menuStorageKey = 'sr_admin_sidebar_collapsed';
+        const menuCollapseStorageKey = 'sr_admin_menu_editor_collapsed';
         const mobileQuery = window.matchMedia('(max-width: 1023px)');
         const body = document.body;
         const gnb = document.getElementById('gnb');
@@ -1016,9 +1017,25 @@ window.AdminShell = {
             let draggedRow = null;
             let draggedRows = [];
             let placeholderRow = null;
+            let collapsedMenuRows = new Set();
+
+            try {
+                const storedCollapsedRows = JSON.parse(window.localStorage.getItem(menuCollapseStorageKey) || '[]');
+                if (Array.isArray(storedCollapsedRows)) {
+                    collapsedMenuRows = new Set(storedCollapsedRows.filter(value => typeof value === 'string'));
+                }
+            } catch (error) {
+                collapsedMenuRows = new Set();
+            }
+
+            const sortableRowKey = row => row
+                ? `${row.dataset.sortScope || ''}|${row.dataset.sortKey || ''}`
+                : '';
+
+            const currentSortableRows = () => Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
 
             const renumberRows = (scope, parent) => {
-                const rows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]')).filter(row => {
+                const rows = currentSortableRows().filter(row => {
                     return row.dataset.sortScope === scope && row.dataset.sortParent === parent;
                 });
                 rows.forEach((row, index) => {
@@ -1038,9 +1055,12 @@ window.AdminShell = {
                 return Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]')).filter(row => {
                     return row.dataset.sortScope === scope
                         && row.dataset.sortParent === parent
+                        && !row.hidden
                         && !draggedRows.includes(row);
                 });
             };
+
+            const visibleSortableRows = () => currentSortableRows().filter(row => !row.hidden);
 
             const sortableRowBlock = row => {
                 const rows = [row];
@@ -1066,6 +1086,102 @@ window.AdminShell = {
                 }
 
                 return reference.nextSibling;
+            };
+
+            const saveCollapsedMenuRows = () => {
+                try {
+                    window.localStorage.setItem(menuCollapseStorageKey, JSON.stringify(Array.from(collapsedMenuRows)));
+                } catch (error) {
+                    return;
+                }
+            };
+
+            const syncMenuToggleButton = row => {
+                const toggle = row.querySelector('[data-admin-menu-children-toggle]');
+                if (!toggle) {
+                    return;
+                }
+
+                const collapsed = collapsedMenuRows.has(sortableRowKey(row));
+                const label = toggle.getAttribute(collapsed ? 'data-expand-label' : 'data-collapse-label') || '';
+                const rowLabel = row.querySelector('.admin-menu-target-label');
+                const icon = toggle.querySelector('[data-sr-material-icon]');
+                toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                toggle.setAttribute('aria-label', `${rowLabel ? rowLabel.textContent.trim() : ''} ${label}`.trim());
+                toggle.setAttribute('title', label);
+                toggle.classList.toggle('is-collapsed', collapsed);
+                if (icon) {
+                    icon.textContent = collapsed ? 'add_box' : 'indeterminate_check_box';
+                }
+            };
+
+            const syncMenuCollapsedRows = () => {
+                const collapsedAncestors = [];
+                currentSortableRows().forEach(row => {
+                    const depth = rowDepth(row);
+                    while (collapsedAncestors.length > 0 && depth <= collapsedAncestors[collapsedAncestors.length - 1]) {
+                        collapsedAncestors.pop();
+                    }
+
+                    row.hidden = collapsedAncestors.length > 0;
+                    if (collapsedMenuRows.has(sortableRowKey(row))) {
+                        collapsedAncestors.push(depth);
+                    }
+
+                    syncMenuToggleButton(row);
+                });
+            };
+
+            const refreshMoveButtons = () => {
+                currentSortableRows().forEach(row => {
+                    const scope = row.dataset.sortScope || '';
+                    const parent = row.dataset.sortParent || '';
+                    const peers = visibleSortableRows().filter(peer => {
+                        return peer.dataset.sortScope === scope && peer.dataset.sortParent === parent;
+                    });
+                    const index = peers.indexOf(row);
+                    const up = row.querySelector('[data-admin-sort-move="up"]');
+                    const down = row.querySelector('[data-admin-sort-move="down"]');
+                    if (up) {
+                        up.disabled = index <= 0;
+                    }
+                    if (down) {
+                        down.disabled = index === -1 || index >= peers.length - 1;
+                    }
+                });
+            };
+
+            const refreshSortableState = (scope, parent) => {
+                if (scope !== undefined && parent !== undefined) {
+                    renumberRows(scope, parent);
+                }
+                syncMenuCollapsedRows();
+                refreshMoveButtons();
+            };
+
+            const moveSortableRow = (row, direction) => {
+                if (!row || row.hidden) {
+                    return;
+                }
+
+                const scope = row.dataset.sortScope || '';
+                const parent = row.dataset.sortParent || '';
+                const peers = visibleSortableRows().filter(peer => {
+                    return peer.dataset.sortScope === scope && peer.dataset.sortParent === parent;
+                });
+                const index = peers.indexOf(row);
+                const target = direction === 'up' ? peers[index - 1] : peers[index + 1];
+                if (!target) {
+                    return;
+                }
+
+                const container = row.parentNode;
+                const block = sortableRowBlock(row);
+                const reference = direction === 'up' ? target : targetInsertionReference(target);
+                block.forEach(blockRow => {
+                    container.insertBefore(blockRow, reference);
+                });
+                refreshSortableState(scope, parent);
             };
 
             const removePlaceholder = () => {
@@ -1144,7 +1260,7 @@ window.AdminShell = {
                 removePlaceholder();
                 draggedRow = null;
                 draggedRows = [];
-                renumberRows(movedScope, movedParent);
+                refreshSortableState(movedScope, movedParent);
             };
 
             sortableRows.forEach(row => {
@@ -1164,6 +1280,30 @@ window.AdminShell = {
                 handle.addEventListener('dragend', () => {
                     finishSortableDrag(row);
                 });
+            });
+
+            sortableRows.forEach(row => {
+                row.querySelectorAll('[data-admin-sort-move]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        moveSortableRow(row, button.getAttribute('data-admin-sort-move') || '');
+                    });
+                });
+
+                const toggle = row.querySelector('[data-admin-menu-children-toggle]');
+                if (toggle) {
+                    toggle.addEventListener('click', () => {
+                        const key = sortableRowKey(row);
+                        if (collapsedMenuRows.has(key)) {
+                            collapsedMenuRows.delete(key);
+                        } else {
+                            collapsedMenuRows.add(key);
+                        }
+
+                        saveCollapsedMenuRows();
+                        syncMenuCollapsedRows();
+                        refreshMoveButtons();
+                    });
+                }
             });
 
             sortableContainers.forEach(container => {
@@ -1193,6 +1333,9 @@ window.AdminShell = {
                     removePlaceholder();
                 });
             });
+
+            syncMenuCollapsedRows();
+            refreshMoveButtons();
         }
 
         if (tabRoot) {

@@ -23,18 +23,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($menuRows as $row) { ?>
+            <?php $menuRowCount = count($menuRows); ?>
+            <?php foreach ($menuRows as $rowIndex => $row) { ?>
                 <?php
                 $rowDepth = max(0, min(2, (int) ($row['depth'] ?? 0)));
                 $rowContext = (string) ($row['context'] ?? '');
                 $rowPath = (string) ($row['path'] ?? '');
                 $canHide = !empty($row['can_hide']);
+                $nextRow = $rowIndex + 1 < $menuRowCount ? $menuRows[$rowIndex + 1] : null;
+                $hasChildren = is_array($nextRow) && (int) ($nextRow['depth'] ?? 0) > $rowDepth;
                 $hiddenInputId = 'modules_admin_menu_is_hidden_' . preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $row['form_key']);
                 ?>
-                <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="<?php echo sr_e((string) $row['scope']); ?>" data-sort-parent="<?php echo sr_e((string) $row['parent_key']); ?>" data-sort-key="<?php echo sr_e((string) $row['target_key']); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
+                <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="<?php echo sr_e((string) $row['scope']); ?>" data-sort-parent="<?php echo sr_e((string) $row['parent_key']); ?>" data-sort-key="<?php echo sr_e((string) $row['target_key']); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>" data-sort-has-children="<?php echo $hasChildren ? '1' : '0'; ?>">
                     <td>
                         <input type="hidden" name="sort_order[<?php echo sr_e((string) $row['form_key']); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" data-admin-sort-order>
-                        <span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span>
+                        <span class="admin-menu-move-controls" role="group" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.controls.9f2a3e31')); ?>">
+                            <span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('admin::ui.text.baef0d03')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span>
+                            <button type="button" class="btn btn-icon-xs btn-ghost-default admin-menu-move-button" data-admin-sort-move="up" aria-label="<?php echo sr_e((string) $row['label'] . ' ' . sr_t('admin::ui.admin.menu.move.up.062e2b54')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.move.up.062e2b54')); ?>"><?php echo sr_material_icon_html('keyboard_arrow_up'); ?></button>
+                            <button type="button" class="btn btn-icon-xs btn-ghost-default admin-menu-move-button" data-admin-sort-move="down" aria-label="<?php echo sr_e((string) $row['label'] . ' ' . sr_t('admin::ui.admin.menu.move.down.8091bdb8')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.move.down.8091bdb8')); ?>"><?php echo sr_material_icon_html('keyboard_arrow_down'); ?></button>
+                            <?php if ($hasChildren) { ?>
+                                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-menu-toggle-button" data-admin-menu-children-toggle aria-expanded="true" aria-label="<?php echo sr_e((string) $row['label'] . ' ' . sr_t('admin::ui.admin.menu.collapse.8d967f3f')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.collapse.8d967f3f')); ?>" data-collapse-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.collapse.8d967f3f')); ?>" data-expand-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.expand.f083983d')); ?>">
+                                    <?php echo sr_material_icon_html('indeterminate_check_box'); ?>
+                                </button>
+                            <?php } ?>
+                        </span>
                     </td>
                     <td>
                         <span class="admin-menu-scope-badge admin-menu-scope-<?php echo sr_e((string) $row['scope']); ?>">
