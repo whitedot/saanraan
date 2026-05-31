@@ -487,6 +487,7 @@ if (sr_request_method() === 'POST') {
                 'name' => $values['db_name'],
                 'user' => $values['db_user'],
                 'password' => $values['db_password'],
+                'password_env' => 'SR_DB_PASSWORD',
                 'charset' => 'utf8mb4',
                 'table_prefix' => $values['db_table_prefix'],
             ],

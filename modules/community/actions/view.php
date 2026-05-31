@@ -73,7 +73,8 @@ if (is_array($postBoard)) {
                 'community.post',
                 (int) $post['id'],
                 'use',
-                'community.post.read'
+                'community.post.read',
+                false
             );
         } else {
             $couponReadResult = sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey);
@@ -92,7 +93,8 @@ if (is_array($postBoard)) {
                     'community.post',
                     (int) $post['id'],
                     'use',
-                    'community.post.read'
+                    'community.post.read',
+                    sr_request_method() === 'POST'
                 );
         }
         if (empty($paidReadResult['allowed'])) {

@@ -444,12 +444,11 @@ function sr_banner_click_link_attributes(int $bannerId, string $url): string
         return '';
     }
 
-    $attributes = ' href="' . sr_e(sr_url(sr_banner_click_url($bannerId))) . '"';
     if (sr_is_http_url($url)) {
-        $attributes .= ' target="_blank" rel="noopener noreferrer"';
+        return ' href="' . sr_e($url) . '" target="_blank" rel="noopener noreferrer"';
     }
 
-    return $attributes;
+    return ' href="' . sr_e(sr_url(sr_banner_click_url($bannerId))) . '"';
 }
 
 function sr_banner_click_subject(): string
@@ -554,15 +553,11 @@ function sr_banner_click_target(PDO $pdo, int $bannerId): ?array
 function sr_banner_redirect_to_link(string $url): void
 {
     $url = sr_banner_clean_url($url);
-    if ($url === '') {
+    if ($url === '' || sr_is_http_url($url)) {
         sr_render_error(404, sr_t('banner::action.error.link_not_found'));
     }
 
-    if (sr_is_safe_relative_url($url)) {
-        sr_redirect($url);
-    }
-
-    sr_redirect_external($url);
+    sr_redirect($url);
 }
 
 function sr_banner_link_type_label(string $url): string

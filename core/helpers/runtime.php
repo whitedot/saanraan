@@ -937,7 +937,7 @@ function sr_db(array $config): PDO
     $host = (string) ($db['host'] ?? 'localhost');
     $name = (string) ($db['name'] ?? '');
     $user = (string) ($db['user'] ?? '');
-    $password = (string) ($db['password'] ?? '');
+    $password = sr_db_env_or_value($db, 'password', 'password_env');
     $charset = (string) ($db['charset'] ?? 'utf8mb4');
     $tablePrefix = sr_table_prefix($config);
 
@@ -947,6 +947,19 @@ function sr_db(array $config): PDO
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ], $tablePrefix);
+}
+
+function sr_db_env_or_value(array $settings, string $valueKey, string $envKey): string
+{
+    $envName = trim((string) ($settings[$envKey] ?? ''));
+    if ($envName !== '' && preg_match('/\A[A-Z][A-Z0-9_]{1,80}\z/', $envName) === 1) {
+        $envValue = getenv($envName);
+        if (is_string($envValue)) {
+            return $envValue;
+        }
+    }
+
+    return (string) ($settings[$valueKey] ?? '');
 }
 
 function sr_client_ip(): string

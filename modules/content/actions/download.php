@@ -61,7 +61,7 @@ $downloadAlreadyRecorded = false;
 if (sr_content_file_download_required($file)) {
     $account = sr_member_require_login($pdo);
     $downloadAccountId = (int) $account['id'];
-    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id']);
+    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST');
     if (empty($downloadAccess['allowed'])) {
         if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
             $assetConfirmationMessage = (string) ($downloadAccess['message'] ?? sr_content_asset_confirmation_required_message());

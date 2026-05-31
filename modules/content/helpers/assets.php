@@ -1534,14 +1534,14 @@ function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, str
     return $referenceType . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . bin2hex(random_bytes(8));
 }
 
-function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId): array
+function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId): array {
-        return sr_content_charge_view_access_once($pdo, $page, $accountId);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process): array {
+        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process);
     });
 }
 
-function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId): array
+function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true): array
 {
     $pageId = (int) ($page['id'] ?? 0);
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
@@ -1567,6 +1567,18 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('view', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
+    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
+        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
+    }
+
+    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && !$process) {
+        if (sr_content_consume_asset_confirmation_session('view', $accountId, $pageId, $confirmationFingerprint)) {
+            return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
+        }
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
+    }
+
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId);
@@ -1595,18 +1607,6 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 접근권 처리에 실패했습니다.');
         }
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true]);
-    }
-
-    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
-        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
-    }
-
-    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && sr_request_method() !== 'POST') {
-        if (sr_content_consume_asset_confirmation_session('view', $accountId, $pageId, $confirmationFingerprint)) {
-            return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
-        }
-
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
     }
 
     $startedTransaction = !$pdo->inTransaction();
@@ -1746,14 +1746,14 @@ function sr_content_file_download_required(array $file): bool
         && (int) ($file['asset_download_amount'] ?? 0) > 0;
 }
 
-function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId): array
+function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId): array {
-        return sr_content_charge_file_download_once($pdo, $file, $accountId);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process): array {
+        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process);
     });
 }
 
-function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId): array
+function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true): array
 {
     $pageId = (int) ($file['content_id'] ?? 0);
     $fileId = (int) ($file['id'] ?? 0);
@@ -1780,6 +1780,18 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('download', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
+    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
+        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
+    }
+
+    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && !$process) {
+        if (sr_content_consume_asset_confirmation_session('download', $accountId, $fileId, $confirmationFingerprint)) {
+            return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
+        }
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
+    }
+
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download');
@@ -1813,18 +1825,6 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 접근권 처리에 실패했습니다.');
         }
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
-    }
-
-    if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
-        return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
-    }
-
-    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && sr_request_method() !== 'POST') {
-        if (sr_content_consume_asset_confirmation_session('download', $accountId, $fileId, $confirmationFingerprint)) {
-            return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
-        }
-
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
     }
 
     $allocations = $amounts !== []

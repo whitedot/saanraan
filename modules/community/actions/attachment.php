@@ -119,7 +119,8 @@ if (is_array($board)) {
                     'community.post',
                     (int) $post['id'],
                     'use',
-                    'community.post.read'
+                    'community.post.read',
+                    false
                 );
             } else {
                 $couponReadResult = sr_community_try_paid_read_coupon_access($pdo, (int) $account['id'], $post, $paidReadConfig, $couponDedupeKey);
@@ -137,7 +138,8 @@ if (is_array($board)) {
                         'community.post',
                         (int) $post['id'],
                         'use',
-                        'community.post.read'
+                        'community.post.read',
+                        sr_request_method() === 'POST'
                     );
             }
             if (empty($paidReadResult['allowed'])) {
@@ -176,7 +178,8 @@ if ($disposition === 'attachment' && is_array($board)) {
             'community.attachment',
             (int) $attachment['id'],
             'use',
-            'community.attachment.download'
+            'community.attachment.download',
+            sr_request_method() === 'POST'
         );
         if (empty($downloadResult['allowed'])) {
             if ((string) ($downloadResult['error_key'] ?? '') === 'asset_confirmation_required') {

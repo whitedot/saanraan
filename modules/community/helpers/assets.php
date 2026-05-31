@@ -1804,14 +1804,14 @@ function sr_community_delete_asset_log_placeholder(PDO $pdo, string $dedupeKey):
     ]);
 }
 
-function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason): array
+function sr_community_run_asset_event(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true): array
 {
-    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason): array {
-        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason);
+    return sr_community_asset_retry_operation($pdo, static function () use ($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process): array {
+        return sr_community_run_asset_event_once($pdo, $config, $accountId, $eventKey, $subjectType, $subjectId, $direction, $reason, $process);
     });
 }
 
-function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason): array
+function sr_community_run_asset_event_once(PDO $pdo, array $config, int $accountId, string $eventKey, string $subjectType, int $subjectId, string $direction, string $reason, bool $process = true): array
 {
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
     $assetModuleValue = sr_community_asset_module_value_from_keys($assetModules, true);
@@ -1861,6 +1861,32 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_community_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
     $confirmationFingerprint = sr_community_asset_confirmation_fingerprint($eventKey, $subjectType, $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
+    if ($direction === 'use' && sr_community_asset_policy_requires_confirmation($chargePolicy) && !$process) {
+        if (sr_community_consume_asset_confirmation_session($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint)) {
+            return [
+                'allowed' => true,
+                'processed' => false,
+                'confirmed_access' => true,
+                'asset_module' => $assetModuleValue,
+                'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+                'amount' => $amount,
+                'confirmation_fingerprint' => $confirmationFingerprint,
+                'message' => '',
+            ];
+        }
+
+        return [
+            'allowed' => false,
+            'processed' => false,
+            'error_key' => 'asset_confirmation_required',
+            'asset_module' => $assetModuleValue,
+            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
+            'amount' => $amount,
+            'confirmation_fingerprint' => $confirmationFingerprint,
+            'message' => sr_community_asset_confirmation_required_message(),
+        ];
+    }
+
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = $once
@@ -1923,45 +1949,6 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             'amount' => 0,
             'direction' => $direction,
             'message' => '',
-        ];
-    }
-
-    if ($alreadyProcessed) {
-        return [
-            'allowed' => true,
-            'processed' => false,
-            'already_processed' => true,
-            'asset_module' => $assetModuleValue,
-            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
-            'amount' => $amount,
-            'confirmation_fingerprint' => $confirmationFingerprint,
-            'message' => '',
-        ];
-    }
-
-    if ($direction === 'use' && sr_community_asset_policy_requires_confirmation($chargePolicy) && sr_request_method() !== 'POST') {
-        if (sr_community_consume_asset_confirmation_session($eventKey, $subjectType, $accountId, $subjectId, $confirmationFingerprint)) {
-            return [
-                'allowed' => true,
-                'processed' => false,
-                'confirmed_access' => true,
-                'asset_module' => $assetModuleValue,
-                'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
-                'amount' => $amount,
-                'confirmation_fingerprint' => $confirmationFingerprint,
-                'message' => '',
-            ];
-        }
-
-        return [
-            'allowed' => false,
-            'processed' => false,
-            'error_key' => 'asset_confirmation_required',
-            'asset_module' => $assetModuleValue,
-            'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
-            'amount' => $amount,
-            'confirmation_fingerprint' => $confirmationFingerprint,
-            'message' => sr_community_asset_confirmation_required_message(),
         ];
     }
 
