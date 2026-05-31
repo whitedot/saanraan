@@ -28,6 +28,7 @@ return [
         ],
         'consumes' => [
             'member-group-rules.php',
+            'member-registration.php',
             'privacy-cleanup.php',
             'member-withdrawal-assets.php',
         ],

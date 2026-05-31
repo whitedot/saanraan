@@ -71,6 +71,35 @@ function sr_coupon_target_types(?PDO $pdo = null): array
         return $targetTypes;
     }
 
+    foreach (sr_coupon_target_contracts($pdo) as $targetType => $target) {
+        $targetTypes[(string) $targetType] = (string) ($target['label'] ?? $targetType);
+    }
+
+    return $targetTypes;
+}
+
+function sr_coupon_refundable_policies(): array
+{
+    return [
+        'none' => '환급 없음',
+        'refundable' => '환급 가능',
+    ];
+}
+
+function sr_coupon_target_contract_helper_path(string $moduleKey, array $target): string
+{
+    $helpers = (string) ($target['helpers'] ?? '');
+    if ($helpers === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+        return '';
+    }
+
+    $path = SR_ROOT . '/modules/' . $moduleKey . '/' . $helpers;
+    return is_file($path) ? $path : '';
+}
+
+function sr_coupon_target_contracts(PDO $pdo): array
+{
+    $contracts = [];
     foreach (sr_enabled_module_contract_files($pdo, 'coupon-targets.php', ['coupon']) as $moduleKey => $file) {
         $contractTargets = sr_load_module_contract_file($moduleKey, $file);
         if (!is_array($contractTargets)) {
@@ -88,19 +117,18 @@ function sr_coupon_target_types(?PDO $pdo = null): array
                 continue;
             }
 
-            $targetTypes[$targetType] = $label;
+            $helperPath = sr_coupon_target_contract_helper_path($moduleKey, $target);
+            if ($helperPath !== '') {
+                require_once $helperPath;
+            }
+
+            $target['module_key'] = $moduleKey;
+            $target['label'] = $label;
+            $contracts[$targetType] = $target;
         }
     }
 
-    return $targetTypes;
-}
-
-function sr_coupon_refundable_policies(): array
-{
-    return [
-        'none' => '환급 없음',
-        'refundable' => '환급 가능',
-    ];
+    return $contracts;
 }
 
 function sr_coupon_issue_member_groups(PDO $pdo): array
@@ -182,91 +210,20 @@ function sr_coupon_target_search(PDO $pdo, string $targetType, string $keyword, 
 
     $keyword = sr_coupon_clean_text($keyword, 120);
     $limit = max(1, min(30, $limit));
-    $keywordLike = sr_coupon_like_keyword($keyword);
-    $idValue = preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0;
-
-    try {
-        if ($targetType === 'content') {
-            $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR slug LIKE :keyword_like ESCAPE '\\\\')";
-            $stmt = $pdo->prepare(
-                'SELECT id, title, slug, status, updated_at
-                 FROM sr_content_items
-                 WHERE ' . $where . '
-                 ORDER BY id DESC
-                 LIMIT ' . $limit
-            );
-            $params = $keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike];
-            $stmt->execute($params);
-
-            return array_map(static function (array $row): array {
-                return [
-                    'reference_type' => 'content',
-                    'reference_id' => (string) (int) ($row['id'] ?? 0),
-                    'title' => (string) ($row['title'] ?? ''),
-                    'reason' => '콘텐츠 #' . (string) (int) ($row['id'] ?? 0),
-                    'member_name' => 'slug: ' . (string) ($row['slug'] ?? ''),
-                    'member_email' => '상태: ' . (string) ($row['status'] ?? ''),
-                    'created_at' => (string) ($row['updated_at'] ?? ''),
-                ];
-            }, $stmt->fetchAll());
-        }
-
-        if ($targetType === 'community_board') {
-            $where = $keyword === '' ? '1 = 1' : "(b.id = :id OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
-            $stmt = $pdo->prepare(
-                'SELECT b.id, b.title, b.board_key, b.status, b.updated_at, g.title AS group_title
-                 FROM sr_community_boards b
-                 LEFT JOIN sr_community_board_groups g ON g.id = b.board_group_id
-                 WHERE ' . $where . '
-                 ORDER BY b.id DESC
-                 LIMIT ' . $limit
-            );
-            $params = $keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike];
-            $stmt->execute($params);
-
-            return array_map(static function (array $row): array {
-                return [
-                    'reference_type' => 'community_board',
-                    'reference_id' => (string) (int) ($row['id'] ?? 0),
-                    'title' => (string) ($row['title'] ?? ''),
-                    'reason' => '게시판 #' . (string) (int) ($row['id'] ?? 0),
-                    'member_name' => 'key: ' . (string) ($row['board_key'] ?? ''),
-                    'member_email' => trim('그룹: ' . (string) ($row['group_title'] ?? '')),
-                    'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
-                ];
-            }, $stmt->fetchAll());
-        }
-
-        if ($targetType === 'community_post') {
-            $where = $keyword === '' ? '1 = 1' : "(p.id = :id OR p.title LIKE :keyword_like ESCAPE '\\\\' OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
-            $stmt = $pdo->prepare(
-                'SELECT p.id, p.title, p.status, p.updated_at, b.title AS board_title, b.board_key
-                 FROM sr_community_posts p
-                 INNER JOIN sr_community_boards b ON b.id = p.board_id
-                 WHERE ' . $where . '
-                 ORDER BY p.id DESC
-                 LIMIT ' . $limit
-            );
-            $params = $keyword === '' ? [] : ['id' => $idValue, 'keyword_like' => $keywordLike];
-            $stmt->execute($params);
-
-            return array_map(static function (array $row): array {
-                return [
-                    'reference_type' => 'community_post',
-                    'reference_id' => (string) (int) ($row['id'] ?? 0),
-                    'title' => (string) ($row['title'] ?? ''),
-                    'reason' => '게시글 #' . (string) (int) ($row['id'] ?? 0),
-                    'member_name' => '게시판: ' . (string) ($row['board_title'] ?? ''),
-                    'member_email' => 'key: ' . (string) ($row['board_key'] ?? ''),
-                    'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
-                ];
-            }, $stmt->fetchAll());
-        }
-    } catch (Throwable $exception) {
+    $contracts = sr_coupon_target_contracts($pdo);
+    $target = $contracts[$targetType] ?? null;
+    $searchFunction = is_array($target) ? (string) ($target['search_function'] ?? '') : '';
+    if ($searchFunction === '' || !function_exists($searchFunction)) {
         return [];
     }
 
-    return [];
+    try {
+        $results = $searchFunction($pdo, $targetType, $keyword, $limit);
+        return is_array($results) ? $results : [];
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'coupon_target_search_' . $targetType);
+        return [];
+    }
 }
 
 function sr_coupon_definition_by_id(PDO $pdo, int $definitionId): ?array
@@ -1019,16 +976,16 @@ function sr_coupon_revoke_consumer_access(PDO $pdo, int $accountId, string $dedu
     }
 
     $revoked = 0;
-    if (is_file(SR_ROOT . '/modules/content/helpers/assets.php')) {
-        require_once SR_ROOT . '/modules/content/helpers/assets.php';
-        if (function_exists('sr_content_revoke_coupon_access_entitlements')) {
-            $revoked += sr_content_revoke_coupon_access_entitlements($pdo, $accountId, $dedupeKey);
+    foreach (sr_coupon_target_contracts($pdo) as $target) {
+        $revokeFunction = (string) ($target['revoke_access_function'] ?? '');
+        if ($revokeFunction === '' || !function_exists($revokeFunction)) {
+            continue;
         }
-    }
-    if (is_file(SR_ROOT . '/modules/community/helpers/assets.php')) {
-        require_once SR_ROOT . '/modules/community/helpers/assets.php';
-        if (function_exists('sr_community_revoke_coupon_access_entitlements')) {
-            $revoked += sr_community_revoke_coupon_access_entitlements($pdo, $accountId, $dedupeKey);
+
+        try {
+            $revoked += max(0, (int) $revokeFunction($pdo, $accountId, $dedupeKey));
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'coupon_revoke_consumer_access');
         }
     }
 

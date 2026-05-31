@@ -402,6 +402,67 @@ function sr_community_member_nickname_exists(PDO $pdo, string $nickname, int $ex
     return is_array($stmt->fetch());
 }
 
+function sr_community_member_registration_fields(PDO $pdo): array
+{
+    $settings = sr_community_settings($pdo);
+    if (empty($settings['nickname_enabled'])) {
+        return [];
+    }
+
+    return [
+        [
+            'key' => 'community_nickname',
+            'type' => 'text',
+            'label' => sr_t('community::ui.nickname'),
+            'help' => sr_t('community::ui.nickname.register.help'),
+            'maxlength' => 80,
+            'required' => true,
+        ],
+    ];
+}
+
+function sr_community_member_registration_validate(PDO $pdo, array $values, array $context = []): array
+{
+    $settings = sr_community_settings($pdo);
+    if (empty($settings['nickname_enabled'])) {
+        return [];
+    }
+
+    $nickname = trim((string) ($values['community_nickname'] ?? ''));
+    if ($nickname === '') {
+        return [sr_t('community::action.nickname_required')];
+    }
+
+    if (sr_community_member_nickname_exists($pdo, $nickname)) {
+        return [sr_t('community::action.nickname_duplicate')];
+    }
+
+    return [];
+}
+
+function sr_community_member_registration_save(PDO $pdo, int $accountId, array $values, array $context = []): array
+{
+    $settings = sr_community_settings($pdo);
+    $nickname = trim((string) ($values['community_nickname'] ?? ''));
+    if (empty($settings['nickname_enabled']) || $nickname === '') {
+        return ['community_nickname_set' => false];
+    }
+
+    try {
+        sr_community_create_member_nickname($pdo, $accountId, $nickname);
+    } catch (Throwable $exception) {
+        if ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate') {
+            throw $exception;
+        }
+        if ($exception instanceof PDOException && (string) $exception->getCode() === '23000') {
+            throw new RuntimeException('community_nickname_duplicate', 0, $exception);
+        }
+        throw $exception;
+    }
+
+    return ['community_nickname_set' => true];
+}
+
 function sr_community_random_member_nickname(PDO $pdo, string $currentNickname = ''): string
 {
     $currentNickname = trim($currentNickname);

@@ -869,6 +869,8 @@ return [
 - `asset-exchange.php`: 자산 환전 후보와 원장 helper 계약
 - `member-assets.php`: 콘텐츠/커뮤니티에서 쓰는 금액성 회원 자산 후보
 - `member-withdrawal-assets.php`: 회원 탈퇴 시 정리할 자산 후보와 처리 계약
+- `member-registration.php`: 회원가입 추가 입력, 검증, 저장. 확장 입력값은 `registration_extensions[...]` POST namespace로 전달된다.
+- `homepage-candidates.php`: 관리자 초기화면 후보와 저장 경로 사용 가능 여부
 - `editor-options.php`: textarea 강화 에디터 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
 
@@ -1026,19 +1028,21 @@ return [
 | `layout-options.php` | core public layout helper | 공개 레이아웃 선택 목록 구성 | 모듈별 공개 레이아웃 후보 |
 | `member-assets.php` | `content`, `community` 모듈 | 자산 정책 화면과 금액성 자산 처리 | 금액성 회원 자산 후보와 원장 호출 정보 |
 | `member-withdrawal-assets.php` | `member` 모듈 | 회원 탈퇴/정리 처리 | 탈퇴 시 정리할 회원 자산 후보와 처리 함수 |
+| `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장 | 서비스 모듈이 회원가입 시 필요한 추가 입력 |
+| `homepage-candidates.php` | core/admin | `candidates_function`으로 초기화면 후보 표시, `available_function`으로 저장값 사용 가능 여부 확인. `available_function`은 가능 `true`, 소유 경로의 불가 `false`, 미소유 경로 `null`을 반환 | 모듈이 제공하는 공개 초기화면 후보와 경로 검증 |
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
-| `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면과 저장 검증 | 모듈별 쿠폰 사용처 후보 |
+| `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
 
 현재 번들 모듈 기준 제공/소비 지도:
 
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
-| `admin` | `paths.php` | `admin-menu.php`, `paths.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php` |
+| `admin` | `paths.php` | `admin-menu.php`, `paths.php`, `homepage-candidates.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php` |
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php` |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php` | 없음 |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
@@ -1047,7 +1051,7 @@ return [
 | `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php` | `coupon-targets.php`, 선택적 notification helper |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `member-assets.php`, `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `member-registration.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `member-assets.php`, `output-slots.php`는 core helper 경유, member 그룹 공개 helper, 선택적 notification helper |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:
@@ -1206,7 +1210,7 @@ return [
 
 커뮤니티 모듈도 같은 원칙을 따른다. 게시글/댓글 적립, 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 커뮤니티 설정과 게시판 설정에서 결정하고, 실제 포인트/적립금/예치금 증감은 활성 자산 모듈 helper를 호출한다. 관리자 자산 선택 UI에는 설치되어 있고 활성화된 자산 모듈만 표시한다. 글쓰기/댓글 차감, 게시글 열람 차감, 첨부 다운로드 차감은 여러 자산을 함께 선택할 수 있으며, 자산 선택과 자산별 금액을 같은 입력 묶음으로 보여주고 선택한 자산마다 금액을 따로 저장해 각 자산 잔액을 개별 확인한다. 멤버 그룹별 적용 선택은 자산 선택과 다른 의미의 정책 세트 선택이므로 별도 행으로 표시하되, 실제 설정 화면에서는 현재 선택한 자산과 맞는 정책 세트만 선택할 수 있고 뱃지 요약도 같은 자산 기준으로 표시한다. 기존 단일 금액은 호환용 합계로 유지한다. 게시글/댓글 적립은 단일 자산 지급으로 유지한다. 게시판의 상태, 스킨, 접근, 레벨 활동 점수, 첨부, 배너, 팝업레이어, 게시글 적립, 댓글 적립, 글쓰기 차감, 댓글 차감, 유료 열람, 첨부 다운로드 차감은 현재 게시판에 저장하며, 운영자가 선택한 `그룹`/`전체` 적용 옵션은 현재 편집값을 같은 그룹 또는 전체 게시판에 한 번 복사한다. 게시판 그룹 생성 화면은 전역 에디터, 레벨 점수, 첨부, 파일, 회원 자산 기본값으로 시작하고, 저장 후에는 게시판 그룹 설정값으로 고정한다. 게시판 그룹 목록이나 게시판 목록의 그룹 필터에서 새 게시판을 만들면 선택한 그룹의 기본 설정을 새 게시판 입력값으로 복사하되, 게시판 상태와 스킨은 그룹 기본값으로 복사하지 않고 `그룹` 적용 범위도 자동 선택하지 않는다. 게시판 생성 화면은 저장 시점의 게시판 값을 자체 설정으로 저장한다. 전역 설정이나 게시판 그룹 설정 변경은 기존 게시판 값을 바꾸거나 기존 게시판의 유효값을 다시 계산하지 않는다. 회원 자산 항목의 사용 여부, 자산, 금액, 과금 방식은 같은 항목 설정 묶음으로 저장한다. 커뮤니티 자동 회원 그룹 규칙은 전체 활동, 특정 게시판, 특정 게시판 그룹 기준을 제공하고, 게시판과 게시판 그룹 대상은 관리자 화면에서 선택 셀렉트로 고른다. 별도 적용값 미리보기 문구는 표시하지 않는다. 첨부 직접 접근도 게시글 유료 열람 정책을 확인하며, `once` 정책은 같은 세션의 중복 차감을 피하고 `every_view` 정책은 첨부 접근도 별도 열람으로 처리한다. 중복 방지는 원장 기록에서는 `sr_community_asset_logs.dedupe_key`로 처리하되, 최초 1회 접근권 판정은 `sr_community_access_entitlements`를 우선 사용한다. 계정별 자산 로그와 접근권 기록은 커뮤니티 모듈의 `privacy-export.php`에 포함하고, 회원 탈퇴/익명화 시 접근권의 `account_id`와 원천 참조를 비운다.
 
-쿠폰은 포인트/적립금/예치금과 다른 지급형 회원 자산이므로 `coupon` 모듈이 쿠폰 종류, 회원별 지급, 사용 이력을 독립 소유한다. 현재 구현된 런타임 사용은 열람권 성격의 `access` 쿠폰이다. 쿠폰 사용처 후보는 소비 모듈이 `coupon-targets.php` 계약으로 제공하고, 쿠폰 모듈은 활성 모듈의 계약만 읽어 관리자 선택지와 저장 검증에 사용한다. 콘텐츠 유료 열람은 `target_type=content`, 커뮤니티 게시글 열람은 `target_type=community_post`, 게시판 열람권은 `target_type=community_board` 쿠폰을 먼저 확인하고, 사용할 쿠폰이 없을 때 기존 금액성 자산 차감으로 내려간다. 쿠폰 사용은 `sr_coupon_redemptions.dedupe_key`로 중복 사용을 막고, 회원 탈퇴 시 활성 쿠폰은 환급 정책에 따라 `withdrawn_expired` 또는 `refund_requested` 상태로 전환한다. 쿠폰 지급/사용 내역과 수동 환불 이력은 쿠폰·이용권 모듈의 `privacy-export.php`에 포함한다. 관리자 화면은 쿠폰 관리(`/admin/coupons`), 지급 내역(`/admin/coupons/issues`), 사용 내역(`/admin/coupons/redemptions`)으로 나뉘며, 쿠폰 추가와 개별 쿠폰 지급은 쿠폰 관리 화면의 모달에서 처리한다. 쿠폰 종류 목록은 상태, 사용처, 검색어로 좁히고 헤더에서 관리용 키, 이름, 사용처, 상태를 정렬할 수 있다. 지급 내역은 상태, 사용처, 회원 검색, 쿠폰 검색어로 필터링하고 회원, 쿠폰, 사용처, 상태, 사용 횟수, 지급일을 정렬할 수 있다. 사용 내역은 상태, 환급 정책, 사용처, 회원 검색, 쿠폰 검색어로 필터링하고 회원, 쿠폰, 사용 대상, 상태, 사용일, 환불일을 정렬할 수 있다. 지급하기 모달은 회원 검색 스택 모달로 개별 회원을 선택하거나 활성 회원 전체, 활성 회원 그룹을 대상으로 지급할 수 있다. 쿠폰 추가 모달의 대상 번호는 사용처별 검색 스택 모달에서 콘텐츠, 커뮤니티 게시판, 커뮤니티 게시글을 찾아 채울 수 있다. `/admin/coupons/issues`는 최근 지급 내역과 지급 취소를 제공하고, `/admin/coupons/redemptions`는 최근 사용 내역과 환급 가능 정책의 사용 완료 내역 수동 환불을 제공한다. 수동 환불은 환불 사유를 필수로 받아 사용 로그를 `refunded`로 바꾸고 지급 건의 사용 횟수를 1회 되돌리며, 지급 건이 `used` 상태였으면 `active`로 되돌린다. 쿠폰 사용으로 생긴 콘텐츠/커뮤니티 접근권은 사용 로그의 `dedupe_key`와 연결된 `source_reference`를 기준으로 함께 회수한다.
+쿠폰은 포인트/적립금/예치금과 다른 지급형 회원 자산이므로 `coupon` 모듈이 쿠폰 종류, 회원별 지급, 사용 이력을 독립 소유한다. 현재 구현된 런타임 사용은 열람권 성격의 `access` 쿠폰이다. 쿠폰 사용처 후보는 소비 모듈이 `coupon-targets.php` 계약으로 제공하고, 쿠폰 모듈은 활성 모듈의 계약만 읽어 관리자 선택지와 저장 검증에 사용한다. 사용처 검색과 수동 환불 시 접근권 회수도 `search_function`, `revoke_access_function` 같은 소비 모듈 콜백으로 위임한다. 콘텐츠 유료 열람은 `target_type=content`, 커뮤니티 게시글 열람은 `target_type=community_post`, 게시판 열람권은 `target_type=community_board` 쿠폰을 먼저 확인하고, 사용할 쿠폰이 없을 때 기존 금액성 자산 차감으로 내려간다. 쿠폰 사용은 `sr_coupon_redemptions.dedupe_key`로 중복 사용을 막고, 회원 탈퇴 시 활성 쿠폰은 환급 정책에 따라 `withdrawn_expired` 또는 `refund_requested` 상태로 전환한다. 쿠폰 지급/사용 내역과 수동 환불 이력은 쿠폰·이용권 모듈의 `privacy-export.php`에 포함한다. 관리자 화면은 쿠폰 관리(`/admin/coupons`), 지급 내역(`/admin/coupons/issues`), 사용 내역(`/admin/coupons/redemptions`)으로 나뉘며, 쿠폰 추가와 개별 쿠폰 지급은 쿠폰 관리 화면의 모달에서 처리한다. 쿠폰 종류 목록은 상태, 사용처, 검색어로 좁히고 헤더에서 관리용 키, 이름, 사용처, 상태를 정렬할 수 있다. 지급 내역은 상태, 사용처, 회원 검색, 쿠폰 검색어로 필터링하고 회원, 쿠폰, 사용처, 상태, 사용 횟수, 지급일을 정렬할 수 있다. 사용 내역은 상태, 환급 정책, 사용처, 회원 검색, 쿠폰 검색어로 필터링하고 회원, 쿠폰, 사용 대상, 상태, 사용일, 환불일을 정렬할 수 있다. 지급하기 모달은 회원 검색 스택 모달로 개별 회원을 선택하거나 활성 회원 전체, 활성 회원 그룹을 대상으로 지급할 수 있다. 쿠폰 추가 모달의 대상 번호는 사용처별 검색 스택 모달에서 소비 모듈이 제공한 검색 콜백으로 대상을 찾아 채울 수 있다. `/admin/coupons/issues`는 최근 지급 내역과 지급 취소를 제공하고, `/admin/coupons/redemptions`는 최근 사용 내역과 환급 가능 정책의 사용 완료 내역 수동 환불을 제공한다. 수동 환불은 환불 사유를 필수로 받아 사용 로그를 `refunded`로 바꾸고 지급 건의 사용 횟수를 1회 되돌리며, 지급 건이 `used` 상태였으면 `active`로 되돌린다. 쿠폰 사용으로 생긴 소비 모듈 접근권은 사용 로그의 `dedupe_key`와 연결된 `source_reference`를 기준으로 각 소비 모듈 콜백이 회수한다.
 
 정액 할인, 정률 할인, 특정 주문/상품 금액 차감권처럼 금액 계산이 필요한 쿠폰은 쿠폰 모듈 단독 선행 구현 대상이 아니다. 실제 주문, 결제, 콘텐츠 구매, 커뮤니티 유료 기능처럼 적용 도메인이 생길 때 해당 모듈과 함께 계약을 정의한다. 적용 도메인이 최소 금액, 과세/비과세, 배송비, 부분 취소, 환불, 중복 할인 같은 정책을 소유하고, 쿠폰 모듈은 쿠폰 종류/지급/사용 이력과 중복 사용 방지처럼 쿠폰 자체의 생명주기를 맡는다. 금액형 쿠폰을 구현하더라도 포인트/적립금/예치금 원장에 합쳐서 잔액처럼 관리하지 않고, 사용 결과는 `sr_coupon_redemptions` 또는 쿠폰 모듈 소유의 확장 사용 이력 테이블에 기록한다. 소비 도메인은 쿠폰 helper를 통해 계산/사용을 요청하고, 자기 도메인 로그에는 적용된 쿠폰 사용 ID와 할인 결과만 참조한다.
 

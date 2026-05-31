@@ -31,6 +31,7 @@ return [
             'privacy-cleanup.php',
             'sitemap.php',
             'member-group-rules.php',
+            'member-registration.php',
             'dashboard.php',
             'layout-options.php',
             'coupon-targets.php',

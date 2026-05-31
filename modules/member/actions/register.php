@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 
-$communityRegistrationNicknameAvailable = false;
-if (sr_module_enabled($pdo, 'community') && is_file(SR_ROOT . '/modules/community/helpers.php')) {
-    require_once SR_ROOT . '/modules/community/helpers.php';
-    $communityRegistrationNicknameAvailable = function_exists('sr_community_settings')
-        && function_exists('sr_community_create_member_nickname');
-}
-
 $account = sr_member_current_account($pdo);
 if ($account !== null) {
     if (sr_request_method() === 'POST') {
@@ -20,9 +13,8 @@ if ($account !== null) {
 }
 
 $memberSettings = sr_member_settings($pdo);
-$communitySettings = $communityRegistrationNicknameAvailable ? sr_community_settings($pdo) : [];
-$communityRegistrationNicknameEnabled = $communityRegistrationNicknameAvailable && !empty($communitySettings['nickname_enabled']);
-$communityRegistrationNicknameRequired = $communityRegistrationNicknameEnabled;
+$registrationExtensionContracts = sr_member_registration_extension_contracts($pdo);
+$registrationExtensionFields = sr_member_registration_extension_fields($pdo, $registrationExtensionContracts);
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
@@ -33,8 +25,8 @@ $values = [
     'email' => '',
     'login_id' => '',
     'display_name' => '',
-    'community_nickname' => '',
 ];
+$registrationExtensionValues = sr_member_registration_extension_empty_values($registrationExtensionFields);
 $profileValues = sr_member_empty_profile();
 
 if (sr_request_method() === 'POST') {
@@ -60,16 +52,8 @@ if (sr_request_method() === 'POST') {
         'email' => $email,
         'login_id' => sr_member_normalize_login_id($loginId),
         'display_name' => sr_post_string('display_name', 120),
-        'community_nickname' => '',
     ];
-    if ($communityRegistrationNicknameEnabled) {
-        $communityNicknameInput = sr_post_string_without_truncation('community_nickname', 80);
-        if ($communityNicknameInput === null) {
-            $errors[] = sr_t('community::action.nickname_too_long');
-        } else {
-            $values['community_nickname'] = trim($communityNicknameInput);
-        }
-    }
+    $registrationExtensionValues = sr_member_registration_extension_values_from_post($registrationExtensionFields, $errors);
     $password = sr_post_string_without_truncation('password', 255);
     $passwordConfirm = sr_post_string_without_truncation('password_confirm', 255);
     $termsConsent = ($_POST['terms_consent'] ?? '') === '1';
@@ -91,18 +75,10 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('member::action.register.display_name_required');
     }
 
-    if ($communityRegistrationNicknameRequired && $values['community_nickname'] === '') {
-        $errors[] = sr_t('community::action.nickname_required');
-    }
-
-    if (
-        $communityRegistrationNicknameEnabled
-        && $values['community_nickname'] !== ''
-        && function_exists('sr_community_member_nickname_exists')
-        && sr_community_member_nickname_exists($pdo, $values['community_nickname'])
-    ) {
-        $errors[] = sr_t('community::action.nickname_duplicate');
-    }
+    $errors = array_merge($errors, sr_member_registration_extension_validation_errors($pdo, $registrationExtensionContracts, $registrationExtensionValues, [
+        'site' => $site,
+        'values' => $values,
+    ]));
 
     if ($password === null || $passwordConfirm === null) {
         $errors[] = sr_t('member::action.register.password_too_long');
@@ -209,19 +185,10 @@ if (sr_request_method() === 'POST') {
             if ($profileFieldsEnabled) {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
             }
-            if ($communityRegistrationNicknameEnabled && $values['community_nickname'] !== '') {
-                try {
-                    sr_community_create_member_nickname($pdo, $accountId, $values['community_nickname']);
-                } catch (Throwable $exception) {
-                    if ($exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate') {
-                        throw $exception;
-                    }
-                    if ($exception instanceof PDOException && (string) $exception->getCode() === '23000') {
-                        throw new RuntimeException('community_nickname_duplicate', 0, $exception);
-                    }
-                    throw $exception;
-                }
-            }
+            $registrationExtensionMetadata = sr_member_registration_extension_save($pdo, $registrationExtensionContracts, $accountId, $registrationExtensionValues, [
+                'site' => $site,
+                'values' => $values,
+            ]);
 
             $pdo->commit();
         } catch (Throwable $exception) {
@@ -234,9 +201,8 @@ if (sr_request_method() === 'POST') {
                 sr_member_delete_avatar_reference($uploadedAvatarReference);
                 $profileValues['avatar_path'] = '';
             }
-            $errors[] = $exception instanceof RuntimeException && $exception->getMessage() === 'community_nickname_duplicate'
-                ? sr_t('community::action.nickname_duplicate')
-                : sr_t('member::action.register.create_failed');
+            $extensionError = sr_member_registration_extension_exception_message($registrationExtensionContracts, $exception);
+            $errors[] = $extensionError !== '' ? $extensionError : sr_t('member::action.register.create_failed');
         }
 
         if ($errors === [] && $accountId !== null) {
@@ -269,7 +235,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Member registered.',
                 'metadata' => [
                     'email_verification_mail_sent' => $verificationMailSent,
-                    'community_nickname_set' => $communityRegistrationNicknameEnabled && $values['community_nickname'] !== '',
+                    'registration_extensions' => $registrationExtensionMetadata ?? [],
                 ],
             ]);
 

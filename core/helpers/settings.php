@@ -64,6 +64,26 @@ function sr_module_enabled(PDO $pdo, string $moduleKey): bool
     return in_array($moduleKey, sr_enabled_module_keys($pdo), true);
 }
 
+function sr_module_homepage_contract(string $moduleKey, string $contractFile): array
+{
+    $contract = sr_load_module_contract_file($moduleKey, $contractFile);
+    if (is_callable($contract)) {
+        return [
+            'candidates_function' => $contract,
+            'available_function' => null,
+        ];
+    }
+
+    if (!is_array($contract)) {
+        return [];
+    }
+
+    return [
+        'candidates_function' => is_callable($contract['candidates_function'] ?? null) ? $contract['candidates_function'] : null,
+        'available_function' => is_callable($contract['available_function'] ?? null) ? $contract['available_function'] : null,
+    ];
+}
+
 function sr_site_home_path_is_available(PDO $pdo, string $homePath): bool
 {
     if ($homePath === '/') {
@@ -78,33 +98,46 @@ function sr_site_home_path_is_available(PDO $pdo, string $homePath): bool
         return false;
     }
 
-    if (str_starts_with($homePath, '/content/')) {
-        if (!sr_module_enabled($pdo, 'content') || !is_file(SR_ROOT . '/modules/content/helpers.php')) {
-            return false;
-        }
-
-        require_once SR_ROOT . '/modules/content/helpers.php';
-        $parts = parse_url($homePath);
-        if (is_array($parts) && (string) ($parts['path'] ?? '') === '/content/group') {
-            parse_str((string) ($parts['query'] ?? ''), $query);
-            $groupKey = is_string($query['key'] ?? null) ? sr_content_clean_slug((string) $query['key']) : '';
-
+    foreach (sr_enabled_module_contract_files($pdo, 'homepage-candidates.php') as $moduleKey => $candidatesFile) {
+        $contract = sr_module_homepage_contract($moduleKey, $candidatesFile);
+        $availableFunction = $contract['available_function'] ?? null;
+        if (is_callable($availableFunction)) {
             try {
-                return is_array(sr_content_enabled_group_by_key($pdo, $groupKey));
+                $available = $availableFunction($pdo, $homePath);
+                if ($available === true) {
+                    return true;
+                }
+                if ($available === false) {
+                    return false;
+                }
             } catch (Throwable) {
-                return false;
+                continue;
             }
         }
 
-        $slug = rawurldecode(substr($homePath, strlen('/content/')));
-        if (!is_string($slug) || $slug === '' || strpos($slug, '/') !== false) {
-            return false;
+        $candidatesFunction = $contract['candidates_function'] ?? null;
+        if (!is_callable($candidatesFunction)) {
+            continue;
         }
 
         try {
-            return is_array(sr_content_published_by_slug($pdo, sr_content_clean_slug($slug)));
+            $candidates = $candidatesFunction($pdo);
         } catch (Throwable) {
-            return false;
+            $candidates = [];
+        }
+
+        if (!is_array($candidates)) {
+            continue;
+        }
+
+        foreach ($candidates as $candidate) {
+            if (!is_array($candidate)) {
+                continue;
+            }
+
+            if ((string) ($candidate['path'] ?? '') === $homePath && !empty($candidate['available'])) {
+                return true;
+            }
         }
     }
 
@@ -540,6 +573,8 @@ function sr_module_known_contract_files(): array
         'asset-exchange.php',
         'member-assets.php',
         'member-withdrawal-assets.php',
+        'member-registration.php',
+        'homepage-candidates.php',
         'editor-options.php',
         'coupon-targets.php',
     ];

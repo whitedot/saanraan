@@ -42,13 +42,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <input id="modules_member_register_display_name" type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
-                <?php if (!empty($communityRegistrationNicknameEnabled)) { ?>
+                <?php foreach (($registrationExtensionFields ?? []) as $registrationExtensionField) { ?>
+                    <?php
+                    $registrationExtensionKey = (string) ($registrationExtensionField['key'] ?? '');
+                    $registrationExtensionInputId = 'modules_member_register_extension_' . $registrationExtensionKey;
+                    ?>
                     <p>
-                        <label for="modules_member_register_community_nickname">
-                    <span><?php echo sr_e(sr_t('community::ui.nickname')); ?><?php echo !empty($communityRegistrationNicknameRequired) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                            <input id="modules_member_register_community_nickname" type="text" name="community_nickname" value="<?php echo sr_e((string) ($values['community_nickname'] ?? '')); ?>" maxlength="80"<?php echo !empty($communityRegistrationNicknameRequired) ? ' required' : ''; ?>>
+                        <label for="<?php echo sr_e($registrationExtensionInputId); ?>">
+                    <span><?php echo sr_e((string) ($registrationExtensionField['label'] ?? '')); ?><?php echo !empty($registrationExtensionField['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                            <input id="<?php echo sr_e($registrationExtensionInputId); ?>" type="text" name="registration_extensions[<?php echo sr_e($registrationExtensionKey); ?>]" value="<?php echo sr_e((string) (($registrationExtensionValues ?? [])[$registrationExtensionKey] ?? '')); ?>" maxlength="<?php echo sr_e((string) (int) ($registrationExtensionField['maxlength'] ?? 120)); ?>"<?php echo !empty($registrationExtensionField['required']) ? ' required' : ''; ?>>
                         </label>
-                        <small><?php echo sr_e(sr_t('community::ui.nickname.register.help')); ?></small>
+                        <?php if ((string) ($registrationExtensionField['help'] ?? '') !== '') { ?>
+                            <small><?php echo sr_e((string) $registrationExtensionField['help']); ?></small>
+                        <?php } ?>
                     </p>
                 <?php } ?>
                 <?php if (!empty($profilePolicies['phone']['visible'])) { ?>

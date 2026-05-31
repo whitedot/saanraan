@@ -1322,6 +1322,77 @@ function sr_content_homepage_candidates(PDO $pdo): array
     return $candidates;
 }
 
+function sr_content_homepage_path_is_available(PDO $pdo, string $homePath): ?bool
+{
+    if (str_starts_with($homePath, '/content/group?key=')) {
+        $query = parse_url($homePath, PHP_URL_QUERY);
+        if (!is_string($query)) {
+            return false;
+        }
+
+        parse_str($query, $params);
+        $groupKey = is_string($params['key'] ?? null) ? strtolower(trim((string) $params['key'])) : '';
+        return $groupKey !== '' && sr_content_enabled_group_by_key($pdo, $groupKey) !== null;
+    }
+
+    $prefix = '/content/';
+    if (!str_starts_with($homePath, $prefix)) {
+        return null;
+    }
+
+    $slug = rawurldecode(substr($homePath, strlen($prefix)));
+    if (!is_string($slug) || $slug === '' || strpos($slug, '/') !== false) {
+        return false;
+    }
+
+    return sr_content_published_by_slug($pdo, sr_content_clean_slug($slug)) !== null;
+}
+
+function sr_content_coupon_target_search(PDO $pdo, string $targetType, string $keyword, int $limit = 20): array
+{
+    if ($targetType !== 'content') {
+        return [];
+    }
+
+    $keyword = sr_content_clean_text($keyword, 120);
+    $limit = max(1, min(30, $limit));
+    $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR slug LIKE :keyword_like ESCAPE '\\\\')";
+    $params = [];
+    if ($keyword !== '') {
+        $params = [
+            'id' => preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0,
+            'keyword_like' => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%',
+        ];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, title, slug, status, updated_at
+         FROM sr_content_items
+         WHERE ' . $where . '
+         ORDER BY id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute($params);
+
+    return array_map(static function (array $row): array {
+        return [
+            'reference_type' => 'content',
+            'reference_id' => (string) (int) ($row['id'] ?? 0),
+            'title' => (string) ($row['title'] ?? ''),
+            'reason' => '콘텐츠 #' . (string) (int) ($row['id'] ?? 0),
+            'member_name' => 'slug: ' . (string) ($row['slug'] ?? ''),
+            'member_email' => '상태: ' . (string) ($row['status'] ?? ''),
+            'created_at' => (string) ($row['updated_at'] ?? ''),
+        ];
+    }, $stmt->fetchAll());
+}
+
+function sr_content_coupon_revoke_access(PDO $pdo, int $accountId, string $dedupeKey): int
+{
+    require_once SR_ROOT . '/modules/content/helpers/assets.php';
+    return sr_content_revoke_coupon_access_entitlements($pdo, $accountId, $dedupeKey);
+}
+
 function sr_content_public_banner_setting_labels(): array
 {
     return [

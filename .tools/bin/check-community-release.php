@@ -183,6 +183,7 @@ $requiredPackageEntries = [
     'helpers.php',
     'install.sql',
     'layout-options.php',
+    'member-registration.php',
     'member-group-rules.php',
     'menu-links.php',
     'module.php',
@@ -222,6 +223,7 @@ $requiredContracts = [
     'member-group-rules.php',
     'dashboard.php',
     'layout-options.php',
+    'member-registration.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))

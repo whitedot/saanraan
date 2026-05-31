@@ -23,6 +23,9 @@ return [
         'provides' => [
             'paths.php',
         ],
+        'consumes' => [
+            'homepage-candidates.php',
+        ],
     ],
     'settings' => [
         'admin_skin_key' => 'basic',

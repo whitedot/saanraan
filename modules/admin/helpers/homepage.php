@@ -32,7 +32,7 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
         ];
     }
 
-    foreach (sr_admin_homepage_content_candidates($pdo) as $candidate) {
+    foreach (sr_admin_homepage_contract_candidates($pdo) as $candidate) {
         $path = (string) ($candidate['path'] ?? '');
         if ($path !== '') {
             $candidates[$path] = $candidate;
@@ -52,20 +52,37 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
     return $candidates;
 }
 
-function sr_admin_homepage_content_candidates(PDO $pdo): array
+function sr_admin_homepage_contract_candidates(PDO $pdo): array
 {
-    if (!sr_module_enabled($pdo, 'content') || !is_file(SR_ROOT . '/modules/content/helpers.php')) {
-        return [];
+    $candidates = [];
+    foreach (sr_enabled_module_contract_files($pdo, 'homepage-candidates.php') as $moduleKey => $file) {
+        $contract = sr_module_homepage_contract($moduleKey, $file);
+        $candidatesFunction = $contract['candidates_function'] ?? null;
+        if (!is_callable($candidatesFunction)) {
+            continue;
+        }
+
+        try {
+            $moduleCandidates = $candidatesFunction($pdo);
+        } catch (Throwable) {
+            $moduleCandidates = [];
+        }
+
+        if (!is_array($moduleCandidates)) {
+            continue;
+        }
+
+        foreach ($moduleCandidates as $candidate) {
+            if (!is_array($candidate)) {
+                continue;
+            }
+
+            if ((string) ($candidate['module_key'] ?? '') === '') {
+                $candidate['module_key'] = $moduleKey;
+            }
+            $candidates[] = $candidate;
+        }
     }
 
-    require_once SR_ROOT . '/modules/content/helpers.php';
-    if (!function_exists('sr_content_homepage_candidates')) {
-        return [];
-    }
-
-    try {
-        return sr_content_homepage_candidates($pdo);
-    } catch (Throwable) {
-        return [];
-    }
+    return $candidates;
 }

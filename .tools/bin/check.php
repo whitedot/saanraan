@@ -158,6 +158,8 @@ function sr_check_module_lifecycle_metadata(): void
         'sitemap.php' => true,
         'member-assets.php' => true,
         'member-withdrawal-assets.php' => true,
+        'member-registration.php' => true,
+        'homepage-candidates.php' => true,
         'editor-options.php' => true,
         'coupon-targets.php' => true,
     ];
@@ -302,6 +304,12 @@ function sr_check_module_contract_files(): void
         'paths.php',
         'privacy-export.php',
         'sitemap.php',
+        'member-assets.php',
+        'member-withdrawal-assets.php',
+        'member-registration.php',
+        'homepage-candidates.php',
+        'editor-options.php',
+        'coupon-targets.php',
     ];
 
     foreach (sr_check_module_dirs() as $moduleDir) {
