@@ -24,6 +24,7 @@
 | --- | --- |
 | [1.0 범위 잠금 기준](1.0-scope.md) | 1.0 전 안정화 범위와 제외 범위 |
 | [1.0 전 구현 스냅샷](implementation-snapshot.md) | Wiki 구현 명세 정리 전 임시 핵심 표면 |
+| [운영자 대상 기능 소개](operator-feature-list.md) | 현재 구현 기능을 운영자에게 소개하기 위한 홍보용 기능 목록 |
 | [핵심 설계 결정](core-decisions.md) | 최상위 설계 결정 |
 | [모듈 작성 가이드](module-guide.md) | 모듈 계약과 작성 기준 |
 | [모듈 배치와 업데이트 기준](module-update-policy.md) | 모듈 설치/업데이트 기준 |
