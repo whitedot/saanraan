@@ -18,10 +18,10 @@ $reportRow = is_array($dashboardRows[1] ?? null) ? $dashboardRows[1] : [];
             <strong class="type-section-title"><?php echo sr_e((string) ($reportRow['value'] ?? '0')); ?></strong>
             <small class="type-small"><?php echo sr_e((string) ($reportRow['detail'] ?? sr_t('community::ui.0.c86ae2ee'))); ?></small>
         </div>
-        <a href="/admin/community/reports" class="btn btn-outline-default"><?php echo sr_e(sr_t('community::ui.text.35c80e56')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="btn btn-outline-default"><?php echo sr_e(sr_t('community::ui.text.35c80e56')); ?></a>
     </div>
     <div class="community-dashboard-links">
-        <a href="/admin/community/posts" class="btn btn-surface-default-soft"><?php echo sr_e(sr_t('community::ui.text.0b138cfe')); ?></a>
-        <a href="/admin/community/boards" class="btn btn-surface-default-soft"><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="btn btn-surface-default-soft"><?php echo sr_e(sr_t('community::ui.text.0b138cfe')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-surface-default-soft"><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></a>
     </div>
 </div>

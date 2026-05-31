@@ -14,6 +14,6 @@ $primaryRow = is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : [];
         <strong class="type-small"><?php echo sr_e((string) ($primaryRow['label'] ?? sr_t('site_menu::ui.menu.33822da6'))); ?></strong>
     </div>
     <div class="site-menu-dashboard-actions">
-        <a href="/admin/site-menus" class="btn btn-solid-primary"><?php echo sr_e(sr_t('site_menu::ui.menu.55d2a2dd')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="btn btn-solid-primary"><?php echo sr_e(sr_t('site_menu::ui.menu.55d2a2dd')); ?></a>
     </div>
 </div>

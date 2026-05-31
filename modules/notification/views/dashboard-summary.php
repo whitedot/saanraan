@@ -14,6 +14,6 @@ $primaryRow = is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : [];
     </div>
     <div class="notification-dashboard-detail">
         <span class="type-small"><?php echo sr_e((string) ($primaryRow['detail'] ?? sr_t('notification::ui.0.e82c2721'))); ?></span>
-        <a href="/admin/notifications" class="btn btn-surface-default-soft"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-surface-default-soft"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></a>
     </div>
 </div>
