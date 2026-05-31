@@ -1,0 +1,648 @@
+/*
+ * Saanraan install screen layer.
+ * Loaded only by core/views/install.php after the public baseline CSS.
+ */
+
+:root,
+:root[data-color-scheme="light"] {
+    --sr-install-bg: #eef2f6;
+}
+
+:root[data-color-scheme="dark"] {
+    --sr-install-bg: #0f141a;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-color-scheme="system"] {
+        --sr-install-bg: #0f141a;
+    }
+}
+
+.sr-install-page {
+    background: var(--sr-install-bg);
+    overflow-x: hidden;
+}
+
+.sr-install-shell {
+    width: min(1120px, calc(100% - 32px));
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.sr-install-intro,
+.sr-install-panel,
+.sr-install-alert,
+.sr-install-actions {
+    border: 1px solid var(--sr-border);
+    border-radius: 8px;
+    background: var(--sr-surface);
+    box-shadow: 0 10px 24px var(--sr-shadow-soft);
+}
+
+.sr-install-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+    gap: 24px;
+    align-items: start;
+    padding: 28px;
+    margin-bottom: 20px;
+}
+
+.sr-install-intro > div,
+.sr-install-panel-head > div {
+    min-width: 0;
+}
+
+.sr-install-intro h1,
+.sr-install-panel-head h2 {
+    overflow-wrap: anywhere;
+}
+
+.sr-install-intro p {
+    max-width: 720px;
+    margin: 0;
+    color: var(--sr-muted);
+    overflow-wrap: anywhere;
+}
+
+.sr-install-kicker {
+    margin: 0 0 6px;
+    color: var(--sr-muted-soft);
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-meta-line-height);
+    letter-spacing: 0;
+}
+
+.sr-install-steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: sr-install-step;
+}
+
+.sr-install-steps li {
+    color: var(--sr-muted-strong);
+}
+
+.sr-install-steps button {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--sr-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: var(--sr-surface-soft);
+    color: var(--sr-muted-strong);
+    text-align: left;
+}
+
+.sr-install-step-number {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--sr-surface-muted);
+    color: var(--sr-muted-strong);
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-bold);
+}
+
+.sr-install-step-number::before {
+    content: counter(sr-install-step);
+    counter-increment: sr-install-step;
+}
+
+.sr-install-steps strong,
+.sr-install-steps small {
+    display: block;
+}
+
+.sr-install-steps small {
+    color: var(--sr-muted-soft);
+    font-size: var(--type-caption-size);
+    line-height: var(--type-caption-line-height);
+}
+
+.sr-install-steps li.is-current button {
+    border-color: var(--sr-primary);
+    background: var(--sr-surface);
+}
+
+.sr-install-steps li.is-current .sr-install-step-number,
+.sr-install-steps li.is-complete .sr-install-step-number {
+    display: inline-grid;
+    place-items: center;
+    background: var(--sr-primary);
+    color: var(--sr-on-primary);
+}
+
+.sr-install-steps li[data-install-step-error="1"] button {
+    border-color: var(--sr-danger-border);
+}
+
+.sr-install-steps li[data-install-step-error="1"] .sr-install-step-number {
+    background: var(--sr-danger-bg);
+    color: var(--sr-danger-text);
+}
+
+.sr-install-alert {
+    padding: 18px 20px;
+    margin-bottom: 18px;
+}
+
+.sr-install-alert h2,
+.sr-install-alert p,
+.sr-install-alert ul {
+    margin-bottom: 8px;
+}
+
+.sr-install-alert-error {
+    border-color: var(--sr-danger-border);
+    background: var(--sr-danger-bg-soft);
+}
+
+.sr-install-alert-warning {
+    border-color: var(--sr-warning-border);
+    background: var(--sr-warning-bg-soft);
+}
+
+.sr-install-panel {
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.sr-install-panel-head {
+    display: flex;
+    gap: 20px;
+    align-items: start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.sr-install-panel-head h2 {
+    margin-bottom: 0;
+}
+
+.sr-install-panel-head > p {
+    max-width: 420px;
+    margin: 0;
+    color: var(--sr-muted-soft);
+    overflow-wrap: anywhere;
+}
+
+.sr-install-step-errors {
+    border: 1px solid var(--sr-danger-border);
+    border-radius: 8px;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background: var(--sr-danger-bg-soft);
+    color: var(--sr-danger-text);
+}
+
+.sr-install-step-errors strong {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.sr-install-step-errors ul {
+    margin: 0;
+}
+
+.sr-install-subsection {
+    border-top: 1px solid var(--sr-border-soft);
+    margin-top: 20px;
+    padding-top: 18px;
+}
+
+.sr-install-subsection:first-of-type {
+    border-top-width: 0;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.sr-install-subsection h3 {
+    margin: 0 0 6px;
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
+}
+
+.sr-install-subsection-help {
+    margin: 0 0 14px;
+    color: var(--sr-muted-soft);
+}
+
+.sr-install-check-grid,
+.sr-install-field-grid,
+.sr-install-module-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.sr-install-check-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.sr-install-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sr-install-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 18px;
+}
+
+.sr-install-module-select-all {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border: 1px solid var(--sr-border);
+    border-radius: 8px;
+    margin: 0 0 12px;
+    background: var(--sr-surface-soft);
+    padding: 12px 14px;
+    color: var(--sr-text);
+}
+
+.sr-install-module-select-all strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.sr-install-module-select-all small {
+    display: block;
+    color: var(--sr-muted-soft);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+}
+
+.sr-install-check,
+.sr-install-module {
+    min-width: 0;
+    border: 1px solid var(--sr-border);
+    border-radius: 8px;
+    background: var(--sr-surface-soft);
+    padding: 14px;
+}
+
+.sr-install-check strong,
+.sr-install-module strong {
+    display: block;
+    margin: 8px 0 2px;
+    overflow-wrap: anywhere;
+}
+
+.sr-install-check p,
+.sr-install-module p,
+.sr-install-field-grid p {
+    margin: 0;
+}
+
+.sr-install-check p,
+.sr-install-module p,
+.sr-install-help {
+    color: var(--sr-muted-soft);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+    overflow-wrap: anywhere;
+}
+
+.sr-install-check-guide {
+    border-top: 1px solid var(--sr-border-soft);
+    padding-top: 10px;
+}
+
+.sr-install-check-guide span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--sr-muted-strong);
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-caption-line-height);
+}
+
+.sr-install-status {
+    display: inline-block;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-caption-line-height);
+}
+
+.sr-install-status-ok {
+    border-color: var(--sr-success-border);
+    background: var(--sr-success-bg);
+    color: var(--sr-success-text);
+}
+
+.sr-install-status-warning {
+    border-color: var(--sr-warning-border);
+    background: var(--sr-warning-bg);
+    color: var(--sr-warning-text);
+}
+
+.sr-install-status-error {
+    border-color: var(--sr-danger-border);
+    background: var(--sr-danger-bg);
+    color: var(--sr-danger-text);
+}
+
+.sr-install-permission-guide {
+    border-top: 1px solid var(--sr-border-soft);
+    margin-top: 18px;
+    padding-top: 16px;
+}
+
+.sr-install-permission-guide summary {
+    cursor: pointer;
+    font-weight: var(--font-weight-bold);
+}
+
+.sr-install-permission-guide h3 {
+    margin: 0 0 8px;
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
+}
+
+.sr-install-permission-guide p {
+    max-width: 860px;
+    margin: 0 0 8px;
+    color: var(--sr-muted);
+}
+
+.sr-install-field-grid label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: var(--font-weight-bold);
+}
+
+.sr-install-field-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: var(--font-weight-bold);
+}
+
+.sr-install-field-grid input,
+.sr-install-field-grid select {
+    width: 100%;
+}
+
+.sr-install-help {
+    display: block;
+    margin-top: 6px;
+}
+
+.sr-install-module code {
+    display: inline-block;
+    margin: 4px 0 8px;
+}
+
+.sr-install-module-option {
+    cursor: pointer;
+}
+
+.sr-install-module-title {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.sr-install-module-title strong {
+    margin: 0;
+}
+
+.sr-install-main-page-option {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    border-top: 1px solid var(--sr-border-soft);
+    margin-top: 12px;
+    padding-top: 12px;
+    color: var(--sr-text);
+    font-size: var(--type-small-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--type-small-line-height);
+}
+
+.sr-install-main-page-option small {
+    display: block;
+    margin-top: 2px;
+    color: var(--sr-muted-soft);
+    font-size: var(--type-caption-size);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--type-caption-line-height);
+}
+
+.sr-install-home-default {
+    display: inline-block;
+    border: 1px solid var(--sr-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: var(--sr-surface-soft);
+    font-weight: var(--font-weight-bold);
+}
+
+.sr-install-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    margin-bottom: 0;
+}
+
+.sr-install-actions p {
+    margin: 0;
+    color: var(--sr-muted);
+}
+
+.sr-install-step-action-js {
+    display: none;
+}
+
+.sr-install-enhanced .sr-install-step-action-js {
+    display: flex;
+}
+
+.sr-install-step-actions {
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    border-top: 1px solid var(--sr-border-soft);
+    margin-top: 20px;
+    padding-top: 18px;
+}
+
+.sr-install-step-note {
+    margin-right: auto;
+    color: var(--sr-danger-text);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+}
+
+.sr-install-actions button,
+.sr-install-step-actions button {
+    min-width: 140px;
+    border-color: var(--sr-primary);
+    background: var(--sr-primary);
+    color: var(--sr-on-primary);
+    font-weight: var(--font-weight-bold);
+}
+
+.sr-install-actions button:disabled,
+.sr-install-step-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.56;
+}
+
+.sr-install-actions .sr-install-secondary-button,
+.sr-install-step-actions .sr-install-secondary-button {
+    border-color: var(--sr-control-border);
+    background: var(--sr-surface);
+    color: var(--sr-text);
+}
+
+.sr-install-final-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.sr-install-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.sr-install-summary-grid > div {
+    min-width: 0;
+    border: 1px solid var(--sr-border);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--sr-surface-soft);
+}
+
+.sr-install-summary-grid h3 {
+    margin: 0 0 10px;
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
+}
+
+.sr-install-summary-grid dl {
+    display: grid;
+    grid-template-columns: minmax(86px, 0.42fr) minmax(0, 1fr);
+    gap: 8px 10px;
+    margin: 0;
+}
+
+.sr-install-summary-grid dt {
+    color: var(--sr-muted-soft);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+}
+
+.sr-install-summary-grid dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-weight: var(--font-weight-bold);
+}
+
+.sr-install-progress {
+    border: 1px solid var(--sr-primary);
+    border-radius: 8px;
+    margin-top: 18px;
+    padding: 14px;
+    background: var(--sr-surface-soft);
+}
+
+.sr-install-progress strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.sr-install-progress-message {
+    display: block;
+    color: var(--sr-muted);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+}
+
+.sr-install-progress-bar {
+    display: block;
+    overflow: hidden;
+    border-radius: 999px;
+    height: 6px;
+    margin: 12px 0;
+    background: var(--sr-surface-muted);
+}
+
+.sr-install-progress-bar span {
+    display: block;
+    width: 42%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--sr-primary);
+    animation: sr-install-progress-bar 1.1s ease-in-out infinite;
+}
+
+.sr-install-progress ol {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding-left: 20px;
+    color: var(--sr-muted);
+}
+
+@keyframes sr-install-progress-bar {
+    0% {
+        transform: translateX(-110%);
+    }
+
+    100% {
+        transform: translateX(250%);
+    }
+}
+
+@media (max-width: 720px) {
+    .sr-install-intro,
+    .sr-install-panel-head,
+    .sr-install-actions,
+    .sr-install-final-actions,
+    .sr-install-step-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .sr-install-intro,
+    .sr-install-panel,
+    .sr-install-alert,
+    .sr-install-actions {
+        padding: 16px;
+    }
+
+    .sr-install-check-grid,
+    .sr-install-field-grid,
+    .sr-install-module-grid,
+    .sr-install-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sr-install-actions button,
+    .sr-install-step-actions button {
+        width: 100%;
+    }
+
+    .sr-install-step-note {
+        margin-right: 0;
+    }
+}
