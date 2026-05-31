@@ -68,6 +68,45 @@ if (!is_string($accountAction) || strpos($accountAction, 'sr_asset_exchange_cons
     $errors[] = 'Asset exchange account action must verify the bound quote token before execution.';
 }
 
+$installSql = file_get_contents($root . '/modules/asset_exchange/install.sql');
+$indexUpdate = file_get_contents($root . '/modules/asset_exchange/updates/2026.05.007.sql');
+if (
+    !is_string($installSql)
+    || strpos($installSql, 'idx_sr_asset_exchange_logs_reexchange (account_id, to_module_key, status, created_at)') === false
+    || !is_string($indexUpdate)
+    || strpos($indexUpdate, 'idx_sr_asset_exchange_logs_reexchange (account_id, to_module_key, status, created_at)') === false
+) {
+    $errors[] = 'Asset exchange reexchange fee lookup must have an account/to-module/status/created index in install and update SQL.';
+}
+
+if (
+    !is_string($helper)
+    || strpos($helper, 'function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy): void') === false
+    || strpos($helper, 'sr_asset_exchange_policy_cycle_increases_value($policy, $reversePolicy)') === false
+    || strpos($helper, '무수수료 양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다') === false
+) {
+    $errors[] = 'Asset exchange policy save must reject fee-free bidirectional cycles that can increase value.';
+}
+
+if (
+    !is_string($helper)
+    || strpos($helper, 'function sr_asset_exchange_execute_once(PDO $pdo, array $policy, int $accountId, int $amount, ?int $createdByAccountId = null): int') === false
+    || strpos($helper, 'function sr_asset_exchange_is_retryable_transaction_exception(Throwable $exception): bool') === false
+    || strpos($helper, 'in_array($driverCode, [1205, 1213], true)') === false
+) {
+    $errors[] = 'Asset exchange execution must retry standalone deadlock/lock-timeout transaction failures.';
+}
+
+if (
+    !is_string($helper)
+    || strpos($helper, 'function sr_asset_exchange_correct_completed_group(PDO $pdo, string $exchangeGroupId, int $createdByAccountId') === false
+    || strpos($helper, "'reference_type' => 'asset_exchange_correction'") === false
+    || strpos($helper, 'correction_for:') === false
+    || strpos($helper, 'function sr_asset_exchange_correction_group_id(string $exchangeGroupId): string') === false
+) {
+    $errors[] = 'Asset exchange must provide a completed group correction helper that records reversal ledger entries.';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "asset exchange log checks failed:\n");
     foreach ($errors as $error) {

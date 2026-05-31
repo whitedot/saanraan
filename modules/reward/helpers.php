@@ -15,6 +15,44 @@ function sr_reward_balance(PDO $pdo, int $accountId): int
     return is_array($row) ? (int) $row['balance'] : 0;
 }
 
+function sr_reward_admin_adjustment_once_limit(): int
+{
+    return 1000000;
+}
+
+function sr_reward_admin_adjustment_daily_limit(): int
+{
+    return 10000000;
+}
+
+function sr_reward_validate_admin_adjustment_limit(PDO $pdo, int $adminAccountId, int $amount): ?string
+{
+    $absoluteAmount = abs($amount);
+    if ($absoluteAmount > sr_reward_admin_adjustment_once_limit()) {
+        return '적립금 관리자 조정 금액이 1회 상한을 초과했습니다.';
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COALESCE(SUM(ABS(amount)), 0) AS total_amount
+         FROM sr_reward_transactions
+         WHERE created_by_account_id = :admin_account_id
+           AND created_at >= :started_at
+           AND transaction_type IN ('adjustment', 'grant', 'use', 'refund', 'expire')"
+    );
+    $stmt->execute([
+        'admin_account_id' => $adminAccountId,
+        'started_at' => date('Y-m-d 00:00:00'),
+    ]);
+    $row = $stmt->fetch();
+    $usedAmount = is_array($row) ? (int) ($row['total_amount'] ?? 0) : 0;
+
+    if ($usedAmount + $absoluteAmount > sr_reward_admin_adjustment_daily_limit()) {
+        return '적립금 관리자 조정 금액이 일일 상한을 초과했습니다.';
+    }
+
+    return null;
+}
+
 function sr_reward_create_transaction(PDO $pdo, array $data): int
 {
     $accountId = (int) ($data['account_id'] ?? 0);

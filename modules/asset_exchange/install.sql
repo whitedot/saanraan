@@ -50,5 +50,6 @@ CREATE TABLE IF NOT EXISTS sr_asset_exchange_logs (
     KEY idx_sr_asset_exchange_logs_account_created (account_id, created_at),
     KEY idx_sr_asset_exchange_logs_policy_created (policy_id, created_at),
     KEY idx_sr_asset_exchange_logs_pair_created (from_module_key, to_module_key, created_at),
+    KEY idx_sr_asset_exchange_logs_reexchange (account_id, to_module_key, status, created_at),
     KEY idx_sr_asset_exchange_logs_status_created (status, created_at)
 );

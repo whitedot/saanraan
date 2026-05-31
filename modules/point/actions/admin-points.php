@@ -101,6 +101,13 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $limitError = sr_point_validate_admin_adjustment_limit($pdo, (int) $account['id'], $amount);
+        if ($limitError !== null) {
+            $errors[] = $limitError;
+        }
+    }
+
+    if ($errors === []) {
         try {
             $transactionId = sr_point_create_transaction($pdo, [
                 'account_id' => $targetAccountId,
