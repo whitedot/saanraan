@@ -10,8 +10,8 @@ $content = file_get_contents($root . '/modules/content/helpers/assets.php');
 if (
     !is_string($content)
     || strpos($content, 'function sr_content_asset_retry_operation(PDO $pdo, callable $operation): array') === false
-    || strpos($content, 'function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId): array') === false
-    || strpos($content, 'function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId): array') === false
+    || preg_match('/function\s+sr_content_charge_view_access_once\s*\(\s*PDO\s+\$pdo\s*,\s*array\s+\$page\s*,\s*int\s+\$accountId\b/', $content) !== 1
+    || preg_match('/function\s+sr_content_charge_file_download_once\s*\(\s*PDO\s+\$pdo\s*,\s*array\s+\$file\s*,\s*int\s+\$accountId\b/', $content) !== 1
     || strpos($content, 'function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId): array') === false
     || substr_count($content, 'sr_content_asset_is_retryable_transaction_exception($exception)') < 6
 ) {

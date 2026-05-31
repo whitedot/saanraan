@@ -2066,8 +2066,39 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
-        sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, 0, $dedupeKey, sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
-        sr_content_complete_zero_asset_action_log($pdo, $dedupeKey);
+        $startedTransaction = !$pdo->inTransaction();
+        if ($startedTransaction) {
+            $pdo->beginTransaction();
+        }
+        try {
+            sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, 0, $dedupeKey, sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']));
+            sr_content_complete_zero_asset_action_log($pdo, $dedupeKey);
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+        } catch (Throwable $exception) {
+            if ($startedTransaction && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            } elseif ($dedupeKey !== '') {
+                sr_content_delete_asset_action_placeholder($pdo, $dedupeKey);
+            }
+            if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+                throw $exception;
+            }
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'content_asset_group_action_failed');
+            }
+
+            return [
+                'allowed' => false,
+                'completed' => false,
+                'asset_module' => $assetModuleValue,
+                'asset_label' => sr_content_asset_module_labels($assetModuleValue, $pdo),
+                'amount' => 0,
+                'direction' => $direction,
+                'message' => '포인트/금액 처리에 실패했습니다.',
+            ];
+        }
         return [
             'allowed' => true,
             'completed' => true,
