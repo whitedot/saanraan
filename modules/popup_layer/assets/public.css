@@ -1,0 +1,62 @@
+.sr-popup-layer-stack {
+    display: grid;
+    gap: 12px;
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000;
+    width: min(420px, calc(100% - 32px));
+    margin: 0;
+}
+
+.sr-popup-layer {
+    border: 1px solid var(--sr-popup-border);
+    border-radius: 6px;
+    background: var(--sr-surface);
+    box-shadow: 0 8px 20px var(--sr-shadow-floating);
+    padding: 16px;
+}
+
+.sr-popup-layer h2 {
+    margin: 0 0 8px;
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
+}
+
+.sr-popup-layer-body {
+    color: var(--sr-muted-strong);
+}
+
+.sr-popup-layer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.sr-popup-layer-actions button {
+    width: auto;
+}
+
+.sr-popup-layer-dismiss {
+    border-color: var(--sr-primary);
+    background: var(--sr-primary);
+    color: var(--sr-on-primary);
+}
+
+@media (max-width: 720px) {
+    .sr-popup-layer-stack {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .sr-popup-layer-actions {
+        justify-content: stretch;
+    }
+
+    .sr-popup-layer-actions button {
+        flex: 1 1 140px;
+    }
+}

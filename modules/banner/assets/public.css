@@ -1,0 +1,26 @@
+.sr-banner {
+    display: block;
+    margin: 0 0 20px;
+    border: 1px solid var(--sr-border);
+    border-radius: 8px;
+    background: var(--sr-surface);
+    padding: 16px;
+}
+
+.sr-banner a {
+    display: grid;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sr-banner img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+.sr-banner strong,
+.sr-banner span {
+    display: block;
+}

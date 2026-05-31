@@ -13,6 +13,9 @@ return [
         'icon' => ['type' => 'symbol', 'name' => 'menu-list'],
         'stylesheets' => ['assets/admin.css'],
     ],
+    'public' => [
+        'stylesheets' => ['assets/public.css'],
+    ],
     'saanraan' => [
         'min_version' => '0.2.0',
         'tested_with' => ['0.2.0'],

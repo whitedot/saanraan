@@ -605,7 +605,7 @@ DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `layout_key`,
 
 CSS class는 충돌을 줄이기 위해 책임 범위별 이름을 사용합니다. 공통 아이콘 원형은 `assets/icons.css`가 `.sr-icon`과 Material Symbols 폰트 로딩 상태를 소유하고, 반복 가능한 UI 원형은 관리자에서는 `modules/admin/assets/common.css`, 공개에서는 `assets/common.css`가 각각 `btn`, `card`, `table`, `badge`, `form-*`, `dropdown-*`, `modal-*`, `tab-*` 같은 의미 class로 소유합니다. 관리자 전용은 `admin-*`, 모듈 전용은 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용은 `{module_key}-skin-{skin_key}-*` 형식을 우선합니다. 공통 layout이나 UI kit이 모듈 전용 class를 덮어쓰지 않고, 모듈 skin도 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않습니다.
 
-모듈 theme나 skin에 전용 CSS가 필요하면 `sr_public_layout_begin()`의 layout context에 `stylesheets`를 전달합니다. public layout은 전달받은 stylesheet를 `<head>`에 출력하는 통로만 제공하고, 어떤 모듈 파일을 선택할지는 각 모듈의 allowlist helper가 결정합니다.
+모듈 theme나 skin에 전용 CSS가 필요하면 `sr_public_layout_begin()`의 layout context에 `stylesheets`를 전달합니다. public layout은 전달받은 stylesheet를 `<head>`에 출력하는 통로만 제공하고, 어떤 모듈 파일을 선택할지는 각 모듈의 allowlist helper가 결정합니다. 출력 슬롯처럼 어느 공개 화면에도 삽입될 수 있는 모듈 기본 출력 스타일은 `module.php`의 `public.stylesheets`에 자기 모듈 `assets/` 아래 CSS를 선언하고, 공개 공통 CSS 뒤에 로드합니다.
 
 모듈 관리자 본문에 전용 CSS가 필요하면 `module.php`의 `admin.stylesheets`에 자기 모듈 `assets/` 아래 CSS를 선언합니다. admin skin은 `assets/icons.css`, `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 뒤에 활성 모듈의 선언만 검증해 출력하며, admin 공통 CSS는 모듈 도메인 class를 직접 소유하지 않습니다.
 

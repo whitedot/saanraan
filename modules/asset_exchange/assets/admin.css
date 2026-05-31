@@ -1,0 +1,57 @@
+.admin-filter-grid.admin-asset-exchange-search-grid {
+    gap: .875rem;
+    grid-template-columns: repeat(3, minmax(0, max-content)) max-content;
+    justify-content: start;
+    max-width: 100%;
+    width: fit-content;
+}
+
+.admin-asset-exchange-filter {
+    max-width: 100%;
+    width: fit-content;
+}
+
+.admin-asset-exchange-search-grid .admin-filter-field {
+    border: 0;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+    width: fit-content;
+}
+
+.admin-asset-exchange-search-grid .admin-filter-check-list {
+    gap: calc(var(--spacing) * 2);
+    margin-top: calc(var(--spacing) * 1.5);
+    max-width: min(22rem, calc(100vw - 2rem));
+    width: fit-content;
+}
+
+.admin-asset-exchange-search-grid .admin-form-check {
+    color: var(--color-body-color);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+    white-space: nowrap;
+}
+
+.admin-asset-exchange-search-grid .admin-filter-submit {
+    min-width: 5rem;
+    width: fit-content;
+}
+
+@media (max-width: 1023px) {
+    .admin-asset-exchange-filter,
+    .admin-filter-grid.admin-asset-exchange-search-grid,
+    .admin-asset-exchange-search-grid .admin-filter-field,
+    .admin-asset-exchange-search-grid .admin-filter-check-list,
+    .admin-asset-exchange-search-grid .admin-filter-submit {
+        width: 100%;
+    }
+
+    .admin-filter-grid.admin-asset-exchange-search-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-asset-exchange-search-grid .admin-filter-check-list {
+        max-width: none;
+    }
+}

@@ -54,7 +54,7 @@ if ($layoutPdo instanceof PDO) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($layoutSeo, $layoutSite); ?>
     <?php echo $layoutFaviconHtml; ?>
-    <?php echo sr_stylesheet_tag($layoutStylesheets); ?>
+    <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo); ?>
     <?php echo sr_material_icon_bootstrap_script(); ?>
 </head>
 <body>

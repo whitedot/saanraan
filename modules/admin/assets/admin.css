@@ -887,46 +887,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     justify-content: flex-end;
 }
 
-.admin-filter-grid.admin-asset-exchange-search-grid {
-    gap: .875rem;
-    grid-template-columns: repeat(3, minmax(0, max-content)) max-content;
-    justify-content: start;
-    max-width: 100%;
-    width: fit-content;
-}
-
-.admin-asset-exchange-filter {
-    max-width: 100%;
-    width: fit-content;
-}
-
-.admin-asset-exchange-search-grid .admin-filter-field {
-    border: 0;
-    margin: 0;
-    min-width: 0;
-    padding: 0;
-    width: fit-content;
-}
-
-.admin-asset-exchange-search-grid .admin-filter-check-list {
-    gap: calc(var(--spacing) * 2);
-    margin-top: calc(var(--spacing) * 1.5);
-    max-width: min(22rem, calc(100vw - 2rem));
-    width: fit-content;
-}
-
-.admin-asset-exchange-search-grid .admin-form-check {
-    color: var(--color-body-color);
-    font-size: var(--type-small-size);
-    line-height: var(--type-small-line-height);
-    white-space: nowrap;
-}
-
-.admin-asset-exchange-search-grid .admin-filter-submit {
-    min-width: 5rem;
-    width: fit-content;
-}
-
 .admin-audit-search-grid .admin-filter-field {
     min-width: 0;
 }
@@ -948,15 +908,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: fit-content;
 }
 
-.admin-page-member-list .admin-member-search-grid {
-    grid-template-columns: minmax(0, 10rem) minmax(0, 10rem) minmax(0, 1fr) auto;
-    justify-content: start;
-}
-
-.admin-page-community-nicknames .admin-member-search-grid {
-    grid-template-columns: minmax(0, 10rem) minmax(16rem, 1fr) auto;
-}
-
 .admin-asset-member-search-grid {
     grid-template-columns: max-content minmax(0, 1fr) auto;
     justify-content: start;
@@ -972,14 +923,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 .admin-asset-member-search-grid .admin-filter-submit {
     min-width: 0;
-}
-
-.admin-page-member-list .admin-filter-input {
-    width: 100%;
-}
-
-.admin-page-member-list .admin-filter-submit {
-    min-width: 5rem;
 }
 
 .admin-list-form .table {
@@ -1149,48 +1092,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     color: var(--text-muted);
     font-size: var(--type-caption-size);
     line-height: var(--type-caption-line-height);
-}
-
-.seo-robots-table {
-    border: 1px solid var(--color-default-300);
-    display: grid;
-    grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr);
-}
-
-.seo-robots-name,
-.seo-robots-content {
-    padding: calc(var(--spacing) * 4);
-}
-
-.seo-robots-name {
-    background: var(--color-default-100);
-    border-right: 1px solid var(--color-default-300);
-    display: grid;
-    gap: calc(var(--spacing) * 2);
-    align-content: start;
-}
-
-.seo-robots-name strong {
-    color: var(--text-strong);
-    font-size: var(--type-small-size);
-    line-height: var(--type-small-line-height);
-}
-
-.seo-robots-name a {
-    font-size: var(--type-meta-size);
-    line-height: var(--type-meta-line-height);
-}
-
-.seo-robots-content pre {
-    background: var(--color-default-100);
-    border: 1px solid var(--color-default-300);
-    color: var(--color-body-color);
-    font-size: var(--type-code-size);
-    line-height: var(--type-code-line-height);
-    margin: calc(var(--spacing) * 3) 0 0;
-    overflow-x: auto;
-    padding: calc(var(--spacing) * 3);
-    white-space: pre-wrap;
 }
 
 .admin-dashboard-toolbar {
@@ -1368,7 +1269,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 @media (max-width: 1023px) {
-    .admin-page-member-list .admin-member-search-grid,
     .admin-filter-grid,
     .admin-filter-grid.admin-audit-search-grid {
         grid-template-columns: 1fr;
@@ -1398,8 +1298,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         width: 100%;
     }
 
-    .admin-filter-grid.admin-role-search-grid,
-    .admin-filter-grid.admin-asset-exchange-search-grid {
+    .admin-filter-grid.admin-role-search-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1442,35 +1341,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         width: 100%;
     }
 
-    .admin-asset-exchange-filter,
-    .admin-filter-grid.admin-asset-exchange-search-grid,
-    .admin-asset-exchange-search-grid .admin-filter-field,
-    .admin-asset-exchange-search-grid .admin-filter-check-list,
-    .admin-asset-exchange-search-grid .admin-filter-submit {
-        width: 100%;
-    }
-
-    .admin-asset-exchange-search-grid .admin-filter-check-list {
-        max-width: none;
-    }
-
-    .admin-page-member-list .admin-member-search-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .admin-page-member-list .admin-filter-submit {
-        justify-content: center;
-        width: 100%;
-    }
-
-    .seo-robots-table {
-        grid-template-columns: 1fr;
-    }
-
-    .seo-robots-name {
-        border-bottom: 1px solid var(--color-default-300);
-        border-right: 0;
-    }
 }
 #adminPopupContainer #popupOverlay.hidden,#adminPopupContainer #popupOverlay.is-hidden{display:none!important}
 .admin-sidebar-backdrop.hidden,.admin-toolbar-menu.hidden,.admin-nav-panel.hidden{display:none!important}

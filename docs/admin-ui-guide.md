@@ -10,11 +10,11 @@
 - `modules/admin/assets/admin.css`: 관리자 shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다. 공용 UI 원형이나 모듈 도메인 class를 이 파일에 다시 넣지 않는다.
 - `modules/{module_key}/assets/*.css`: 모듈 관리자 본문에서만 쓰는 도메인 고유 스타일을 둔다. 모듈은 `module.php`의 `admin.stylesheets`에 자기 `assets/` 아래 CSS만 선언하고, admin shell은 활성 모듈의 선언을 검증해 공통 관리자 CSS 뒤에 출력한다.
 
-공개 화면 런타임은 `assets/tokens.css`, `assets/icons.css`, `assets/common.css`, `assets/saanraan.css`, `assets/public-ui.css`를 호출한다. `assets/icons.css`가 공용 아이콘 폰트를 맡고, `assets/common.css`가 공개 런타임 원형을 맡고, `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡으며, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. 일반 공개 런타임과 `/ui-kit` 공개 UI-KIT 모두 관리자 런타임 CSS인 `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
+공개 화면 런타임은 `assets/tokens.css`, `assets/icons.css`, `assets/common.css`, `assets/saanraan.css`, `assets/public-ui.css`, 활성 모듈의 `public.stylesheets`, layout context의 `stylesheets` 순서로 호출한다. `assets/icons.css`가 공용 아이콘 폰트를 맡고, `assets/common.css`가 공개 런타임 원형을 맡고, `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡으며, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. 일반 공개 런타임과 `/ui-kit` 공개 UI-KIT 모두 관리자 런타임 CSS인 `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
 
 관리자/공개 런타임 CSS 호출은 PHP helper가 실제 파일의 `filemtime()` 값을 `?v=` query string으로 붙여 캐시를 갱신한다.
 
-관리자 런타임 CSS 호출 순서는 `Pretendard`, `assets/tokens.css`, `assets/icons.css`, `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, 활성 모듈의 `admin.stylesheets` 선언 순서다. 활성 모듈 stylesheet는 `/modules/{module_key}/assets/*.css` 안쪽 파일만 허용하고 외부 URL, `..` 경로, 모듈 폴더 밖 파일은 무시한다.
+관리자 런타임 CSS 호출 순서는 `Pretendard`, `assets/tokens.css`, `assets/icons.css`, `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`, 활성 모듈의 `admin.stylesheets` 선언 순서다. 활성 모듈 stylesheet는 `/modules/{module_key}/assets/*.css` 안쪽 파일만 허용하고 외부 URL, `..` 경로, 모듈 폴더 밖 파일은 무시한다. 공개 모듈 stylesheet도 같은 경로 규칙을 적용하며 `module.php`의 `public.stylesheets`에 선언한다.
 
 프로젝트 기본 아이콘셋은 Google Material Symbols Outlined다. 아이콘 폰트는 `assets/fonts/material-symbols-outlined.ttf`로 self-hosting하고 public/admin 런타임에서 preload한다. `sr_material_icon_html()`로 출력한 `.sr-icon[data-sr-material-icon]`은 `sr_material_icon_bootstrap_script()`가 폰트 준비 완료 class를 붙이기 전까지 투명하게 유지하므로, `home`, `settings` 같은 Material ligature 글자가 로딩 중 잠깐 보이지 않는다.
 
