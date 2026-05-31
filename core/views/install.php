@@ -351,6 +351,13 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     <?php if ($optionalModules === []) { ?>
                         <p><?php echo sr_e(sr_t('ui.select.select.feaab9be')); ?> <code>modules/{module_key}</code><?php echo sr_e(sr_t('ui.admin.2253b218')); ?></p>
                     <?php } else { ?>
+                        <label class="sr-install-module-select-all" for="optional_modules_select_all">
+                            <input id="optional_modules_select_all" type="checkbox" class="form-checkbox" data-install-module-select-all>
+                            <span>
+                                <strong>전체 선택</strong>
+                                <small>선택 가능한 모듈과 플러그인을 모두 설치 대상으로 표시합니다.</small>
+                            </span>
+                        </label>
                         <div class="sr-install-module-grid">
                             <?php foreach ($optionalModules as $moduleKey => $module) { ?>
                                 <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
@@ -676,6 +683,28 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
             });
 
             var mainPageInputs = document.querySelectorAll('[data-sr-install-main-page]');
+            var moduleSelectAllInput = document.querySelector('[data-install-module-select-all]');
+
+            function moduleOptionInputs() {
+                return Array.prototype.slice.call(document.querySelectorAll('[data-install-module-option]'));
+            }
+
+            function syncModuleSelectAll() {
+                if (!moduleSelectAllInput) {
+                    return;
+                }
+
+                var enabledInputs = moduleOptionInputs().filter(function (input) {
+                    return !input.disabled;
+                });
+                var checkedInputs = enabledInputs.filter(function (input) {
+                    return input.checked;
+                });
+                moduleSelectAllInput.checked = enabledInputs.length > 0 && checkedInputs.length === enabledInputs.length;
+                moduleSelectAllInput.indeterminate = checkedInputs.length > 0 && checkedInputs.length < enabledInputs.length;
+                moduleSelectAllInput.disabled = enabledInputs.length === 0;
+            }
+
             mainPageInputs.forEach(function (input) {
                 var moduleCheckboxId = input.getAttribute('data-sr-install-module-checkbox');
                 var moduleCheckbox = moduleCheckboxId ? document.getElementById(moduleCheckboxId) : null;
@@ -687,6 +716,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                         if (!moduleCheckbox.checked) {
                             input.checked = false;
                         }
+                        syncModuleSelectAll();
                         updateSummary();
                     });
                 }
@@ -706,12 +736,30 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     if (moduleCheckbox) {
                         moduleCheckbox.checked = true;
                     }
+                    syncModuleSelectAll();
                     updateSummary();
                 });
             });
 
-            document.querySelectorAll('[data-install-module-option]').forEach(function (input) {
-                input.addEventListener('change', updateSummary);
+            if (moduleSelectAllInput) {
+                moduleSelectAllInput.addEventListener('change', function () {
+                    var checked = moduleSelectAllInput.checked;
+                    moduleOptionInputs().forEach(function (input) {
+                        if (!input.disabled) {
+                            input.checked = checked;
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                    syncModuleSelectAll();
+                    updateSummary();
+                });
+            }
+
+            moduleOptionInputs().forEach(function (input) {
+                input.addEventListener('change', function () {
+                    syncModuleSelectAll();
+                    updateSummary();
+                });
             });
 
             document.querySelectorAll('[data-install-step-target]').forEach(function (button) {
@@ -758,6 +806,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
             }
 
             setStep(currentStep, false);
+            syncModuleSelectAll();
         }());
     </script>
 </body>

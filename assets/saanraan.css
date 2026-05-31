@@ -485,6 +485,30 @@ dd {
     margin-bottom: 18px;
 }
 
+.sr-install-module-select-all {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border: 1px solid var(--sr-border);
+    border-radius: 8px;
+    margin: 0 0 12px;
+    background: var(--sr-surface-soft);
+    padding: 12px 14px;
+    color: var(--sr-text);
+}
+
+.sr-install-module-select-all strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.sr-install-module-select-all small {
+    display: block;
+    color: var(--sr-muted-soft);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+}
+
 .sr-install-check,
 .sr-install-module {
     min-width: 0;

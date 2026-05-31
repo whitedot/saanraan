@@ -64,6 +64,12 @@ $optionalModules = [
         'label' => sr_t('install.module.popup_layer.label'),
         'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
     ],
+    'ckeditor' => [
+        'name' => 'CKEditor',
+        'version' => '2026.05.002',
+        'label' => 'CKEditor',
+        'description' => '관리자와 모듈 입력 화면에 CKEditor 5 편집기 선택지를 설치합니다.',
+    ],
     'point' => [
         'name' => '포인트',
         'version' => '2026.04.001',
@@ -81,6 +87,18 @@ $optionalModules = [
         'version' => '2026.04.001',
         'label' => sr_t('install.module.reward.label'),
         'description' => '회원별 적립금 잔액과 거래 원장, 관리자 지급/차감 화면을 설치합니다.',
+    ],
+    'asset_exchange' => [
+        'name' => '포인트/금액 환전',
+        'version' => '2026.05.007',
+        'label' => '포인트/금액 환전',
+        'description' => '설치된 포인트/금액 항목 간 환전 정책과 실행 로그를 관리합니다.',
+    ],
+    'coupon' => [
+        'name' => '쿠폰·이용권',
+        'version' => '2026.05.006',
+        'label' => '쿠폰·이용권',
+        'description' => '회원별 쿠폰·이용권 종류, 지급, 사용 내역을 관리합니다.',
     ],
     'notification' => [
         'name' => '알림',
