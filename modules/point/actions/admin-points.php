@@ -6,11 +6,12 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/point/helpers.php';
 
+$account = sr_member_require_login($pdo);
+
 if (sr_request_method() === 'GET' && sr_request_path() === '/admin/points') {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/points/settings', 'view');
     sr_redirect('/admin/points/settings');
 }
-
-$account = sr_member_require_login($pdo);
 
 $allowedTransactionTypes = ['adjustment', 'grant', 'use', 'refund', 'expire'];
 $allowedReferenceTypes = ['', 'order', 'payment', 'refund', 'support_ticket', 'event', 'migration'];

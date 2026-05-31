@@ -6,7 +6,7 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 
 $account = sr_member_require_login($pdo);
-sr_admin_require_permission($pdo, (int) $account['id'], '/admin/modules', 'view');
+sr_admin_require_owner($pdo, (int) $account['id']);
 $canManageModuleSources = sr_admin_is_owner($pdo, (int) $account['id']);
 $moduleSourcesEnabled = sr_module_sources_enabled($pdo, $config);
 
@@ -20,7 +20,6 @@ $errors = [];
 $notice = '';
 
 if (sr_request_method() === 'POST') {
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/modules', 'edit');
     sr_require_csrf();
 
     $postResult = sr_admin_handle_modules_post(

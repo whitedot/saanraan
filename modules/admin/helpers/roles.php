@@ -361,6 +361,7 @@ function sr_admin_owner_only_permission_keys(): array
 {
     return [
         '/admin/menu' => true,
+        '/admin/modules' => true,
         '/admin/roles' => true,
         '/admin/updates' => true,
         '/admin/retention' => true,
