@@ -45,8 +45,11 @@ function sr_member_create_account(PDO $pdo, array $config, array $data): int
     }
 
     if ($loginIdHash !== null) {
-        $params = ['login_id_hash' => $loginIdHash];
-        $where = '(login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash)';
+        $params = [
+            'login_id_hash' => $loginIdHash,
+            'account_identifier_hash' => $loginIdHash,
+        ];
+        $where = '(login_id_hash = :login_id_hash OR account_identifier_hash = :account_identifier_hash)';
         if (is_array($existing)) {
             $where .= ' AND id <> :id';
             $params['id'] = (int) $existing['id'];
