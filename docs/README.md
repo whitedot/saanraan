@@ -32,6 +32,7 @@
 | [산란 보안 모델](security-model.md) | 보안 책임 경계 |
 | [보안 체크리스트](security-checklist.md) | 변경 검토 체크리스트 |
 | [배포 보호 기준](deployment-protection.md) | 운영 서버 직접 접근 차단 기준 |
+| [nginx 샘플 설정](deployment/nginx-saanraan.conf) | PHP-FPM 기반 nginx 배포 예시 |
 | [릴리스 절차](release-process.md) | 릴리스 준비와 배포 절차 |
 | [스모크 테스트 기준](smoke-test.md) | 배포 전후 최소 검증 |
 | [관리자 UI 작성 기준](admin-ui-guide.md) | 관리자 화면 공통 UI 작성 기준 |

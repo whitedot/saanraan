@@ -40,6 +40,7 @@ Git을 사용하는 운영자는 전체 브랜치를 pull/merge하지 않고 릴
 - `config/` 디렉터리
 - `assets/`, `lang/`, `layouts/`
 - `docs/`, `examples/`, `README.md`, `LICENSE`
+- nginx 배포를 안내할 때는 `docs/deployment/nginx-saanraan.conf`
 - 배포자가 릴리스 검증에 쓰는 `.tools/` 파일
 
 제외 기준:
@@ -50,7 +51,7 @@ Git을 사용하는 운영자는 전체 브랜치를 pull/merge하지 않고 릴
 - `storage/logs/`, `storage/module-backups/`, `storage/update-failed.json`
 - DB dump, 운영 백업, 업로드 파일, 비밀값이 들어 있는 파일
 
-Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. `.tools/`나 `docs/`를 운영 서버에 함께 올리는 경우에도 [배포 보호 기준](deployment-protection.md)에 따라 웹 직접 접근을 차단해야 한다.
+Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. nginx 배포에서는 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 기준으로 `server_name`, `root`, `fastcgi_pass`를 운영 환경에 맞게 바꾼 뒤 같은 보호 규칙을 서버 설정에 반영한다. `.tools/`나 `docs/`를 운영 서버에 함께 올리는 경우에도 [배포 보호 기준](deployment-protection.md)에 따라 웹 직접 접근을 차단해야 한다.
 
 릴리스 zip을 직접 만들었다면 SHA-256 checksum을 함께 기록한다. GitHub source zip을 그대로 사용하는 경우에는 태그와 commit SHA를 릴리스 노트에 기록한다.
 

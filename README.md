@@ -20,7 +20,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 | 선택 번들 | 커뮤니티, 콘텐츠, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 포인트/금액 환전, 쿠폰·이용권, CKEditor |
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
-| 목표 환경 | Apache 또는 Apache 호환 공유호스팅 |
+| 목표 환경 | Apache 또는 Apache 호환 공유호스팅, PHP-FPM 기반 nginx |
 | 보안 피드백 | `kimminsup@gmail.com` |
 
 ## 사용 판단 기준
@@ -49,7 +49,7 @@ saanraan(산란)은 작은 코드가 각자의 방향으로 읽히고, 고쳐지
 - 포인트, 적립금, 예치금 원장과 관리자 조정/환불/회원 화면, 포인트/금액 항목 간 환전 정책과 실행 로그.
 - 쿠폰·이용권 모듈과 콘텐츠/커뮤니티 유료 열람 우선 적용, 회원 탈퇴 시 쿠폰 상태 처리.
 - CKEditor 5 선택 플러그인, 에디터 설정, `body_format=html` 저장, 서버 측 HTML sanitizer.
-- 로컬 파일 저장과 S3 호환 저장소 helper, Apache 배포 보호 기준.
+- 로컬 파일 저장과 S3 호환 저장소 helper, Apache/nginx 배포 보호 기준.
 
 보완 중인 부분:
 
