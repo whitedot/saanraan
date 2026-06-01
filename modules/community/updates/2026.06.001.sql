@@ -13,11 +13,39 @@ CREATE TABLE IF NOT EXISTS sr_community_categories (
     KEY idx_sr_community_categories_board_status_sort (board_id, status, sort_order, id)
 );
 
-ALTER TABLE sr_community_posts
-    ADD COLUMN category_id BIGINT UNSIGNED NULL AFTER board_id;
+SET @schema_has_community_posts_category_id = (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = '{{SR_TABLE_PREFIX}}community_posts'
+      AND COLUMN_NAME = 'category_id'
+);
 
-ALTER TABLE sr_community_posts
-    ADD KEY idx_sr_community_posts_board_category_status_id (board_id, category_id, status, id);
+SET @schema_sql = IF(
+    @schema_has_community_posts_category_id = 0,
+    'ALTER TABLE {{SR_TABLE_PREFIX}}community_posts ADD COLUMN category_id BIGINT UNSIGNED NULL AFTER board_id',
+    'DO 0'
+);
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
+
+SET @schema_has_community_posts_board_category_status_id = (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = '{{SR_TABLE_PREFIX}}community_posts'
+      AND INDEX_NAME = 'idx_sr_community_posts_board_category_status_id'
+);
+
+SET @schema_sql = IF(
+    @schema_has_community_posts_board_category_status_id = 0,
+    'ALTER TABLE {{SR_TABLE_PREFIX}}community_posts ADD KEY idx_sr_community_posts_board_category_status_id (board_id, category_id, status, id)',
+    'DO 0'
+);
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
 
 CREATE TABLE IF NOT EXISTS sr_community_series (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
