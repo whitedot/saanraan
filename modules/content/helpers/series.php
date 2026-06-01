@@ -12,9 +12,29 @@ function sr_content_series_statuses(): array
     return ['pending', 'active', 'hidden', 'archived', 'deleted'];
 }
 
+function sr_content_series_status_label(string $status): string
+{
+    return [
+        'pending' => '대기',
+        'active' => '사용',
+        'hidden' => '숨김',
+        'archived' => '보관',
+        'deleted' => '삭제',
+    ][$status] ?? $status;
+}
+
 function sr_content_series_visibility_values(): array
 {
     return ['public', 'member', 'private'];
+}
+
+function sr_content_series_visibility_label(string $visibility): string
+{
+    return [
+        'public' => '전체 공개',
+        'member' => '회원 공개',
+        'private' => '비공개',
+    ][$visibility] ?? $visibility;
 }
 
 function sr_content_series_table_exists(PDO $pdo): bool
@@ -106,6 +126,162 @@ function sr_content_series_list(PDO $pdo): array
     }
 
     $stmt = $pdo->query('SELECT * FROM sr_content_series ORDER BY sort_order ASC, id DESC LIMIT 200');
+    return $stmt->fetchAll();
+}
+
+function sr_content_admin_series_filters(): array
+{
+    $status = sr_get_string('status', 30);
+    if ($status !== '' && !in_array($status, sr_content_series_statuses(), true)) {
+        $status = '';
+    }
+
+    $visibility = sr_get_string('visibility', 30);
+    if ($visibility !== '' && !in_array($visibility, sr_content_series_visibility_values(), true)) {
+        $visibility = '';
+    }
+
+    $field = sr_get_string('field', 20);
+    if (!in_array($field, ['all', 'key', 'title'], true)) {
+        $field = 'all';
+    }
+
+    return [
+        'status' => $status,
+        'visibility' => $visibility,
+        'field' => $field,
+        'q' => trim(sr_get_string('q', 120)),
+    ];
+}
+
+function sr_content_admin_series_query_parts(array $filters): array
+{
+    $where = [];
+    $params = [];
+
+    if ((string) ($filters['status'] ?? '') !== '') {
+        $where[] = 's.status = :status';
+        $params['status'] = (string) $filters['status'];
+    }
+
+    if ((string) ($filters['visibility'] ?? '') !== '') {
+        $where[] = 's.visibility = :visibility';
+        $params['visibility'] = (string) $filters['visibility'];
+    }
+
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'key') {
+            $where[] = 's.series_key LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'title') {
+            $where[] = 's.title LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } else {
+            $where[] = '(s.series_key LIKE :key_keyword OR s.title LIKE :title_keyword)';
+            $params['key_keyword'] = '%' . $keyword . '%';
+            $params['title_keyword'] = '%' . $keyword . '%';
+        }
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_content_admin_series_count(PDO $pdo, array $filters): int
+{
+    if (!sr_content_series_supported($pdo)) {
+        return 0;
+    }
+
+    $queryParts = sr_content_admin_series_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value FROM sr_content_series s';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_content_admin_series_status_counts(PDO $pdo): array
+{
+    $counts = ['total' => 0];
+    foreach (sr_content_series_statuses() as $status) {
+        $counts[$status] = 0;
+    }
+
+    if (!sr_content_series_supported($pdo)) {
+        return $counts;
+    }
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_content_series GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
+}
+
+function sr_content_admin_series_sort_options(): array
+{
+    return [
+        'series_key' => ['columns' => ['s.series_key', 's.id']],
+        'title' => ['columns' => ['s.title', 's.id']],
+        'status' => ['columns' => ['s.status', 's.id']],
+        'visibility' => ['columns' => ['s.visibility', 's.id']],
+        'active_item_count' => ['columns' => ['active_item_count', 's.id']],
+        'sort_order' => ['columns' => ['s.sort_order', 's.id']],
+        'updated_at' => ['columns' => ['s.updated_at', 's.id']],
+    ];
+}
+
+function sr_content_admin_series_default_sort(): array
+{
+    return sr_admin_sort_default('sort_order', 'asc');
+}
+
+function sr_content_admin_series_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
+{
+    if (!sr_content_series_supported($pdo)) {
+        return [];
+    }
+
+    $queryParts = sr_content_admin_series_query_parts($filters);
+    $where = $queryParts['where'];
+    $params = $queryParts['params'];
+    $sql = 'SELECT s.*,
+                   (SELECT COUNT(*) FROM sr_content_series_items si WHERE si.series_id = s.id AND si.item_status = \'active\') AS active_item_count
+            FROM sr_content_series s';
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= sr_admin_sort_order_sql(sr_content_admin_series_sort_options(), $sort, sr_content_admin_series_default_sort());
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
+
     return $stmt->fetchAll();
 }
 

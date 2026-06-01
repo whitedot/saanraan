@@ -331,7 +331,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <option value="0"<?php echo (int) $contentSeriesValues['series_id'] === 0 ? ' selected' : ''; ?>><?php echo sr_e('연결 안 함'); ?></option>
                         <?php foreach ($contentSeriesOptions as $seriesOption) { ?>
                             <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) $contentSeriesValues['series_id'] === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e((string) $seriesOption['visibility']); ?> / <?php echo sr_e((string) $seriesOption['status']); ?>
+                                <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e(sr_content_series_visibility_label((string) $seriesOption['visibility'])); ?> / <?php echo sr_e(sr_content_series_status_label((string) $seriesOption['status'])); ?>
                             </option>
                         <?php } ?>
                     </select>

@@ -11,6 +11,15 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/series',
 $errors = [];
 $notice = '';
 $seriesSupported = sr_content_series_supported($pdo);
+$seriesCreateModalOpen = false;
+$seriesFormValues = [
+    'series_key' => '',
+    'title' => '',
+    'description' => '',
+    'status' => 'active',
+    'visibility' => 'public',
+    'sort_order' => 0,
+];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -27,6 +36,10 @@ if (sr_request_method() === 'POST') {
         'visibility' => sr_post_string('visibility', 30),
         'sort_order' => $sortOrder ?? 0,
     ];
+    if ($intent === 'create') {
+        $seriesFormValues = $values;
+        $seriesCreateModalOpen = true;
+    }
     if (!$seriesSupported) {
         $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
     }
@@ -53,6 +66,7 @@ if (sr_request_method() === 'POST') {
             try {
                 $seriesId = sr_content_create_series($pdo, $values, (int) $account['id']);
                 $notice = '콘텐츠 시리즈를 만들었습니다.';
+                $seriesCreateModalOpen = false;
             } catch (PDOException $exception) {
                 if ((string) $exception->getCode() !== '23000') {
                     throw $exception;
@@ -71,7 +85,13 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$seriesList = sr_content_series_list($pdo);
+$seriesFilters = sr_content_admin_series_filters();
+$seriesSortOptions = sr_content_admin_series_sort_options();
+$seriesDefaultSort = sr_content_admin_series_default_sort();
+$seriesSort = sr_admin_sort_from_request($seriesSortOptions, $seriesDefaultSort);
+$seriesStatusCounts = sr_content_admin_series_status_counts($pdo);
+$seriesPagination = sr_admin_pagination_from_total($pdo, sr_content_admin_series_count($pdo, $seriesFilters));
+$seriesList = sr_content_admin_series_list($pdo, $seriesFilters, (int) $seriesPagination['per_page'], sr_admin_pagination_offset($seriesPagination), $seriesSort);
 if (!$seriesSupported && sr_request_method() !== 'POST') {
     $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
 }

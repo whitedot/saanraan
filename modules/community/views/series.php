@@ -26,7 +26,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php if ($seriesList === []) { ?><p>아직 시리즈가 없습니다.</p><?php } else { ?>
             <ul>
                 <?php foreach ($seriesList as $series) { ?>
-                    <li><?php echo sr_e((string) $series['title']); ?> / <?php echo sr_e((string) $series['visibility']); ?> / <?php echo sr_e((string) $series['status']); ?></li>
+                    <li><?php echo sr_e((string) $series['title']); ?> / <?php echo sr_e(sr_community_series_visibility_label((string) $series['visibility'])); ?> / <?php echo sr_e(sr_community_series_status_label((string) $series['status'])); ?></li>
                 <?php } ?>
             </ul>
         <?php } ?>

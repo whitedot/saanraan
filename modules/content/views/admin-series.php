@@ -1,48 +1,163 @@
-<?php include SR_ROOT . '/modules/admin/views/layout-header.php'; ?>
+<?php
+
+$adminPageTitle = '콘텐츠 시리즈';
+$adminPageSubtitle = '콘텐츠의 공개 회차 흐름을 관리합니다.';
+$adminContainerClass = 'admin-content-series-list admin-ui-scope';
+$seriesFilters = isset($seriesFilters) && is_array($seriesFilters) ? $seriesFilters : ['status' => '', 'visibility' => '', 'field' => 'all', 'q' => ''];
+$seriesSortOptions = isset($seriesSortOptions) && is_array($seriesSortOptions) ? $seriesSortOptions : sr_content_admin_series_sort_options();
+$seriesDefaultSort = isset($seriesDefaultSort) && is_array($seriesDefaultSort) ? $seriesDefaultSort : sr_content_admin_series_default_sort();
+$seriesSort = isset($seriesSort) && is_array($seriesSort) ? $seriesSort : sr_admin_sort_from_request($seriesSortOptions, $seriesDefaultSort);
+$seriesPagination = isset($seriesPagination) && is_array($seriesPagination) ? $seriesPagination : sr_admin_pagination_from_total($pdo, count($seriesList ?? []));
+$seriesStatusCounts = isset($seriesStatusCounts) && is_array($seriesStatusCounts) ? $seriesStatusCounts : ['total' => count($seriesList ?? [])];
+$seriesFormValues = isset($seriesFormValues) && is_array($seriesFormValues) ? $seriesFormValues : [
+    'series_key' => '',
+    'title' => '',
+    'description' => '',
+    'status' => 'active',
+    'visibility' => 'public',
+    'sort_order' => 0,
+];
+$seriesCreateModalOpen = !empty($seriesCreateModalOpen);
+$seriesCreateModalId = 'content-series-create-modal';
+$seriesCreateModalClass = 'modal-overlay modal-overlay-fade overlay';
+$seriesCreateModalClass .= $seriesCreateModalOpen ? ' overlay-open open' : ' hidden pointer-events-none opacity-0';
+$seriesCreateModalAriaHidden = $seriesCreateModalOpen ? 'false' : 'true';
+$seriesCreateModalInert = $seriesCreateModalOpen ? '' : ' inert';
+$seriesStatusClass = static function (string $status): string {
+    return match ($status) {
+        'active' => 'is-normal',
+        'pending', 'hidden' => 'is-left',
+        default => 'is-blocked',
+    };
+};
+
+include SR_ROOT . '/modules/admin/views/layout-header.php';
+?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
-<section class="admin-card card admin-ui-scope">
-    <h2>콘텐츠 시리즈</h2>
-    <p class="admin-form-help">시리즈는 독자가 순서대로 따라가는 연재 흐름입니다. 콘텐츠 그룹의 운영 묶음이나 기본 설정과 별개로, 공개 화면의 회차 목록과 이전/다음 이동만 담당합니다.</p>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-form ui-form-theme">
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="create">
-        <div class="admin-form-row"><label class="form-label" for="content_series_key_new">key <span class="sr-required-label">(필수)</span></label><div class="admin-form-field"><input id="content_series_key_new" name="series_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" required data-admin-key-input class="form-input"></div></div>
-        <div class="admin-form-row"><label class="form-label" for="content_series_title_new">제목 <span class="sr-required-label">(필수)</span></label><div class="admin-form-field"><input id="content_series_title_new" name="title" maxlength="160" required class="form-input form-control-full"></div></div>
-        <div class="admin-form-row"><label class="form-label" for="content_series_description_new">설명</label><div class="admin-form-field"><textarea id="content_series_description_new" name="description" rows="2" class="form-textarea"></textarea></div></div>
-        <div class="admin-form-row"><label class="form-label" for="content_series_status_new">상태 <span class="sr-required-label">(필수)</span></label><div class="admin-form-field"><select id="content_series_status_new" name="status" class="form-select" required><option value="active">active</option><option value="pending">pending</option><option value="hidden">hidden</option><option value="archived">archived</option><option value="deleted">deleted</option></select></div></div>
-        <div class="admin-form-row"><label class="form-label" for="content_series_visibility_new">공개 범위 <span class="sr-required-label">(필수)</span></label><div class="admin-form-field"><select id="content_series_visibility_new" name="visibility" class="form-select" required><option value="public">public</option><option value="member">member</option><option value="private">private</option></select></div></div>
-        <div class="admin-form-row"><label class="form-label" for="content_series_sort_new">정렬</label><div class="admin-form-field"><input id="content_series_sort_new" type="number" name="sort_order" min="0" max="1000000" value="0" class="form-input"></div></div>
-        <button type="submit" class="btn btn-solid-primary">추가</button>
-    </form>
-</section>
-<section class="admin-card card admin-ui-scope">
-    <h2>목록</h2>
-    <p class="admin-form-help">한 콘텐츠는 운영용 콘텐츠 그룹에 속하면서 동시에 하나의 시리즈 회차로 연결될 수 있습니다. 시리즈 정렬은 그룹 목록 정렬에 영향을 주지 않습니다.</p>
+
+<div class="admin-local-nav-wrap">
+    <div class="admin-local-nav">
+        <a href="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="btn btn-solid-light">전체</a>
+    </div>
+    <div class="admin-summary-stats">
+        <span class="admin-summary-meta">시리즈 <strong><?php echo sr_e((string) ($seriesStatusCounts['total'] ?? 0)); ?>건</strong></span>
+        <a href="<?php echo sr_e(sr_url('/admin/content/series?status=active')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_content_series_status_label('active')); ?> <?php echo sr_e((string) ($seriesStatusCounts['active'] ?? 0)); ?>건</a>
+        <a href="<?php echo sr_e(sr_url('/admin/content/series?status=pending')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_content_series_status_label('pending')); ?> <?php echo sr_e((string) ($seriesStatusCounts['pending'] ?? 0)); ?>건</a>
+        <a href="<?php echo sr_e(sr_url('/admin/content/series?status=hidden')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_content_series_status_label('hidden')); ?> <?php echo sr_e((string) ($seriesStatusCounts['hidden'] ?? 0)); ?>건</a>
+    </div>
+</div>
+
+<form method="get" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-filter admin-content-series-filter ui-form-theme">
+    <div class="admin-filter-grid admin-content-series-search-grid">
+        <div class="admin-filter-field admin-content-series-filter-status">
+            <label for="content_series_filter_status" class="admin-filter-label">상태</label>
+            <select id="content_series_filter_status" name="status" class="form-select admin-filter-input">
+                <option value=""<?php echo (string) ($seriesFilters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                <?php foreach (sr_content_series_statuses() as $status) { ?>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($seriesFilters['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_status_label($status)); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field admin-content-series-filter-visibility">
+            <label for="content_series_filter_visibility" class="admin-filter-label">공개 범위</label>
+            <select id="content_series_filter_visibility" name="visibility" class="form-select admin-filter-input">
+                <option value=""<?php echo (string) ($seriesFilters['visibility'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
+                <?php foreach (sr_content_series_visibility_values() as $visibility) { ?>
+                    <option value="<?php echo sr_e($visibility); ?>"<?php echo (string) ($seriesFilters['visibility'] ?? '') === $visibility ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_visibility_label($visibility)); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field admin-content-series-filter-field">
+            <label for="content_series_filter_field" class="admin-filter-label">검색 대상</label>
+            <select id="content_series_filter_field" name="field" class="form-select admin-filter-input">
+                <?php foreach (['all' => '전체', 'key' => 'key', 'title' => '제목'] as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($seriesFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="admin-filter-field admin-content-series-filter-keyword">
+            <label for="content_series_filter_q" class="admin-filter-label">검색어</label>
+            <input id="content_series_filter_q" type="search" name="q" value="<?php echo sr_e((string) ($seriesFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="key 또는 제목">
+        </div>
+        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+    </div>
+</form>
+
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">콘텐츠 시리즈 목록</h2>
+            <p class="admin-dashboard-meta">콘텐츠 그룹과 별개로 공개 화면의 회차 목록과 이전/다음 이동만 담당합니다.</p>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $seriesCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($seriesCreateModalId); ?>" data-overlay="#<?php echo sr_e($seriesCreateModalId); ?>">시리즈 등록</button>
+    </div>
+    <div class="admin-list-summary-row">
+        <?php if (empty($seriesSort['is_default'])) { ?>
+            <a href="<?php echo sr_e(sr_admin_sort_url($seriesSortOptions, $seriesDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="콘텐츠 시리즈 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+        <?php } ?>
+        <?php echo sr_admin_pagination_summary_html($seriesPagination); ?>
+    </div>
     <div class="table-wrapper">
-        <table class="table">
-            <thead><tr><th>key</th><th>제목</th><th>상태</th><th>공개</th><th>정렬</th><th>관리</th></tr></thead>
+        <table class="table admin-content-series-table">
+            <caption class="sr-only">콘텐츠 시리즈 목록</caption>
+            <thead class="ui-table-head">
+                <tr>
+                    <th<?php echo sr_admin_sort_aria('series_key', $seriesSort); ?>><?php echo sr_admin_sort_header_html('key', 'series_key', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>><?php echo sr_admin_sort_header_html('공개', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('active_item_count', $seriesSort); ?>><?php echo sr_admin_sort_header_html('회차', 'active_item_count', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('sort_order', $seriesSort); ?>><?php echo sr_admin_sort_header_html('정렬', 'sort_order', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('updated_at', $seriesSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th class="text-end">관리</th>
+                </tr>
+            </thead>
             <tbody>
                 <?php if ($seriesList === []) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state">등록된 콘텐츠 시리즈가 없습니다.</td>
+                        <td colspan="8" class="admin-empty-state">등록된 콘텐츠 시리즈가 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($seriesList as $series) { ?>
+                    <?php $seriesUpdateFormId = 'content_series_update_' . (string) (int) $series['id']; ?>
                     <tr>
-                        <td><code><?php echo sr_e((string) $series['series_key']); ?></code></td>
-                        <td colspan="5">
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-inline-form">
+                        <td class="admin-table-nowrap">
+                            <form id="<?php echo sr_e($seriesUpdateFormId); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="update">
                                 <input type="hidden" name="series_id" value="<?php echo sr_e((string) $series['id']); ?>">
                                 <input type="hidden" name="series_key" value="<?php echo sr_e((string) $series['series_key']); ?>">
-                                <input type="text" name="title" value="<?php echo sr_e((string) $series['title']); ?>" maxlength="160" required class="form-input">
-                                <input type="text" name="description" value="<?php echo sr_e((string) ($series['description'] ?? '')); ?>" maxlength="2000" class="form-input">
-                                <select name="status" class="form-select"><?php foreach (sr_content_series_statuses() as $status) { ?><option value="<?php echo sr_e($status); ?>"<?php echo (string) $series['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e($status); ?></option><?php } ?></select>
-                                <select name="visibility" class="form-select"><?php foreach (sr_content_series_visibility_values() as $visibility) { ?><option value="<?php echo sr_e($visibility); ?>"<?php echo (string) $series['visibility'] === $visibility ? ' selected' : ''; ?>><?php echo sr_e($visibility); ?></option><?php } ?></select>
-                                <input type="number" name="sort_order" value="<?php echo sr_e((string) $series['sort_order']); ?>" min="0" max="1000000" class="form-input">
-                                <button type="submit" class="btn btn-sm btn-outline-secondary">저장</button>
                             </form>
+                            <code><?php echo sr_e((string) $series['series_key']); ?></code>
+                        </td>
+                        <td class="admin-table-break admin-content-series-title-cell">
+                            <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="text" name="title" value="<?php echo sr_e((string) $series['title']); ?>" maxlength="160" required class="form-input form-control-full">
+                            <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="text" name="description" value="<?php echo sr_e((string) ($series['description'] ?? '')); ?>" maxlength="2000" class="form-input form-control-full" aria-label="설명">
+                        </td>
+                        <td class="admin-table-nowrap">
+                            <span class="admin-status <?php echo sr_e($seriesStatusClass((string) $series['status'])); ?>"><?php echo sr_e(sr_content_series_status_label((string) $series['status'])); ?></span>
+                            <select form="<?php echo sr_e($seriesUpdateFormId); ?>" name="status" class="form-select" aria-label="상태">
+                                <?php foreach (sr_content_series_statuses() as $status) { ?>
+                                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) $series['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_status_label($status)); ?></option>
+                                <?php } ?>
+                            </select>
+                        </td>
+                        <td class="admin-table-nowrap">
+                            <select form="<?php echo sr_e($seriesUpdateFormId); ?>" name="visibility" class="form-select" aria-label="공개 범위">
+                                <?php foreach (sr_content_series_visibility_values() as $visibility) { ?>
+                                    <option value="<?php echo sr_e($visibility); ?>"<?php echo (string) $series['visibility'] === $visibility ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_visibility_label($visibility)); ?></option>
+                                <?php } ?>
+                            </select>
+                        </td>
+                        <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($series['active_item_count'] ?? 0))); ?></td>
+                        <td class="admin-table-nowrap">
+                            <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="number" name="sort_order" value="<?php echo sr_e((string) $series['sort_order']); ?>" min="0" max="1000000" class="form-input admin-content-series-sort-input">
+                        </td>
+                        <td class="admin-table-nowrap admin-content-series-date-cell"><?php echo sr_e((string) ($series['updated_at'] ?? '')); ?></td>
+                        <td class="admin-table-actions-cell">
+                            <div class="admin-row-actions">
+                                <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="콘텐츠 시리즈 저장" title="저장"><?php echo sr_material_icon_html('save'); ?></button>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
@@ -50,4 +165,69 @@
         </table>
     </div>
 </section>
+<?php echo sr_admin_pagination_html($seriesPagination, '콘텐츠 시리즈 목록 페이지'); ?>
+
+<div id="<?php echo sr_e($seriesCreateModalId); ?>" class="<?php echo sr_e($seriesCreateModalClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($seriesCreateModalId); ?>_title" aria-hidden="<?php echo sr_e($seriesCreateModalAriaHidden); ?>"<?php echo $seriesCreateModalInert; ?>>
+    <div class="modal-dialog">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="modal-content ui-form-theme">
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="create">
+            <div class="modal-header">
+                <h3 id="<?php echo sr_e($seriesCreateModalId); ?>_title" class="modal-title">콘텐츠 시리즈 등록</h3>
+                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($seriesCreateModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-form-row">
+                    <label class="form-label" for="content_series_key_new">key <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <input id="content_series_key_new" name="series_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" value="<?php echo sr_e((string) ($seriesFormValues['series_key'] ?? '')); ?>" required data-admin-key-input data-overlay-focus class="form-input">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="content_series_title_new">제목 <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <input id="content_series_title_new" name="title" maxlength="160" value="<?php echo sr_e((string) ($seriesFormValues['title'] ?? '')); ?>" required class="form-input form-control-full">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="content_series_description_new">설명</label>
+                    <div class="admin-form-field">
+                        <textarea id="content_series_description_new" name="description" rows="3" class="form-textarea"><?php echo sr_e((string) ($seriesFormValues['description'] ?? '')); ?></textarea>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="content_series_status_new">상태 <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <select id="content_series_status_new" name="status" class="form-select" required>
+                            <?php foreach (sr_content_series_statuses() as $status) { ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($seriesFormValues['status'] ?? 'active') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_status_label($status)); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="content_series_visibility_new">공개 범위 <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <select id="content_series_visibility_new" name="visibility" class="form-select" required>
+                            <?php foreach (sr_content_series_visibility_values() as $visibility) { ?>
+                                <option value="<?php echo sr_e($visibility); ?>"<?php echo (string) ($seriesFormValues['visibility'] ?? 'public') === $visibility ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_visibility_label($visibility)); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="content_series_sort_new">정렬</label>
+                    <div class="admin-form-field">
+                        <input id="content_series_sort_new" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($seriesFormValues['sort_order'] ?? 0)); ?>" class="form-input">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($seriesCreateModalId); ?>">취소</button>
+                <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

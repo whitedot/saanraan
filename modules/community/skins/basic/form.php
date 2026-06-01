@@ -119,7 +119,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <option value="0"><?php echo sr_e('선택'); ?></option>
                                 <?php foreach ($seriesOptions as $seriesOption) { ?>
                                     <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) ($seriesValues['series_id'] ?? 0) === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e((string) $seriesOption['visibility']); ?> / <?php echo sr_e((string) $seriesOption['status']); ?>
+                                        <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e(sr_community_series_visibility_label((string) $seriesOption['visibility'])); ?> / <?php echo sr_e(sr_community_series_status_label((string) $seriesOption['status'])); ?>
                                     </option>
                                 <?php } ?>
                             </select>

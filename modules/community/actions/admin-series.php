@@ -50,16 +50,15 @@ if (sr_request_method() === 'POST') {
     }
 }
 
+$seriesFilters = sr_community_admin_series_filters();
+$seriesSortOptions = sr_community_admin_series_sort_options();
+$seriesDefaultSort = sr_community_admin_series_default_sort();
+$seriesSort = sr_admin_sort_from_request($seriesSortOptions, $seriesDefaultSort);
+$seriesStatusCounts = sr_community_admin_series_status_counts($pdo);
+$seriesPagination = sr_admin_pagination_from_total($pdo, $seriesSupported ? sr_community_admin_series_count($pdo, $seriesFilters) : 0);
 $seriesList = [];
 if ($seriesSupported) {
-    $seriesList = $pdo->query(
-        'SELECT s.*, b.title AS board_title, a.display_name AS owner_display_name
-         FROM sr_community_series s
-         INNER JOIN sr_community_boards b ON b.id = s.board_id
-         LEFT JOIN sr_member_accounts a ON a.id = s.owner_account_id
-         ORDER BY s.id DESC
-         LIMIT 200'
-    )->fetchAll();
+    $seriesList = sr_community_admin_series_list($pdo, $seriesFilters, (int) $seriesPagination['per_page'], sr_admin_pagination_offset($seriesPagination), $seriesSort);
 } elseif (sr_request_method() !== 'POST') {
     $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
 }

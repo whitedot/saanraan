@@ -7,9 +7,29 @@ function sr_community_series_statuses(): array
     return ['pending', 'active', 'hidden', 'archived', 'deleted'];
 }
 
+function sr_community_series_status_label(string $status): string
+{
+    return [
+        'pending' => '대기',
+        'active' => '사용',
+        'hidden' => '숨김',
+        'archived' => '보관',
+        'deleted' => '삭제',
+    ][$status] ?? $status;
+}
+
 function sr_community_series_visibility_values(): array
 {
     return ['public', 'member', 'private'];
+}
+
+function sr_community_series_visibility_label(string $visibility): string
+{
+    return [
+        'public' => '전체 공개',
+        'member' => '회원 공개',
+        'private' => '비공개',
+    ][$visibility] ?? $visibility;
 }
 
 function sr_community_series_item_statuses(): array
@@ -97,6 +117,173 @@ function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0)
          LIMIT 200'
     );
     $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_admin_series_filters(): array
+{
+    $status = sr_get_string('status', 30);
+    if ($status !== '' && !in_array($status, sr_community_series_statuses(), true)) {
+        $status = '';
+    }
+
+    $visibility = sr_get_string('visibility', 30);
+    if ($visibility !== '' && !in_array($visibility, sr_community_series_visibility_values(), true)) {
+        $visibility = '';
+    }
+
+    $field = sr_get_string('field', 20);
+    if (!in_array($field, ['all', 'title', 'board', 'owner', 'note'], true)) {
+        $field = 'all';
+    }
+
+    return [
+        'status' => $status,
+        'visibility' => $visibility,
+        'field' => $field,
+        'q' => trim(sr_get_string('q', 120)),
+    ];
+}
+
+function sr_community_admin_series_query_parts(array $filters): array
+{
+    $where = [];
+    $params = [];
+
+    if ((string) ($filters['status'] ?? '') !== '') {
+        $where[] = 's.status = :status';
+        $params['status'] = (string) $filters['status'];
+    }
+
+    if ((string) ($filters['visibility'] ?? '') !== '') {
+        $where[] = 's.visibility = :visibility';
+        $params['visibility'] = (string) $filters['visibility'];
+    }
+
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $field = (string) ($filters['field'] ?? 'all');
+        if ($field === 'title') {
+            $where[] = 's.title LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'board') {
+            $where[] = 'b.title LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'owner') {
+            $where[] = '(a.display_name LIKE :owner_keyword OR a.email LIKE :owner_keyword)';
+            $params['owner_keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'note') {
+            $where[] = 's.admin_note LIKE :keyword';
+            $params['keyword'] = '%' . $keyword . '%';
+        } else {
+            $where[] = '(s.title LIKE :title_keyword OR b.title LIKE :board_keyword OR a.display_name LIKE :owner_keyword OR a.email LIKE :owner_keyword OR s.admin_note LIKE :note_keyword)';
+            $params['title_keyword'] = '%' . $keyword . '%';
+            $params['board_keyword'] = '%' . $keyword . '%';
+            $params['owner_keyword'] = '%' . $keyword . '%';
+            $params['note_keyword'] = '%' . $keyword . '%';
+        }
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_community_admin_series_count(PDO $pdo, array $filters): int
+{
+    if (!sr_community_series_supported($pdo)) {
+        return 0;
+    }
+
+    $queryParts = sr_community_admin_series_query_parts($filters);
+    $sql = 'SELECT COUNT(*) AS count_value
+            FROM sr_community_series s
+            INNER JOIN sr_community_boards b ON b.id = s.board_id
+            LEFT JOIN sr_member_accounts a ON a.id = s.owner_account_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_community_admin_series_status_counts(PDO $pdo): array
+{
+    $counts = ['total' => 0];
+    foreach (sr_community_series_statuses() as $status) {
+        $counts[$status] = 0;
+    }
+
+    if (!sr_community_series_supported($pdo)) {
+        return $counts;
+    }
+
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS count_value FROM sr_community_series GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $count = (int) ($row['count_value'] ?? 0);
+        if (array_key_exists($status, $counts)) {
+            $counts[$status] = $count;
+        }
+        $counts['total'] += $count;
+    }
+
+    return $counts;
+}
+
+function sr_community_admin_series_sort_options(): array
+{
+    return [
+        'title' => ['columns' => ['s.title', 's.id']],
+        'board_title' => ['columns' => ['b.title', 's.id']],
+        'owner_display_name' => ['columns' => ['a.display_name', 's.id']],
+        'status' => ['columns' => ['s.status', 's.id']],
+        'visibility' => ['columns' => ['s.visibility', 's.id']],
+        'active_item_count' => ['columns' => ['active_item_count', 's.id']],
+        'updated_at' => ['columns' => ['s.updated_at', 's.id']],
+    ];
+}
+
+function sr_community_admin_series_default_sort(): array
+{
+    return sr_admin_sort_default('updated_at', 'desc');
+}
+
+function sr_community_admin_series_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
+{
+    if (!sr_community_series_supported($pdo)) {
+        return [];
+    }
+
+    $queryParts = sr_community_admin_series_query_parts($filters);
+    $sql = 'SELECT s.*, b.title AS board_title, a.display_name AS owner_display_name,
+                   (SELECT COUNT(*) FROM sr_community_series_items si WHERE si.series_id = s.id AND si.item_status = \'active\') AS active_item_count
+            FROM sr_community_series s
+            INNER JOIN sr_community_boards b ON b.id = s.board_id
+            LEFT JOIN sr_member_accounts a ON a.id = s.owner_account_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+    $sql .= sr_admin_sort_order_sql(sr_community_admin_series_sort_options(), $sort, sr_community_admin_series_default_sort());
+    if ($limit > 0) {
+        $sql .= ' LIMIT :limit_value OFFSET :offset_value';
+    }
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($queryParts['params'] as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit > 0) {
+        $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    }
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }
