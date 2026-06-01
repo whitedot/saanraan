@@ -18,4 +18,10 @@
 
 ## CKEditor 스파이크
 
-이번 구현은 CKEditor 5 widget UI 전체가 아니라 직렬화 경계를 먼저 검증하는 vertical slice다. CKEditor가 활성화된 HTML 본문에서도 저장 데이터의 단일 진실원은 토큰 문자열이며, 시각 widget HTML은 서버 저장 검증에서 신뢰하지 않는다. 전체 삽입/편집 모달은 후속 작업에서 `sr_link_card` 토큰을 생성하는 UI로 붙인다.
+이번 구현은 CKEditor 5 widget UI 전체가 아니라 직렬화 경계를 먼저 검증하는 vertical slice다. CKEditor가 활성화된 HTML 본문에서도 저장 데이터의 단일 진실원은 토큰 문자열이며, 시각 widget HTML은 서버 저장 검증에서 신뢰하지 않는다. `.tools/bin/check-link-card.php`는 HTML fixture 안의 토큰 재추출, rich text sanitizer 이후 토큰 유지, 중복 토큰 병합, 가짜 widget HTML 무시를 확인한다. 전체 삽입/편집 모달은 후속 작업에서 `sr_link_card` 토큰을 생성하는 UI로 붙인다.
+
+## 관리자 정리 흐름
+
+- 콘텐츠 관리자는 `/admin/content/link-refs`에서 콘텐츠 본문에 배치된 링크 카드와 깨진 대상을 확인하고 원본 콘텐츠 편집 화면으로 이동해 제거, 교체, 유지 판단을 한다.
+- 커뮤니티 관리자는 `/admin/community/link-refs`에서 게시글 본문에 배치된 링크 카드와 깨진 대상을 확인하고 원본 게시글 편집 화면으로 이동해 제거, 교체, 유지 판단을 한다.
+- 정리 화면은 참조 행을 단독 삭제하지 않는다. 저장 진실원은 본문 토큰이므로 운영자는 본문을 수정해 다음 저장 reconciliation에서 참조를 갱신한다.

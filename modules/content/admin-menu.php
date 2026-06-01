@@ -25,6 +25,11 @@ return [
             'order' => 25,
         ],
         [
+            'label' => '링크 카드 점검',
+            'path' => '/admin/content/link-refs',
+            'order' => 26,
+        ],
+        [
             'label' => '파일 다운로드 내역',
             'path' => '/admin/content/file-downloads',
             'order' => 27,

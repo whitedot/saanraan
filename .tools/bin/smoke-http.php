@@ -68,6 +68,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin content link refs entry',
+        'path' => '/admin/content/link-refs',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'community entry',
         'path' => '/community',
         'allowed_statuses' => [200, 302, 404],
@@ -231,6 +237,12 @@ $checks = [
     [
         'label' => 'community admin posts entry',
         'path' => '/admin/community/posts',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community admin link refs entry',
+        'path' => '/admin/community/link-refs',
         'allowed_statuses' => [200, 302, 403, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],

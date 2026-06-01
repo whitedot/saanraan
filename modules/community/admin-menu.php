@@ -30,6 +30,11 @@ return [
             'order' => 50,
         ],
         [
+            'label' => '링크 카드 점검',
+            'path' => '/admin/community/link-refs',
+            'order' => 55,
+        ],
+        [
             'label' => sr_t('community::ui.nav.reports'),
             'path' => '/admin/community/reports',
             'order' => 60,
