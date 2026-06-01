@@ -33,6 +33,9 @@ if (sr_request_method() === 'POST') {
     if (!in_array((string) $values['status'], sr_content_series_statuses(), true) || !in_array((string) $values['visibility'], sr_content_series_visibility_values(), true)) {
         $errors[] = '상태 또는 공개 범위가 올바르지 않습니다.';
     }
+    if ($intent === 'create' && $errors === [] && sr_content_series_key_exists($pdo, (string) $values['series_key'])) {
+        $errors[] = '이미 같은 key의 콘텐츠 시리즈가 있습니다.';
+    }
     if ($errors === []) {
         if ($intent === 'create') {
             $seriesId = sr_content_create_series($pdo, $values, (int) $account['id']);

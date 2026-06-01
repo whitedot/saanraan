@@ -28,10 +28,71 @@ function sr_content_series_by_id(PDO $pdo, int $seriesId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_content_series_by_key(PDO $pdo, string $seriesKey): ?array
+{
+    if (!sr_content_series_key_is_valid($seriesKey)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_content_series WHERE series_key = :series_key LIMIT 1');
+    $stmt->execute(['series_key' => $seriesKey]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_series_key_exists(PDO $pdo, string $seriesKey, int $exceptSeriesId = 0): bool
+{
+    if (!sr_content_series_key_is_valid($seriesKey)) {
+        return false;
+    }
+
+    $params = ['series_key' => $seriesKey];
+    $where = 'series_key = :series_key';
+    if ($exceptSeriesId > 0) {
+        $where .= ' AND id <> :except_series_id';
+        $params['except_series_id'] = $exceptSeriesId;
+    }
+
+    $stmt = $pdo->prepare('SELECT id FROM sr_content_series WHERE ' . $where . ' LIMIT 1');
+    $stmt->execute($params);
+
+    return is_array($stmt->fetch());
+}
+
 function sr_content_series_list(PDO $pdo): array
 {
     $stmt = $pdo->query('SELECT * FROM sr_content_series ORDER BY sort_order ASC, id DESC LIMIT 200');
     return $stmt->fetchAll();
+}
+
+function sr_content_series_item_visible_to_account(PDO $pdo, array $item, ?array $account, int $currentContentId): bool
+{
+    $itemContentId = (int) ($item['content_id'] ?? 0);
+    if ($itemContentId < 1) {
+        return false;
+    }
+    if ($itemContentId === $currentContentId) {
+        return true;
+    }
+
+    $page = sr_content_by_id($pdo, $itemContentId);
+    if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
+        return false;
+    }
+
+    $page = sr_content_with_effective_settings($pdo, $page);
+    if (!sr_content_asset_access_required($page)) {
+        return true;
+    }
+
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    if ($accountId < 1) {
+        return false;
+    }
+
+    $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
+    return sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $itemContentId);
 }
 
 function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = false, ?array $account = null, int $currentContentId = 0): array
@@ -57,29 +118,11 @@ function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = fal
         return $items;
     }
 
-    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
     $filtered = [];
     foreach ($items as $item) {
-        $itemContentId = (int) ($item['content_id'] ?? 0);
-        if ($itemContentId === $currentContentId) {
+        if (sr_content_series_item_visible_to_account($pdo, $item, $account, $currentContentId)) {
             $filtered[] = $item;
-            continue;
         }
-
-        $page = sr_content_by_id($pdo, $itemContentId);
-        if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
-            continue;
-        }
-
-        $page = sr_content_with_effective_settings($pdo, $page);
-        if (sr_content_asset_access_required($page)) {
-            $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
-            if ($accountId < 1 || !sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $itemContentId)) {
-                continue;
-            }
-        }
-
-        $filtered[] = $item;
     }
 
     return sr_content_series_items_with_navigation($filtered, $currentContentId);

@@ -100,7 +100,17 @@ function sr_community_series_items(PDO $pdo, int $seriesId, bool $publicOnly = f
             $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
             if (sr_community_asset_event_required($paidReadConfig)) {
                 $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
-                if ($accountId < 1 || !sr_community_has_paid_read_session($accountId, $itemPostId)) {
+                if ($accountId < 1) {
+                    continue;
+                }
+
+                $hasPaidReadAccess = sr_community_has_paid_read_session($accountId, $itemPostId);
+                if (!$hasPaidReadAccess && (string) ($paidReadConfig['charge_policy'] ?? 'once') === 'once') {
+                    $couponDedupeKey = 'community.post.read:coupon:' . (string) $accountId . ':' . (string) $itemPostId;
+                    $hasPaidReadAccess = sr_community_once_access_already_granted($pdo, $paidReadConfig, $accountId, 'post_read', $itemPostId, $couponDedupeKey);
+                }
+
+                if (!$hasPaidReadAccess) {
                     continue;
                 }
             }
