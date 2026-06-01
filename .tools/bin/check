@@ -80,6 +80,7 @@ fi
 "${PHP_BIN}" .tools/bin/check-asset-exchange-logs.php
 "${PHP_BIN}" .tools/bin/check-paid-download-delivery.php
 "${PHP_BIN}" .tools/bin/check-coupon-admin-validation.php
+"${PHP_BIN}" .tools/bin/check-content-scheduled-scope.php
 
 {
     find . \

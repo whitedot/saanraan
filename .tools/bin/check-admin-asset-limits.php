@@ -64,8 +64,12 @@ foreach ($assets as $moduleKey => $asset) {
         $errors[] = $moduleKey . ' admin view must expose dual-approval fields for large adjustments.';
     }
 
-    if (!is_string($module) || strpos($module, "'version' => '" . $asset['version'] . "'") === false) {
-        $errors[] = $moduleKey . ' module version must be bumped for admin adjustment limits.';
+    if (
+        !is_string($module)
+        || preg_match("/'version'\\s*=>\\s*'([0-9]{4}\\.[0-9]{2}\\.[0-9]{3})'/", $module, $versionMatch) !== 1
+        || version_compare($versionMatch[1], $asset['version'], '<')
+    ) {
+        $errors[] = $moduleKey . ' module version must be at least ' . $asset['version'] . ' for admin adjustment limits.';
     }
 
     if (!is_string($update) || strpos($update, "WHERE module_key = '" . $moduleKey . "'") === false) {
