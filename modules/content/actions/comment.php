@@ -30,7 +30,7 @@ if ($errors !== []) {
 }
 
 $commentId = sr_content_create_comment($pdo, $contentId, (int) $account['id'], $values);
-sr_content_create_comment_notifications($pdo, $page, $commentId, (string) $values['body_text'], (int) $account['id']);
+$commentNotificationResult = sr_content_create_comment_notifications($pdo, $page, $commentId, (string) $values['body_text'], (int) $account['id']);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',
@@ -41,6 +41,10 @@ sr_audit_log($pdo, [
     'message' => 'Content comment created.',
     'metadata' => [
         'content_id' => $contentId,
+        'content_author_notification_created' => !empty($commentNotificationResult['content_author_notification_created']),
+        'mention_candidate_count' => (int) ($commentNotificationResult['mention_candidate_count'] ?? 0),
+        'mention_notification_count' => (int) ($commentNotificationResult['mention_notification_count'] ?? 0),
+        'mention_account_hashes' => $commentNotificationResult['mention_account_hashes'] ?? [],
     ],
 ]);
 

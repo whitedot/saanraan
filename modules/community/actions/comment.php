@@ -82,6 +82,7 @@ sr_audit_log($pdo, [
         'asset_comment_reward_processed' => !empty($commentRewardResult['processed']),
     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
+$postAuthorNotificationCreated = false;
 if ((int) $post['author_account_id'] !== (int) $account['id']) {
     $commentAuthorLabel = sr_community_message_account_label(
         (string) ($account['display_name'] ?? ''),
@@ -92,7 +93,7 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         sr_community_member_nickname($pdo, (int) $account['id']),
         $settings
     );
-    sr_community_create_account_notification(
+    $postAuthorNotificationCreated = sr_community_create_account_notification(
         $pdo,
         (int) $post['author_account_id'],
         sr_t('community::notification.comment.title'),
@@ -103,7 +104,7 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         (int) $account['id']
     );
 }
-sr_community_create_comment_mention_notifications(
+$commentMentionNotificationResult = sr_community_create_comment_mention_notifications(
     $pdo,
     $postId,
     $commentId,
@@ -111,6 +112,22 @@ sr_community_create_comment_mention_notifications(
     (int) $account['id'],
     [(int) $post['author_account_id']]
 );
+sr_audit_log($pdo, [
+    'actor_account_id' => (int) $account['id'],
+    'actor_type' => 'member',
+    'event_type' => 'community.comment.notifications_created',
+    'target_type' => 'community_comment',
+    'target_id' => (string) $commentId,
+    'result' => 'success',
+    'message' => 'Community comment notifications created.',
+    'metadata' => [
+        'post_id' => $postId,
+        'post_author_notification_created' => $postAuthorNotificationCreated,
+        'mention_candidate_count' => (int) ($commentMentionNotificationResult['mention_candidate_count'] ?? 0),
+        'mention_notification_count' => (int) ($commentMentionNotificationResult['mention_notification_count'] ?? 0),
+        'mention_account_hashes' => $commentMentionNotificationResult['mention_account_hashes'] ?? [],
+    ],
+]);
 if (!empty($commentRewardResult['processed'])) {
     $_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.asset_granted', [
         'asset' => sr_community_asset_module_label((string) $commentRewardConfig['asset_module'], $pdo),

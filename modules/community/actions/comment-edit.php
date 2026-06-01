@@ -32,7 +32,7 @@ if ($errors !== []) {
 }
 
 sr_community_update_comment_content($pdo, $commentId, $values);
-sr_community_create_comment_mention_notifications(
+$commentMentionNotificationResult = sr_community_create_comment_mention_notifications(
     $pdo,
     (int) $comment['post_id'],
     $commentId,
@@ -50,6 +50,9 @@ sr_audit_log($pdo, [
     'message' => 'Community comment updated by author.',
     'metadata' => [
         'post_id' => (int) $comment['post_id'],
+        'mention_candidate_count' => (int) ($commentMentionNotificationResult['mention_candidate_count'] ?? 0),
+        'mention_notification_count' => (int) ($commentMentionNotificationResult['mention_notification_count'] ?? 0),
+        'mention_account_hashes' => $commentMentionNotificationResult['mention_account_hashes'] ?? [],
     ],
 ]);
 $_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.comment_updated');

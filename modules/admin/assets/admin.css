@@ -886,6 +886,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     grid-template-columns:
         max-content
         minmax(7rem, 8rem)
+        minmax(7rem, 8rem)
+        minmax(8rem, 9rem)
         minmax(8.5rem, 9.5rem)
         minmax(8.5rem, 9.5rem)
         minmax(16rem, 1fr)

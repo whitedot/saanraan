@@ -182,19 +182,34 @@ function sr_community_create_comment_mention_notifications(
     string $bodyText,
     int $createdByAccountId,
     array $excludeAccountIds = []
-): void {
+): array {
+    $result = [
+        'mention_candidate_count' => 0,
+        'mention_notification_count' => 0,
+        'mention_account_hashes' => [],
+    ];
     if ($postId < 1 || $commentId < 1) {
-        return;
+        return $result;
     }
 
-    foreach (sr_community_mentioned_account_ids($pdo, $bodyText, array_merge($excludeAccountIds, [$createdByAccountId])) as $accountId) {
-        sr_community_create_account_notification(
+    $mentionedAccountIds = sr_community_mentioned_account_ids($pdo, $bodyText, array_merge($excludeAccountIds, [$createdByAccountId]));
+    $result['mention_candidate_count'] = count($mentionedAccountIds);
+    $config = sr_config();
+    foreach ($mentionedAccountIds as $accountId) {
+        $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
+    }
+    foreach ($mentionedAccountIds as $accountId) {
+        if (sr_community_create_account_notification(
             $pdo,
             $accountId,
             sr_t('community::notification.comment_mention.title'),
             sr_t('community::notification.comment_mention.body'),
             '/community/post?id=' . (string) $postId . '#comments',
             $createdByAccountId
-        );
+        )) {
+            $result['mention_notification_count']++;
+        }
     }
+
+    return $result;
 }

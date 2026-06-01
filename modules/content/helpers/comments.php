@@ -177,16 +177,32 @@ function sr_content_mentioned_account_ids(PDO $pdo, string $bodyText, array $exc
     return array_keys($accountIds);
 }
 
-function sr_content_create_comment_notifications(PDO $pdo, array $page, int $commentId, string $bodyText, int $createdByAccountId): void
+function sr_content_create_comment_notifications(PDO $pdo, array $page, int $commentId, string $bodyText, int $createdByAccountId): array
 {
+    $result = [
+        'content_author_notification_created' => false,
+        'mention_candidate_count' => 0,
+        'mention_notification_count' => 0,
+        'mention_account_hashes' => [],
+    ];
     $contentId = (int) ($page['id'] ?? 0);
     $link = sr_content_path((string) ($page['slug'] ?? '')) . '#content-comments';
     $authorAccountId = (int) ($page['created_by'] ?? 0);
     if ($authorAccountId > 0 && $authorAccountId !== $createdByAccountId) {
-        sr_content_create_account_notification($pdo, $authorAccountId, '새 콘텐츠 댓글이 등록되었습니다.', '회원님의 콘텐츠에 새 댓글이 등록되었습니다.', $link, $createdByAccountId);
+        $result['content_author_notification_created'] = sr_content_create_account_notification($pdo, $authorAccountId, '새 콘텐츠 댓글이 등록되었습니다.', '회원님의 콘텐츠에 새 댓글이 등록되었습니다.', $link, $createdByAccountId);
     }
 
-    foreach (sr_content_mentioned_account_ids($pdo, $bodyText, [$createdByAccountId, $authorAccountId]) as $accountId) {
-        sr_content_create_account_notification($pdo, $accountId, '콘텐츠 댓글 멘션 알림', '콘텐츠 댓글에서 회원님을 언급했습니다.', $link, $createdByAccountId);
+    $mentionedAccountIds = sr_content_mentioned_account_ids($pdo, $bodyText, [$createdByAccountId, $authorAccountId]);
+    $result['mention_candidate_count'] = count($mentionedAccountIds);
+    $config = sr_config();
+    foreach ($mentionedAccountIds as $accountId) {
+        $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
     }
+    foreach ($mentionedAccountIds as $accountId) {
+        if (sr_content_create_account_notification($pdo, $accountId, '콘텐츠 댓글 멘션 알림', '콘텐츠 댓글에서 회원님을 언급했습니다.', $link, $createdByAccountId)) {
+            $result['mention_notification_count']++;
+        }
+    }
+
+    return $result;
 }

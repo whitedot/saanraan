@@ -26,7 +26,7 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
         <label class="admin-filter-field admin-audit-filter-field" for="modules_admin_audit_logs_field">
             <span class="admin-filter-label"><?php echo sr_e(sr_t('admin::ui.search.b79bc9c8')); ?></span>
             <select id="modules_admin_audit_logs_field" name="field" class="form-select">
-                <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 식별값', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c')] as $value => $label) { ?>
+                <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 식별값', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c'), 'actor_type' => '처리자 유형', 'ip_address' => 'IP'] as $value => $label) { ?>
                     <option value="<?php echo sr_e($value); ?>"<?php echo $filters['field'] === $value ? ' selected' : ''; ?>>
                         <?php echo sr_e($label); ?>
                     </option>
@@ -43,6 +43,14 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                 <?php } ?>
             </select>
         </label>
+        <label class="admin-filter-field admin-audit-filter-actor-type" for="modules_admin_audit_logs_actor_type">
+            <span class="admin-filter-label">처리자 유형</span>
+            <input id="modules_admin_audit_logs_actor_type" type="text" name="actor_type" value="<?php echo sr_e((string) ($filters['actor_type'] ?? '')); ?>" class="form-input" maxlength="40" placeholder="admin">
+        </label>
+        <label class="admin-filter-field admin-audit-filter-ip" for="modules_admin_audit_logs_ip_address">
+            <span class="admin-filter-label">IP</span>
+            <input id="modules_admin_audit_logs_ip_address" type="text" name="ip_address" value="<?php echo sr_e((string) ($filters['ip_address'] ?? '')); ?>" class="form-input" maxlength="45" placeholder="127.0.0.1">
+        </label>
         <label class="admin-filter-field admin-audit-filter-date" for="modules_admin_audit_logs_date_from">
             <span class="admin-filter-label"><?php echo sr_e(sr_t('admin::ui.text.f86e346d')); ?></span>
             <input id="modules_admin_audit_logs_date_from" type="date" name="date_from" value="<?php echo sr_e($filters['date_from']); ?>" class="form-input">
@@ -57,13 +65,19 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
         </label>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('admin::ui.text.f8d240bf')); ?></button>
     </div>
-    <?php if (($filters['event_type'] ?? '') !== '' || ($filters['target_type'] ?? '') !== '' || ($filters['target_id'] ?? '') !== '') { ?>
+    <?php if (($filters['event_type'] ?? '') !== '' || ($filters['target_type'] ?? '') !== '' || ($filters['target_id'] ?? '') !== '' || ($filters['actor_type'] ?? '') !== '' || ($filters['ip_address'] ?? '') !== '') { ?>
         <div class="admin-summary-stats">
             <?php if (($filters['event_type'] ?? '') !== '') { ?>
                 <span class="admin-summary-meta">이벤트 <strong><?php echo sr_e((string) $filters['event_type']); ?></strong></span>
             <?php } ?>
             <?php if (($filters['target_type'] ?? '') !== '') { ?>
                 <span class="admin-summary-meta">대상 유형 <strong><?php echo sr_e(sr_admin_code_label((string) $filters['target_type'], 'target_type')); ?></strong></span>
+            <?php } ?>
+            <?php if (($filters['actor_type'] ?? '') !== '') { ?>
+                <span class="admin-summary-meta">처리자 유형 <strong><?php echo sr_e(sr_admin_code_label((string) $filters['actor_type'], 'actor_type')); ?></strong></span>
+            <?php } ?>
+            <?php if (($filters['ip_address'] ?? '') !== '') { ?>
+                <span class="admin-summary-meta">IP <strong><?php echo sr_e((string) $filters['ip_address']); ?></strong></span>
             <?php } ?>
             <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-summary-meta">필터 해제</a>
         </div>
@@ -126,6 +140,12 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                                 'id' => $metadataModalId,
                                 'created_at' => (string) $log['created_at'],
                                 'event_type' => sr_admin_event_type_label((string) $log['event_type']),
+                                'raw_event_type' => (string) $log['event_type'],
+                                'actor' => (int) ($log['actor_account_id'] ?? 0) > 0 ? 'account #' . (string) (int) $log['actor_account_id'] : sr_admin_audit_log_display_actor_type($log),
+                                'target' => (string) ($log['target_type'] ?? '') . ((string) ($log['target_id'] ?? '') !== '' ? ' #' . (string) $log['target_id'] : ''),
+                                'result' => sr_admin_code_label((string) $log['result'], 'result'),
+                                'ip_address' => (string) ($log['ip_address'] ?? ''),
+                                'user_agent' => sr_log_sensitive_text_sanitize(sr_log_line_value((string) ($log['user_agent'] ?? ''), 300)),
                                 'metadata' => $metadata,
                             ];
                             ?>
@@ -189,7 +209,17 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                 <div class="modal-body">
                     <div class="admin-summary-stats">
                         <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['event_type']); ?></span>
+                        <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['raw_event_type']); ?></span>
                         <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['created_at']); ?></span>
+                        <span class="admin-summary-meta">처리자 <?php echo sr_e((string) $auditMetadataModal['actor']); ?></span>
+                        <span class="admin-summary-meta">대상 <?php echo sr_e((string) $auditMetadataModal['target']); ?></span>
+                        <span class="admin-summary-meta">결과 <?php echo sr_e((string) $auditMetadataModal['result']); ?></span>
+                        <?php if ((string) $auditMetadataModal['ip_address'] !== '') { ?>
+                            <span class="admin-summary-meta">IP <?php echo sr_e((string) $auditMetadataModal['ip_address']); ?></span>
+                        <?php } ?>
+                        <?php if ((string) $auditMetadataModal['user_agent'] !== '') { ?>
+                            <span class="admin-summary-meta">UA <?php echo sr_e((string) $auditMetadataModal['user_agent']); ?></span>
+                        <?php } ?>
                     </div>
                     <pre class="admin-audit-metadata-pre"><code><?php echo sr_e((string) $auditMetadataModal['metadata']); ?></code></pre>
                 </div>
