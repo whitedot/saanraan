@@ -3,6 +3,7 @@
 
   var configElement = document.getElementById('sr-ckeditor-config');
   var config = {};
+  window.srCkeditorInstances = window.srCkeditorInstances || {};
 
   if (configElement) {
     try {
@@ -114,6 +115,9 @@
       ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor)).then(function (editor) {
         if (editor.ui && editor.ui.view && editor.ui.view.element) {
           editor.ui.view.element.classList.add('sr-ckeditor');
+        }
+        if (textarea.id) {
+          window.srCkeditorInstances[textarea.id] = editor;
         }
         textarea.dataset.srEditorReady = '1';
         markHtmlFormat(textarea);

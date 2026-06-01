@@ -48,6 +48,7 @@ CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type =>
 
 모듈 간 링크 카드는 배치 모듈이 자기 참조 테이블을 소유한다. 본문 저장 문법은 `{{sr_link_card module="community" entity_type="post" entity_id="1" variant="compact" label="선택 제목" slot="body"}}`이며, 저장 action은 최종 본문에서 `sr_link_card_normalized_refs()`로 토큰을 재추출한 뒤 `sr_link_card_reconcile_table()`로 자기 테이블을 동기화한다. 대상 모듈은 `sr_{module_key}_link_card_resolve_many(PDO $pdo, array $types): array` helper로 카드 표시 데이터를 제공한다. 클라이언트 widget HTML이나 hidden 참조 목록은 저장 진실원으로 쓰지 않는다.
 링크 카드 표현은 `compact`, `full`, `inline` variant만 공통 helper가 해석한다. 제목, 요약, URL, 상태, 깨짐 여부는 대상 모듈 resolver가 반환하고, 카드 외형의 기본 class는 `sr-link-card` 계열을 사용한다. 배치 모듈이 추가 외형을 입히더라도 원본 이동 링크, 깨진 카드의 비활성 링크, 제목 대체 텍스트는 유지해야 한다.
+검색 삽입 UI는 대상 모듈이 제공하는 공개 대상 검색 helper를 JSON action으로 감싸고, 공통 `data-link-card-picker` 스크립트가 선택 대상에서 토큰 문자열을 생성해 CKEditor 또는 일반 textarea에 삽입한다. 검색 결과는 현재 공개 렌더링 가능한 대상만 반환해야 한다.
 
 코어에 넣지 않는다:
 

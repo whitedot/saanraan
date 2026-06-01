@@ -490,6 +490,233 @@
 (function () {
   'use strict';
 
+  var PICKER_SELECTOR = '[data-link-card-picker]';
+
+  function getElementTarget(target) {
+    if (!target) {
+      return null;
+    }
+
+    if (target.nodeType === 1) {
+      return target;
+    }
+
+    return target.parentElement || null;
+  }
+
+  function insertIntoTextarea(textarea, text) {
+    var start = typeof textarea.selectionStart === 'number' ? textarea.selectionStart : textarea.value.length;
+    var end = typeof textarea.selectionEnd === 'number' ? textarea.selectionEnd : start;
+    var before = textarea.value.slice(0, start);
+    var after = textarea.value.slice(end);
+    var prefix = before !== '' && !/\s$/.test(before) ? '\n' : '';
+    var suffix = after !== '' && !/^\s/.test(after) ? '\n' : '';
+    var inserted = prefix + text + suffix;
+
+    textarea.value = before + inserted + after;
+    textarea.focus();
+    textarea.selectionStart = start + inserted.length;
+    textarea.selectionEnd = start + inserted.length;
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  window.srInsertEditorText = function srInsertEditorText(textareaId, text) {
+    var textarea = document.getElementById(textareaId);
+    var editor = window.srCkeditorInstances && textareaId ? window.srCkeditorInstances[textareaId] : null;
+
+    if (editor && editor.model && typeof editor.model.change === 'function') {
+      editor.model.change(function (writer) {
+        editor.model.insertContent(writer.createText(text));
+      });
+      if (textarea) {
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      return true;
+    }
+
+    if (!textarea) {
+      return false;
+    }
+
+    insertIntoTextarea(textarea, text);
+    return true;
+  };
+
+  function tokenValue(value) {
+    return String(value || '').replace(/"/g, "'");
+  }
+
+  function buildToken(item, variant) {
+    var token = '{{sr_link_card module="' + tokenValue(item.module)
+      + '" entity_type="' + tokenValue(item.entity_type)
+      + '" entity_id="' + tokenValue(item.entity_id)
+      + '" variant="' + tokenValue(variant || 'compact') + '"';
+    var label = tokenValue(item.title || '');
+    if (label !== '') {
+      token += ' label="' + label + '"';
+    }
+
+    return token + ' slot="body"}}';
+  }
+
+  function pickerState(picker) {
+    if (!picker._linkCardPickerState) {
+      picker._linkCardPickerState = { selected: null };
+    }
+
+    return picker._linkCardPickerState;
+  }
+
+  function setMessage(picker, message) {
+    var results = picker.querySelector('[data-link-card-results]');
+    if (results) {
+      results.textContent = message;
+    }
+  }
+
+  function renderItems(picker, items) {
+    var results = picker.querySelector('[data-link-card-results]');
+    var state = pickerState(picker);
+    state.selected = null;
+    if (!results) {
+      return;
+    }
+
+    results.innerHTML = '';
+    if (!Array.isArray(items) || items.length === 0) {
+      results.textContent = picker.dataset.emptyLabel || '검색 결과가 없습니다.';
+      return;
+    }
+
+    items.forEach(function (item) {
+      var button = document.createElement('button');
+      var title = document.createElement('strong');
+      var meta = document.createElement('span');
+      var summary = document.createElement('small');
+
+      button.type = 'button';
+      button.className = 'sr-link-card-picker-result';
+      button.setAttribute('data-link-card-select', '1');
+      button._linkCardItem = item;
+      title.textContent = item.title || '(제목 없음)';
+      meta.textContent = item.meta || item.url || '';
+      summary.textContent = item.summary || '';
+      button.appendChild(title);
+      button.appendChild(meta);
+      if (summary.textContent !== '') {
+        button.appendChild(summary);
+      }
+      results.appendChild(button);
+    });
+  }
+
+  function searchPicker(picker) {
+    var endpoint = picker.dataset.endpoint || '';
+    var queryInput = picker.querySelector('[data-link-card-search]');
+    var query = queryInput ? queryInput.value : '';
+    var target = picker.dataset.target || '';
+    if (endpoint === '') {
+      return;
+    }
+
+    setMessage(picker, picker.dataset.loadingLabel || '검색 중입니다.');
+
+    var url = new URL(endpoint, window.location.href);
+    url.searchParams.set('q', query);
+    if (target !== '') {
+      url.searchParams.set('target', target);
+    }
+
+    fetch(url.toString(), {
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin'
+    }).then(function (response) {
+      if (!response.ok) {
+        throw new Error('Search request failed.');
+      }
+      return response.json();
+    }).then(function (data) {
+      renderItems(picker, data && Array.isArray(data.items) ? data.items : []);
+    }).catch(function () {
+      setMessage(picker, picker.dataset.errorLabel || '검색 결과를 불러오지 못했습니다.');
+    });
+  }
+
+  function selectResult(picker, button) {
+    var state = pickerState(picker);
+    Array.prototype.slice.call(picker.querySelectorAll('[data-link-card-select]')).forEach(function (item) {
+      item.classList.remove('is-selected');
+      item.setAttribute('aria-pressed', 'false');
+    });
+    button.classList.add('is-selected');
+    button.setAttribute('aria-pressed', 'true');
+    state.selected = button._linkCardItem || null;
+  }
+
+  function insertSelected(picker) {
+    var state = pickerState(picker);
+    var item = state.selected;
+    var textareaId = picker.dataset.textarea || '';
+    var variant = picker.dataset.variant || 'compact';
+    if (!item) {
+      setMessage(picker, picker.dataset.selectLabel || '삽입할 대상을 먼저 선택해 주세요.');
+      return;
+    }
+
+    window.srInsertEditorText(textareaId, buildToken(item, variant));
+  }
+
+  document.addEventListener('click', function (event) {
+    var target = getElementTarget(event.target);
+    var picker = target && target.closest ? target.closest(PICKER_SELECTOR) : null;
+    if (!picker) {
+      return;
+    }
+
+    var searchTrigger = target.closest('[data-link-card-search-trigger]');
+    if (searchTrigger) {
+      event.preventDefault();
+      searchPicker(picker);
+      return;
+    }
+
+    var selectTrigger = target.closest('[data-link-card-select]');
+    if (selectTrigger) {
+      event.preventDefault();
+      selectResult(picker, selectTrigger);
+      return;
+    }
+
+    var insertTrigger = target.closest('[data-link-card-insert]');
+    if (insertTrigger) {
+      event.preventDefault();
+      insertSelected(picker);
+    }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    var target = getElementTarget(event.target);
+    var input = target && target.closest ? target.closest('[data-link-card-search]') : null;
+    if (!input || event.key !== 'Enter') {
+      return;
+    }
+
+    var picker = input.closest(PICKER_SELECTOR);
+    if (!picker) {
+      return;
+    }
+
+    event.preventDefault();
+    searchPicker(picker);
+  });
+})();
+
+
+(function () {
+  'use strict';
+
   var ACTIVE_CLASS = 'overlay-open';
   var OPEN_CLASS = 'open';
   var HIDDEN_CLASS = 'hidden';

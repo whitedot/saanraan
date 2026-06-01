@@ -1641,6 +1641,45 @@ function sr_content_coupon_target_search(PDO $pdo, string $targetType, string $k
     }, $stmt->fetchAll());
 }
 
+function sr_content_link_card_search_content_targets(PDO $pdo, string $keyword, int $limit = 10): array
+{
+    $keyword = sr_content_clean_text($keyword, 120);
+    $limit = max(1, min(20, $limit));
+    $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR slug LIKE :keyword_like ESCAPE '\\\\')";
+    $params = [];
+    if ($keyword !== '') {
+        $params = [
+            'id' => preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0,
+            'keyword_like' => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%',
+        ];
+    }
+
+    sr_content_publish_due_scheduled($pdo);
+    $stmt = $pdo->prepare(
+        'SELECT id, title, slug, summary, status, updated_at
+         FROM sr_content_items
+         WHERE status = \'published\'
+           AND ' . $where . '
+         ORDER BY published_at DESC, updated_at DESC, id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute($params);
+
+    return array_map(static function (array $row): array {
+        $contentId = (string) (int) ($row['id'] ?? 0);
+        return [
+            'module' => 'content',
+            'entity_type' => 'content',
+            'entity_id' => $contentId,
+            'title' => (string) ($row['title'] ?? ''),
+            'summary' => (string) ($row['summary'] ?? ''),
+            'url' => sr_content_path((string) ($row['slug'] ?? '')),
+            'status' => (string) ($row['status'] ?? ''),
+            'meta' => '콘텐츠 #' . $contentId . ' / slug: ' . (string) ($row['slug'] ?? ''),
+        ];
+    }, $stmt->fetchAll());
+}
+
 function sr_content_coupon_revoke_access(PDO $pdo, int $accountId, string $dedupeKey): int
 {
     require_once SR_ROOT . '/modules/content/helpers/assets.php';

@@ -438,6 +438,53 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
     return is_array($post) ? $post : null;
 }
 
+function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, int $limit = 10): array
+{
+    $keyword = trim(preg_replace('/\s+/', ' ', $keyword) ?? '');
+    $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
+    $limit = max(1, min(20, $limit));
+    $where = $keyword === '' ? '1 = 1' : "(p.id = :id OR p.title LIKE :keyword_like ESCAPE '\\\\' OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
+    $params = [];
+    if ($keyword !== '') {
+        $params = [
+            'id' => preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0,
+            'keyword_like' => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%',
+        ];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT p.id, p.title, p.body_text, p.status, p.updated_at,
+                b.board_key, b.title AS board_title
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         WHERE p.status = \'published\'
+           AND b.status = \'enabled\'
+           AND b.read_policy = \'public\'
+           AND ' . $where . '
+         ORDER BY p.created_at DESC, p.id DESC
+         LIMIT ' . $limit
+    );
+    $stmt->execute($params);
+
+    return array_map(static function (array $row): array {
+        $postId = (string) (int) ($row['id'] ?? 0);
+        $summary = trim(strip_tags((string) ($row['body_text'] ?? '')));
+        $summary = preg_replace('/\s+/', ' ', $summary) ?? '';
+        $summary = function_exists('mb_substr') ? mb_substr($summary, 0, 120) : substr($summary, 0, 120);
+
+        return [
+            'module' => 'community',
+            'entity_type' => 'post',
+            'entity_id' => $postId,
+            'title' => (string) ($row['title'] ?? ''),
+            'summary' => $summary,
+            'url' => '/community/post?id=' . rawurlencode($postId),
+            'status' => (string) ($row['status'] ?? ''),
+            'meta' => '게시글 #' . $postId . ' / 게시판: ' . (string) ($row['board_title'] ?? '') . ' (' . (string) ($row['board_key'] ?? '') . ')',
+        ];
+    }, $stmt->fetchAll());
+}
+
 function sr_community_update_post_status(PDO $pdo, int $postId, string $status): void
 {
     $stmt = $pdo->prepare(
