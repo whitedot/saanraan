@@ -418,13 +418,13 @@ try {
             echo "[skip] admin report resolve requires reporter credentials\n";
         }
 
-        $adminPosts = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/posts', [], $adminCookies);
-        sr_auth_smoke_assert_status($errors, 'admin post list', $adminPosts, [200]);
-        $adminPostCsrf = sr_auth_smoke_csrf($adminPosts, 'admin post list');
+        $adminComments = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/comments', [], $adminCookies);
+        sr_auth_smoke_assert_status($errors, 'admin comment list', $adminComments, [200]);
+        $adminCommentCsrf = sr_auth_smoke_csrf($adminComments, 'admin comment list');
         if (isset($commentBody) && is_string($commentBody) && $commentBody !== '') {
-            $commentId = sr_auth_smoke_comment_id_for_body($adminPosts, $commentBody);
-            $commentHideResponse = sr_auth_smoke_request($baseUrl, 'POST', '/admin/community/posts', [
-                'csrf_token' => $adminPostCsrf,
+            $commentId = sr_auth_smoke_comment_id_for_body($adminComments, $commentBody);
+            $commentHideResponse = sr_auth_smoke_request($baseUrl, 'POST', '/admin/community/comments', [
+                'csrf_token' => $adminCommentCsrf,
                 'intent' => 'comment_status',
                 'comment_id' => $commentId,
                 'status' => 'hidden',
@@ -435,6 +435,9 @@ try {
             sr_auth_smoke_assert_body_not_contains($errors, 'post view after comment hide', $postAfterCommentHide, $commentBody);
         }
 
+        $adminPosts = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/posts', [], $adminCookies);
+        sr_auth_smoke_assert_status($errors, 'admin post list', $adminPosts, [200]);
+        $adminPostCsrf = sr_auth_smoke_csrf($adminPosts, 'admin post list');
         $postHideResponse = sr_auth_smoke_request($baseUrl, 'POST', '/admin/community/posts', [
             'csrf_token' => $adminPostCsrf,
             'intent' => 'post_status',

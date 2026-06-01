@@ -194,7 +194,7 @@ function sr_content_create_comment_notifications(PDO $pdo, array $page, int $com
 
     $mentionedAccountIds = sr_content_mentioned_account_ids($pdo, $bodyText, [$createdByAccountId, $authorAccountId]);
     $result['mention_candidate_count'] = count($mentionedAccountIds);
-    $config = sr_config();
+    $config = sr_runtime_config();
     foreach ($mentionedAccountIds as $accountId) {
         $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
     }

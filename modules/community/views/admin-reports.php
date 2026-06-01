@@ -130,11 +130,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         default => 'is-left',
                     };
                     $targetType = (string) $report['target_type'];
+                    $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
+                    $targetId = (int) ($report['target_id'] ?? 0);
+                    $targetSummary = $targetType !== '' && $targetId > 0 ? $targetType . ' #' . (string) $targetId : '';
                     $reportStatusSelectId = 'community_admin_report_status_' . (string) $report['id'];
                     $reportReviewNoteId = 'community_admin_report_review_note_' . (string) $report['id'];
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap admin-community-report-target-cell"><?php echo sr_e((string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'))); ?></td>
+                        <td class="admin-table-nowrap admin-community-report-target-cell">
+                            <?php echo sr_e($targetLabel); ?>
+                            <?php if ($targetSummary !== '') { ?>
+                                <span class="admin-table-subtext"><?php echo sr_e($targetSummary); ?></span>
+                            <?php } ?>
+                        </td>
                         <td class="admin-table-nowrap admin-community-report-reason-cell"><?php echo sr_e(sr_community_report_reason_label((string) $report['reason_key'])); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($reportStatus, 'report_status')); ?></span></td>
                         <td class="admin-table-break admin-community-report-account-cell"><?php echo sr_e(sr_community_report_account_label(
