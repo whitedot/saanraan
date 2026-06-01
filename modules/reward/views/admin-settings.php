@@ -34,17 +34,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/rewards/settings')); ?>" class="admin-form ui-form-theme">
-    <?php echo sr_csrf_field(); ?>
     <section class="admin-card card">
         <h2>출금 신청 대상</h2>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
-                <label class="form-label" for="reward_withdrawal_allowed_group_keys_select">출금 신청 대상</label>
-                <div class="admin-form-field">
-                    <?php echo sr_admin_select_badge_list_html('reward_withdrawal_allowed_group_keys', 'withdrawal_allowed_group_keys', $withdrawalTargetOptions, $allowedGroupKeys, '선택 가능한 대상이 없습니다.', '대상 선택', ' data-reward-withdrawal-targets data-reward-withdrawal-all-key="' . sr_e($allMembersKey) . '"'); ?>
-                    <p class="admin-form-help">전체 회원을 선택하면 모든 활성 회원이 출금 신청을 할 수 있습니다. 회원 그룹을 선택하면 해당 그룹 중 하나에 속한 회원만 신청할 수 있습니다.</p>
-                    <p class="admin-form-help">아무 대상도 선택하지 않으면 회원이 출금 신청을 할 수 없습니다.</p>
-                </div>
+        <?php echo sr_csrf_field(); ?>
+        <div class="admin-form-row">
+            <label class="form-label" for="reward_withdrawal_allowed_group_keys_select">출금 신청 대상</label>
+            <div class="admin-form-field">
+                <?php echo sr_admin_select_badge_list_html('reward_withdrawal_allowed_group_keys', 'withdrawal_allowed_group_keys', $withdrawalTargetOptions, $allowedGroupKeys, '선택 가능한 대상이 없습니다.', '대상 선택', ' data-reward-withdrawal-targets data-reward-withdrawal-all-key="' . sr_e($allMembersKey) . '"'); ?>
+                <p class="admin-form-help">전체 회원을 선택하면 모든 활성 회원이 출금 신청을 할 수 있습니다. 전체 회원 뱃지를 제거하면 회원 그룹을 다시 선택할 수 있습니다.</p>
+                <p class="admin-form-help">아무 대상도 선택하지 않으면 회원이 출금 신청을 할 수 없습니다.</p>
             </div>
         </div>
     </section>
@@ -69,7 +67,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var input = item.querySelector('[data-admin-select-badge-value]');
         return input ? input.value : '';
     }
-    function syncExclusiveSelection() {
+    function syncAllSelectionState() {
         var items = selectedItems();
         var allItem = null;
         items.forEach(function (item) {
@@ -77,20 +75,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 allItem = item;
             }
         });
-        if (!allItem) {
-            return;
-        }
-        items.forEach(function (item) {
-            if (item !== allItem) {
-                item.remove();
-            }
-        });
         var select = root.querySelector('[data-admin-select-badge-list-select]');
         if (select) {
-            Array.prototype.forEach.call(select.options, function (option) {
-                if (option.value && option.value !== allKey) {
-                    option.hidden = true;
-                    option.disabled = true;
+            select.disabled = !!allItem;
+        }
+        if (allItem) {
+            items.forEach(function (item) {
+                if (item !== allItem) {
+                    item.remove();
                 }
             });
         }
@@ -98,15 +90,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     document.addEventListener('change', function (event) {
         if (event.target && event.target.closest && event.target.closest('[data-reward-withdrawal-targets]')) {
-            window.setTimeout(syncExclusiveSelection, 0);
+            window.setTimeout(syncAllSelectionState, 0);
         }
     });
     document.addEventListener('click', function (event) {
         if (event.target && event.target.closest && event.target.closest('[data-reward-withdrawal-targets]')) {
-            window.setTimeout(syncExclusiveSelection, 0);
+            window.setTimeout(syncAllSelectionState, 0);
         }
     });
-    syncExclusiveSelection();
+    syncAllSelectionState();
 })();
 </script>
 
