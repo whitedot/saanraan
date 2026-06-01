@@ -218,7 +218,60 @@ function sr_content_html_body_enabled(PDO $pdo): bool
 
 function sr_content_body_html(array $page): string
 {
-    return sr_body_text_html($page);
+    $html = sr_body_text_html($page);
+    $pdo = $GLOBALS['pdo'] ?? null;
+    if ($pdo instanceof PDO) {
+        return sr_link_card_render_body($pdo, $html);
+    }
+
+    return $html;
+}
+
+function sr_content_link_card_resolve_many(PDO $pdo, array $types): array
+{
+    $ids = [];
+    foreach ($types['content'] ?? [] as $id) {
+        if (preg_match('/\A[1-9][0-9]*\z/', (string) $id) === 1) {
+            $ids[(int) $id] = true;
+        }
+    }
+    if ($ids === []) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $pdo->prepare(
+        'SELECT id, slug, title, summary, status, published_at
+         FROM sr_content_items
+         WHERE id IN (' . $placeholders . ')'
+    );
+    $stmt->execute(array_keys($ids));
+
+    $resolved = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $contentId = (string) (int) ($row['id'] ?? 0);
+        $status = (string) ($row['status'] ?? '');
+        $isPublished = $status === 'published';
+        $resolved[sr_link_card_ref_key('content', 'content', $contentId)] = [
+            'module' => 'content',
+            'entity_type' => 'content',
+            'entity_id' => $contentId,
+            'title' => $isPublished ? (string) ($row['title'] ?? '') : '연결할 수 없는 콘텐츠',
+            'summary' => $isPublished ? (string) ($row['summary'] ?? '') : '',
+            'url' => $isPublished ? sr_content_path((string) ($row['slug'] ?? '')) : '',
+            'status' => $status,
+            'broken' => !$isPublished,
+        ];
+    }
+
+    foreach (array_keys($ids) as $id) {
+        $key = sr_link_card_ref_key('content', 'content', (string) $id);
+        if (!isset($resolved[$key])) {
+            $resolved[$key] = sr_link_card_broken_result('content', 'content', (string) $id);
+        }
+    }
+
+    return $resolved;
 }
 
 function sr_content_group_key_is_valid(string $groupKey): bool
@@ -1747,6 +1800,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     if (!in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)) {
         $errors[] = '본문 형식이 올바르지 않습니다.';
     }
+    $errors = array_merge($errors, sr_link_card_validate_tokens($pdo, (string) ($values['body_text'] ?? ''), [
+        'community:post',
+        'commerce:product',
+    ]));
 
     if ((int) ($values['asset_access_enabled'] ?? 0) === 1) {
         $assetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? '');
@@ -1969,6 +2026,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
             sr_content_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'content'));
         }
 
+        sr_link_card_reconcile_table($pdo, 'sr_content_link_refs', 'content_id', $pageId, sr_link_card_normalized_refs((string) ($values['body_text'] ?? '')), $accountId);
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
         $pdo->commit();
     } catch (Throwable $exception) {

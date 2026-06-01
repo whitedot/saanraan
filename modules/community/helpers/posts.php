@@ -453,7 +453,7 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status):
     ]);
 }
 
-function sr_community_update_post_content(PDO $pdo, int $postId, array $values): void
+function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
 {
     $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
         ? (string) $values['body_format']
@@ -480,6 +480,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values):
         $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
     }
     $stmt->execute($params);
+    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, sr_link_card_normalized_refs((string) ($values['body_text'] ?? '')), $accountId);
 }
 
 function sr_community_account_can_edit_post(array $post, array $account): bool
@@ -919,6 +920,13 @@ function sr_community_validate_post_input(array $values): array
     } elseif (sr_community_body_text_is_empty($bodyText, (string) ($values['body_format'] ?? 'plain'))) {
         $errors[] = sr_t('community::action.error.post_body_required');
     }
+    $pdo = $GLOBALS['pdo'] ?? null;
+    if ($pdo instanceof PDO && is_string($bodyText)) {
+        $errors = array_merge($errors, sr_link_card_validate_tokens($pdo, $bodyText, [
+            'content:content',
+            'commerce:product',
+        ]));
+    }
 
     return $errors;
 }
@@ -953,7 +961,10 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     }
     $stmt->execute($params);
 
-    return (int) $pdo->lastInsertId();
+    $postId = (int) $pdo->lastInsertId();
+    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, sr_link_card_normalized_refs((string) ($values['body_text'] ?? '')), $authorAccountId);
+
+    return $postId;
 }
 
 function sr_community_post_rate_limited(PDO $pdo, int $accountId, array $settings): bool
@@ -1127,10 +1138,69 @@ function sr_community_post_body_html(array $post): string
 {
     $bodyText = (string) ($post['body_text'] ?? '');
     if ((string) ($post['body_format'] ?? 'plain') === 'html') {
-        return sr_community_sanitize_post_html($bodyText);
+        $html = sr_community_sanitize_post_html($bodyText);
+    } else {
+        $html = sr_community_plain_text_html($bodyText);
     }
 
-    return sr_community_plain_text_html($bodyText);
+    $pdo = $GLOBALS['pdo'] ?? null;
+    if ($pdo instanceof PDO) {
+        return sr_link_card_render_body($pdo, $html);
+    }
+
+    return $html;
+}
+
+function sr_community_link_card_resolve_many(PDO $pdo, array $types): array
+{
+    $ids = [];
+    foreach ($types['post'] ?? [] as $id) {
+        if (preg_match('/\A[1-9][0-9]*\z/', (string) $id) === 1) {
+            $ids[(int) $id] = true;
+        }
+    }
+    if ($ids === []) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $pdo->prepare(
+        'SELECT p.id, p.title, p.body_text, p.status, b.status AS board_status, b.read_policy
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         WHERE p.id IN (' . $placeholders . ')'
+    );
+    $stmt->execute(array_keys($ids));
+
+    $resolved = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $postId = (string) (int) ($row['id'] ?? 0);
+        $isReadable = (string) ($row['status'] ?? '') === 'published'
+            && (string) ($row['board_status'] ?? '') === 'enabled'
+            && (string) ($row['read_policy'] ?? 'public') === 'public';
+        $summary = trim(strip_tags((string) ($row['body_text'] ?? '')));
+        $summary = preg_replace('/\s+/', ' ', $summary) ?? '';
+        $summary = function_exists('mb_substr') ? mb_substr($summary, 0, 160) : substr($summary, 0, 160);
+        $resolved[sr_link_card_ref_key('community', 'post', $postId)] = [
+            'module' => 'community',
+            'entity_type' => 'post',
+            'entity_id' => $postId,
+            'title' => $isReadable ? (string) ($row['title'] ?? '') : '연결할 수 없는 게시글',
+            'summary' => $isReadable ? $summary : '',
+            'url' => $isReadable ? '/community/post?id=' . rawurlencode($postId) : '',
+            'status' => (string) ($row['status'] ?? ''),
+            'broken' => !$isReadable,
+        ];
+    }
+
+    foreach (array_keys($ids) as $id) {
+        $key = sr_link_card_ref_key('community', 'post', (string) $id);
+        if (!isset($resolved[$key])) {
+            $resolved[$key] = sr_link_card_broken_result('community', 'post', (string) $id);
+        }
+    }
+
+    return $resolved;
 }
 
 function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool

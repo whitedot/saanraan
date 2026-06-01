@@ -80,6 +80,7 @@
 - [자산 시스템 운영/보안/정합성 점검 기록 - 2026-05-28](records/asset-system-risk-review-2026-05-28.md)
 - [이슈 #42 전체 정합성 점검 기록 - 2026-05-28](records/issue-42-full-review-2026-05-28.md)
 - [릴리스 게이트 점검 기록 - 2026-05-31](records/release-gate-check-2026-05-31.md)
+- [마일스톤 4 링크 카드 구현 기록 - 2026-06-01](records/milestone-4-link-card-2026-06-01.md)
 
 ## Wiki로 충분한 문서
 
