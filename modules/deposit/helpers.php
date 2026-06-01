@@ -363,7 +363,7 @@ function sr_deposit_admin_refund_request_rows(PDO $pdo, array $runtimeConfig, st
         "SELECT r.id, r.account_id, r.amount, r.bank_name, r.bank_account_number, r.bank_account_holder,
                 r.requester_note, r.status, r.admin_note, r.transaction_id, r.processed_by_account_id,
                 r.requested_at, r.processed_at, r.updated_at,
-                a.email, a.display_name, a.login_id, a.status AS account_status
+                a.email, a.display_name, a.status AS account_status
          FROM sr_deposit_refund_requests r
          LEFT JOIN sr_member_accounts a ON a.id = r.account_id
          {$where}

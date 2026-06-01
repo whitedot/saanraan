@@ -43,8 +43,12 @@ function sr_coupon_expire_active_issues(PDO $pdo, ?int $accountId = null): int
         return 0;
     }
 
-    $where = "status = 'active' AND expires_at IS NOT NULL AND expires_at < :now_value";
-    $params = ['now_value' => sr_now()];
+    $now = sr_now();
+    $where = "status = 'active' AND expires_at IS NOT NULL AND expires_at < :expires_before";
+    $params = [
+        'expires_before' => $now,
+        'updated_at' => $now,
+    ];
     if ($accountId !== null && $accountId > 0) {
         $where .= ' AND account_id = :account_id';
         $params['account_id'] = $accountId;
@@ -53,7 +57,7 @@ function sr_coupon_expire_active_issues(PDO $pdo, ?int $accountId = null): int
     $stmt = $pdo->prepare(
         'UPDATE sr_coupon_issues
          SET status = \'expired\',
-             updated_at = :now_value
+             updated_at = :updated_at
          WHERE ' . $where
     );
     $stmt->execute($params);
