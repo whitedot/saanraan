@@ -10,22 +10,30 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/series', 'view');
 $errors = [];
 $notice = '';
+$seriesSupported = sr_content_series_supported($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/series', 'edit');
     $intent = sr_post_string('intent', 40);
     $seriesId = (int) sr_post_string('series_id', 20);
+    $description = sr_post_string_without_truncation('description', 2000);
     $values = [
         'series_key' => strtolower(trim(sr_post_string('series_key', 60))),
         'title' => sr_post_string('title', 160),
-        'description' => sr_post_string_without_truncation('description', 2000) ?: '',
+        'description' => is_string($description) ? $description : '',
         'status' => sr_post_string('status', 30),
         'visibility' => sr_post_string('visibility', 30),
         'sort_order' => sr_admin_post_int_in_range('sort_order', 0, 1000000) ?? 0,
     ];
+    if (!$seriesSupported) {
+        $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    }
     if ($intent === 'create' && !sr_content_series_key_is_valid((string) $values['series_key'])) {
         $errors[] = '시리즈 key가 올바르지 않습니다.';
+    }
+    if (!is_string($description)) {
+        $errors[] = '시리즈 설명이 너무 깁니다.';
     }
     if ((string) $values['title'] === '') {
         $errors[] = '시리즈 제목을 입력해 주세요.';
@@ -60,4 +68,7 @@ if (sr_request_method() === 'POST') {
 }
 
 $seriesList = sr_content_series_list($pdo);
+if (!$seriesSupported && sr_request_method() !== 'POST') {
+    $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+}
 include SR_ROOT . '/modules/content/views/admin-series.php';

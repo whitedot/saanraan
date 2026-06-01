@@ -17,9 +17,48 @@ function sr_content_series_visibility_values(): array
     return ['public', 'member', 'private'];
 }
 
+function sr_content_series_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_content_series LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_content_series_items_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_content_series_items LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_content_series_supported(PDO $pdo): bool
+{
+    return sr_content_series_table_exists($pdo) && sr_content_series_items_table_exists($pdo);
+}
+
 function sr_content_series_by_id(PDO $pdo, int $seriesId): ?array
 {
-    if ($seriesId < 1) {
+    if ($seriesId < 1 || !sr_content_series_supported($pdo)) {
         return null;
     }
     $stmt = $pdo->prepare('SELECT * FROM sr_content_series WHERE id = :id LIMIT 1');
@@ -30,7 +69,7 @@ function sr_content_series_by_id(PDO $pdo, int $seriesId): ?array
 
 function sr_content_series_by_key(PDO $pdo, string $seriesKey): ?array
 {
-    if (!sr_content_series_key_is_valid($seriesKey)) {
+    if (!sr_content_series_key_is_valid($seriesKey) || !sr_content_series_supported($pdo)) {
         return null;
     }
 
@@ -43,7 +82,7 @@ function sr_content_series_by_key(PDO $pdo, string $seriesKey): ?array
 
 function sr_content_series_key_exists(PDO $pdo, string $seriesKey, int $exceptSeriesId = 0): bool
 {
-    if (!sr_content_series_key_is_valid($seriesKey)) {
+    if (!sr_content_series_key_is_valid($seriesKey) || !sr_content_series_supported($pdo)) {
         return false;
     }
 
@@ -62,6 +101,10 @@ function sr_content_series_key_exists(PDO $pdo, string $seriesKey, int $exceptSe
 
 function sr_content_series_list(PDO $pdo): array
 {
+    if (!sr_content_series_supported($pdo)) {
+        return [];
+    }
+
     $stmt = $pdo->query('SELECT * FROM sr_content_series ORDER BY sort_order ASC, id DESC LIMIT 200');
     return $stmt->fetchAll();
 }
@@ -101,7 +144,7 @@ function sr_content_series_item_visible_to_account(PDO $pdo, array $item, ?array
 
 function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = false, ?array $account = null, int $currentContentId = 0): array
 {
-    if ($seriesId < 1) {
+    if ($seriesId < 1 || !sr_content_series_supported($pdo)) {
         return [];
     }
     $where = 'si.series_id = :series_id';
@@ -134,6 +177,10 @@ function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = fal
 
 function sr_content_series_for_content(PDO $pdo, int $contentId, ?array $account = null, bool $adminPreview = false): ?array
 {
+    if ($contentId < 1 || !sr_content_series_supported($pdo)) {
+        return null;
+    }
+
     $stmt = $pdo->prepare(
         "SELECT s.*, si.id AS item_id, si.episode_label, si.item_status, si.sort_order
          FROM sr_content_series_items si
@@ -179,7 +226,7 @@ function sr_content_series_items_with_navigation(array $items, int $currentConte
 
 function sr_content_active_series_item_for_content(PDO $pdo, int $contentId): ?array
 {
-    if ($contentId < 1) {
+    if ($contentId < 1 || !sr_content_series_supported($pdo)) {
         return null;
     }
 
@@ -199,6 +246,10 @@ function sr_content_active_series_item_for_content(PDO $pdo, int $contentId): ?a
 
 function sr_content_create_series(PDO $pdo, array $values, int $accountId): int
 {
+    if (!sr_content_series_supported($pdo)) {
+        throw new RuntimeException('Content series schema is not available.');
+    }
+
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_series
@@ -223,6 +274,10 @@ function sr_content_create_series(PDO $pdo, array $values, int $accountId): int
 
 function sr_content_update_series(PDO $pdo, int $seriesId, array $values, int $accountId): void
 {
+    if (!sr_content_series_supported($pdo)) {
+        throw new RuntimeException('Content series schema is not available.');
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_content_series
          SET title = :title,
@@ -251,6 +306,14 @@ function sr_content_update_series(PDO $pdo, int $seriesId, array $values, int $a
 
 function sr_content_set_content_series(PDO $pdo, int $contentId, int $seriesId, string $episodeLabel, int $sortOrder, int $accountId): void
 {
+    if (!sr_content_series_supported($pdo)) {
+        if ($seriesId > 0) {
+            throw new RuntimeException('Content series schema is not available.');
+        }
+
+        return;
+    }
+
     $pdo->beginTransaction();
     try {
         $pdo->prepare('UPDATE sr_content_series_items SET active_content_id = NULL, item_status = \'removed\', updated_at = :updated_at WHERE active_content_id = :content_id')
@@ -291,6 +354,10 @@ function sr_content_set_content_series(PDO $pdo, int $contentId, int $seriesId, 
 
 function sr_content_remove_series_items(PDO $pdo, int $seriesId): void
 {
+    if (!sr_content_series_supported($pdo)) {
+        return;
+    }
+
     $stmt = $pdo->prepare(
         "UPDATE sr_content_series_items
          SET active_content_id = NULL,

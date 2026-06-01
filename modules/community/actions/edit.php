@@ -96,6 +96,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $errors = sr_community_validate_post_input($values);
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
+    if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
+        $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    }
     if ((string) $seriesValues['series_mode'] === 'existing') {
         $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);
         if (!is_array($selectedSeries)

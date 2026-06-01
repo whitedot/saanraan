@@ -119,26 +119,28 @@ return static function (PDO $pdo, int $accountId): array {
     $stmt->execute(['account_id' => $accountId]);
     $empty['scraps'] = $stmt->fetchAll();
 
-    $stmt = $pdo->prepare(
-        'SELECT id, board_id, title, description, status, visibility, created_at, updated_at
-         FROM sr_community_series
-         WHERE owner_account_id = :account_id
-         ORDER BY id ASC
-         LIMIT 1000'
-    );
-    $stmt->execute(['account_id' => $accountId]);
-    $empty['series'] = $stmt->fetchAll();
+    if (sr_community_series_supported($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT id, board_id, title, description, status, visibility, created_at, updated_at
+             FROM sr_community_series
+             WHERE owner_account_id = :account_id
+             ORDER BY id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $empty['series'] = $stmt->fetchAll();
 
-    $stmt = $pdo->prepare(
-        'SELECT si.id, si.series_id, si.post_id, si.active_post_id, si.episode_label, si.item_status, si.sort_order, si.created_at, si.updated_at
-         FROM sr_community_series_items si
-         INNER JOIN sr_community_posts p ON p.id = si.post_id
-         WHERE p.author_account_id = :account_id
-         ORDER BY si.id ASC
-         LIMIT 1000'
-    );
-    $stmt->execute(['account_id' => $accountId]);
-    $empty['series_items'] = $stmt->fetchAll();
+        $stmt = $pdo->prepare(
+            'SELECT si.id, si.series_id, si.post_id, si.active_post_id, si.episode_label, si.item_status, si.sort_order, si.created_at, si.updated_at
+             FROM sr_community_series_items si
+             INNER JOIN sr_community_posts p ON p.id = si.post_id
+             WHERE p.author_account_id = :account_id
+             ORDER BY si.id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $empty['series_items'] = $stmt->fetchAll();
+    }
 
     try {
         $stmt = $pdo->prepare(

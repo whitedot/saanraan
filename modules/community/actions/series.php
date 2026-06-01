@@ -11,6 +11,7 @@ $settings = sr_community_settings($pdo);
 sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
 $errors = [];
 $notice = '';
+$seriesSupported = sr_community_series_supported($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -23,8 +24,15 @@ if (sr_request_method() === 'POST') {
     if (!in_array($visibility, sr_community_series_visibility_values(), true)) {
         $visibility = 'public';
     }
+    if (!$seriesSupported) {
+        $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    }
     if ($title === '') {
         $errors[] = '시리즈 제목을 입력해 주세요.';
+    }
+    if (!is_string($description)) {
+        $errors[] = '시리즈 설명이 너무 깁니다.';
+        $description = '';
     }
     $board = sr_community_board_by_id($pdo, $boardId);
     if (!is_array($board) || (string) ($board['status'] ?? '') !== 'enabled') {
@@ -70,5 +78,8 @@ foreach ($pdo->query("SELECT id, board_key, title, board_group_id, status, write
     }
 }
 $seriesList = sr_community_account_series($pdo, (int) $account['id']);
+if (!$seriesSupported && sr_request_method() !== 'POST') {
+    $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+}
 
 include SR_ROOT . '/modules/community/views/series.php';

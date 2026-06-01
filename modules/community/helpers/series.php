@@ -17,9 +17,48 @@ function sr_community_series_item_statuses(): array
     return ['active', 'hidden', 'removed'];
 }
 
+function sr_community_series_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_series LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_series_items_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_series_items LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_series_supported(PDO $pdo): bool
+{
+    return sr_community_series_table_exists($pdo) && sr_community_series_items_table_exists($pdo);
+}
+
 function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0): array
 {
-    if ($accountId < 1) {
+    if ($accountId < 1 || !sr_community_series_supported($pdo)) {
         return [];
     }
 
@@ -44,7 +83,7 @@ function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0)
 
 function sr_community_series_by_id(PDO $pdo, int $seriesId): ?array
 {
-    if ($seriesId < 1) {
+    if ($seriesId < 1 || !sr_community_series_supported($pdo)) {
         return null;
     }
 
@@ -57,7 +96,7 @@ function sr_community_series_by_id(PDO $pdo, int $seriesId): ?array
 
 function sr_community_series_items(PDO $pdo, int $seriesId, bool $publicOnly = false, ?array $account = null, int $currentPostId = 0): array
 {
-    if ($seriesId < 1) {
+    if ($seriesId < 1 || !sr_community_series_supported($pdo)) {
         return [];
     }
 
@@ -124,7 +163,7 @@ function sr_community_series_items(PDO $pdo, int $seriesId, bool $publicOnly = f
 
 function sr_community_series_for_post(PDO $pdo, int $postId, ?array $account = null): ?array
 {
-    if ($postId < 1) {
+    if ($postId < 1 || !sr_community_series_supported($pdo)) {
         return null;
     }
 
@@ -176,7 +215,7 @@ function sr_community_series_items_with_navigation(array $items, int $currentId,
 
 function sr_community_active_series_item_for_post(PDO $pdo, int $postId): ?array
 {
-    if ($postId < 1) {
+    if ($postId < 1 || !sr_community_series_supported($pdo)) {
         return null;
     }
 
@@ -196,6 +235,10 @@ function sr_community_active_series_item_for_post(PDO $pdo, int $postId): ?array
 
 function sr_community_create_series(PDO $pdo, int $boardId, int $ownerAccountId, array $values, int $actorAccountId): int
 {
+    if (!sr_community_series_supported($pdo)) {
+        throw new RuntimeException('Community series schema is not available.');
+    }
+
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_series
@@ -221,6 +264,10 @@ function sr_community_create_series(PDO $pdo, int $boardId, int $ownerAccountId,
 
 function sr_community_update_series(PDO $pdo, int $seriesId, array $values, int $actorAccountId): void
 {
+    if (!sr_community_series_supported($pdo)) {
+        throw new RuntimeException('Community series schema is not available.');
+    }
+
     $setSql = 'title = :title,
              description = :description,
              status = :status,
@@ -260,6 +307,14 @@ function sr_community_update_series(PDO $pdo, int $seriesId, array $values, int 
 
 function sr_community_set_post_series(PDO $pdo, int $postId, int $seriesId, string $episodeLabel, int $sortOrder, int $actorAccountId): void
 {
+    if (!sr_community_series_supported($pdo)) {
+        if ($seriesId > 0) {
+            throw new RuntimeException('Community series schema is not available.');
+        }
+
+        return;
+    }
+
     $pdo->beginTransaction();
     try {
         $pdo->prepare('UPDATE sr_community_series_items SET active_post_id = NULL, item_status = \'removed\', updated_at = :updated_at WHERE active_post_id = :post_id')
@@ -309,6 +364,10 @@ function sr_community_set_post_series(PDO $pdo, int $postId, int $seriesId, stri
 
 function sr_community_remove_series_items(PDO $pdo, int $seriesId): void
 {
+    if (!sr_community_series_supported($pdo)) {
+        return;
+    }
+
     $stmt = $pdo->prepare(
         "UPDATE sr_community_series_items
          SET active_post_id = NULL,
