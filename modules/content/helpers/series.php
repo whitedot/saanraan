@@ -86,6 +86,10 @@ function sr_content_series_item_visible_to_account(PDO $pdo, array $item, ?array
         return true;
     }
 
+    if ((string) ($page['asset_charge_policy'] ?? 'once') !== 'once') {
+        return false;
+    }
+
     $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
     if ($accountId < 1) {
         return false;

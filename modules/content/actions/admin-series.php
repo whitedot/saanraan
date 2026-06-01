@@ -38,8 +38,15 @@ if (sr_request_method() === 'POST') {
     }
     if ($errors === []) {
         if ($intent === 'create') {
-            $seriesId = sr_content_create_series($pdo, $values, (int) $account['id']);
-            $notice = '콘텐츠 시리즈를 만들었습니다.';
+            try {
+                $seriesId = sr_content_create_series($pdo, $values, (int) $account['id']);
+                $notice = '콘텐츠 시리즈를 만들었습니다.';
+            } catch (PDOException $exception) {
+                if ((string) $exception->getCode() !== '23000') {
+                    throw $exception;
+                }
+                $errors[] = '이미 같은 key의 콘텐츠 시리즈가 있습니다.';
+            }
         } elseif ($intent === 'update') {
             $series = sr_content_series_by_id($pdo, $seriesId);
             if (!is_array($series)) {
