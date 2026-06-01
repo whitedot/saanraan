@@ -18,9 +18,48 @@ function sr_community_category_statuses(): array
     return ['enabled', 'disabled'];
 }
 
+function sr_community_categories_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_categories LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_posts_category_column_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT category_id FROM sr_community_posts LIMIT 0');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_categories_supported(PDO $pdo): bool
+{
+    return sr_community_categories_table_exists($pdo) && sr_community_posts_category_column_exists($pdo);
+}
+
 function sr_community_categories(PDO $pdo, int $boardId, bool $enabledOnly = false): array
 {
-    if ($boardId < 1) {
+    if ($boardId < 1 || !sr_community_categories_supported($pdo)) {
         return [];
     }
 
@@ -42,7 +81,7 @@ function sr_community_categories(PDO $pdo, int $boardId, bool $enabledOnly = fal
 
 function sr_community_category_by_id(PDO $pdo, int $categoryId): ?array
 {
-    if ($categoryId < 1) {
+    if ($categoryId < 1 || !sr_community_categories_supported($pdo)) {
         return null;
     }
 
@@ -60,7 +99,7 @@ function sr_community_category_by_id(PDO $pdo, int $categoryId): ?array
 
 function sr_community_category_by_key(PDO $pdo, int $boardId, string $categoryKey): ?array
 {
-    if ($boardId < 1 || $categoryKey === '') {
+    if ($boardId < 1 || $categoryKey === '' || !sr_community_categories_supported($pdo)) {
         return null;
     }
 
@@ -82,6 +121,10 @@ function sr_community_category_by_key(PDO $pdo, int $boardId, string $categoryKe
 
 function sr_community_create_category(PDO $pdo, int $boardId, array $values): int
 {
+    if (!sr_community_categories_supported($pdo)) {
+        throw new RuntimeException('Community category schema is not available.');
+    }
+
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_categories
@@ -105,6 +148,10 @@ function sr_community_create_category(PDO $pdo, int $boardId, array $values): in
 
 function sr_community_update_category(PDO $pdo, int $categoryId, array $values): void
 {
+    if (!sr_community_categories_supported($pdo)) {
+        throw new RuntimeException('Community category schema is not available.');
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_community_categories
          SET title = :title,
@@ -126,6 +173,10 @@ function sr_community_update_category(PDO $pdo, int $categoryId, array $values):
 
 function sr_community_delete_category(PDO $pdo, int $categoryId): bool
 {
+    if (!sr_community_categories_supported($pdo)) {
+        return false;
+    }
+
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_community_posts WHERE category_id = :category_id');
     $stmt->execute(['category_id' => $categoryId]);
     if ((int) $stmt->fetchColumn() > 0) {
@@ -140,7 +191,8 @@ function sr_community_delete_category(PDO $pdo, int $categoryId): bool
 
 function sr_community_board_category_required(PDO $pdo, int $boardId): bool
 {
-    return (string) (sr_community_board_setting_value($pdo, $boardId, 'category_required') ?? '0') === '1';
+    return sr_community_categories_supported($pdo)
+        && (string) (sr_community_board_setting_value($pdo, $boardId, 'category_required') ?? '0') === '1';
 }
 
 function sr_community_effective_category_label(array $row): string
@@ -150,6 +202,10 @@ function sr_community_effective_category_label(array $row): string
 
 function sr_community_post_category_validation_errors(PDO $pdo, array $board, array $values, ?array $existingPost = null): array
 {
+    if (!sr_community_categories_supported($pdo)) {
+        return [];
+    }
+
     $errors = [];
     $boardId = (int) ($board['id'] ?? 0);
     $categoryId = (int) ($values['category_id'] ?? 0);

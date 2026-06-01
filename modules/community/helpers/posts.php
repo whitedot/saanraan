@@ -57,6 +57,7 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
     $keyword = trim($keyword);
+    $categorySupported = sr_community_categories_supported($pdo);
     $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
@@ -64,18 +65,21 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
         $params['title_keyword'] = sr_community_like_pattern($keyword);
         $params['body_keyword'] = sr_community_like_pattern($keyword);
     }
-    if ($categoryId > 0) {
+    if ($categorySupported && $categoryId > 0) {
         $where .= ' AND p.category_id = :category_id';
         $params['category_id'] = $categoryId;
     }
 
+    $categorySelectSql = $categorySupported
+        ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
+        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, p.category_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                cat.category_key, cat.title AS category_title, cat.status AS category_status,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
          FROM sr_community_posts p
-         LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+         ' . $categoryJoinSql . '
          WHERE ' . $where . '
          ORDER BY p.id DESC
          LIMIT :limit_value OFFSET :offset_value'
@@ -97,6 +101,7 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
     }
 
     $keyword = trim($keyword);
+    $categorySupported = sr_community_categories_supported($pdo);
     $where = "board_id = :board_id AND status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
@@ -104,7 +109,7 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
         $params['title_keyword'] = sr_community_like_pattern($keyword);
         $params['body_keyword'] = sr_community_like_pattern($keyword);
     }
-    if ($categoryId > 0) {
+    if ($categorySupported && $categoryId > 0) {
         $where .= ' AND category_id = :category_id';
         $params['category_id'] = $categoryId;
     }
@@ -143,13 +148,17 @@ function sr_community_public_post(PDO $pdo, int $postId): ?array
         return null;
     }
 
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categorySelectSql = $categorySupported
+        ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
+        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, p.category_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                cat.category_key, cat.title AS category_title, cat.status AS category_status,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
-         LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+         " . $categoryJoinSql . "
          WHERE p.id = :id
            AND p.status = 'published'
            AND b.status = 'enabled'
@@ -183,13 +192,17 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
         return null;
     }
 
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categorySelectSql = $categorySupported
+        ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
+        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, p.category_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
-                cat.category_key, cat.title AS category_title, cat.status AS category_status,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
-         LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+         " . $categoryJoinSql . "
          WHERE p.id = :id
            AND p.status = 'published'
            AND b.status = 'enabled'
@@ -260,7 +273,7 @@ function sr_community_post_statuses(): array
     return ['published', 'hidden', 'deleted', 'pending'];
 }
 
-function sr_community_admin_post_query_parts(array $filters): array
+function sr_community_admin_post_query_parts(array $filters, bool $categorySupported = true): array
 {
     $where = [];
     $params = [];
@@ -275,7 +288,7 @@ function sr_community_admin_post_query_parts(array $filters): array
         $params['board_id'] = (int) $filters['board_id'];
     }
 
-    if ((int) ($filters['category_id'] ?? 0) > 0) {
+    if ($categorySupported && (int) ($filters['category_id'] ?? 0) > 0) {
         $where[] = 'p.category_id = :category_id';
         $params['category_id'] = (int) $filters['category_id'];
     }
@@ -312,7 +325,7 @@ function sr_community_admin_post_query_parts(array $filters): array
 
 function sr_community_admin_post_count(PDO $pdo, array $filters = []): int
 {
-    $queryParts = sr_community_admin_post_query_parts($filters);
+    $queryParts = sr_community_admin_post_query_parts($filters, sr_community_categories_supported($pdo));
     $sql = 'SELECT COUNT(*) AS count_value
             FROM sr_community_posts p
             INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -353,12 +366,16 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
     if ($useLimit) {
         $limit = max(1, min(1000, $limit));
     }
-    $queryParts = sr_community_admin_post_query_parts($filters);
+    $categorySupported = sr_community_categories_supported($pdo);
+    $queryParts = sr_community_admin_post_query_parts($filters, $categorySupported);
     $where = $queryParts['where'];
     $params = $queryParts['params'];
-    $sql = 'SELECT p.id, p.board_id, p.category_id, p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+    $categorySelectSql = $categorySupported
+        ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
+        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $sql = 'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                    b.board_key, b.title AS board_title,
-                   cat.category_key, cat.title AS category_title, cat.status AS category_status,
                    a.display_name AS author_display_name,
                    author_nickname.nickname AS author_nickname,
                    a.status AS author_account_status,
@@ -366,7 +383,7 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
                    (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
             FROM sr_community_posts p
             INNER JOIN sr_community_boards b ON b.id = p.board_id
-            LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+            ' . $categoryJoinSql . '
             LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
             LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($where !== []) {
@@ -396,16 +413,20 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
         return null;
     }
 
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categorySelectSql = $categorySupported
+        ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
+        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, p.category_id, p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
-                cat.category_key, cat.title AS category_title, cat.status AS category_status,
                 a.display_name AS author_display_name,
                 author_nickname.nickname AS author_nickname,
                 a.status AS author_account_status
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
-         LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+         ' . $categoryJoinSql . '
          LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
          LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id
          WHERE p.id = :id
@@ -437,23 +458,28 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values):
     $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
         ? (string) $values['body_format']
         : 'plain';
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
     $stmt = $pdo->prepare(
         'UPDATE sr_community_posts
-         SET category_id = :category_id,
+         SET ' . $categorySetSql . '
              title = :title,
              body_text = :body_text,
              body_format = :body_format,
              updated_at = :updated_at
          WHERE id = :id'
     );
-    $stmt->execute([
-        'category_id' => (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null,
+    $params = [
         'title' => trim((string) $values['title']),
         'body_text' => trim((string) $values['body_text']),
         'body_format' => $bodyFormat,
         'updated_at' => sr_now(),
         'id' => $postId,
-    ]);
+    ];
+    if ($categorySupported) {
+        $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
+    }
+    $stmt->execute($params);
 }
 
 function sr_community_account_can_edit_post(array $post, array $account): bool
@@ -903,15 +929,17 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         ? (string) $values['body_format']
         : 'plain';
     $now = sr_now();
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
+    $categoryValueSql = $categorySupported ? ':category_id, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, category_id, author_account_id, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, :category_id, :author_account_id, :title, :body_text, :body_format, :status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, :title, :body_text, :body_format, :status, 0, NULL, :created_at, :updated_at)'
     );
-    $stmt->execute([
+    $params = [
         'board_id' => $boardId,
-        'category_id' => (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null,
         'author_account_id' => $authorAccountId,
         'title' => trim((string) $values['title']),
         'body_text' => trim((string) $values['body_text']),
@@ -919,7 +947,11 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'status' => 'published',
         'created_at' => $now,
         'updated_at' => $now,
-    ]);
+    ];
+    if ($categorySupported) {
+        $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
+    }
+    $stmt->execute($params);
 
     return (int) $pdo->lastInsertId();
 }

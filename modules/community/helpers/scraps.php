@@ -70,17 +70,22 @@ function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account =
     }
 
     $limit = max(1, min(100, $limit));
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categorySelectSql = $categorySupported
+        ? 'cat.category_key, cat.title AS category_title, cat.status AS category_status'
+        : 'NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
         'SELECT s.id, s.account_id, s.post_id, s.created_at,
                 p.title, p.status AS post_status, p.created_at AS post_created_at,
-                cat.category_key, cat.title AS category_title, cat.status AS category_status,
+                ' . $categorySelectSql . ',
                 b.id AS board_id,
                 b.board_group_id,
                 b.board_key, b.title AS board_title, b.status AS board_status, b.read_policy
          FROM sr_community_scraps s
          LEFT JOIN sr_community_posts p ON p.id = s.post_id
          LEFT JOIN sr_community_boards b ON b.id = p.board_id
-         LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+         ' . $categoryJoinSql . '
          WHERE s.account_id = :account_id
          ORDER BY s.id DESC
          LIMIT :limit_value'

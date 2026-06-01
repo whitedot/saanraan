@@ -101,6 +101,9 @@ if (sr_request_method() === 'POST') {
         if (!is_array($board)) {
             $errors[] = sr_t('community::action.error.board_not_found');
         }
+        if (!sr_community_categories_supported($pdo)) {
+            $errors[] = '카테고리 스키마 업데이트가 아직 적용되지 않았습니다.';
+        }
 
         $categoryId = 0;
         $category = null;

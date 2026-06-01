@@ -23,12 +23,20 @@ return static function (PDO $pdo, int $accountId): array {
         return $empty;
     }
 
+    if (!function_exists('sr_community_categories_supported')) {
+        require_once SR_ROOT . '/modules/community/helpers.php';
+    }
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categorySelectSql = $categorySupported
+        ? 'p.category_id, cat.category_key, cat.title AS category_title'
+        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
         /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at */
-        'SELECT p.id, p.board_id, p.category_id, cat.category_key, cat.title AS category_title,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ',
                 p.title, p.body_text, p.body_format, p.status, p.created_at, p.updated_at
          FROM sr_community_posts p
-         LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+         ' . $categoryJoinSql . '
          WHERE p.author_account_id = :account_id
          ORDER BY p.id ASC
          LIMIT 1000'
