@@ -40,6 +40,11 @@ function sr_reward_withdrawal_max_amount(): int
     return 10000000;
 }
 
+function sr_reward_withdrawal_all_members_key(): string
+{
+    return '__all__';
+}
+
 function sr_reward_default_settings(): array
 {
     return [
@@ -68,6 +73,9 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
 
     $allowedGroupKeys = sr_reward_normalize_group_keys($settings['withdrawal_allowed_group_keys'] ?? []);
     foreach ($allowedGroupKeys as $groupKey) {
+        if ($groupKey === sr_reward_withdrawal_all_members_key()) {
+            continue;
+        }
         if (!sr_member_group_exists($pdo, $groupKey)) {
             throw new InvalidArgumentException('Reward withdrawal group does not exist.');
         }
@@ -111,6 +119,9 @@ function sr_reward_normalize_group_keys(mixed $groupKeys): array
     $normalized = [];
     foreach ($groupKeys as $groupKey) {
         $groupKey = (string) $groupKey;
+        if ($groupKey === sr_reward_withdrawal_all_members_key()) {
+            return [sr_reward_withdrawal_all_members_key()];
+        }
         if (sr_member_group_key_is_valid($groupKey)) {
             $normalized[$groupKey] = true;
         }
@@ -129,9 +140,17 @@ function sr_reward_withdrawal_allowed_group_keys(PDO $pdo): array
 
 function sr_reward_account_can_request_withdrawal(PDO $pdo, int $accountId): bool
 {
+    if ($accountId <= 0) {
+        return false;
+    }
+
     $allowedGroupKeys = sr_reward_withdrawal_allowed_group_keys($pdo);
     if ($allowedGroupKeys === []) {
         return false;
+    }
+
+    if (in_array(sr_reward_withdrawal_all_members_key(), $allowedGroupKeys, true)) {
+        return true;
     }
 
     return sr_member_account_in_any_group($pdo, $accountId, $allowedGroupKeys);

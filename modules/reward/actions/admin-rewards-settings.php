@@ -29,6 +29,9 @@ if (sr_request_method() === 'POST') {
         }
     }
     foreach ($allowedGroupKeys as $groupKey) {
+        if ($groupKey === sr_reward_withdrawal_all_members_key()) {
+            continue;
+        }
         if (!isset($enabledGroupKeys[$groupKey])) {
             $errors[] = '출금 가능 회원 그룹 선택값이 올바르지 않습니다.';
             break;
