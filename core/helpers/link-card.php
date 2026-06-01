@@ -246,16 +246,29 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
     }
     $resolved = sr_link_card_resolve_many($pdo, $refs);
 
-    return preg_replace_callback(sr_link_card_token_pattern(), static function (array $match) use ($resolved): string {
-        $token = sr_link_card_parse_attributes((string) ($match[1] ?? ''));
+    $renderToken = static function (string $attributeText, string $rawToken) use ($resolved): string {
+        $token = sr_link_card_parse_attributes($attributeText);
         if (!sr_link_card_token_is_valid($token)) {
-            return sr_e((string) ($match[0] ?? ''));
+            return sr_e($rawToken);
         }
 
         $key = sr_link_card_ref_key((string) $token['module'], (string) $token['entity_type'], (string) $token['entity_id']);
         $result = $resolved[$key] ?? sr_link_card_broken_result((string) $token['module'], (string) $token['entity_type'], (string) $token['entity_id']);
 
         return sr_link_card_render($result, $token);
+    };
+
+    $bodyHtml = preg_replace_callback('/<p(?:\s[^>]*)?>\s*(\{\{sr_link_card\s+([^{}]+)\}\})\s*<\/p>/u', static function (array $match) use ($renderToken): string {
+        $token = sr_link_card_parse_attributes((string) ($match[2] ?? ''));
+        if ((string) ($token['variant'] ?? 'compact') === 'inline') {
+            return (string) ($match[0] ?? '');
+        }
+
+        return $renderToken((string) ($match[2] ?? ''), (string) ($match[1] ?? ''));
+    }, $bodyHtml) ?? $bodyHtml;
+
+    return preg_replace_callback(sr_link_card_token_pattern(), static function (array $match) use ($renderToken): string {
+        return $renderToken((string) ($match[1] ?? ''), (string) ($match[0] ?? ''));
     }, $bodyHtml) ?? $bodyHtml;
 }
 
@@ -272,6 +285,18 @@ function sr_link_card_render(array $resolved, array $token): string
     $status = (string) ($resolved['status'] ?? '');
     $url = (string) ($resolved['url'] ?? '');
     $broken = !empty($resolved['broken']) || $url === '';
+
+    if ($variant === 'inline') {
+        $html = '<span class="sr-link-card sr-link-card-inline' . ($broken ? ' is-broken' : '') . '" data-link-card-module="' . sr_e($module) . '">';
+        if ($broken) {
+            $html .= '<strong class="sr-link-card-title">' . sr_e($title) . '</strong>';
+        } else {
+            $html .= '<a class="sr-link-card-title" href="' . sr_e(sr_url($url)) . '">' . sr_e($title) . '</a>';
+        }
+        $html .= '</span>';
+
+        return $html;
+    }
 
     $html = '<aside class="sr-link-card sr-link-card-' . sr_e($variant) . ($broken ? ' is-broken' : '') . '" data-link-card-module="' . sr_e($module) . '">';
     $html .= '<p class="sr-link-card-kicker">' . sr_e(sr_link_card_module_label($module)) . ($status !== '' ? ' · ' . sr_e($status) : '') . '</p>';

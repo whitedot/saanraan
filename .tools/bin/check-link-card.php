@@ -50,6 +50,20 @@ if (count(sr_link_card_extract_tokens($braceLabelToken)) !== 1) {
     sr_link_card_check_error('Sanitized picker labels must keep generated link card tokens parseable.');
 }
 
+$renderPdo = new PDO('sqlite::memory:');
+$renderPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$renderPdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+$blockRendered = sr_link_card_render_body($renderPdo, '<p>' . $braceLabelToken . '</p>');
+if (str_contains($blockRendered, '<p><aside') || !str_contains($blockRendered, '<aside class="sr-link-card')) {
+    sr_link_card_check_error('Block link card tokens wrapped by an editor paragraph must render without invalid p > aside markup.');
+}
+
+$inlineToken = '{{sr_link_card module="community" entity_type="post" entity_id="7" variant="inline" label="인라인" slot="body"}}';
+$inlineRendered = sr_link_card_render_body($renderPdo, '<p>앞 ' . $inlineToken . ' 뒤</p>');
+if (!str_contains($inlineRendered, '<p>앞 <span class="sr-link-card sr-link-card-inline') || str_contains($inlineRendered, '<aside')) {
+    sr_link_card_check_error('Inline link card tokens must render as inline markup inside paragraphs.');
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "link card checks failed:\n");
     foreach ($errors as $error) {
