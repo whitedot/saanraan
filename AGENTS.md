@@ -55,6 +55,15 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - If a code change intentionally does not require a Wiki update, mention that decision in the final response or commit body when useful.
 - Keep repository docs and Wiki docs aligned with the current implementation rather than the initial project plan.
 
+## Verification and Smoke Tests
+
+- After code changes, run the relevant automated checks before reporting completion. At minimum, run `php .tools/bin/check.php` when PHP is available and the change is not documentation-only.
+- When reviewing local commits or a working tree that includes code changes, include automated check and smoke-test status in the review. If a check or smoke test was skipped, state the concrete reason.
+- Treat HTTP smoke tests as the default follow-up when a local or staging base URL is available, or when a local PHP built-in server can be started safely without secrets or production data. Use `php -S 127.0.0.1:<port> -t .tools/public .tools/bin/dev-router.php` with an available port, then run `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> php .tools/bin/smoke-http.php`.
+- If the target environment is expected to have the community module installed, run the HTTP smoke test with `SR_SMOKE_EXPECT_COMMUNITY=1`.
+- Run authenticated smoke tests such as `php .tools/bin/smoke-community-auth.php` only against a local or staging database and only when explicit smoke-test credentials are available. These tests create and modify data, so do not run them against production.
+- Treat a smoke-test failure as a real finding unless the failure is clearly caused by missing local environment, unavailable credentials, or an already documented pre-existing issue. Record that distinction in the final response.
+
 ## GitHub Operations
 
 - Do not commit unless the user explicitly asks to commit.
