@@ -17,6 +17,26 @@ function sr_community_series_item_statuses(): array
     return ['active', 'hidden', 'removed'];
 }
 
+function sr_community_series_post_sort_order(string $key = 'series_sort_order'): ?int
+{
+    $value = $_POST[$key] ?? '';
+    if (is_array($value)) {
+        return null;
+    }
+
+    $value = trim((string) $value);
+    if ($value === '' || strlen($value) > 10 || preg_match('/\A\d+\z/', $value) !== 1) {
+        return null;
+    }
+
+    $sortOrder = (int) $value;
+    if ($sortOrder < 0 || $sortOrder > 1000000) {
+        return null;
+    }
+
+    return $sortOrder;
+}
+
 function sr_community_series_table_exists(PDO $pdo): bool
 {
     static $exists = null;

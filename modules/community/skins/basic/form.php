@@ -143,7 +143,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <p>
                     <label for="modules_community_form_series_sort_order">
                         <span><?php echo sr_e('정렬 순서'); ?></span>
-                        <input id="modules_community_form_series_sort_order" type="number" name="series_sort_order" value="<?php echo sr_e((string) (int) ($seriesValues['sort_order'] ?? 0)); ?>">
+                        <input id="modules_community_form_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($seriesValues['sort_order'] ?? 0)); ?>">
                     </label>
                 </p>
             </fieldset>

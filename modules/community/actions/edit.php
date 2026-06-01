@@ -84,12 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    $seriesSortOrder = sr_community_series_post_sort_order();
     $seriesValues = [
         'series_mode' => sr_post_string('series_mode', 20),
         'series_id' => (int) sr_post_string('series_id', 20),
         'new_series_title' => trim(sr_post_string('new_series_title', 160)),
         'episode_label' => trim(sr_post_string('series_episode_label', 80)),
-        'sort_order' => (int) sr_post_string('series_sort_order', 20),
+        'sort_order' => $seriesSortOrder ?? 0,
     ];
     if (!in_array((string) $seriesValues['series_mode'], ['none', 'existing', 'new'], true)) {
         $seriesValues['series_mode'] = 'none';
@@ -98,6 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
     if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
         $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    }
+    if ((string) $seriesValues['series_mode'] !== 'none' && $seriesSortOrder === null) {
+        $errors[] = '시리즈 정렬 순서를 확인해 주세요.';
     }
     if ((string) $seriesValues['series_mode'] === 'existing') {
         $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);

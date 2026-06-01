@@ -343,7 +343,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                         <label for="content_admin_contents_series_sort_order">
                             <span><?php echo sr_e('정렬 순서'); ?></span>
-                            <input id="content_admin_contents_series_sort_order" type="number" name="series_sort_order" value="<?php echo sr_e((string) (int) $contentSeriesValues['series_sort_order']); ?>" class="form-input">
+                            <input id="content_admin_contents_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) $contentSeriesValues['series_sort_order']); ?>" class="form-input">
                         </label>
                     </div>
                 </div>

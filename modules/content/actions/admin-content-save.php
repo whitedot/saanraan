@@ -18,10 +18,11 @@ sr_require_csrf();
 
 $pageId = (int) sr_post_string('content_id', 20);
 $values = sr_content_input_values($pdo);
+$seriesSortOrder = sr_admin_post_int_in_range('series_sort_order', 0, 1000000);
 $seriesValues = [
     'series_id' => (int) sr_post_string('series_id', 20),
     'episode_label' => trim(sr_post_string('series_episode_label', 80)),
-    'sort_order' => (int) sr_post_string('series_sort_order', 20),
+    'sort_order' => $seriesSortOrder ?? 0,
 ];
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
@@ -46,6 +47,9 @@ if ((int) $seriesValues['series_id'] > 0) {
     if (!is_array($selectedSeries) || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)) {
         $errors[] = '연결할 콘텐츠 시리즈를 확인해 주세요.';
     }
+}
+if ($seriesSortOrder === null) {
+    $errors[] = '콘텐츠 시리즈 정렬 순서를 확인해 주세요.';
 }
 $errors = array_merge($errors, sr_content_validate_file_request($pdo, $pageId, $values));
 
