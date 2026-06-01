@@ -545,7 +545,7 @@
   };
 
   function tokenValue(value) {
-    return String(value || '').replace(/"/g, "'");
+    return String(value || '').replace(/[{}]/g, '').replace(/"/g, "'");
   }
 
   function buildToken(item, variant) {

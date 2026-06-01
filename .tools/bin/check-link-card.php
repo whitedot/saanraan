@@ -45,6 +45,11 @@ if (sr_link_card_normalized_refs($invalidToken) !== []) {
     sr_link_card_check_error('Invalid link card tokens must not produce reference rows.');
 }
 
+$braceLabelToken = '{{sr_link_card module="community" entity_type="post" entity_id="7" variant="compact" label="중괄호 제목" slot="body"}}';
+if (count(sr_link_card_extract_tokens($braceLabelToken)) !== 1) {
+    sr_link_card_check_error('Sanitized picker labels must keep generated link card tokens parseable.');
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "link card checks failed:\n");
     foreach ($errors as $error) {

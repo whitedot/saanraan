@@ -550,7 +550,7 @@ sr_community_release_file_contains('modules/community/actions/write.php', [
 sr_community_release_file_contains('modules/community/actions/edit.php', [
     'sr_community_account_can_edit_post($post, $account)',
     '$submittedPostId !== $postId',
-    'sr_community_update_post_content($pdo, $postId, $values)',
+    'sr_community_update_post_content($pdo, $postId, $values, (int) $account[\'id\'])',
     "'event_type' => 'community.post.updated_by_author'",
 ], 'Community edit action policy');
 sr_community_release_file_contains('modules/community/actions/delete.php', [

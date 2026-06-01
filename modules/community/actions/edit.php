@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors === []) {
-        sr_community_update_post_content($pdo, $postId, $values);
+        sr_community_update_post_content($pdo, $postId, $values, (int) $account['id']);
         if ((string) $seriesValues['series_mode'] === 'new') {
             $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
                 'title' => (string) $seriesValues['new_series_title'],
