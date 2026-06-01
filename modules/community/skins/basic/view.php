@@ -178,6 +178,30 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php if ((string) ($communitySeriesContext['description'] ?? '') !== '') { ?>
                         <p><?php echo sr_e((string) $communitySeriesContext['description']); ?></p>
                     <?php } ?>
+                    <?php
+                    $communitySeriesPreviousItem = null;
+                    $communitySeriesNextItem = null;
+                    foreach ($communitySeriesContext['items'] as $seriesNavigationItem) {
+                        if (!empty($seriesNavigationItem['series_is_previous'])) {
+                            $communitySeriesPreviousItem = $seriesNavigationItem;
+                        } elseif (!empty($seriesNavigationItem['series_is_next'])) {
+                            $communitySeriesNextItem = $seriesNavigationItem;
+                        }
+                    }
+                    ?>
+                    <?php if (is_array($communitySeriesPreviousItem) || is_array($communitySeriesNextItem)) { ?>
+                        <p>
+                            <?php if (is_array($communitySeriesPreviousItem)) { ?>
+                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) $communitySeriesPreviousItem['post_id']))); ?>"><?php echo sr_e('이전 글'); ?>: <?php echo sr_e((string) $communitySeriesPreviousItem['post_title']); ?></a>
+                            <?php } ?>
+                            <?php if (is_array($communitySeriesPreviousItem) && is_array($communitySeriesNextItem)) { ?>
+                                /
+                            <?php } ?>
+                            <?php if (is_array($communitySeriesNextItem)) { ?>
+                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) $communitySeriesNextItem['post_id']))); ?>"><?php echo sr_e('다음 글'); ?>: <?php echo sr_e((string) $communitySeriesNextItem['post_title']); ?></a>
+                            <?php } ?>
+                        </p>
+                    <?php } ?>
                     <ol>
                         <?php foreach ($communitySeriesContext['items'] as $seriesItem) { ?>
                             <li>

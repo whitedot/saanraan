@@ -112,7 +112,7 @@ return static function (PDO $pdo, int $accountId): array {
     $empty['scraps'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, board_id, title, description, status, visibility, admin_note, created_at, updated_at
+        'SELECT id, board_id, title, description, status, visibility, created_at, updated_at
          FROM sr_community_series
          WHERE owner_account_id = :account_id
          ORDER BY id ASC

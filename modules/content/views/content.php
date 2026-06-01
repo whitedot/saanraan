@@ -82,6 +82,30 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php if ((string) ($contentSeriesContext['description'] ?? '') !== '') { ?>
                         <p><?php echo sr_e((string) $contentSeriesContext['description']); ?></p>
                     <?php } ?>
+                    <?php
+                    $contentSeriesPreviousItem = null;
+                    $contentSeriesNextItem = null;
+                    foreach ($contentSeriesContext['items'] as $seriesNavigationItem) {
+                        if (!empty($seriesNavigationItem['series_is_previous'])) {
+                            $contentSeriesPreviousItem = $seriesNavigationItem;
+                        } elseif (!empty($seriesNavigationItem['series_is_next'])) {
+                            $contentSeriesNextItem = $seriesNavigationItem;
+                        }
+                    }
+                    ?>
+                    <?php if (is_array($contentSeriesPreviousItem) || is_array($contentSeriesNextItem)) { ?>
+                        <p>
+                            <?php if (is_array($contentSeriesPreviousItem)) { ?>
+                                <a href="<?php echo sr_e(sr_url(sr_content_path((string) $contentSeriesPreviousItem['slug']))); ?>"><?php echo sr_e('이전 콘텐츠'); ?>: <?php echo sr_e((string) $contentSeriesPreviousItem['content_title']); ?></a>
+                            <?php } ?>
+                            <?php if (is_array($contentSeriesPreviousItem) && is_array($contentSeriesNextItem)) { ?>
+                                /
+                            <?php } ?>
+                            <?php if (is_array($contentSeriesNextItem)) { ?>
+                                <a href="<?php echo sr_e(sr_url(sr_content_path((string) $contentSeriesNextItem['slug']))); ?>"><?php echo sr_e('다음 콘텐츠'); ?>: <?php echo sr_e((string) $contentSeriesNextItem['content_title']); ?></a>
+                            <?php } ?>
+                        </p>
+                    <?php } ?>
                     <ol>
                         <?php foreach ($contentSeriesContext['items'] as $seriesItem) { ?>
                             <li>

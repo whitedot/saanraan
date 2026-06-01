@@ -18,9 +18,9 @@ if (sr_request_method() === 'POST') {
 
 $slug = sr_content_slug_from_request_path();
 $page = $slug !== '' ? sr_content_by_slug($pdo, $slug) : null;
+$account = sr_member_current_account($pdo);
 $contentAdminPreview = false;
 if (is_array($page) && (string) ($page['status'] ?? '') !== 'published') {
-    $account = sr_member_current_account($pdo);
     if (
         (string) ($page['status'] ?? '') === 'draft'
         && is_array($account)
@@ -51,7 +51,7 @@ if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
 }
 
 $contentFiles = sr_content_files_for_content($pdo, (int) $page['id']);
-$contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array(sr_member_current_account($pdo)));
+$contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array($account) ? $account : null, $contentAdminPreview);
 $pageActionNotice = $_SESSION['sr_content_action_notice'] ?? '';
 $pageActionErrors = $_SESSION['sr_content_action_errors'] ?? [];
 unset($_SESSION['sr_content_action_notice'], $_SESSION['sr_content_action_errors']);

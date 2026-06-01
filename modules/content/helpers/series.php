@@ -34,7 +34,7 @@ function sr_content_series_list(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
-function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = false): array
+function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = false, ?array $account = null, int $currentContentId = 0): array
 {
     if ($seriesId < 1) {
         return [];
@@ -52,10 +52,40 @@ function sr_content_series_items(PDO $pdo, int $seriesId, bool $publicOnly = fal
          ORDER BY si.sort_order ASC, si.id ASC'
     );
     $stmt->execute(['series_id' => $seriesId]);
-    return $stmt->fetchAll();
+    $items = $stmt->fetchAll();
+    if (!$publicOnly) {
+        return $items;
+    }
+
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    $filtered = [];
+    foreach ($items as $item) {
+        $itemContentId = (int) ($item['content_id'] ?? 0);
+        if ($itemContentId === $currentContentId) {
+            $filtered[] = $item;
+            continue;
+        }
+
+        $page = sr_content_by_id($pdo, $itemContentId);
+        if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
+            continue;
+        }
+
+        $page = sr_content_with_effective_settings($pdo, $page);
+        if (sr_content_asset_access_required($page)) {
+            $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
+            if ($accountId < 1 || !sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $itemContentId)) {
+                continue;
+            }
+        }
+
+        $filtered[] = $item;
+    }
+
+    return sr_content_series_items_with_navigation($filtered, $currentContentId);
 }
 
-function sr_content_series_for_content(PDO $pdo, int $contentId, bool $memberVisible): ?array
+function sr_content_series_for_content(PDO $pdo, int $contentId, ?array $account = null, bool $adminPreview = false): ?array
 {
     $stmt = $pdo->prepare(
         "SELECT s.*, si.id AS item_id, si.episode_label, si.item_status, si.sort_order
@@ -69,14 +99,35 @@ function sr_content_series_for_content(PDO $pdo, int $contentId, bool $memberVis
     if (!is_array($series) || (string) $series['status'] !== 'active' || (string) $series['item_status'] !== 'active') {
         return null;
     }
-    if ((string) $series['visibility'] === 'member' && !$memberVisible) {
+    if ((string) $series['visibility'] === 'member' && !is_array($account)) {
         return null;
     }
-    if ((string) $series['visibility'] === 'private') {
+    if ((string) $series['visibility'] === 'private' && !$adminPreview) {
         return null;
     }
-    $series['items'] = sr_content_series_items($pdo, (int) $series['id'], true);
+    $series['items'] = sr_content_series_items($pdo, (int) $series['id'], true, $account, $contentId);
     return $series;
+}
+
+function sr_content_series_items_with_navigation(array $items, int $currentContentId): array
+{
+    $previous = null;
+    $next = null;
+    foreach ($items as $index => $item) {
+        if ((int) ($item['content_id'] ?? 0) === $currentContentId) {
+            $previous = $items[$index - 1] ?? null;
+            $next = $items[$index + 1] ?? null;
+            break;
+        }
+    }
+
+    foreach ($items as $index => $item) {
+        $items[$index]['series_is_current'] = (int) ($item['content_id'] ?? 0) === $currentContentId ? 1 : 0;
+        $items[$index]['series_is_previous'] = is_array($previous) && (int) ($previous['content_id'] ?? 0) === (int) ($item['content_id'] ?? 0) ? 1 : 0;
+        $items[$index]['series_is_next'] = is_array($next) && (int) ($next['content_id'] ?? 0) === (int) ($item['content_id'] ?? 0) ? 1 : 0;
+    }
+
+    return $items;
 }
 
 function sr_content_active_series_item_for_content(PDO $pdo, int $contentId): ?array

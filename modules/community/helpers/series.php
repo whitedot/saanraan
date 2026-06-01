@@ -55,7 +55,7 @@ function sr_community_series_by_id(PDO $pdo, int $seriesId): ?array
     return is_array($series) ? $series : null;
 }
 
-function sr_community_series_items(PDO $pdo, int $seriesId, bool $publicOnly = false): array
+function sr_community_series_items(PDO $pdo, int $seriesId, bool $publicOnly = false, ?array $account = null, int $currentPostId = 0): array
 {
     if ($seriesId < 1) {
         return [];
@@ -76,8 +76,40 @@ function sr_community_series_items(PDO $pdo, int $seriesId, bool $publicOnly = f
          ORDER BY si.sort_order ASC, si.id ASC'
     );
     $stmt->execute(['series_id' => $seriesId]);
+    $items = $stmt->fetchAll();
+    if (!$publicOnly) {
+        return $items;
+    }
 
-    return $stmt->fetchAll();
+    $settings = sr_community_settings($pdo);
+    $filtered = [];
+    foreach ($items as $item) {
+        $itemPostId = (int) ($item['post_id'] ?? 0);
+        if ($itemPostId === $currentPostId) {
+            $filtered[] = $item;
+            continue;
+        }
+
+        $post = sr_community_post_for_read($pdo, $itemPostId, $account);
+        if (!is_array($post)) {
+            continue;
+        }
+
+        $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+        if (is_array($board)) {
+            $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
+            if (sr_community_asset_event_required($paidReadConfig)) {
+                $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+                if ($accountId < 1 || !sr_community_has_paid_read_session($accountId, $itemPostId)) {
+                    continue;
+                }
+            }
+        }
+
+        $filtered[] = $item;
+    }
+
+    return sr_community_series_items_with_navigation($filtered, $currentPostId, 'post_id');
 }
 
 function sr_community_series_for_post(PDO $pdo, int $postId, ?array $account = null): ?array
@@ -107,8 +139,29 @@ function sr_community_series_for_post(PDO $pdo, int $postId, ?array $account = n
         return null;
     }
 
-    $series['items'] = sr_community_series_items($pdo, (int) $series['id'], true);
+    $series['items'] = sr_community_series_items($pdo, (int) $series['id'], true, $account, $postId);
     return $series;
+}
+
+function sr_community_series_items_with_navigation(array $items, int $currentId, string $idKey): array
+{
+    $previous = null;
+    $next = null;
+    foreach ($items as $index => $item) {
+        if ((int) ($item[$idKey] ?? 0) === $currentId) {
+            $previous = $items[$index - 1] ?? null;
+            $next = $items[$index + 1] ?? null;
+            break;
+        }
+    }
+
+    foreach ($items as $index => $item) {
+        $items[$index]['series_is_current'] = (int) ($item[$idKey] ?? 0) === $currentId ? 1 : 0;
+        $items[$index]['series_is_previous'] = is_array($previous) && (int) ($previous[$idKey] ?? 0) === (int) ($item[$idKey] ?? 0) ? 1 : 0;
+        $items[$index]['series_is_next'] = is_array($next) && (int) ($next[$idKey] ?? 0) === (int) ($item[$idKey] ?? 0) ? 1 : 0;
+    }
+
+    return $items;
 }
 
 function sr_community_active_series_item_for_post(PDO $pdo, int $postId): ?array
