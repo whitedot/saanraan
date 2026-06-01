@@ -2,6 +2,34 @@
 
 declare(strict_types=1);
 
+function sr_community_privacy_cleanup_column_exists(PDO $pdo, string $tableName, string $columnName): bool
+{
+    static $exists = [];
+    $cacheKey = $tableName . '.' . $columnName;
+    if (array_key_exists($cacheKey, $exists)) {
+        return $exists[$cacheKey];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => $tableName,
+            'column_name' => $columnName,
+        ]);
+        $exists[$cacheKey] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable $exception) {
+        $exists[$cacheKey] = false;
+    }
+
+    return $exists[$cacheKey];
+}
+
 return static function (PDO $pdo, int $accountId, array $context = []): array {
     if ($accountId < 1) {
         return ['cleaned' => false];
@@ -26,32 +54,29 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $seriesMetadataCount = 0;
 
     if (function_exists('sr_community_series_supported') && sr_community_series_supported($pdo)) {
-        $stmt = $pdo->prepare(
-            'UPDATE sr_community_series
-             SET created_by = CASE WHEN created_by = :created_by_account_id THEN NULL ELSE created_by END,
-                 updated_by = CASE WHEN updated_by = :updated_by_account_id THEN NULL ELSE updated_by END,
-                 moderated_by = CASE WHEN moderated_by = :moderated_by_account_id THEN NULL ELSE moderated_by END
-             WHERE created_by = :created_by_filter
-                OR updated_by = :updated_by_filter
-                OR moderated_by = :moderated_by_filter'
-        );
-        $stmt->execute([
-            'created_by_account_id' => $accountId,
-            'updated_by_account_id' => $accountId,
-            'moderated_by_account_id' => $accountId,
-            'created_by_filter' => $accountId,
-            'updated_by_filter' => $accountId,
-            'moderated_by_filter' => $accountId,
-        ]);
-        $seriesMetadataCount += $stmt->rowCount();
+        foreach (['created_by', 'updated_by', 'moderated_by'] as $columnName) {
+            if (!sr_community_privacy_cleanup_column_exists($pdo, 'sr_community_series', $columnName)) {
+                continue;
+            }
 
-        $stmt = $pdo->prepare(
-            'UPDATE sr_community_series_items
-             SET created_by = NULL
-             WHERE created_by = :account_id'
-        );
-        $stmt->execute(['account_id' => $accountId]);
-        $seriesMetadataCount += $stmt->rowCount();
+            $stmt = $pdo->prepare(
+                'UPDATE sr_community_series
+                 SET ' . $columnName . ' = NULL
+                 WHERE ' . $columnName . ' = :account_id'
+            );
+            $stmt->execute(['account_id' => $accountId]);
+            $seriesMetadataCount += $stmt->rowCount();
+        }
+
+        if (sr_community_privacy_cleanup_column_exists($pdo, 'sr_community_series_items', 'created_by')) {
+            $stmt = $pdo->prepare(
+                'UPDATE sr_community_series_items
+                 SET created_by = NULL
+                 WHERE created_by = :account_id'
+            );
+            $stmt->execute(['account_id' => $accountId]);
+            $seriesMetadataCount += $stmt->rowCount();
+        }
     }
 
     return [
