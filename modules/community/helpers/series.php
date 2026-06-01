@@ -221,32 +221,37 @@ function sr_community_create_series(PDO $pdo, int $boardId, int $ownerAccountId,
 
 function sr_community_update_series(PDO $pdo, int $seriesId, array $values, int $actorAccountId): void
 {
-    $stmt = $pdo->prepare(
-        'UPDATE sr_community_series
-         SET title = :title,
+    $setSql = 'title = :title,
              description = :description,
              status = :status,
              visibility = :visibility,
-             admin_note = :admin_note,
              updated_by = :updated_by,
-             moderated_by = :moderated_by,
-             moderated_at = :moderated_at,
-             updated_at = :updated_at
-         WHERE id = :id'
-    );
-    $moderatedBy = array_key_exists('admin_note', $values) ? $actorAccountId : null;
-    $stmt->execute([
+             updated_at = :updated_at';
+    $params = [
         'title' => trim((string) $values['title']),
         'description' => trim((string) ($values['description'] ?? '')),
         'status' => (string) ($values['status'] ?? 'active'),
         'visibility' => (string) ($values['visibility'] ?? 'public'),
-        'admin_note' => trim((string) ($values['admin_note'] ?? '')),
         'updated_by' => $actorAccountId,
-        'moderated_by' => $moderatedBy,
-        'moderated_at' => $moderatedBy !== null ? sr_now() : null,
         'updated_at' => sr_now(),
         'id' => $seriesId,
-    ]);
+    ];
+    if (array_key_exists('admin_note', $values)) {
+        $setSql .= ',
+             admin_note = :admin_note,
+             moderated_by = :moderated_by,
+             moderated_at = :moderated_at';
+        $params['admin_note'] = trim((string) ($values['admin_note'] ?? ''));
+        $params['moderated_by'] = $actorAccountId;
+        $params['moderated_at'] = sr_now();
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_series
+         SET ' . $setSql . '
+         WHERE id = :id'
+    );
+    $stmt->execute($params);
 
     if (in_array((string) ($values['status'] ?? ''), ['archived', 'deleted'], true)) {
         sr_community_remove_series_items($pdo, $seriesId);

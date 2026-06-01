@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
@@ -28,6 +29,8 @@ if (sr_request_method() === 'POST') {
     $board = sr_community_board_by_id($pdo, $boardId);
     if (!is_array($board) || (string) ($board['status'] ?? '') !== 'enabled') {
         $errors[] = '게시판을 선택해 주세요.';
+    } elseif (!sr_community_account_can_write_board($pdo, $board, $account, sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit'))) {
+        $errors[] = '글쓰기 권한이 있는 게시판만 선택할 수 있습니다.';
     }
     if ($errors === []) {
         if ($intent === 'create') {
@@ -42,6 +45,10 @@ if (sr_request_method() === 'POST') {
             $series = sr_community_series_by_id($pdo, $seriesId);
             if (!is_array($series) || (int) $series['owner_account_id'] !== (int) $account['id']) {
                 $errors[] = '시리즈를 찾을 수 없습니다.';
+            } elseif ((int) ($series['board_id'] ?? 0) !== $boardId) {
+                $errors[] = '시리즈 게시판을 확인해 주세요.';
+            } elseif ((string) ($series['status'] ?? '') !== 'active') {
+                $errors[] = '관리 중인 시리즈는 수정할 수 없습니다.';
             } else {
                 sr_community_update_series($pdo, $seriesId, [
                     'title' => $title,
@@ -55,7 +62,13 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$boards = $pdo->query("SELECT id, board_key, title FROM sr_community_boards WHERE status = 'enabled' ORDER BY sort_order ASC, id ASC")->fetchAll();
+$canWriteAsAdmin = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
+$boards = [];
+foreach ($pdo->query("SELECT id, board_key, title, board_group_id, status, write_policy FROM sr_community_boards WHERE status = 'enabled' ORDER BY sort_order ASC, id ASC")->fetchAll() as $boardOption) {
+    if (sr_community_account_can_write_board($pdo, $boardOption, $account, $canWriteAsAdmin)) {
+        $boards[] = $boardOption;
+    }
+}
 $seriesList = sr_community_account_series($pdo, (int) $account['id']);
 
 include SR_ROOT . '/modules/community/views/series.php';

@@ -32,6 +32,15 @@ CREATE TABLE IF NOT EXISTS sr_content_series_items (
     KEY idx_sr_content_series_items_series_sort (series_id, item_status, sort_order, id)
 );
 
+INSERT IGNORE INTO sr_admin_account_permissions (account_id, menu_path, action_key, created_at)
+SELECT account_id,
+       '/admin/content/series',
+       action_key,
+       NOW()
+FROM sr_admin_account_permissions
+WHERE menu_path = '/admin/content'
+  AND action_key IN ('view', 'edit');
+
 UPDATE sr_modules
 SET version = '2026.06.001',
     updated_at = CURRENT_TIMESTAMP

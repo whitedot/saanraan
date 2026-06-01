@@ -157,7 +157,7 @@ function sr_community_post_category_validation_errors(PDO $pdo, array $board, ar
     $currentCategoryId = is_array($existingPost) ? (int) ($existingPost['category_id'] ?? 0) : 0;
 
     if ($categoryId < 1) {
-        if ($required && $currentCategoryId < 1) {
+        if ($required) {
             $errors[] = '카테고리를 선택해 주세요.';
         }
         return $errors;
