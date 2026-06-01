@@ -319,6 +319,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <?php echo $pageGroupScopeRadioHtml('content_group_scope', (string) ($values['content_group_scope'] ?? 'here_only')); ?>
+                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 그룹은 운영 묶음입니다. 목록 페이지, 초기화면 후보, 새 콘텐츠 기본값, 그룹/전체 복사 범위를 관리하며 읽기 순서나 회차 내비게이션은 만들지 않습니다.'); ?></p>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.list.menu.10a1aa2a')); ?></p>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.scope.copy_help')); ?></p>
                 </div>
@@ -334,7 +335,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
-                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 시리즈는 콘텐츠 시리즈 관리 화면에서 만들고, 각 콘텐츠 편집 화면에서 회차로 연결합니다.'); ?></p>
+                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 시리즈는 읽기 흐름입니다. 콘텐츠 그룹과 독립적으로 회차 표시, 정렬 순서, 이전/다음 내비게이션만 관리합니다.'); ?></p>
                     <div class="admin-form-inline">
                         <label for="content_admin_contents_series_episode_label">
                             <span><?php echo sr_e('회차 표시'); ?></span>
@@ -704,6 +705,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <th<?php echo sr_content_admin_sort_aria('title', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.08b17e43'), 'title', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('content_group', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.5d908ddd'), 'content_group', $contentSort); ?></th>
+                        <th><?php echo sr_e('시리즈'); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('slug', $contentSort); ?>><?php echo sr_content_admin_sort_header_html('Slug', 'slug', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('status', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.status.e10195a1'), 'status', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('asset_access', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.c9b3e6f0'), 'asset_access', $contentSort); ?></th>
@@ -716,7 +718,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if ($pages === []) { ?>
                         <tr>
-                            <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('content::ui.create.content.8994ccd1')); ?></td>
+                            <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('content::ui.create.content.8994ccd1')); ?></td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($pages as $page) { ?>
@@ -731,6 +733,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <tr>
                                 <td class="admin-table-break admin-content-title-cell"><?php echo sr_e((string) $page['title']); ?></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['content_group_title'] ?? '')); ?></td>
+                                <td class="admin-table-nowrap">
+                                    <?php if ((string) ($page['content_series_title'] ?? '') !== '') { ?>
+                                        <?php echo sr_e((string) $page['content_series_title']); ?>
+                                        <?php if ((string) ($page['content_series_episode_label'] ?? '') !== '') { ?>
+                                            <span class="admin-dashboard-meta"><?php echo sr_e((string) $page['content_series_episode_label']); ?></span>
+                                        <?php } ?>
+                                    <?php } ?>
+                                </td>
                                 <td class="admin-table-nowrap admin-content-slug-cell"><code><?php echo sr_e((string) $page['slug']); ?></code></td>
                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($pageStatus, 'content_status')); ?></span></td>
                                 <td>

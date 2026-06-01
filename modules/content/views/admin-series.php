@@ -2,6 +2,7 @@
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 <section class="admin-card card admin-ui-scope">
     <h2>콘텐츠 시리즈</h2>
+    <p class="admin-form-help">시리즈는 독자가 순서대로 따라가는 연재 흐름입니다. 콘텐츠 그룹의 운영 묶음이나 기본 설정과 별개로, 공개 화면의 회차 목록과 이전/다음 이동만 담당합니다.</p>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-form ui-form-theme">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="create">
@@ -16,10 +17,16 @@
 </section>
 <section class="admin-card card admin-ui-scope">
     <h2>목록</h2>
+    <p class="admin-form-help">한 콘텐츠는 운영용 콘텐츠 그룹에 속하면서 동시에 하나의 시리즈 회차로 연결될 수 있습니다. 시리즈 정렬은 그룹 목록 정렬에 영향을 주지 않습니다.</p>
     <div class="table-wrapper">
         <table class="table">
             <thead><tr><th>key</th><th>제목</th><th>상태</th><th>공개</th><th>정렬</th><th>관리</th></tr></thead>
             <tbody>
+                <?php if ($seriesList === []) { ?>
+                    <tr>
+                        <td colspan="6" class="admin-empty-state">등록된 콘텐츠 시리즈가 없습니다.</td>
+                    </tr>
+                <?php } ?>
                 <?php foreach ($seriesList as $series) { ?>
                     <tr>
                         <td><code><?php echo sr_e((string) $series['series_key']); ?></code></td>

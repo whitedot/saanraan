@@ -97,6 +97,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div>
                 <h2 class="card-title"><?php echo sr_e(sr_t('content::ui.content.list.d2ad38e3')); ?></h2>
                 <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('content::ui.active.status.content.group.key.0f2cd28c')); ?></p>
+                <p class="admin-dashboard-meta"><?php echo sr_e('콘텐츠 그룹은 운영 묶음과 기본값을 관리합니다. 연재 순서와 회차 내비게이션은 콘텐츠 시리즈에서 관리합니다.'); ?></p>
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/content-groups/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('content::ui.text.6de46476')); ?></a>
         </div>
@@ -163,6 +164,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
             <h2><?php echo $editing ? sr_t('content::ui.content.edit.700b7706') : sr_t('content::ui.content.5a50b240'); ?></h2>
+            <p class="admin-form-help"><?php echo sr_e('콘텐츠 그룹은 목록 페이지, 초기화면 후보, 새 콘텐츠 기본값, 그룹/전체 복사 범위를 위한 운영 단위입니다. 독자가 순서대로 읽는 연재 흐름은 콘텐츠 시리즈를 사용하세요.'); ?></p>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="<?php echo $editing ? 'update_group' : 'create_group'; ?>">
             <input type="hidden" name="group_id" value="<?php echo $editing ? sr_e((string) $editPageGroup['id']) : '0'; ?>">

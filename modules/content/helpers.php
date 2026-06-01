@@ -1026,9 +1026,13 @@ function sr_content_admin_list(PDO $pdo, array $filters, int $limit = 0, int $of
     $where = $queryParts['where'];
     $params = $queryParts['params'];
     $sql = 'SELECT p.*, g.group_key AS content_group_key, g.title AS content_group_title,
+                   cs.series_key AS content_series_key, cs.title AS content_series_title,
+                   csi.episode_label AS content_series_episode_label, csi.sort_order AS content_series_sort_order,
                    creator.display_name AS created_by_name, updater.display_name AS updated_by_name
             FROM sr_content_items p
             LEFT JOIN sr_content_groups g ON g.id = p.content_group_id
+            LEFT JOIN sr_content_series_items csi ON csi.active_content_id = p.id
+            LEFT JOIN sr_content_series cs ON cs.id = csi.series_id
             LEFT JOIN sr_member_accounts creator ON creator.id = p.created_by
             LEFT JOIN sr_member_accounts updater ON updater.id = p.updated_by';
     if ($where !== []) {
