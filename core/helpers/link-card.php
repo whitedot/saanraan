@@ -258,13 +258,49 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
         return sr_link_card_render($result, $token);
     };
 
-    $bodyHtml = preg_replace_callback('/<p(?:\s[^>]*)?>\s*(\{\{sr_link_card\s+([^{}]+)\}\})\s*<\/p>/u', static function (array $match) use ($renderToken): string {
-        $token = sr_link_card_parse_attributes((string) ($match[2] ?? ''));
-        if ((string) ($token['variant'] ?? 'compact') === 'inline') {
+    $bodyHtml = preg_replace_callback('/<p(\s[^>]*)?>(.*?)<\/p>/us', static function (array $match) use ($renderToken): string {
+        $paragraphAttributes = (string) ($match[1] ?? '');
+        $paragraphBody = (string) ($match[2] ?? '');
+        if (preg_match_all(sr_link_card_token_pattern(), $paragraphBody, $tokenMatches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
             return (string) ($match[0] ?? '');
         }
 
-        return $renderToken((string) ($match[2] ?? ''), (string) ($match[1] ?? ''));
+        $parts = [];
+        $buffer = '';
+        $offset = 0;
+        $hasBlockCard = false;
+        $flushParagraph = static function () use (&$parts, &$buffer, $paragraphAttributes): void {
+            if (trim($buffer) === '') {
+                $buffer = '';
+                return;
+            }
+
+            $parts[] = '<p' . $paragraphAttributes . '>' . $buffer . '</p>';
+            $buffer = '';
+        };
+
+        foreach ($tokenMatches as $tokenMatch) {
+            $rawToken = (string) ($tokenMatch[0][0] ?? '');
+            $tokenOffset = (int) ($tokenMatch[0][1] ?? 0);
+            $attributeText = (string) ($tokenMatch[1][0] ?? '');
+            $token = sr_link_card_parse_attributes($attributeText);
+            $buffer .= substr($paragraphBody, $offset, max(0, $tokenOffset - $offset));
+            $offset = $tokenOffset + strlen($rawToken);
+
+            if (!sr_link_card_token_is_valid($token) || (string) ($token['variant'] ?? 'compact') === 'inline') {
+                $buffer .= $rawToken;
+                continue;
+            }
+
+            $flushParagraph();
+            $parts[] = $renderToken($attributeText, $rawToken);
+            $hasBlockCard = true;
+        }
+
+        $buffer .= substr($paragraphBody, $offset);
+        $flushParagraph();
+
+        return $hasBlockCard ? implode('', $parts) : (string) ($match[0] ?? '');
     }, $bodyHtml) ?? $bodyHtml;
 
     return preg_replace_callback(sr_link_card_token_pattern(), static function (array $match) use ($renderToken): string {

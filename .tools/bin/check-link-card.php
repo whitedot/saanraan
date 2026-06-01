@@ -58,6 +58,11 @@ if (str_contains($blockRendered, '<p><aside') || !str_contains($blockRendered, '
     sr_link_card_check_error('Block link card tokens wrapped by an editor paragraph must render without invalid p > aside markup.');
 }
 
+$mixedBlockRendered = sr_link_card_render_body($renderPdo, '<p>앞 ' . $braceLabelToken . ' 뒤</p>');
+if (str_contains($mixedBlockRendered, '<p>앞 <aside') || !str_contains($mixedBlockRendered, '<p>앞 </p><aside') || !str_contains($mixedBlockRendered, '</aside><p> 뒤</p>')) {
+    sr_link_card_check_error('Block link card tokens inserted in the middle of an editor paragraph must split into valid block markup.');
+}
+
 $inlineToken = '{{sr_link_card module="community" entity_type="post" entity_id="7" variant="inline" label="인라인" slot="body"}}';
 $inlineRendered = sr_link_card_render_body($renderPdo, '<p>앞 ' . $inlineToken . ' 뒤</p>');
 if (!str_contains($inlineRendered, '<p>앞 <span class="sr-link-card sr-link-card-inline') || str_contains($inlineRendered, '<aside')) {
