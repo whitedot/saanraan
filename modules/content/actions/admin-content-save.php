@@ -65,7 +65,9 @@ if ($errors !== []) {
 }
 
 $beforeAssetSettings = $pageId > 0 ? sr_content_asset_settings_from_storage_for_audit($pdo, $pageId) : [];
-$beforePage = $pageId > 0 ? sr_content_by_id($pdo, $pageId) : null;
+$statusScope = sr_content_normalize_setting_source((string) ($values['source_status'] ?? 'content'));
+$statusBeforeTargetIds = sr_content_apply_scope_target_ids($pdo, $pageId, (int) ($values['content_group_id'] ?? 0), $statusScope);
+$statusBeforeRows = sr_content_status_rows_for_ids($pdo, $statusBeforeTargetIds);
 $savedPageId = sr_content_save($pdo, $values, (int) $account['id'], $pageId);
 sr_content_set_content_series($pdo, $savedPageId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
 try {
@@ -93,42 +95,9 @@ sr_audit_log($pdo, [
         'layout_key' => (string) ($values['layout_key'] ?? ''),
     ],
 ]);
-$beforeStatus = is_array($beforePage) ? (string) ($beforePage['status'] ?? '') : '';
-$beforePublishedAt = is_array($beforePage) ? (string) ($beforePage['published_at'] ?? '') : '';
-$afterStatus = (string) $values['status'];
-$afterPublishedAt = (string) ($values['scheduled_publish_at'] ?? '');
-if ($afterStatus === 'scheduled' && ($beforeStatus !== 'scheduled' || $beforePublishedAt !== $afterPublishedAt)) {
-    sr_audit_log($pdo, [
-        'actor_account_id' => (int) $account['id'],
-        'actor_type' => 'admin',
-        'event_type' => 'content.scheduled',
-        'target_type' => 'content',
-        'target_id' => (string) $savedPageId,
-        'result' => 'success',
-        'message' => 'Content scheduled for publishing.',
-        'metadata' => [
-            'slug' => (string) $values['slug'],
-            'scheduled_publish_at' => $afterPublishedAt,
-            'previous_status' => $beforeStatus,
-            'previous_published_at' => $beforePublishedAt,
-        ],
-    ]);
-} elseif ($beforeStatus === 'scheduled' && $afterStatus !== 'scheduled') {
-    sr_audit_log($pdo, [
-        'actor_account_id' => (int) $account['id'],
-        'actor_type' => 'admin',
-        'event_type' => 'content.schedule_cleared',
-        'target_type' => 'content',
-        'target_id' => (string) $savedPageId,
-        'result' => 'success',
-        'message' => 'Content schedule cleared.',
-        'metadata' => [
-            'slug' => (string) $values['slug'],
-            'status' => $afterStatus,
-            'previous_published_at' => $beforePublishedAt,
-        ],
-    ]);
-}
+$statusAfterTargetIds = sr_content_apply_scope_target_ids($pdo, $savedPageId, (int) ($values['content_group_id'] ?? 0), $statusScope);
+$statusAfterRows = sr_content_status_rows_for_ids($pdo, $statusAfterTargetIds);
+sr_content_audit_status_schedule_changes($pdo, $statusBeforeRows, $statusAfterRows, $account);
 if ($pageId > 0) {
     sr_admin_audit_asset_settings_update($pdo, [
         'actor_account_id' => (int) $account['id'],

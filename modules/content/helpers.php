@@ -816,10 +816,6 @@ function sr_content_group_apply_scope(string $scope): string
 
 function sr_content_apply_scope_target_ids(PDO $pdo, int $pageId, int $pageGroupId, string $scope): array
 {
-    if ($pageId < 1) {
-        return [];
-    }
-
     $scope = sr_content_group_apply_scope($scope);
     if ($scope === 'all') {
         $stmt = $pdo->query('SELECT id FROM sr_content_items ORDER BY id ASC');
@@ -832,7 +828,73 @@ function sr_content_apply_scope_target_ids(PDO $pdo, int $pageId, int $pageGroup
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
+    if ($pageId < 1) {
+        return [];
+    }
+
     return [$pageId];
+}
+
+function sr_content_status_rows_for_ids(PDO $pdo, array $contentIds): array
+{
+    $ids = array_values(array_unique(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0)));
+    if ($ids === []) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $pdo->prepare('SELECT id, slug, status, published_at FROM sr_content_items WHERE id IN (' . $placeholders . ')');
+    $stmt->execute($ids);
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $rows[(int) ($row['id'] ?? 0)] = $row;
+    }
+
+    return $rows;
+}
+
+function sr_content_audit_status_schedule_changes(PDO $pdo, array $beforeRows, array $afterRows, array $account): void
+{
+    foreach ($afterRows as $contentId => $afterRow) {
+        $beforeRow = is_array($beforeRows[(int) $contentId] ?? null) ? $beforeRows[(int) $contentId] : null;
+        $beforeStatus = is_array($beforeRow) ? (string) ($beforeRow['status'] ?? '') : '';
+        $beforePublishedAt = is_array($beforeRow) ? (string) ($beforeRow['published_at'] ?? '') : '';
+        $afterStatus = (string) ($afterRow['status'] ?? '');
+        $afterPublishedAt = (string) ($afterRow['published_at'] ?? '');
+        if ($afterStatus === 'scheduled' && ($beforeStatus !== 'scheduled' || $beforePublishedAt !== $afterPublishedAt)) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) ($account['id'] ?? 0),
+                'actor_type' => 'admin',
+                'event_type' => 'content.scheduled',
+                'target_type' => 'content',
+                'target_id' => (string) (int) $contentId,
+                'result' => 'success',
+                'message' => 'Content scheduled for publishing.',
+                'metadata' => [
+                    'slug' => (string) ($afterRow['slug'] ?? ''),
+                    'scheduled_publish_at' => $afterPublishedAt,
+                    'previous_status' => $beforeStatus,
+                    'previous_published_at' => $beforePublishedAt,
+                ],
+            ]);
+        } elseif ($beforeStatus === 'scheduled' && $afterStatus !== 'scheduled') {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) ($account['id'] ?? 0),
+                'actor_type' => 'admin',
+                'event_type' => 'content.schedule_cleared',
+                'target_type' => 'content',
+                'target_id' => (string) (int) $contentId,
+                'result' => 'success',
+                'message' => 'Content schedule cleared.',
+                'metadata' => [
+                    'slug' => (string) ($afterRow['slug'] ?? ''),
+                    'status' => $afterStatus,
+                    'previous_published_at' => $beforePublishedAt,
+                ],
+            ]);
+        }
+    }
 }
 
 function sr_content_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId, string $settingKey, string $scope, array $values, int $accountId, string $now): void
@@ -851,7 +913,10 @@ function sr_content_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId,
         $sql = "UPDATE sr_content_items
                 SET status = ?,
                     published_at = CASE
-                        WHEN ? = 'published' THEN COALESCE(published_at, ?)
+                        WHEN ? = 'published' THEN CASE
+                            WHEN status = 'published' AND published_at IS NOT NULL THEN published_at
+                            ELSE ?
+                        END
                         WHEN ? = 'scheduled' THEN ?
                         ELSE NULL
                     END,
