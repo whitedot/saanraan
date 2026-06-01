@@ -2,38 +2,37 @@
 
 declare(strict_types=1);
 
-function sr_community_privacy_cleanup_column_exists(PDO $pdo, string $tableName, string $columnName): bool
-{
-    static $exists = [];
-    $cacheKey = $tableName . '.' . $columnName;
-    if (array_key_exists($cacheKey, $exists)) {
-        return $exists[$cacheKey];
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            'SELECT COUNT(*)
-             FROM INFORMATION_SCHEMA.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = :table_name
-               AND COLUMN_NAME = :column_name'
-        );
-        $stmt->execute([
-            'table_name' => $tableName,
-            'column_name' => $columnName,
-        ]);
-        $exists[$cacheKey] = (int) $stmt->fetchColumn() > 0;
-    } catch (Throwable $exception) {
-        $exists[$cacheKey] = false;
-    }
-
-    return $exists[$cacheKey];
-}
-
 return static function (PDO $pdo, int $accountId, array $context = []): array {
     if ($accountId < 1) {
         return ['cleaned' => false];
     }
+
+    $columnExists = static function (PDO $pdo, string $tableName, string $columnName): bool {
+        static $exists = [];
+        $cacheKey = $tableName . '.' . $columnName;
+        if (array_key_exists($cacheKey, $exists)) {
+            return $exists[$cacheKey];
+        }
+
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT COUNT(*)
+                 FROM INFORMATION_SCHEMA.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = :table_name
+                   AND COLUMN_NAME = :column_name'
+            );
+            $stmt->execute([
+                'table_name' => $tableName,
+                'column_name' => $columnName,
+            ]);
+            $exists[$cacheKey] = (int) $stmt->fetchColumn() > 0;
+        } catch (Throwable $exception) {
+            $exists[$cacheKey] = false;
+        }
+
+        return $exists[$cacheKey];
+    };
 
     if (!function_exists('sr_community_delete_member_nickname')) {
         require_once SR_ROOT . '/modules/community/helpers/members.php';
@@ -55,7 +54,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
 
     if (function_exists('sr_community_series_supported') && sr_community_series_supported($pdo)) {
         foreach (['created_by', 'updated_by', 'moderated_by'] as $columnName) {
-            if (!sr_community_privacy_cleanup_column_exists($pdo, 'sr_community_series', $columnName)) {
+            if (!$columnExists($pdo, 'sr_community_series', $columnName)) {
                 continue;
             }
 
@@ -68,7 +67,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
             $seriesMetadataCount += $stmt->rowCount();
         }
 
-        if (sr_community_privacy_cleanup_column_exists($pdo, 'sr_community_series_items', 'created_by')) {
+        if ($columnExists($pdo, 'sr_community_series_items', 'created_by')) {
             $stmt = $pdo->prepare(
                 'UPDATE sr_community_series_items
                  SET created_by = NULL
