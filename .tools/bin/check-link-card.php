@@ -64,8 +64,38 @@ if (str_contains($mixedBlockRendered, '<p>앞 <aside') || !str_contains($mixedBl
 }
 
 $formattedBlockRendered = sr_link_card_render_body($renderPdo, '<p id="dup"><strong>앞 ' . $braceLabelToken . ' 뒤</strong></p>');
-if (str_contains($formattedBlockRendered, '<strong>앞 </p>') || str_contains($formattedBlockRendered, '</strong></p>') || str_contains($formattedBlockRendered, 'id="dup"') || !str_contains($formattedBlockRendered, '<p>앞 </p><aside')) {
+if (str_contains($formattedBlockRendered, '<strong>앞 </p>') || str_contains($formattedBlockRendered, 'id="dup"') || !str_contains($formattedBlockRendered, '<p><strong>앞 </strong></p><aside')) {
     sr_link_card_check_error('Formatted paragraph fragments around block link cards must render as balanced plain paragraphs without duplicated attributes.');
+}
+
+$headingBlockRendered = sr_link_card_render_body($renderPdo, '<h2>앞 ' . $braceLabelToken . ' 뒤</h2>');
+if (str_contains($headingBlockRendered, '<h2>앞 <aside') || !str_contains($headingBlockRendered, '<h2>앞 </h2><aside') || !str_contains($headingBlockRendered, '</aside><h2> 뒤</h2>')) {
+    sr_link_card_check_error('Heading fragments around block link cards must render outside phrasing-only heading markup.');
+}
+
+$rootInlineBlockRendered = sr_link_card_render_body($renderPdo, '<strong>앞 ' . $braceLabelToken . ' 뒤</strong>');
+if (str_contains($rootInlineBlockRendered, '<strong>앞 <aside') || !str_contains($rootInlineBlockRendered, '<p><strong>앞 </strong></p><aside') || !str_contains($rootInlineBlockRendered, '</aside><p><strong> 뒤</strong></p>')) {
+    sr_link_card_check_error('Root inline wrappers around block link cards must split into valid block markup.');
+}
+
+$linkedBlockRendered = sr_link_card_render_body($renderPdo, '<p><a href="/x">앞 ' . $braceLabelToken . ' 뒤</a></p>');
+if (str_contains($linkedBlockRendered, '<a href="/x" rel="nofollow noopener noreferrer">앞 <aside') || !str_contains($linkedBlockRendered, '<p><a href="/x" rel="nofollow noopener noreferrer">앞 </a></p><aside') || !str_contains($linkedBlockRendered, '</aside><p><a href="/x" rel="nofollow noopener noreferrer"> 뒤</a></p>')) {
+    sr_link_card_check_error('Linked paragraph fragments around block link cards must preserve the anchor on both sides.');
+}
+
+$nestedLinkedBlockRendered = sr_link_card_render_body($renderPdo, '<p><a href="/x"><strong>앞 ' . $braceLabelToken . ' 뒤</strong></a></p>');
+if (!str_contains($nestedLinkedBlockRendered, '<p><a href="/x" rel="nofollow noopener noreferrer"><strong>앞 </strong></a></p><aside') || !str_contains($nestedLinkedBlockRendered, '</aside><p><a href="/x" rel="nofollow noopener noreferrer"><strong> 뒤</strong></a></p>')) {
+    sr_link_card_check_error('Nested linked formatting around block link cards must preserve balanced inline wrappers on both sides.');
+}
+
+$rootLinkedBlockRendered = sr_link_card_render_body($renderPdo, '<a href="/x">앞 ' . $braceLabelToken . ' 뒤</a>');
+if (!str_contains($rootLinkedBlockRendered, '<p><a href="/x" rel="nofollow noopener noreferrer">앞 </a></p><aside') || !str_contains($rootLinkedBlockRendered, '</aside><p><a href="/x" rel="nofollow noopener noreferrer"> 뒤</a></p>')) {
+    sr_link_card_check_error('Root anchor wrappers around block link cards must split into valid linked paragraphs.');
+}
+
+$unsafeLinkedBlockRendered = sr_link_card_render_body($renderPdo, '<p><a href="javascript:alert(1)" onclick="alert(1)">앞 ' . $braceLabelToken . ' 뒤</a><img src="http://example.test/x.png" onerror="alert(1)"></p>');
+if (str_contains($unsafeLinkedBlockRendered, 'javascript:') || str_contains($unsafeLinkedBlockRendered, 'onclick=') || str_contains($unsafeLinkedBlockRendered, 'onerror=') || str_contains($unsafeLinkedBlockRendered, '<img')) {
+    sr_link_card_check_error('Link card fragment rendering must not preserve unsafe link or image attributes when splitting block cards.');
 }
 
 $inlineToken = '{{sr_link_card module="community" entity_type="post" entity_id="7" variant="inline" label="인라인" slot="body"}}';

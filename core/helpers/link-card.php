@@ -258,9 +258,33 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
         return sr_link_card_render($result, $token);
     };
 
-    $bodyHtml = preg_replace_callback('/<p(?:\s[^>]*)?>(.*?)<\/p>/us', static function (array $match) use ($renderToken): string {
-        $paragraphBody = (string) ($match[1] ?? '');
-        if (preg_match_all(sr_link_card_token_pattern(), $paragraphBody, $tokenMatches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
+    $bodyHtml = sr_link_card_split_block_tokens_in_containers($bodyHtml, ['p', 'h2', 'h3'], null, $renderToken);
+    $bodyHtml = sr_link_card_split_block_tokens_in_containers($bodyHtml, ['strong', 'em', 'u', 's', 'a'], 'p', $renderToken);
+
+    return preg_replace_callback(sr_link_card_token_pattern(), static function (array $match) use ($renderToken): string {
+        return $renderToken((string) ($match[1] ?? ''), (string) ($match[0] ?? ''));
+    }, $bodyHtml) ?? $bodyHtml;
+}
+
+function sr_link_card_split_block_tokens_in_containers(string $bodyHtml, array $tagNames, ?string $fragmentTagName, callable $renderToken): string
+{
+    $safeTags = [];
+    foreach ($tagNames as $tagName) {
+        $tagName = strtolower((string) $tagName);
+        if (preg_match('/\A[a-z][a-z0-9]*\z/', $tagName) === 1) {
+            $safeTags[] = preg_quote($tagName, '/');
+        }
+    }
+    if ($safeTags === []) {
+        return $bodyHtml;
+    }
+
+    $pattern = '/<(' . implode('|', $safeTags) . ')(\s[^>]*)?>(.*?)<\/\1>/us';
+    return preg_replace_callback($pattern, static function (array $match) use ($fragmentTagName, $renderToken): string {
+        $tagName = strtolower((string) ($match[1] ?? 'p'));
+        $tagAttributes = (string) ($match[2] ?? '');
+        $containerBody = (string) ($match[3] ?? '');
+        if (preg_match_all(sr_link_card_token_pattern(), $containerBody, $tokenMatches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
             return (string) ($match[0] ?? '');
         }
 
@@ -268,15 +292,34 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
         $buffer = '';
         $offset = 0;
         $hasBlockCard = false;
-        $flushParagraph = static function () use (&$parts, &$buffer): void {
-            $textHtml = sr_link_card_fragment_text_html($buffer);
-            if (trim($textHtml) === '') {
+        $bufferWrappers = [];
+        $flushFragment = static function () use (&$parts, &$buffer, &$bufferWrappers, $fragmentTagName, $tagName, $tagAttributes): void {
+            $fragmentSource = $buffer;
+            if ($bufferWrappers !== []) {
+                $prefix = '';
+                foreach ($bufferWrappers as $wrapper) {
+                    $prefix .= (string) ($wrapper['open'] ?? '');
+                }
+                $fragmentSource = $prefix . $fragmentSource;
+            }
+
+            $fragmentHtml = sr_link_card_fragment_inline_html($fragmentSource);
+            if (trim($fragmentHtml) === '') {
                 $buffer = '';
+                $bufferWrappers = [];
                 return;
             }
 
-            $parts[] = '<p>' . $textHtml . '</p>';
+            $outputTag = $fragmentTagName ?: $tagName;
+            if ($fragmentTagName !== null && in_array($tagName, ['strong', 'em', 'u', 's', 'a'], true)) {
+                $openTag = sr_link_card_sanitized_inline_open_tag($tagName, $tagAttributes);
+                if ($openTag !== '') {
+                    $fragmentHtml = $openTag . $fragmentHtml . '</' . $tagName . '>';
+                }
+            }
+            $parts[] = '<' . $outputTag . '>' . $fragmentHtml . '</' . $outputTag . '>';
             $buffer = '';
+            $bufferWrappers = [];
         };
 
         foreach ($tokenMatches as $tokenMatch) {
@@ -284,7 +327,7 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
             $tokenOffset = (int) ($tokenMatch[0][1] ?? 0);
             $attributeText = (string) ($tokenMatch[1][0] ?? '');
             $token = sr_link_card_parse_attributes($attributeText);
-            $buffer .= substr($paragraphBody, $offset, max(0, $tokenOffset - $offset));
+            $buffer .= substr($containerBody, $offset, max(0, $tokenOffset - $offset));
             $offset = $tokenOffset + strlen($rawToken);
 
             if (!sr_link_card_token_is_valid($token) || (string) ($token['variant'] ?? 'compact') === 'inline') {
@@ -292,23 +335,20 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
                 continue;
             }
 
-            $flushParagraph();
+            $flushFragment();
             $parts[] = $renderToken($attributeText, $rawToken);
+            $bufferWrappers = sr_link_card_inline_wrappers_at_offset($containerBody, $tokenOffset);
             $hasBlockCard = true;
         }
 
-        $buffer .= substr($paragraphBody, $offset);
-        $flushParagraph();
+        $buffer .= substr($containerBody, $offset);
+        $flushFragment();
 
         return $hasBlockCard ? implode('', $parts) : (string) ($match[0] ?? '');
     }, $bodyHtml) ?? $bodyHtml;
-
-    return preg_replace_callback(sr_link_card_token_pattern(), static function (array $match) use ($renderToken): string {
-        return $renderToken((string) ($match[1] ?? ''), (string) ($match[0] ?? ''));
-    }, $bodyHtml) ?? $bodyHtml;
 }
 
-function sr_link_card_fragment_text_html(string $html): string
+function sr_link_card_fragment_inline_html(string $html): string
 {
     if ($html === '') {
         return '';
@@ -335,7 +375,164 @@ function sr_link_card_fragment_text_html(string $html): string
         }
     }
 
-    return $root instanceof DOMElement ? sr_e($root->textContent) : '';
+    if (!$root instanceof DOMElement) {
+        return '';
+    }
+
+    $output = '';
+    foreach ($root->childNodes as $child) {
+        $output .= sr_link_card_fragment_inline_node_html($child);
+    }
+
+    return $output;
+}
+
+function sr_link_card_fragment_inline_node_html(DOMNode $node): string
+{
+    if ($node instanceof DOMText) {
+        return sr_e($node->wholeText);
+    }
+
+    if (!$node instanceof DOMElement) {
+        return '';
+    }
+
+    $tagName = strtolower($node->tagName);
+    if (in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed', 'form'], true)) {
+        return '';
+    }
+
+    $children = '';
+    foreach ($node->childNodes as $child) {
+        $children .= sr_link_card_fragment_inline_node_html($child);
+    }
+
+    if ($tagName === 'br') {
+        return '<br>';
+    }
+    if ($tagName === 'img') {
+        $attributes = sr_link_card_sanitized_inline_attributes($node, ['src', 'alt', 'width', 'height'], $tagName);
+        return $attributes === '' ? '' : '<img' . $attributes . '>';
+    }
+    if (!in_array($tagName, ['strong', 'em', 'u', 's', 'a'], true)) {
+        return $children;
+    }
+
+    $attributes = sr_link_card_sanitized_inline_attributes($node, $tagName === 'a' ? ['href'] : [], $tagName);
+    return '<' . $tagName . $attributes . '>' . $children . '</' . $tagName . '>';
+}
+
+function sr_link_card_sanitized_inline_open_tag(string $tagName, string $attributeText): string
+{
+    $tagName = strtolower($tagName);
+    if (!in_array($tagName, ['strong', 'em', 'u', 's', 'a'], true)) {
+        return '';
+    }
+    if (!class_exists('DOMDocument')) {
+        return '<' . $tagName . '>';
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-link-card-open-root"><' . $tagName . $attributeText . '></' . $tagName . '></div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return '<' . $tagName . '>';
+    }
+
+    $nodes = $document->getElementsByTagName($tagName);
+    $node = $nodes->item(0);
+    if (!$node instanceof DOMElement) {
+        return '<' . $tagName . '>';
+    }
+
+    $attributes = sr_link_card_sanitized_inline_attributes($node, $tagName === 'a' ? ['href'] : [], $tagName);
+    return '<' . $tagName . $attributes . '>';
+}
+
+function sr_link_card_sanitized_inline_attributes(DOMElement $node, array $allowedAttributes, string $tagName): string
+{
+    $attributes = '';
+    foreach ($allowedAttributes as $attributeName) {
+        if (!$node->hasAttribute($attributeName)) {
+            continue;
+        }
+
+        $value = trim($node->getAttribute($attributeName));
+        if ($attributeName === 'href' || $attributeName === 'src') {
+            if (!sr_is_safe_relative_url($value) && !sr_is_http_url($value)) {
+                continue;
+            }
+            if ($attributeName === 'src' && sr_is_http_url($value) && strtolower((string) parse_url($value, PHP_URL_SCHEME)) !== 'https') {
+                continue;
+            }
+        } elseif ($attributeName === 'width' || $attributeName === 'height') {
+            if (preg_match('/\A[1-9][0-9]{0,3}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($attributeName === 'alt') {
+            $value = function_exists('mb_substr') ? mb_substr($value, 0, 160) : substr($value, 0, 160);
+        } else {
+            continue;
+        }
+
+        $attributes .= ' ' . $attributeName . '="' . sr_e($value) . '"';
+    }
+
+    if ($tagName === 'a' && $attributes !== '') {
+        $attributes .= ' rel="nofollow noopener noreferrer"';
+    }
+
+    return $attributes;
+}
+
+function sr_link_card_inline_wrappers_at_offset(string $html, int $offset): array
+{
+    if ($html === '' || $offset < 1) {
+        return [];
+    }
+
+    $allowedTags = ['a' => true, 'strong' => true, 'em' => true, 'u' => true, 's' => true];
+    if (preg_match_all('/<\s*(\/)?\s*([a-z][a-z0-9]*)(\s[^>]*)?>/i', $html, $tagMatches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
+        return [];
+    }
+
+    $stack = [];
+    foreach ($tagMatches as $tagMatch) {
+        $tagHtml = (string) ($tagMatch[0][0] ?? '');
+        $tagOffset = (int) ($tagMatch[0][1] ?? 0);
+        if ($tagOffset >= $offset) {
+            break;
+        }
+
+        $tagName = strtolower((string) ($tagMatch[2][0] ?? ''));
+        if (!isset($allowedTags[$tagName])) {
+            continue;
+        }
+
+        $isClosingTag = (string) ($tagMatch[1][0] ?? '') === '/';
+        if ($isClosingTag) {
+            for ($i = count($stack) - 1; $i >= 0; $i--) {
+                if (($stack[$i]['tag'] ?? '') === $tagName) {
+                    array_splice($stack, $i, 1);
+                    break;
+                }
+            }
+            continue;
+        }
+
+        if (str_ends_with($tagHtml, '/>')) {
+            continue;
+        }
+
+        $stack[] = [
+            'tag' => $tagName,
+            'open' => sr_link_card_sanitized_inline_open_tag($tagName, (string) ($tagMatch[3][0] ?? '')),
+        ];
+    }
+
+    return $stack;
 }
 
 function sr_link_card_render(array $resolved, array $token): string
