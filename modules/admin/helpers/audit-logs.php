@@ -335,6 +335,8 @@ function sr_admin_audit_log_display_message(array $log): string
         'Community message deleted by account.' => '커뮤니티 쪽지가 계정에 의해 삭제되었습니다.',
         'Community scrap added.' => '커뮤니티 스크랩이 추가되었습니다.',
         'Community scrap removed.' => '커뮤니티 스크랩이 해제되었습니다.',
+        'Community series scrap added.' => '커뮤니티 시리즈 스크랩이 추가되었습니다.',
+        'Community series scrap removed.' => '커뮤니티 시리즈 스크랩이 해제되었습니다.',
         'Community settings updated.' => '커뮤니티 설정이 변경되었습니다.',
         'Community asset settings updated.' => '커뮤니티 포인트/금액 설정이 변경되었습니다.',
         'Community board asset settings updated.' => '커뮤니티 게시판 포인트/금액 설정이 변경되었습니다.',

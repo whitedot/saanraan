@@ -172,6 +172,15 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community series scrap action auth guard',
+        'method' => 'POST',
+        'path' => '/community/scrap',
+        'body' => 'target_type=series&series_id=1&intent=add',
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'community messages auth guard',
         'path' => '/community/messages',
         'allowed_statuses' => [302, 404],
@@ -329,8 +338,13 @@ if ($expectCommunity) {
     unset($check);
 }
 
-function sr_smoke_fetch(string $url, string $method): array
+function sr_smoke_fetch(string $url, string $method, string $requestBody = ''): array
 {
+    $headers = "User-Agent: Saanraan-Smoke-Check\r\n";
+    if ($requestBody !== '') {
+        $headers .= "Content-Type: application/x-www-form-urlencoded\r\n";
+    }
+
     $context = stream_context_create([
         'http' => [
             'method' => $method,
@@ -338,7 +352,8 @@ function sr_smoke_fetch(string $url, string $method): array
             'ignore_errors' => true,
             'follow_location' => 0,
             'max_redirects' => 0,
-            'header' => "User-Agent: Saanraan-Smoke-Check\r\n",
+            'header' => $headers,
+            'content' => $requestBody,
         ],
     ]);
 
@@ -406,7 +421,7 @@ $isInstallMode = false;
 foreach ($checks as $check) {
     $url = $baseUrl . (string) $check['path'];
     $method = strtoupper((string) ($check['method'] ?? 'GET'));
-    $response = sr_smoke_fetch($url, $method);
+    $response = sr_smoke_fetch($url, $method, (string) ($check['body'] ?? ''));
     $status = (int) $response['status'];
     $body = (string) $response['body'];
     $locationPath = sr_smoke_location_path((string) $response['location']);

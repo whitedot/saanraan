@@ -254,6 +254,17 @@ CREATE TABLE IF NOT EXISTS sr_community_series_items (
     KEY idx_sr_community_series_items_series_sort (series_id, item_status, sort_order, id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_community_series_scraps (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    series_id BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_community_series_scraps_account_series (account_id, series_id),
+    KEY idx_sr_community_series_scraps_account_id (account_id, id),
+    KEY idx_sr_community_series_scraps_series_id (series_id, id)
+);
+
 CREATE TABLE IF NOT EXISTS sr_community_levels (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     level_value INT UNSIGNED NOT NULL,

@@ -11,6 +11,7 @@ return static function (PDO $pdo, int $accountId): array {
         'messages' => [],
         'nickname' => [],
         'scraps' => [],
+        'series_scraps' => [],
         'series' => [],
         'series_items' => [],
         'level' => [],
@@ -118,6 +119,18 @@ return static function (PDO $pdo, int $accountId): array {
     );
     $stmt->execute(['account_id' => $accountId]);
     $empty['scraps'] = $stmt->fetchAll();
+
+    if (sr_community_series_scraps_supported($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT id, series_id, created_at
+             FROM sr_community_series_scraps
+             WHERE account_id = :account_id
+             ORDER BY id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $empty['series_scraps'] = $stmt->fetchAll();
+    }
 
     if (sr_community_series_supported($pdo)) {
         $stmt = $pdo->prepare(

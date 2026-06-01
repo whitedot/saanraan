@@ -51,8 +51,18 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $levelCleanup = sr_community_delete_account_level_data($pdo, $accountId);
     $entitlementCount = sr_community_anonymize_access_entitlements($pdo, $accountId);
     $seriesMetadataCount = 0;
+    $seriesScrapDeletedCount = 0;
 
     if (function_exists('sr_community_series_supported') && sr_community_series_supported($pdo)) {
+        if (function_exists('sr_community_series_scraps_table_exists') && sr_community_series_scraps_table_exists($pdo)) {
+            $stmt = $pdo->prepare(
+                'DELETE FROM sr_community_series_scraps
+                 WHERE account_id = :account_id'
+            );
+            $stmt->execute(['account_id' => $accountId]);
+            $seriesScrapDeletedCount = $stmt->rowCount();
+        }
+
         foreach (['created_by', 'updated_by', 'moderated_by'] as $columnName) {
             if (!$columnExists($pdo, 'sr_community_series', $columnName)) {
                 continue;
@@ -85,6 +95,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_account_level_deleted' => (bool) ($levelCleanup['account_level_deleted'] ?? false),
         'community_level_log_deleted_count' => (int) ($levelCleanup['level_log_deleted_count'] ?? 0),
         'community_access_entitlement_anonymized_count' => $entitlementCount,
+        'community_series_scrap_deleted_count' => $seriesScrapDeletedCount,
         'community_series_metadata_anonymized_count' => $seriesMetadataCount,
     ];
 };

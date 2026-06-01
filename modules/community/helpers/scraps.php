@@ -23,6 +23,27 @@ function sr_community_account_has_scrap(PDO $pdo, int $accountId, int $postId): 
     return is_array($stmt->fetch());
 }
 
+function sr_community_account_has_series_scrap(PDO $pdo, int $accountId, int $seriesId): bool
+{
+    if ($accountId < 1 || $seriesId < 1 || !sr_community_series_scraps_supported($pdo)) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_community_series_scraps
+         WHERE account_id = :account_id
+           AND series_id = :series_id
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'series_id' => $seriesId,
+    ]);
+
+    return is_array($stmt->fetch());
+}
+
 function sr_community_add_scrap(PDO $pdo, int $accountId, int $postId): bool
 {
     if ($accountId < 1 || $postId < 1) {
@@ -58,6 +79,46 @@ function sr_community_remove_scrap(PDO $pdo, int $accountId, int $postId): bool
     $stmt->execute([
         'account_id' => $accountId,
         'post_id' => $postId,
+    ]);
+
+    return $stmt->rowCount() > 0;
+}
+
+function sr_community_add_series_scrap(PDO $pdo, int $accountId, int $seriesId): bool
+{
+    if ($accountId < 1 || $seriesId < 1 || !sr_community_series_scraps_supported($pdo)) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT IGNORE INTO sr_community_series_scraps
+            (account_id, series_id, created_at)
+         VALUES
+            (:account_id, :series_id, :created_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'series_id' => $seriesId,
+        'created_at' => sr_now(),
+    ]);
+
+    return $stmt->rowCount() > 0;
+}
+
+function sr_community_remove_series_scrap(PDO $pdo, int $accountId, int $seriesId): bool
+{
+    if ($accountId < 1 || $seriesId < 1 || !sr_community_series_scraps_supported($pdo)) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_community_series_scraps
+         WHERE account_id = :account_id
+           AND series_id = :series_id'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'series_id' => $seriesId,
     ]);
 
     return $stmt->rowCount() > 0;
@@ -104,6 +165,44 @@ function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account =
         ];
         $scrap['can_view'] = (string) ($scrap['post_status'] ?? '') === 'published'
             && sr_community_account_can_read_board($pdo, $board, $account);
+    }
+    unset($scrap);
+
+    return $scraps;
+}
+
+function sr_community_account_series_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50): array
+{
+    if ($accountId < 1 || !sr_community_series_scraps_supported($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(100, $limit));
+    $stmt = $pdo->prepare(
+        'SELECT ss.id, ss.account_id, ss.series_id, ss.created_at,
+                s.board_id, s.owner_account_id, s.title, s.description, s.status AS series_status,
+                s.visibility, s.created_at AS series_created_at, s.updated_at AS series_updated_at,
+                b.board_key, b.title AS board_title, b.status AS board_status, b.read_policy
+         FROM sr_community_series_scraps ss
+         LEFT JOIN sr_community_series s ON s.id = ss.series_id
+         LEFT JOIN sr_community_boards b ON b.id = s.board_id
+         WHERE ss.account_id = :account_id
+         ORDER BY ss.id DESC
+         LIMIT :limit_value'
+    );
+    $stmt->bindValue('account_id', $accountId, PDO::PARAM_INT);
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $scraps = $stmt->fetchAll();
+    foreach ($scraps as &$scrap) {
+        $series = [
+            'board_id' => (int) ($scrap['board_id'] ?? 0),
+            'owner_account_id' => (int) ($scrap['owner_account_id'] ?? 0),
+            'status' => (string) ($scrap['series_status'] ?? ''),
+            'visibility' => (string) ($scrap['visibility'] ?? ''),
+        ];
+        $scrap['can_view'] = sr_community_series_can_view($pdo, $series, $account);
     }
     unset($scrap);
 

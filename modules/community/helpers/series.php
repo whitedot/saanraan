@@ -96,6 +96,58 @@ function sr_community_series_supported(PDO $pdo): bool
     return sr_community_series_table_exists($pdo) && sr_community_series_items_table_exists($pdo);
 }
 
+function sr_community_series_scraps_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_series_scraps LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_community_series_scraps_supported(PDO $pdo): bool
+{
+    return sr_community_series_supported($pdo) && sr_community_series_scraps_table_exists($pdo);
+}
+
+function sr_community_series_can_view(PDO $pdo, array $series, ?array $account = null): bool
+{
+    if ((string) ($series['status'] ?? '') !== 'active') {
+        return false;
+    }
+
+    $visibility = (string) ($series['visibility'] ?? 'public');
+    if ($visibility === 'member' && !is_array($account)) {
+        return false;
+    }
+    if ($visibility === 'private' && (!is_array($account) || (int) ($account['id'] ?? 0) !== (int) ($series['owner_account_id'] ?? 0))) {
+        return false;
+    }
+
+    $board = sr_community_board_by_id($pdo, (int) ($series['board_id'] ?? 0));
+    return is_array($board)
+        && (string) ($board['status'] ?? '') === 'enabled'
+        && sr_community_account_can_read_board($pdo, $board, $account);
+}
+
+function sr_community_series_for_read(PDO $pdo, int $seriesId, ?array $account = null): ?array
+{
+    $series = sr_community_series_by_id($pdo, $seriesId);
+    if (!is_array($series) || !sr_community_series_can_view($pdo, $series, $account)) {
+        return null;
+    }
+
+    return $series;
+}
+
 function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0): array
 {
     if ($accountId < 1 || !sr_community_series_supported($pdo)) {

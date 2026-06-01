@@ -178,6 +178,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php if ((string) ($communitySeriesContext['description'] ?? '') !== '') { ?>
                         <p><?php echo sr_e((string) $communitySeriesContext['description']); ?></p>
                     <?php } ?>
+                    <?php if (is_array($account)) { ?>
+                        <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
+                            <?php echo sr_csrf_field(); ?>
+                            <input type="hidden" name="target_type" value="series">
+                            <input type="hidden" name="series_id" value="<?php echo sr_e((string) (int) $communitySeriesContext['id']); ?>">
+                            <input type="hidden" name="intent" value="<?php echo !empty($isSeriesScrapped) ? 'remove' : 'add'; ?>">
+                            <button type="submit"><?php echo !empty($isSeriesScrapped) ? '시리즈 스크랩 해제' : '시리즈 스크랩'; ?></button>
+                        </form>
+                    <?php } ?>
                     <?php
                     $communitySeriesPreviousItem = null;
                     $communitySeriesNextItem = null;

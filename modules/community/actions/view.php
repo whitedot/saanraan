@@ -153,6 +153,10 @@ if (!is_array($account)) {
     $commentUnavailableMessage = sr_t('community::action.notice.comment_unavailable');
 }
 $isScrapped = !$paidReadConfirmationRequired && is_array($account) && sr_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
+$isSeriesScrapped = !$paidReadConfirmationRequired
+    && is_array($account)
+    && is_array($communitySeriesContext)
+    && sr_community_account_has_series_scrap($pdo, (int) $account['id'], (int) $communitySeriesContext['id']);
 $postActionUnavailableMessage = is_array($account) ? '' : sr_t('community::action.notice.login_required_to_post_actions');
 $canReportPost = !$paidReadConfirmationRequired && is_array($account) && (int) $post['author_account_id'] !== (int) $account['id'];
 $reportReasonKeys = sr_community_report_reason_keys();

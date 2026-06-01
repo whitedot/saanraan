@@ -11,6 +11,7 @@
 - 콘텐츠 시리즈는 `sr_content_series`, `sr_content_series_items`로 모듈 내부에 추가했다.
 - `/admin/content/series`에서 콘텐츠 시리즈를 만들고 수정하며, 콘텐츠 편집 화면에서 시리즈 회차를 연결한다.
 - 커뮤니티 시리즈는 `sr_community_series`, `sr_community_series_items`로 모듈 내부에 추가했다.
+- 커뮤니티 시리즈 스크랩은 `sr_community_series_scraps`로 게시글 스크랩과 분리해 저장한다.
 - `/community/series`에서 회원이 자신의 시리즈를 만들고, 글 작성/수정 화면에서 기존 시리즈 선택 또는 새 시리즈 생성을 지원한다.
 - `/admin/community/series`에서 운영자가 커뮤니티 시리즈의 상태, 공개 범위, 운영 메모를 조정한다.
 - 공개 콘텐츠와 공개 게시글은 본문 다음에 active 시리즈 항목 내비게이션을 렌더링한다.
@@ -23,7 +24,7 @@
 
 - 카테고리 자체는 게시판 분류 데이터이며 account 참조를 갖지 않는다.
 - 회원 privacy export의 작성 게시글에는 `category_id`, `category_key`, `category_title`을 포함한다.
-- 커뮤니티 privacy export에는 본인이 소유한 시리즈와 본인 게시글이 연결된 시리즈 항목을 포함한다.
+- 커뮤니티 privacy export에는 본인이 소유한 시리즈, 본인 게시글이 연결된 시리즈 항목, 시리즈 스크랩을 포함한다.
 - 콘텐츠 privacy export에는 본인이 생성/수정한 콘텐츠 시리즈와 본인이 생성한 시리즈 항목을 포함한다.
 - 쪽지 export는 상대방 account id를 직접 제공하지 않고 방향과 마스킹된 상대 역할만 제공한다.
 - 신고 export는 피신고자가 본인인 경우에만 `reported_account_id`를 유지하고, 제3자 피신고자는 `masked_counterparty`로 표시한다.
