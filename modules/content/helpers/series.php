@@ -383,7 +383,7 @@ function sr_content_series_for_content(PDO $pdo, int $contentId, ?array $account
 function sr_content_series_price_summary(PDO $pdo, int $seriesId, ?array $account = null): array
 {
     if ($seriesId < 1 || !sr_content_series_supported($pdo)) {
-        return ['has_paid_items' => false, 'base_amounts' => [], 'member_amounts' => [], 'remaining_amounts' => [], 'paid_item_count' => 0];
+        return ['has_paid_items' => false, 'base_amounts' => [], 'member_amounts' => [], 'remaining_amounts' => [], 'paid_item_count' => 0, 'account_checked' => false];
     }
 
     sr_content_publish_due_scheduled($pdo);
@@ -450,6 +450,7 @@ function sr_content_series_price_summary(PDO $pdo, int $seriesId, ?array $accoun
         'base_amounts' => $baseAmounts,
         'member_amounts' => $memberAmounts,
         'remaining_amounts' => $remainingAmounts,
+        'account_checked' => $accountId > 0,
     ];
 }
 
@@ -476,11 +477,19 @@ function sr_content_series_price_summary_text(PDO $pdo, array $summary): string
     if ($base === '') {
         return '';
     }
-    if ($member !== '' && $member !== $base) {
-        return '완독 예상 금액: 원가 ' . $base . ' / 회원가 ' . $member . ($remaining !== '' && $remaining !== $member ? ' / 남은 금액 ' . $remaining : '');
+    $accountChecked = !empty($summary['account_checked']);
+    $remainingSuffix = '';
+    if ($accountChecked) {
+        $remainingSuffix = ' / 남은 금액 ' . ($remaining !== '' ? $remaining : '0');
+    } elseif ($remaining !== '' && $remaining !== $base && $remaining !== $member) {
+        $remainingSuffix = ' / 남은 금액 ' . $remaining;
     }
 
-    return '완독 예상 금액: ' . $base . ($remaining !== '' && $remaining !== $base ? ' / 남은 금액 ' . $remaining : '');
+    if ($member !== '' && $member !== $base) {
+        return '완독 예상 금액: 원가 ' . $base . ' / 회원가 ' . $member . $remainingSuffix;
+    }
+
+    return '완독 예상 금액: ' . $base . $remainingSuffix;
 }
 
 function sr_content_series_items_with_navigation(array $items, int $currentContentId): array

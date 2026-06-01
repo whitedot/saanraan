@@ -22,7 +22,7 @@ $account = sr_member_current_account($pdo);
 $contentAdminPreview = false;
 if (is_array($page) && (string) ($page['status'] ?? '') !== 'published') {
     if (
-        (string) ($page['status'] ?? '') === 'draft'
+        in_array((string) ($page['status'] ?? ''), ['draft', 'scheduled'], true)
         && is_array($account)
         && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'view')
     ) {

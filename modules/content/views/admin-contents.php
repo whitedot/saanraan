@@ -196,7 +196,7 @@ $contentHelp = [
     'status' => [
         'id' => 'content_admin_help_status',
         'title' => sr_t('content::help.status.title'),
-        'body' => $contentHelpBodyHtml(['content::help.status.body.1', 'content::help.status.body.2', 'content::help.status.body.3']),
+        'body' => $contentHelpBodyHtml(['content::help.status.body.1', 'content::help.status.body.2', 'content::help.status.body.3', 'content::help.status.body.4']),
     ],
     'layout' => [
         'id' => 'content_admin_help_layout',
@@ -377,7 +377,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_status', sr_t('content::ui.status.e10195a1'), $contentHelp['status']['id'], $contentHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="content_admin_contents_status" name="status" class="form-select">
+                    <select id="content_admin_contents_status" name="status" class="form-select" required data-content-status-select>
                                                 <?php foreach (sr_content_allowed_statuses() as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? 'draft') === $status ? ' selected' : ''; ?>>
                                                         <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
@@ -389,9 +389,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 	                </div>
 	            </div>
             <div class="admin-form-row">
-                <label class="form-label" for="content_admin_contents_scheduled_publish_at">예약 발행 시각</label>
+                <label class="form-label" for="content_admin_contents_scheduled_publish_at">예약 발행 시각 <span class="sr-required-label" data-content-scheduled-required hidden>(필수)</span></label>
                 <div class="admin-form-field">
-                    <input id="content_admin_contents_scheduled_publish_at" type="datetime-local" name="scheduled_publish_at" value="<?php echo sr_e(sr_content_datetime_local_value((string) ($values['scheduled_publish_at'] ?? $values['published_at'] ?? ''))); ?>" class="form-input">
+                    <input id="content_admin_contents_scheduled_publish_at" type="datetime-local" name="scheduled_publish_at" value="<?php echo sr_e(sr_content_datetime_local_value((string) ($values['scheduled_publish_at'] ?? $values['published_at'] ?? ''))); ?>" class="form-input" data-content-scheduled-input>
                     <p class="admin-form-help">상태가 예약일 때만 저장에 사용됩니다. 즉시 공개는 상태를 공개로 선택하세요.</p>
                 </div>
             </div>
@@ -766,7 +766,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_e((string) ($page['published_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
-                                        <?php if (in_array((string) $page['status'], ['published', 'draft'], true)) { ?>
+                                        <?php if (in_array((string) $page['status'], ['published', 'draft', 'scheduled'], true)) { ?>
                                             <a href="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
                                         <?php } ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
@@ -802,6 +802,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var scopeOptions = document.querySelectorAll('[data-content-group-scope-option]');
         var sourceOptions = document.querySelectorAll('input[name^="source_"]');
         var requiredLabel = document.querySelector('[data-content-group-required]');
+        var statusSelect = document.querySelector('[data-content-status-select]');
+        var scheduledInput = document.querySelector('[data-content-scheduled-input]');
+        var scheduledRequiredLabel = document.querySelector('[data-content-scheduled-required]');
         var selectFallbackOption = function (option, fallbackValue) {
             var fallback = document.querySelector('input[name="' + option.name + '"][value="' + fallbackValue + '"]');
             if (fallback) {
@@ -860,7 +863,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (groupSelect) {
             groupSelect.addEventListener('change', syncGroupScope);
         }
+        var syncScheduledPublishAt = function () {
+            if (!statusSelect || !scheduledInput) {
+                return;
+            }
+            var needsSchedule = statusSelect.value === 'scheduled';
+            scheduledInput.required = needsSchedule;
+            if (scheduledRequiredLabel) {
+                scheduledRequiredLabel.hidden = !needsSchedule;
+            }
+        };
+        if (statusSelect) {
+            statusSelect.addEventListener('change', syncScheduledPublishAt);
+        }
         syncGroupScope();
+        syncScheduledPublishAt();
     });
     </script>
 <?php } ?>

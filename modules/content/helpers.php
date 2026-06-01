@@ -36,21 +36,56 @@ function sr_content_scheduled_publish_at_from_post(): string
 
 function sr_content_publish_due_scheduled(PDO $pdo): int
 {
+    $now = sr_now();
     $stmt = $pdo->prepare(
+        "SELECT id, slug, published_at
+         FROM sr_content_items
+         WHERE status = 'scheduled'
+           AND published_at IS NOT NULL
+           AND published_at <= :now_value
+         ORDER BY published_at ASC, id ASC"
+    );
+    $stmt->execute(['now_value' => $now]);
+
+    $publishedCount = 0;
+    $updateStmt = $pdo->prepare(
         "UPDATE sr_content_items
          SET status = 'published',
              updated_at = :updated_at
-         WHERE status = 'scheduled'
-           AND published_at IS NOT NULL
-           AND published_at <= :now_value"
+         WHERE id = :id
+           AND status = 'scheduled'"
     );
-    $now = sr_now();
-    $stmt->execute([
-        'updated_at' => $now,
-        'now_value' => $now,
-    ]);
+    foreach ($stmt->fetchAll() as $row) {
+        $contentId = (int) ($row['id'] ?? 0);
+        if ($contentId < 1) {
+            continue;
+        }
 
-    return $stmt->rowCount();
+        $updateStmt->execute([
+            'updated_at' => $now,
+            'id' => $contentId,
+        ]);
+        if ($updateStmt->rowCount() < 1) {
+            continue;
+        }
+
+        $publishedCount += 1;
+        sr_audit_log($pdo, [
+            'actor_type' => 'system',
+            'event_type' => 'content.scheduled_published',
+            'target_type' => 'content',
+            'target_id' => (string) $contentId,
+            'result' => 'success',
+            'message' => 'Scheduled content published.',
+            'metadata' => [
+                'slug' => (string) ($row['slug'] ?? ''),
+                'scheduled_publish_at' => (string) ($row['published_at'] ?? ''),
+                'published_at' => $now,
+            ],
+        ]);
+    }
+
+    return $publishedCount;
 }
 
 function sr_content_group_statuses(): array
@@ -1634,6 +1669,8 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
             $errors[] = '예약 발행 시각을 입력하세요.';
         } elseif (strtotime($scheduledPublishAt) === false) {
             $errors[] = '예약 발행 시각 형식이 올바르지 않습니다.';
+        } elseif (strtotime($scheduledPublishAt) <= time()) {
+            $errors[] = '예약 발행 시각은 현재보다 미래여야 합니다.';
         }
     }
 
@@ -1737,7 +1774,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         $existing = $pageId > 0 ? sr_content_by_id($pdo, $pageId) : null;
         $publishedAt = null;
         if ((string) $values['status'] === 'published') {
-            $publishedAt = is_array($existing) && !empty($existing['published_at']) ? (string) $existing['published_at'] : $now;
+            $publishedAt = is_array($existing) && (string) ($existing['status'] ?? '') === 'published' && !empty($existing['published_at']) ? (string) $existing['published_at'] : $now;
         } elseif ((string) $values['status'] === 'scheduled') {
             $publishedAt = (string) ($values['scheduled_publish_at'] ?? '');
         }
