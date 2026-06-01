@@ -24,6 +24,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></th>
+                        <th>카테고리</th>
                         <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.4bd3d310')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.29ae8f30')); ?></th>
@@ -39,6 +40,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     </a>
                                 <?php } else { ?>
                                     <?php echo sr_e(sr_t('community::ui.delete.7df929b7')); ?>
+                                <?php } ?>
+                            </td>
+                            <td>
+                                <?php if (sr_community_scrap_row_can_view($scrap) && (string) ($scrap['category_title'] ?? '') !== '') { ?>
+                                    <?php if ((string) ($scrap['category_status'] ?? '') === 'enabled' && (string) ($scrap['category_key'] ?? '') !== '') { ?>
+                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $scrap['board_key']) . '&category=' . rawurlencode((string) $scrap['category_key']))); ?>"><?php echo sr_e((string) $scrap['category_title']); ?></a>
+                                    <?php } else { ?>
+                                        <?php echo sr_e((string) $scrap['category_title']); ?>
+                                    <?php } ?>
                                 <?php } ?>
                             </td>
                             <td>

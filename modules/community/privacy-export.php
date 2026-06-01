@@ -11,6 +11,8 @@ return static function (PDO $pdo, int $accountId): array {
         'messages' => [],
         'nickname' => [],
         'scraps' => [],
+        'series' => [],
+        'series_items' => [],
         'level' => [],
         'level_logs' => [],
         'access_entitlements' => [],
@@ -22,10 +24,13 @@ return static function (PDO $pdo, int $accountId): array {
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at
-         FROM sr_community_posts
-         WHERE author_account_id = :account_id
-         ORDER BY id ASC
+        /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at */
+        'SELECT p.id, p.board_id, p.category_id, cat.category_key, cat.title AS category_title,
+                p.title, p.body_text, p.body_format, p.status, p.created_at, p.updated_at
+         FROM sr_community_posts p
+         LEFT JOIN sr_community_categories cat ON cat.id = p.category_id
+         WHERE p.author_account_id = :account_id
+         ORDER BY p.id ASC
          LIMIT 1000'
     );
     $stmt->execute(['account_id' => $accountId]);
@@ -52,23 +57,35 @@ return static function (PDO $pdo, int $accountId): array {
     $empty['attachments'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, target_type, target_id, reported_account_id, reason_key, memo_text, status, created_at, updated_at
+        'SELECT id, target_type, target_id,
+                CASE WHEN reported_account_id = :reported_account_id THEN reported_account_id ELSE NULL END AS reported_account_id,
+                CASE WHEN reported_account_id IS NULL THEN \'none\' WHEN reported_account_id = :reported_role_account_id THEN \'self\' ELSE \'masked_counterparty\' END AS reported_account_role,
+                reason_key, memo_text, status, created_at, updated_at
          FROM sr_community_reports
          WHERE reporter_account_id = :account_id
          ORDER BY id ASC
          LIMIT 1000'
     );
-    $stmt->execute(['account_id' => $accountId]);
+    $stmt->execute([
+        'account_id' => $accountId,
+        'reported_account_id' => $accountId,
+        'reported_role_account_id' => $accountId,
+    ]);
     $empty['reports'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, sender_account_id, recipient_account_id, body_text, status, read_at, sender_deleted_at, recipient_deleted_at, created_at, updated_at
+        'SELECT id,
+                CASE WHEN sender_account_id = :sender_direction_account_id THEN \'sent\' ELSE \'received\' END AS message_direction,
+                CASE WHEN sender_account_id = :sender_counterparty_account_id THEN \'masked_recipient\' ELSE \'masked_sender\' END AS counterparty_role,
+                body_text, status, read_at, sender_deleted_at, recipient_deleted_at, created_at, updated_at
          FROM sr_community_messages
          WHERE sender_account_id = :sender_account_id OR recipient_account_id = :recipient_account_id
          ORDER BY id ASC
          LIMIT 1000'
     );
     $stmt->execute([
+        'sender_direction_account_id' => $accountId,
+        'sender_counterparty_account_id' => $accountId,
         'sender_account_id' => $accountId,
         'recipient_account_id' => $accountId,
     ]);
@@ -93,6 +110,27 @@ return static function (PDO $pdo, int $accountId): array {
     );
     $stmt->execute(['account_id' => $accountId]);
     $empty['scraps'] = $stmt->fetchAll();
+
+    $stmt = $pdo->prepare(
+        'SELECT id, board_id, title, description, status, visibility, admin_note, created_at, updated_at
+         FROM sr_community_series
+         WHERE owner_account_id = :account_id
+         ORDER BY id ASC
+         LIMIT 1000'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $empty['series'] = $stmt->fetchAll();
+
+    $stmt = $pdo->prepare(
+        'SELECT si.id, si.series_id, si.post_id, si.active_post_id, si.episode_label, si.item_status, si.sort_order, si.created_at, si.updated_at
+         FROM sr_community_series_items si
+         INNER JOIN sr_community_posts p ON p.id = si.post_id
+         WHERE p.author_account_id = :account_id
+         ORDER BY si.id ASC
+         LIMIT 1000'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $empty['series_items'] = $stmt->fetchAll();
 
     try {
         $stmt = $pdo->prepare(

@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 $communityBoardsPage = 'edit';
-$_POST['intent'] = 'update';
+if (!isset($_POST['intent'])) {
+    $_POST['intent'] = 'update';
+}
 if (isset($_POST['board_id'])) {
     $_GET['edit_id'] = $_POST['board_id'];
 }

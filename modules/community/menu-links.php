@@ -6,6 +6,13 @@ return static function (PDO $pdo): array {
     require_once __DIR__ . '/helpers.php';
 
     $links = [];
+    $links[] = [
+        'asset_type' => 'series',
+        'asset_type_label' => '커뮤니티 시리즈',
+        'label' => '내 시리즈',
+        'url' => '/community/series',
+    ];
+
     foreach (sr_community_enabled_board_groups($pdo) as $group) {
         $groupKey = (string) ($group['group_key'] ?? '');
         if (!sr_community_board_group_key_is_valid($groupKey)) {

@@ -19,6 +19,8 @@ return [
     'POST /community/comment/delete' => 'actions/comment-delete.php',
     'POST /community/report' => 'actions/report.php',
     'GET /community/scraps' => 'actions/scraps.php',
+    'GET /community/series' => 'actions/series.php',
+    'POST /community/series' => 'actions/series.php',
     'POST /community/scrap' => 'actions/scrap-toggle.php',
     'POST /community/skin-action' => 'actions/skin-action.php',
     'GET /community/messages' => 'actions/messages.php',
@@ -53,4 +55,6 @@ return [
     'POST /admin/community/comments' => 'actions/admin-comments.php',
     'GET /admin/community/reports' => 'actions/admin-reports.php',
     'POST /admin/community/reports' => 'actions/admin-reports.php',
+    'GET /admin/community/series' => 'actions/admin-series.php',
+    'POST /admin/community/series' => 'actions/admin-series.php',
 ];

@@ -42,6 +42,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?>
                 <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_e((string) $post['created_at']); ?>
                 <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
+                <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
+                    / <?php echo sr_e('카테고리'); ?>
+                    <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
+                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
+                    <?php } else { ?>
+                        <?php echo sr_e((string) $post['category_title']); ?>
+                    <?php } ?>
+                <?php } ?>
             </p>
             <?php if (is_array($account)) { ?>
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
@@ -162,6 +170,30 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <?php } ?>
                     </ul>
                 </section>
+            <?php } ?>
+
+            <?php if (is_array($communitySeriesContext ?? null) && is_array($communitySeriesContext['items'] ?? null) && $communitySeriesContext['items'] !== []) { ?>
+                <nav aria-label="<?php echo sr_e('시리즈 글'); ?>">
+                    <h2><?php echo sr_e((string) $communitySeriesContext['title']); ?></h2>
+                    <?php if ((string) ($communitySeriesContext['description'] ?? '') !== '') { ?>
+                        <p><?php echo sr_e((string) $communitySeriesContext['description']); ?></p>
+                    <?php } ?>
+                    <ol>
+                        <?php foreach ($communitySeriesContext['items'] as $seriesItem) { ?>
+                            <li>
+                                <?php if ((int) ($seriesItem['post_id'] ?? 0) === (int) $post['id']) { ?>
+                                    <strong>
+                                        <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['post_title']); ?>
+                                    </strong>
+                                <?php } else { ?>
+                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) $seriesItem['post_id']))); ?>">
+                                        <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['post_title']); ?>
+                                    </a>
+                                <?php } ?>
+                            </li>
+                        <?php } ?>
+                    </ol>
+                </nav>
             <?php } ?>
 
             <?php echo sr_render_output_slot($pdo, [

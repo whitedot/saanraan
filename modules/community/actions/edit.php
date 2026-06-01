@@ -31,9 +31,42 @@ if (sr_request_method() !== 'POST') {
 }
 $board['image_uploads_enabled'] = 0;
 $board['file_uploads_enabled'] = 0;
+$categories = sr_community_categories($pdo, (int) $board['id'], true);
+$currentCategory = (int) ($post['category_id'] ?? 0) > 0 ? sr_community_category_by_id($pdo, (int) $post['category_id']) : null;
+if (is_array($currentCategory) && (string) $currentCategory['status'] !== 'enabled') {
+    $categories[] = $currentCategory;
+}
+$categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
+$seriesOptions = sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']);
+$currentSeriesItem = sr_community_active_series_item_for_post($pdo, $postId);
+if (is_array($currentSeriesItem)
+    && (int) ($currentSeriesItem['owner_account_id'] ?? 0) === (int) $account['id']
+    && (int) ($currentSeriesItem['board_id'] ?? 0) === (int) $board['id']
+) {
+    $knownSeriesIds = [];
+    foreach ($seriesOptions as $seriesOption) {
+        $knownSeriesIds[(int) ($seriesOption['id'] ?? 0)] = true;
+    }
+    if (!isset($knownSeriesIds[(int) $currentSeriesItem['series_id']])) {
+        $seriesOptions[] = [
+            'id' => (int) $currentSeriesItem['series_id'],
+            'title' => (string) $currentSeriesItem['series_title'],
+            'status' => (string) $currentSeriesItem['series_status'],
+            'visibility' => (string) $currentSeriesItem['visibility'],
+        ];
+    }
+}
+$seriesValues = [
+    'series_mode' => is_array($currentSeriesItem) ? 'existing' : 'none',
+    'series_id' => is_array($currentSeriesItem) ? (int) $currentSeriesItem['series_id'] : 0,
+    'new_series_title' => '',
+    'episode_label' => is_array($currentSeriesItem) ? (string) ($currentSeriesItem['episode_label'] ?? '') : '',
+    'sort_order' => is_array($currentSeriesItem) ? (int) ($currentSeriesItem['sort_order'] ?? 0) : 0,
+];
 $errors = [];
 $values = [
     'title' => (string) $post['title'],
+    'category_id' => (int) ($post['category_id'] ?? 0),
     'body_text' => (string) $post['body_text'],
     'body_format' => (string) ($post['body_format'] ?? 'plain'),
 ];
@@ -51,10 +84,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    $seriesValues = [
+        'series_mode' => sr_post_string('series_mode', 20),
+        'series_id' => (int) sr_post_string('series_id', 20),
+        'new_series_title' => trim(sr_post_string('new_series_title', 160)),
+        'episode_label' => trim(sr_post_string('series_episode_label', 80)),
+        'sort_order' => (int) sr_post_string('series_sort_order', 20),
+    ];
+    if (!in_array((string) $seriesValues['series_mode'], ['none', 'existing', 'new'], true)) {
+        $seriesValues['series_mode'] = 'none';
+    }
     $errors = sr_community_validate_post_input($values);
+    $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
+    if ((string) $seriesValues['series_mode'] === 'existing') {
+        $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);
+        if (!is_array($selectedSeries)
+            || (int) ($selectedSeries['owner_account_id'] ?? 0) !== (int) $account['id']
+            || (int) ($selectedSeries['board_id'] ?? 0) !== (int) $board['id']
+            || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)
+        ) {
+            $errors[] = '연결할 시리즈를 확인해 주세요.';
+        }
+    } elseif ((string) $seriesValues['series_mode'] === 'new' && (string) $seriesValues['new_series_title'] === '') {
+        $errors[] = '새 시리즈 제목을 입력해 주세요.';
+    }
 
     if ($errors === []) {
         sr_community_update_post_content($pdo, $postId, $values);
+        if ((string) $seriesValues['series_mode'] === 'new') {
+            $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
+                'title' => (string) $seriesValues['new_series_title'],
+                'description' => '',
+                'status' => 'active',
+                'visibility' => 'public',
+            ], (int) $account['id']);
+        }
+        sr_community_set_post_series(
+            $pdo,
+            $postId,
+            in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true) ? (int) $seriesValues['series_id'] : 0,
+            (string) $seriesValues['episode_label'],
+            (int) $seriesValues['sort_order'],
+            (int) $account['id']
+        );
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'member',

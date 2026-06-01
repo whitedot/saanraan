@@ -66,6 +66,21 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php if (isset($postIdField) && is_int($postIdField)) { ?>
                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $postIdField); ?>">
             <?php } ?>
+            <?php if (isset($categories) && is_array($categories) && $categories !== []) { ?>
+                <p>
+                    <label for="modules_community_form_category_id">
+                        <span><?php echo sr_e('카테고리'); ?><?php echo !empty($categoryRequired) ? ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                        <select id="modules_community_form_category_id" name="category_id"<?php echo !empty($categoryRequired) ? ' required' : ''; ?>>
+                            <option value=""><?php echo sr_e('선택 안 함'); ?></option>
+                            <?php foreach ($categories as $category) { ?>
+                                <option value="<?php echo sr_e((string) $category['id']); ?>"<?php echo (int) ($values['category_id'] ?? 0) === (int) $category['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $category['title']); ?><?php echo (string) ($category['status'] ?? '') !== 'enabled' ? sr_e(' (비활성)') : ''; ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </label>
+                </p>
+            <?php } ?>
             <p>
                 <label for="modules_community_form_title">
                     <span><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
@@ -78,6 +93,60 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required<?php echo $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic"' : ''; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
+            <fieldset>
+                <legend><?php echo sr_e('시리즈'); ?></legend>
+                <p>
+                    <label>
+                        <input type="radio" name="series_mode" value="none"<?php echo (string) ($seriesValues['series_mode'] ?? 'none') === 'none' ? ' checked' : ''; ?>>
+                        <?php echo sr_e('연결 안 함'); ?>
+                    </label>
+                    <?php if (isset($seriesOptions) && is_array($seriesOptions) && $seriesOptions !== []) { ?>
+                        <label>
+                            <input type="radio" name="series_mode" value="existing"<?php echo (string) ($seriesValues['series_mode'] ?? '') === 'existing' ? ' checked' : ''; ?>>
+                            <?php echo sr_e('기존 시리즈'); ?>
+                        </label>
+                    <?php } ?>
+                    <label>
+                        <input type="radio" name="series_mode" value="new"<?php echo (string) ($seriesValues['series_mode'] ?? '') === 'new' ? ' checked' : ''; ?>>
+                        <?php echo sr_e('새 시리즈'); ?>
+                    </label>
+                </p>
+                <?php if (isset($seriesOptions) && is_array($seriesOptions) && $seriesOptions !== []) { ?>
+                    <p>
+                        <label for="modules_community_form_series_id">
+                            <span><?php echo sr_e('기존 시리즈'); ?></span>
+                            <select id="modules_community_form_series_id" name="series_id">
+                                <option value="0"><?php echo sr_e('선택'); ?></option>
+                                <?php foreach ($seriesOptions as $seriesOption) { ?>
+                                    <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) ($seriesValues['series_id'] ?? 0) === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
+                                        <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e((string) $seriesOption['visibility']); ?> / <?php echo sr_e((string) $seriesOption['status']); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                    </p>
+                <?php } ?>
+                <p>
+                    <label for="modules_community_form_new_series_title">
+                        <span><?php echo sr_e('새 시리즈 제목'); ?></span>
+                        <input id="modules_community_form_new_series_title" type="text" name="new_series_title" maxlength="160" value="<?php echo sr_e((string) ($seriesValues['new_series_title'] ?? '')); ?>">
+                    </label>
+                </p>
+                <p>
+                    <label for="modules_community_form_series_episode_label">
+                        <span><?php echo sr_e('회차 표시'); ?></span>
+                        <input id="modules_community_form_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) ($seriesValues['episode_label'] ?? '')); ?>">
+                    </label>
+                    <br>
+                    <small><?php echo sr_e('예: 1화, 프롤로그, 후기'); ?></small>
+                </p>
+                <p>
+                    <label for="modules_community_form_series_sort_order">
+                        <span><?php echo sr_e('정렬 순서'); ?></span>
+                        <input id="modules_community_form_series_sort_order" type="number" name="series_sort_order" value="<?php echo sr_e((string) (int) ($seriesValues['sort_order'] ?? 0)); ?>">
+                    </label>
+                </p>
+            </fieldset>
             <?php if ($imageUploadEnabled) { ?>
                 <p>
                     <label for="modules_community_form_image_attachment">

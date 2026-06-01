@@ -31,10 +31,23 @@ $board['image_uploads_enabled'] = sr_community_effective_board_image_uploads_ena
 $board['file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 $writeChargeConfig = sr_community_asset_event_config($pdo, $board, $settings, 'write_charge', 'every_action');
 $postRewardConfig = sr_community_asset_event_config($pdo, $board, $settings, 'post_reward', 'once');
+$categories = sr_community_categories($pdo, (int) $board['id'], true);
+$currentCategory = null;
+$categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
+$seriesOptions = sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']);
+$currentSeriesItem = null;
+$seriesValues = [
+    'series_mode' => 'none',
+    'series_id' => 0,
+    'new_series_title' => '',
+    'episode_label' => '',
+    'sort_order' => 0,
+];
 $errors = [];
 $notice = '';
 $values = [
     'title' => '',
+    'category_id' => 0,
     'body_text' => '',
     'body_format' => 'plain',
 ];
@@ -46,7 +59,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    $seriesValues = [
+        'series_mode' => sr_post_string('series_mode', 20),
+        'series_id' => (int) sr_post_string('series_id', 20),
+        'new_series_title' => trim(sr_post_string('new_series_title', 160)),
+        'episode_label' => trim(sr_post_string('series_episode_label', 80)),
+        'sort_order' => (int) sr_post_string('series_sort_order', 20),
+    ];
+    if (!in_array((string) $seriesValues['series_mode'], ['none', 'existing', 'new'], true)) {
+        $seriesValues['series_mode'] = 'none';
+    }
     $errors = sr_community_validate_post_input($values);
+    $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values));
+    if ((string) $seriesValues['series_mode'] === 'existing') {
+        $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);
+        if (!is_array($selectedSeries)
+            || (int) ($selectedSeries['owner_account_id'] ?? 0) !== (int) $account['id']
+            || (int) ($selectedSeries['board_id'] ?? 0) !== (int) $board['id']
+            || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)
+        ) {
+            $errors[] = '연결할 시리즈를 확인해 주세요.';
+        }
+    } elseif ((string) $seriesValues['series_mode'] === 'new' && (string) $seriesValues['new_series_title'] === '') {
+        $errors[] = '새 시리즈 제목을 입력해 주세요.';
+    }
 
     if ($errors === [] && sr_community_post_rate_limited($pdo, (int) $account['id'], $settings)) {
         $errors[] = sr_t('community::action.rate_limit.post');
@@ -69,6 +105,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($writeChargeResult['allowed'])) {
             sr_community_update_post_status($pdo, $postId, 'deleted');
             sr_render_error(403, (string) ($writeChargeResult['message'] ?? sr_t('community::action.error.write_charge_failed')));
+        }
+        if ((string) $seriesValues['series_mode'] === 'new') {
+            $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
+                'title' => (string) $seriesValues['new_series_title'],
+                'description' => '',
+                'status' => 'active',
+                'visibility' => 'public',
+            ], (int) $account['id']);
+        }
+        if (in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true)) {
+            sr_community_set_post_series($pdo, $postId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
         }
         $postRewardResult = sr_community_asset_event_required($postRewardConfig)
             ? sr_community_run_asset_event($pdo, $postRewardConfig, (int) $account['id'], 'post_reward', 'community.post', $postId, 'grant', 'community.post.reward')

@@ -94,7 +94,126 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
 
-    if (in_array($intent, ['create', 'update'], true)) {
+    if (in_array($intent, ['category_create', 'category_update', 'category_delete'], true)) {
+        $boardIdValue = sr_post_string('board_id', 20);
+        $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
+        $board = sr_community_board_by_id($pdo, $boardId);
+        if (!is_array($board)) {
+            $errors[] = sr_t('community::action.error.board_not_found');
+        }
+
+        $categoryId = 0;
+        $category = null;
+        if (in_array($intent, ['category_update', 'category_delete'], true)) {
+            $categoryIdValue = sr_post_string('category_id', 20);
+            $categoryId = preg_match('/\A[1-9][0-9]*\z/', $categoryIdValue) === 1 ? (int) $categoryIdValue : 0;
+            $category = sr_community_category_by_id($pdo, $categoryId);
+            if (!is_array($category) || (int) ($category['board_id'] ?? 0) !== $boardId) {
+                $errors[] = '카테고리를 찾을 수 없습니다.';
+            }
+        }
+
+        $categoryKey = strtolower(trim(sr_post_string('category_key', 60)));
+        $categoryTitle = sr_post_string('category_title', 120);
+        $categoryDescription = sr_post_string_without_truncation('category_description', 2000);
+        $categoryStatus = sr_post_string('category_status', 30);
+        $categorySortOrder = sr_admin_post_int_in_range('category_sort_order', 0, 1000000);
+
+        if ($intent === 'category_create' && !sr_community_category_key_is_valid($categoryKey)) {
+            $errors[] = '카테고리 key는 소문자, 숫자, _만 사용할 수 있으며 예약어는 사용할 수 없습니다.';
+        }
+        if ($intent !== 'category_delete' && $categoryTitle === '') {
+            $errors[] = '카테고리 이름을 입력해 주세요.';
+        }
+        if ($intent !== 'category_delete' && !in_array($categoryStatus, sr_community_category_statuses(), true)) {
+            $errors[] = '카테고리 상태 값이 올바르지 않습니다.';
+        }
+        if ($intent !== 'category_delete' && $categorySortOrder === null) {
+            $errors[] = '카테고리 정렬값이 올바르지 않습니다.';
+            $categorySortOrder = 0;
+        }
+        if ($intent !== 'category_delete' && !is_string($categoryDescription)) {
+            $errors[] = '카테고리 설명이 너무 깁니다.';
+            $categoryDescription = '';
+        }
+        if ($intent === 'category_create' && $errors === [] && sr_community_category_by_key($pdo, $boardId, $categoryKey) !== null) {
+            $errors[] = '같은 게시판에 이미 같은 key의 카테고리가 있습니다.';
+        }
+
+        if ($errors === [] && is_array($board)) {
+            if ($intent === 'category_create') {
+                $createdCategoryId = sr_community_create_category($pdo, $boardId, [
+                    'category_key' => $categoryKey,
+                    'title' => $categoryTitle,
+                    'description' => (string) $categoryDescription,
+                    'status' => $categoryStatus,
+                    'sort_order' => (int) $categorySortOrder,
+                ]);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.category.created',
+                    'target_type' => 'community_category',
+                    'target_id' => (string) $createdCategoryId,
+                    'result' => 'success',
+                    'message' => 'Community category created.',
+                    'metadata' => [
+                        'board_key' => (string) $board['board_key'],
+                        'category_key' => $categoryKey,
+                        'status' => $categoryStatus,
+                    ],
+                ]);
+                $notice = '카테고리를 추가했습니다.';
+            } elseif ($intent === 'category_update' && is_array($category)) {
+                sr_community_update_category($pdo, $categoryId, [
+                    'title' => $categoryTitle,
+                    'description' => (string) $categoryDescription,
+                    'status' => $categoryStatus,
+                    'sort_order' => (int) $categorySortOrder,
+                ]);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.category.updated',
+                    'target_type' => 'community_category',
+                    'target_id' => (string) $categoryId,
+                    'result' => 'success',
+                    'message' => 'Community category updated.',
+                    'metadata' => [
+                        'board_key' => (string) $board['board_key'],
+                        'category_key' => (string) $category['category_key'],
+                        'before_status' => (string) $category['status'],
+                        'after_status' => $categoryStatus,
+                    ],
+                ]);
+                $notice = '카테고리를 수정했습니다.';
+            } elseif ($intent === 'category_delete' && is_array($category)) {
+                if (!sr_community_delete_category($pdo, $categoryId)) {
+                    $errors[] = '참조 중인 게시글이 있는 카테고리는 삭제할 수 없습니다. 비활성으로 전환해 주세요.';
+                } else {
+                    sr_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'community.category.deleted',
+                        'target_type' => 'community_category',
+                        'target_id' => (string) $categoryId,
+                        'result' => 'success',
+                        'message' => 'Community category deleted.',
+                        'metadata' => [
+                            'board_key' => (string) $board['board_key'],
+                            'category_key' => (string) $category['category_key'],
+                        ],
+                    ]);
+                    $notice = '카테고리를 삭제했습니다.';
+                }
+            }
+        }
+
+        if ($errors === []) {
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/community/boards/edit?id=' . (string) $boardId);
+        }
+    } elseif (in_array($intent, ['create', 'update'], true)) {
         $boardKey = strtolower(trim(sr_post_string('board_key', 60)));
         $title = sr_post_string('title', 120);
         $description = sr_post_string_without_truncation('description', 2000);
@@ -121,6 +240,7 @@ if (sr_request_method() === 'POST') {
         $readMinLevel = sr_admin_post_int_in_range('read_min_level', 0, $maxLevel);
         $writeMinLevel = sr_admin_post_int_in_range('write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('comment_min_level', 0, $maxLevel);
+        $categoryRequired = ($_POST['category_required'] ?? '') === '1';
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $boardGroupId = sr_admin_post_int_in_range('board_group_id', 0, 999999999);
@@ -183,6 +303,11 @@ if (sr_request_method() === 'POST') {
             $settingSources[$settingKey] = sr_community_normalize_board_setting_source(sr_post_string('source_' . $settingKey, 20));
         }
         $boardSettingValues = [];
+        $editingBoardId = 0;
+        if ($intent === 'update') {
+            $editingBoardIdValue = sr_post_string('board_id', 20);
+            $editingBoardId = preg_match('/\A[1-9][0-9]*\z/', $editingBoardIdValue) === 1 ? (int) $editingBoardIdValue : 0;
+        }
 
         if ($intent === 'create' && !sr_community_board_key_is_valid($boardKey)) {
             $errors[] = sr_t('community::action.admin.board_key_invalid');
@@ -304,6 +429,13 @@ if (sr_request_method() === 'POST') {
             $levelCommentScore = (int) $settings['level_comment_score'];
         }
 
+        if ($categoryRequired) {
+            $categoryBoardId = $intent === 'update' ? $editingBoardId : 0;
+            if ($categoryBoardId < 1 || sr_community_categories($pdo, $categoryBoardId, true) === []) {
+                $errors[] = '활성 카테고리가 1개 이상 있어야 카테고리 필수를 켤 수 있습니다.';
+            }
+        }
+
         if ($boardGroupId > 0 && !isset($boardGroupIds[$boardGroupId])) {
             $errors[] = sr_t('community::action.admin.board_group_invalid');
         }
@@ -405,6 +537,7 @@ if (sr_request_method() === 'POST') {
                 'read_min_level' => (string) $readMinLevel,
                 'write_min_level' => (string) $writeMinLevel,
                 'comment_min_level' => (string) $commentMinLevel,
+                'category_required' => $categoryRequired ? '1' : '0',
                 'level_post_score' => (string) $levelPostScore,
                 'level_comment_score' => (string) $levelCommentScore,
                 'image_uploads_enabled' => $imageUploadsEnabled ? '1' : '0',
@@ -484,6 +617,7 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
+            sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
             sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
@@ -521,6 +655,7 @@ if (sr_request_method() === 'POST') {
                 $beforeReadMinLevel = sr_community_board_min_level($pdo, $boardId, 'read_min_level');
                 $beforeWriteMinLevel = sr_community_board_min_level($pdo, $boardId, 'write_min_level');
                 $beforeCommentMinLevel = sr_community_board_min_level($pdo, $boardId, 'comment_min_level');
+                $beforeCategoryRequired = sr_community_board_category_required($pdo, $boardId);
                 $beforeLevelPostScore = sr_community_board_level_score($pdo, $boardId, 'level_post_score', $settings);
                 $beforeLevelCommentScore = sr_community_board_level_score($pdo, $boardId, 'level_comment_score', $settings);
                 $beforeSkinKey = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, $boardId, 'skin_key') ?? 'basic')]);
@@ -560,6 +695,7 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
+                sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
                 foreach ($boardSettingValues as $settingKey => $settingValue) {
@@ -634,6 +770,8 @@ if (sr_request_method() === 'POST') {
                         'after_write_min_level' => $writeMinLevel,
                         'before_comment_min_level' => $beforeCommentMinLevel,
                         'after_comment_min_level' => $commentMinLevel,
+                        'before_category_required' => $beforeCategoryRequired,
+                        'after_category_required' => $categoryRequired,
                         'before_level_post_score' => $beforeLevelPostScore,
                         'after_level_post_score' => $levelPostScore,
                         'before_level_comment_score' => $beforeLevelCommentScore,
@@ -704,9 +842,11 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
     $board['read_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['write_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['comment_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'comment_min_level');
+    $board['category_required'] = sr_community_board_category_required($pdo, (int) $board['id']) ? '1' : '0';
     $board['effective_read_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['effective_write_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['effective_comment_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'comment_min_level');
+    $board['categories'] = sr_community_categories($pdo, (int) $board['id'], false);
     $board['level_post_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
     $board['level_comment_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
     $board['effective_level_post_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);

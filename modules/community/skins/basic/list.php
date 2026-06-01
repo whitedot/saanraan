@@ -1,14 +1,18 @@
 <?php
 
 $pageTitle = (string) $board['title'];
-$baseListPath = '/community/board?key=' . rawurlencode((string) $board['board_key']) . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : '');
+$baseListPath = '/community/board?key=' . rawurlencode((string) $board['board_key'])
+    . (isset($selectedCategory) && is_array($selectedCategory) ? '&category=' . rawurlencode((string) $selectedCategory['category_key']) : '')
+    . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : '');
 $seo = [
     'title' => $pageTitle,
     'description' => (string) ($board['description'] ?? ''),
     'canonical' => $baseListPath . ($page > 1 ? '&page=' . (string) $page : ''),
-    'robots' => (string) ($board['effective_read_policy'] ?? $board['read_policy']) !== 'public'
+    'robots' => !empty($categoryInvalid)
+        ? 'noindex, follow'
+        : ((string) ($board['effective_read_policy'] ?? $board['read_policy']) !== 'public'
         ? 'noindex, nofollow'
-        : ($keyword === '' ? 'index, follow' : 'noindex, follow'),
+        : ($keyword === '' ? 'index, follow' : 'noindex, follow')),
 ];
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
@@ -52,6 +56,21 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             </p>
         <?php } ?>
 
+        <?php if (isset($categories) && is_array($categories) && $categories !== []) { ?>
+            <nav aria-label="카테고리">
+                <p>
+                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''))); ?>"><?php echo sr_e('전체'); ?></a>
+                    <?php foreach ($categories as $category) { ?>
+                        <?php $categoryUrl = '/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $category['category_key']) . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''); ?>
+                        /
+                        <a href="<?php echo sr_e(sr_url($categoryUrl)); ?>"<?php echo isset($selectedCategory) && is_array($selectedCategory) && (int) $selectedCategory['id'] === (int) $category['id'] ? ' aria-current="page"' : ''; ?>>
+                            <?php echo sr_e((string) $category['title']); ?>
+                        </a>
+                    <?php } ?>
+                </p>
+            </nav>
+        <?php } ?>
+
         <form method="get" action="<?php echo sr_e(sr_url('/community/board')); ?>">
             <input type="hidden" name="key" value="<?php echo sr_e((string) $board['board_key']); ?>">
             <p>
@@ -66,13 +85,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             </p>
         </form>
 
-        <?php if ($posts === []) { ?>
+        <?php if (!empty($categoryInvalid)) { ?>
+            <p>카테고리를 찾을 수 없거나 현재 사용할 수 없습니다.</p>
+        <?php } elseif ($posts === []) { ?>
             <p><?php echo $keyword !== '' ? sr_t('community::ui.search.58726bf2') : sr_t('community::ui.text.6a3d84bd'); ?></p>
         <?php } else { ?>
             <table>
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
+                        <th><?php echo sr_e('카테고리'); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.26c8f2fa')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></th>
@@ -87,6 +109,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">
                                     <?php echo sr_e((string) $post['title']); ?>
                                 </a>
+                            </td>
+                            <td>
+                                <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
+                                    <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
+                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
+                                    <?php } else { ?>
+                                        <?php echo sr_e((string) $post['category_title']); ?>
+                                    <?php } ?>
+                                <?php } ?>
                             </td>
                             <td><?php echo sr_e(sr_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?></td>
                             <td><?php echo sr_e((string) $post['created_at']); ?></td>

@@ -29,14 +29,23 @@ if (is_array($account)) {
 $postsPerPage = max(1, min(100, (int) ($settings['posts_per_page'] ?? 20)));
 $keywordValue = sr_get_string_without_truncation('q', 100);
 $keyword = is_string($keywordValue) ? trim($keywordValue) : '';
+$categories = sr_community_categories($pdo, (int) $board['id'], true);
+$categoryKey = sr_get_string('category', 60);
+$selectedCategory = null;
+$categoryInvalid = false;
+if ($categoryKey !== '') {
+    $selectedCategory = sr_community_category_by_key($pdo, (int) $board['id'], $categoryKey);
+    $categoryInvalid = !is_array($selectedCategory) || (string) $selectedCategory['status'] !== 'enabled';
+}
+$selectedCategoryId = is_array($selectedCategory) && !$categoryInvalid ? (int) $selectedCategory['id'] : 0;
 $pageValue = sr_get_string('page', 20);
 $page = preg_match('/\A[1-9][0-9]*\z/', $pageValue) === 1 ? (int) $pageValue : 1;
-$postCount = sr_community_board_post_count($pdo, (int) $board['id'], $keyword);
+$postCount = $categoryInvalid ? 0 : sr_community_board_post_count($pdo, (int) $board['id'], $keyword, $selectedCategoryId);
 $totalPages = max(1, (int) ceil($postCount / $postsPerPage));
 if ($page > $totalPages) {
     $page = $totalPages;
 }
-$posts = sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword);
+$posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId);
 $boardNotice = '';
 if (isset($_SESSION['sr_community_board_notice']) && is_string($_SESSION['sr_community_board_notice'])) {
     $boardNotice = $_SESSION['sr_community_board_notice'];

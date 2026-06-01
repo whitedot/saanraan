@@ -135,6 +135,7 @@ $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo,
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
 $comments = $paidReadConfirmationRequired ? [] : sr_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
 $attachments = $paidReadConfirmationRequired ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
+$communitySeriesContext = $paidReadConfirmationRequired ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
 $imageAttachments = [];
 $fileAttachments = [];
 foreach ($attachments as $attachment) {

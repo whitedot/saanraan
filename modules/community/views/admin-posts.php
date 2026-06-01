@@ -4,7 +4,7 @@ $communityPostsPage = isset($communityPostsPage) ? (string) $communityPostsPage 
 $adminPageTitle = $communityPostsPage === 'comments' ? sr_t('community::ui.community.94192c53') : sr_t('community::ui.community.4ef66a6d');
 $adminPageSubtitle = $communityPostsPage === 'comments' ? sr_t('community::ui.status.6bd8f817') : sr_t('community::ui.status.search.af9eb6e6');
 $adminContainerClass = $communityPostsPage === 'comments' ? 'admin-page-community-comment-list admin-ui-scope' : 'admin-page-community-post-list admin-ui-scope';
-$postListFilters = isset($postListFilters) && is_array($postListFilters) ? $postListFilters : ['status' => '', 'board_id' => 0, 'field' => 'all', 'q' => ''];
+$postListFilters = isset($postListFilters) && is_array($postListFilters) ? $postListFilters : ['status' => '', 'board_id' => 0, 'category_id' => 0, 'field' => 'all', 'q' => ''];
 $postSort = isset($postSort) && is_array($postSort) ? $postSort : sr_community_admin_post_default_sort();
 $postStatusCounts = isset($postStatusCounts) && is_array($postStatusCounts) ? $postStatusCounts : [];
 $postBoardOptions = isset($postBoardOptions) && is_array($postBoardOptions) ? $postBoardOptions : [];
@@ -56,6 +56,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
         </div>
+        <div class="admin-filter-field admin-community-post-filter-category">
+            <label for="community_admin_posts_category_id" class="admin-filter-label">카테고리</label>
+            <select id="community_admin_posts_category_id" name="category_id" class="form-select admin-filter-input">
+                <option value="0"<?php echo (int) ($postListFilters['category_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
+                <?php foreach (($postCategoryOptions ?? []) as $postCategoryOption) { ?>
+                    <option value="<?php echo sr_e((string) $postCategoryOption['id']); ?>"<?php echo (int) ($postListFilters['category_id'] ?? 0) === (int) $postCategoryOption['id'] ? ' selected' : ''; ?>>
+                        <?php echo sr_e((string) $postCategoryOption['title']); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
         <div class="admin-filter-field admin-community-post-filter-field">
             <label for="community_admin_posts_field" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.b79bc9c8')); ?></label>
             <select id="community_admin_posts_field" name="field" class="form-select admin-filter-input">
@@ -88,6 +99,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <thead class="ui-table-head">
             <tr>
                 <th<?php echo sr_admin_sort_aria('board', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.4732a58f'), 'board', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th>카테고리</th>
                 <th<?php echo sr_admin_sort_aria('title', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.08b17e43'), 'title', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('author', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.f2ee20a7'), 'author', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('status', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
@@ -116,6 +128,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     ?>
                     <tr>
                         <td class="admin-table-break admin-community-post-board-cell"><?php echo sr_e((string) $post['board_title']); ?></td>
+                        <td class="admin-table-break"><?php echo sr_e((string) ($post['category_title'] ?? '')); ?></td>
                         <td class="admin-table-break admin-community-post-title-cell">
                             <?php if ((string) $post['status'] === 'published') { ?>
                                 <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">

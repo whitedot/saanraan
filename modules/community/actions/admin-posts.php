@@ -32,9 +32,20 @@ $postBoardFilterId = preg_match('/\A[1-9][0-9]*\z/', $postBoardFilterValue) === 
 if ($postBoardFilterId > 0 && !isset($postBoardIds[$postBoardFilterId])) {
     $postBoardFilterId = 0;
 }
+$postCategoryOptions = $postBoardFilterId > 0 ? sr_community_categories($pdo, $postBoardFilterId, false) : [];
+$postCategoryIds = [];
+foreach ($postCategoryOptions as $postCategoryOption) {
+    $postCategoryIds[(int) $postCategoryOption['id']] = true;
+}
+$postCategoryFilterValue = sr_get_string('category_id', 20);
+$postCategoryFilterId = preg_match('/\A[1-9][0-9]*\z/', $postCategoryFilterValue) === 1 ? (int) $postCategoryFilterValue : 0;
+if ($postCategoryFilterId > 0 && !isset($postCategoryIds[$postCategoryFilterId])) {
+    $postCategoryFilterId = 0;
+}
 $postListFilters = [
     'status' => sr_get_string('status', 30),
     'board_id' => $postBoardFilterId,
+    'category_id' => $postCategoryFilterId,
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];

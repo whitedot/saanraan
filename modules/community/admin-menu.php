@@ -35,6 +35,11 @@ return [
             'order' => 60,
         ],
         [
+            'label' => '시리즈 관리',
+            'path' => '/admin/community/series',
+            'order' => 65,
+        ],
+        [
             'label' => sr_t('community::ui.nav.settings'),
             'path' => '/admin/community/settings',
             'order' => 70,
