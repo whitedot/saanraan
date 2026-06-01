@@ -5,6 +5,7 @@ return [
     'POST /content/download' => 'actions/download.php',
     'GET /content/group' => 'actions/group.php',
     'POST /content/action' => 'actions/action.php',
+    'POST /content/comment' => 'actions/comment.php',
     'POST /content/*' => 'actions/view.php',
     'GET /content/*' => 'actions/view.php',
     'GET /admin/content' => 'actions/admin-contents.php',

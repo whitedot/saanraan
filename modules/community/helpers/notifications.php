@@ -121,3 +121,80 @@ function sr_community_create_admin_report_notifications(
         );
     }
 }
+
+function sr_community_mention_tokens(string $bodyText): array
+{
+    if (!preg_match_all('/@([^\s@#:,.;!?()\[\]{}<>]{2,40})/u', $bodyText, $matches)) {
+        return [];
+    }
+
+    $tokens = [];
+    foreach ($matches[1] as $token) {
+        $token = trim((string) $token);
+        if ($token !== '') {
+            $tokens[$token] = true;
+        }
+    }
+
+    return array_keys($tokens);
+}
+
+function sr_community_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array
+{
+    $tokens = sr_community_mention_tokens($bodyText);
+    if ($tokens === [] || !function_exists('sr_community_member_nicknames_table_exists') || !sr_community_member_nicknames_table_exists($pdo)) {
+        return [];
+    }
+
+    $exclude = [];
+    foreach ($excludeAccountIds as $accountId) {
+        $accountId = (int) $accountId;
+        if ($accountId > 0) {
+            $exclude[$accountId] = true;
+        }
+    }
+
+    $placeholders = implode(',', array_fill(0, count($tokens), '?'));
+    $stmt = $pdo->prepare(
+        "SELECT n.account_id
+         FROM sr_community_member_nicknames n
+         INNER JOIN sr_member_accounts a ON a.id = n.account_id
+         WHERE n.nickname IN (" . $placeholders . ")
+           AND a.status = 'active'"
+    );
+    $stmt->execute($tokens);
+
+    $accountIds = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $accountId = (int) ($row['account_id'] ?? 0);
+        if ($accountId > 0 && !isset($exclude[$accountId])) {
+            $accountIds[$accountId] = true;
+        }
+    }
+
+    return array_keys($accountIds);
+}
+
+function sr_community_create_comment_mention_notifications(
+    PDO $pdo,
+    int $postId,
+    int $commentId,
+    string $bodyText,
+    int $createdByAccountId,
+    array $excludeAccountIds = []
+): void {
+    if ($postId < 1 || $commentId < 1) {
+        return;
+    }
+
+    foreach (sr_community_mentioned_account_ids($pdo, $bodyText, array_merge($excludeAccountIds, [$createdByAccountId])) as $accountId) {
+        sr_community_create_account_notification(
+            $pdo,
+            $accountId,
+            sr_t('community::notification.comment_mention.title'),
+            sr_t('community::notification.comment_mention.body'),
+            '/community/post?id=' . (string) $postId . '#comments',
+            $createdByAccountId
+        );
+    }
+}

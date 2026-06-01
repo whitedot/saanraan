@@ -42,6 +42,7 @@ if (sr_request_method() === 'POST') {
     $reportIdValue = sr_post_string('report_id', 20);
     $reportId = preg_match('/\A[1-9][0-9]*\z/', $reportIdValue) === 1 ? (int) $reportIdValue : 0;
     $status = sr_post_string('status', 30);
+    $targetAction = sr_post_string('target_action', 40);
     $reviewNote = sr_post_string_without_truncation('review_note', 1000);
     $report = sr_community_report_by_id($pdo, $reportId);
 
@@ -56,6 +57,16 @@ if (sr_request_method() === 'POST') {
     if ($reviewNote === null) {
         $errors[] = sr_t('community::action.admin.review_note_too_long');
         $reviewNote = '';
+    }
+    if (is_array($report) && !array_key_exists($targetAction === '' ? 'none' : $targetAction, sr_community_report_target_action_options((string) $report['target_type']))) {
+        $errors[] = '신고 대상 조치 값이 올바르지 않습니다.';
+    }
+
+    if ($errors === []) {
+        $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $targetAction === '' ? 'none' : $targetAction, (int) $account['id']);
+        if (!empty($targetActionResult['error'])) {
+            $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
+        }
     }
 
     if ($errors === []) {
@@ -75,6 +86,7 @@ if (sr_request_method() === 'POST') {
                 'target_type' => (string) $report['target_type'],
                 'target_id' => (int) $report['target_id'],
                 'reported_account_id' => (int) $report['reported_account_id'],
+                'target_action' => $targetActionResult ?? ['action_key' => 'none', 'applied' => false],
             ],
         ]);
         $notice = sr_t('community::action.admin.report_status_updated');

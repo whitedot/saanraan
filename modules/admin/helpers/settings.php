@@ -24,6 +24,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
         ],
         'content_status' => [
             'draft' => '임시 저장',
+            'scheduled' => '예약',
             'enabled' => '사용',
             'disabled' => '미사용',
             'archived' => '보관',

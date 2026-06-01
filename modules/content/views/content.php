@@ -82,6 +82,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php if ((string) ($contentSeriesContext['description'] ?? '') !== '') { ?>
                         <p><?php echo sr_e((string) $contentSeriesContext['description']); ?></p>
                     <?php } ?>
+                    <?php $contentSeriesPriceText = sr_content_series_price_summary_text($pdo, is_array($contentSeriesContext['price_summary'] ?? null) ? $contentSeriesContext['price_summary'] : []); ?>
+                    <?php if ($contentSeriesPriceText !== '') { ?>
+                        <p><?php echo sr_e($contentSeriesPriceText); ?></p>
+                    <?php } ?>
                     <?php
                     $contentSeriesPreviousItem = null;
                     $contentSeriesNextItem = null;
@@ -172,6 +176,41 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     </button>
                 </form>
             <?php } ?>
+            <section id="content-comments" class="content-comments">
+                <h2>댓글</h2>
+                <?php if ((string) ($contentCommentNotice ?? '') !== '') { ?>
+                    <p><?php echo sr_e((string) $contentCommentNotice); ?></p>
+                <?php } ?>
+                <?php if (is_array($contentCommentErrors ?? null) && $contentCommentErrors !== []) { ?>
+                    <ul>
+                        <?php foreach ($contentCommentErrors as $contentCommentError) { ?>
+                            <li><?php echo sr_e((string) $contentCommentError); ?></li>
+                        <?php } ?>
+                    </ul>
+                <?php } ?>
+                <?php if (is_array($contentComments ?? null) && $contentComments !== []) { ?>
+                    <ul>
+                        <?php foreach ($contentComments as $contentComment) { ?>
+                            <li>
+                                <strong><?php echo sr_e((string) ($contentComment['author_display_name'] ?? '회원')); ?></strong>
+                                <p><?php echo nl2br(sr_e((string) $contentComment['body_text'])); ?></p>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                <?php } else { ?>
+                    <p>등록된 댓글이 없습니다.</p>
+                <?php } ?>
+                <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
+                        <label for="content_comment_body">댓글</label>
+                        <textarea id="content_comment_body" name="body_text" rows="4" cols="60"><?php echo sr_e((string) ($contentCommentBody ?? '')); ?></textarea>
+                        <p class="admin-form-help">@표시명 형식으로 회원을 언급할 수 있습니다.</p>
+                        <button type="submit" class="btn btn-solid-light">댓글 등록</button>
+                    </form>
+                <?php } ?>
+            </section>
         <?php } ?>
     </article>
 

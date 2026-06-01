@@ -18,6 +18,7 @@ sr_require_csrf();
 
 $pageId = (int) sr_post_string('content_id', 20);
 $values = sr_content_input_values($pdo);
+$values['scheduled_publish_at'] = sr_content_scheduled_publish_at_from_post();
 $seriesSortOrder = sr_admin_post_int_in_range('series_sort_order', 0, 1000000);
 $seriesValues = [
     'series_id' => (int) sr_post_string('series_id', 20),

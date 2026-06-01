@@ -103,6 +103,14 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         (int) $account['id']
     );
 }
+sr_community_create_comment_mention_notifications(
+    $pdo,
+    $postId,
+    $commentId,
+    (string) $values['body_text'],
+    (int) $account['id'],
+    [(int) $post['author_account_id']]
+);
 if (!empty($commentRewardResult['processed'])) {
     $_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.asset_granted', [
         'asset' => sr_community_asset_module_label((string) $commentRewardConfig['asset_module'], $pdo),

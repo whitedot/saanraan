@@ -9,6 +9,7 @@ return static function (PDO $pdo, int $accountId): array {
             'asset_access_logs' => [],
             'file_download_logs' => [],
             'asset_action_logs' => [],
+            'comments' => [],
             'series' => [],
             'series_items' => [],
         ];
@@ -106,11 +107,26 @@ return static function (PDO $pdo, int $accountId): array {
         $seriesItems = $seriesItemStmt->fetchAll();
     }
 
+    $comments = [];
+    if (function_exists('sr_content_comments_table_exists') && sr_content_comments_table_exists($pdo)) {
+        $commentStmt = $pdo->prepare(
+            'SELECT c.id, c.content_id, p.slug, p.title, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at
+             FROM sr_content_comments c
+             LEFT JOIN sr_content_items p ON p.id = c.content_id
+             WHERE c.author_account_id = :account_id
+             ORDER BY c.id ASC
+             LIMIT 1000'
+        );
+        $commentStmt->execute(['account_id' => $accountId]);
+        $comments = $commentStmt->fetchAll();
+    }
+
     return [
         'access_entitlements' => $accessEntitlements,
         'asset_access_logs' => $accessLogs,
         'file_download_logs' => $fileDownloadLogs,
         'asset_action_logs' => $stmt->fetchAll(),
+        'comments' => $comments,
         'series' => $series,
         'series_items' => $seriesItems,
     ];

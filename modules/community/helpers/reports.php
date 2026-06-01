@@ -25,6 +25,34 @@ function sr_community_report_statuses(): array
     return ['open', 'reviewing', 'resolved', 'dismissed'];
 }
 
+function sr_community_report_target_action_options(string $targetType): array
+{
+    if ($targetType === 'post') {
+        return [
+            'none' => '대상 조치 없음',
+            'hide_post' => '게시글 숨김',
+            'delete_post' => '게시글 삭제',
+            'suspend_reported_account' => '피신고 회원 정지',
+        ];
+    }
+    if ($targetType === 'comment') {
+        return [
+            'none' => '대상 조치 없음',
+            'hide_comment' => '댓글 숨김',
+            'delete_comment' => '댓글 삭제',
+            'suspend_reported_account' => '피신고 회원 정지',
+        ];
+    }
+    if ($targetType === 'message') {
+        return [
+            'none' => '대상 조치 없음',
+            'suspend_reported_account' => '피신고 회원 정지',
+        ];
+    }
+
+    return ['none' => '대상 조치 없음'];
+}
+
 function sr_community_report_account_label(?string $displayName, int $accountId, ?string $accountStatus = null, ?string $nickname = null, ?array $communitySettings = null): string
 {
     if (sr_community_nickname_status_blocks_identity((string) $accountStatus)) {
@@ -378,4 +406,94 @@ function sr_community_update_report_status(PDO $pdo, int $reportId, string $stat
         'reviewed_at' => $now,
         'id' => $reportId,
     ]);
+}
+
+function sr_community_apply_report_target_action(PDO $pdo, array $report, string $actionKey, int $adminAccountId): array
+{
+    $targetType = (string) ($report['target_type'] ?? '');
+    $targetId = (int) ($report['target_id'] ?? 0);
+    if ($actionKey === '' || $actionKey === 'none') {
+        return ['action_key' => 'none', 'applied' => false];
+    }
+    if (!array_key_exists($actionKey, sr_community_report_target_action_options($targetType))) {
+        return ['action_key' => $actionKey, 'applied' => false, 'error' => 'invalid_action'];
+    }
+
+    if ($targetType === 'post' && in_array($actionKey, ['hide_post', 'delete_post'], true)) {
+        $status = $actionKey === 'hide_post' ? 'hidden' : 'deleted';
+        $post = sr_community_admin_post_by_id($pdo, $targetId);
+        if (!is_array($post)) {
+            return ['action_key' => $actionKey, 'applied' => false, 'error' => 'target_not_found'];
+        }
+        sr_community_update_post_status($pdo, $targetId, $status);
+        $updatedAttachmentCount = in_array($status, ['hidden', 'deleted'], true)
+            ? sr_community_update_post_attachments_status($pdo, $targetId, $status)
+            : 0;
+        sr_audit_log($pdo, [
+            'actor_account_id' => $adminAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'community.report.target_post_action',
+            'target_type' => 'community_post',
+            'target_id' => (string) $targetId,
+            'result' => 'success',
+            'message' => 'Community report target post action applied.',
+            'metadata' => [
+                'report_id' => (int) ($report['id'] ?? 0),
+                'before_status' => (string) ($post['status'] ?? ''),
+                'after_status' => $status,
+                'updated_attachment_count' => $updatedAttachmentCount,
+            ],
+        ]);
+        return ['action_key' => $actionKey, 'applied' => true, 'target_status' => $status];
+    }
+
+    if ($targetType === 'comment' && in_array($actionKey, ['hide_comment', 'delete_comment'], true)) {
+        $status = $actionKey === 'hide_comment' ? 'hidden' : 'deleted';
+        $comment = sr_community_admin_comment_by_id($pdo, $targetId);
+        if (!is_array($comment)) {
+            return ['action_key' => $actionKey, 'applied' => false, 'error' => 'target_not_found'];
+        }
+        sr_community_update_comment_status($pdo, $targetId, $status);
+        sr_audit_log($pdo, [
+            'actor_account_id' => $adminAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'community.report.target_comment_action',
+            'target_type' => 'community_comment',
+            'target_id' => (string) $targetId,
+            'result' => 'success',
+            'message' => 'Community report target comment action applied.',
+            'metadata' => [
+                'report_id' => (int) ($report['id'] ?? 0),
+                'before_status' => (string) ($comment['status'] ?? ''),
+                'after_status' => $status,
+                'post_id' => (int) ($comment['post_id'] ?? 0),
+            ],
+        ]);
+        return ['action_key' => $actionKey, 'applied' => true, 'target_status' => $status];
+    }
+
+    if ($actionKey === 'suspend_reported_account') {
+        $reportedAccountId = (int) ($report['reported_account_id'] ?? 0);
+        if ($reportedAccountId < 1 || !function_exists('sr_member_update_status')) {
+            return ['action_key' => $actionKey, 'applied' => false, 'error' => 'account_action_unavailable'];
+        }
+        sr_member_update_status($pdo, $reportedAccountId, 'suspended');
+        sr_audit_log($pdo, [
+            'actor_account_id' => $adminAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'community.report.reported_account_suspended',
+            'target_type' => 'member_account',
+            'target_id' => (string) $reportedAccountId,
+            'result' => 'success',
+            'message' => 'Reported account suspended from community report.',
+            'metadata' => [
+                'report_id' => (int) ($report['id'] ?? 0),
+                'reported_target_type' => $targetType,
+                'reported_target_id' => $targetId,
+            ],
+        ]);
+        return ['action_key' => $actionKey, 'applied' => true, 'account_status' => 'suspended'];
+    }
+
+    return ['action_key' => $actionKey, 'applied' => false, 'error' => 'unsupported_action'];
 }

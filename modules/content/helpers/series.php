@@ -376,7 +376,111 @@ function sr_content_series_for_content(PDO $pdo, int $contentId, ?array $account
         return null;
     }
     $series['items'] = sr_content_series_items($pdo, (int) $series['id'], true, $account, $contentId);
+    $series['price_summary'] = sr_content_series_price_summary($pdo, (int) $series['id'], $account);
     return $series;
+}
+
+function sr_content_series_price_summary(PDO $pdo, int $seriesId, ?array $account = null): array
+{
+    if ($seriesId < 1 || !sr_content_series_supported($pdo)) {
+        return ['has_paid_items' => false, 'base_amounts' => [], 'member_amounts' => [], 'remaining_amounts' => [], 'paid_item_count' => 0];
+    }
+
+    sr_content_publish_due_scheduled($pdo);
+    $stmt = $pdo->prepare(
+        "SELECT c.*
+         FROM sr_content_series_items si
+         INNER JOIN sr_content_items c ON c.id = si.content_id
+         WHERE si.series_id = :series_id
+           AND si.item_status = 'active'
+           AND c.status = 'published'
+         ORDER BY si.sort_order ASC, si.id ASC"
+    );
+    $stmt->execute(['series_id' => $seriesId]);
+
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    $baseAmounts = [];
+    $memberAmounts = [];
+    $remainingAmounts = [];
+    $paidItemCount = 0;
+
+    foreach ($stmt->fetchAll() as $page) {
+        $page = sr_content_with_effective_settings($pdo, $page);
+        if (!sr_content_asset_access_required($page)) {
+            continue;
+        }
+
+        $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
+        if ($assetModules === []) {
+            continue;
+        }
+
+        $amounts = sr_content_asset_amounts_from_value($page['asset_access_amounts_json'] ?? '', $assetModules, (int) ($page['asset_access_amount'] ?? 0));
+        if ($amounts === []) {
+            $amounts[(string) $assetModules[0]] = (int) ($page['asset_access_amount'] ?? 0);
+        }
+
+        $paidItemCount += 1;
+        foreach ($amounts as $assetModule => $amount) {
+            $baseAmounts[(string) $assetModule] = (int) ($baseAmounts[(string) $assetModule] ?? 0) + max(0, (int) $amount);
+        }
+
+        $effectiveAmounts = $amounts;
+        if ($accountId > 0) {
+            $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $amounts, (int) ($page['asset_access_amount'] ?? 0), $page['asset_access_group_policies_json'] ?? '', (int) ($page['asset_access_policy_set_id'] ?? 0));
+            $effectiveAmounts = $policyAmounts['amounts'] !== [] ? $policyAmounts['amounts'] : [];
+        }
+        foreach ($effectiveAmounts as $assetModule => $amount) {
+            $memberAmounts[(string) $assetModule] = (int) ($memberAmounts[(string) $assetModule] ?? 0) + max(0, (int) $amount);
+        }
+
+        $alreadyGranted = $accountId > 0
+            && (string) ($page['asset_charge_policy'] ?? 'once') === 'once'
+            && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, (int) $page['id']);
+        if (!$alreadyGranted) {
+            foreach ($effectiveAmounts as $assetModule => $amount) {
+                $remainingAmounts[(string) $assetModule] = (int) ($remainingAmounts[(string) $assetModule] ?? 0) + max(0, (int) $amount);
+            }
+        }
+    }
+
+    return [
+        'has_paid_items' => $paidItemCount > 0,
+        'paid_item_count' => $paidItemCount,
+        'base_amounts' => $baseAmounts,
+        'member_amounts' => $memberAmounts,
+        'remaining_amounts' => $remainingAmounts,
+    ];
+}
+
+function sr_content_series_price_summary_text(PDO $pdo, array $summary): string
+{
+    if (empty($summary['has_paid_items'])) {
+        return '';
+    }
+
+    $formatAmounts = static function (array $amounts) use ($pdo): string {
+        $parts = [];
+        foreach ($amounts as $assetModule => $amount) {
+            if ((int) $amount > 0) {
+                $parts[] = sr_content_asset_module_label((string) $assetModule, $pdo) . ' ' . number_format((int) $amount);
+            }
+        }
+        return implode(', ', $parts);
+    };
+
+    $base = $formatAmounts(is_array($summary['base_amounts'] ?? null) ? $summary['base_amounts'] : []);
+    $member = $formatAmounts(is_array($summary['member_amounts'] ?? null) ? $summary['member_amounts'] : []);
+    $remaining = $formatAmounts(is_array($summary['remaining_amounts'] ?? null) ? $summary['remaining_amounts'] : []);
+
+    if ($base === '') {
+        return '';
+    }
+    if ($member !== '' && $member !== $base) {
+        return '완독 예상 금액: 원가 ' . $base . ' / 회원가 ' . $member . ($remaining !== '' && $remaining !== $member ? ' / 남은 금액 ' . $remaining : '');
+    }
+
+    return '완독 예상 금액: ' . $base . ($remaining !== '' && $remaining !== $base ? ' / 남은 금액 ' . $remaining : '');
 }
 
 function sr_content_series_items_with_navigation(array $items, int $currentContentId): array

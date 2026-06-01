@@ -5,10 +5,52 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/content/helpers/assets.php';
 require_once SR_ROOT . '/modules/content/helpers/files.php';
 require_once SR_ROOT . '/modules/content/helpers/series.php';
+require_once SR_ROOT . '/modules/content/helpers/comments.php';
 
 function sr_content_allowed_statuses(): array
 {
-    return ['draft', 'published', 'hidden'];
+    return ['draft', 'scheduled', 'published', 'hidden'];
+}
+
+function sr_content_datetime_local_value(?string $value): string
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
+}
+
+function sr_content_scheduled_publish_at_from_post(): string
+{
+    $value = trim(sr_post_string('scheduled_publish_at', 30));
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime(str_replace('T', ' ', $value));
+    return $timestamp === false ? '' : date('Y-m-d H:i:s', $timestamp);
+}
+
+function sr_content_publish_due_scheduled(PDO $pdo): int
+{
+    $stmt = $pdo->prepare(
+        "UPDATE sr_content_items
+         SET status = 'published',
+             updated_at = :updated_at
+         WHERE status = 'scheduled'
+           AND published_at IS NOT NULL
+           AND published_at <= :now_value"
+    );
+    $now = sr_now();
+    $stmt->execute([
+        'updated_at' => $now,
+        'now_value' => $now,
+    ]);
+
+    return $stmt->rowCount();
 }
 
 function sr_content_group_statuses(): array
@@ -486,6 +528,8 @@ function sr_content_by_slug(PDO $pdo, string $slug): ?array
         return null;
     }
 
+    sr_content_publish_due_scheduled($pdo);
+
     $stmt = $pdo->prepare(
         "SELECT *
          FROM sr_content_items
@@ -768,10 +812,17 @@ function sr_content_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId,
     $sql = '';
     if ($settingKey === 'status') {
         $status = (string) ($values['status'] ?? 'draft');
+        $scheduledPublishAt = (string) ($values['scheduled_publish_at'] ?? '');
         $sql = "UPDATE sr_content_items
-                SET status = ?, published_at = CASE WHEN ? = 'published' THEN COALESCE(published_at, ?) ELSE NULL END, updated_by = ?, updated_at = ?
+                SET status = ?,
+                    published_at = CASE
+                        WHEN ? = 'published' THEN COALESCE(published_at, ?)
+                        WHEN ? = 'scheduled' THEN ?
+                        ELSE NULL
+                    END,
+                    updated_by = ?, updated_at = ?
                 WHERE id IN (" . $placeholders . ')';
-        $params = [$status, $status, $now, $accountId, $now];
+        $params = [$status, $status, $now, $status, $scheduledPublishAt !== '' ? $scheduledPublishAt : null, $accountId, $now];
     } elseif ($settingKey === 'layout_key') {
         $sql = 'UPDATE sr_content_items SET layout_key = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
         $params = [(string) ($values['layout_key'] ?? ''), $accountId, $now];
@@ -794,9 +845,11 @@ function sr_content_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId,
 
 function sr_content_admin_status_counts(PDO $pdo): array
 {
+    sr_content_publish_due_scheduled($pdo);
     $counts = [
         'total' => 0,
         'draft' => 0,
+        'scheduled' => 0,
         'published' => 0,
         'hidden' => 0,
     ];
@@ -1003,6 +1056,7 @@ function sr_content_admin_sort_aria(string $sortKey, array $currentSort): string
 
 function sr_content_admin_count(PDO $pdo, array $filters): int
 {
+    sr_content_publish_due_scheduled($pdo);
     $queryParts = sr_content_admin_query_parts($filters);
     $sql = 'SELECT COUNT(*) AS count_value
             FROM sr_content_items p
@@ -1022,6 +1076,7 @@ function sr_content_admin_count(PDO $pdo, array $filters): int
 
 function sr_content_admin_list(PDO $pdo, array $filters, int $limit = 0, int $offset = 0, array $sort = []): array
 {
+    sr_content_publish_due_scheduled($pdo);
     $queryParts = sr_content_admin_query_parts($filters);
     $where = $queryParts['where'];
     $params = $queryParts['params'];
@@ -1069,6 +1124,8 @@ function sr_content_published_contents_for_group(PDO $pdo, int $groupId): array
     if ($groupId < 1) {
         return [];
     }
+
+    sr_content_publish_due_scheduled($pdo);
 
     $stmt = $pdo->prepare(
         "SELECT id, slug, title, summary, updated_at, published_at
@@ -1571,6 +1628,15 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         $errors[] = '상태 값이 올바르지 않습니다.';
     }
 
+    if ((string) ($values['status'] ?? '') === 'scheduled') {
+        $scheduledPublishAt = (string) ($values['scheduled_publish_at'] ?? '');
+        if ($scheduledPublishAt === '') {
+            $errors[] = '예약 발행 시각을 입력하세요.';
+        } elseif (strtotime($scheduledPublishAt) === false) {
+            $errors[] = '예약 발행 시각 형식이 올바르지 않습니다.';
+        }
+    }
+
     $layoutKey = (string) ($values['layout_key'] ?? '');
     if ($layoutKey !== '' && !isset(sr_public_layout_options($pdo)[$layoutKey])) {
         $errors[] = '콘텐츠 레이아웃 값이 올바르지 않습니다.';
@@ -1672,6 +1738,8 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         $publishedAt = null;
         if ((string) $values['status'] === 'published') {
             $publishedAt = is_array($existing) && !empty($existing['published_at']) ? (string) $existing['published_at'] : $now;
+        } elseif ((string) $values['status'] === 'scheduled') {
+            $publishedAt = (string) ($values['scheduled_publish_at'] ?? '');
         }
 
         if (is_array($existing)) {

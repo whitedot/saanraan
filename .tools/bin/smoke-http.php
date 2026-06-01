@@ -125,6 +125,14 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'content comment action auth guard',
+        'method' => 'POST',
+        'path' => '/content/comment',
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'community report action auth guard',
         'method' => 'POST',
         'path' => '/community/report',

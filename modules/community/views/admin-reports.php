@@ -178,6 +178,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </select>
                                     <label for="<?php echo sr_e($reportReviewNoteId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?></label>
                                     <textarea id="<?php echo sr_e($reportReviewNoteId); ?>" name="review_note" rows="2" cols="24" class="form-textarea" placeholder="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
+                                    <label class="sr-only" for="community_admin_report_target_action_<?php echo sr_e((string) $report['id']); ?>">대상 조치</label>
+                                    <select id="community_admin_report_target_action_<?php echo sr_e((string) $report['id']); ?>" name="target_action" class="form-select">
+                                        <?php foreach (sr_community_report_target_action_options((string) $report['target_type']) as $actionKey => $actionLabel) { ?>
+                                            <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
+                                        <?php } ?>
+                                    </select>
                                     <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
                                 </form>
                             </div>

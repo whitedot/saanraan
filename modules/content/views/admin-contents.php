@@ -384,10 +384,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     </option>
                                                 <?php } ?>
                                             </select>
-                    <?php echo $pageSettingSourceRadioHtml('source_status', $pageSettingSource($values, 'status')); ?>
+	                    <?php echo $pageSettingSourceRadioHtml('source_status', $pageSettingSource($values, 'status')); ?>
+                    <p class="admin-form-help">예약 상태를 선택하면 아래 시각 이후 공개 콘텐츠로 전환됩니다.</p>
+	                </div>
+	            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_admin_contents_scheduled_publish_at">예약 발행 시각</label>
+                <div class="admin-form-field">
+                    <input id="content_admin_contents_scheduled_publish_at" type="datetime-local" name="scheduled_publish_at" value="<?php echo sr_e(sr_content_datetime_local_value((string) ($values['scheduled_publish_at'] ?? $values['published_at'] ?? ''))); ?>" class="form-input">
+                    <p class="admin-form-help">상태가 예약일 때만 저장에 사용됩니다. 즉시 공개는 상태를 공개로 선택하세요.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
+	            <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_layout_key', sr_t('content::ui.content.fa985852'), $contentHelp['layout']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <select id="content_admin_contents_layout_key" name="layout_key" class="form-select">
@@ -636,8 +644,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.content.fc61037b')); ?> <strong><?php echo sr_e((string) $totalPages); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></strong></span>
-            <a href="<?php echo sr_e(sr_url('/admin/content?status=published')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.9d1ba9f4')); ?> <?php echo sr_e((string) ($pageStatusCounts['published'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
-            <a href="<?php echo sr_e(sr_url('/admin/content?status=draft')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.145b2413')); ?> <?php echo sr_e((string) ($pageStatusCounts['draft'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
+	            <a href="<?php echo sr_e(sr_url('/admin/content?status=published')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.9d1ba9f4')); ?> <?php echo sr_e((string) ($pageStatusCounts['published'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
+            <a href="<?php echo sr_e(sr_url('/admin/content?status=scheduled')); ?>" class="admin-summary-meta">예약 <?php echo sr_e((string) ($pageStatusCounts['scheduled'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
+	            <a href="<?php echo sr_e(sr_url('/admin/content?status=draft')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.145b2413')); ?> <?php echo sr_e((string) ($pageStatusCounts['draft'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
             <a href="<?php echo sr_e(sr_url('/admin/content?status=hidden')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.0eeb676f')); ?> <?php echo sr_e((string) ($pageStatusCounts['hidden'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>
         </div>
     </div>

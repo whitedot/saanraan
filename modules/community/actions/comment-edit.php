@@ -32,6 +32,14 @@ if ($errors !== []) {
 }
 
 sr_community_update_comment_content($pdo, $commentId, $values);
+sr_community_create_comment_mention_notifications(
+    $pdo,
+    (int) $comment['post_id'],
+    $commentId,
+    (string) $values['body_text'],
+    (int) $account['id'],
+    [(int) $comment['author_account_id']]
+);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',

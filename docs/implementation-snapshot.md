@@ -47,7 +47,7 @@
 | 공개 홈 | `/`, `/ui-kit` |
 | 회원 | `/login`, `/register`, `/account`, `/account/withdraw`, `/password/reset`, `/email/verify`, `/logout` |
 | 관리자 공통 | `/admin`, `/admin/settings`, `/admin/homepage`, `/admin/menu`, `/admin/modules`, `/admin/updates`, `/admin/roles`, `/admin/audit-logs`, `/admin/retention` |
-| 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content-groups` |
+| 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/content/comment`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content-groups` |
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/series`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-groups`, `/admin/community/series`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/asset-exchange`, `/account/coupons` |
@@ -65,7 +65,7 @@
 | 관리자 | `sr_admin_account_permissions`, `sr_admin_account_roles`, `sr_admin_menu_overrides` |
 | 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_sessions`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
 | 개인정보 | `sr_privacy_requests` |
-| 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs` |
+| 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_comments`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs` |
 | 커뮤니티 | `sr_community_boards`, `sr_community_board_groups`, `sr_community_board_settings`, `sr_community_board_group_settings`, `sr_community_board_setting_sources`, `sr_community_asset_policy_sets`, `sr_community_categories`, `sr_community_series`, `sr_community_series_items`, `sr_community_posts`, `sr_community_comments`, `sr_community_attachments`, `sr_community_reports`, `sr_community_scraps`, `sr_community_messages`, `sr_community_member_nicknames`, `sr_community_levels`, `sr_community_account_levels`, `sr_community_level_logs`, `sr_community_asset_logs`, `sr_community_access_entitlements` |
 | 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
 | 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_assets`, `sr_logo_manager_assignments`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
@@ -78,6 +78,8 @@
 커뮤니티 게시판은 `sr_community_categories`와 `sr_community_posts.category_id`로 게시판 내부 카테고리를 선택적으로 지원한다. 카테고리 key는 게시판 안에서 유일하며 공개 URL `category` 파라미터로 사용된다. 상태는 `enabled`/`disabled`만 사용하고, 비활성 카테고리는 신규 선택과 공개 필터 노출에서 제외하되 기존 게시글 표시는 텍스트로 보존한다. 게시판 설정 `category_required`가 켜진 경우 공개 작성/수정 POST에서 서버가 카테고리 선택을 강제한다.
 
 콘텐츠와 커뮤니티 시리즈는 각 모듈이 소유한다. 콘텐츠는 `sr_content_series`와 `sr_content_series_items`, 커뮤니티는 `sr_community_series`와 `sr_community_series_items`를 사용한다. 시리즈 상태는 운영 대기/노출/숨김/보관/삭제를 구분하되 공개 렌더링은 `active` 상태와 `active` 항목만 사용한다. 공개 범위는 `public`, `member`, `private`이며, 커뮤니티 private 시리즈는 소유자만 볼 수 있고 콘텐츠 private 시리즈는 공개 출력에서 제외한다. 콘텐츠 시리즈는 `/admin/content/series`에서 만들고 콘텐츠 편집 화면에서 회차로 연결한다. 콘텐츠 그룹은 목록 페이지, 초기화면 후보, 새 콘텐츠 기본값, 그룹/전체 복사 범위를 위한 운영 묶음이고, 콘텐츠 시리즈는 회차 표시와 이전/다음 이동을 위한 읽기 흐름이다. 한 콘텐츠는 콘텐츠 그룹에 속하면서 동시에 하나의 시리즈 회차로 연결될 수 있으며 두 정렬 기준은 서로 영향을 주지 않는다. 커뮤니티 시리즈는 회원이 `/community/series`에서 만들거나 글 작성/수정 중 새로 만들 수 있고, 관리자는 `/admin/community/series`에서 상태와 공개 범위를 조정한다. 공개 글/콘텐츠는 본문 다음에 시리즈 내비게이션을 렌더링하고, 이후 기존 출력 슬롯과 댓글/액션 흐름이 이어진다.
+
+콘텐츠 예약 발행은 `status = scheduled`와 미래 `published_at`으로 표현한다. 공개/관리자 조회 시점에 예약 시각이 지난 항목은 `published`로 전환된다. 콘텐츠 댓글은 `sr_content_comments`가 소유하고 공개 콘텐츠 하단에서 작성/표시된다. 커뮤니티 댓글은 `@닉네임`, 콘텐츠 댓글은 `@표시명` 멘션을 해석해 알림 모듈 활성화 시 사이트 알림을 만든다. 콘텐츠 시리즈는 유료 열람 회차가 있으면 공개 시리즈 내비게이션에 완독 예상 금액을 자산별로 표시하며, 로그인 회원에게 회원 그룹 정책 적용 후 금액이 달라지면 원가와 회원가를 함께 표시한다.
 
 게시글 리액션은 마일스톤 8 기준으로 DB와 UI를 새로 추가하지 않는다. 현재 사용자 반응 표면은 커뮤니티 스크랩과 콘텐츠 완료 버튼으로 유지하며, 새 리액션 도입은 중복 집계 정책, 개인정보 보존 기간, 신고/운영 정책이 확정될 때 별도 마일스톤에서 다룬다.
 

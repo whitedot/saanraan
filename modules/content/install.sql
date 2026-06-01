@@ -168,6 +168,19 @@ CREATE TABLE IF NOT EXISTS sr_content_series_items (
     KEY idx_sr_content_series_items_series_sort (series_id, item_status, sort_order, id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_content_comments (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    content_id BIGINT UNSIGNED NOT NULL,
+    author_account_id BIGINT UNSIGNED NOT NULL,
+    body_text TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'published',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_sr_content_comments_content_status_id (content_id, status, id),
+    KEY idx_sr_content_comments_author_id (author_account_id, id)
+);
+
 CREATE TABLE IF NOT EXISTS sr_content_asset_access_logs (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     content_id BIGINT UNSIGNED NOT NULL,
