@@ -35,6 +35,8 @@ $assetPolicySets = sr_content_asset_policy_sets($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
 $pageGroups = sr_content_groups($pdo);
 $memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
+$contentSeriesOptions = sr_content_series_list($pdo);
+$currentContentSeriesItem = null;
 $pageGroupIds = [];
 foreach ($pageGroups as $pageGroup) {
     $pageGroupIds[(int) ($pageGroup['id'] ?? 0)] = true;
@@ -51,6 +53,7 @@ if ($pageAdminPage === 'form') {
         $editPage['setting_sources'] = sr_content_setting_sources($pdo, $pageId);
         $contentFiles = sr_content_files_for_content($pdo, $pageId);
         $linkedDownloadFileIds = sr_content_linked_file_ids($pdo, $pageId);
+        $currentContentSeriesItem = sr_content_active_series_item_for_content($pdo, $pageId);
     } else {
         $newContentGroupValue = sr_get_string('content_group_id', 20);
         $newContentGroupId = preg_match('/\A[1-9][0-9]*\z/', $newContentGroupValue) === 1 ? (int) $newContentGroupValue : 0;

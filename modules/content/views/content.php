@@ -76,6 +76,29 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <div class="content-body">
                 <?php echo sr_content_body_html($page); ?>
             </div>
+            <?php if (is_array($contentSeriesContext ?? null) && is_array($contentSeriesContext['items'] ?? null) && $contentSeriesContext['items'] !== []) { ?>
+                <nav class="content-series-nav" aria-label="<?php echo sr_e('시리즈 콘텐츠'); ?>">
+                    <h2><?php echo sr_e((string) $contentSeriesContext['title']); ?></h2>
+                    <?php if ((string) ($contentSeriesContext['description'] ?? '') !== '') { ?>
+                        <p><?php echo sr_e((string) $contentSeriesContext['description']); ?></p>
+                    <?php } ?>
+                    <ol>
+                        <?php foreach ($contentSeriesContext['items'] as $seriesItem) { ?>
+                            <li>
+                                <?php if ((int) ($seriesItem['content_id'] ?? 0) === (int) $page['id']) { ?>
+                                    <strong>
+                                        <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['content_title']); ?>
+                                    </strong>
+                                <?php } else { ?>
+                                    <a href="<?php echo sr_e(sr_url(sr_content_path((string) $seriesItem['slug']))); ?>">
+                                        <?php echo sr_e((string) ($seriesItem['episode_label'] ?? '') !== '' ? (string) $seriesItem['episode_label'] . ' - ' : ''); ?><?php echo sr_e((string) $seriesItem['content_title']); ?>
+                                    </a>
+                                <?php } ?>
+                            </li>
+                        <?php } ?>
+                    </ol>
+                </nav>
+            <?php } ?>
             <?php if (is_array($contentFiles ?? null) && $contentFiles !== []) { ?>
                 <section class="content-downloads">
                     <h2><?php echo sr_e(sr_t('content::ui.text.0a4ca9bc')); ?></h2>

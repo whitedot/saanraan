@@ -9,6 +9,8 @@ return static function (PDO $pdo, int $accountId): array {
             'asset_access_logs' => [],
             'file_download_logs' => [],
             'asset_action_logs' => [],
+            'series' => [],
+            'series_items' => [],
         ];
     }
 
@@ -77,10 +79,33 @@ return static function (PDO $pdo, int $accountId): array {
     );
     $stmt->execute(['account_id' => $accountId]);
 
+    $seriesStmt = $pdo->prepare(
+        'SELECT id, series_key, title, description, status, visibility, sort_order, created_at, updated_at
+         FROM sr_content_series
+         WHERE created_by = :account_id OR updated_by = :updated_account_id
+         ORDER BY id ASC
+         LIMIT 1000'
+    );
+    $seriesStmt->execute([
+        'account_id' => $accountId,
+        'updated_account_id' => $accountId,
+    ]);
+
+    $seriesItemStmt = $pdo->prepare(
+        'SELECT id, series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_at, updated_at
+         FROM sr_content_series_items
+         WHERE created_by = :account_id
+         ORDER BY id ASC
+         LIMIT 1000'
+    );
+    $seriesItemStmt->execute(['account_id' => $accountId]);
+
     return [
         'access_entitlements' => $accessEntitlements,
         'asset_access_logs' => $accessLogs,
         'file_download_logs' => $fileDownloadLogs,
         'asset_action_logs' => $stmt->fetchAll(),
+        'series' => $seriesStmt->fetchAll(),
+        'series_items' => $seriesItemStmt->fetchAll(),
     ];
 };

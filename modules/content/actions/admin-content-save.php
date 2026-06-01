@@ -18,6 +18,11 @@ sr_require_csrf();
 
 $pageId = (int) sr_post_string('content_id', 20);
 $values = sr_content_input_values($pdo);
+$seriesValues = [
+    'series_id' => (int) sr_post_string('series_id', 20),
+    'episode_label' => trim(sr_post_string('series_episode_label', 80)),
+    'sort_order' => (int) sr_post_string('series_sort_order', 20),
+];
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
     : [];
@@ -36,10 +41,19 @@ $errors = sr_content_validate_input($pdo, $values, $pageId, $publicBannerIds, $p
 if ($pageId > 0 && !is_array(sr_content_by_id($pdo, $pageId))) {
     $errors[] = '수정할 콘텐츠를 찾을 수 없습니다.';
 }
+if ((int) $seriesValues['series_id'] > 0) {
+    $selectedSeries = sr_content_series_by_id($pdo, (int) $seriesValues['series_id']);
+    if (!is_array($selectedSeries) || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)) {
+        $errors[] = '연결할 콘텐츠 시리즈를 확인해 주세요.';
+    }
+}
 $errors = array_merge($errors, sr_content_validate_file_request($pdo, $pageId, $values));
 
 if ($errors !== []) {
     $values['content_file_link_ids'] = sr_content_file_link_ids_from_post('content_file_link_ids');
+    $values['series_id'] = (int) $seriesValues['series_id'];
+    $values['series_episode_label'] = (string) $seriesValues['episode_label'];
+    $values['series_sort_order'] = (int) $seriesValues['sort_order'];
     $_SESSION['sr_content_admin_errors'] = $errors;
     $_SESSION['sr_content_admin_values'] = $values;
     sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new');
@@ -47,6 +61,7 @@ if ($errors !== []) {
 
 $beforeAssetSettings = $pageId > 0 ? sr_content_asset_settings_from_storage_for_audit($pdo, $pageId) : [];
 $savedPageId = sr_content_save($pdo, $values, (int) $account['id'], $pageId);
+sr_content_set_content_series($pdo, $savedPageId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
 try {
     sr_content_save_files_from_request($pdo, $savedPageId, (int) $account['id'], $values);
 } catch (Throwable $exception) {

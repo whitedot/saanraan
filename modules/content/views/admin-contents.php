@@ -21,6 +21,13 @@ $contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.as
 if ($values === []) {
     $values = $editing ? $editPage : sr_content_default_values($pdo, $site ?? null);
 }
+$contentSeriesOptions = isset($contentSeriesOptions) && is_array($contentSeriesOptions) ? $contentSeriesOptions : [];
+$currentContentSeriesItem = isset($currentContentSeriesItem) && is_array($currentContentSeriesItem) ? $currentContentSeriesItem : null;
+$contentSeriesValues = [
+    'series_id' => array_key_exists('series_id', $values) ? (int) $values['series_id'] : (is_array($currentContentSeriesItem) ? (int) $currentContentSeriesItem['series_id'] : 0),
+    'series_episode_label' => array_key_exists('series_episode_label', $values) ? (string) $values['series_episode_label'] : (is_array($currentContentSeriesItem) ? (string) ($currentContentSeriesItem['episode_label'] ?? '') : ''),
+    'series_sort_order' => array_key_exists('series_sort_order', $values) ? (int) $values['series_sort_order'] : (is_array($currentContentSeriesItem) ? (int) ($currentContentSeriesItem['sort_order'] ?? 0) : 0),
+];
 
 $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')) : sr_t('content::ui.content.6c84a1b3');
 $adminPageSubtitle = $pageAdminPage === 'form' ? sr_t('content::ui.content.status.85bf8a35') : sr_t('content::ui.content.status.search.29f7335b');
@@ -314,6 +321,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $pageGroupScopeRadioHtml('content_group_scope', (string) ($values['content_group_scope'] ?? 'here_only')); ?>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.list.menu.10a1aa2a')); ?></p>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.scope.copy_help')); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_admin_contents_series_id"><?php echo sr_e('시리즈'); ?></label>
+                <div class="admin-form-field">
+                    <select id="content_admin_contents_series_id" name="series_id" class="form-select">
+                        <option value="0"<?php echo (int) $contentSeriesValues['series_id'] === 0 ? ' selected' : ''; ?>><?php echo sr_e('연결 안 함'); ?></option>
+                        <?php foreach ($contentSeriesOptions as $seriesOption) { ?>
+                            <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) $contentSeriesValues['series_id'] === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $seriesOption['title']); ?> / <?php echo sr_e((string) $seriesOption['visibility']); ?> / <?php echo sr_e((string) $seriesOption['status']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 시리즈는 콘텐츠 시리즈 관리 화면에서 만들고, 각 콘텐츠 편집 화면에서 회차로 연결합니다.'); ?></p>
+                    <div class="admin-form-inline">
+                        <label for="content_admin_contents_series_episode_label">
+                            <span><?php echo sr_e('회차 표시'); ?></span>
+                            <input id="content_admin_contents_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) $contentSeriesValues['series_episode_label']); ?>" class="form-input">
+                        </label>
+                        <label for="content_admin_contents_series_sort_order">
+                            <span><?php echo sr_e('정렬 순서'); ?></span>
+                            <input id="content_admin_contents_series_sort_order" type="number" name="series_sort_order" value="<?php echo sr_e((string) (int) $contentSeriesValues['series_sort_order']); ?>" class="form-input">
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="admin-form-row">

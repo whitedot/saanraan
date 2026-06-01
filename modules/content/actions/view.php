@@ -51,6 +51,7 @@ if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
 }
 
 $contentFiles = sr_content_files_for_content($pdo, (int) $page['id']);
+$contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array(sr_member_current_account($pdo)));
 $pageActionNotice = $_SESSION['sr_content_action_notice'] ?? '';
 $pageActionErrors = $_SESSION['sr_content_action_errors'] ?? [];
 unset($_SESSION['sr_content_action_notice'], $_SESSION['sr_content_action_errors']);

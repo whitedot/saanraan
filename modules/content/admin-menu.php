@@ -15,6 +15,11 @@ return [
             'order' => 20,
         ],
         [
+            'label' => '콘텐츠 시리즈',
+            'path' => '/admin/content/series',
+            'order' => 22,
+        ],
+        [
             'label' => '다운로드 파일 관리',
             'path' => '/admin/content/files',
             'order' => 25,

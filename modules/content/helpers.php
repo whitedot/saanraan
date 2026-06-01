@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/content/helpers/assets.php';
 require_once SR_ROOT . '/modules/content/helpers/files.php';
+require_once SR_ROOT . '/modules/content/helpers/series.php';
 
 function sr_content_allowed_statuses(): array
 {

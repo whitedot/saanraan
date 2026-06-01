@@ -8,6 +8,8 @@ return [
     'POST /content/*' => 'actions/view.php',
     'GET /content/*' => 'actions/view.php',
     'GET /admin/content' => 'actions/admin-contents.php',
+    'GET /admin/content/series' => 'actions/admin-series.php',
+    'POST /admin/content/series' => 'actions/admin-series.php',
     'GET /admin/content/settings' => 'actions/admin-settings.php',
     'POST /admin/content/settings' => 'actions/admin-settings.php',
     'GET /admin/content/files' => 'actions/admin-download-files.php',
