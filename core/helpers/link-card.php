@@ -258,9 +258,8 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
         return sr_link_card_render($result, $token);
     };
 
-    $bodyHtml = preg_replace_callback('/<p(\s[^>]*)?>(.*?)<\/p>/us', static function (array $match) use ($renderToken): string {
-        $paragraphAttributes = (string) ($match[1] ?? '');
-        $paragraphBody = (string) ($match[2] ?? '');
+    $bodyHtml = preg_replace_callback('/<p(?:\s[^>]*)?>(.*?)<\/p>/us', static function (array $match) use ($renderToken): string {
+        $paragraphBody = (string) ($match[1] ?? '');
         if (preg_match_all(sr_link_card_token_pattern(), $paragraphBody, $tokenMatches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
             return (string) ($match[0] ?? '');
         }
@@ -269,13 +268,14 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
         $buffer = '';
         $offset = 0;
         $hasBlockCard = false;
-        $flushParagraph = static function () use (&$parts, &$buffer, $paragraphAttributes): void {
-            if (trim($buffer) === '') {
+        $flushParagraph = static function () use (&$parts, &$buffer): void {
+            $textHtml = sr_link_card_fragment_text_html($buffer);
+            if (trim($textHtml) === '') {
                 $buffer = '';
                 return;
             }
 
-            $parts[] = '<p' . $paragraphAttributes . '>' . $buffer . '</p>';
+            $parts[] = '<p>' . $textHtml . '</p>';
             $buffer = '';
         };
 
@@ -306,6 +306,36 @@ function sr_link_card_render_body(PDO $pdo, string $bodyHtml): string
     return preg_replace_callback(sr_link_card_token_pattern(), static function (array $match) use ($renderToken): string {
         return $renderToken((string) ($match[1] ?? ''), (string) ($match[0] ?? ''));
     }, $bodyHtml) ?? $bodyHtml;
+}
+
+function sr_link_card_fragment_text_html(string $html): string
+{
+    if ($html === '') {
+        return '';
+    }
+
+    if (!class_exists('DOMDocument')) {
+        return sr_e(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-link-card-fragment-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return sr_e(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    $root = null;
+    foreach ($document->getElementsByTagName('div') as $div) {
+        if ($div instanceof DOMElement && $div->getAttribute('id') === 'sr-link-card-fragment-root') {
+            $root = $div;
+            break;
+        }
+    }
+
+    return $root instanceof DOMElement ? sr_e($root->textContent) : '';
 }
 
 function sr_link_card_render(array $resolved, array $token): string

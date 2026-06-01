@@ -63,6 +63,11 @@ if (str_contains($mixedBlockRendered, '<p>앞 <aside') || !str_contains($mixedBl
     sr_link_card_check_error('Block link card tokens inserted in the middle of an editor paragraph must split into valid block markup.');
 }
 
+$formattedBlockRendered = sr_link_card_render_body($renderPdo, '<p id="dup"><strong>앞 ' . $braceLabelToken . ' 뒤</strong></p>');
+if (str_contains($formattedBlockRendered, '<strong>앞 </p>') || str_contains($formattedBlockRendered, '</strong></p>') || str_contains($formattedBlockRendered, 'id="dup"') || !str_contains($formattedBlockRendered, '<p>앞 </p><aside')) {
+    sr_link_card_check_error('Formatted paragraph fragments around block link cards must render as balanced plain paragraphs without duplicated attributes.');
+}
+
 $inlineToken = '{{sr_link_card module="community" entity_type="post" entity_id="7" variant="inline" label="인라인" slot="body"}}';
 $inlineRendered = sr_link_card_render_body($renderPdo, '<p>앞 ' . $inlineToken . ' 뒤</p>');
 if (!str_contains($inlineRendered, '<p>앞 <span class="sr-link-card sr-link-card-inline') || str_contains($inlineRendered, '<aside')) {
