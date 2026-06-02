@@ -1,3 +1,9 @@
+SET @schema_has_content_comments = (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = '{{SR_TABLE_PREFIX}}content_comments'
+);
 SET @schema_has_content_comments_author_public_name_snapshot = (
     SELECT COUNT(*)
     FROM INFORMATION_SCHEMA.COLUMNS
@@ -6,9 +12,10 @@ SET @schema_has_content_comments_author_public_name_snapshot = (
       AND COLUMN_NAME = 'author_public_name_snapshot'
 );
 SET @schema_sql = IF(
-    @schema_has_content_comments_author_public_name_snapshot = 0,
+    @schema_has_content_comments = 1
+      AND @schema_has_content_comments_author_public_name_snapshot = 0,
     'ALTER TABLE {{SR_TABLE_PREFIX}}content_comments ADD COLUMN author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '''' AFTER author_account_id',
-    'SELECT 1'
+    'DO 0'
 );
 PREPARE stmt FROM @schema_sql;
 EXECUTE stmt;
@@ -30,9 +37,14 @@ SET @schema_has_member_nicknames = (
       AND TABLE_NAME = '{{SR_TABLE_PREFIX}}member_nicknames'
 );
 SET @schema_sql = IF(
-    @schema_has_member_nicknames = 1,
+    @schema_has_content_comments = 1
+      AND @schema_has_member_nicknames = 1,
     'UPDATE {{SR_TABLE_PREFIX}}content_comments c LEFT JOIN {{SR_TABLE_PREFIX}}member_accounts a ON a.id = c.author_account_id LEFT JOIN {{SR_TABLE_PREFIX}}member_nicknames n ON n.account_id = a.id SET c.author_public_name_snapshot = LEFT(TRIM(COALESCE(IF(@member_nickname_enabled = 1, NULLIF(n.nickname, ''''), NULL), NULLIF(a.display_name, ''''), ''회원'')), 120) WHERE c.author_public_name_snapshot = ''''',
-    'UPDATE {{SR_TABLE_PREFIX}}content_comments c LEFT JOIN {{SR_TABLE_PREFIX}}member_accounts a ON a.id = c.author_account_id SET c.author_public_name_snapshot = LEFT(TRIM(COALESCE(NULLIF(a.display_name, ''''), ''회원'')), 120) WHERE c.author_public_name_snapshot = '''''
+    IF(
+        @schema_has_content_comments = 1,
+        'UPDATE {{SR_TABLE_PREFIX}}content_comments c LEFT JOIN {{SR_TABLE_PREFIX}}member_accounts a ON a.id = c.author_account_id SET c.author_public_name_snapshot = LEFT(TRIM(COALESCE(NULLIF(a.display_name, ''''), ''회원'')), 120) WHERE c.author_public_name_snapshot = ''''',
+        'DO 0'
+    )
 );
 PREPARE stmt FROM @schema_sql;
 EXECUTE stmt;
