@@ -35,6 +35,26 @@ $notificationCreateValues = [
     'link_url' => '',
     'channels' => ['site'],
 ];
+$notificationCreateFlash = isset($_SESSION['sr_admin_notification_create_state']) && is_array($_SESSION['sr_admin_notification_create_state'])
+    ? $_SESSION['sr_admin_notification_create_state']
+    : [];
+unset($_SESSION['sr_admin_notification_create_state']);
+if ($notificationCreateFlash !== []) {
+    $notificationCreateModalOpen = !empty($notificationCreateFlash['open']);
+    if (isset($notificationCreateFlash['values']) && is_array($notificationCreateFlash['values'])) {
+        $notificationCreateValues = array_merge($notificationCreateValues, [
+            'audience' => (string) ($notificationCreateFlash['values']['audience'] ?? $notificationCreateValues['audience']),
+            'account_identifier' => (string) ($notificationCreateFlash['values']['account_identifier'] ?? ''),
+            'title' => (string) ($notificationCreateFlash['values']['title'] ?? ''),
+            'body_text' => (string) ($notificationCreateFlash['values']['body_text'] ?? ''),
+            'body_format' => (string) ($notificationCreateFlash['values']['body_format'] ?? $notificationCreateValues['body_format']),
+            'link_url' => (string) ($notificationCreateFlash['values']['link_url'] ?? ''),
+            'channels' => isset($notificationCreateFlash['values']['channels']) && is_array($notificationCreateFlash['values']['channels'])
+                ? array_values(array_filter($notificationCreateFlash['values']['channels'], 'is_string'))
+                : $notificationCreateValues['channels'],
+        ]);
+    }
+}
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $notificationListFilters = [
     'audience' => sr_get_string('audience', 30),
@@ -301,7 +321,15 @@ if (sr_request_method() === 'POST') {
         }
     }
 
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $notificationAdminPage === 'deliveries' ? '/admin/notification-deliveries' : '/admin/notifications');
+    if ($notificationAdminPage === 'list' && $notificationCreateModalOpen && $errors !== []) {
+        $_SESSION['sr_admin_notification_create_state'] = [
+            'open' => true,
+            'values' => $notificationCreateValues,
+        ];
+    }
+
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_redirect($notificationAdminPage === 'deliveries' ? '/admin/notification-deliveries' : '/admin/notifications');
 }
 
 $notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);
