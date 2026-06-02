@@ -88,7 +88,7 @@ return [
     'roles.help.add_member.body.1' => '관리자 권한을 줄 회원을 먼저 검색해 선택합니다.',
     'roles.help.add_member.body.2' => '회원 검색에서 선택한 회원만 저장할 수 있습니다. 검색 결과에서 정확한 회원을 고른 뒤 권한을 선택하세요.',
     'roles.help.add_member.title' => '회원 선택 도움말',
-    'roles.help.edit_member.body.1' => '현재 권한을 변경할 회원의 공개 식별자, 이메일, 표시 이름입니다.',
+    'roles.help.edit_member.body.1' => '현재 권한을 변경할 회원의 공개 식별자, 이메일, 이름입니다.',
     'roles.help.edit_member.body.2' => '다른 회원의 권한을 바꾸려면 이 창을 닫고 목록에서 해당 회원의 권한 변경을 여세요.',
     'roles.help.edit_member.title' => '대상 회원 도움말',
     'roles.help.open' => '설명 보기',

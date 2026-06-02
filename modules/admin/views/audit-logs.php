@@ -176,7 +176,7 @@ $auditActorMemberModalId = 'admin-audit-actor-member-modal';
                 <dl class="admin-module-detail-list hidden" data-admin-audit-actor-detail>
                     <dt>공개 해시</dt>
                     <dd data-admin-audit-actor-field="account_public_hash">-</dd>
-                    <dt>표시 이름</dt>
+                    <dt>이름</dt>
                     <dd data-admin-audit-actor-field="display_name">-</dd>
                     <dt>이메일</dt>
                     <dd data-admin-audit-actor-field="email">-</dd>

@@ -254,7 +254,7 @@ return [
     'ui.name.51f4c6af' => '사이트 이름',
     'ui.name.5ed209e6' => '수신자 이름',
     'ui.name.b6997ef6' => '이름을 입력해 주세요.',
-    'ui.name.be0cd9bd' => '표시 이름',
+    'ui.name.be0cd9bd' => '이름',
     'ui.name.email.95480bf4' => '이름, 이메일, 전화번호',
     'ui.name.f5853c38' => '유효한 도시 이름을 입력해 주세요.',
     'ui.name.first.name.04ab2143' => '이름 (First name)',

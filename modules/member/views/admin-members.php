@@ -278,8 +278,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.5e737292')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></th>
-                    <th<?php echo sr_admin_sort_aria('email', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.3b7dbc4c'), 'email', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('email', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.3b7dbc4c') . ' / ' . sr_t('member::ui.text.4ca2f9ab'), 'email', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('name', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.name.253d1510'), 'name', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('email_verified_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.2f905abd'), 'email_verified_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
@@ -292,7 +291,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($members === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
+                        <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($members as $member) { ?>
@@ -305,8 +304,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     };
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap admin-member-hash-cell" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></td>
-                        <td class="admin-table-break admin-member-email-cell"><?php echo sr_e(sr_admin_member_email_display($member)); ?></td>
+                        <td class="admin-table-break admin-member-email-cell">
+                            <span class="admin-member-email-value"><?php echo sr_e(sr_admin_member_email_display($member)); ?></span>
+                            <span class="admin-member-hash-value" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></span>
+                        </td>
                         <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['email_verified_at'] ?? '')); ?></td>

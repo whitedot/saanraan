@@ -478,7 +478,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                             <dd data-summary-target="admin_email"><?php echo sr_e($values['admin_email'] !== '' ? $values['admin_email'] : '-'); ?></dd>
                             <dt>Login ID</dt>
                             <dd data-summary-target="admin_login_id"><?php echo sr_e($values['admin_login_id'] !== '' ? $values['admin_login_id'] : '-'); ?></dd>
-                            <dt>표시 이름</dt>
+                            <dt>이름</dt>
                             <dd data-summary-target="admin_display_name"><?php echo sr_e($values['admin_display_name']); ?></dd>
                         </dl>
                     </div>

@@ -390,7 +390,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($values['admin_display_name'] === '') {
-        $addInstallError('관리자 표시 이름을 입력하세요.', 'account_modules');
+        $addInstallError('관리자 이름을 입력하세요.', 'account_modules');
     }
 
     $values['member_login_identifier'] = sr_member_normalize_login_identifier_setting($values['member_login_identifier']);
