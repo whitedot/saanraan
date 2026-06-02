@@ -44,6 +44,7 @@ if (sr_request_method() === 'POST') {
     $reason = sr_point_clean_text(sr_post_string('reason', 255), 255);
     $referenceType = sr_point_clean_key(sr_post_string('reference_type', 60), 60);
     $referenceId = sr_point_clean_reference_id(sr_post_string('reference_id', 120), 120);
+    $refundExpirationPolicy = sr_point_normalize_refund_expiration_policy(sr_post_string('refund_expiration_policy', 40));
     $approvalIdentifier = sr_post_string('approval_account_identifier', 80);
     $approvalNote = sr_point_clean_text(sr_post_string('approval_note', 255), 255);
     $approvalAccountId = 0;
@@ -121,6 +122,7 @@ if (sr_request_method() === 'POST') {
                 'reason' => $reason,
                 'reference_type' => $referenceType,
                 'reference_id' => $referenceId,
+                'refund_expiration_policy' => $refundExpirationPolicy,
                 'created_by_account_id' => (int) $account['id'],
             ]);
 
@@ -137,6 +139,7 @@ if (sr_request_method() === 'POST') {
                     'base_amount' => $baseAmount,
                     'amount' => $amount,
                     'transaction_type' => $transactionType,
+                    'refund_expiration_policy' => $transactionType === 'refund' ? $refundExpirationPolicy : '',
                     'approval_account_id' => $approvalAccountId,
                     'approval_note' => $approvalAccountId > 0 ? $approvalNote : '',
                 ],
@@ -188,7 +191,7 @@ $transactionSort = sr_admin_sort_from_request(sr_admin_asset_transaction_sort_op
 $transactionPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($pointAdminPage === 'transactions') {
     $transactionPagination = sr_admin_pagination_from_total($pdo, sr_admin_asset_transaction_count($pdo, 'sr_point_transactions', $accountIdFilter));
-    $transactions = sr_admin_asset_transaction_rows($pdo, $runtimeConfig, 'sr_point_transactions', $transactionSort, $transactionPagination, $accountIdFilter);
+    $transactions = sr_point_admin_transaction_rows($pdo, $runtimeConfig, $transactionSort, $transactionPagination, $accountIdFilter);
 }
 
 include SR_ROOT . '/modules/point/views/admin-points.php';

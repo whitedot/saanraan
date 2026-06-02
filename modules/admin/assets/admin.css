@@ -176,6 +176,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form-actions{align-items:center;gap:calc(var(--spacing) * 2);flex-wrap:wrap;display:flex}
 .admin-form-actions-primary{justify-content:flex-end}
 .admin-form-actions-split>button[type=submit],.admin-form-actions-split>input[type=submit]{margin-left:auto}
+.admin-form-secondary-actions{align-items:center;display:flex;gap:calc(var(--spacing) * 2)}
 .admin-form-label-help{gap:calc(var(--spacing) * 1.5)}
 .admin-form-label-help>label,
 .admin-form-label-help>span{min-width:0}

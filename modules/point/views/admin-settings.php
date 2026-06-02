@@ -2,7 +2,7 @@
 
 $adminPageTitle = sr_t('point::ui.settings.title');
 $adminPageSubtitle = sr_t('point::ui.settings.subtitle');
-$settings = isset($settings) && is_array($settings) ? $settings : ['display_name' => '포인트', 'unit_label' => 'P'];
+$settings = isset($settings) && is_array($settings) ? $settings : ['display_name' => '포인트', 'unit_label' => 'P', 'default_expiration_days' => '0'];
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -13,7 +13,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('point::ui.settings.title')); ?></h2>
         <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="save_settings">
 
         <div class="admin-form-row">
             <label class="form-label" for="point_settings_display_name"><?php echo sr_e(sr_t('point::ui.settings.display_name')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label>
@@ -29,11 +28,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <small class="admin-form-help"><?php echo sr_e(sr_t('point::ui.settings.unit_label_help')); ?></small>
             </div>
         </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="point_settings_default_expiration_days"><?php echo sr_e(sr_t('point::ui.settings.default_expiration_days')); ?></label>
+            <div class="admin-form-field">
+                <div class="input-group admin-input-unit">
+                    <input id="point_settings_default_expiration_days" type="number" name="default_expiration_days" value="<?php echo sr_e((string) ($settings['default_expiration_days'] ?? '0')); ?>" class="form-input" min="0" max="3650" step="1">
+                    <span class="input-group-text"><?php echo sr_e(sr_t('point::ui.settings.days_unit')); ?></span>
+                </div>
+                <small class="admin-form-help"><?php echo sr_e(sr_t('point::ui.settings.default_expiration_days_help')); ?></small>
+            </div>
+        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <a href="<?php echo sr_e(sr_url('/admin/points/balances')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('point::ui.point.47719e8e')); ?></a>
-        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('point::ui.settings.save')); ?></button>
+        <div class="admin-form-secondary-actions">
+            <button type="submit" name="intent" value="expire_due" class="btn btn-solid-light" formnovalidate><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></button>
+        </div>
+        <button type="submit" name="intent" value="save_settings" class="btn btn-solid-primary"><?php echo sr_e(sr_t('point::ui.settings.save')); ?></button>
     </div>
 </form>
 

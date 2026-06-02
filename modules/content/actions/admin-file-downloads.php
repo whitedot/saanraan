@@ -16,9 +16,10 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     $downloadLogId = (int) sr_post_string('download_log_id', 20);
     $refundNote = sr_post_string('refund_note', 255);
+    $refundExpirationPolicy = sr_post_string('refund_expiration_policy', 40);
     $result = ['ok' => false, 'message' => '처리할 작업을 확인할 수 없습니다.'];
     if ($intent === 'refund_download') {
-        $result = sr_content_refund_file_download($pdo, $downloadLogId, (int) $account['id'], $refundNote);
+        $result = sr_content_refund_file_download($pdo, $downloadLogId, (int) $account['id'], $refundNote, $refundExpirationPolicy);
     }
 
     if (!empty($result['ok'])) {

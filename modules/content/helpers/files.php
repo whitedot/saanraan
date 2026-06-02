@@ -909,9 +909,10 @@ function sr_content_file_download_access_logs_for_refund(PDO $pdo, array $downlo
     return $stmt->fetchAll();
 }
 
-function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $adminAccountId, string $refundNote): array
+function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $adminAccountId, string $refundNote, string $refundExpirationPolicy = 'original'): array
 {
     $refundNote = sr_content_clean_single_line($refundNote, 255);
+    $refundExpirationPolicy = in_array($refundExpirationPolicy, ['original', 'reset'], true) ? $refundExpirationPolicy : 'original';
     if ($downloadLogId <= 0) {
         return ['ok' => false, 'message' => '환불할 다운로드 내역을 선택하세요.'];
     }
@@ -969,7 +970,7 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
             }
 
             $assetOption = sr_content_asset_modules($pdo)[$assetModule];
-            $refundTransactionId = sr_content_create_asset_transaction($pdo, $assetModule, [
+            $transactionData = [
                 'account_id' => $accountId,
                 'amount' => $amount,
                 'transaction_type' => (string) ($assetOption['refund_type'] ?? 'refund'),
@@ -977,7 +978,11 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
                 'reference_type' => 'refund',
                 'reference_id' => $assetModule . '_transaction:' . (string) $transactionId,
                 'created_by_account_id' => $adminAccountId,
-            ]);
+            ];
+            if ($assetModule === 'point') {
+                $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
+            }
+            $refundTransactionId = sr_content_create_asset_transaction($pdo, $assetModule, $transactionData);
             $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
         }
 
@@ -1035,6 +1040,7 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
                     'file_id' => $fileId,
                     'account_id' => $accountId,
                     'refund_status' => $refundStatus,
+                    'refund_expiration_policy' => $refundExpirationPolicy,
                     'refund_transaction_ids' => $refundTransactionIds,
                     'access_revoked' => $accessRevoked,
                 ],

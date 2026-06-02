@@ -19,6 +19,10 @@ $pointReferenceTypeOptions = [
     'event' => sr_t('point::ui.text.46b289bb'),
     'migration' => sr_t('point::ui.text.2e52928e'),
 ];
+$pointRefundExpirationPolicyOptions = [
+    'original' => sr_t('point::ui.refund_expiration_policy.original'),
+    'reset' => sr_t('point::ui.refund_expiration_policy.reset'),
+];
 $pointHelpOpenLabel = sr_t('point::help.open');
 $pointHelpButtonHtml = static function (string $label, string $modalId) use ($pointHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $pointHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -201,6 +205,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('transaction_type', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.5cf2792b'), 'transaction_type', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('amount', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.4a12f983'), 'amount', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('balance_after', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.87f9c4c8'), 'balance_after', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
+                    <th><?php echo sr_e(sr_t('point::ui.text.expiration')); ?></th>
                     <th<?php echo sr_admin_sort_aria('reason', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.ab9442a2'), 'reason', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('reference_type', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.fbc8ad58'), 'reference_type', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('created_at', $transactionSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.5efd3ddd'), 'created_at', $transactionSort, sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort()); ?></th>
@@ -210,7 +215,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($transactions === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e($pointDisplayName . ' 거래가 없습니다.'); ?></td>
+                        <td colspan="10" class="admin-empty-state"><?php echo sr_e($pointDisplayName . ' 거래가 없습니다.'); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($transactions as $transaction) { ?>
@@ -220,6 +225,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['transaction_type'], 'transaction_type')); ?></td>
                             <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
                             <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
+                            <td>
+                                <?php if ((string) ($transaction['expires_at'] ?? '') !== '') { ?>
+                                    <?php echo sr_e((string) $transaction['expires_at']); ?><br>
+                                    <span class="text-muted"><?php echo sr_e(sr_t('point::ui.text.expires_remaining')); ?> <?php echo sr_e(number_format((int) ($transaction['expires_remaining'] ?? 0))); ?> <?php echo sr_e($pointUnitLabel); ?></span>
+                                    <?php if ((string) ($transaction['expired_at'] ?? '') !== '') { ?>
+                                        <br><span class="text-muted"><?php echo sr_e(sr_t('point::ui.text.expired_at')); ?> <?php echo sr_e((string) $transaction['expired_at']); ?></span>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <span class="text-muted">-</span>
+                                <?php } ?>
+                            </td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             <td><?php echo sr_e((string) $transaction['reference_type']); ?></td>
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
@@ -447,6 +463,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.member.e335b899')); ?> <strong><?php echo sr_e(sr_admin_member_display_name_preview($pointRefundTransaction)); ?></strong></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_admin_member_email_display($pointRefundTransaction)); ?></span>
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('point::ui.text.18e61249')); ?> <strong><?php echo sr_e(number_format((int) $pointRefundTransaction['amount'])); ?> <?php echo sr_e($pointUnitLabel); ?></strong></span>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($pointRefundFieldPrefix); ?>_refund_expiration_policy"><?php echo sr_e(sr_t('point::ui.refund_expiration_policy.label')); ?></label>
+                            <div class="admin-form-field">
+                                <select id="<?php echo sr_e($pointRefundFieldPrefix); ?>_refund_expiration_policy" name="refund_expiration_policy" class="form-select">
+                                    <?php foreach ($pointRefundExpirationPolicyOptions as $pointRefundExpirationPolicyValue => $pointRefundExpirationPolicyLabel) { ?>
+                                        <option value="<?php echo sr_e($pointRefundExpirationPolicyValue); ?>"><?php echo sr_e($pointRefundExpirationPolicyLabel); ?></option>
+                                    <?php } ?>
+                                </select>
+                                <p class="admin-form-help"><?php echo sr_e(sr_t('point::ui.refund_expiration_policy.help')); ?></p>
+                            </div>
                         </div>
                         <div class="admin-form-row">
                             <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_amount', sr_t('point::ui.text.42607c84'), $pointHelp['refund_amount']['id'], $pointHelpOpenLabel, true); ?>

@@ -200,6 +200,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="admin-summary-meta">금액 <strong><?php echo sr_e(number_format((int) ($downloadLog['amount'] ?? 0))); ?></strong></span>
                     </div>
                     <div class="admin-form-row">
+                        <label class="form-label" for="<?php echo sr_e($refundFieldPrefix); ?>_expiration_policy">포인트 환불 유효기간</label>
+                        <div class="admin-form-field">
+                            <select id="<?php echo sr_e($refundFieldPrefix); ?>_expiration_policy" name="refund_expiration_policy" class="form-select">
+                                <option value="original">환불 참조 원거래의 유효기간</option>
+                                <option value="reset">환불 시점부터 기본 유효기간 계산</option>
+                            </select>
+                            <p class="admin-form-help">포인트 차감 환불에 적용합니다. 다른 포인트/금액 항목 환불에는 영향이 없습니다.</p>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($refundFieldPrefix); ?>_note">처리 사유 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($refundFieldPrefix); ?>_note" type="text" name="refund_note" class="form-input form-control-full" maxlength="255" required data-overlay-focus>

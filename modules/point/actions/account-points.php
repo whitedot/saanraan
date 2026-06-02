@@ -10,7 +10,7 @@ $balance = sr_point_balance($pdo, (int) $account['id']);
 $pointDisplayName = sr_point_display_name($pdo);
 $pointUnitLabel = sr_point_unit_label($pdo);
 $stmt = $pdo->prepare(
-    'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_at
+    'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, expires_at, expires_remaining, expired_at, created_at
      FROM sr_point_transactions
      WHERE account_id = :account_id
      ORDER BY id DESC

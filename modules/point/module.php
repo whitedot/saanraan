@@ -2,7 +2,7 @@
 
 return [
     'name' => '포인트',
-    'version' => '2026.05.005',
+    'version' => '2026.06.001',
     'type' => 'module',
     'description' => '회원 포인트 잔액과 거래 장부 모듈입니다.',
     'admin' => [
