@@ -290,6 +290,7 @@ if (!is_string($adminMembersHelper)) {
     if (
         strpos($adminMembersHelper, "in_array(\$intent, ['status', 'revoke_sessions'], true)") === false
         && strpos($adminMembersHelper, "in_array(\$intent, ['status', 'edit', 'revoke_sessions'], true)") === false
+        && strpos($adminMembersHelper, "in_array(\$intent, ['status', 'edit', 'revoke_sessions', 'evaluate_groups'], true)") === false
         || strpos($adminMembersHelper, "sr_t('member::action.admin.intent_invalid')") === false
         || strpos($adminMembersHelper, "sr_admin_post_positive_int('account_id')") === false
     ) {

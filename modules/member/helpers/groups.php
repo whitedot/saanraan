@@ -926,6 +926,138 @@ function sr_member_group_evaluate_accounts(PDO $pdo, array $filters = []): array
     return $summary;
 }
 
+function sr_member_group_evaluate_group(PDO $pdo, int $groupId, array $filters = []): array
+{
+    if ($groupId < 1 || !sr_member_groups_table_exists($pdo)) {
+        return ['candidates' => 0, 'evaluated' => 0, 'granted' => 0, 'skipped' => 0];
+    }
+
+    $excludeGroupIds = [];
+    $filterExcludeGroupIds = $filters['exclude_group_ids'] ?? [];
+    if (!is_array($filterExcludeGroupIds)) {
+        $filterExcludeGroupIds = [];
+    }
+    foreach ($filterExcludeGroupIds as $filterExcludeGroupId) {
+        $filterExcludeGroupId = (int) $filterExcludeGroupId;
+        if ($filterExcludeGroupId > 0) {
+            $excludeGroupIds[] = $filterExcludeGroupId;
+        }
+    }
+    if ($excludeGroupIds === []) {
+        $legacyExcludeGroupId = max(0, (int) ($filters['exclude_group_id'] ?? 0));
+        if ($legacyExcludeGroupId > 0) {
+            $excludeGroupIds[] = $legacyExcludeGroupId;
+        }
+    }
+    $excludeGroupIds = array_values(array_unique($excludeGroupIds));
+    $limit = max(1, min(500, (int) ($filters['limit'] ?? 200)));
+
+    $definitions = sr_member_group_rule_definitions($pdo);
+    $stmt = $pdo->prepare(
+        "SELECT *
+         FROM sr_member_group_rules
+         WHERE group_id = :group_id
+           AND status = 'enabled'
+         ORDER BY id ASC"
+    );
+    $stmt->execute(['group_id' => $groupId]);
+    $rules = [];
+    foreach ($stmt->fetchAll() as $rule) {
+        $definitionKey = (string) ($rule['source_module_key'] ?? '') . ':' . (string) ($rule['rule_key'] ?? '');
+        if (isset($definitions[$definitionKey])) {
+            $rules[] = $rule;
+        }
+    }
+
+    if ($rules === []) {
+        return ['candidates' => 0, 'evaluated' => 0, 'granted' => 0, 'skipped' => 0];
+    }
+
+    $excludeSql = '';
+    $params = ['group_id' => $groupId];
+    if ($excludeGroupIds !== []) {
+        $excludeGroupPlaceholders = [];
+        foreach ($excludeGroupIds as $index => $excludeGroupId) {
+            $paramKey = 'exclude_group_id_' . $index;
+            $excludeGroupPlaceholders[] = ':' . $paramKey;
+            $params[$paramKey] = $excludeGroupId;
+        }
+        $excludeSql = " AND NOT EXISTS (
+                SELECT 1
+                FROM sr_member_group_memberships em
+                WHERE em.account_id = a.id
+                  AND em.group_id IN (" . implode(', ', $excludeGroupPlaceholders) . ")
+                  AND em.status = 'active'
+            )";
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT a.id
+         FROM sr_member_accounts a
+         WHERE a.status IN ('active', 'pending')
+           AND NOT EXISTS (
+                SELECT 1
+                FROM sr_member_group_memberships tm
+                WHERE tm.account_id = a.id
+                  AND tm.group_id = :group_id
+                  AND tm.status = 'active'
+           )" . $excludeSql . '
+         ORDER BY a.id ASC
+         LIMIT :limit_value'
+    );
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_INT);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $summary = ['candidates' => 0, 'evaluated' => 0, 'granted' => 0, 'skipped' => 0];
+    foreach ($stmt->fetchAll() as $accountRow) {
+        $accountId = (int) ($accountRow['id'] ?? 0);
+        if ($accountId < 1) {
+            continue;
+        }
+
+        $summary['candidates']++;
+        $granted = false;
+        foreach ($rules as $rule) {
+            $definitionKey = (string) $rule['source_module_key'] . ':' . (string) $rule['rule_key'];
+            $params = json_decode((string) $rule['rule_params_json'], true);
+            if (!is_array($params)) {
+                $params = [];
+            }
+
+            $evaluation = sr_member_group_call_evaluator($definitions[$definitionKey], $pdo, $accountId, $params);
+            $summary['evaluated']++;
+            if (!empty($evaluation['matched'])) {
+                if (sr_member_group_grant_auto($pdo, $accountId, $rule, $evaluation)) {
+                    $summary['granted']++;
+                } else {
+                    $summary['skipped']++;
+                }
+                $granted = true;
+                break;
+            }
+        }
+
+        if (!$granted) {
+            $summary['skipped']++;
+        }
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare('UPDATE sr_member_group_rules SET last_evaluated_at = :last_evaluated_at, updated_at = :updated_at WHERE id = :id');
+    foreach ($rules as $rule) {
+        $stmt->execute([
+            'last_evaluated_at' => $now,
+            'updated_at' => $now,
+            'id' => (int) $rule['id'],
+        ]);
+    }
+
+    return $summary;
+}
+
 function sr_member_group_enabled_rules(PDO $pdo, string $sourceModuleKey = ''): array
 {
     if ($sourceModuleKey !== '') {

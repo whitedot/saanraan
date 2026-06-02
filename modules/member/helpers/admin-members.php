@@ -547,15 +547,15 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $errors[] = sr_t('member::action.admin.member_required');
     }
 
-    if (!in_array($intent, ['status', 'edit', 'revoke_sessions'], true)) {
+    if (!in_array($intent, ['status', 'edit', 'revoke_sessions', 'evaluate_groups'], true)) {
         $errors[] = sr_t('member::action.admin.intent_invalid');
     }
 
-    if ($intent !== 'revoke_sessions' && !in_array($status, $allowedStatuses, true)) {
+    if (!in_array($intent, ['revoke_sessions', 'evaluate_groups'], true) && !in_array($status, $allowedStatuses, true)) {
         $errors[] = sr_t('member::action.admin.status_invalid');
     }
 
-    if ($intent !== 'revoke_sessions' && $targetAccountId === (int) $account['id'] && $status !== 'active') {
+    if (!in_array($intent, ['revoke_sessions', 'evaluate_groups'], true) && $targetAccountId === (int) $account['id'] && $status !== 'active') {
         $errors[] = sr_t('member::action.admin.current_admin_disable_disallowed');
     }
 
@@ -588,6 +588,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         if (
             $targetIsOwner
             && $intent !== 'revoke_sessions'
+            && $intent !== 'evaluate_groups'
             && $status !== 'active'
             && (string) $targetAccount['status'] === 'active'
             && sr_admin_active_owner_count($pdo) <= 1
@@ -596,7 +597,24 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         }
     }
 
-    if ($errors === [] && $intent === 'revoke_sessions') {
+    if ($errors === [] && $intent === 'evaluate_groups') {
+        $summary = sr_member_group_evaluate_account($pdo, $targetAccountId);
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'member.group_rules.evaluated',
+            'target_type' => 'member_account',
+            'target_id' => (string) $targetAccountId,
+            'result' => 'success',
+            'message' => 'Member group rules evaluated.',
+            'metadata' => $summary,
+        ]);
+        $notice = sr_t('member::action.admin_groups.evaluated', [
+            'evaluated' => (string) $summary['evaluated'],
+            'granted' => (string) $summary['granted'],
+            'revoked' => (string) $summary['revoked'],
+        ]);
+    } elseif ($errors === [] && $intent === 'revoke_sessions') {
         if ($targetAccountId === (int) $account['id']) {
             $errors[] = sr_t('member::action.admin.current_session_revoke_disallowed');
         } else {

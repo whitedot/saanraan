@@ -201,6 +201,103 @@ if (sr_request_method() === 'POST') {
                 sr_redirect('/admin/member-group-rules');
             }
         }
+    } elseif ($intent === 'evaluate_group') {
+        $groupId = sr_admin_post_positive_int('group_id');
+        $registeredGroupIds = [];
+        foreach (sr_member_groups($pdo) as $registeredGroup) {
+            $registeredGroupId = (int) ($registeredGroup['id'] ?? 0);
+            if ($registeredGroupId > 0) {
+                $registeredGroupIds[$registeredGroupId] = true;
+            }
+        }
+        $registeredGroupCount = count($registeredGroupIds);
+        $excludeGroupIds = [];
+        $postedExcludeGroupIds = $_POST['exclude_group_ids'] ?? [];
+        if (!is_array($postedExcludeGroupIds)) {
+            if ($postedExcludeGroupIds !== null && $postedExcludeGroupIds !== '') {
+                $errors[] = sr_t('member::action.admin_groups.exclude_group_invalid');
+            }
+            $postedExcludeGroupIds = [];
+        }
+        foreach ($postedExcludeGroupIds as $postedExcludeGroupId) {
+            $postedExcludeGroupId = is_scalar($postedExcludeGroupId) ? trim((string) $postedExcludeGroupId) : '';
+            if ($postedExcludeGroupId === '') {
+                continue;
+            }
+            if (!preg_match('/^[1-9][0-9]*$/', $postedExcludeGroupId)) {
+                $errors[] = sr_t('member::action.admin_groups.exclude_group_invalid');
+                continue;
+            }
+            $excludeGroupIds[] = (int) $postedExcludeGroupId;
+        }
+        if ($excludeGroupIds === []) {
+            $legacyExcludeGroupId = sr_admin_post_positive_int('exclude_group_id');
+            if ($legacyExcludeGroupId > 0) {
+                $excludeGroupIds[] = $legacyExcludeGroupId;
+            }
+        }
+        $excludeGroupIds = array_values(array_unique($excludeGroupIds));
+        $group = null;
+
+        if ($registeredGroupCount < 1) {
+            $errors[] = sr_t('member::action.admin_groups.evaluate_group_unavailable');
+        }
+
+        if ($groupId < 1) {
+            $errors[] = sr_t('member::action.admin_groups.group_required');
+        } else {
+            $group = sr_member_group_by_id($pdo, $groupId);
+            if (!is_array($group)) {
+                $errors[] = sr_t('member::action.admin_groups.group_not_found');
+            } elseif ((string) ($group['status'] ?? '') !== 'enabled') {
+                $errors[] = sr_t('member::action.admin_groups.group_enabled_required');
+            }
+        }
+
+        if ($registeredGroupCount < 2 && $excludeGroupIds !== []) {
+            $errors[] = sr_t('member::action.admin_groups.exclude_group_unavailable');
+        }
+
+        foreach ($excludeGroupIds as $excludeGroupId) {
+            if ($excludeGroupId === $groupId) {
+                $errors[] = sr_t('member::action.admin_groups.exclude_group_same');
+            } elseif (!isset($registeredGroupIds[$excludeGroupId])) {
+                $errors[] = sr_t('member::action.admin_groups.exclude_group_not_found');
+            } else {
+                $excludeGroup = sr_member_group_by_id($pdo, $excludeGroupId);
+                if (!is_array($excludeGroup)) {
+                    $errors[] = sr_t('member::action.admin_groups.exclude_group_not_found');
+                }
+            }
+        }
+
+        if ($errors === []) {
+            $summary = sr_member_group_evaluate_group($pdo, $groupId, [
+                'exclude_group_ids' => $excludeGroupIds,
+            ]);
+            $notice = sr_t('member::action.admin_groups.group_evaluated', [
+                'candidates' => (string) $summary['candidates'],
+                'evaluated' => (string) $summary['evaluated'],
+                'granted' => (string) $summary['granted'],
+                'skipped' => (string) $summary['skipped'],
+            ]);
+
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'member.group_rules.group_evaluated',
+                'target_type' => 'member_group',
+                'target_id' => (string) $groupId,
+                'result' => 'success',
+                'message' => 'Member group rules evaluated for group.',
+                'metadata' => array_merge($summary, [
+                    'group_id' => $groupId,
+                    'exclude_group_ids' => $excludeGroupIds,
+                ]),
+            ]);
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/member-group-rules');
+        }
     } elseif ($intent === 'evaluate_account') {
         $targetAccountIdentifier = sr_post_string('account_identifier', 80);
         $targetAccountField = sr_post_string('account_identifier_field', 20);

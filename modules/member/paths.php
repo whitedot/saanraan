@@ -27,6 +27,7 @@ return [
     'GET /admin/member-group-rules/edit' => 'actions/admin-group-rules-edit.php',
     'POST /admin/member-group-rules/save' => 'actions/admin-group-rules-save.php',
     'POST /admin/member-group-evaluations/account' => 'actions/admin-group-evaluations-account.php',
+    'POST /admin/member-group-evaluations/group' => 'actions/admin-group-evaluations-group.php',
     'GET /admin/member-group-assignments' => 'actions/admin-group-assignments.php',
     'POST /admin/member-group-assignments/grant' => 'actions/admin-group-assignments-grant.php',
     'POST /admin/member-group-assignments/revoke' => 'actions/admin-group-assignments-revoke.php',
