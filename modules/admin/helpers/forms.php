@@ -394,7 +394,7 @@ function sr_admin_member_group_key_select_html(string $id, string $name, array $
         }
 
         $title = trim((string) ($memberGroup['title'] ?? ''));
-        $label = $title !== '' ? $title . ' (' . $groupKey . ')' : $groupKey;
+        $label = $title !== '' ? $title : $groupKey;
         $options[$groupKey] = $label;
     }
 

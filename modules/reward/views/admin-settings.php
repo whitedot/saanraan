@@ -24,7 +24,7 @@ foreach ($enabledMemberGroups as $memberGroup) {
 
     $title = trim((string) ($memberGroup['title'] ?? ''));
     $withdrawalTargetOptions[$groupKey] = [
-        'label' => $title !== '' ? $title . ' (' . $groupKey . ')' : $groupKey,
+        'label' => $title !== '' ? $title : $groupKey,
         'summary' => '회원 그룹',
     ];
 }

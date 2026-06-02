@@ -23,6 +23,9 @@ if (sr_request_method() === 'POST') {
     $refundRequestsEnabled = sr_post_string('refund_requests_enabled', 1) === '1';
     $postedGroupKeys = $_POST['refund_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_deposit_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
+    if ($refundRequestsEnabled && $allowedGroupKeys === []) {
+        $errors[] = '환불 신청을 사용하려면 환불 신청 허용 대상을 선택하세요.';
+    }
     $enabledGroupKeys = [];
     foreach ($memberGroups as $group) {
         if ((string) ($group['status'] ?? '') === 'enabled') {
