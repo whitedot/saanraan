@@ -17,6 +17,9 @@ $depositReferenceTypeOptions = [
     'event' => sr_t('deposit::ui.text.46b289bb'),
     'migration' => sr_t('deposit::ui.text.2e52928e'),
 ];
+$depositAdjustTransactionTypes = array_values(array_filter($allowedTransactionTypes, static function (string $type): bool {
+    return $type !== 'refund';
+}));
 $depositHelpOpenLabel = sr_t('deposit::help.open');
 $depositHelpButtonHtml = static function (string $label, string $modalId) use ($depositHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $depositHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -219,11 +222,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?> <?php echo sr_e(sr_t('deposit::ui.text.c19fd678')); ?></td>
                             <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> <?php echo sr_e(sr_t('deposit::ui.text.c19fd678')); ?></td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
-                            <td><?php echo sr_e((string) $transaction['reference_type']); ?></td>
+                            <td><?php echo sr_e(sr_admin_code_label((string) $transaction['reference_type'], 'reference_type')); ?></td>
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <?php if ((string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
+                                    <?php if ((int) ($transaction['amount'] ?? 0) < 0 && (string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
                                         <?php $depositTransactionRefundModalId = 'deposit-refund-modal-' . (int) ($transaction['id'] ?? 0); ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $transaction['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositTransactionRefundModalId); ?>" data-overlay="#<?php echo sr_e($depositTransactionRefundModalId); ?>"><?php echo sr_e(sr_t('deposit::ui.text.edda9108')); ?></a>
                                     <?php } else { ?>
@@ -339,7 +342,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_admin_form_label_help_html($depositAdjustFieldPrefix . '_transaction_type', sr_t('deposit::ui.text.3a7bc5ac'), $depositHelp['transaction_type']['id'], $depositHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
-                                    <?php foreach ($allowedTransactionTypes as $type) { ?>
+                                    <?php foreach ($depositAdjustTransactionTypes as $type) { ?>
                                         <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
                                     <?php } ?>
                                 </select>
@@ -416,7 +419,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($depositAdminPage === 'transactions' && $transactions !== []) { ?>
     <?php foreach ($transactions as $depositRefundTransaction) { ?>
-        <?php if ((string) ($depositRefundTransaction['transaction_type'] ?? '') === 'refund') { ?>
+        <?php if ((int) ($depositRefundTransaction['amount'] ?? 0) >= 0 || (string) ($depositRefundTransaction['transaction_type'] ?? '') === 'refund') { ?>
             <?php continue; ?>
         <?php } ?>
         <?php

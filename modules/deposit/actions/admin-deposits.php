@@ -88,8 +88,12 @@ if (sr_request_method() === 'POST') {
         }
     }
 
+    if ($errors === [] && $transactionType === 'refund' && ($referenceType !== 'refund' || preg_match('/\Adeposit_transaction:([0-9]+)\z/', $referenceId, $matches) !== 1)) {
+        $errors[] = sr_t('deposit::action.admin.refund_reference_required');
+    }
+
     if ($errors === [] && $transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Adeposit_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
-        $stmt = $pdo->prepare('SELECT transaction_type FROM sr_deposit_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT amount, transaction_type FROM sr_deposit_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
         $stmt->execute([
             'id' => (int) $matches[1],
             'account_id' => $targetAccountId,
@@ -99,6 +103,27 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('deposit::action.admin.refund_original_not_found');
         } elseif ((string) ($row['transaction_type'] ?? '') === 'refund') {
             $errors[] = sr_t('deposit::action.admin.refund_again_disallowed');
+        } elseif ((int) ($row['amount'] ?? 0) >= 0) {
+            $errors[] = sr_t('deposit::action.admin.refund_original_not_negative');
+        } else {
+            $refundedStmt = $pdo->prepare(
+                'SELECT COALESCE(SUM(amount), 0) AS refunded_amount
+                 FROM sr_deposit_transactions
+                 WHERE account_id = :account_id
+                   AND transaction_type = \'refund\'
+                   AND reference_type = \'refund\'
+                   AND reference_id = :reference_id
+                   AND amount > 0'
+            );
+            $refundedStmt->execute([
+                'account_id' => $targetAccountId,
+                'reference_id' => $referenceId,
+            ]);
+            $refundedRow = $refundedStmt->fetch();
+            $refundableAmount = abs((int) ($row['amount'] ?? 0)) - (is_array($refundedRow) ? max(0, (int) ($refundedRow['refunded_amount'] ?? 0)) : 0);
+            if ($amount > max(0, $refundableAmount)) {
+                $errors[] = sr_t('deposit::action.admin.refund_amount_exceeds_remaining');
+            }
         }
     }
 
@@ -112,6 +137,56 @@ if (sr_request_method() === 'POST') {
 
     if ($errors === []) {
         try {
+            $startedRefundTransaction = $transactionType === 'refund' && !$pdo->inTransaction();
+            if ($startedRefundTransaction) {
+                $pdo->beginTransaction();
+            }
+            if ($transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Adeposit_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
+                $stmt = $pdo->prepare(
+                    'SELECT amount, transaction_type
+                     FROM sr_deposit_transactions
+                     WHERE id = :id
+                       AND account_id = :account_id
+                     LIMIT 1
+                     FOR UPDATE'
+                );
+                $stmt->execute([
+                    'id' => (int) $matches[1],
+                    'account_id' => $targetAccountId,
+                ]);
+                $row = $stmt->fetch();
+                if (!is_array($row)) {
+                    throw new RuntimeException('Deposit refund original transaction not found.');
+                }
+                if ((string) ($row['transaction_type'] ?? '') === 'refund') {
+                    throw new RuntimeException('Deposit refund transaction cannot be refunded.');
+                }
+                if ((int) ($row['amount'] ?? 0) >= 0) {
+                    throw new RuntimeException('Deposit refund original transaction must be negative.');
+                }
+                $refundedStmt = $pdo->prepare(
+                    'SELECT amount
+                     FROM sr_deposit_transactions
+                     WHERE account_id = :account_id
+                       AND transaction_type = \'refund\'
+                       AND reference_type = \'refund\'
+                       AND reference_id = :reference_id
+                       AND amount > 0
+                     FOR UPDATE'
+                );
+                $refundedStmt->execute([
+                    'account_id' => $targetAccountId,
+                    'reference_id' => $referenceId,
+                ]);
+                $refundedAmount = 0;
+                foreach ($refundedStmt->fetchAll() as $refundedRow) {
+                    $refundedAmount += max(0, (int) ($refundedRow['amount'] ?? 0));
+                }
+                if ($amount > max(0, abs((int) ($row['amount'] ?? 0)) - $refundedAmount)) {
+                    throw new RuntimeException('Deposit refund amount exceeds remaining reference amount.');
+                }
+            }
+
             $transactionId = sr_deposit_create_transaction($pdo, [
                 'account_id' => $targetAccountId,
                 'amount' => $amount,
@@ -140,15 +215,32 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
+            if ($startedRefundTransaction) {
+                $pdo->commit();
+            }
+
             sr_admin_flash_result(sr_admin_action_result([], sr_t('deposit::action.admin.transaction_saved')));
             $redirectIdentifier = sr_admin_member_public_hash($runtimeConfig, $targetAccountId);
             $redirectPath = $depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : '/admin/deposits/balances';
             sr_redirect($redirectPath . '?account_identifier=' . rawurlencode($redirectIdentifier));
         } catch (Throwable $exception) {
+            if (isset($startedRefundTransaction) && $startedRefundTransaction && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             if ($exception->getMessage() === 'Deposit balance cannot be negative.') {
                 $errors[] = sr_t('deposit::action.admin.balance_negative');
             } elseif ($exception->getMessage() === 'Deposit transaction amount sign is invalid for type.') {
                 $errors[] = sr_t('deposit::action.admin.amount_sign_mismatch');
+            } elseif ($exception->getMessage() === 'Deposit refund reference is required.') {
+                $errors[] = sr_t('deposit::action.admin.refund_reference_required');
+            } elseif ($exception->getMessage() === 'Deposit refund original transaction not found.') {
+                $errors[] = sr_t('deposit::action.admin.refund_original_not_found');
+            } elseif ($exception->getMessage() === 'Deposit refund transaction cannot be refunded.') {
+                $errors[] = sr_t('deposit::action.admin.refund_again_disallowed');
+            } elseif ($exception->getMessage() === 'Deposit refund original transaction must be negative.') {
+                $errors[] = sr_t('deposit::action.admin.refund_original_not_negative');
+            } elseif ($exception->getMessage() === 'Deposit refund amount exceeds remaining reference amount.') {
+                $errors[] = sr_t('deposit::action.admin.refund_amount_exceeds_remaining');
             } else {
                 $errors[] = sr_t('deposit::action.admin.transaction_save_failed');
             }

@@ -264,6 +264,9 @@ function sr_reward_create_transaction(PDO $pdo, array $data): int
     if (!sr_reward_transaction_type_allows_amount($transactionType, $amount)) {
         throw new InvalidArgumentException('Reward transaction amount sign is invalid for type.');
     }
+    if ($transactionType === 'refund' && ($referenceType !== 'refund' || preg_match('/\Areward_transaction:([0-9]+)\z/', $referenceId) !== 1)) {
+        throw new InvalidArgumentException('Reward refund reference is required.');
+    }
 
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {

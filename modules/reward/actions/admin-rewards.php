@@ -96,6 +96,10 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('reward::action.admin.reclaim_transactions_page_required');
     }
 
+    if ($errors === [] && $transactionType === 'refund' && ($referenceType !== 'refund' || preg_match('/\Areward_transaction:([0-9]+)\z/', $referenceId, $matches) !== 1)) {
+        $errors[] = sr_t('reward::action.admin.refund_reference_required');
+    }
+
     if ($errors === [] && $transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Areward_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
         $stmt = $pdo->prepare('SELECT amount, transaction_type FROM sr_reward_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
         $stmt->execute([
@@ -111,6 +115,25 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('reward::action.admin.refund_reclaim_disallowed');
         } elseif ((int) ($row['amount'] ?? 0) >= 0) {
             $errors[] = sr_t('reward::action.admin.refund_original_not_negative');
+        } else {
+            $refundedStmt = $pdo->prepare(
+                'SELECT COALESCE(SUM(amount), 0) AS refunded_amount
+                 FROM sr_reward_transactions
+                 WHERE account_id = :account_id
+                   AND transaction_type = \'refund\'
+                   AND reference_type = \'refund\'
+                   AND reference_id = :reference_id
+                   AND amount > 0'
+            );
+            $refundedStmt->execute([
+                'account_id' => $targetAccountId,
+                'reference_id' => $referenceId,
+            ]);
+            $refundedRow = $refundedStmt->fetch();
+            $refundableAmount = abs((int) ($row['amount'] ?? 0)) - (is_array($refundedRow) ? max(0, (int) ($refundedRow['refunded_amount'] ?? 0)) : 0);
+            if ($amount > max(0, $refundableAmount)) {
+                $errors[] = sr_t('reward::action.admin.refund_amount_exceeds_remaining');
+            }
         }
     }
 
@@ -131,9 +154,59 @@ if (sr_request_method() === 'POST') {
 
     if ($errors === []) {
         try {
-            $startedReclaimTransaction = $transactionType === 'reclaim' && !$pdo->inTransaction();
-            if ($startedReclaimTransaction) {
+            $startedActionTransaction = in_array($transactionType, ['refund', 'reclaim'], true) && !$pdo->inTransaction();
+            if ($startedActionTransaction) {
                 $pdo->beginTransaction();
+            }
+            if ($transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Areward_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
+                $stmt = $pdo->prepare(
+                    'SELECT amount, transaction_type
+                     FROM sr_reward_transactions
+                     WHERE id = :id
+                       AND account_id = :account_id
+                     LIMIT 1
+                     FOR UPDATE'
+                );
+                $stmt->execute([
+                    'id' => (int) $matches[1],
+                    'account_id' => $targetAccountId,
+                ]);
+                $row = $stmt->fetch();
+                if (!is_array($row)) {
+                    throw new RuntimeException('Reward refund original transaction not found.');
+                }
+                if ((string) ($row['transaction_type'] ?? '') === 'refund') {
+                    throw new RuntimeException('Reward refund transaction cannot be refunded.');
+                }
+                if ((string) ($row['transaction_type'] ?? '') === 'reclaim') {
+                    throw new RuntimeException('Reward reclaim transaction cannot be refunded.');
+                }
+                if ((int) ($row['amount'] ?? 0) >= 0) {
+                    throw new RuntimeException('Reward refund original transaction must be negative.');
+                }
+                $refundedStmt = $pdo->prepare(
+                    'SELECT amount
+                     FROM sr_reward_transactions
+                     WHERE account_id = :account_id
+                       AND transaction_type = \'refund\'
+                       AND reference_type = \'refund\'
+                       AND reference_id = :reference_id
+                       AND amount > 0
+                     FOR UPDATE'
+                );
+                $refundedStmt->execute([
+                    'account_id' => $targetAccountId,
+                    'reference_id' => $referenceId,
+                ]);
+                $refundedAmount = 0;
+                foreach ($refundedStmt->fetchAll() as $refundedRow) {
+                    $refundedAmount += max(0, (int) ($refundedRow['amount'] ?? 0));
+                }
+                if ($amount > max(0, abs((int) ($row['amount'] ?? 0)) - $refundedAmount)) {
+                    throw new RuntimeException('Reward refund amount exceeds remaining reference amount.');
+                }
+            }
+            if ($transactionType === 'reclaim') {
                 $reclaimError = sr_reward_validate_reclaim_transaction($pdo, $targetAccountId, $amount, $referenceType, $referenceId, true);
                 if ($reclaimError !== null) {
                     throw new RuntimeException('Reward reclaim target amount exceeded.');
@@ -168,7 +241,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            if ($startedReclaimTransaction) {
+            if ($startedActionTransaction) {
                 $pdo->commit();
             }
 
@@ -177,15 +250,27 @@ if (sr_request_method() === 'POST') {
             $redirectPath = $rewardAdminPage === 'transactions' ? '/admin/rewards/transactions' : '/admin/rewards/balances';
             sr_redirect($redirectPath . '?account_identifier=' . rawurlencode($redirectIdentifier));
         } catch (Throwable $exception) {
-            if (isset($startedReclaimTransaction) && $startedReclaimTransaction && $pdo->inTransaction()) {
+            if (isset($startedActionTransaction) && $startedActionTransaction && $pdo->inTransaction()) {
                 $pdo->rollBack();
             }
             if ($exception->getMessage() === 'Reward balance cannot be negative.') {
                 $errors[] = sr_t('reward::action.admin.balance_negative');
             } elseif ($exception->getMessage() === 'Reward transaction amount sign is invalid for type.') {
                 $errors[] = sr_t('reward::action.admin.amount_sign_mismatch');
+            } elseif ($exception->getMessage() === 'Reward refund reference is required.') {
+                $errors[] = sr_t('reward::action.admin.refund_reference_required');
             } elseif ($exception->getMessage() === 'Reward reclaim target amount exceeded.') {
                 $errors[] = sr_t('reward::action.admin.reclaim_amount_exceeds_target');
+            } elseif ($exception->getMessage() === 'Reward refund original transaction not found.') {
+                $errors[] = sr_t('reward::action.admin.refund_original_not_found');
+            } elseif ($exception->getMessage() === 'Reward refund transaction cannot be refunded.') {
+                $errors[] = sr_t('reward::action.admin.refund_again_disallowed');
+            } elseif ($exception->getMessage() === 'Reward reclaim transaction cannot be refunded.') {
+                $errors[] = sr_t('reward::action.admin.refund_reclaim_disallowed');
+            } elseif ($exception->getMessage() === 'Reward refund original transaction must be negative.') {
+                $errors[] = sr_t('reward::action.admin.refund_original_not_negative');
+            } elseif ($exception->getMessage() === 'Reward refund amount exceeds remaining reference amount.') {
+                $errors[] = sr_t('reward::action.admin.refund_amount_exceeds_remaining');
             } else {
                 $errors[] = sr_t('reward::action.admin.transaction_save_failed');
             }

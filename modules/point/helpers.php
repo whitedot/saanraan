@@ -523,6 +523,9 @@ function sr_point_create_transaction(PDO $pdo, array $data): int
     if (!sr_point_transaction_type_allows_amount($transactionType, $amount)) {
         throw new InvalidArgumentException('Point transaction amount sign is invalid for type.');
     }
+    if ($transactionType === 'refund' && ($referenceType !== 'refund' || preg_match('/\Apoint_transaction:([0-9]+)\z/', $referenceId) !== 1)) {
+        throw new InvalidArgumentException('Point refund reference is required.');
+    }
 
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
@@ -600,7 +603,7 @@ function sr_point_create_refund_transactions(PDO $pdo, array $data): array
     }
 
     if ($referencedTransactionId <= 0) {
-        return [sr_point_create_transaction($pdo, $data)];
+        throw new InvalidArgumentException('Point refund reference is required.');
     }
 
     $startedTransaction = !$pdo->inTransaction();
@@ -627,6 +630,9 @@ function sr_point_create_refund_transactions(PDO $pdo, array $data): array
         }
         if ((string) ($referenced['transaction_type'] ?? '') === 'refund') {
             throw new RuntimeException('Point refund transaction cannot be refunded.');
+        }
+        if ((int) ($referenced['amount'] ?? 0) >= 0) {
+            throw new RuntimeException('Point refund original transaction must be negative.');
         }
 
         $alreadyRefundedAmount = sr_point_refunded_amount_for_reference_locked($pdo, $accountId, $referenceId);

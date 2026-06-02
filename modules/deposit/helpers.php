@@ -254,6 +254,9 @@ function sr_deposit_create_transaction(PDO $pdo, array $data): int
     if (!sr_deposit_transaction_type_allows_amount($transactionType, $amount)) {
         throw new InvalidArgumentException('Deposit transaction amount sign is invalid for type.');
     }
+    if ($transactionType === 'refund' && ($referenceType !== 'refund' || preg_match('/\Adeposit_transaction:([0-9]+)\z/', $referenceId) !== 1)) {
+        throw new InvalidArgumentException('Deposit refund reference is required.');
+    }
 
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {

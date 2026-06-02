@@ -20,7 +20,7 @@ $rewardReferenceTypeOptions = [
     'migration' => sr_t('reward::ui.text.2e52928e'),
 ];
 $rewardAdjustTransactionTypes = array_values(array_filter($allowedTransactionTypes, static function (string $type): bool {
-    return $type !== 'reclaim';
+    return !in_array($type, ['refund', 'reclaim'], true);
 }));
 $rewardAdjustReferenceTypeOptions = array_filter($rewardReferenceTypeOptions, static function (string $referenceType): bool {
     return $referenceType !== 'reclaim';

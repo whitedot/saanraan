@@ -23,6 +23,9 @@ $pointRefundExpirationPolicyOptions = [
     'original' => sr_t('point::ui.refund_expiration_policy.original'),
     'reset' => sr_t('point::ui.refund_expiration_policy.reset'),
 ];
+$pointAdjustTransactionTypes = array_values(array_filter($allowedTransactionTypes, static function (string $type): bool {
+    return $type !== 'refund';
+}));
 $pointHelpOpenLabel = sr_t('point::help.open');
 $pointHelpButtonHtml = static function (string $label, string $modalId) use ($pointHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $pointHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -241,7 +244,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <?php if ((string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
+                                    <?php if ((int) ($transaction['amount'] ?? 0) < 0 && (string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
                                         <?php $pointTransactionRefundModalId = 'point-refund-modal-' . (int) ($transaction['id'] ?? 0); ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $transaction['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointTransactionRefundModalId); ?>" data-overlay="#<?php echo sr_e($pointTransactionRefundModalId); ?>"><?php echo sr_e(sr_t('point::ui.text.edda9108')); ?></a>
                                     <?php } else { ?>
@@ -357,7 +360,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_transaction_type', sr_t('point::ui.text.3a7bc5ac'), $pointHelp['transaction_type']['id'], $pointHelpOpenLabel, true); ?>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
-                                    <?php foreach ($allowedTransactionTypes as $type) { ?>
+                                    <?php foreach ($pointAdjustTransactionTypes as $type) { ?>
                                         <option value="<?php echo sr_e($type); ?>"><?php echo sr_e(sr_admin_code_label($type, 'transaction_type')); ?></option>
                                     <?php } ?>
                                 </select>
@@ -434,7 +437,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($pointAdminPage === 'transactions' && $transactions !== []) { ?>
     <?php foreach ($transactions as $pointRefundTransaction) { ?>
-        <?php if ((string) ($pointRefundTransaction['transaction_type'] ?? '') === 'refund') { ?>
+        <?php if ((int) ($pointRefundTransaction['amount'] ?? 0) >= 0 || (string) ($pointRefundTransaction['transaction_type'] ?? '') === 'refund') { ?>
             <?php continue; ?>
         <?php } ?>
         <?php

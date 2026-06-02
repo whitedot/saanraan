@@ -92,6 +92,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'event' => '이벤트',
             'migration' => '데이터 이관',
             'reward_withdrawal' => '적립금 출금',
+            'deposit_refund' => '예치금 환불 신청',
             'asset_exchange' => '자산 환전',
             'member.withdrawal' => '회원 탈퇴',
             'content.view' => '콘텐츠 열람',
