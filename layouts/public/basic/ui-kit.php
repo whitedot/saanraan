@@ -11,7 +11,7 @@ $uiKitSamples = [
     'ui-tabs' => 'Tabs',
     'form-elements' => 'Form Elements',
     'form-validation' => 'Form Validation',
-    'tables-static' => 'Static Tables',
+    'tables-static' => 'Tables',
 ];
 
 $seo = [

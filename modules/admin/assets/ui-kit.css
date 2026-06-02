@@ -758,9 +758,7 @@
     pointer-events: none;
 }
 
-.sample-surface-muted,
-.sample-table-head-cell,
-.sample-table-muted-cell {
+.sample-surface-muted {
     background-color: var(--color-default-100);
 }
 
@@ -819,11 +817,6 @@
 .sample-field-divider {
     border-top: 1px dashed var(--color-default-300);
     margin-block: var(--spacing-base, 20px);
-}
-
-.sample-table-divider-row {
-    background-color: var(--color-default-100);
-    border-bottom: 1px solid var(--color-default-300);
 }
 
 .validation-field {
@@ -919,104 +912,6 @@
 
 .form-input-action:hover {
     color: var(--color-default-700);
-}
-
-.sample-table-head,
-.sample-table-head-tinted {
-    font-size: var(--text-xs);
-    font-weight: var(--font-weight-semibold);
-    line-height: var(--text-xs--line-height);
-}
-
-.sample-table-head-tinted {
-    background-color: var(--color-default-100);
-    border-bottom: 1px solid var(--color-default-300);
-}
-
-.sample-table-primary-cell {
-    font-weight: var(--font-weight-medium);
-}
-
-.sample-table-align-end,
-.sample-table-action-cell,
-.sample-table-light-action-cell,
-.sample-table-padded-action-cell {
-    text-align: end;
-}
-
-.sample-table-align-start {
-    text-align: start;
-}
-
-.sample-table-action-cell {
-    width: 1%;
-}
-
-.sample-table-head-cell,
-.sample-table-muted-cell,
-.sample-table-warning-cell,
-.sample-table-info-cell,
-.sample-table-light-action-cell,
-.sample-table-danger-cell,
-.sample-table-inverse-cell,
-.sample-table-padded-primary-cell,
-.sample-table-padded-action-cell {
-    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 2.25);
-}
-
-.sample-table-head-cell,
-.sample-table-padded-primary-cell,
-.sample-table-padded-action-cell {
-    padding: calc(var(--spacing) * 2);
-}
-
-.sample-table-warning-cell {
-    background-color: color-mix(in oklab, var(--color-warning) 15%, transparent);
-}
-
-.sample-table-info-cell {
-    background-color: color-mix(in oklab, var(--color-info) 15%, transparent);
-}
-
-.sample-table-light-action-cell {
-    background-color: color-mix(in oklab, var(--color-light) 15%, transparent);
-}
-
-.sample-table-danger-cell {
-    background-color: color-mix(in oklab, var(--color-danger) 15%, transparent);
-}
-
-.sample-table-inverse-cell {
-    background-color: var(--color-dark);
-    color: var(--color-white);
-    font-weight: var(--font-weight-medium);
-}
-
-.sample-table-row-featured {
-    background-color: color-mix(in oklab, var(--color-primary) 15%, transparent);
-    border-bottom: 1px solid var(--color-default-300);
-}
-
-.sample-table-striped-row {
-    border-bottom: 1px solid var(--color-default-300);
-}
-
-.sample-table-striped-row:nth-child(odd) {
-    background-color: var(--color-default-100);
-}
-
-.sample-table-bordered-panel {
-    border-bottom: 1px solid var(--color-default-300);
-    border-color: var(--color-default-300);
-    padding: calc(var(--spacing) * 5);
-    width: 100%;
-}
-
-.sample-table-caption {
-    caption-side: bottom;
-    color: var(--color-default-400);
-    padding-block: calc(var(--spacing) * 3);
-    text-align: start;
 }
 
 .sample-card-header-stacked {
