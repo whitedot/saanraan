@@ -253,6 +253,143 @@ function sr_point_refund_consumed_expires_at(PDO $pdo, int $consumeTransactionId
     return null;
 }
 
+function sr_point_refund_expiration_allocations(PDO $pdo, array $data, ?array $referenced = null, int $alreadyRefundedAmount = 0): array
+{
+    $amount = max(0, (int) ($data['amount'] ?? 0));
+    $accountId = (int) ($data['account_id'] ?? 0);
+    if ($amount <= 0 || sr_point_normalize_refund_expiration_policy($data['refund_expiration_policy'] ?? 'original') !== 'original') {
+        return [];
+    }
+
+    $referenceType = (string) ($data['reference_type'] ?? '');
+    $referenceId = (string) ($data['reference_id'] ?? '');
+    if ($referenceType !== 'refund' || preg_match('/\Apoint_transaction:([0-9]+)\z/', $referenceId, $matches) !== 1) {
+        return [];
+    }
+
+    $referencedTransactionId = (int) $matches[1];
+    if ($referenced === null) {
+        $lockClause = $pdo->inTransaction() ? ' FOR UPDATE' : '';
+        $stmt = $pdo->prepare('SELECT id, amount, expires_at FROM sr_point_transactions WHERE id = :id LIMIT 1' . $lockClause);
+        $stmt->execute(['id' => $referencedTransactionId]);
+        $referenced = $stmt->fetch();
+    }
+    if (!is_array($referenced)) {
+        return [];
+    }
+
+    $referencedExpiresAt = (string) ($referenced['expires_at'] ?? '');
+    if ($referencedExpiresAt !== '') {
+        return [['amount' => $amount, 'expires_at' => $referencedExpiresAt]];
+    }
+
+    if ((int) ($referenced['amount'] ?? 0) >= 0) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT source_expires_at, amount
+         FROM sr_point_expiration_consumptions
+         WHERE consume_transaction_id = :consume_transaction_id
+         ORDER BY source_expires_at ASC, id ASC' . ($pdo->inTransaction() ? ' FOR UPDATE' : '')
+    );
+    try {
+        $stmt->execute(['consume_transaction_id' => $referencedTransactionId]);
+    } catch (Throwable $exception) {
+        return [];
+    }
+
+    $remaining = $amount;
+    $skipAmount = max(0, $alreadyRefundedAmount);
+    if ($skipAmount === 0 && $accountId > 0) {
+        $skipAmount = sr_point_refunded_amount_for_reference($pdo, $accountId, $referenceId);
+    }
+    $allocations = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if ($remaining <= 0) {
+            break;
+        }
+
+        $sourceExpiresAt = (string) ($row['source_expires_at'] ?? '');
+        $sourceAmount = max(0, (int) ($row['amount'] ?? 0));
+        if ($sourceExpiresAt === '' || $sourceAmount <= 0) {
+            continue;
+        }
+        if ($skipAmount >= $sourceAmount) {
+            $skipAmount -= $sourceAmount;
+            continue;
+        }
+        if ($skipAmount > 0) {
+            $sourceAmount -= $skipAmount;
+            $skipAmount = 0;
+        }
+
+        $allocatedAmount = min($sourceAmount, $remaining);
+        $lastIndex = count($allocations) - 1;
+        if ($lastIndex >= 0 && (string) $allocations[$lastIndex]['expires_at'] === $sourceExpiresAt) {
+            $allocations[$lastIndex]['amount'] = (int) $allocations[$lastIndex]['amount'] + $allocatedAmount;
+        } else {
+            $allocations[] = ['amount' => $allocatedAmount, 'expires_at' => $sourceExpiresAt];
+        }
+        $remaining -= $allocatedAmount;
+    }
+
+    return $allocations;
+}
+
+function sr_point_refunded_amount_for_reference(PDO $pdo, int $accountId, string $referenceId): int
+{
+    if ($accountId <= 0 || $referenceId === '') {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT COALESCE(SUM(amount), 0) AS refunded_amount
+         FROM sr_point_transactions
+         WHERE account_id = :account_id
+           AND transaction_type = \'refund\'
+           AND reference_type = \'refund\'
+           AND reference_id = :reference_id
+           AND amount > 0'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'reference_id' => $referenceId,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? max(0, (int) ($row['refunded_amount'] ?? 0)) : 0;
+}
+
+function sr_point_refunded_amount_for_reference_locked(PDO $pdo, int $accountId, string $referenceId): int
+{
+    if ($accountId <= 0 || $referenceId === '') {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT amount
+         FROM sr_point_transactions
+         WHERE account_id = :account_id
+           AND transaction_type = \'refund\'
+           AND reference_type = \'refund\'
+           AND reference_id = :reference_id
+           AND amount > 0
+         FOR UPDATE'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'reference_id' => $referenceId,
+    ]);
+
+    $refundedAmount = 0;
+    foreach ($stmt->fetchAll() as $row) {
+        $refundedAmount += max(0, (int) ($row['amount'] ?? 0));
+    }
+
+    return $refundedAmount;
+}
+
 function sr_point_normalize_expires_at(mixed $value): ?string
 {
     if (!is_string($value)) {
@@ -444,6 +581,114 @@ function sr_point_create_transaction(PDO $pdo, array $data): int
     }
 
     return $transactionId;
+}
+
+function sr_point_create_refund_transactions(PDO $pdo, array $data): array
+{
+    $amount = (int) ($data['amount'] ?? 0);
+    $transactionType = sr_point_clean_key((string) ($data['transaction_type'] ?? 'refund'), 40);
+    if ($transactionType !== 'refund' || $amount <= 0) {
+        return [sr_point_create_transaction($pdo, $data)];
+    }
+
+    $accountId = (int) ($data['account_id'] ?? 0);
+    $referenceType = (string) ($data['reference_type'] ?? '');
+    $referenceId = (string) ($data['reference_id'] ?? '');
+    $referencedTransactionId = 0;
+    if ($referenceType === 'refund' && preg_match('/\Apoint_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
+        $referencedTransactionId = (int) $matches[1];
+    }
+
+    if ($referencedTransactionId <= 0) {
+        return [sr_point_create_transaction($pdo, $data)];
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT id, amount, transaction_type, expires_at
+             FROM sr_point_transactions
+             WHERE id = :id
+               AND account_id = :account_id
+             LIMIT 1
+             FOR UPDATE'
+        );
+        $stmt->execute([
+            'id' => $referencedTransactionId,
+            'account_id' => $accountId,
+        ]);
+        $referenced = $stmt->fetch();
+        if (!is_array($referenced)) {
+            throw new RuntimeException('Point refund original transaction not found.');
+        }
+        if ((string) ($referenced['transaction_type'] ?? '') === 'refund') {
+            throw new RuntimeException('Point refund transaction cannot be refunded.');
+        }
+
+        $alreadyRefundedAmount = sr_point_refunded_amount_for_reference_locked($pdo, $accountId, $referenceId);
+        $refundableAmount = abs((int) ($referenced['amount'] ?? 0)) - $alreadyRefundedAmount;
+        if ($amount > max(0, $refundableAmount)) {
+            throw new RuntimeException('Point refund amount exceeds remaining reference amount.');
+        }
+
+        $allocations = sr_point_refund_expiration_allocations($pdo, $data, $referenced, $alreadyRefundedAmount);
+        if ($allocations === []) {
+            $transactionId = sr_point_create_transaction($pdo, $data);
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+
+            return [$transactionId];
+        }
+
+        $transactionIds = [];
+        $remaining = $amount;
+        foreach ($allocations as $allocation) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $allocationAmount = min(max(0, (int) ($allocation['amount'] ?? 0)), $remaining);
+            $allocationExpiresAt = (string) ($allocation['expires_at'] ?? '');
+            if ($allocationAmount <= 0 || $allocationExpiresAt === '') {
+                continue;
+            }
+
+            $transactionData = $data;
+            $transactionData['amount'] = $allocationAmount;
+            $transactionData['expires_at'] = $allocationExpiresAt;
+            $transactionIds[] = sr_point_create_transaction($pdo, $transactionData);
+            $remaining -= $allocationAmount;
+        }
+
+        if ($remaining > 0) {
+            $transactionData = $data;
+            $transactionData['amount'] = $remaining;
+            $transactionData['refund_expiration_policy'] = 'reset';
+            unset($transactionData['expires_at']);
+            $transactionIds[] = sr_point_create_transaction($pdo, $transactionData);
+        }
+
+        if ($transactionIds === []) {
+            $transactionIds[] = sr_point_create_transaction($pdo, $data);
+        }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        return $transactionIds;
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 
 function sr_point_insert_ledger_transaction(PDO $pdo, array $data): int

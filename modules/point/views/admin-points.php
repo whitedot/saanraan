@@ -237,7 +237,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
-                            <td><?php echo sr_e((string) $transaction['reference_type']); ?></td>
+                            <td><?php echo sr_e(sr_admin_code_label((string) $transaction['reference_type'], 'reference_type')); ?></td>
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">

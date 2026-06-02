@@ -17,6 +17,7 @@ return [
     'action.admin.reclaim_reference_required' => '회수는 회수 대상 적립금 내역을 선택해야 합니다.',
     'action.admin.reclaim_transactions_page_required' => '회수는 거래 내역 화면에서 대상 내역을 선택해 처리해야 합니다.',
     'action.admin.refund_again_disallowed' => '환불 거래는 다시 환불할 수 없습니다.',
+    'action.admin.refund_original_not_negative' => '환불은 사용, 만료, 출금처럼 적립금을 차감한 원거래에만 사용할 수 있습니다. 지급 내역을 되돌리려면 회수를 사용하세요.',
     'action.admin.refund_original_not_found' => '환불할 원거래를 찾을 수 없습니다.',
     'action.admin.refund_reclaim_disallowed' => '회수 거래는 환불할 수 없습니다.',
     'action.admin.transaction_save_failed' => '적립금 거래 저장 중 오류가 발생했습니다.',

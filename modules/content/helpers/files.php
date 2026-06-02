@@ -982,6 +982,13 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
             if ($assetModule === 'point') {
                 $transactionData['refund_expiration_policy'] = $refundExpirationPolicy;
             }
+            if ($assetModule === 'point' && function_exists('sr_point_create_refund_transactions')) {
+                foreach (sr_point_create_refund_transactions($pdo, $transactionData) as $refundTransactionId) {
+                    $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
+                }
+                continue;
+            }
+
             $refundTransactionId = sr_content_create_asset_transaction($pdo, $assetModule, $transactionData);
             $refundTransactionIds[] = $assetModule . ':' . (string) $refundTransactionId;
         }

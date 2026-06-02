@@ -231,7 +231,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <?php if (!in_array((string) ($transaction['transaction_type'] ?? ''), ['refund', 'reclaim'], true)) { ?>
+                                    <?php if ((int) ($transaction['amount'] ?? 0) < 0 && !in_array((string) ($transaction['transaction_type'] ?? ''), ['refund', 'reclaim'], true)) { ?>
                                         <?php $rewardTransactionRefundModalId = 'reward-refund-modal-' . (int) ($transaction['id'] ?? 0); ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/rewards/transactions?account_identifier=' . rawurlencode((string) $transaction['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($rewardTransactionRefundModalId); ?>" data-overlay="#<?php echo sr_e($rewardTransactionRefundModalId); ?>"><?php echo sr_e(sr_t('reward::ui.text.edda9108')); ?></a>
                                     <?php } ?>
@@ -429,7 +429,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($rewardAdminPage === 'transactions' && $transactions !== []) { ?>
     <?php foreach ($transactions as $rewardRefundTransaction) { ?>
-        <?php if (in_array((string) ($rewardRefundTransaction['transaction_type'] ?? ''), ['refund', 'reclaim'], true)) { ?>
+        <?php if ((int) ($rewardRefundTransaction['amount'] ?? 0) >= 0 || in_array((string) ($rewardRefundTransaction['transaction_type'] ?? ''), ['refund', 'reclaim'], true)) { ?>
             <?php continue; ?>
         <?php } ?>
         <?php

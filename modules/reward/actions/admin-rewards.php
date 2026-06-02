@@ -97,7 +97,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === [] && $transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Areward_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
-        $stmt = $pdo->prepare('SELECT transaction_type FROM sr_reward_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT amount, transaction_type FROM sr_reward_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
         $stmt->execute([
             'id' => (int) $matches[1],
             'account_id' => $targetAccountId,
@@ -109,6 +109,8 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('reward::action.admin.refund_again_disallowed');
         } elseif ((string) ($row['transaction_type'] ?? '') === 'reclaim') {
             $errors[] = sr_t('reward::action.admin.refund_reclaim_disallowed');
+        } elseif ((int) ($row['amount'] ?? 0) >= 0) {
+            $errors[] = sr_t('reward::action.admin.refund_original_not_negative');
         }
     }
 

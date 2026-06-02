@@ -12,6 +12,7 @@ return [
     'action.admin.reference_id_required' => '참조 유형을 선택한 경우 참조 ID를 입력하세요.',
     'action.admin.reference_type_required' => '참조 ID를 입력한 경우 참조 유형을 선택하세요.',
     'action.admin.refund_again_disallowed' => '환불 거래는 다시 환불할 수 없습니다.',
+    'action.admin.refund_amount_exceeds_remaining' => '환불 수량이 원거래의 남은 환불 가능 수량을 초과했습니다.',
     'action.admin.refund_original_not_found' => '환불할 원거래를 찾을 수 없습니다.',
     'action.admin.settings.display_name_required' => '표시명을 입력하세요.',
     'action.admin.settings.expiration_days_invalid' => '기본 유효기간은 0 이상의 정수로 입력하세요.',

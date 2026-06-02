@@ -87,6 +87,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'payment' => '결제',
             'refund' => '환불',
             'reclaim' => '회수',
+            'point_expiration' => '포인트 만료',
             'support_ticket' => '고객문의',
             'event' => '이벤트',
             'migration' => '데이터 이관',

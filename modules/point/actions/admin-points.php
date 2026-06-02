@@ -92,7 +92,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === [] && $transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Apoint_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
-        $stmt = $pdo->prepare('SELECT transaction_type FROM sr_point_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT amount, transaction_type FROM sr_point_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
         $stmt->execute([
             'id' => (int) $matches[1],
             'account_id' => $targetAccountId,
@@ -102,6 +102,11 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('point::action.admin.refund_original_not_found');
         } elseif ((string) ($row['transaction_type'] ?? '') === 'refund') {
             $errors[] = sr_t('point::action.admin.refund_again_disallowed');
+        } else {
+            $refundableAmount = abs((int) ($row['amount'] ?? 0)) - sr_point_refunded_amount_for_reference($pdo, $targetAccountId, $referenceId);
+            if ($amount > max(0, $refundableAmount)) {
+                $errors[] = sr_t('point::action.admin.refund_amount_exceeds_remaining');
+            }
         }
     }
 
@@ -115,7 +120,7 @@ if (sr_request_method() === 'POST') {
 
     if ($errors === []) {
         try {
-            $transactionId = sr_point_create_transaction($pdo, [
+            $transactionData = [
                 'account_id' => $targetAccountId,
                 'amount' => $amount,
                 'transaction_type' => $transactionType,
@@ -124,7 +129,11 @@ if (sr_request_method() === 'POST') {
                 'reference_id' => $referenceId,
                 'refund_expiration_policy' => $refundExpirationPolicy,
                 'created_by_account_id' => (int) $account['id'],
-            ]);
+            ];
+            $transactionIds = $transactionType === 'refund'
+                ? sr_point_create_refund_transactions($pdo, $transactionData)
+                : [sr_point_create_transaction($pdo, $transactionData)];
+            $transactionId = (int) ($transactionIds[0] ?? 0);
 
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -136,6 +145,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Point transaction created.',
                 'metadata' => [
                     'transaction_id' => $transactionId,
+                    'transaction_ids' => $transactionIds,
                     'base_amount' => $baseAmount,
                     'amount' => $amount,
                     'transaction_type' => $transactionType,
@@ -154,6 +164,12 @@ if (sr_request_method() === 'POST') {
                 $errors[] = sr_t('point::action.admin.balance_negative');
             } elseif ($exception->getMessage() === 'Point transaction amount sign is invalid for type.') {
                 $errors[] = sr_t('point::action.admin.amount_sign_mismatch');
+            } elseif ($exception->getMessage() === 'Point refund original transaction not found.') {
+                $errors[] = sr_t('point::action.admin.refund_original_not_found');
+            } elseif ($exception->getMessage() === 'Point refund transaction cannot be refunded.') {
+                $errors[] = sr_t('point::action.admin.refund_again_disallowed');
+            } elseif ($exception->getMessage() === 'Point refund amount exceeds remaining reference amount.') {
+                $errors[] = sr_t('point::action.admin.refund_amount_exceeds_remaining');
             } else {
                 $errors[] = sr_t('point::action.admin.transaction_save_failed');
             }
