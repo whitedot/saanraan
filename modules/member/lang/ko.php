@@ -416,7 +416,7 @@ return [
     'ui.text.a7800e5d' => '미인증',
     'ui.text.ac31175f' => '가입',
     'ui.text.b5361f64' => '화면',
-    'ui.text.b5b997ea' => '새 회원 그룹 규칙 추가',
+    'ui.text.b5b997ea' => '규칙 추가',
     'ui.text.b6238465' => '동의 기록',
     'ui.text.be6df05e' => '마케팅 수신에 동의합니다.',
     'ui.text.bf705e51' => '파라미터',

@@ -566,7 +566,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.save.617f3ca3')); ?></h2>
             <div class="admin-row-actions">
                 <?php if ($canEvaluateGroupRules) { ?>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-evaluate-modal" data-overlay="#member-group-rule-evaluate-modal"><?php echo sr_e(sr_t('member::ui.text.3d1d323a')); ?></button>
+                    <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-evaluate-modal" data-overlay="#member-group-rule-evaluate-modal"><?php echo sr_e(sr_t('member::ui.text.3d1d323a')); ?></button>
                 <?php } ?>
                 <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="member-group-rule-create-modal" data-overlay="#member-group-rule-create-modal"><?php echo sr_e(sr_t('member::ui.text.b5b997ea')); ?></button>
             </div>
@@ -716,6 +716,46 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 return values;
             }
 
+            function targetOptionValues(target) {
+                var values = [];
+                if (!target) {
+                    return values;
+                }
+                Array.prototype.forEach.call(target.options, function (option) {
+                    if (option.value) {
+                        values.push(option.value);
+                    }
+                });
+                return values;
+            }
+
+            function removeExcludedValue(root, value) {
+                if (!root || !value) {
+                    return;
+                }
+                root.querySelectorAll('[data-admin-select-badge-item]').forEach(function (item) {
+                    var input = item.querySelector('[data-admin-select-badge-value]');
+                    if (input && input.value === value) {
+                        item.remove();
+                    }
+                });
+            }
+
+            function lastExcludedTargetValue(root, targetValues) {
+                var targetMap = {};
+                targetValues.forEach(function (value) {
+                    targetMap[value] = true;
+                });
+                var items = root ? Array.prototype.slice.call(root.querySelectorAll('[data-admin-select-badge-item]')) : [];
+                for (var index = items.length - 1; index >= 0; index -= 1) {
+                    var input = items[index].querySelector('[data-admin-select-badge-value]');
+                    if (input && targetMap[input.value]) {
+                        return input.value;
+                    }
+                }
+                return '';
+            }
+
             function syncExcludeGroups() {
                 var target = document.getElementById('member_group_rule_evaluate_group_id');
                 var root = document.getElementById('member_group_rule_evaluate_exclude_group_ids');
@@ -725,14 +765,26 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 }
 
                 var targetValue = target.value || '';
-                root.querySelectorAll('[data-admin-select-badge-item]').forEach(function (item) {
-                    var input = item.querySelector('[data-admin-select-badge-value]');
-                    if (input && input.value === targetValue) {
-                        item.remove();
-                    }
-                });
-
+                var targetValues = targetOptionValues(target);
                 var values = selectedValues(root);
+                var hasExcludedValues = Object.keys(values).length > 0;
+                if (!targetValue && hasExcludedValues && targetValues.length > 0) {
+                    var remainingTargetValues = targetValues.filter(function (value) {
+                        return !values[value];
+                    });
+                    if (remainingTargetValues.length === 1) {
+                        target.value = remainingTargetValues[0];
+                        targetValue = target.value || '';
+                    } else if (remainingTargetValues.length === 0) {
+                        target.value = lastExcludedTargetValue(root, targetValues);
+                        targetValue = target.value || '';
+                    }
+                }
+
+                if (targetValue) {
+                    removeExcludedValue(root, targetValue);
+                }
+                values = selectedValues(root);
                 Array.prototype.forEach.call(select.options, function (option) {
                     if (!option.value) {
                         option.hidden = false;
@@ -740,7 +792,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         option.style.display = '';
                         return;
                     }
-                    var blocked = option.value === targetValue || !!values[option.value];
+                    var blocked = !!values[option.value] || (targetValue !== '' && option.value === targetValue);
                     option.hidden = blocked;
                     option.disabled = blocked;
                     option.style.display = blocked ? 'none' : '';
