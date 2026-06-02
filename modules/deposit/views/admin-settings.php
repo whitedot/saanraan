@@ -66,8 +66,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <div class="admin-form-actions admin-form-sticky-actions">
-        <button type="submit" class="btn btn-solid-primary"><?php echo sr_material_icon_html('save'); ?>저장</button>
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
+        <button type="submit" class="btn btn-solid-primary">환경설정 저장</button>
     </div>
 </form>
 
