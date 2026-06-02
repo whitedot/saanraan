@@ -7,7 +7,6 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
 $settings = sr_community_settings($pdo);
-sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
 $scraps = sr_community_account_scraps($pdo, (int) $account['id'], $account, 50);
 $seriesScraps = sr_community_account_series_scraps($pdo, (int) $account['id'], $account, 50);
 $notice = '';

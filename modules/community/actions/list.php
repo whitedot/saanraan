@@ -23,9 +23,6 @@ $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo,
 $canWriteBoard = is_array($account) && sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter);
 
 $settings = sr_community_settings($pdo);
-if (is_array($account)) {
-    sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
-}
 $postsPerPage = max(1, min(100, (int) ($settings['posts_per_page'] ?? 20)));
 $keywordValue = sr_get_string_without_truncation('q', 100);
 $keyword = is_string($keywordValue) ? trim($keywordValue) : '';

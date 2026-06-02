@@ -15,10 +15,9 @@ return static function (PDO $pdo, int $accountId): array {
         ];
     }
 
+    require_once SR_ROOT . '/modules/content/helpers.php';
+
     $accessEntitlements = [];
-    if (!function_exists('sr_content_access_entitlements_table_exists')) {
-        require_once SR_ROOT . '/modules/content/helpers.php';
-    }
     if (sr_content_access_entitlements_table_exists($pdo)) {
         $stmt = $pdo->prepare(
             'SELECT e.id, e.account_id, e.content_id, p.slug, p.title, e.subject_type, e.subject_id,
@@ -109,8 +108,11 @@ return static function (PDO $pdo, int $accountId): array {
 
     $comments = [];
     if (function_exists('sr_content_comments_table_exists') && sr_content_comments_table_exists($pdo)) {
+        $snapshotSelectSql = sr_content_comments_author_public_name_snapshot_column_exists($pdo)
+            ? 'c.author_public_name_snapshot'
+            : "'' AS author_public_name_snapshot";
         $commentStmt = $pdo->prepare(
-            'SELECT c.id, c.content_id, p.slug, p.title, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at
+            'SELECT c.id, c.content_id, p.slug, p.title, c.author_account_id, ' . $snapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at
              FROM sr_content_comments c
              LEFT JOIN sr_content_items p ON p.id = c.content_id
              WHERE c.author_account_id = :account_id

@@ -172,6 +172,7 @@ CREATE TABLE IF NOT EXISTS sr_content_comments (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     content_id BIGINT UNSIGNED NOT NULL,
     author_account_id BIGINT UNSIGNED NOT NULL,
+    author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
     body_text TEXT NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'published',
     created_at DATETIME NOT NULL,

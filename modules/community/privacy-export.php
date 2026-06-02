@@ -23,18 +23,23 @@ return static function (PDO $pdo, int $accountId): array {
         return $empty;
     }
 
-    if (!function_exists('sr_community_categories_supported')) {
-        require_once SR_ROOT . '/modules/community/helpers.php';
-    }
+    require_once SR_ROOT . '/modules/community/helpers.php';
+
     $categorySupported = sr_community_categories_supported($pdo);
     $categorySelectSql = $categorySupported
         ? 'p.category_id, cat.category_key, cat.title AS category_title'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $postSnapshotSelectSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts')
+        ? 'p.author_public_name_snapshot'
+        : "'' AS author_public_name_snapshot";
+    $commentSnapshotSelectSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments')
+        ? 'author_public_name_snapshot'
+        : "'' AS author_public_name_snapshot";
     $stmt = $pdo->prepare(
         /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at */
         'SELECT p.id, p.board_id, ' . $categorySelectSql . ',
-                p.title, p.body_text, p.body_format, p.status, p.created_at, p.updated_at
+                p.title, ' . $postSnapshotSelectSql . ', p.body_text, p.body_format, p.status, p.created_at, p.updated_at
          FROM sr_community_posts p
          ' . $categoryJoinSql . '
          WHERE p.author_account_id = :account_id
@@ -45,7 +50,7 @@ return static function (PDO $pdo, int $accountId): array {
     $empty['posts'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, post_id, body_text, status, created_at, updated_at
+        'SELECT id, post_id, body_text, status, created_at, updated_at, ' . $commentSnapshotSelectSql . '
          FROM sr_community_comments
          WHERE author_account_id = :account_id
          ORDER BY id ASC

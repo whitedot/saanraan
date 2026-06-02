@@ -19,9 +19,6 @@ if (!sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter
 }
 
 $settings = sr_community_settings($pdo);
-if (sr_request_method() !== 'POST') {
-    sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
-}
 $settings['attachment_max_bytes'] = sr_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
 $settings['attachment_max_count'] = sr_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
 $settings['file_attachment_max_bytes'] = sr_community_board_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);
@@ -54,9 +51,6 @@ $values = [
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     sr_require_csrf();
-    if (sr_community_member_needs_nickname($pdo, $account, $settings)) {
-        sr_redirect('/community/nickname?next=' . rawurlencode(sr_community_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/community'))));
-    }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
     $seriesSortOrder = sr_community_series_post_sort_order();

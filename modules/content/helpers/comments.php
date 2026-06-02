@@ -19,6 +19,41 @@ function sr_content_comments_table_exists(PDO $pdo): bool
     return $exists;
 }
 
+function sr_content_comments_author_public_name_snapshot_column_exists(PDO $pdo): bool
+{
+    static $existsByConnection = [];
+    $key = (string) spl_object_id($pdo);
+    if (array_key_exists($key, $existsByConnection)) {
+        return $existsByConnection[$key];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => 'sr_content_comments',
+            'column_name' => 'author_public_name_snapshot',
+        ]);
+        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable $exception) {
+        $existsByConnection[$key] = false;
+    }
+
+    return $existsByConnection[$key];
+}
+
+function sr_content_comment_author_public_name_snapshot(PDO $pdo, int $accountId): string
+{
+    $name = trim(sr_member_public_name_for_account_id($pdo, $accountId, '회원'));
+
+    return function_exists('mb_substr') ? mb_substr($name, 0, 120) : substr($name, 0, 120);
+}
+
 function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
 {
     if ($contentId < 1 || !sr_content_comments_table_exists($pdo)) {
@@ -27,8 +62,9 @@ function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
 
     $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
     $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname AS author_nickname,' : "'' AS author_nickname,";
+    $snapshotSelect = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? 'c.author_public_name_snapshot,' : "'' AS author_public_name_snapshot,";
     $stmt = $pdo->prepare(
-        "SELECT c.*, a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
+        "SELECT c.*, " . $snapshotSelect . " a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
          FROM sr_content_comments c
          LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
          " . $join . "
@@ -44,7 +80,10 @@ function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
     $settings = sr_member_settings($pdo);
     $comments = [];
     foreach ($stmt->fetchAll() as $comment) {
-        $comment['author_public_name'] = sr_member_public_name([
+        $snapshot = trim((string) ($comment['author_public_name_snapshot'] ?? ''));
+        $comment['author_public_name'] = !in_array((string) ($comment['author_account_status'] ?? ''), ['withdrawn', 'anonymized'], true) && $snapshot !== ''
+            ? $snapshot
+            : sr_member_public_name([
             'display_name' => (string) ($comment['author_display_name'] ?? ''),
             'nickname' => (string) ($comment['author_nickname'] ?? ''),
             'status' => (string) ($comment['author_account_status'] ?? ''),
@@ -81,20 +120,26 @@ function sr_content_create_comment(PDO $pdo, int $contentId, int $authorAccountI
     }
 
     $now = sr_now();
+    $snapshotColumnSql = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? 'author_public_name_snapshot, ' : '';
+    $snapshotValueSql = $snapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_comments
-            (content_id, author_account_id, body_text, status, created_at, updated_at)
+            (content_id, author_account_id, ' . $snapshotColumnSql . 'body_text, status, created_at, updated_at)
          VALUES
-            (:content_id, :author_account_id, :body_text, :status, :created_at, :updated_at)'
+            (:content_id, :author_account_id, ' . $snapshotValueSql . ':body_text, :status, :created_at, :updated_at)'
     );
-    $stmt->execute([
+    $params = [
         'content_id' => $contentId,
         'author_account_id' => $authorAccountId,
         'body_text' => trim((string) $values['body_text']),
         'status' => 'published',
         'created_at' => $now,
         'updated_at' => $now,
-    ]);
+    ];
+    if ($snapshotColumnSql !== '') {
+        $params['author_public_name_snapshot'] = sr_content_comment_author_public_name_snapshot($pdo, $authorAccountId);
+    }
+    $stmt->execute($params);
 
     return (int) $pdo->lastInsertId();
 }

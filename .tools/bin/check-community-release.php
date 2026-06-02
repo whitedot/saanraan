@@ -481,10 +481,12 @@ $requiredInstallFragments = [
     ],
     'sr_community_posts' => [
         'body_format VARCHAR(20) NOT NULL DEFAULT \'plain\'',
+        'author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT \'\'',
         'KEY idx_sr_community_posts_board_status_id (board_id, status, id)',
         'KEY idx_sr_community_posts_author_id (author_account_id, id)',
     ],
     'sr_community_comments' => [
+        'author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT \'\'',
         'KEY idx_sr_community_comments_post_status_id (post_id, status, id)',
         'KEY idx_sr_community_comments_author_id (author_account_id, id)',
     ],

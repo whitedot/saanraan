@@ -38,7 +38,7 @@ function sr_community_member_label_with_identifier(string $label, array $config,
 
 function sr_community_public_display_name(array $account, ?array $settings = null): string
 {
-    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_default_settings();
+    $settings = is_array($settings) ? array_merge(sr_member_default_settings(), $settings) : sr_member_default_settings();
     $account['nickname'] = (string) ($account['nickname'] ?? $account['member_nickname'] ?? $account['community_nickname'] ?? '');
 
     return sr_member_public_name($account, $settings, sr_t('community::report.account.member'));
@@ -462,24 +462,12 @@ function sr_community_safe_next_path(string $next, string $fallback = '/communit
 
 function sr_community_member_needs_nickname(PDO $pdo, array $account, array $settings): bool
 {
-    if (empty($settings['nickname_enabled'])) {
-        return false;
-    }
-
-    if (sr_community_nickname_status_blocks_identity((string) ($account['status'] ?? ''))) {
-        return false;
-    }
-
-    return sr_community_member_nickname($pdo, (int) ($account['id'] ?? 0)) === '';
+    return false;
 }
 
 function sr_community_require_member_nickname(PDO $pdo, array $account, array $settings, string $nextPath): void
 {
-    if (!sr_community_member_needs_nickname($pdo, $account, $settings)) {
-        return;
-    }
-
-    sr_redirect('/community/nickname?next=' . rawurlencode(sr_community_safe_next_path($nextPath)));
+    return;
 }
 
 function sr_community_handle_member_nickname_setup_post(PDO $pdo, array $account): array

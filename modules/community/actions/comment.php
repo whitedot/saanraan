@@ -26,10 +26,6 @@ $commentRewardConfig = is_array($board) ? sr_community_asset_event_config($pdo, 
 $values = sr_community_comment_input_values();
 $errors = sr_community_validate_comment_input($values);
 
-if ($errors === [] && sr_community_member_needs_nickname($pdo, $account, $settings)) {
-    sr_redirect('/community/nickname?next=' . rawurlencode('/community/post?id=' . (string) $postId . '#comments'));
-}
-
 if ($errors === [] && sr_community_comment_rate_limited($pdo, (int) $account['id'], $settings)) {
     $errors[] = sr_t('community::action.rate_limit.comment');
 }
@@ -91,7 +87,7 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         null,
         (string) ($account['status'] ?? ''),
         sr_community_member_nickname($pdo, (int) $account['id']),
-        $settings
+        sr_member_settings($pdo)
     );
     $postAuthorNotificationCreated = sr_community_create_account_notification(
         $pdo,

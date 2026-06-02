@@ -8,7 +8,6 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
 $settings = sr_community_settings($pdo);
-sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
 $errors = [];
 $notice = '';
 $flash = isset($_SESSION['sr_community_series_flash']) && is_array($_SESSION['sr_community_series_flash'])

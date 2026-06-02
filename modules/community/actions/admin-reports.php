@@ -15,6 +15,7 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_community_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 $allowedStatuses = sr_community_report_statuses();
 $allowedReasonKeys = sr_community_report_reason_keys();
 $allowedTargetTypes = ['post', 'comment', 'message'];

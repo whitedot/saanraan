@@ -8,6 +8,7 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
 $communitySettings = sr_community_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
 $messageIdValue = sr_get_string('id', 20);
 $messageId = preg_match('/\A[1-9][0-9]*\z/', $messageIdValue) === 1 ? (int) $messageIdValue : 0;

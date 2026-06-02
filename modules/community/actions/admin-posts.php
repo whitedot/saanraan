@@ -19,6 +19,7 @@ $notice = (string) $flashResult['notice'];
 $allowedPostStatuses = sr_community_post_statuses();
 $allowedCommentStatuses = sr_community_comment_statuses();
 $settings = sr_community_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 $postBoardOptionsStmt = $pdo->query(
     'SELECT b.id, b.board_key, b.title, g.title AS board_group_title
      FROM sr_community_boards b

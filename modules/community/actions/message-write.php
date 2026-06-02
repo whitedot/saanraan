@@ -9,9 +9,7 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 $account = sr_member_require_login($pdo);
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, $account);
 $settings = sr_community_settings($pdo);
-if (sr_request_method() !== 'POST') {
-    sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
-}
+$memberSettings = sr_member_settings($pdo);
 if (!sr_community_account_can_write_message($pdo, $account, $settings)) {
     sr_render_error(403, sr_t('community::action.error.message_send_forbidden'));
 }
@@ -28,14 +26,11 @@ $values = [
 ];
 $recipientPresetNotice = $values['recipient_account_hash'] !== '' ? sr_t('community::action.notice.recipient_preset') : '';
 $recipientLabel = $values['recipient_account_hash'] !== '' && is_array($presetRecipient)
-    ? sr_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'], $canViewMemberIdentifiers, $config, (string) $presetRecipient['status'], (string) ($presetRecipient['community_nickname'] ?? ''), $settings)
+    ? sr_community_message_account_label((string) $presetRecipient['display_name'], (int) $presetRecipient['id'], $canViewMemberIdentifiers, $config, (string) $presetRecipient['status'], (string) ($presetRecipient['community_nickname'] ?? ''), $memberSettings)
     : '';
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    if (sr_community_member_needs_nickname($pdo, $account, $settings)) {
-        sr_redirect('/community/nickname?next=' . rawurlencode(sr_community_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/community'))));
-    }
 
     $values = sr_community_message_input_values();
     $errors = sr_community_validate_message_input($values);
@@ -44,7 +39,7 @@ if (sr_request_method() === 'POST') {
         ? sr_community_public_account_summary_by_hash($pdo, $config, (string) $values['recipient_account_hash'])
         : null;
     if (is_array($submittedRecipient)) {
-        $recipientLabel = sr_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id'], $canViewMemberIdentifiers, $config, (string) $submittedRecipient['status'], (string) ($submittedRecipient['community_nickname'] ?? ''), $settings);
+        $recipientLabel = sr_community_message_account_label((string) $submittedRecipient['display_name'], (int) $submittedRecipient['id'], $canViewMemberIdentifiers, $config, (string) $submittedRecipient['status'], (string) ($submittedRecipient['community_nickname'] ?? ''), $memberSettings);
     }
     if ($errors === []) {
         if (is_array($submittedRecipient)) {
@@ -61,7 +56,7 @@ if (sr_request_method() === 'POST') {
     if (is_array($recipient)) {
         $recipientSummary = sr_community_public_account_summary($pdo, (int) $recipient['id']);
         $recipientLabelAccount = is_array($recipientSummary) ? $recipientSummary : $recipient;
-        $recipientLabel = sr_community_message_account_label((string) ($recipientLabelAccount['display_name'] ?? ''), (int) $recipient['id'], $canViewMemberIdentifiers, $config, (string) ($recipientLabelAccount['status'] ?? $recipient['status'] ?? ''), (string) ($recipientLabelAccount['community_nickname'] ?? ''), $settings);
+        $recipientLabel = sr_community_message_account_label((string) ($recipientLabelAccount['display_name'] ?? ''), (int) $recipient['id'], $canViewMemberIdentifiers, $config, (string) ($recipientLabelAccount['status'] ?? $recipient['status'] ?? ''), (string) ($recipientLabelAccount['community_nickname'] ?? ''), $memberSettings);
     }
 
     if ($errors === [] && sr_community_message_rate_limited($pdo, (int) $account['id'], $settings)) {
@@ -78,7 +73,7 @@ if (sr_request_method() === 'POST') {
             null,
             (string) ($account['status'] ?? ''),
             sr_community_member_nickname($pdo, (int) $account['id']),
-            $settings
+            $memberSettings
         );
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],

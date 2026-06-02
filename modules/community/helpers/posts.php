@@ -74,11 +74,13 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
          FROM sr_community_posts p
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
          ' . $categoryJoinSql . '
          WHERE ' . $where . '
          ORDER BY p.id DESC
@@ -142,6 +144,86 @@ function sr_community_like_pattern(string $keyword): string
     return '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($keyword)) . '%';
 }
 
+function sr_community_author_public_name_snapshot_column_exists(PDO $pdo, string $tableName): bool
+{
+    static $exists = [];
+    if (!in_array($tableName, ['sr_community_posts', 'sr_community_comments'], true)) {
+        return false;
+    }
+    $cacheKey = (string) spl_object_id($pdo) . ':' . $tableName;
+    if (array_key_exists($cacheKey, $exists)) {
+        return $exists[$cacheKey];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => $tableName,
+            'column_name' => 'author_public_name_snapshot',
+        ]);
+        $exists[$cacheKey] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable $exception) {
+        $exists[$cacheKey] = false;
+    }
+
+    return $exists[$cacheKey];
+}
+
+function sr_community_author_public_name_snapshot_select(PDO $pdo, string $tableName, string $alias): string
+{
+    if (sr_community_author_public_name_snapshot_column_exists($pdo, $tableName)) {
+        return $alias . '.author_public_name_snapshot';
+    }
+
+    return "'' AS author_public_name_snapshot";
+}
+
+function sr_community_author_public_name_snapshot(PDO $pdo, int $accountId): string
+{
+    $name = trim(sr_member_public_name_for_account_id($pdo, $accountId, sr_t('community::report.account.member')));
+
+    return function_exists('mb_substr') ? mb_substr($name, 0, 120) : substr($name, 0, 120);
+}
+
+function sr_community_author_display_name_from_row(array $row, ?array $settings = null, ?PDO $pdo = null): string
+{
+    if (sr_community_nickname_status_blocks_identity((string) ($row['author_account_status'] ?? ''))) {
+        return sr_t('member::account.withdrawn_display_name');
+    }
+
+    $snapshot = trim((string) ($row['author_public_name_snapshot'] ?? ''));
+    if ($snapshot !== '') {
+        return $snapshot;
+    }
+
+    $label = sr_community_public_display_name([
+        'display_name' => is_string($row['author_display_name'] ?? null) ? $row['author_display_name'] : '',
+        'community_nickname' => is_string($row['author_nickname'] ?? null) ? $row['author_nickname'] : '',
+        'status' => is_string($row['author_account_status'] ?? null) ? $row['author_account_status'] : '',
+    ], $settings);
+    if ($label !== sr_t('community::report.account.member') || !$pdo instanceof PDO) {
+        return $label;
+    }
+
+    return sr_community_public_author_label($pdo, (int) ($row['author_account_id'] ?? 0));
+}
+
+function sr_community_author_label_from_row(array $row, array $config, bool $showIdentifier = false, ?array $settings = null, ?PDO $pdo = null): string
+{
+    $label = sr_community_author_display_name_from_row($row, $settings, $pdo);
+    if ($label === sr_t('member::account.withdrawn_display_name')) {
+        return $label;
+    }
+
+    return sr_community_member_label_with_identifier($label, $config, (int) ($row['author_account_id'] ?? 0), $showIdentifier);
+}
+
 function sr_community_public_post(PDO $pdo, int $postId): ?array
 {
     if ($postId < 1) {
@@ -153,11 +235,13 @@ function sr_community_public_post(PDO $pdo, int $postId): ?array
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
          " . $categoryJoinSql . "
          WHERE p.id = :id
            AND p.status = 'published'
@@ -197,11 +281,13 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
          " . $categoryJoinSql . "
          WHERE p.id = :id
            AND p.status = 'published'
@@ -248,12 +334,14 @@ function sr_community_increment_post_view_count(PDO $pdo, int $postId): void
 function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
 {
     $limit = max(1, min(100, $limit));
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
     $stmt = $pdo->prepare(
-        "SELECT id, post_id, author_account_id, body_text, status, created_at, updated_at
-         FROM sr_community_comments
-         WHERE post_id = :post_id
-           AND status = 'published'
-         ORDER BY id ASC
+        "SELECT c.id, c.post_id, c.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, c.body_text, c.status, c.created_at, c.updated_at
+         FROM sr_community_comments c
+         LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
+         WHERE c.post_id = :post_id
+           AND c.status = 'published'
+         ORDER BY c.id ASC
          LIMIT :limit_value"
     );
     $stmt->bindValue('post_id', $postId, PDO::PARAM_INT);
@@ -374,7 +462,8 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
-    $sql = 'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $sql = 'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . ', p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
                    author_nickname.nickname AS author_nickname,
@@ -418,8 +507,9 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . ', p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
                 author_nickname.nickname AS author_nickname,
@@ -643,7 +733,8 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     $queryParts = sr_community_admin_comment_query_parts($filters);
     $where = $queryParts['where'];
     $params = $queryParts['params'];
-    $sql = 'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
+    $sql = 'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at,
                    p.title AS post_title,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
@@ -681,12 +772,14 @@ function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
         return null;
     }
 
+    $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
     $stmt = $pdo->prepare(
-        'SELECT c.id, c.post_id, c.author_account_id, c.body_text, c.status, c.created_at, c.updated_at,
+        'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at,
                 p.title AS post_title,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
-                author_nickname.nickname AS author_nickname
+                author_nickname.nickname AS author_nickname,
+                a.status AS author_account_status
          FROM sr_community_comments c
          INNER JOIN sr_community_posts p ON p.id = c.post_id
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -987,11 +1080,13 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $categorySupported = sr_community_categories_supported($pdo);
     $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
     $categoryValueSql = $categorySupported ? ':category_id, ' : '';
+    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts') ? 'author_public_name_snapshot, ' : '';
+    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, :title, :body_text, :body_format, :status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :status, 0, NULL, :created_at, :updated_at)'
     );
     $params = [
         'board_id' => $boardId,
@@ -1005,6 +1100,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     ];
     if ($categorySupported) {
         $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
+    }
+    if ($authorSnapshotColumnSql !== '') {
+        $params['author_public_name_snapshot'] = sr_community_author_public_name_snapshot($pdo, $authorAccountId);
     }
     $stmt->execute($params);
 
@@ -1089,20 +1187,26 @@ function sr_community_validate_comment_input(array $values): array
 function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId, array $values): int
 {
     $now = sr_now();
+    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments') ? 'author_public_name_snapshot, ' : '';
+    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_comments
-            (post_id, author_account_id, body_text, status, created_at, updated_at)
+            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, status, created_at, updated_at)
          VALUES
-            (:post_id, :author_account_id, :body_text, :status, :created_at, :updated_at)'
+            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, :status, :created_at, :updated_at)'
     );
-    $stmt->execute([
+    $params = [
         'post_id' => $postId,
         'author_account_id' => $authorAccountId,
         'body_text' => trim((string) $values['body_text']),
         'status' => 'published',
         'created_at' => $now,
         'updated_at' => $now,
-    ]);
+    ];
+    if ($authorSnapshotColumnSql !== '') {
+        $params['author_public_name_snapshot'] = sr_community_author_public_name_snapshot($pdo, $authorAccountId);
+    }
+    $stmt->execute($params);
     $commentId = (int) $pdo->lastInsertId();
 
     $stmt = $pdo->prepare(
@@ -1163,13 +1267,13 @@ function sr_community_public_author_label(PDO $pdo, int $accountId, bool $showId
         return sr_t('member::account.withdrawn_display_name');
     }
 
-    static $communitySettingsCache = [];
+    static $memberSettingsCache = [];
     $settingsCacheKey = (string) spl_object_id($pdo);
-    if (!isset($communitySettingsCache[$settingsCacheKey])) {
-        $communitySettingsCache[$settingsCacheKey] = sr_community_settings($pdo);
+    if (!isset($memberSettingsCache[$settingsCacheKey])) {
+        $memberSettingsCache[$settingsCacheKey] = sr_member_settings($pdo);
     }
 
-    $displayName = sr_community_public_display_name($summary, $communitySettingsCache[$settingsCacheKey]);
+    $displayName = sr_community_public_display_name($summary, $memberSettingsCache[$settingsCacheKey]);
     $label = $displayName !== '' ? $displayName : sr_t('community::report.account.member');
     $runtimeConfig = is_array($config) ? $config : sr_runtime_config();
 

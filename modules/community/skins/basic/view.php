@@ -19,6 +19,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => sr_community_skin_stylesheets($skinKey ?? 'basic'),
 ]));
@@ -39,7 +40,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <article>
             <h1><?php echo sr_e($pageTitle); ?></h1>
             <p>
-                <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?>
+                <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
                 <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_e((string) $post['created_at']); ?>
                 <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
                 <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
@@ -260,7 +261,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php foreach ($comments as $comment) { ?>
                         <li>
                             <p>
-                                <?php echo sr_e(sr_community_public_author_label($pdo, (int) $comment['author_account_id'], $canViewMemberIdentifiers, $config)); ?>
+                                <?php echo sr_e(sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
                                 /
                                 <?php echo sr_e((string) $comment['created_at']); ?>
                             </p>

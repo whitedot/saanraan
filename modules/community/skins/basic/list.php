@@ -21,6 +21,7 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
+$memberSettings = sr_member_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => sr_community_skin_stylesheets($skinKey ?? 'basic'),
 ]));
@@ -119,7 +120,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <?php } ?>
                                 <?php } ?>
                             </td>
-                            <td><?php echo sr_e(sr_community_public_author_label($pdo, (int) $post['author_account_id'], $canViewMemberIdentifiers, $config)); ?></td>
+                            <td><?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?></td>
                             <td><?php echo sr_e((string) $post['created_at']); ?></td>
                             <td><?php echo sr_e((string) ($post['published_comment_count'] ?? 0)); ?></td>
                             <td><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>

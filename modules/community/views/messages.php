@@ -48,7 +48,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     $config,
                                     is_string($message['other_account_status'] ?? null) ? $message['other_account_status'] : null,
                                     is_string($message['other_nickname'] ?? null) ? $message['other_nickname'] : null,
-                                    isset($communitySettings) && is_array($communitySettings) ? $communitySettings : null
+                                    isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
                                 )); ?>
                             </td>
                             <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.62808119') : sr_t('community::ui.text.3fe5701c')) : ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.eacc746d') : sr_t('community::ui.text.3fe5701c')); ?></td>

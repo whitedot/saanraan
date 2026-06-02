@@ -541,6 +541,8 @@ module -> point -> slot -> subject
 
 회원 공개 닉네임은 member 모듈이 소유합니다. `sr_member_nicknames`가 표시용 닉네임과 lowercase lookup 값을 저장하고, member 설정의 `nickname_enabled`가 가입, 계정 수정, 관리자 저장, 공개 이름 표시, 멘션 lookup 기준을 결정합니다. 닉네임 사용이 켜져 있으면 닉네임 입력은 필수입니다. community/content 같은 서비스 모듈은 닉네임 테이블을 직접 조회하지 않고 `sr_member_public_name*`와 공개 이름 lookup helper를 사용합니다. 기존 커뮤니티 닉네임 데이터와 설정은 community 업데이트 경로에서 member 소유 테이블/설정으로 이관합니다.
 
+커뮤니티 게시글/댓글과 콘텐츠 댓글은 작성자 연결을 `author_account_id`로 유지하되, 작성 당시 공개 이름은 `author_public_name_snapshot`에 함께 저장합니다. 새 행의 snapshot은 작성 시점의 member 공개 이름 정책에 따라 닉네임 또는 이름으로 채우며, 화면 표시는 탈퇴/익명화 계정이면 탈퇴 회원 라벨을 우선하고 그 외에는 snapshot을 우선 사용합니다. snapshot은 개인정보로 취급해 privacy export에 포함하고 탈퇴/익명화 cleanup에서 비웁니다.
+
 회원가입 화면에 서비스 도메인별 추가 입력이 필요하면 회원 모듈이 해당 도메인을 직접 알지 않습니다. 소비 모듈은 `member-registration.php` 계약으로 입력 필드, 검증 함수, 저장 함수, 예외 메시지 매핑을 제공하고, 회원 모듈은 활성 모듈의 계약만 읽어 가입 트랜잭션 안에서 실행합니다. 확장 입력은 `registration_extensions[...]` POST namespace 아래에서만 받으며, 회원가입 기본 필드명이나 다른 모듈 확장 필드명과 충돌하는 key는 렌더링하지 않습니다. 닉네임처럼 여러 서비스 모듈이 공유하는 공개 회원 식별자는 이 계약으로 각 서비스가 소유하지 않고 member 공개 이름 계약으로 둡니다.
 
 textarea 강화 에디터 후보도 core 고정 목록으로 늘리지 않는다. core는 기본 `textarea`만 알고, CKEditor 같은 플러그인은 `editor-options.php` 계약으로 key, 표시명, 에셋 렌더링 함수를 제공한다. 콘텐츠/커뮤니티/관리자 설정 화면은 core editor helper를 통해 활성 플러그인의 계약만 선택지와 렌더링에 사용한다.

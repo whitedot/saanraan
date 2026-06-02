@@ -42,6 +42,18 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     }
 
     $fileDownloadLogAnonymizedCount = 0;
+    $authorSnapshotAnonymizedCount = 0;
+    if ($columnExists($pdo, 'sr_content_comments', 'author_public_name_snapshot')) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_content_comments
+             SET author_public_name_snapshot = \'\'
+             WHERE author_account_id = :account_id
+               AND author_public_name_snapshot <> \'\''
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $authorSnapshotAnonymizedCount = $stmt->rowCount();
+    }
+
     if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
         $stmt = $pdo->prepare('UPDATE sr_content_file_download_logs SET account_id = NULL WHERE account_id = :account_id');
         $stmt->execute(['account_id' => $accountId]);
@@ -79,6 +91,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'cleaned' => true,
         'event_type' => (string) ($context['event_type'] ?? ''),
         'content_access_entitlement_anonymized_count' => sr_content_anonymize_access_entitlements($pdo, $accountId),
+        'content_author_snapshot_anonymized_count' => $authorSnapshotAnonymizedCount,
         'content_file_download_log_anonymized_count' => $fileDownloadLogAnonymizedCount,
         'content_series_metadata_anonymized_count' => $seriesMetadataCount,
     ];
