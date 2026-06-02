@@ -29,7 +29,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         </section>
         <section>
             <h2>환불 신청</h2>
-            <?php if ((int) $availableRefundAmount < sr_deposit_refund_min_amount()) { ?>
+            <?php if (empty($refundRequestsEnabled)) { ?>
+                <p>현재 예치금 환불 신청을 받지 않습니다.</p>
+            <?php } elseif (empty($canRequestRefund)) { ?>
+                <p>현재 예치금 환불 신청 대상이 아닙니다.</p>
+            <?php } elseif ((int) $availableRefundAmount < sr_deposit_refund_min_amount()) { ?>
                 <p>환불 신청 가능액이 최소 신청 금액보다 적습니다.</p>
             <?php } else { ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/account/deposits')); ?>">

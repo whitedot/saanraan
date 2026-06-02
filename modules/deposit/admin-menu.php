@@ -19,5 +19,10 @@ return [
             'path' => '/admin/deposits/refund-requests',
             'order' => 40,
         ],
+        [
+            'label' => '환경설정',
+            'path' => '/admin/deposits/settings',
+            'order' => 50,
+        ],
     ],
 ];

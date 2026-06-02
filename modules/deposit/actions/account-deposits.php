@@ -52,6 +52,10 @@ if (sr_request_method() === 'POST') {
                     $errors[] = '신청 가능 예치금 잔액을 초과했습니다.';
                 } elseif ($exception->getMessage() === 'Deposit refund bank fields are required.') {
                     $errors[] = '은행명, 계좌번호, 예금주를 모두 입력하세요.';
+                } elseif ($exception->getMessage() === 'Deposit refund requests are disabled.') {
+                    $errors[] = '현재 예치금 환불 신청을 받지 않습니다.';
+                } elseif ($exception->getMessage() === 'Deposit refund account is not in an allowed group.') {
+                    $errors[] = '예치금 환불 신청 대상이 아닙니다.';
                 } else {
                     sr_log_exception($exception, 'deposit_refund_request_create');
                     $errors[] = '환불 신청 접수 중 오류가 발생했습니다.';
@@ -95,6 +99,8 @@ if (isset($_SESSION['sr_deposit_flash']) && is_array($_SESSION['sr_deposit_flash
 $balance = sr_deposit_balance($pdo, (int) $account['id']);
 $pendingRefundAmount = sr_deposit_pending_refund_amount($pdo, (int) $account['id']);
 $availableRefundAmount = max(0, $balance - $pendingRefundAmount);
+$refundRequestsEnabled = sr_deposit_refund_requests_enabled($pdo);
+$canRequestRefund = sr_deposit_account_can_request_refund($pdo, (int) $account['id']);
 $refundRequests = sr_deposit_refund_requests_for_account($pdo, (int) $account['id']);
 $stmt = $pdo->prepare(
     'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_at

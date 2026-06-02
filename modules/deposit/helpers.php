@@ -40,6 +40,147 @@ function sr_deposit_refund_max_amount(): int
     return 10000000;
 }
 
+function sr_deposit_refund_all_members_key(): string
+{
+    return '__all__';
+}
+
+function sr_deposit_default_settings(): array
+{
+    return [
+        'refund_requests_enabled' => false,
+        'refund_allowed_group_keys_json' => '[]',
+    ];
+}
+
+function sr_deposit_settings(PDO $pdo): array
+{
+    $settings = array_merge(sr_deposit_default_settings(), sr_module_settings($pdo, 'deposit'));
+    $settings['refund_requests_enabled'] = sr_deposit_truthy($settings['refund_requests_enabled'] ?? false);
+    $settings['refund_allowed_group_keys'] = sr_deposit_normalize_group_keys(
+        sr_deposit_json_array((string) ($settings['refund_allowed_group_keys_json'] ?? '[]'))
+    );
+
+    return $settings;
+}
+
+function sr_deposit_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'deposit' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('예치금 모듈이 등록되어 있지 않습니다.');
+    }
+
+    $allowedGroupKeys = sr_deposit_normalize_group_keys($settings['refund_allowed_group_keys'] ?? []);
+    $refundRequestsEnabled = !empty($settings['refund_requests_enabled']);
+    foreach ($allowedGroupKeys as $groupKey) {
+        if ($groupKey === sr_deposit_refund_all_members_key()) {
+            continue;
+        }
+        if (!sr_member_group_exists($pdo, $groupKey)) {
+            throw new InvalidArgumentException('Deposit refund group does not exist.');
+        }
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'refund_allowed_group_keys_json',
+        'setting_value' => json_encode(array_values($allowedGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'refund_requests_enabled',
+        'setting_value' => $refundRequestsEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    sr_clear_module_settings_cache('deposit');
+}
+
+function sr_deposit_truthy(mixed $value): bool
+{
+    return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
+}
+
+function sr_deposit_json_array(string $json): array
+{
+    $decoded = json_decode($json, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function sr_deposit_normalize_group_keys(mixed $groupKeys): array
+{
+    if (!is_array($groupKeys)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($groupKeys as $groupKey) {
+        $groupKey = (string) $groupKey;
+        if ($groupKey === sr_deposit_refund_all_members_key()) {
+            return [sr_deposit_refund_all_members_key()];
+        }
+        if (sr_member_group_key_is_valid($groupKey)) {
+            $normalized[$groupKey] = true;
+        }
+    }
+
+    return array_keys($normalized);
+}
+
+function sr_deposit_refund_allowed_group_keys(PDO $pdo): array
+{
+    $settings = sr_deposit_settings($pdo);
+    return isset($settings['refund_allowed_group_keys']) && is_array($settings['refund_allowed_group_keys'])
+        ? $settings['refund_allowed_group_keys']
+        : [];
+}
+
+function sr_deposit_refund_requests_enabled(PDO $pdo): bool
+{
+    $settings = sr_deposit_settings($pdo);
+    return !empty($settings['refund_requests_enabled']);
+}
+
+function sr_deposit_account_can_request_refund(PDO $pdo, int $accountId): bool
+{
+    if ($accountId <= 0) {
+        return false;
+    }
+    if (!sr_deposit_refund_requests_enabled($pdo)) {
+        return false;
+    }
+
+    $allowedGroupKeys = sr_deposit_refund_allowed_group_keys($pdo);
+    if ($allowedGroupKeys === []) {
+        return false;
+    }
+
+    if (in_array(sr_deposit_refund_all_members_key(), $allowedGroupKeys, true)) {
+        return true;
+    }
+
+    return sr_member_account_in_any_group($pdo, $accountId, $allowedGroupKeys);
+}
+
 function sr_deposit_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfig, int $adminAccountId, string $permissionPath, int $amount, string $approvalIdentifier = '', string $approvalNote = ''): array
 {
     $absoluteAmount = abs($amount);
@@ -269,6 +410,12 @@ function sr_deposit_create_refund_request(PDO $pdo, int $accountId, array $data)
     }
     if ($bankName === '' || $bankAccountNumber === '' || $bankAccountHolder === '') {
         throw new InvalidArgumentException('Deposit refund bank fields are required.');
+    }
+    if (!sr_deposit_refund_requests_enabled($pdo)) {
+        throw new RuntimeException('Deposit refund requests are disabled.');
+    }
+    if (!sr_deposit_account_can_request_refund($pdo, $accountId)) {
+        throw new RuntimeException('Deposit refund account is not in an allowed group.');
     }
 
     $startedTransaction = !$pdo->inTransaction();
