@@ -888,17 +888,11 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 .admin-filter-grid.admin-audit-search-grid {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
     gap: .875rem;
-    grid-template-columns:
-        max-content
-        minmax(7rem, 8rem)
-        minmax(7rem, 8rem)
-        minmax(8rem, 9rem)
-        minmax(8.5rem, 9.5rem)
-        minmax(8.5rem, 9.5rem)
-        minmax(16rem, 1fr)
-        max-content;
-    justify-content: stretch;
+    justify-content: flex-start;
 }
 
 .admin-list-card>.card-header>.card-actions {
@@ -910,6 +904,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 .admin-audit-search-grid .admin-filter-field {
+    flex: 1 1 8.5rem;
+    max-width: 12rem;
     min-width: 0;
 }
 
@@ -919,11 +915,40 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: 100%;
 }
 
+.admin-audit-search-grid fieldset.admin-filter-field {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-audit-search-grid .admin-audit-check-list {
+    align-items: center;
+    min-height: calc(var(--spacing) * 9.25);
+}
+
+.admin-audit-search-grid .admin-audit-check-list .admin-form-check {
+    white-space: nowrap;
+}
+
+.admin-audit-filter-result {
+    flex-basis: 10rem;
+    max-width: 13rem;
+}
+
+.admin-audit-filter-actor-type {
+    flex-basis: 15rem;
+    max-width: 18rem;
+}
+
 .admin-audit-filter-keyword {
-    margin-left: calc(var(--spacing) * 2);
+    flex: 999 1 18rem;
+    margin-left: 0;
+    max-width: none;
+    min-width: 0;
 }
 
 .admin-audit-search-grid .admin-filter-submit {
+    flex: 0 0 auto;
     min-height: calc(var(--spacing) * 9.25);
     min-width: 5rem;
     white-space: nowrap;
@@ -1023,6 +1048,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 .admin-audit-log-table {
     table-layout: auto;
+    min-width: 62rem;
 }
 
 .admin-audit-log-table th:nth-child(1),
@@ -1262,8 +1288,13 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 @media (max-width: 1279px) {
-    .admin-filter-grid.admin-audit-search-grid {
-        grid-template-columns: max-content minmax(7rem, 8rem) minmax(0, 1fr) max-content;
+    .admin-audit-filter-keyword {
+        margin-left: 0;
+    }
+
+    .admin-audit-search-grid .admin-filter-submit {
+        justify-content: center;
+        width: 100%;
     }
 
     .admin-dashboard-sections {

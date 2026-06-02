@@ -9,8 +9,9 @@ function sr_admin_audit_log_filters(): array
     $eventType = sr_admin_audit_log_identifier_filter(sr_get_string('event_type', 80), 80);
     $targetType = sr_admin_audit_log_identifier_filter(sr_get_string('target_type', 60), 60);
     $targetId = sr_admin_audit_log_target_id_filter(sr_get_string('target_id', 80), 80);
-    $actorType = sr_admin_audit_log_identifier_filter(sr_get_string('actor_type', 40), 40);
+    $actorTypes = sr_admin_audit_log_actor_type_filters($_GET['actor_type'] ?? []);
     $ipAddress = sr_admin_audit_log_ip_filter(sr_get_string('ip_address', 45));
+    $results = sr_admin_audit_log_result_filters($_GET['result'] ?? []);
 
     if ($keyword === '') {
         $legacyActorAccountId = sr_get_string('actor_account_id', 20);
@@ -31,6 +32,20 @@ function sr_admin_audit_log_filters(): array
             $field = 'actor_account_id';
             $keyword = $legacyActorAccountId;
         }
+    } elseif ($field === 'actor_type') {
+        $legacyActorType = sr_admin_audit_log_identifier_filter($keyword, 40);
+        if ($legacyActorType !== '' && $actorTypes === []) {
+            $actorTypes = [$legacyActorType];
+            $field = 'event_type';
+            $keyword = '';
+        }
+    } elseif ($field === 'ip_address') {
+        $legacyIpAddress = sr_admin_audit_log_ip_filter($keyword);
+        if ($legacyIpAddress !== '' && $ipAddress === '') {
+            $ipAddress = $legacyIpAddress;
+            $field = 'event_type';
+            $keyword = '';
+        }
     }
 
     return [
@@ -39,9 +54,9 @@ function sr_admin_audit_log_filters(): array
         'event_type' => $eventType,
         'target_type' => $targetType,
         'target_id' => $targetId,
-        'actor_type' => $actorType,
+        'actor_type' => $actorTypes,
         'ip_address' => $ipAddress,
-        'result' => sr_get_string('result', 30),
+        'result' => $results,
         'date_from' => sr_get_string('date_from', 30),
         'date_to' => sr_get_string('date_to', 30),
     ];
@@ -78,6 +93,61 @@ function sr_admin_audit_log_ip_filter(string $value): string
     }
 
     return filter_var($value, FILTER_VALIDATE_IP) !== false ? $value : '';
+}
+
+function sr_admin_audit_log_raw_filter_values(mixed $rawValue, int $maxLength): array
+{
+    $rawValues = is_array($rawValue) ? $rawValue : [$rawValue];
+    $values = [];
+
+    foreach ($rawValues as $value) {
+        if (is_array($value)) {
+            continue;
+        }
+
+        $value = trim((string) $value);
+        if ($value === '') {
+            continue;
+        }
+
+        if (function_exists('mb_substr')) {
+            $value = mb_substr($value, 0, $maxLength);
+        } else {
+            $value = substr($value, 0, $maxLength);
+        }
+
+        if (!in_array($value, $values, true)) {
+            $values[] = $value;
+        }
+    }
+
+    return $values;
+}
+
+function sr_admin_audit_log_result_filters(mixed $rawValue): array
+{
+    $filters = [];
+    foreach (sr_admin_audit_log_raw_filter_values($rawValue, 30) as $value) {
+        $value = sr_admin_audit_log_result_filter($value);
+        if ($value !== '' && !in_array($value, $filters, true)) {
+            $filters[] = $value;
+        }
+    }
+
+    return $filters;
+}
+
+function sr_admin_audit_log_actor_type_filters(mixed $rawValue): array
+{
+    $filters = [];
+    foreach (sr_admin_audit_log_raw_filter_values($rawValue, 40) as $value) {
+        $value = sr_admin_audit_log_identifier_filter($value, 40);
+        if ($value !== '' && !in_array($value, $filters, true)) {
+            $filters[] = $value;
+        }
+    }
+
+    return $filters;
 }
 
 function sr_admin_audit_asset_compare_value(mixed $value): mixed
@@ -432,9 +502,9 @@ function sr_admin_audit_log_query_parts(array &$filters): array
     $filters['event_type'] = sr_admin_audit_log_identifier_filter((string) ($filters['event_type'] ?? ''), 80);
     $filters['target_type'] = sr_admin_audit_log_identifier_filter((string) ($filters['target_type'] ?? ''), 60);
     $filters['target_id'] = sr_admin_audit_log_target_id_filter((string) ($filters['target_id'] ?? ''), 80);
-    $filters['actor_type'] = sr_admin_audit_log_identifier_filter((string) ($filters['actor_type'] ?? ''), 40);
+    $filters['actor_type'] = sr_admin_audit_log_actor_type_filters($filters['actor_type'] ?? []);
     $filters['ip_address'] = sr_admin_audit_log_ip_filter((string) ($filters['ip_address'] ?? ''));
-    $filters['result'] = sr_admin_audit_log_result_filter($filters['result']);
+    $filters['result'] = sr_admin_audit_log_result_filters($filters['result'] ?? []);
     $filters['date_from'] = sr_admin_audit_log_date_filter($filters['date_from']);
     $filters['date_to'] = sr_admin_audit_log_date_filter($filters['date_to']);
 
@@ -492,9 +562,14 @@ function sr_admin_audit_log_query_parts(array &$filters): array
         $params['target_id'] = $filters['target_id'];
     }
 
-    if ($filters['actor_type'] !== '') {
-        $where[] = 'actor_type = :actor_type';
-        $params['actor_type'] = $filters['actor_type'];
+    if ($filters['actor_type'] !== []) {
+        $actorTypePlaceholders = [];
+        foreach ($filters['actor_type'] as $index => $actorType) {
+            $paramKey = 'actor_type_' . (string) $index;
+            $actorTypePlaceholders[] = ':' . $paramKey;
+            $params[$paramKey] = $actorType;
+        }
+        $where[] = 'actor_type IN (' . implode(', ', $actorTypePlaceholders) . ')';
     }
 
     if ($filters['ip_address'] !== '') {
@@ -502,9 +577,14 @@ function sr_admin_audit_log_query_parts(array &$filters): array
         $params['ip_address'] = $filters['ip_address'];
     }
 
-    if ($filters['result'] !== '') {
-        $where[] = 'result = :result';
-        $params['result'] = $filters['result'];
+    if ($filters['result'] !== []) {
+        $resultPlaceholders = [];
+        foreach ($filters['result'] as $index => $result) {
+            $paramKey = 'result_' . (string) $index;
+            $resultPlaceholders[] = ':' . $paramKey;
+            $params[$paramKey] = $result;
+        }
+        $where[] = 'result IN (' . implode(', ', $resultPlaceholders) . ')';
     }
 
     if ($filters['date_from'] !== '') {
@@ -566,10 +646,20 @@ function sr_admin_audit_log_page_url(array $filters, int $page): string
         $query['q'] = $keyword;
     }
 
-    foreach (['event_type', 'target_type', 'target_id', 'actor_type', 'ip_address', 'result', 'date_from', 'date_to'] as $filterKey) {
+    foreach (['event_type', 'target_type', 'target_id', 'ip_address', 'date_from', 'date_to'] as $filterKey) {
         $value = trim((string) ($filters[$filterKey] ?? ''));
         if ($value !== '') {
             $query[$filterKey] = $value;
+        }
+    }
+
+    foreach (['actor_type', 'result'] as $filterKey) {
+        $values = is_array($filters[$filterKey] ?? null) ? $filters[$filterKey] : [];
+        foreach ($values as $value) {
+            $value = trim((string) $value);
+            if ($value !== '') {
+                $query[$filterKey][] = $value;
+            }
         }
     }
 
