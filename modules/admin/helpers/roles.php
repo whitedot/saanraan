@@ -75,6 +75,31 @@ function sr_admin_has_role(PDO $pdo, int $accountId, array $allowedRoles): bool
     return in_array('owner', $allowedRoles, true) && sr_admin_is_owner($pdo, $accountId);
 }
 
+function sr_admin_has_admin_access(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+
+    if (sr_admin_is_owner($pdo, $accountId)) {
+        return true;
+    }
+
+    if (!sr_admin_permissions_table_exists($pdo)) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT 1
+         FROM sr_admin_account_permissions
+         WHERE account_id = :account_id
+         LIMIT 1'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return (bool) $stmt->fetchColumn();
+}
+
 function sr_admin_require_role(PDO $pdo, int $accountId, array $allowedRoles): void
 {
     sr_admin_require_owner($pdo, $accountId);
@@ -198,6 +223,10 @@ function sr_admin_has_permission(PDO $pdo, int $accountId, string $menuPath, str
     $actionKey = sr_admin_normalize_permission_action($actionKey);
     if ($menuPath === '' || $actionKey === '' || $accountId < 1) {
         return false;
+    }
+
+    if ($menuPath === '/admin' && $actionKey === 'view') {
+        return sr_admin_has_admin_access($pdo, $accountId);
     }
 
     if (sr_admin_is_owner($pdo, $accountId)) {

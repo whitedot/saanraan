@@ -6,7 +6,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
 {
     $currentPath = sr_request_path();
     $navigationItems = sr_admin_shell_navigation_items($pdo, $currentPath, $accountId);
-    $auxiliaryLinks = sr_admin_shell_auxiliary_links($currentPath);
+    $auxiliaryLinks = sr_admin_shell_auxiliary_links($pdo, $currentPath, $accountId);
 
     $profileUrl = sr_url('/account');
     if ($accountId > 0 && sr_admin_has_permission($pdo, $accountId, '/admin/members', 'view')) {
@@ -28,7 +28,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         'page_title' => $pageTitle !== '' ? $pageTitle : '관리자',
         'page_subtitle' => $pageSubtitle,
         'container_class' => sr_admin_shell_class_attr($containerClass),
-        'dashboard_url' => sr_url('/admin'),
+        'dashboard_url' => sr_url(sr_admin_is_owner($pdo, $accountId) ? '/admin' : (sr_admin_first_permitted_menu_path($pdo, $accountId) ?: '/admin')),
         'site_home_url' => sr_url('/'),
         'profile_url' => $profileUrl,
         'logout_url' => sr_url('/logout'),
@@ -148,6 +148,9 @@ function sr_admin_shell_navigation_group_items(PDO $pdo, array $group, string $c
             if ($label === '' || $path === '') {
                 continue;
             }
+            if ($path === '/admin' && $accountId > 0 && function_exists('sr_admin_is_owner') && !sr_admin_is_owner($pdo, $accountId)) {
+                continue;
+            }
             if ($accountId > 0 && function_exists('sr_admin_has_permission') && !sr_admin_has_permission($pdo, $accountId, $path, 'view')) {
                 continue;
             }
@@ -231,7 +234,7 @@ function sr_admin_shell_path_matches(string $currentPath, string $itemPath): boo
     return str_starts_with($currentPath, rtrim($itemPath, '/') . '/');
 }
 
-function sr_admin_shell_auxiliary_links(string $currentPath): array
+function sr_admin_shell_auxiliary_links(PDO $pdo, string $currentPath, int $accountId = 0): array
 {
     $pathsFile = SR_ROOT . '/modules/admin/paths.php';
     $paths = is_file($pathsFile) ? include $pathsFile : [];
@@ -243,6 +246,9 @@ function sr_admin_shell_auxiliary_links(string $currentPath): array
     ] as $link) {
         $path = (string) ($link['path'] ?? '');
         if ($path === '' || !isset($paths['GET ' . $path])) {
+            continue;
+        }
+        if ($path === '/admin/ui-kit' && ($accountId < 1 || !sr_admin_is_owner($pdo, $accountId))) {
             continue;
         }
 

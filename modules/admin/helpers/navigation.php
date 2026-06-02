@@ -23,6 +23,31 @@ function sr_admin_navigation_groups(PDO $pdo): array
     return sr_admin_apply_menu_overrides($pdo, sr_admin_navigation_source_groups($pdo));
 }
 
+function sr_admin_first_permitted_menu_path(PDO $pdo, int $accountId): string
+{
+    if ($accountId < 1) {
+        return '';
+    }
+
+    foreach (sr_admin_navigation_groups($pdo) as $group) {
+        foreach ((array) ($group['items'] ?? []) as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $path = trim((string) ($item['path'] ?? ''));
+            if ($path === '' || $path === '/admin') {
+                continue;
+            }
+            if (sr_admin_has_permission($pdo, $accountId, $path, 'view')) {
+                return $path;
+            }
+        }
+    }
+
+    return '';
+}
+
 function sr_admin_navigation_source_groups(PDO $pdo): array
 {
     $groupsByCategory = [];
