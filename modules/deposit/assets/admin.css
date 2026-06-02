@@ -1,0 +1,76 @@
+.admin-deposit-request-filter {
+    display: block;
+    max-width: 100%;
+    width: 100%;
+}
+
+.admin-filter-grid.admin-deposit-request-filter-grid {
+    align-items: end;
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    grid-template-columns: max-content max-content minmax(16rem, 1fr) max-content;
+    justify-content: stretch;
+    width: 100%;
+}
+
+.admin-deposit-request-filter .admin-filter-field {
+    min-width: 0;
+    width: fit-content;
+}
+
+.admin-deposit-request-filter .admin-filter-label {
+    color: var(--text-muted);
+    display: block;
+    font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--type-meta-line-height);
+    margin: 0;
+    padding: 0;
+}
+
+.admin-deposit-request-filter-status .admin-sort-button-group {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.admin-deposit-request-filter-field .admin-filter-input {
+    field-sizing: content;
+    min-width: 6rem;
+    width: fit-content;
+}
+
+.admin-deposit-request-filter .admin-deposit-request-filter-keyword {
+    min-width: 0;
+    width: 100%;
+}
+
+.admin-deposit-request-filter-keyword .admin-filter-input {
+    min-width: 0;
+    width: 100%;
+}
+
+.admin-deposit-request-filter .admin-filter-submit {
+    width: fit-content;
+}
+
+@media (max-width: 1023px) {
+    .admin-deposit-request-filter {
+        width: 100%;
+    }
+
+    .admin-filter-grid.admin-deposit-request-filter-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .admin-deposit-request-filter .admin-filter-field,
+    .admin-deposit-request-filter .admin-filter-input,
+    .admin-deposit-request-filter .admin-filter-submit {
+        width: 100%;
+    }
+
+    .admin-deposit-request-filter-keyword .admin-filter-input {
+        min-width: 0;
+    }
+}

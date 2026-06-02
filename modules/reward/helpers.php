@@ -48,16 +48,21 @@ function sr_reward_withdrawal_all_members_key(): string
 function sr_reward_default_settings(): array
 {
     return [
+        'withdrawal_requests_enabled' => false,
         'withdrawal_allowed_group_keys_json' => '[]',
     ];
 }
 
 function sr_reward_settings(PDO $pdo): array
 {
-    $settings = array_merge(sr_reward_default_settings(), sr_module_settings($pdo, 'reward'));
+    $storedSettings = sr_module_settings($pdo, 'reward');
+    $settings = array_merge(sr_reward_default_settings(), $storedSettings);
     $settings['withdrawal_allowed_group_keys'] = sr_reward_normalize_group_keys(
         sr_reward_json_array((string) ($settings['withdrawal_allowed_group_keys_json'] ?? '[]'))
     );
+    $settings['withdrawal_requests_enabled'] = array_key_exists('withdrawal_requests_enabled', $storedSettings)
+        ? sr_reward_truthy($settings['withdrawal_requests_enabled'] ?? false)
+        : $settings['withdrawal_allowed_group_keys'] !== [];
 
     return $settings;
 }
@@ -72,6 +77,14 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
     }
 
     $allowedGroupKeys = sr_reward_normalize_group_keys($settings['withdrawal_allowed_group_keys'] ?? []);
+    if (array_key_exists('withdrawal_requests_enabled', $settings)) {
+        $withdrawalRequestsEnabled = sr_reward_truthy($settings['withdrawal_requests_enabled']);
+    } else {
+        $storedSettings = sr_module_settings($pdo, 'reward');
+        $withdrawalRequestsEnabled = array_key_exists('withdrawal_requests_enabled', $storedSettings)
+            ? sr_reward_truthy($storedSettings['withdrawal_requests_enabled'])
+            : $allowedGroupKeys !== [];
+    }
     foreach ($allowedGroupKeys as $groupKey) {
         if ($groupKey === sr_reward_withdrawal_all_members_key()) {
             continue;
@@ -100,8 +113,21 @@ function sr_reward_save_settings(PDO $pdo, array $settings): void
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => 'withdrawal_requests_enabled',
+        'setting_value' => $withdrawalRequestsEnabled ? '1' : '0',
+        'value_type' => 'bool',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
 
     sr_clear_module_settings_cache('reward');
+}
+
+function sr_reward_truthy(mixed $value): bool
+{
+    return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
 }
 
 function sr_reward_json_array(string $json): array
@@ -138,9 +164,18 @@ function sr_reward_withdrawal_allowed_group_keys(PDO $pdo): array
         : [];
 }
 
+function sr_reward_withdrawal_requests_enabled(PDO $pdo): bool
+{
+    $settings = sr_reward_settings($pdo);
+    return !empty($settings['withdrawal_requests_enabled']);
+}
+
 function sr_reward_account_can_request_withdrawal(PDO $pdo, int $accountId): bool
 {
     if ($accountId <= 0) {
+        return false;
+    }
+    if (!sr_reward_withdrawal_requests_enabled($pdo)) {
         return false;
     }
 
@@ -386,6 +421,9 @@ function sr_reward_create_withdrawal_request(PDO $pdo, int $accountId, array $da
     if ($bankName === '' || $bankAccountNumber === '' || $bankAccountHolder === '') {
         throw new InvalidArgumentException('Reward withdrawal bank fields are required.');
     }
+    if (!sr_reward_withdrawal_requests_enabled($pdo)) {
+        throw new RuntimeException('Reward withdrawal requests are disabled.');
+    }
     if (!sr_reward_account_can_request_withdrawal($pdo, $accountId)) {
         throw new RuntimeException('Reward withdrawal account is not in an allowed group.');
     }
@@ -457,26 +495,24 @@ function sr_reward_withdrawal_requests_for_account(PDO $pdo, int $accountId, int
     return $stmt->fetchAll();
 }
 
-function sr_reward_admin_withdrawal_request_count(PDO $pdo, string $status): int
+function sr_reward_admin_withdrawal_request_count(PDO $pdo, string $status, string $field = 'all', string $keyword = ''): int
 {
-    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_reward_withdrawal_requests WHERE status = :status');
-        $stmt->execute(['status' => $status]);
+    $filter = sr_reward_admin_withdrawal_request_filter_sql($status, $field, $keyword);
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_reward_withdrawal_requests r
+         LEFT JOIN sr_member_accounts a ON a.id = r.account_id
+         {$filter['where']}"
+    );
+    $stmt->execute($filter['params']);
 
-        return (int) $stmt->fetchColumn();
-    }
-
-    return (int) $pdo->query('SELECT COUNT(*) FROM sr_reward_withdrawal_requests')->fetchColumn();
+    return (int) $stmt->fetchColumn();
 }
 
-function sr_reward_admin_withdrawal_request_rows(PDO $pdo, array $runtimeConfig, string $status, array $pagination): array
+function sr_reward_admin_withdrawal_request_rows(PDO $pdo, array $runtimeConfig, string $status, array $pagination, string $field = 'all', string $keyword = ''): array
 {
-    $where = '';
-    $params = [];
-    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
-        $where = 'WHERE r.status = :status';
-        $params['status'] = $status;
-    }
+    $filter = sr_reward_admin_withdrawal_request_filter_sql($status, $field, $keyword);
+    $params = $filter['params'];
 
     $stmt = $pdo->prepare(
         "SELECT r.id, r.account_id, r.amount, r.bank_name, r.bank_account_number, r.bank_account_holder,
@@ -485,7 +521,7 @@ function sr_reward_admin_withdrawal_request_rows(PDO $pdo, array $runtimeConfig,
                 a.email, a.display_name, a.status AS account_status
          FROM sr_reward_withdrawal_requests r
          LEFT JOIN sr_member_accounts a ON a.id = r.account_id
-         {$where}
+         {$filter['where']}
          ORDER BY CASE WHEN r.status = 'pending' THEN 0 ELSE 1 END, r.id DESC
          LIMIT :limit OFFSET :offset"
     );
@@ -505,6 +541,61 @@ function sr_reward_admin_withdrawal_request_rows(PDO $pdo, array $runtimeConfig,
     }
 
     return $rows;
+}
+
+function sr_reward_admin_withdrawal_request_filter_sql(string $status, string $field, string $keyword): array
+{
+    $where = [];
+    $params = [];
+    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
+        $where[] = 'r.status = :status';
+        $params['status'] = $status;
+    }
+
+    $field = in_array($field, ['all', 'member', 'bank', 'note', 'request'], true) ? $field : 'all';
+    $keyword = sr_reward_clean_text($keyword, 120);
+    if ($keyword !== '') {
+        $keywordLike = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+        if ($field === 'member') {
+            $where[] = "(CAST(r.account_id AS CHAR) LIKE :keyword_like ESCAPE '\\\\' OR a.email LIKE :keyword_like ESCAPE '\\\\' OR a.display_name LIKE :keyword_like ESCAPE '\\\\')";
+            $params['keyword_like'] = $keywordLike;
+        } elseif ($field === 'bank') {
+            $where[] = "(r.bank_name LIKE :keyword_like ESCAPE '\\\\' OR r.bank_account_number LIKE :keyword_like ESCAPE '\\\\' OR r.bank_account_holder LIKE :keyword_like ESCAPE '\\\\')";
+            $params['keyword_like'] = $keywordLike;
+        } elseif ($field === 'note') {
+            $where[] = "(r.requester_note LIKE :keyword_like ESCAPE '\\\\' OR r.admin_note LIKE :keyword_like ESCAPE '\\\\')";
+            $params['keyword_like'] = $keywordLike;
+        } elseif ($field === 'request') {
+            $where[] = "(CAST(r.id AS CHAR) LIKE :keyword_like ESCAPE '\\\\' OR CAST(r.transaction_id AS CHAR) LIKE :keyword_like ESCAPE '\\\\')";
+            $params['keyword_like'] = $keywordLike;
+        } else {
+            $where[] = "(CAST(r.id AS CHAR) LIKE :request_keyword_like ESCAPE '\\\\'
+                OR CAST(r.transaction_id AS CHAR) LIKE :transaction_keyword_like ESCAPE '\\\\'
+                OR CAST(r.account_id AS CHAR) LIKE :account_keyword_like ESCAPE '\\\\'
+                OR a.email LIKE :email_keyword_like ESCAPE '\\\\'
+                OR a.display_name LIKE :name_keyword_like ESCAPE '\\\\'
+                OR r.bank_name LIKE :bank_keyword_like ESCAPE '\\\\'
+                OR r.bank_account_number LIKE :bank_number_keyword_like ESCAPE '\\\\'
+                OR r.bank_account_holder LIKE :bank_holder_keyword_like ESCAPE '\\\\'
+                OR r.requester_note LIKE :requester_note_keyword_like ESCAPE '\\\\'
+                OR r.admin_note LIKE :admin_note_keyword_like ESCAPE '\\\\')";
+            $params['request_keyword_like'] = $keywordLike;
+            $params['transaction_keyword_like'] = $keywordLike;
+            $params['account_keyword_like'] = $keywordLike;
+            $params['email_keyword_like'] = $keywordLike;
+            $params['name_keyword_like'] = $keywordLike;
+            $params['bank_keyword_like'] = $keywordLike;
+            $params['bank_number_keyword_like'] = $keywordLike;
+            $params['bank_holder_keyword_like'] = $keywordLike;
+            $params['requester_note_keyword_like'] = $keywordLike;
+            $params['admin_note_keyword_like'] = $keywordLike;
+        }
+    }
+
+    return [
+        'where' => $where === [] ? '' : 'WHERE ' . implode(' AND ', $where),
+        'params' => $params,
+    ];
 }
 
 function sr_reward_complete_withdrawal_request(PDO $pdo, int $requestId, int $adminAccountId, string $adminNote): int

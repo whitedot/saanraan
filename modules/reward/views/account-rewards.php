@@ -29,7 +29,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
         </section>
         <section>
             <h2>출금 신청</h2>
-            <?php if (!$canRequestWithdrawal) { ?>
+            <?php if (empty($withdrawalRequestsEnabled)) { ?>
+                <p>현재 적립금 출금 신청을 받지 않습니다.</p>
+            <?php } elseif (!$canRequestWithdrawal) { ?>
                 <p>현재 계정은 적립금 출금 신청 대상 회원 그룹에 속해 있지 않습니다.</p>
             <?php } elseif ((int) $availableWithdrawalAmount < sr_reward_withdrawal_min_amount()) { ?>
                 <p>출금 신청 가능액이 최소 신청 금액보다 적습니다.</p>

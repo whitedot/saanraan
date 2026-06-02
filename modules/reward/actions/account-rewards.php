@@ -15,7 +15,9 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
 
     if ($intent === 'withdrawal_request') {
-        if (!sr_reward_account_can_request_withdrawal($pdo, (int) $account['id'])) {
+        if (!sr_reward_withdrawal_requests_enabled($pdo)) {
+            $errors[] = '현재 적립금 출금 신청을 받지 않습니다.';
+        } elseif (!sr_reward_account_can_request_withdrawal($pdo, (int) $account['id'])) {
             $errors[] = '적립금 출금 신청이 가능한 회원 그룹에 속해 있지 않습니다.';
         }
         $amountInput = sr_post_string('amount', 30);
@@ -56,6 +58,8 @@ if (sr_request_method() === 'POST') {
                     $errors[] = '신청 가능 적립금 잔액을 초과했습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal bank fields are required.') {
                     $errors[] = '은행명, 계좌번호, 예금주를 모두 입력하세요.';
+                } elseif ($exception->getMessage() === 'Reward withdrawal requests are disabled.') {
+                    $errors[] = '현재 적립금 출금 신청을 받지 않습니다.';
                 } elseif ($exception->getMessage() === 'Reward withdrawal account is not in an allowed group.') {
                     $errors[] = '적립금 출금 신청이 가능한 회원 그룹에 속해 있지 않습니다.';
                 } else {
@@ -102,6 +106,7 @@ $balance = sr_reward_balance($pdo, (int) $account['id']);
 $pendingWithdrawalAmount = sr_reward_pending_withdrawal_amount($pdo, (int) $account['id']);
 $availableWithdrawalAmount = max(0, $balance - $pendingWithdrawalAmount);
 $withdrawalAllowedGroupKeys = sr_reward_withdrawal_allowed_group_keys($pdo);
+$withdrawalRequestsEnabled = sr_reward_withdrawal_requests_enabled($pdo);
 $canRequestWithdrawal = sr_reward_account_can_request_withdrawal($pdo, (int) $account['id']);
 $withdrawalRequests = sr_reward_withdrawal_requests_for_account($pdo, (int) $account['id']);
 $stmt = $pdo->prepare(

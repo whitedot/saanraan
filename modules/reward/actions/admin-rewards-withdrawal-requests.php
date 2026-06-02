@@ -14,6 +14,28 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 
+$statusFilter = sr_get_string('status', 20);
+if (!in_array($statusFilter, ['', 'pending', 'completed', 'rejected', 'canceled'], true)) {
+    $statusFilter = '';
+}
+$searchField = sr_get_string('field', 20);
+if (!in_array($searchField, ['all', 'member', 'bank', 'note', 'request'], true)) {
+    $searchField = 'all';
+}
+$searchKeyword = sr_reward_clean_text(sr_get_string('q', 120), 120);
+$requestListRedirectParams = [];
+if ($statusFilter !== '') {
+    $requestListRedirectParams['status'] = $statusFilter;
+}
+if ($searchField !== 'all') {
+    $requestListRedirectParams['field'] = $searchField;
+}
+if ($searchKeyword !== '') {
+    $requestListRedirectParams['q'] = $searchKeyword;
+}
+$requestListRedirectPath = '/admin/rewards/withdrawal-requests'
+    . ($requestListRedirectParams === [] ? '' : '?' . http_build_query($requestListRedirectParams, '', '&', PHP_QUERY_RFC3986));
+
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], $permissionPath, 'edit');
@@ -61,7 +83,7 @@ if (sr_request_method() === 'POST') {
                 $notice = '적립금 출금 신청을 반려했습니다.';
             }
             sr_admin_flash_result(sr_admin_action_result([], $notice));
-            sr_redirect('/admin/rewards/withdrawal-requests');
+            sr_redirect($requestListRedirectPath);
         } catch (Throwable $exception) {
             if ($exception->getMessage() === 'Reward balance cannot be negative.') {
                 $errors[] = '출금 처리 중 잔액이 부족합니다.';
@@ -73,12 +95,8 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$statusFilter = sr_get_string('status', 20);
-if (!in_array($statusFilter, ['', 'pending', 'completed', 'rejected', 'canceled'], true)) {
-    $statusFilter = '';
-}
-$pagination = sr_admin_pagination_from_total($pdo, sr_reward_admin_withdrawal_request_count($pdo, $statusFilter));
-$requests = sr_reward_admin_withdrawal_request_rows($pdo, $runtimeConfig, $statusFilter, $pagination);
+$pagination = sr_admin_pagination_from_total($pdo, sr_reward_admin_withdrawal_request_count($pdo, $statusFilter, $searchField, $searchKeyword));
+$requests = sr_reward_admin_withdrawal_request_rows($pdo, $runtimeConfig, $statusFilter, $pagination, $searchField, $searchKeyword);
 $adminPageTitle = '적립금 출금 신청';
 
 include SR_ROOT . '/modules/reward/views/admin-withdrawal-requests.php';

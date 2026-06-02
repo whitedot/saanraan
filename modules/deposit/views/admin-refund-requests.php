@@ -8,20 +8,68 @@ $requestStatusOptions = [
     'rejected' => '반려',
     'canceled' => '취소',
 ];
+$requestStatusValues = array_keys($requestStatusOptions);
+$requestStatusCount = count($requestStatusValues);
+$searchField = isset($searchField) ? (string) $searchField : 'all';
+$searchKeyword = isset($searchKeyword) ? (string) $searchKeyword : '';
+$searchFieldOptions = [
+    'all' => '전체',
+    'member' => '회원',
+    'bank' => '계좌',
+    'note' => '메모',
+    'request' => '신청/거래 번호',
+];
+$requestStatusUrl = static function (string $statusValue) use ($searchField, $searchKeyword): string {
+    $params = [];
+    if ($statusValue !== '') {
+        $params['status'] = $statusValue;
+    }
+    if ($searchField !== 'all') {
+        $params['field'] = $searchField;
+    }
+    if ($searchKeyword !== '') {
+        $params['q'] = $searchKeyword;
+    }
+
+    return sr_url('/admin/deposits/refund-requests' . ($params === [] ? '' : '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986)));
+};
+$requestListActionUrl = sr_url((string) ($_SERVER['REQUEST_URI'] ?? '/admin/deposits/refund-requests'));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/deposits/refund-requests')); ?>" class="admin-filter ui-form-theme">
-    <div class="admin-filter-grid">
-        <div class="admin-filter-field">
-            <label for="deposit-refund-status" class="admin-filter-label">상태</label>
-            <select id="deposit-refund-status" name="status" class="form-select admin-filter-input">
-                <?php foreach ($requestStatusOptions as $statusValue => $statusLabel) { ?>
-                    <option value="<?php echo sr_e($statusValue); ?>"<?php echo $statusFilter === $statusValue ? ' selected' : ''; ?>><?php echo sr_e($statusLabel); ?></option>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/deposits/refund-requests')); ?>" class="admin-filter admin-deposit-request-filter ui-form-theme">
+    <div class="admin-filter-grid admin-deposit-request-filter-grid">
+        <div class="admin-filter-field admin-deposit-request-filter-status">
+            <span class="admin-filter-label">상태</span>
+            <div class="admin-sort-button-group" role="group" aria-label="환불 신청 상태 필터">
+                <?php foreach ($requestStatusValues as $requestStatusIndex => $statusValue) { ?>
+                    <?php
+                    $statusLabel = (string) $requestStatusOptions[$statusValue];
+                    $statusGroupClass = $requestStatusIndex === 0
+                        ? 'btn-group-start'
+                        : ($requestStatusIndex === $requestStatusCount - 1 ? 'btn-group-end' : 'btn-group-middle');
+                    $statusButtonClass = 'btn ' . $statusGroupClass . ' ' . ($statusFilter === $statusValue ? 'btn-solid-primary' : 'btn-solid-light');
+                    ?>
+                    <a href="<?php echo sr_e($requestStatusUrl($statusValue)); ?>" class="<?php echo sr_e($statusButtonClass); ?>"<?php echo $statusFilter === $statusValue ? ' aria-current="true"' : ''; ?>><?php echo sr_e($statusLabel); ?></a>
+                <?php } ?>
+            </div>
+        </div>
+        <?php if ($statusFilter !== '') { ?>
+            <input type="hidden" name="status" value="<?php echo sr_e($statusFilter); ?>">
+        <?php } ?>
+        <div class="admin-filter-field admin-deposit-request-filter-field">
+            <label for="deposit-refund-search-field" class="admin-filter-label">검색 조건</label>
+            <select id="deposit-refund-search-field" name="field" class="form-select admin-filter-input">
+                <?php foreach ($searchFieldOptions as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo $searchField === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                 <?php } ?>
             </select>
+        </div>
+        <div class="admin-filter-field admin-deposit-request-filter-keyword">
+            <label for="deposit-refund-search-keyword" class="admin-filter-label">검색어</label>
+            <input id="deposit-refund-search-keyword" type="search" name="q" value="<?php echo sr_e($searchKeyword); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="회원, 계좌, 메모, 신청 번호">
         </div>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
@@ -73,7 +121,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td class="admin-table-actions-cell">
                                 <?php if ((string) $request['status'] === 'pending') { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/refund-requests')); ?>" class="ui-form-theme">
+                                    <form method="post" action="<?php echo sr_e($requestListActionUrl); ?>" class="ui-form-theme">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
                                         <div class="admin-row-actions">

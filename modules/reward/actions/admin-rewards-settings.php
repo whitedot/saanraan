@@ -20,8 +20,12 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], $permissionPath, 'edit');
 
+    $withdrawalRequestsEnabled = sr_post_string('withdrawal_requests_enabled', 1) === '1';
     $postedGroupKeys = $_POST['withdrawal_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_reward_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
+    if ($withdrawalRequestsEnabled && $allowedGroupKeys === []) {
+        $errors[] = '출금 신청을 사용하려면 출금 신청 허용 대상을 선택하세요.';
+    }
     $enabledGroupKeys = [];
     foreach ($memberGroups as $group) {
         if ((string) ($group['status'] ?? '') === 'enabled') {
@@ -41,6 +45,7 @@ if (sr_request_method() === 'POST') {
     if ($errors === []) {
         try {
             sr_reward_save_settings($pdo, [
+                'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                 'withdrawal_allowed_group_keys' => $allowedGroupKeys,
             ]);
             sr_audit_log($pdo, [
@@ -52,6 +57,7 @@ if (sr_request_method() === 'POST') {
                 'result' => 'success',
                 'message' => 'Reward settings updated.',
                 'metadata' => [
+                    'withdrawal_requests_enabled' => $withdrawalRequestsEnabled,
                     'withdrawal_allowed_group_keys' => $allowedGroupKeys,
                 ],
             ]);
@@ -63,6 +69,7 @@ if (sr_request_method() === 'POST') {
         }
     }
 
+    $settings['withdrawal_requests_enabled'] = $withdrawalRequestsEnabled;
     $settings['withdrawal_allowed_group_keys'] = $allowedGroupKeys;
 }
 
