@@ -29,6 +29,9 @@ $pageGroupsPage = isset($pageGroupsPage) ? (string) $pageGroupsPage : 'list';
 if (!in_array($pageGroupsPage, ['list', 'new', 'edit'], true)) {
     $pageGroupsPage = 'list';
 }
+if (sr_request_method() === 'GET' && in_array($pageGroupsPage, ['new', 'edit'], true)) {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content-groups', 'edit');
+}
 
 $allowedGroupStatuses = sr_content_group_statuses();
 $assetModuleOptions = sr_content_asset_module_options($pdo);

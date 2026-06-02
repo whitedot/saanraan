@@ -26,6 +26,9 @@ if (!in_array($notificationAdminPage, ['list', 'deliveries'], true)) {
 $notificationPermissionPath = $notificationAdminPage === 'deliveries' ? '/admin/notification-deliveries' : '/admin/notifications';
 sr_admin_require_permission($pdo, (int) $account['id'], $notificationPermissionPath, 'view');
 $notificationCreateModalOpen = !empty($notificationCreateModalOpen);
+if (sr_request_method() === 'GET' && $notificationCreateModalOpen) {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notifications', 'edit');
+}
 $notificationCreateValues = [
     'audience' => (string) ($allowedAudiences[0] ?? 'account'),
     'account_identifier' => '',

@@ -25,6 +25,9 @@ $memberGroupPermissionPath = [
     'rule_form' => '/admin/member-group-rules',
 ][$memberGroupsPage];
 sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'view');
+if (sr_request_method() === 'GET' && in_array($memberGroupsPage, ['group_form', 'rule_form'], true)) {
+    sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'edit');
+}
 $allowedStatuses = sr_member_group_statuses();
 $allowedRuleStatuses = sr_member_group_rule_statuses();
 $allowedEvaluationPolicies = sr_member_group_evaluation_policies();

@@ -19,6 +19,12 @@ $notice = $_SESSION['sr_content_admin_notice'] ?? '';
 unset($_SESSION['sr_content_admin_notice']);
 $errors = [];
 $pageAdminPage = isset($pageAdminPage) ? (string) $pageAdminPage : 'list';
+if (!in_array($pageAdminPage, ['list', 'form'], true)) {
+    $pageAdminPage = 'list';
+}
+if (sr_request_method() === 'GET' && $pageAdminPage === 'form') {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'edit');
+}
 $editPage = null;
 $contentFiles = [];
 $downloadFiles = [];

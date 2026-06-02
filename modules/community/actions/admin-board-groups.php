@@ -22,6 +22,9 @@ $communityBoardGroupsPage = isset($communityBoardGroupsPage) ? (string) $communi
 if (!in_array($communityBoardGroupsPage, ['list', 'new', 'edit'], true)) {
     $communityBoardGroupsPage = 'list';
 }
+if (sr_request_method() === 'GET' && in_array($communityBoardGroupsPage, ['new', 'edit'], true)) {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/board-groups', 'edit');
+}
 $allowedGroupStatuses = sr_community_board_group_statuses();
 $allowedReadPolicies = sr_community_policy_values('read');
 $allowedWritePolicies = sr_community_policy_values('write');

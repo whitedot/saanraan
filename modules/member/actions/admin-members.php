@@ -16,6 +16,9 @@ $memberAdminPage = isset($memberAdminPage) ? (string) $memberAdminPage : 'member
 if (!in_array($memberAdminPage, ['members', 'create_form', 'edit_form'], true)) {
     $memberAdminPage = 'members';
 }
+if (sr_request_method() === 'GET' && in_array($memberAdminPage, ['create_form', 'edit_form'], true)) {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/members', 'edit');
+}
 $memberCreateValues = sr_admin_member_create_default_values(is_array($site ?? null) ? $site : []);
 $memberEditValues = [];
 $memberSettings = sr_member_settings($pdo);

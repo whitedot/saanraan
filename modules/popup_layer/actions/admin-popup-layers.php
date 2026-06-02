@@ -18,6 +18,9 @@ $popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPa
 if (!in_array($popupLayerAdminPage, ['list', 'form'], true)) {
     $popupLayerAdminPage = 'list';
 }
+if (sr_request_method() === 'GET' && $popupLayerAdminPage === 'form') {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers', 'edit');
+}
 $availableTargets = sr_popup_layer_available_targets($pdo);
 $popupLayerSettings = sr_popup_layer_settings($pdo);
 $popupLayerSkinOptions = sr_popup_layer_skin_options();

@@ -201,6 +201,34 @@ foreach (sr_admin_action_security_module_dirs($root) as $moduleDir) {
                 $errors[] = 'Admin action must require an admin permission or owner guard: ' . $route . ' -> ' . $actionFile;
             }
 
+            $directRedirectPosition = strpos($content, 'sr_redirect(');
+            if (
+                $directRedirectPosition !== false
+                && (
+                    strpos($content, 'sr_member_require_login(') === false
+                    || (
+                        strpos($content, 'sr_admin_require_permission(') === false
+                        && strpos($content, 'sr_admin_require_owner(') === false
+                        && strpos($content, 'sr_admin_require_role(') === false
+                    )
+                    || strpos($content, 'sr_member_require_login(') > $directRedirectPosition
+                    || (
+                        strpos($content, 'sr_admin_require_permission(') !== false
+                        && strpos($content, 'sr_admin_require_permission(') > $directRedirectPosition
+                    )
+                    || (
+                        strpos($content, 'sr_admin_require_owner(') !== false
+                        && strpos($content, 'sr_admin_require_owner(') > $directRedirectPosition
+                    )
+                    || (
+                        strpos($content, 'sr_admin_require_role(') !== false
+                        && strpos($content, 'sr_admin_require_role(') > $directRedirectPosition
+                    )
+                )
+            ) {
+                $errors[] = 'Admin action must check login and admin permission before redirecting: ' . $route . ' -> ' . $actionFile;
+            }
+
             if ($method === 'POST') {
                 $loginPosition = strpos($effectiveContent, 'sr_member_require_login(');
                 $csrfPosition = strpos($effectiveContent, 'sr_require_csrf(');

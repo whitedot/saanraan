@@ -18,6 +18,9 @@ $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 if (!in_array($bannerAdminPage, ['list', 'form'], true)) {
     $bannerAdminPage = 'list';
 }
+if (sr_request_method() === 'GET' && $bannerAdminPage === 'form') {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/banners', 'edit');
+}
 $availableTargets = sr_banner_available_targets($pdo);
 $bannerSettings = sr_banner_settings($pdo);
 $bannerSkinOptions = sr_banner_skin_options();
