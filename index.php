@@ -52,6 +52,8 @@ sr_send_security_headers($config);
 try {
     $pdo = sr_db($config);
     $site = sr_load_site($pdo);
+    $GLOBALS['sr_pdo'] = $pdo;
+    $GLOBALS['sr_site'] = $site;
     sr_apply_site_runtime_settings($site);
     sr_start_session($config, $pdo);
     sr_set_locale(sr_resolve_locale($pdo, $site));
@@ -85,6 +87,7 @@ if (
     && $site['status'] === 'maintenance'
     && $path !== '/login'
     && $path !== '/logout'
+    && $path !== '/logo-manager/image'
     && strpos($path, '/admin') !== 0
 ) {
     sr_render_error(503, '현재 점검 중입니다.');

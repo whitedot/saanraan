@@ -161,10 +161,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('admin_settings_supported_locales', sr_t('admin::ui.locale.list.51d8e798'), $siteSettingsHelp['supported_locales']['id'], $siteSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('admin_settings_supported_locales', sr_t('admin::ui.locale.list.51d8e798'), $siteSettingsHelp['supported_locales']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
-                <?php echo sr_admin_checkbox_list_html('admin_settings_supported_locales', 'supported_locales', array_combine($localeOptions, $localeOptions) ?: [], $selectedSupportedLocales, sr_t('admin::ui.locale.9d745a6e')); ?>
+                <div data-admin-required-checkbox-group data-admin-required-checkbox-message="지원 locale 목록은 최소 한 개 이상 선택하세요.">
+                    <?php echo sr_admin_checkbox_list_html('admin_settings_supported_locales', 'supported_locales', array_combine($localeOptions, $localeOptions) ?: [], $selectedSupportedLocales, sr_t('admin::ui.locale.9d745a6e')); ?>
+                </div>
             </div>
         </div>
         <div class="admin-form-row">
@@ -263,6 +265,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
     </div>
 </form>
+
+<script>
+(function () {
+    function updateRequiredCheckboxGroup(root) {
+        var checkboxes = Array.prototype.slice.call(root.querySelectorAll('input[type="checkbox"]'));
+        if (checkboxes.length === 0) {
+            return;
+        }
+
+        var checked = checkboxes.some(function (checkbox) {
+            return checkbox.checked;
+        });
+        var message = root.getAttribute('data-admin-required-checkbox-message') || '최소 한 개 이상 선택하세요.';
+        checkboxes[0].setCustomValidity(checked ? '' : message);
+    }
+
+    document.querySelectorAll('[data-admin-required-checkbox-group]').forEach(function (root) {
+        updateRequiredCheckboxGroup(root);
+        root.addEventListener('change', function () {
+            updateRequiredCheckboxGroup(root);
+        });
+    });
+}());
+</script>
 
 <?php foreach ($siteSettingsHelp as $siteSettingsHelpModal) { ?>
     <?php echo sr_admin_help_modal_html($siteSettingsHelpModal['id'], $siteSettingsHelpModal['title'], $siteSettingsHelpModal['body_html']); ?>
