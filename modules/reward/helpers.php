@@ -394,7 +394,7 @@ function sr_reward_request_status_label(string $status): string
     $labels = [
         'pending' => '대기',
         'completed' => '완료',
-        'rejected' => '반려',
+        'rejected' => '거부',
         'canceled' => '취소',
     ];
 
@@ -507,6 +507,29 @@ function sr_reward_admin_withdrawal_request_count(PDO $pdo, string $status, stri
     $stmt->execute($filter['params']);
 
     return (int) $stmt->fetchColumn();
+}
+
+function sr_reward_admin_withdrawal_request_pending_ids(PDO $pdo, string $field = 'all', string $keyword = '', int $limit = 101): array
+{
+    $limit = max(1, min(500, $limit));
+    $filter = sr_reward_admin_withdrawal_request_filter_sql('pending', $field, $keyword);
+    $params = $filter['params'];
+
+    $stmt = $pdo->prepare(
+        "SELECT r.id
+         FROM sr_reward_withdrawal_requests r
+         LEFT JOIN sr_member_accounts a ON a.id = r.account_id
+         {$filter['where']}
+         ORDER BY r.id ASC
+         LIMIT :limit"
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
 }
 
 function sr_reward_admin_withdrawal_request_rows(PDO $pdo, array $runtimeConfig, string $status, array $pagination, string $field = 'all', string $keyword = ''): array
