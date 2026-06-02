@@ -29,6 +29,7 @@ $accountPagination = sr_admin_pagination_from_total($pdo, sr_admin_permission_ac
 $accountSortOptions = sr_admin_permission_account_sort_options();
 $accountDefaultSort = sr_admin_permission_account_default_sort();
 $accountSort = sr_admin_sort_from_request($accountSortOptions, $accountDefaultSort);
+$ownerCount = sr_admin_owner_count($pdo);
 $accounts = sr_admin_member_rows_with_public_hash(
     $runtimeConfig,
     sr_admin_permission_accounts($pdo, '', [], 'any', (int) $accountPagination['per_page'], sr_admin_pagination_offset($accountPagination), $accountSort)

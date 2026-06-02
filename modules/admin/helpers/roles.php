@@ -32,6 +32,19 @@ function sr_admin_revoke_role(PDO $pdo, int $accountId, string $roleKey): void
     ]);
 }
 
+function sr_admin_locked_owner_rows(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        "SELECT r.account_id, a.status
+         FROM sr_admin_account_roles r
+         INNER JOIN sr_member_accounts a ON a.id = r.account_id
+         WHERE r.role_key = 'owner'
+         FOR UPDATE"
+    );
+
+    return $stmt->fetchAll();
+}
+
 function sr_admin_current_roles(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare("SELECT role_key FROM sr_admin_account_roles WHERE account_id = :account_id AND role_key = 'owner' ORDER BY role_key ASC");
@@ -80,6 +93,11 @@ function sr_admin_require_owner(PDO $pdo, int $accountId): void
 function sr_admin_permission_actions(): array
 {
     return ['view', 'edit', 'delete'];
+}
+
+function sr_admin_permission_action_requires_view(string $actionKey): bool
+{
+    return in_array($actionKey, ['edit', 'delete'], true);
 }
 
 function sr_admin_normalize_permission_action(string $actionKey): string
@@ -234,10 +252,16 @@ function sr_admin_sync_account_permissions(PDO $pdo, int $accountId, array $perm
         [$menuPath, $actionKey] = sr_admin_parse_permission_token(is_string($permissionToken) ? $permissionToken : '');
         if ($menuPath !== '' && $actionKey !== '' && isset($allowedMap[$menuPath])) {
             $selectedMap[$menuPath . '|' . $actionKey] = [$menuPath, $actionKey];
+            if (sr_admin_permission_action_requires_view($actionKey)) {
+                $selectedMap[$menuPath . '|view'] = [$menuPath, 'view'];
+            }
         }
     }
 
-    $pdo->beginTransaction();
+    $ownsTransaction = !$pdo->inTransaction();
+    if ($ownsTransaction) {
+        $pdo->beginTransaction();
+    }
     try {
         $delete = $pdo->prepare('DELETE FROM sr_admin_account_permissions WHERE account_id = :account_id');
         $delete->execute(['account_id' => $accountId]);
@@ -255,9 +279,13 @@ function sr_admin_sync_account_permissions(PDO $pdo, int $accountId, array $perm
             ]);
         }
 
-        $pdo->commit();
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
     } catch (Throwable $exception) {
-        $pdo->rollBack();
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         throw $exception;
     }
 }
@@ -381,10 +409,15 @@ function sr_admin_post_permission_keys(PDO $pdo): array
         [$menuPath, $actionKey] = sr_admin_parse_permission_token(is_string($permissionKey) ? $permissionKey : '');
         if ($menuPath !== '' && $actionKey !== '' && isset($allowedMap[$menuPath])) {
             $selectedMap[$menuPath . '|' . $actionKey] = true;
+            if (sr_admin_permission_action_requires_view($actionKey)) {
+                $selectedMap[$menuPath . '|view'] = true;
+            }
         }
     }
 
-    return array_values(array_keys($selectedMap));
+    $selectedKeys = array_keys($selectedMap);
+    sort($selectedKeys);
+    return $selectedKeys;
 }
 
 function sr_admin_post_permission_keys_valid(PDO $pdo): bool
@@ -465,7 +498,7 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
     $selectedPermissionKeys = sr_admin_post_permission_keys($pdo);
     $requestedPermissionKeys = $selectedPermissionKeys;
 
-    if (!in_array($intent, ['', 'add_permission'], true)) {
+    if (!in_array($intent, ['', 'add_permission', 'revoke_permission'], true)) {
         $errors[] = sr_t('admin::action.roles.intent_invalid');
     }
 
@@ -508,6 +541,11 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
         }
     }
 
+    if ($errors === [] && $intent === 'revoke_permission') {
+        $selectedIsOwner = false;
+        $selectedPermissionKeys = [];
+    }
+
     if ($errors === [] && (string) $targetAccount['status'] !== 'active') {
         $addsOwnerRole = $selectedIsOwner && !$beforeIsOwner;
         $addsPermissionKeys = array_values(array_diff($selectedPermissionKeys, $beforePermissionKeys));
@@ -529,35 +567,76 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
     }
 
     if ($errors === []) {
-        if ($selectedIsOwner) {
-            sr_admin_grant_role($pdo, $targetAccountId, 'owner');
-        } else {
-            sr_admin_revoke_role($pdo, $targetAccountId, 'owner');
+        $ownsTransaction = !$pdo->inTransaction();
+        if ($ownsTransaction) {
+            $pdo->beginTransaction();
         }
-        sr_admin_sync_account_permissions($pdo, $targetAccountId, $selectedPermissionKeys);
 
-        $afterIsOwner = sr_admin_is_owner($pdo, $targetAccountId);
-        $afterPermissionKeys = sr_admin_current_permission_keys($pdo, $targetAccountId);
-        if ($beforeIsOwner === $afterIsOwner && $beforePermissionKeys === $afterPermissionKeys) {
-            $notice = sr_t('admin::action.roles.no_changes');
-        } else {
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'admin.permissions.changed',
-                'target_type' => 'member_account',
-                'target_id' => (string) $targetAccountId,
-                'result' => 'success',
-                'message' => 'Admin permissions changed.',
-                'metadata' => [
-                    'before_owner' => $beforeIsOwner,
-                    'after_owner' => $afterIsOwner,
-                    'before_permissions' => $beforePermissionKeys,
-                    'after_permissions' => $afterPermissionKeys,
-                ],
-            ]);
+        try {
+            if ($beforeIsOwner && !$selectedIsOwner) {
+                $lockedOwnerRows = sr_admin_locked_owner_rows($pdo);
+                $lockedOwnerCount = count($lockedOwnerRows);
+                $lockedActiveOwnerCount = 0;
+                foreach ($lockedOwnerRows as $lockedOwnerRow) {
+                    if ((string) ($lockedOwnerRow['status'] ?? '') === 'active') {
+                        $lockedActiveOwnerCount++;
+                    }
+                }
 
-            $notice = sr_t('admin::action.roles.saved');
+                if ($lockedOwnerCount <= 1) {
+                    $errors[] = sr_t('admin::action.roles.last_owner_revoke_disallowed');
+                } elseif ((string) $targetAccount['status'] === 'active' && $lockedActiveOwnerCount <= 1) {
+                    $errors[] = sr_t('admin::action.roles.last_active_owner_revoke_disallowed');
+                }
+            }
+
+            if ($errors === []) {
+                if ($selectedIsOwner) {
+                    sr_admin_grant_role($pdo, $targetAccountId, 'owner');
+                } else {
+                    sr_admin_revoke_role($pdo, $targetAccountId, 'owner');
+                }
+                sr_admin_sync_account_permissions($pdo, $targetAccountId, $selectedPermissionKeys);
+
+                $afterIsOwner = sr_admin_is_owner($pdo, $targetAccountId);
+                $afterPermissionKeys = sr_admin_current_permission_keys($pdo, $targetAccountId);
+                if ($beforeIsOwner === $afterIsOwner && $beforePermissionKeys === $afterPermissionKeys) {
+                    $notice = sr_t('admin::action.roles.no_changes');
+                } else {
+                    sr_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'admin.permissions.changed',
+                        'target_type' => 'member_account',
+                        'target_id' => (string) $targetAccountId,
+                        'result' => 'success',
+                        'message' => 'Admin permissions changed.',
+                        'metadata' => [
+                            'before_owner' => $beforeIsOwner,
+                            'after_owner' => $afterIsOwner,
+                            'before_permissions' => $beforePermissionKeys,
+                            'after_permissions' => $afterPermissionKeys,
+                        ],
+                    ]);
+
+                    $notice = $intent === 'revoke_permission'
+                        ? sr_t('admin::action.roles.revoked')
+                        : sr_t('admin::action.roles.saved');
+                }
+            }
+
+            if ($ownsTransaction) {
+                if ($errors === []) {
+                    $pdo->commit();
+                } else {
+                    $pdo->rollBack();
+                }
+            }
+        } catch (Throwable $exception) {
+            if ($ownsTransaction && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $exception;
         }
     }
 

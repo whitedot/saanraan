@@ -8,6 +8,7 @@ $permissionActions = isset($permissionActions) && is_array($permissionActions) ?
 $accountSortOptions = sr_admin_permission_account_sort_options();
 $accountDefaultSort = sr_admin_permission_account_default_sort();
 $accountSort = isset($accountSort) && is_array($accountSort) ? $accountSort : $accountDefaultSort;
+$ownerCount = isset($ownerCount) ? (int) $ownerCount : 0;
 $permissionFormAction = sr_url('/admin/roles');
 $memberSearchUrl = sr_url('/admin/members/search');
 $permissionOptionMap = [];
@@ -46,6 +47,64 @@ foreach ($permissionActions as $actionKey) {
     $permissionActionLabels[(string) $actionKey] = sr_admin_code_label((string) $actionKey, 'admin_permission_action');
 }
 $permissionActionLabelJson = json_encode($permissionActionLabels, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+$permissionSelectedByPath = static function (array $permissionKeys): array {
+    $selectedByPath = [];
+    foreach ($permissionKeys as $permissionToken) {
+        [$selectedPath, $selectedAction] = sr_admin_parse_permission_token((string) $permissionToken);
+        if ($selectedPath !== '' && $selectedAction !== '') {
+            $selectedByPath[$selectedPath][$selectedAction] = true;
+        }
+    }
+
+    return $selectedByPath;
+};
+$permissionSummaryHtml = static function (array $adminAccount) use ($permissionActions, $permissionActionLabels, $permissionOptionMap, $permissionSelectedByPath): string {
+    if (!empty($adminAccount['is_owner'])) {
+        return '<div class="badge-list"><span class="badge-list-item"><span class="badge-list-label">' . sr_e(sr_admin_code_label('owner', 'role')) . '</span><span class="badge-list-summary">전체 관리자 권한</span></span></div>';
+    }
+
+    $selectedByPath = $permissionSelectedByPath((array) ($adminAccount['permission_keys'] ?? []));
+    if ($selectedByPath === []) {
+        return '<span class="admin-permission-summary-empty">' . sr_e(sr_t('admin::ui.text.72ea3d64')) . '</span>';
+    }
+
+    $permissionCounts = array_fill_keys($permissionActions, 0);
+    foreach ($selectedByPath as $selectedActions) {
+        foreach (array_keys($selectedActions) as $selectedAction) {
+            if (isset($permissionCounts[$selectedAction])) {
+                $permissionCounts[$selectedAction]++;
+            }
+        }
+    }
+
+    $html = '<div class="admin-permission-summary"><div class="badge-list">';
+    $previewPaths = array_slice(array_keys($selectedByPath), 0, 3);
+    foreach ($previewPaths as $selectedPath) {
+        $actionLabels = [];
+        foreach ($permissionActions as $actionKey) {
+            if (isset($selectedByPath[$selectedPath][$actionKey])) {
+                $actionLabels[] = (string) ($permissionActionLabels[$actionKey] ?? $actionKey);
+            }
+        }
+
+        $html .= '<span class="badge-list-item"><span class="badge-list-label">' . sr_e((string) ($permissionOptionMap[$selectedPath]['label'] ?? $selectedPath)) . '</span><span class="badge-list-summary">' . sr_e(implode(', ', $actionLabels)) . '</span></span>';
+    }
+
+    $remaining = max(0, count($selectedByPath) - count($previewPaths));
+    if ($remaining > 0) {
+        $html .= '<span class="badge-list-item"><span class="badge-list-label">외 ' . sr_e((string) $remaining) . '개</span><span class="badge-list-summary">권한 변경에서 확인</span></span>';
+    }
+    $html .= '</div><div class="admin-permission-summary-preview">';
+    $countParts = [];
+    foreach ($permissionCounts as $actionKey => $countValue) {
+        if ($countValue > 0) {
+            $countParts[] = (string) ($permissionActionLabels[$actionKey] ?? $actionKey) . ' ' . (string) $countValue;
+        }
+    }
+    $html .= sr_e(implode(' · ', $countParts)) . '</div></div>';
+
+    return $html;
+};
 $roleHelpOpenLabel = sr_t('admin::roles.help.open');
 $roleHelpButtonHtml = static function (string $label, string $modalId) use ($roleHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $roleHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -129,7 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title">권한 보유 회원</h2>
         <p class="admin-dashboard-meta">소유자이거나 메뉴별 권한이 추가된 회원만 표시됩니다.</p>
     </div>
-    <button type="button" class="btn btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-add-modal" data-overlay="#admin-permission-add-modal">권한 추가</button>
+    <button type="button" class="btn btn-icon btn-outline-secondary" aria-label="권한 추가" title="권한 추가" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-add-modal" data-overlay="#admin-permission-add-modal" data-admin-permission-add-new><?php echo sr_material_icon_html('add'); ?></button>
 </div>
 <div class="admin-list-summary-row">
     <?php if (empty($accountSort['is_default'])) { ?>
@@ -141,8 +200,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <table class="table">
     <thead class="ui-table-head">
         <tr>
-            <th><?php echo sr_e(sr_t('admin::ui.text.4ca2f9ab')); ?></th>
-            <th<?php echo sr_admin_sort_aria('email', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.email.3b7dbc4c'), 'email', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
+            <th<?php echo sr_admin_sort_aria('email', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.4ca2f9ab') . ' / ' . sr_t('admin::ui.email.3b7dbc4c'), 'email', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
             <th<?php echo sr_admin_sort_aria('display_name', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.e8857c35'), 'display_name', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
             <th<?php echo sr_admin_sort_aria('status', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.status.3808960c'), 'status', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
             <th<?php echo sr_admin_sort_aria('permission_count', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.4b72a63a'), 'permission_count', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
@@ -152,45 +210,51 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <tbody>
         <?php if ($accounts === []) { ?>
             <tr>
-                <td colspan="6" class="admin-empty-state">추가된 관리자 권한이 없습니다.</td>
+                <td colspan="5" class="admin-empty-state">추가된 관리자 권한이 없습니다.</td>
             </tr>
         <?php } ?>
         <?php foreach ($accounts as $adminAccount) { ?>
             <?php
             $permissionModalId = 'admin-permission-modal-' . (string) $adminAccount['id'];
-            $permissionCounts = array_fill_keys($permissionActions, 0);
-            foreach ((array) ($adminAccount['permission_keys'] ?? []) as $permissionToken) {
-                [$permissionPath, $permissionAction] = sr_admin_parse_permission_token((string) $permissionToken);
-                if ($permissionPath !== '' && isset($permissionCounts[$permissionAction])) {
-                    $permissionCounts[$permissionAction]++;
-                }
-            }
-            $permissionSummaryParts = [];
-            foreach ($permissionCounts as $actionKey => $countValue) {
-                if ($countValue > 0) {
-                    $permissionSummaryParts[] = sr_admin_code_label((string) $actionKey, 'admin_permission_action') . ' ' . (string) $countValue;
-                }
-            }
-            $permissionSummary = !empty($adminAccount['is_owner'])
-                ? sr_admin_code_label('owner', 'role')
-                : ($permissionSummaryParts === [] ? sr_t('admin::ui.text.72ea3d64') : implode(', ', $permissionSummaryParts));
             ?>
             <tr>
-                <td><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></td>
-                <td><?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?></td>
+                <td>
+                    <span class="admin-permission-member-cell">
+                        <span class="admin-permission-member-hash"><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></span>
+                        <span class="admin-permission-member-email"><?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?></span>
+                    </span>
+                </td>
                 <td><?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?></td>
                 <td><?php echo sr_e(sr_admin_code_label((string) $adminAccount['status'], 'member_status')); ?></td>
-                <td><?php echo sr_e($permissionSummary); ?></td>
+                <td><?php echo $permissionSummaryHtml($adminAccount); ?></td>
                 <td class="admin-table-actions-cell">
                     <div class="admin-row-actions">
-                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($permissionModalId); ?>" data-overlay="#<?php echo sr_e($permissionModalId); ?>">
-                            <?php echo sr_e(sr_t('admin::ui.text.5336e811')); ?>
+                        <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('admin::ui.text.5336e811')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.5336e811')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($permissionModalId); ?>" data-overlay="#<?php echo sr_e($permissionModalId); ?>">
+                            <?php echo sr_material_icon_html('edit'); ?>
                         </button>
-                        <?php if (empty($adminAccount['is_owner'])) { ?>
+                        <?php if (empty($adminAccount['is_owner']) && (string) $adminAccount['status'] === 'active') { ?>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-icon btn-outline-secondary"
+                                aria-label="권한 추가"
+                                title="권한 추가"
+                                aria-haspopup="dialog"
+                                aria-expanded="false"
+                                aria-controls="admin-permission-add-modal"
+                                data-overlay="#admin-permission-add-modal"
+                                data-admin-permission-add-for-member
+                                data-account-id="<?php echo sr_e((string) $adminAccount['id']); ?>"
+                                data-account-identifier="<?php echo sr_e((string) $adminAccount['account_public_hash']); ?>"
+                                data-account-label="<?php echo sr_e((string) $adminAccount['account_public_hash'] . ' · ' . sr_admin_member_email_display($adminAccount) . ' · ' . sr_admin_member_display_name_preview($adminAccount)); ?>"
+                                data-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>"
+                            ><?php echo sr_material_icon_html('add'); ?></button>
+                        <?php } ?>
+                        <?php if (empty($adminAccount['is_owner']) || $ownerCount > 1) { ?>
                             <form method="post" action="<?php echo sr_e($permissionFormAction); ?>">
                                 <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="revoke_permission">
                                 <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">권한 회수</button>
+                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="권한 회수" title="권한 회수"><?php echo sr_material_icon_html('delete'); ?></button>
                             </form>
                         <?php } ?>
                     </div>
@@ -204,8 +268,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_pagination_html($accountPagination, '관리자 권한 회원 목록 페이지'); ?>
 
 <div id="admin-permission-add-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0 admin-permission-add-modal" role="dialog" tabindex="-1" aria-labelledby="admin-permission-add-modal-label" aria-hidden="true" inert>
-    <div class="modal-dialog">
-        <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content ui-form-theme" data-admin-permission-form data-admin-permission-add-form>
+    <div class="modal-dialog modal-dialog-lg admin-permission-modal-dialog admin-permission-add-dialog">
+        <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-add-form>
             <div class="modal-header">
                 <h3 id="admin-permission-add-modal-label" class="modal-title">관리자 권한 추가</h3>
                 <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-permission-add-modal">
@@ -227,38 +291,52 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?><span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span></span>
+                    <span class="form-label admin-form-label-help">
+                        <?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?>
+                        <span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
+                    </span>
                     <div class="admin-form-field">
-                        <label class="admin-role-choice admin-form-check form-label" for="admin-permission-add-owner">
+                        <label class="admin-form-check form-label" for="admin-permission-add-owner">
                             <input id="admin-permission-add-owner" type="checkbox" name="is_owner" value="1" class="form-checkbox">
                             <span><?php echo sr_e(sr_t('admin::ui.text.7258c171')); ?></span>
                         </label>
+                        <p class="admin-form-help">소유자 권한을 선택하면 메뉴별 권한은 따로 저장하지 않습니다.</p>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml('1차', $roleHelp['permission_group']['id']); ?><label for="admin-permission-add-group">1차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label></div>
+                    <span class="form-label admin-form-label-help">
+                        <?php echo $roleHelpButtonHtml('대상 메뉴', $roleHelp['permission_group']['id']); ?>
+                        <span>대상 메뉴 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
+                    </span>
                     <div class="admin-form-field">
-                        <select id="admin-permission-add-group" class="form-select" data-admin-permission-group>
-                            <option value="">선택</option>
-                            <option value="__all_groups__">전체</option>
-                            <?php foreach ($permissionPickerGroups as $pickerGroup) { ?>
-                                <option value="<?php echo sr_e((string) $pickerGroup['id']); ?>"><?php echo sr_e((string) $pickerGroup['label']); ?></option>
-                            <?php } ?>
-                        </select>
+                        <div class="admin-permission-picker-grid">
+                            <div class="admin-permission-picker-control">
+                                <label class="admin-filter-label" for="admin-permission-add-group">1차</label>
+                                <select id="admin-permission-add-group" class="form-select form-control-full" data-admin-permission-group>
+                                    <option value="">선택</option>
+                                    <option value="__all_groups__">전체</option>
+                                    <?php foreach ($permissionPickerGroups as $pickerGroup) { ?>
+                                        <option value="<?php echo sr_e((string) $pickerGroup['id']); ?>"><?php echo sr_e((string) $pickerGroup['label']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                            <div class="admin-permission-picker-control">
+                                <label class="admin-filter-label" for="admin-permission-add-item">2차</label>
+                                <select id="admin-permission-add-item" class="form-select form-control-full" data-admin-permission-item disabled>
+                                    <option value="">1차 선택 후 선택</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.save.member.admin.f97e1d67')); ?></p>
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <div class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml('2차', $roleHelp['permission_item']['id']); ?><label for="admin-permission-add-item">2차 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label></div>
+                    <span class="form-label admin-form-label-help">
+                        <?php echo $roleHelpButtonHtml('권한', $roleHelp['permission_action']['id']); ?>
+                        <span>권한</span>
+                    </span>
                     <div class="admin-form-field">
-                        <select id="admin-permission-add-item" class="form-select" data-admin-permission-item disabled>
-                            <option value="">1차 선택 후 선택</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml('권한', $roleHelp['permission_action']['id']); ?><span>권한 <span class="sr-required-label" data-admin-permission-required-label><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span></span>
-                    <div class="admin-form-field">
-                        <fieldset class="admin-permission-picker-actions">
+                        <fieldset class="admin-permission-action-group">
                             <legend class="sr-only">권한</legend>
                             <?php foreach ($permissionActions as $actionKey) { ?>
                                 <?php $pickerActionId = 'admin-permission-add-picker-' . (string) $actionKey; ?>
@@ -268,7 +346,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </fieldset>
-                        <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.save.member.admin.f97e1d67')); ?></p>
                     </div>
                 </div>
             </div>
@@ -320,8 +397,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($permissionModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($permissionModalId); ?>-label">
         <div class="modal-dialog modal-dialog-lg admin-permission-modal-dialog">
-            <div class="modal-content">
-                <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="admin-form ui-form-theme" data-admin-permission-form data-admin-permission-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>">
+            <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($permissionModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.admin.bedced78')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($permissionModalId); ?>">
@@ -332,93 +408,74 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="account_id" value="<?php echo sr_e((string) $adminAccount['id']); ?>">
                         <div class="admin-form-row">
-                            <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_t('admin::ui.member.e335b899'), $roleHelp['edit_member']['id']); ?><span><?php echo sr_e(sr_t('admin::ui.member.e335b899')); ?></span></span>
+                            <span class="form-label admin-form-label-help">
+                                <?php echo $roleHelpButtonHtml(sr_t('admin::ui.member.e335b899'), $roleHelp['edit_member']['id']); ?>
+                                <span><?php echo sr_e(sr_t('admin::ui.member.e335b899')); ?></span>
+                            </span>
                             <div class="admin-form-field">
-                                <strong><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></strong><br>
-                                <?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?> · <?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?>
+                                <div class="admin-permission-member-summary">
+                                    <strong><?php echo sr_e(sr_admin_member_display_name_preview($adminAccount)); ?></strong>
+                                    <span><?php echo sr_e(sr_admin_member_email_display($adminAccount)); ?></span>
+                                    <span><?php echo sr_e((string) $adminAccount['account_public_hash']); ?></span>
+                                    <span><?php echo sr_e(sr_admin_code_label((string) $adminAccount['status'], 'member_status')); ?></span>
+                                </div>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?><span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span></span>
+                            <span class="form-label admin-form-label-help">
+                                <?php echo $roleHelpButtonHtml(sr_admin_code_label('owner', 'role'), $roleHelp['owner']['id']); ?>
+                                <span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
+                            </span>
                             <div class="admin-form-field">
-                                <label class="admin-role-choice admin-form-check form-label" for="<?php echo sr_e($permissionModalId); ?>-owner">
+                                <label class="admin-form-check form-label" for="<?php echo sr_e($permissionModalId); ?>-owner">
                                     <input id="<?php echo sr_e($permissionModalId); ?>-owner" type="checkbox" name="is_owner" value="1" class="form-checkbox"<?php echo !empty($adminAccount['is_owner']) ? ' checked' : ''; ?> data-overlay-focus>
                                     <span><?php echo sr_e(sr_t('admin::ui.text.7258c171')); ?></span>
                                 </label>
+                                <p class="admin-form-help">소유자 권한을 선택하면 메뉴별 권한은 저장 대상에서 제외됩니다.</p>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <span class="form-label admin-form-label-help"><?php echo $roleHelpButtonHtml(sr_t('admin::ui.text.4b72a63a'), $roleHelp['selected_permissions']['id']); ?><span><?php echo sr_e(sr_t('admin::ui.text.4b72a63a')); ?></span></span>
+                            <span class="form-label admin-form-label-help">
+                                <?php echo $roleHelpButtonHtml(sr_t('admin::ui.text.4b72a63a'), $roleHelp['selected_permissions']['id']); ?>
+                                <span>선택된 메뉴 권한</span>
+                            </span>
                             <div class="admin-form-field">
-                                <div class="admin-permission-picker" data-admin-permission-picker>
-                                    <div class="admin-permission-picker-grid">
-                                        <div>
-                                            <label class="admin-filter-label" for="<?php echo sr_e($permissionModalId); ?>-group">1차</label>
-                                            <select id="<?php echo sr_e($permissionModalId); ?>-group" class="form-select form-control-full" data-admin-permission-group>
-                                                <option value="">선택</option>
-                                                <option value="__all_groups__">전체</option>
-                                                <?php foreach ($permissionPickerGroups as $pickerGroup) { ?>
-                                                    <option value="<?php echo sr_e((string) $pickerGroup['id']); ?>"><?php echo sr_e((string) $pickerGroup['label']); ?></option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="admin-filter-label" for="<?php echo sr_e($permissionModalId); ?>-item">2차</label>
-                                            <select id="<?php echo sr_e($permissionModalId); ?>-item" class="form-select form-control-full" data-admin-permission-item disabled>
-                                                <option value="">1차 선택 후 선택</option>
-                                            </select>
-                                        </div>
-                                        <fieldset class="admin-permission-picker-actions">
-                                            <legend class="admin-filter-label">권한</legend>
-                                            <?php foreach ($permissionActions as $actionKey) { ?>
-                                                <?php $pickerActionId = $permissionModalId . '-picker-' . (string) $actionKey; ?>
-                                                <label class="admin-form-check form-label" for="<?php echo sr_e($pickerActionId); ?>">
-                                                    <input id="<?php echo sr_e($pickerActionId); ?>" type="checkbox" value="<?php echo sr_e((string) $actionKey); ?>" class="form-checkbox" data-admin-permission-action>
-                                                    <span><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></span>
-                                                </label>
-                                            <?php } ?>
-                                        </fieldset>
-                                        <button type="button" class="btn btn-solid-light admin-permission-add" data-admin-permission-add>추가</button>
-                                    </div>
-                                </div>
-
                                 <div class="admin-permission-selected-list" data-admin-permission-selected>
-                                <?php
-                                $selectedByPath = [];
-                                foreach (array_keys($selectedPermissionMap) as $permissionToken) {
-                                    [$selectedPath, $selectedAction] = sr_admin_parse_permission_token((string) $permissionToken);
-                                    if ($selectedPath !== '' && $selectedAction !== '') {
-                                        $selectedByPath[$selectedPath][$selectedAction] = true;
-                                    }
-                                }
-                                ?>
-                                <?php if ($selectedByPath === []) { ?>
-                                    <p class="admin-empty-state admin-permission-empty" data-admin-permission-empty>선택된 메뉴 권한이 없습니다.</p>
-                                <?php } ?>
-                                <?php foreach ($selectedByPath as $selectedPath => $selectedActions) { ?>
-                                    <?php $selectedOption = $permissionOptionMap[$selectedPath] ?? ['label' => $selectedPath, 'path' => $selectedPath, 'group_label' => '']; ?>
-                                    <div class="admin-permission-selected-row" data-admin-permission-row data-path="<?php echo sr_e($selectedPath); ?>" data-label="<?php echo sr_e((string) ($selectedOption['label'] ?? $selectedPath)); ?>">
-                                        <div class="admin-permission-selected-title">
-                                            <strong><?php echo sr_e((string) ($selectedOption['label'] ?? $selectedPath)); ?></strong>
-                                            <span><?php echo sr_e($selectedPath); ?></span>
+                                    <?php
+                                    $selectedByPath = $permissionSelectedByPath(array_keys($selectedPermissionMap));
+                                    ?>
+                                    <?php if ($selectedByPath === []) { ?>
+                                        <p class="admin-empty-state admin-permission-empty" data-admin-permission-empty>선택된 메뉴 권한이 없습니다.</p>
+                                    <?php } else { ?>
+                                        <div class="admin-permission-selected-head" data-admin-permission-selected-head aria-hidden="true">
+                                            <span>메뉴</span>
+                                            <?php foreach ($permissionActions as $actionKey) { ?>
+                                                <span><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></span>
+                                            <?php } ?>
+                                            <span>관리</span>
                                         </div>
-                                        <div class="admin-permission-selected-actions">
+                                    <?php } ?>
+                                    <?php foreach ($selectedByPath as $selectedPath => $selectedActions) { ?>
+                                        <?php $selectedOption = $permissionOptionMap[$selectedPath] ?? ['label' => $selectedPath, 'path' => $selectedPath, 'group_label' => '']; ?>
+                                        <div class="admin-permission-selected-row" data-admin-permission-row data-path="<?php echo sr_e($selectedPath); ?>" data-label="<?php echo sr_e((string) ($selectedOption['label'] ?? $selectedPath)); ?>">
+                                            <div class="admin-permission-selected-title">
+                                                <strong><?php echo sr_e((string) ($selectedOption['label'] ?? $selectedPath)); ?></strong>
+                                                <span><?php echo sr_e($selectedPath); ?></span>
+                                            </div>
                                             <?php foreach ($permissionActions as $actionKey) { ?>
                                                 <?php
                                                 $permissionToken = sr_admin_permission_token($selectedPath, (string) $actionKey);
                                                 $permissionInputId = $permissionModalId . '-permission-' . preg_replace('/[^a-z0-9_-]+/', '-', strtolower($permissionToken));
                                                 ?>
-                                                <label class="admin-form-check form-label" for="<?php echo sr_e($permissionInputId); ?>">
+                                                <label class="admin-permission-action-cell admin-form-check form-label" for="<?php echo sr_e($permissionInputId); ?>">
                                                     <input id="<?php echo sr_e($permissionInputId); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e($permissionToken); ?>" class="form-checkbox"<?php echo isset($selectedActions[$actionKey]) ? ' checked' : ''; ?>>
                                                     <span><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></span>
                                                 </label>
                                             <?php } ?>
                                             <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-admin-permission-remove aria-label="삭제" title="삭제"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </div>
-                                    </div>
-                                <?php } ?>
+                                    <?php } ?>
                                 </div>
-                                <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.save.member.admin.f97e1d67')); ?></p>
                             </div>
                         </div>
                     </div>
@@ -426,8 +483,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($permissionModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
                         <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.save.a6e3d7fe')); ?></button>
                     </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 <?php } ?>
@@ -504,22 +560,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return path + '|' + action;
     }
 
-    function safeId(value) {
-        return String(value).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
-    }
-
-    function cssEscape(value) {
-        if (window.CSS && typeof window.CSS.escape === 'function') {
-            return window.CSS.escape(value);
-        }
-
-        return String(value).replace(/["\\]/g, '\\$&');
-    }
-
     function ensureEmptyState(list) {
         var empty = list.querySelector('[data-admin-permission-empty]');
         var rows = list.querySelectorAll('[data-admin-permission-row]');
+        var head = list.querySelector('[data-admin-permission-selected-head]');
         if (rows.length === 0) {
+            if (head) {
+                head.remove();
+            }
             if (!empty) {
                 empty = document.createElement('p');
                 empty.className = 'admin-empty-state admin-permission-empty';
@@ -530,69 +578,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         } else if (empty) {
             empty.remove();
         }
-    }
-
-    function createActionCheck(form, modalId, path, action, checked) {
-        var inputId = modalId + '-permission-' + safeId(permissionToken(path, action));
-        var label = document.createElement('label');
-        label.className = 'admin-form-check form-label';
-        label.setAttribute('for', inputId);
-
-        var input = document.createElement('input');
-        input.id = inputId;
-        input.type = 'checkbox';
-        input.name = 'permission_keys[]';
-        input.value = permissionToken(path, action);
-        input.className = 'form-checkbox';
-        input.checked = checked;
-
-        var span = document.createElement('span');
-        span.textContent = actionLabels[action] || action;
-
-        label.appendChild(input);
-        label.appendChild(span);
-        return label;
-    }
-
-    function createRow(form, path, labelText) {
-        var list = form.querySelector('[data-admin-permission-selected]');
-        var modal = form.closest('.modal-overlay');
-        var modalId = modal ? modal.id : 'admin-permission';
-        var row = document.createElement('div');
-        row.className = 'admin-permission-selected-row';
-        row.setAttribute('data-admin-permission-row', '');
-        row.setAttribute('data-path', path);
-        row.setAttribute('data-label', labelText);
-
-        var title = document.createElement('div');
-        title.className = 'admin-permission-selected-title';
-        var strong = document.createElement('strong');
-        strong.textContent = labelText;
-        var small = document.createElement('span');
-        small.textContent = path;
-        title.appendChild(strong);
-        title.appendChild(small);
-
-        var actionWrap = document.createElement('div');
-        actionWrap.className = 'admin-permission-selected-actions';
-        actions.forEach(function (action) {
-            actionWrap.appendChild(createActionCheck(form, modalId, path, action, false));
-        });
-
-        var remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'btn btn-sm btn-icon btn-outline-danger';
-        remove.setAttribute('data-admin-permission-remove', '');
-        remove.setAttribute('aria-label', '삭제');
-        remove.setAttribute('title', '삭제');
-        remove.innerHTML = <?php echo json_encode(sr_material_icon_html('delete'), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-        actionWrap.appendChild(remove);
-
-        row.appendChild(title);
-        row.appendChild(actionWrap);
-        list.appendChild(row);
-        ensureEmptyState(list);
-        return row;
     }
 
     function updateAddSubmit(form) {
@@ -626,7 +611,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
-        form.querySelectorAll('[data-admin-permission-group], [data-admin-permission-action], [data-admin-permission-add]').forEach(function (control) {
+        form.querySelectorAll('[data-admin-permission-group], [data-admin-permission-action]').forEach(function (control) {
             control.disabled = grantControlsDisabled;
         });
 
@@ -638,6 +623,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var itemSelect = form.querySelector('[data-admin-permission-item]');
         if (itemSelect) {
             itemSelect.disabled = grantControlsDisabled || !groupSelect || groupSelect.value === '';
+        }
+    }
+
+    function syncPermissionActionHierarchy(control) {
+        if (!control || !control.matches('[data-admin-permission-action], input[name="permission_keys[]"]')) {
+            return;
+        }
+
+        var action = control.value.indexOf('|') === -1 ? control.value : control.value.split('|').pop();
+        var scope = control.closest('[data-admin-permission-row]') || control.closest('.admin-permission-action-group');
+        if (!scope) {
+            return;
+        }
+
+        var viewInput = scope.querySelector('[data-admin-permission-action][value="view"], input[name="permission_keys[]"][value$="|view"]');
+        var editInput = scope.querySelector('[data-admin-permission-action][value="edit"], input[name="permission_keys[]"][value$="|edit"]');
+        var deleteInput = scope.querySelector('[data-admin-permission-action][value="delete"], input[name="permission_keys[]"][value$="|delete"]');
+
+        if ((action === 'edit' || action === 'delete') && control.checked && viewInput) {
+            viewInput.checked = true;
+        }
+        if (action === 'view' && !control.checked) {
+            if (editInput) {
+                editInput.checked = false;
+            }
+            if (deleteInput) {
+                deleteInput.checked = false;
+            }
         }
     }
 
@@ -726,6 +739,73 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 hiddenWrap.appendChild(input);
             });
         });
+    }
+
+    function resetAddPermissionPicker(form) {
+        var hiddenWrap = form.querySelector('[data-admin-permission-hidden]');
+        var ownerInput = form.querySelector('input[name="is_owner"]');
+        var groupSelect = form.querySelector('[data-admin-permission-group]');
+        var itemSelect = form.querySelector('[data-admin-permission-item]');
+
+        if (hiddenWrap) {
+            hiddenWrap.innerHTML = '';
+        }
+        if (ownerInput) {
+            ownerInput.checked = false;
+        }
+        if (groupSelect) {
+            groupSelect.value = '';
+        }
+        if (itemSelect) {
+            itemSelect.innerHTML = '';
+            itemSelect.appendChild(option('1차 선택 후 선택', ''));
+            itemSelect.disabled = true;
+        }
+        form.querySelectorAll('[data-admin-permission-action]').forEach(function (actionInput) {
+            actionInput.checked = false;
+        });
+        clearAddFormValidity(form);
+    }
+
+    function setAddPermissionMember(source) {
+        var pickForm = document.querySelector('[data-admin-permission-add-form]');
+        if (!pickForm || !source) {
+            return;
+        }
+
+        var accountInput = pickForm.querySelector('[data-admin-permission-account-id]');
+        var accountIdentifier = pickForm.querySelector('[data-admin-permission-account-identifier]');
+        if (accountInput) {
+            accountInput.value = source.getAttribute('data-account-id') || '';
+        }
+        pickForm.setAttribute('data-admin-permission-account-status', source.getAttribute('data-account-status') || '');
+        if (accountIdentifier) {
+            accountIdentifier.value = source.getAttribute('data-account-identifier') || source.getAttribute('data-account-label') || '';
+            accountIdentifier.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        resetAddPermissionPicker(pickForm);
+        validateAddForm(pickForm, false);
+        updateAddSubmit(pickForm);
+    }
+
+    function resetAddPermissionMember() {
+        var pickForm = document.querySelector('[data-admin-permission-add-form]');
+        if (!pickForm) {
+            return;
+        }
+
+        var accountInput = pickForm.querySelector('[data-admin-permission-account-id]');
+        var accountIdentifier = pickForm.querySelector('[data-admin-permission-account-identifier]');
+        if (accountInput) {
+            accountInput.value = '';
+        }
+        if (accountIdentifier) {
+            accountIdentifier.value = '';
+        }
+        pickForm.setAttribute('data-admin-permission-account-status', '');
+        resetAddPermissionPicker(pickForm);
+        updateAddSubmit(pickForm);
     }
 
     function memberSummary(item) {
@@ -901,17 +981,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
 
     document.addEventListener('change', function (event) {
-        var control = event.target.closest && event.target.closest('[data-admin-permission-item], [data-admin-permission-action], input[name="is_owner"]');
+        var control = event.target.closest && event.target.closest('[data-admin-permission-item], [data-admin-permission-action], input[name="permission_keys[]"], input[name="is_owner"]');
         if (!control) {
             return;
         }
 
-        var form = control.closest('[data-admin-permission-add-form]');
+        var form = control.closest('[data-admin-permission-form]');
         if (!form) {
             return;
         }
 
+        syncPermissionActionHierarchy(control);
         syncOwnerPermissionState(form);
+        if (!form.matches('[data-admin-permission-add-form]')) {
+            return;
+        }
+
         validateAddForm(form, false);
         updateAddSubmit(form);
     });
@@ -927,25 +1012,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
+        var addNewButton = event.target.closest && event.target.closest('[data-admin-permission-add-new]');
+        if (addNewButton) {
+            resetAddPermissionMember();
+            return;
+        }
+
+        var addForMemberButton = event.target.closest && event.target.closest('[data-admin-permission-add-for-member]');
+        if (addForMemberButton) {
+            setAddPermissionMember(addForMemberButton);
+            return;
+        }
+
         var memberPickButton = event.target.closest && event.target.closest('[data-admin-permission-member-pick]');
         if (memberPickButton) {
-            var pickForm = document.querySelector('[data-admin-permission-add-form]');
-            var accountInput = pickForm ? pickForm.querySelector('[data-admin-permission-account-id]') : null;
-            var accountIdentifier = pickForm ? pickForm.querySelector('[data-admin-permission-account-identifier]') : null;
-            if (accountInput) {
-                accountInput.value = memberPickButton.getAttribute('data-account-id') || '';
-            }
-            if (pickForm) {
-                pickForm.setAttribute('data-admin-permission-account-status', memberPickButton.getAttribute('data-account-status') || '');
-            }
-            if (accountIdentifier) {
-                accountIdentifier.value = memberPickButton.getAttribute('data-account-identifier') || memberPickButton.getAttribute('data-account-label') || '';
-                accountIdentifier.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-            if (pickForm) {
-                validateAddForm(pickForm, false);
-                updateAddSubmit(pickForm);
-            }
+            setAddPermissionMember(memberPickButton);
             returnToAddModal(memberPickButton.closest('.modal-overlay'));
             return;
         }
@@ -960,34 +1041,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     memberQuery.value = memberTarget.value;
                 }
             }
-            return;
-        }
-
-        var addButton = event.target.closest && event.target.closest('[data-admin-permission-add]');
-        if (addButton) {
-            var form = addButton.closest('[data-admin-permission-form]');
-            var items = selectedPermissionItems(form);
-            if (!form || items.length === 0) {
-                return;
-            }
-
-            var pickedActions = form.querySelectorAll('[data-admin-permission-action]:checked');
-            if (pickedActions.length === 0) {
-                return;
-            }
-
-            items.forEach(function (item) {
-                var row = form.querySelector('[data-admin-permission-row][data-path="' + cssEscape(item.path) + '"]') || createRow(form, item.path, item.label);
-                pickedActions.forEach(function (actionInput) {
-                    var target = row.querySelector('input[value="' + cssEscape(permissionToken(item.path, actionInput.value)) + '"]');
-                    if (target) {
-                        target.checked = true;
-                    }
-                });
-            });
-            pickedActions.forEach(function (actionInput) {
-                actionInput.checked = false;
-            });
             return;
         }
 
