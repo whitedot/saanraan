@@ -251,8 +251,6 @@ function sr_render_error(int $statusCode, string $message, ?Throwable $exception
 
     $debug = !empty($config['debug']);
     $pageTitle = (string) $statusCode;
-    $pdo = isset($GLOBALS['sr_pdo']) && $GLOBALS['sr_pdo'] instanceof PDO ? $GLOBALS['sr_pdo'] : null;
-    $site = is_array($GLOBALS['sr_site'] ?? null) ? $GLOBALS['sr_site'] : null;
     include SR_ROOT . '/core/views/error.php';
     sr_finish_response();
 }

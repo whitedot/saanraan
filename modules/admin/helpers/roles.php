@@ -491,6 +491,12 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
         $beforePermissionKeys = sr_admin_current_permission_keys($pdo, $targetAccountId);
     }
 
+    if ($errors === [] && $intent === 'add_permission') {
+        $selectedIsOwner = $beforeIsOwner || $selectedIsOwner;
+        $selectedPermissionKeys = array_values(array_unique(array_merge($beforePermissionKeys, $selectedPermissionKeys)));
+        sort($selectedPermissionKeys);
+    }
+
     if ($errors === [] && $beforeIsOwner && !$selectedIsOwner) {
         if (sr_admin_owner_count($pdo) <= 1) {
             $errors[] = sr_t('admin::action.roles.last_owner_revoke_disallowed');
