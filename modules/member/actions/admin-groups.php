@@ -25,6 +25,7 @@ $memberGroupPermissionPath = [
     'rule_form' => '/admin/member-group-rules',
 ][$memberGroupsPage];
 sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'view');
+$canEditMemberGroups = sr_admin_has_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'edit');
 if (sr_request_method() === 'GET' && in_array($memberGroupsPage, ['group_form', 'rule_form'], true)) {
     sr_admin_require_permission($pdo, (int) $account['id'], $memberGroupPermissionPath, 'edit');
 }
@@ -48,6 +49,10 @@ foreach ($stmt->fetchAll() as $row) {
     ];
 }
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
+$createGroupForm = null;
+$openCreateGroupModal = false;
+$editGroupFormById = [];
+$openEditGroupModalId = 0;
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -61,6 +66,29 @@ if (sr_request_method() === 'POST') {
         $description = sr_post_string_without_truncation('description', 2000);
         $status = sr_post_string('status', 30);
         $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
+        $existingGroup = null;
+        if ($groupId > 0) {
+            $existingGroup = sr_member_group_by_id($pdo, $groupId);
+            $editGroupFormById[$groupId] = [
+                'id' => $groupId,
+                'group_key' => is_array($existingGroup) ? (string) ($existingGroup['group_key'] ?? '') : '',
+                'title' => $title,
+                'description' => $description === null ? '' : (string) $description,
+                'status' => $status,
+                'sort_order' => $sortOrder === null ? '0' : (string) $sortOrder,
+            ];
+            $openEditGroupModalId = $groupId;
+        }
+        if ($groupId < 1) {
+            $createGroupForm = [
+                'group_key' => $groupKey,
+                'title' => $title,
+                'description' => $description === null ? '' : (string) $description,
+                'status' => $status,
+                'sort_order' => $sortOrder === null ? '0' : (string) $sortOrder,
+            ];
+            $openCreateGroupModal = true;
+        }
 
         if ($groupId < 1 && !sr_member_group_key_is_valid($groupKey)) {
             $errors[] = sr_t('member::action.admin_groups.group_key_invalid');
@@ -85,7 +113,6 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && $groupId > 0) {
-            $existingGroup = sr_member_group_by_id($pdo, $groupId);
             if (!is_array($existingGroup)) {
                 $errors[] = sr_t('member::action.admin_groups.group_edit_not_found');
             }
@@ -119,10 +146,8 @@ if (sr_request_method() === 'POST') {
             ]);
 
             $notice = $groupId > 0 ? sr_t('member::action.admin_groups.group_updated') : sr_t('member::action.admin_groups.group_created');
-            if ($groupId <= 0) {
-                sr_admin_flash_result(sr_admin_action_result([], $notice));
-                sr_redirect('/admin/member-groups');
-            }
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect('/admin/member-groups');
         }
     } elseif ($intent === 'save_rule') {
         $ruleId = sr_admin_post_positive_int('rule_id');

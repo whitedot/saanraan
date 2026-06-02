@@ -949,6 +949,14 @@ function sr_member_group_evaluate_group(PDO $pdo, int $groupId, array $filters =
             $excludeGroupIds[] = $legacyExcludeGroupId;
         }
     }
+    $stmt = $pdo->prepare("SELECT id FROM sr_member_groups WHERE status = 'archived' AND id <> :group_id");
+    $stmt->execute(['group_id' => $groupId]);
+    foreach ($stmt->fetchAll() as $archivedGroup) {
+        $archivedGroupId = (int) ($archivedGroup['id'] ?? 0);
+        if ($archivedGroupId > 0) {
+            $excludeGroupIds[] = $archivedGroupId;
+        }
+    }
     $excludeGroupIds = array_values(array_unique($excludeGroupIds));
     $limit = max(1, min(500, (int) ($filters['limit'] ?? 200)));
 

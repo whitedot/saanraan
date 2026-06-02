@@ -152,8 +152,8 @@
 - [ ] 회원 상태 변경
 - [ ] `/admin/member-settings` 회원 설정
 - [ ] `/admin/member-groups` 회원 그룹 목록
-- [ ] `/admin/member-groups/new` 회원 그룹 생성
-- [ ] `/admin/member-groups/edit?id=...` 회원 그룹 수정
+- [ ] `/admin/member-groups` 회원 그룹 생성 모달
+- [ ] `/admin/member-groups` 회원 그룹 수정 모달
 - [ ] `/admin/member-group-rules` 그룹 규칙 목록
 - [ ] `/admin/member-group-rules/new` 그룹 규칙 생성
 - [ ] `/admin/member-group-rules/edit?id=...` 그룹 규칙 수정
