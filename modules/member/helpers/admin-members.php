@@ -27,7 +27,37 @@ function sr_admin_member_display_name_preview(array $member): string
         return sr_t('member::account.withdrawn_display_name');
     }
 
+    if (isset($member['public_name'])) {
+        return sr_log_line_value((string) $member['public_name'], 80);
+    }
+    if (isset($member['nickname']) && trim((string) $member['nickname']) !== '') {
+        return sr_log_line_value((string) $member['nickname'], 80);
+    }
+
     return sr_log_line_value((string) ($member['display_name'] ?? ''), 80);
+}
+
+function sr_admin_member_with_public_name(PDO $pdo, array $member): array
+{
+    $settings = sr_member_settings($pdo);
+    $member['public_name'] = sr_member_public_name([
+        'display_name' => (string) ($member['display_name'] ?? ''),
+        'nickname' => (string) ($member['nickname'] ?? ''),
+        'status' => (string) ($member['status'] ?? ($member['account_status'] ?? '')),
+    ], $settings);
+
+    return $member;
+}
+
+function sr_admin_member_rows_with_public_name(PDO $pdo, array $rows): array
+{
+    foreach ($rows as $index => $row) {
+        if (is_array($row)) {
+            $rows[$index] = sr_admin_member_with_public_name($pdo, $row);
+        }
+    }
+
+    return $rows;
 }
 
 function sr_admin_member_public_hash(array $config, int $accountId): string
@@ -111,6 +141,11 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
             }
         }
 
+        $accountIds = sr_member_public_name_lookup_account_ids($pdo, [$keyword]);
+        if ($accountIds !== []) {
+            return (int) $accountIds[0];
+        }
+
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE display_name = :display_name ORDER BY id ASC LIMIT 1');
         $stmt->execute(['display_name' => $keyword]);
         $row = $stmt->fetch();
@@ -147,6 +182,11 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
     }
 
     if ($field === 'name') {
+        $accountIds = sr_member_public_name_lookup_account_ids($pdo, [$keyword]);
+        if ($accountIds !== []) {
+            return (int) $accountIds[0];
+        }
+
         $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE display_name = :display_name ORDER BY id ASC LIMIT 1');
         $stmt->execute(['display_name' => $keyword]);
         $row = $stmt->fetch();
@@ -218,30 +258,31 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
         $matchesWithdrawnLabel = $keyword === sr_t('member::account.withdrawn_display_name');
 
         if ($field === 'hash' || $field === 'login_id') {
-            $where[] = $accountId > 0 ? 'id = :account_id' : '1 = 0';
+            $where[] = $accountId > 0 ? 'a.id = :account_id' : '1 = 0';
             if ($accountId > 0) {
                 $params['account_id'] = $accountId;
             }
         } elseif ($field === 'email') {
-            $where[] = "email LIKE :keyword_like ESCAPE '\\\\'";
+            $where[] = "a.email LIKE :keyword_like ESCAPE '\\\\'";
             $params['keyword_like'] = $like;
         } elseif ($field === 'name') {
-            $nameClauses = ["display_name LIKE :keyword_like ESCAPE '\\\\'"];
+            $nameClauses = ["a.display_name LIKE :keyword_like ESCAPE '\\\\'", "n.nickname LIKE :keyword_like ESCAPE '\\\\'"];
             if ($matchesWithdrawnLabel) {
-                $nameClauses[] = "status = 'anonymized'";
+                $nameClauses[] = "a.status = 'anonymized'";
             }
             $where[] = '(' . implode(' OR ', $nameClauses) . ')';
             $params['keyword_like'] = $like;
         } else {
-            $clauses = ["email LIKE :keyword_email_like ESCAPE '\\\\'", "display_name LIKE :keyword_name_like ESCAPE '\\\\'"];
+            $clauses = ["a.email LIKE :keyword_email_like ESCAPE '\\\\'", "a.display_name LIKE :keyword_name_like ESCAPE '\\\\'", "n.nickname LIKE :keyword_nickname_like ESCAPE '\\\\'"];
             $params['keyword_email_like'] = $like;
             $params['keyword_name_like'] = $like;
+            $params['keyword_nickname_like'] = $like;
             if ($accountId > 0) {
-                $clauses[] = 'id = :account_id';
+                $clauses[] = 'a.id = :account_id';
                 $params['account_id'] = $accountId;
             }
             if ($matchesWithdrawnLabel) {
-                $clauses[] = "status = 'anonymized'";
+                $clauses[] = "a.status = 'anonymized'";
             }
             $where[] = '(' . implode(' OR ', $clauses) . ')';
         }
@@ -249,10 +290,11 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
 
     $whereSql = $where === [] ? '' : 'WHERE ' . implode(' AND ', $where);
     $stmt = $pdo->prepare(
-        'SELECT id, email, display_name, status, created_at
-         FROM sr_member_accounts
+        'SELECT a.id, a.email, a.display_name, a.status, a.created_at, COALESCE(n.nickname, \'\') AS nickname
+         FROM sr_member_accounts a
+         LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
          ' . $whereSql . '
-         ORDER BY id DESC
+         ORDER BY a.id DESC
          LIMIT ' . $limit
     );
     $stmt->execute($params);
@@ -264,10 +306,13 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
         }
 
         $accountId = (int) ($row['id'] ?? 0);
+        $row = sr_admin_member_with_public_name($pdo, $row);
         $rows[] = [
             'id' => $accountId,
             'account_public_hash' => $accountId > 0 ? sr_admin_member_public_hash($config, $accountId) : '',
             'display_name' => sr_admin_member_display_name_preview($row),
+            'nickname' => (string) ($row['nickname'] ?? ''),
+            'public_name' => (string) ($row['public_name'] ?? ''),
             'email' => sr_admin_member_email_display($row),
             'status' => (string) ($row['status'] ?? ''),
             'created_at' => (string) ($row['created_at'] ?? ''),
@@ -296,7 +341,7 @@ function sr_admin_member_by_id(PDO $pdo, int $accountId): ?array
     $stmt->execute(['id' => $accountId]);
     $member = $stmt->fetch();
 
-    return is_array($member) ? $member : null;
+    return is_array($member) ? sr_admin_member_with_public_name($pdo, $member) : null;
 }
 
 function sr_admin_member_create_allowed_statuses(): array
@@ -874,16 +919,17 @@ function sr_admin_member_query_parts(string $statusFilter, array $searchFilter =
             $where[] = 'a.email LIKE :keyword_like';
             $params['keyword_like'] = $like;
         } elseif ($field === 'name') {
-            $nameClauses = ['a.display_name LIKE :keyword_like'];
+            $nameClauses = ['a.display_name LIKE :keyword_like', 'n.nickname LIKE :keyword_like'];
             if ($matchesWithdrawnLabel) {
                 $nameClauses[] = "a.status = 'anonymized'";
             }
             $where[] = '(' . implode(' OR ', $nameClauses) . ')';
             $params['keyword_like'] = $like;
         } else {
-            $clauses = ['a.email LIKE :keyword_email_like', 'a.display_name LIKE :keyword_name_like'];
+            $clauses = ['a.email LIKE :keyword_email_like', 'a.display_name LIKE :keyword_name_like', 'n.nickname LIKE :keyword_nickname_like'];
             $params['keyword_email_like'] = $like;
             $params['keyword_name_like'] = $like;
+            $params['keyword_nickname_like'] = $like;
             if ($accountId > 0) {
                 $clauses[] = 'a.id = :account_id';
                 $params['account_id'] = $accountId;
@@ -905,7 +951,12 @@ function sr_admin_member_count(PDO $pdo, string $statusFilter, array $searchFilt
 {
     $queryParts = sr_admin_member_query_parts($statusFilter, $searchFilter);
     $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
-    $stmt = $pdo->prepare('SELECT COUNT(*) AS count_value FROM sr_member_accounts a ' . $whereSql);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_member_accounts a
+         LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
+         ' . $whereSql
+    );
     $stmt->execute($queryParts['params']);
     $row = $stmt->fetch();
 
@@ -942,17 +993,22 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
     $orderSql = sr_admin_sort_order_sql(sr_admin_member_sort_options(), $sort, sr_admin_member_default_sort());
     if ($hasSessionTable) {
         $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
+                       COALESCE(n.nickname, \'\') AS nickname,
                        COUNT(s.id) AS active_session_count
                 FROM sr_member_accounts a
+                LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
                 LEFT JOIN sr_member_sessions s ON s.account_id = a.id AND s.revoked_at IS NULL AND s.expires_at >= :now
                 ' . $whereSql . '
-                GROUP BY a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at
+                GROUP BY a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at, n.nickname
                 ' . $orderSql
                 . $limitSql;
         $params['now'] = sr_now();
     } else {
-        $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at, 0 AS active_session_count
+        $sql = 'SELECT a.id, a.email, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
+                       COALESCE(n.nickname, \'\') AS nickname,
+                       0 AS active_session_count
                 FROM sr_member_accounts a
+                LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
                 ' . $whereSql . '
                 ' . $orderSql
                 . $limitSql;
@@ -968,7 +1024,7 @@ function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = 
     }
     $stmt->execute();
     foreach ($stmt->fetchAll() as $row) {
-        $members[] = $row;
+        $members[] = sr_admin_member_with_public_name($pdo, $row);
     }
 
     return $members;

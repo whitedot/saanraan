@@ -1081,10 +1081,12 @@ function sr_member_group_memberships(PDO $pdo, int $limit = 100, int $groupId = 
 
     $whereSql = $groupId > 0 ? ' WHERE m.group_id = :group_id' : '';
     $stmt = $pdo->prepare(
-        'SELECT m.*, g.group_key, g.title AS group_title, a.email, a.display_name, a.status AS account_status
+        'SELECT m.*, g.group_key, g.title AS group_title, a.email, a.display_name, a.status AS account_status,
+                COALESCE(n.nickname, \'\') AS nickname
          FROM sr_member_group_memberships m
          INNER JOIN sr_member_groups g ON g.id = m.group_id
          INNER JOIN sr_member_accounts a ON a.id = m.account_id
+         LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
          ' . $whereSql . '
          ORDER BY m.id DESC
          LIMIT :limit_value'
@@ -1095,7 +1097,7 @@ function sr_member_group_memberships(PDO $pdo, int $limit = 100, int $groupId = 
     $stmt->bindValue('limit_value', max(1, min(200, $limit)), PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt->fetchAll();
+    return sr_admin_member_rows_with_public_name($pdo, $stmt->fetchAll());
 }
 
 function sr_member_group_logs(PDO $pdo, int $limit = 50, int $groupId = 0): array
@@ -1106,10 +1108,12 @@ function sr_member_group_logs(PDO $pdo, int $limit = 50, int $groupId = 0): arra
 
     $whereSql = $groupId > 0 ? ' WHERE l.group_id = :group_id' : '';
     $stmt = $pdo->prepare(
-        'SELECT l.*, g.group_key, g.title AS group_title, a.email, a.display_name
+        'SELECT l.*, g.group_key, g.title AS group_title, a.email, a.display_name, a.status AS account_status,
+                COALESCE(n.nickname, \'\') AS nickname
          FROM sr_member_group_membership_logs l
          INNER JOIN sr_member_groups g ON g.id = l.group_id
          INNER JOIN sr_member_accounts a ON a.id = l.account_id
+         LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
          ' . $whereSql . '
          ORDER BY l.id DESC
          LIMIT :limit_value'
@@ -1120,7 +1124,7 @@ function sr_member_group_logs(PDO $pdo, int $limit = 50, int $groupId = 0): arra
     $stmt->bindValue('limit_value', max(1, min(100, $limit)), PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt->fetchAll();
+    return sr_admin_member_rows_with_public_name($pdo, $stmt->fetchAll());
 }
 
 function sr_member_group_privacy_export(PDO $pdo, int $accountId): array

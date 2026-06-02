@@ -265,7 +265,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-filter-field admin-member-filter-field">
             <label for="member-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
             <select name="field" id="member-search-field" class="form-select admin-filter-input">
-                <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'hash' => sr_t('member::ui.text.93971787'), 'email' => sr_t('member::ui.email.3b7dbc4c'), 'login_id' => sr_t('member::ui.login.0cdb28b5'), 'name' => sr_t('member::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
+                <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'hash' => sr_t('member::ui.text.93971787'), 'email' => sr_t('member::ui.email.3b7dbc4c'), 'login_id' => sr_t('member::ui.login.0cdb28b5'), 'name' => sr_t('member::ui.public_name')] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($searchFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                         <?php echo sr_e($fieldLabel); ?>
                     </option>
@@ -297,7 +297,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <thead class="ui-table-head">
                 <tr>
                     <th<?php echo sr_admin_sort_aria('email', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.3b7dbc4c') . ' / ' . sr_t('member::ui.text.4ca2f9ab'), 'email', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
-                    <th<?php echo sr_admin_sort_aria('name', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.name.253d1510'), 'name', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('name', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.public_name'), 'name', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('email_verified_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.2f905abd'), 'email_verified_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('last_login_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.login.677d154e'), 'last_login_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>

@@ -7,7 +7,7 @@ return [
         [
             'label' => sr_t('member::ui.member.settings.6b4c84f7'),
             'path' => '/admin/member-settings',
-            'order' => 5,
+            'order' => 40,
         ],
         [
             'label' => sr_t('member::ui.member.list.d8e6279a'),

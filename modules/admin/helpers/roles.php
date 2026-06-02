@@ -697,12 +697,13 @@ function sr_admin_permission_account_query_parts(PDO $pdo, string $statusFilter 
             $where[] = 'a.email LIKE :keyword_like';
             $params['keyword_like'] = $like;
         } elseif ($field === 'name') {
-            $where[] = 'a.display_name LIKE :keyword_like';
+            $where[] = '(a.display_name LIKE :keyword_like OR n.nickname LIKE :keyword_like)';
             $params['keyword_like'] = $like;
         } else {
-            $clauses = ['a.email LIKE :keyword_email_like', 'a.display_name LIKE :keyword_name_like'];
+            $clauses = ['a.email LIKE :keyword_email_like', 'a.display_name LIKE :keyword_name_like', 'n.nickname LIKE :keyword_nickname_like'];
             $params['keyword_email_like'] = $like;
             $params['keyword_name_like'] = $like;
+            $params['keyword_nickname_like'] = $like;
             if ($accountId > 0) {
                 $clauses[] = 'a.id = :account_id';
                 $params['account_id'] = $accountId;
@@ -747,6 +748,7 @@ function sr_admin_permission_account_count(PDO $pdo, string $statusFilter = '', 
                     COUNT(DISTINCT r.id) AS owner_count,
                     COUNT(DISTINCT CONCAT(p.menu_path, "|", p.action_key)) AS permission_count
              FROM sr_member_accounts a
+             LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
              LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id AND r.role_key = "owner"
              ' . $queryParts['permission_join'] . '
              ' . $queryParts['where_sql'] . '
@@ -766,15 +768,16 @@ function sr_admin_permission_accounts(PDO $pdo, string $statusFilter = '', array
     $queryParts = sr_admin_permission_account_query_parts($pdo, $statusFilter, $searchFilter, $permissionFilter);
     $limitSql = $limit > 0 ? ' LIMIT :limit_value OFFSET :offset_value' : '';
     $stmt = $pdo->prepare(
-        'SELECT a.id, a.email, a.display_name, a.status,
+        'SELECT a.id, a.email, a.display_name, a.status, COALESCE(n.nickname, \'\') AS nickname,
                 COUNT(DISTINCT r.id) AS owner_count,
                 COUNT(DISTINCT CONCAT(p.menu_path, "|", p.action_key)) AS permission_count,
                 GROUP_CONCAT(DISTINCT CONCAT(p.menu_path, "|", p.action_key) ORDER BY p.menu_path, p.action_key SEPARATOR ",") AS permission_keys
          FROM sr_member_accounts a
+         LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
          LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id AND r.role_key = "owner"
          ' . $queryParts['permission_join'] . '
          ' . $queryParts['where_sql'] . '
-         GROUP BY a.id, a.email, a.display_name, a.status
+         GROUP BY a.id, a.email, a.display_name, a.status, n.nickname
          ' . $queryParts['having'] . '
          ' . sr_admin_sort_order_sql(sr_admin_permission_account_sort_options(), $sort, sr_admin_permission_account_default_sort())
         . $limitSql
