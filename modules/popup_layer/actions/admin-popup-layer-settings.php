@@ -11,6 +11,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers/set
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
 $availableTargets = sr_popup_layer_available_targets($pdo);
@@ -83,6 +86,8 @@ if (sr_request_method() === 'POST') {
         ]);
         $notice = '팝업레이어 설정을 저장했습니다.';
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/popup-layers/settings');
 }
 
 include SR_ROOT . '/modules/popup_layer/views/admin-popup-layer-settings.php';

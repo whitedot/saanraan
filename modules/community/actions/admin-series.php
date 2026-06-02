@@ -10,6 +10,9 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/series', 'view');
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $seriesSupported = sr_community_series_supported($pdo);
 
 if (sr_request_method() === 'POST') {
@@ -48,6 +51,8 @@ if (sr_request_method() === 'POST') {
         ]);
         $notice = '시리즈 상태를 저장했습니다.';
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/community/series');
 }
 
 $seriesFilters = sr_community_admin_series_filters();

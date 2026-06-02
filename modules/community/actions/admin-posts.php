@@ -13,6 +13,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], $communityPostsPermissio
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $allowedPostStatuses = sr_community_post_statuses();
 $allowedCommentStatuses = sr_community_comment_statuses();
 $settings = sr_community_settings($pdo);
@@ -176,6 +179,8 @@ if (sr_request_method() === 'POST') {
     } else {
         $errors[] = sr_t('community::action.error.intent_invalid');
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $communityPostsPage === 'comments' ? '/admin/community/comments' : '/admin/community/posts');
 }
 
 $postStatusCounts = ['total' => 0];

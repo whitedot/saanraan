@@ -11,6 +11,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/ckeditor/setting
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $settings = sr_ckeditor_settings($pdo);
 $assetModeOptions = sr_ckeditor_asset_mode_options();
 $toolbarPresets = sr_ckeditor_toolbar_presets();
@@ -65,6 +68,8 @@ if (sr_request_method() === 'POST') {
         ]);
         $notice = 'CKEditor 설정을 저장했습니다.';
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/ckeditor/settings');
 }
 
 include SR_ROOT . '/modules/ckeditor/views/admin-settings.php';

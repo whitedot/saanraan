@@ -410,6 +410,7 @@ return [
 - 같은 method/path 또는 겹치는 wildcard path를 여러 활성 모듈이 선언하면 요청은 실패한다.
 - 관리자 화면 path는 `/admin/...` 아래에 둔다.
 - 상태 변경은 `POST`로 처리한다.
+- 상태 변경 `POST`는 저장, 오류 수집, flash 결과 저장 뒤 `sr_redirect()`로 `GET` 화면에 돌아가는 PRG 흐름으로 끝낸다. 같은 요청에서 view를 렌더링하면 브라우저 새로고침이 저장이나 메일 발송 같은 작업을 다시 실행할 수 있다.
 
 경로 설계 기준:
 
@@ -1349,6 +1350,7 @@ return function (PDO $pdo, ?array $site): array {
 - SQL 동적 값은 prepared statement로 바인딩했는가?
 - 정렬 컬럼, 테이블명, 상태 값은 allowlist를 사용하는가?
 - redirect 대상은 내부 상대 경로로 제한했는가?
+- 상태 변경 `POST`가 flash 결과와 redirect로 끝나 새로고침 재실행을 막는가?
 - 토큰 원문을 DB나 로그에 저장하지 않는가?
 - 개인정보 사본 제공에 hash/token/password가 빠져 있는가?
 - 감사 로그에 민감 원문을 넣지 않았는가?

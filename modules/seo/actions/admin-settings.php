@@ -11,6 +11,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/seo', 'view');
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $settings = sr_seo_settings($pdo);
 
 if (sr_request_method() === 'POST') {
@@ -109,6 +112,8 @@ if (sr_request_method() === 'POST') {
 
         $notice = 'SEO 설정을 저장했습니다.';
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/seo');
 }
 
 $robotsPreview = sr_seo_robots_txt($site, $settings);

@@ -11,6 +11,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/report
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $settings = sr_community_settings($pdo);
 $allowedStatuses = sr_community_report_statuses();
 $allowedReasonKeys = sr_community_report_reason_keys();
@@ -91,6 +94,8 @@ if (sr_request_method() === 'POST') {
         ]);
         $notice = sr_t('community::action.admin.report_status_updated');
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/community/reports');
 }
 
 $reportStatusCounts = ['total' => 0];

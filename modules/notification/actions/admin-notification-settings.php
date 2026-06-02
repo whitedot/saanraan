@@ -11,6 +11,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notifications/se
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $settings = sr_notification_settings($pdo);
 
 if (sr_request_method() === 'POST') {
@@ -91,6 +94,8 @@ if (sr_request_method() === 'POST') {
         ]);
         $notice = '알림 환경설정을 저장했습니다.';
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/notifications/settings');
 }
 
 include SR_ROOT . '/modules/notification/views/admin-notification-settings.php';

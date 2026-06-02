@@ -13,6 +13,9 @@ $allowedStatuses = ['enabled', 'disabled'];
 $allowedTargets = ['self', 'blank'];
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $menuLinkSuggestions = sr_site_menu_link_suggestions($pdo);
 
 function sr_site_menu_admin_parent_depth(PDO $pdo, int $menuId, int $parentId, int $excludeItemId = 0): ?int
@@ -390,6 +393,8 @@ if (sr_request_method() === 'POST') {
     } else {
         $errors[] = sr_t('site_menu::action.admin.intent_invalid');
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/site-menus');
 }
 
 $menus = [];

@@ -10,7 +10,15 @@ sr_admin_require_owner($pdo, (int) $account['id']);
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $appliedUpdates = [];
+$flashedAppliedUpdates = $_SESSION['sr_admin_applied_updates'] ?? [];
+unset($_SESSION['sr_admin_applied_updates']);
+if (is_array($flashedAppliedUpdates)) {
+    $appliedUpdates = $flashedAppliedUpdates;
+}
 $previousUpdateFailure = sr_previous_schema_update_failure();
 
 if (sr_request_method() === 'POST') {
@@ -20,6 +28,8 @@ if (sr_request_method() === 'POST') {
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
     $appliedUpdates = $postResult['applied_updates'];
+    $_SESSION['sr_admin_applied_updates'] = $appliedUpdates;
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/updates');
 }
 
 $pendingUpdates = sr_pending_schema_updates($pdo);

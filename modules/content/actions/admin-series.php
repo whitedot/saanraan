@@ -10,6 +10,9 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/series', 'view');
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $seriesSupported = sr_content_series_supported($pdo);
 $seriesCreateModalOpen = false;
 $seriesFormValues = [
@@ -83,6 +86,8 @@ if (sr_request_method() === 'POST') {
             }
         }
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/content/series');
 }
 
 $seriesFilters = sr_content_admin_series_filters();

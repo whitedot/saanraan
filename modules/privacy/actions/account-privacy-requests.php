@@ -9,10 +9,22 @@ $account = sr_member_require_login($pdo);
 $allowedTypes = sr_privacy_request_types();
 $errors = [];
 $notice = '';
+$flash = isset($_SESSION['sr_privacy_request_account_flash']) && is_array($_SESSION['sr_privacy_request_account_flash'])
+    ? $_SESSION['sr_privacy_request_account_flash']
+    : [];
+unset($_SESSION['sr_privacy_request_account_flash']);
+$errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
+$notice = (string) ($flash['notice'] ?? '');
 $values = [
     'request_type' => 'access',
     'request_message' => '',
 ];
+if (isset($flash['values']) && is_array($flash['values'])) {
+    $values = array_merge($values, [
+        'request_type' => (string) ($flash['values']['request_type'] ?? $values['request_type']),
+        'request_message' => (string) ($flash['values']['request_message'] ?? $values['request_message']),
+    ]);
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -94,6 +106,13 @@ if (sr_request_method() === 'POST') {
             'request_message' => '',
         ];
     }
+
+    $_SESSION['sr_privacy_request_account_flash'] = [
+        'errors' => $errors,
+        'notice' => $notice,
+        'values' => $errors === [] ? ['request_type' => 'access', 'request_message' => ''] : $values,
+    ];
+    sr_redirect('/account/privacy-requests');
 }
 
 $requests = [];

@@ -10,6 +10,9 @@ $account = sr_member_require_login($pdo);
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $settings = sr_community_settings($pdo);
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings';
@@ -586,6 +589,7 @@ if (sr_request_method() === 'POST') {
     }
 
     $levels = sr_community_levels($pdo, $settings);
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings');
 }
 
 $settings['layout_key'] = sr_community_layout_key($settings, $site ?? null, $pdo);

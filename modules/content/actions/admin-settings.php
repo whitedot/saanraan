@@ -11,6 +11,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $settings = sr_content_settings($pdo);
 $editorOptions = sr_editor_options($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
@@ -75,6 +78,8 @@ if (sr_request_method() === 'POST') {
     } else {
         $settings = array_merge($settings, $postedSettings);
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/content/settings');
 }
 
 include SR_ROOT . '/modules/content/views/admin-settings.php';

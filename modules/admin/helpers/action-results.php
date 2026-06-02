@@ -41,6 +41,22 @@ function sr_admin_pop_flash_result(): array
     );
 }
 
+function sr_admin_current_get_url(string $fallback = '/admin'): string
+{
+    $path = sr_request_path();
+    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+    $query = (string) (parse_url($uri, PHP_URL_QUERY) ?: '');
+    $target = $path . ($query !== '' ? '?' . $query : '');
+
+    return sr_is_safe_relative_url($target) ? $target : $fallback;
+}
+
+function sr_admin_redirect_with_result(array $result, string $fallback = '/admin'): void
+{
+    sr_admin_flash_result($result);
+    sr_redirect(sr_admin_current_get_url($fallback));
+}
+
 function sr_admin_feedback_toasts(string $notice = '', array $errors = []): string
 {
     $items = [];

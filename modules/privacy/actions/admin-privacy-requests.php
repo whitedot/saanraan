@@ -13,6 +13,9 @@ $allowedStatuses = sr_admin_privacy_request_statuses();
 $allowedTypes = sr_privacy_request_types();
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -21,6 +24,7 @@ if (sr_request_method() === 'POST') {
     $postResult = sr_admin_handle_privacy_request_post($pdo, $account, $allowedStatuses);
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/privacy-requests');
 }
 
 $privacyRequestListFilters = sr_admin_privacy_request_filters($allowedStatuses, $allowedTypes);

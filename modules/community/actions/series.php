@@ -11,6 +11,12 @@ $settings = sr_community_settings($pdo);
 sr_community_require_member_nickname($pdo, $account, $settings, (string) ($_SERVER['REQUEST_URI'] ?? '/community'));
 $errors = [];
 $notice = '';
+$flash = isset($_SESSION['sr_community_series_flash']) && is_array($_SESSION['sr_community_series_flash'])
+    ? $_SESSION['sr_community_series_flash']
+    : [];
+unset($_SESSION['sr_community_series_flash']);
+$errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
+$notice = (string) ($flash['notice'] ?? '');
 $seriesSupported = sr_community_series_supported($pdo);
 
 if (sr_request_method() === 'POST') {
@@ -68,6 +74,12 @@ if (sr_request_method() === 'POST') {
             }
         }
     }
+
+    $_SESSION['sr_community_series_flash'] = [
+        'errors' => $errors,
+        'notice' => $notice,
+    ];
+    sr_redirect('/community/series');
 }
 
 $canWriteAsAdmin = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');

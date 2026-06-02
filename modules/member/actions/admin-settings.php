@@ -10,6 +10,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/member-settings'
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $settings = sr_member_settings($pdo);
 $integerSettingKeys = sr_member_integer_setting_keys();
 
@@ -115,6 +118,8 @@ if (sr_request_method() === 'POST') {
 
     $notice = sr_t('member::action.admin_settings.saved');
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/member-settings');
 }
 
 include SR_ROOT . '/modules/member/views/admin-settings.php';

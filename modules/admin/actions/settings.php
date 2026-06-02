@@ -10,6 +10,9 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/settings', 'view
 
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $values = sr_admin_site_setting_values($site ?? null, $pdo);
 $adminSettings = sr_admin_settings($pdo);
 $adminSkinOptions = sr_admin_skin_options();
@@ -157,6 +160,10 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
 } elseif (sr_request_method() === 'POST') {
     sr_require_csrf();
     $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
+}
+
+if (sr_request_method() === 'POST') {
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/settings');
 }
 
 $localeOptions = sr_available_locale_options($site ?? null);

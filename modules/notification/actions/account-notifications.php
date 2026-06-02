@@ -8,6 +8,12 @@ require_once SR_ROOT . '/modules/notification/helpers.php';
 $account = sr_member_require_login($pdo);
 $errors = [];
 $notice = '';
+$flash = isset($_SESSION['sr_notification_account_flash']) && is_array($_SESSION['sr_notification_account_flash'])
+    ? $_SESSION['sr_notification_account_flash']
+    : [];
+unset($_SESSION['sr_notification_account_flash']);
+$errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
+$notice = (string) ($flash['notice'] ?? '');
 $filters = [
     'status' => sr_get_string('status', 20),
 ];
@@ -92,6 +98,12 @@ if (sr_request_method() === 'POST') {
             $notice = '알림을 읽음 처리했습니다.';
         }
     }
+
+    $_SESSION['sr_notification_account_flash'] = [
+        'errors' => $errors,
+        'notice' => $notice,
+    ];
+    sr_redirect('/account/notifications');
 }
 
 $notifications = [];

@@ -9,6 +9,15 @@ $notice = '';
 $resetUrl = '';
 $showResetUrl = false;
 $email = '';
+$flash = isset($_SESSION['sr_member_password_reset_request_flash']) && is_array($_SESSION['sr_member_password_reset_request_flash'])
+    ? $_SESSION['sr_member_password_reset_request_flash']
+    : [];
+unset($_SESSION['sr_member_password_reset_request_flash']);
+$errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
+$notice = (string) ($flash['notice'] ?? '');
+$resetUrl = (string) ($flash['reset_url'] ?? '');
+$showResetUrl = !empty($flash['show_reset_url']);
+$email = (string) ($flash['email'] ?? '');
 $memberSettings = sr_member_settings($pdo);
 
 if (sr_request_method() === 'POST') {
@@ -72,6 +81,15 @@ if (sr_request_method() === 'POST') {
 
         $notice = sr_t('member::action.password_reset.sent_notice');
     }
+
+    $_SESSION['sr_member_password_reset_request_flash'] = [
+        'errors' => $errors,
+        'notice' => $notice,
+        'reset_url' => $resetUrl,
+        'show_reset_url' => $showResetUrl,
+        'email' => $email,
+    ];
+    sr_redirect('/password/reset');
 }
 
 $memberSkinView = sr_member_skin_view(sr_member_skin_key($memberSettings), 'password-reset-request');

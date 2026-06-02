@@ -16,6 +16,9 @@ $allowedDeliveryChannels = array_values(array_intersect($allowedChannels, ['emai
 $allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];
 $errors = [];
 $notice = '';
+$flashResult = sr_admin_pop_flash_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationAdminPage : 'list';
 if (!in_array($notificationAdminPage, ['list', 'deliveries'], true)) {
     $notificationAdminPage = 'list';
@@ -297,6 +300,8 @@ if (sr_request_method() === 'POST') {
             $notificationCreateModalOpen = true;
         }
     }
+
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $notificationAdminPage === 'deliveries' ? '/admin/notification-deliveries' : '/admin/notifications');
 }
 
 $notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);
