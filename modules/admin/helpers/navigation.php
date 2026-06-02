@@ -198,6 +198,7 @@ function sr_admin_module_menu_groups(PDO $pdo): array
         if (!is_array($menu)) {
             continue;
         }
+        $menu = sr_admin_apply_dynamic_module_menu_labels($pdo, $moduleKey, $menu);
 
         $pathsFile = (string) ($pathFiles[$moduleKey] ?? '');
         $paths = $pathsFile !== '' ? sr_load_module_contract_file($moduleKey, $pathsFile) : [];
@@ -254,6 +255,47 @@ function sr_admin_module_menu_groups(PDO $pdo): array
     });
 
     return $groups;
+}
+
+function sr_admin_apply_dynamic_module_menu_labels(PDO $pdo, string $moduleKey, array $menu): array
+{
+    if ($moduleKey !== 'point') {
+        return $menu;
+    }
+
+    $pointDisplayName = '포인트';
+    $helperFile = SR_ROOT . '/modules/point/helpers.php';
+    if (is_file($helperFile)) {
+        require_once $helperFile;
+    }
+    if (function_exists('sr_point_display_name')) {
+        try {
+            $pointDisplayName = trim((string) sr_point_display_name($pdo));
+        } catch (Throwable $exception) {
+            $pointDisplayName = '포인트';
+        }
+    }
+    if ($pointDisplayName === '') {
+        $pointDisplayName = '포인트';
+    }
+
+    if (isset($menu['items']) && is_array($menu['items'])) {
+        $menu['label'] = $pointDisplayName;
+        foreach ($menu['items'] as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $path = (string) ($item['path'] ?? '');
+            if ($path === '/admin/points/balances') {
+                $menu['items'][$index]['label'] = $pointDisplayName . ' 잔액';
+            } elseif ($path === '/admin/points/transactions') {
+                $menu['items'][$index]['label'] = $pointDisplayName . ' 거래 내역';
+            }
+        }
+    }
+
+    return $menu;
 }
 
 function sr_admin_module_menu_group_label(string $moduleKey, array $menu): string
