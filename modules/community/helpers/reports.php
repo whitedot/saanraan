@@ -311,9 +311,9 @@ function sr_community_report_count(PDO $pdo, array $filters = []): int
             LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
             LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
             LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
-            LEFT JOIN sr_community_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
-            LEFT JOIN sr_community_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
-            LEFT JOIN sr_community_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
+            LEFT JOIN sr_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
+            LEFT JOIN sr_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
+            LEFT JOIN sr_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -349,9 +349,9 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = [], i
             LEFT JOIN sr_member_accounts reporter ON reporter.id = r.reporter_account_id
             LEFT JOIN sr_member_accounts reported ON reported.id = r.reported_account_id
             LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
-            LEFT JOIN sr_community_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
-            LEFT JOIN sr_community_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
-            LEFT JOIN sr_community_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
+            LEFT JOIN sr_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
+            LEFT JOIN sr_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
+            LEFT JOIN sr_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }

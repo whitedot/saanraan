@@ -109,6 +109,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input id="member_admin_create_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberCreateValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                 </div>
             </div>
+            <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="member_admin_create_nickname"><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></label>
+                    <div class="admin-form-field">
+                        <input id="member_admin_create_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($memberCreateValues['nickname'] ?? '')); ?>" class="form-input form-control-full" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
+                        <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                    </div>
+                </div>
+            <?php } ?>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('member_admin_create_password', sr_t('member::ui.password.4fa210a0'), $memberAdminHelp['password']['id'], $memberAdminHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
@@ -184,6 +193,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="member_admin_edit_display_name" type="text" name="display_name" value="<?php echo sr_e((string) ($memberEditValues['display_name'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
                     </div>
                 </div>
+                <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="member_admin_edit_nickname"><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></label>
+                        <div class="admin-form-field">
+                            <input id="member_admin_edit_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($memberEditValues['nickname'] ?? '')); ?>" class="form-input form-control-full" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
+                            <small class="admin-form-help"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                        </div>
+                    </div>
+                <?php } ?>
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('member_admin_edit_locale', sr_t('member::help.members.locale.label'), $memberAdminHelp['locale']['id'], $memberAdminHelpOpenLabel, true); ?>
                     <div class="admin-form-field">

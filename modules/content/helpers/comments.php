@@ -25,10 +25,13 @@ function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
         return [];
     }
 
+    $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
+    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname AS author_nickname,' : "'' AS author_nickname,";
     $stmt = $pdo->prepare(
-        "SELECT c.*, a.display_name AS author_display_name, a.status AS author_account_status
+        "SELECT c.*, a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
          FROM sr_content_comments c
          LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+         " . $join . "
          WHERE c.content_id = :content_id
            AND c.status = 'published'
          ORDER BY c.id ASC
@@ -38,7 +41,18 @@ function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
     $stmt->bindValue('limit_value', max(1, min(200, $limit)), PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt->fetchAll();
+    $settings = sr_member_settings($pdo);
+    $comments = [];
+    foreach ($stmt->fetchAll() as $comment) {
+        $comment['author_public_name'] = sr_member_public_name([
+            'display_name' => (string) ($comment['author_display_name'] ?? ''),
+            'nickname' => (string) ($comment['author_nickname'] ?? ''),
+            'status' => (string) ($comment['author_account_status'] ?? ''),
+        ], $settings, '회원');
+        $comments[] = $comment;
+    }
+
+    return $comments;
 }
 
 function sr_content_comment_input_values(): array
@@ -149,32 +163,7 @@ function sr_content_mentioned_account_ids(PDO $pdo, string $bodyText, array $exc
         return [];
     }
 
-    $exclude = [];
-    foreach ($excludeAccountIds as $accountId) {
-        $accountId = (int) $accountId;
-        if ($accountId > 0) {
-            $exclude[$accountId] = true;
-        }
-    }
-
-    $placeholders = implode(',', array_fill(0, count($tokens), '?'));
-    $stmt = $pdo->prepare(
-        "SELECT id
-         FROM sr_member_accounts
-         WHERE display_name IN (" . $placeholders . ")
-           AND status = 'active'"
-    );
-    $stmt->execute($tokens);
-
-    $accountIds = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $accountId = (int) ($row['id'] ?? 0);
-        if ($accountId > 0 && !isset($exclude[$accountId])) {
-            $accountIds[$accountId] = true;
-        }
-    }
-
-    return array_keys($accountIds);
+    return sr_member_public_name_lookup_account_ids($pdo, $tokens, $excludeAccountIds);
 }
 
 function sr_content_create_comment_notifications(PDO $pdo, array $page, int $commentId, string $bodyText, int $createdByAccountId): array

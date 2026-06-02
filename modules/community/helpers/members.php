@@ -11,7 +11,7 @@ function sr_community_admin_can_view_member_identifiers(PDO $pdo, ?array $accoun
     return sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'view')
         || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'view')
         || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/reports', 'view')
-        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/nicknames', 'view');
+        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/members', 'view');
 }
 
 function sr_community_member_identifier_suffix(array $config, int $accountId, bool $showIdentifier): string
@@ -38,17 +38,10 @@ function sr_community_member_label_with_identifier(string $label, array $config,
 
 function sr_community_public_display_name(array $account, ?array $settings = null): string
 {
-    if (sr_community_nickname_status_blocks_identity((string) ($account['status'] ?? ''))) {
-        return sr_t('member::account.withdrawn_display_name');
-    }
-
     $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_default_settings();
-    $nickname = trim((string) ($account['community_nickname'] ?? ''));
-    if (!empty($settings['nickname_enabled'])) {
-        return $nickname !== '' ? $nickname : sr_t('community::report.account.member');
-    }
+    $account['nickname'] = (string) ($account['nickname'] ?? $account['member_nickname'] ?? $account['community_nickname'] ?? '');
 
-    return trim((string) ($account['display_name'] ?? ''));
+    return sr_member_public_name($account, $settings, sr_t('community::report.account.member'));
 }
 
 function sr_community_nickname_status_blocks_identity(string $status): bool
@@ -74,7 +67,7 @@ function sr_community_member_nickname(PDO $pdo, int $accountId): string
 
     $stmt = $pdo->prepare(
         'SELECT nickname
-         FROM sr_community_member_nicknames
+         FROM sr_member_nicknames
          WHERE account_id = :account_id
          LIMIT 1'
     );
@@ -96,35 +89,7 @@ function sr_community_set_member_nickname(PDO $pdo, int $accountId, string $nick
         throw new RuntimeException('community_nickname_duplicate');
     }
 
-    $now = sr_now();
-    $stmt = $pdo->prepare(
-        'UPDATE sr_community_member_nicknames
-         SET nickname = :nickname,
-             updated_at = :updated_at
-         WHERE account_id = :account_id'
-    );
-    $stmt->execute([
-        'account_id' => $accountId,
-        'nickname' => $nickname,
-        'updated_at' => $now,
-    ]);
-    if ($stmt->rowCount() > 0) {
-        sr_community_clear_member_nickname_cache($pdo, $accountId);
-        return;
-    }
-
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_community_member_nicknames
-            (account_id, nickname, created_at, updated_at)
-         VALUES
-            (:account_id, :nickname, :created_at, :updated_at)'
-    );
-    $stmt->execute([
-        'account_id' => $accountId,
-        'nickname' => $nickname,
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
+    sr_member_set_nickname($pdo, $accountId, $nickname);
     sr_community_clear_member_nickname_cache($pdo, $accountId);
 }
 
@@ -160,32 +125,20 @@ function sr_community_clear_member_nickname_cache(PDO $pdo, int $accountId): voi
 
 function sr_community_member_nicknames_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
-    }
-
-    try {
-        $pdo->query('SELECT 1 FROM sr_community_member_nicknames LIMIT 1');
-        $exists = true;
-    } catch (Throwable) {
-        $exists = false;
-    }
-
-    return $exists;
+    return sr_member_nicknames_table_exists($pdo);
 }
 
 function sr_community_delete_member_nickname(PDO $pdo, int $accountId): bool
 {
-    if ($accountId < 1 || !sr_community_member_nicknames_table_exists($pdo)) {
+    if ($accountId < 1 || !sr_member_nicknames_table_exists($pdo)) {
         return false;
     }
 
-    $stmt = $pdo->prepare('DELETE FROM sr_community_member_nicknames WHERE account_id = :account_id');
-    $stmt->execute(['account_id' => $accountId]);
+    $before = sr_member_nickname($pdo, $accountId);
+    sr_member_delete_nickname($pdo, $accountId);
     sr_community_clear_member_nickname_cache($pdo, $accountId);
 
-    return $stmt->rowCount() > 0;
+    return $before !== '';
 }
 
 function sr_community_public_account_summary(PDO $pdo, int $accountId): ?array
@@ -304,7 +257,7 @@ function sr_community_nickname_count(PDO $pdo, array $filter = []): int
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS count_value
          FROM sr_member_accounts a
-         INNER JOIN sr_community_member_nicknames n ON n.account_id = a.id
+         INNER JOIN sr_member_nicknames n ON n.account_id = a.id
          ' . $levelJoinSql . '
          ' . $whereSql
     );
@@ -361,7 +314,7 @@ function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0
                 CASE WHEN a.status IN (\'withdrawn\', \'anonymized\') THEN NULL ELSE n.updated_at END AS nickname_updated_at
                 ' . $levelSelectSql . '
          FROM sr_member_accounts a
-         INNER JOIN sr_community_member_nicknames n ON n.account_id = a.id
+         INNER JOIN sr_member_nicknames n ON n.account_id = a.id
          ' . $levelJoinSql . '
          ' . $whereSql . '
          ' . sr_admin_sort_order_sql($sortOptions, $sort, $defaultSort) . $limitSql
@@ -380,26 +333,7 @@ function sr_community_nickname_rows(PDO $pdo, array $filter = [], int $limit = 0
 
 function sr_community_member_nickname_exists(PDO $pdo, string $nickname, int $excludeAccountId = 0): bool
 {
-    $nickname = trim($nickname);
-    if ($nickname === '') {
-        return false;
-    }
-
-    $excludeSql = $excludeAccountId > 0 ? ' AND account_id <> :exclude_account_id' : '';
-    $stmt = $pdo->prepare(
-        'SELECT 1
-         FROM sr_community_member_nicknames
-         WHERE nickname = :nickname
-         ' . $excludeSql . '
-         LIMIT 1'
-    );
-    $params = ['nickname' => $nickname];
-    if ($excludeAccountId > 0) {
-        $params['exclude_account_id'] = $excludeAccountId;
-    }
-    $stmt->execute($params);
-
-    return is_array($stmt->fetch());
+    return sr_member_nickname_exists($pdo, $nickname, $excludeAccountId);
 }
 
 function sr_community_member_registration_fields(PDO $pdo): array

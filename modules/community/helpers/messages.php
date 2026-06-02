@@ -16,7 +16,7 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
                        recipient.status AS other_account_status
                 FROM sr_community_messages m
                 LEFT JOIN sr_member_accounts recipient ON recipient.id = m.recipient_account_id
-                LEFT JOIN sr_community_member_nicknames recipient_nickname ON recipient_nickname.account_id = recipient.id
+                LEFT JOIN sr_member_nicknames recipient_nickname ON recipient_nickname.account_id = recipient.id
                 WHERE m.sender_account_id = :account_id
                   AND m.sender_deleted_at IS NULL
                 ORDER BY m.id DESC
@@ -28,7 +28,7 @@ function sr_community_message_box(PDO $pdo, int $accountId, string $box, int $li
                        sender.status AS other_account_status
                 FROM sr_community_messages m
                 LEFT JOIN sr_member_accounts sender ON sender.id = m.sender_account_id
-                LEFT JOIN sr_community_member_nicknames sender_nickname ON sender_nickname.account_id = sender.id
+                LEFT JOIN sr_member_nicknames sender_nickname ON sender_nickname.account_id = sender.id
                 WHERE m.recipient_account_id = :account_id
                   AND m.recipient_deleted_at IS NULL
                 ORDER BY m.id DESC
@@ -83,9 +83,9 @@ function sr_community_message_by_id_for_account(PDO $pdo, int $messageId, int $a
                 recipient.status AS recipient_account_status
          FROM sr_community_messages m
          LEFT JOIN sr_member_accounts sender ON sender.id = m.sender_account_id
-         LEFT JOIN sr_community_member_nicknames sender_nickname ON sender_nickname.account_id = sender.id
+         LEFT JOIN sr_member_nicknames sender_nickname ON sender_nickname.account_id = sender.id
          LEFT JOIN sr_member_accounts recipient ON recipient.id = m.recipient_account_id
-         LEFT JOIN sr_community_member_nicknames recipient_nickname ON recipient_nickname.account_id = recipient.id
+         LEFT JOIN sr_member_nicknames recipient_nickname ON recipient_nickname.account_id = recipient.id
          WHERE m.id = :id
            AND (
                 (m.sender_account_id = :sender_account_id AND m.sender_deleted_at IS NULL)

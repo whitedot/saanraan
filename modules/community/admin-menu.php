@@ -5,11 +5,6 @@ return [
     'order' => 29,
     'items' => [
         [
-            'label' => '멤버 관리',
-            'path' => '/admin/community/nicknames',
-            'order' => 10,
-        ],
-        [
             'label' => '게시판 관리',
             'path' => '/admin/community/boards',
             'order' => 20,

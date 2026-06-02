@@ -192,7 +192,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <ul>
                         <?php foreach ($contentComments as $contentComment) { ?>
                             <li>
-                                <strong><?php echo sr_e((string) ($contentComment['author_display_name'] ?? '회원')); ?></strong>
+                                <strong><?php echo sr_e((string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원')); ?></strong>
                                 <p><?php echo nl2br(sr_e((string) $contentComment['body_text'])); ?></p>
                             </li>
                         <?php } ?>

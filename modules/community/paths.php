@@ -2,8 +2,6 @@
 
 return [
     'GET /community' => 'actions/home.php',
-    'GET /community/nickname' => 'actions/nickname.php',
-    'POST /community/nickname' => 'actions/nickname.php',
     'GET /community/board' => 'actions/list.php',
     'GET /community/post' => 'actions/view.php',
     'POST /community/post' => 'actions/view.php',
@@ -33,8 +31,6 @@ return [
     'POST /admin/community/settings' => 'actions/admin-settings.php',
     'GET /admin/community/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
     'POST /admin/community/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
-    'GET /admin/community/nicknames' => 'actions/admin-nicknames.php',
-    'POST /admin/community/nicknames' => 'actions/admin-nicknames.php',
     'GET /admin/community/levels' => 'actions/admin-levels.php',
     'POST /admin/community/levels' => 'actions/admin-levels.php',
     'POST /admin/community/levels/recalculate' => 'actions/admin-level-recalculate.php',

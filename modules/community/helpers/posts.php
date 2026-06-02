@@ -330,7 +330,7 @@ function sr_community_admin_post_count(PDO $pdo, array $filters = []): int
             FROM sr_community_posts p
             INNER JOIN sr_community_boards b ON b.id = p.board_id
             LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
-            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+            LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -385,7 +385,7 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
             INNER JOIN sr_community_boards b ON b.id = p.board_id
             ' . $categoryJoinSql . '
             LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
-            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+            LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
@@ -428,7 +428,7 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
          INNER JOIN sr_community_boards b ON b.id = p.board_id
          ' . $categoryJoinSql . '
          LEFT JOIN sr_member_accounts a ON a.id = p.author_account_id
-         LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id
+         LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id
          WHERE p.id = :id
          LIMIT 1'
     );
@@ -606,7 +606,7 @@ function sr_community_admin_comment_count(PDO $pdo, array $filters = []): int
             INNER JOIN sr_community_posts p ON p.id = c.post_id
             INNER JOIN sr_community_boards b ON b.id = p.board_id
             LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
-            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+            LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($queryParts['where'] !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
     }
@@ -653,7 +653,7 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
             INNER JOIN sr_community_posts p ON p.id = c.post_id
             INNER JOIN sr_community_boards b ON b.id = p.board_id
             LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
-            LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id';
+            LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
@@ -691,7 +691,7 @@ function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
          INNER JOIN sr_community_posts p ON p.id = c.post_id
          INNER JOIN sr_community_boards b ON b.id = p.board_id
          LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
-         LEFT JOIN sr_community_member_nicknames author_nickname ON author_nickname.account_id = a.id
+         LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = a.id
          WHERE c.id = :id
          LIMIT 1'
     );

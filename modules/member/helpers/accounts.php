@@ -7,7 +7,7 @@ function sr_member_create_account(PDO $pdo, array $config, array $data): int
     $email = sr_normalize_identifier((string) ($data['email'] ?? ''));
     $loginId = sr_normalize_login_id((string) ($data['login_id'] ?? ''));
     $password = (string) ($data['password'] ?? '');
-    $displayName = trim((string) ($data['display_name'] ?? ''));
+    $displayName = sr_member_normalize_display_name((string) ($data['display_name'] ?? ''));
     $locale = trim((string) ($data['locale'] ?? 'ko'));
     $status = trim((string) ($data['status'] ?? 'active'));
     $emailVerifiedAt = $data['email_verified_at'] ?? null;
@@ -27,6 +27,9 @@ function sr_member_create_account(PDO $pdo, array $config, array $data): int
 
     if ($displayName === '') {
         $displayName = $email;
+    }
+    if (sr_member_identity_value_has_space($displayName)) {
+        throw new InvalidArgumentException('Display name cannot contain spaces.');
     }
 
     $identifierValue = $loginId !== '' ? $loginId : $email;
@@ -289,10 +292,14 @@ function sr_member_public_account_summary(PDO $pdo, int $accountId): ?array
         return null;
     }
 
+    $settings = sr_member_settings($pdo);
+    $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
+    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname' : "'' AS nickname";
     $stmt = $pdo->prepare(
-        'SELECT id, display_name, locale, status
-         FROM sr_member_accounts
-         WHERE id = :id
+        'SELECT a.id, a.display_name, a.locale, a.status, ' . $nicknameSelect . '
+         FROM sr_member_accounts a
+         ' . $join . '
+         WHERE a.id = :id
          LIMIT 1'
     );
     $stmt->execute(['id' => $accountId]);
@@ -305,6 +312,8 @@ function sr_member_public_account_summary(PDO $pdo, int $accountId): ?array
     return [
         'id' => (int) $account['id'],
         'display_name' => (string) $account['display_name'],
+        'nickname' => (string) ($account['nickname'] ?? ''),
+        'public_name' => sr_member_public_name($account, $settings),
         'locale' => (string) $account['locale'],
         'status' => (string) $account['status'],
     ];
@@ -356,7 +365,16 @@ function sr_member_public_account_summaries_by_hash(PDO $pdo, array $config): ar
         return $cachedMaps[$cacheKey];
     }
 
-    $stmt = $pdo->query("SELECT id, display_name, locale, status FROM sr_member_accounts WHERE status = 'active' ORDER BY id ASC");
+    $settings = sr_member_settings($pdo);
+    $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
+    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname' : "'' AS nickname";
+    $stmt = $pdo->query(
+        'SELECT a.id, a.display_name, a.locale, a.status, ' . $nicknameSelect . "
+         FROM sr_member_accounts a
+         " . $join . "
+         WHERE a.status = 'active'
+         ORDER BY a.id ASC"
+    );
     $accountsByHash = [];
     foreach ($stmt->fetchAll() as $account) {
         $accountId = (int) ($account['id'] ?? 0);
@@ -365,6 +383,8 @@ function sr_member_public_account_summaries_by_hash(PDO $pdo, array $config): ar
             $accountsByHash[$accountHash] = [
                 'id' => (int) $account['id'],
                 'display_name' => (string) $account['display_name'],
+                'nickname' => (string) ($account['nickname'] ?? ''),
+                'public_name' => sr_member_public_name($account, $settings),
                 'locale' => (string) $account['locale'],
                 'status' => (string) $account['status'],
                 'public_hash' => $accountHash,
@@ -580,10 +600,12 @@ function sr_member_anonymize_account(PDO $pdo, array $config, int $accountId): v
         'updated_at' => sr_now(),
         'id' => $accountId,
     ]);
+    sr_member_delete_nickname($pdo, $accountId);
 }
 
 function sr_member_update_account_basics(PDO $pdo, int $accountId, string $displayName, string $locale): void
 {
+    $displayName = sr_member_normalize_display_name($displayName);
     $stmt = $pdo->prepare(
         'UPDATE sr_member_accounts
          SET display_name = :display_name,

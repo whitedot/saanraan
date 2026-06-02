@@ -195,17 +195,6 @@ CREATE TABLE IF NOT EXISTS sr_community_messages (
     KEY idx_sr_community_messages_status_created (status, created_at)
 );
 
-CREATE TABLE IF NOT EXISTS sr_community_member_nicknames (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    account_id BIGINT UNSIGNED NOT NULL,
-    nickname VARCHAR(80) NOT NULL DEFAULT '',
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_sr_community_member_nicknames_account (account_id),
-    UNIQUE KEY uq_sr_community_member_nicknames_nickname (nickname)
-);
-
 CREATE TABLE IF NOT EXISTS sr_community_scraps (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id BIGINT UNSIGNED NOT NULL,

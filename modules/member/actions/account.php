@@ -39,13 +39,18 @@ if (sr_request_method() === 'POST') {
 
     if ($errors === [] && $intent === 'basics') {
         $basics = [
-            'display_name' => sr_post_string('display_name', 120),
+            'display_name' => sr_member_normalize_display_name(sr_post_string('display_name', 120)),
+            'nickname' => sr_member_normalize_nickname(sr_post_string('nickname', 80)),
             'locale' => sr_post_string('locale', 20),
         ];
         $submittedBasics = $basics;
 
-        if ($basics['display_name'] === '') {
-            $errors[] = sr_t('member::action.register.display_name_required');
+        foreach (sr_member_display_name_validation_errors((string) $basics['display_name']) as $displayNameError) {
+            $errors[] = $displayNameError;
+        }
+
+        foreach (sr_member_nickname_validation_errors($pdo, (string) $basics['nickname'], $memberSettings, (int) $account['id']) as $nicknameError) {
+            $errors[] = $nicknameError;
         }
 
         if (!in_array($basics['locale'], $memberLocaleOptions, true)) {
@@ -53,7 +58,21 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            sr_member_update_account_basics($pdo, (int) $account['id'], $basics['display_name'], $basics['locale']);
+            $pdo->beginTransaction();
+            try {
+                sr_member_update_account_basics($pdo, (int) $account['id'], $basics['display_name'], $basics['locale']);
+                if (!empty($memberSettings['nickname_enabled'])) {
+                    sr_member_set_nickname($pdo, (int) $account['id'], (string) $basics['nickname']);
+                } else {
+                    sr_member_delete_nickname($pdo, (int) $account['id']);
+                }
+                $pdo->commit();
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $exception;
+            }
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'member',
@@ -64,6 +83,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Member account basics updated.',
                 'metadata' => [
                     'locale' => $basics['locale'],
+                    'nickname_set' => !empty($memberSettings['nickname_enabled']) && (string) $basics['nickname'] !== '',
                 ],
             ]);
 
@@ -242,8 +262,12 @@ if (sr_request_method() === 'POST') {
 
 if (is_array($submittedBasics) && $errors !== []) {
     $account['display_name'] = $submittedBasics['display_name'];
+    $account['nickname'] = $submittedBasics['nickname'];
     $account['locale'] = $submittedBasics['locale'];
 }
+$account['nickname'] = is_array($submittedBasics) && $errors !== []
+    ? (string) ($submittedBasics['nickname'] ?? '')
+    : sr_member_nickname($pdo, (int) $account['id']);
 $profile = sr_member_profile($pdo, (int) $account['id']);
 if (!sr_member_avatar_reference_is_valid((string) $profile['avatar_path'])) {
     $profile['avatar_path'] = '';

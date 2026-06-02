@@ -202,22 +202,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('community::ui.nickname.section')); ?></h2>
-        <div class="admin-form-grid">
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.nickname.enabled'), $communitySettingsHelp['nickname']['id']); ?><span><?php echo sr_e(sr_t('community::ui.nickname.enabled')); ?></span></div>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_community_admin_settings_nickname_enabled">
-                        <input id="modules_community_admin_settings_nickname_enabled" type="checkbox" name="nickname_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['nickname_enabled']) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('community::ui.nickname.enabled.choice')); ?>
-                    </label>
-                    <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.nickname.enabled.help')); ?></p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="admin-card card">
         <h2>
             <span><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></span>
             <span class="admin-form-actions">

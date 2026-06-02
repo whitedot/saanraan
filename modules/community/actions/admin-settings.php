@@ -59,8 +59,6 @@ if (sr_request_method() === 'POST') {
         $postEditor = sr_community_post_editor_key($postEditorInput);
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
-        $nicknameEnabled = ($_POST['nickname_enabled'] ?? '') === '1';
-        $nicknameRequired = $nicknameEnabled;
         $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
         $onceHistoryPolicy = sr_community_once_history_policy($onceHistoryPolicyInput);
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
@@ -206,8 +204,6 @@ if (sr_request_method() === 'POST') {
                 ['message_write_policy', $messageWritePolicy, 'string'],
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
-                ['nickname_enabled', $nicknameEnabled ? '1' : '0', 'bool'],
-                ['nickname_required', $nicknameRequired ? '1' : '0', 'bool'],
                 ['theme_key', 'basic', 'string'],
                 ['layout_key', $layoutKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
@@ -302,8 +298,6 @@ if (sr_request_method() === 'POST') {
                         'level_auto_recalculate' => $levelAutoRecalculate,
                         'message_write_policy' => $messageWritePolicy,
                         'message_write_min_level' => $messageWriteMinLevel,
-                        'nickname_enabled' => $nicknameEnabled,
-                        'nickname_required' => $nicknameRequired,
                         'layout_key' => $layoutKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,
                         'layout_secondary_menu_key' => $layoutSecondaryMenuKey,

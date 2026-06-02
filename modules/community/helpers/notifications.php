@@ -142,37 +142,10 @@ function sr_community_mention_tokens(string $bodyText): array
 function sr_community_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array
 {
     $tokens = sr_community_mention_tokens($bodyText);
-    if ($tokens === [] || !function_exists('sr_community_member_nicknames_table_exists') || !sr_community_member_nicknames_table_exists($pdo)) {
+    if ($tokens === []) {
         return [];
     }
-
-    $exclude = [];
-    foreach ($excludeAccountIds as $accountId) {
-        $accountId = (int) $accountId;
-        if ($accountId > 0) {
-            $exclude[$accountId] = true;
-        }
-    }
-
-    $placeholders = implode(',', array_fill(0, count($tokens), '?'));
-    $stmt = $pdo->prepare(
-        "SELECT n.account_id
-         FROM sr_community_member_nicknames n
-         INNER JOIN sr_member_accounts a ON a.id = n.account_id
-         WHERE n.nickname IN (" . $placeholders . ")
-           AND a.status = 'active'"
-    );
-    $stmt->execute($tokens);
-
-    $accountIds = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $accountId = (int) ($row['account_id'] ?? 0);
-        if ($accountId > 0 && !isset($exclude[$accountId])) {
-            $accountIds[$accountId] = true;
-        }
-    }
-
-    return array_keys($accountIds);
+    return sr_member_public_name_lookup_account_ids($pdo, $tokens, $excludeAccountIds);
 }
 
 function sr_community_create_comment_mention_notifications(

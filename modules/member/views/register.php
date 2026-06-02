@@ -42,6 +42,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <input id="modules_member_register_display_name" type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
+                <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
+                    <p>
+                        <label for="modules_member_register_nickname">
+                        <span><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                            <input id="modules_member_register_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($values['nickname'] ?? '')); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
+                        </label>
+                        <small><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                    </p>
+                <?php } ?>
                 <?php foreach (($registrationExtensionFields ?? []) as $registrationExtensionField) { ?>
                     <?php
                     $registrationExtensionKey = (string) ($registrationExtensionField['key'] ?? '');

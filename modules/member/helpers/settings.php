@@ -36,6 +36,8 @@ function sr_member_default_settings(): array
         'profile_avatar_required' => (bool) ($settings['profile_avatar_required'] ?? false),
         'profile_text_enabled' => (bool) ($settings['profile_text_enabled'] ?? true),
         'profile_text_required' => (bool) ($settings['profile_text_required'] ?? false),
+        'nickname_enabled' => (bool) ($settings['nickname_enabled'] ?? true),
+        'nickname_required' => (bool) ($settings['nickname_enabled'] ?? true),
     ];
 }
 
@@ -45,6 +47,8 @@ function sr_member_settings(PDO $pdo): array
 
     $settings['allow_registration'] = (bool) $settings['allow_registration'];
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
+    $settings['nickname_enabled'] = (bool) ($settings['nickname_enabled'] ?? true);
+    $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['login_identifier'] = sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both');
     $settings['member_skin_key'] = sr_member_skin_key($settings);
     foreach (sr_member_profile_field_definitions() as $definition) {

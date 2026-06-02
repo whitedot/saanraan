@@ -22,6 +22,8 @@ if (sr_request_method() === 'POST') {
 
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
+    $settings['nickname_enabled'] = ($_POST['nickname_enabled'] ?? '') === '1';
+    $settings['nickname_required'] = $settings['nickname_enabled'];
     $memberSkinKey = sr_post_string('member_skin_key', 40);
     if (!isset(sr_member_skin_options()[$memberSkinKey])) {
         $errors[] = sr_t('member::action.admin_settings.skin_invalid');
@@ -74,6 +76,8 @@ if (sr_request_method() === 'POST') {
         $rows = [
             ['allow_registration', $settings['allow_registration'] ? '1' : '0', 'bool'],
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
+            ['nickname_enabled', $settings['nickname_enabled'] ? '1' : '0', 'bool'],
+            ['nickname_required', $settings['nickname_required'] ? '1' : '0', 'bool'],
             ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
         ];
         foreach (sr_member_profile_field_definitions() as $definition) {
@@ -110,6 +114,8 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'allow_registration' => (bool) $settings['allow_registration'],
                 'email_verification_enabled' => (bool) $settings['email_verification_enabled'],
+                'nickname_enabled' => (bool) $settings['nickname_enabled'],
+                'nickname_required' => (bool) $settings['nickname_required'],
                 'login_identifier' => (string) $settings['login_identifier'],
                 'member_skin_key' => (string) $settings['member_skin_key'],
                 'profile_fields' => sr_member_profile_field_policies($settings),

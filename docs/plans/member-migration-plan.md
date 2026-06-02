@@ -140,7 +140,7 @@ modules/member_migration/sources/imweb.php
 - `mb_id` -> login_id 후보
 - `mb_email` -> email
 - `mb_name` -> display_name
-- `mb_nick` -> 커뮤니티 `sr_community_member_nicknames.nickname` (중복 닉네임은 커뮤니티 업데이트/가져오기 전에 운영 정책에 맞게 정리)
+- `mb_nick` -> 회원 `sr_member_nicknames.nickname` (중복 비교는 lowercase lookup 값 기준이며, 중복 닉네임은 가져오기 전에 운영 정책에 맞게 정리)
 - `mb_hp` -> phone
 - `mb_birth` -> birth_date
 - `mb_datetime` -> created_at 참고값
@@ -169,7 +169,7 @@ modules/member_migration/sources/imweb.php
 ### 아임웹
 
 - CSV 내보내기를 1차 대상으로 한다.
-- 이메일, 이름, 연락처, 그룹/등급, 가입일, 수신 동의 후보를 매핑한다. 닉네임을 이전해야 하는 경우 회원 모듈이 아니라 커뮤니티의 `sr_community_member_nicknames`로 매핑한다.
+- 이메일, 이름, 연락처, 그룹/등급, 가입일, 수신 동의 후보를 매핑한다. 닉네임을 이전해야 하는 경우 회원 모듈의 `sr_member_nicknames`로 매핑한다.
 - API 연동은 이후 단계에서 검토한다.
 
 ## 비밀번호 정책

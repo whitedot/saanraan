@@ -183,7 +183,6 @@ $requiredPackageEntries = [
     'helpers.php',
     'install.sql',
     'layout-options.php',
-    'member-registration.php',
     'member-group-rules.php',
     'menu-links.php',
     'module.php',
@@ -223,7 +222,6 @@ $requiredContracts = [
     'member-group-rules.php',
     'dashboard.php',
     'layout-options.php',
-    'member-registration.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))
@@ -270,8 +268,6 @@ $requiredRoutes = [
     'POST /admin/community/board-groups/create',
     'GET /admin/community/board-groups/edit',
     'POST /admin/community/board-groups/update',
-    'GET /admin/community/nicknames',
-    'POST /admin/community/nicknames',
     'GET /admin/community/levels',
     'POST /admin/community/levels',
     'POST /admin/community/levels/recalculate',
@@ -300,7 +296,6 @@ sr_community_release_require_list_values($adminMenuPaths, [
     '/admin/community/settings',
     '/admin/community/boards',
     '/admin/community/board-groups',
-    '/admin/community/nicknames',
     '/admin/community/posts',
     '/admin/community/comments',
     '/admin/community/reports',
@@ -452,7 +447,6 @@ $requiredTables = [
     'sr_community_levels',
     'sr_community_account_levels',
     'sr_community_level_logs',
-    'sr_community_member_nicknames',
     'sr_community_asset_logs',
     'sr_community_access_entitlements',
 ];
@@ -696,7 +690,6 @@ $stateChangingActions = [
     'modules/community/actions/admin-board-groups.php',
     'modules/community/actions/admin-posts.php',
     'modules/community/actions/admin-reports.php',
-    'modules/community/actions/admin-nicknames.php',
     'modules/community/actions/admin-level-recalculate.php',
 ];
 foreach ($stateChangingActions as $actionPath) {

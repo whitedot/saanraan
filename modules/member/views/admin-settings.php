@@ -107,6 +107,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </label>
                 </div>
             </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="modules_member_admin_settings_nickname_enabled"><?php echo sr_e(sr_t('member::ui.nickname')); ?></label>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="modules_member_admin_settings_nickname_enabled">
+                        <input id="modules_member_admin_settings_nickname_enabled" type="checkbox" name="nickname_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['nickname_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html(sr_t('member::settings.nickname.enabled')); ?>
+                    </label>
+                    <small class="admin-form-help"><?php echo sr_e(sr_t('member::settings.nickname.help')); ?></small>
+                </div>
+            </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.login.ab1cc2ca'), $memberSettingsHelp['login_identifier']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.login.ab1cc2ca')); ?></span></span>

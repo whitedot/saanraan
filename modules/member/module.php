@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.05.012',
+    'version' => '2026.06.001',
     'type' => 'module',
     'description' => '회원 계정과 인증 모듈입니다.',
     'admin' => [
@@ -57,5 +57,7 @@ return [
         'profile_avatar_required' => false,
         'profile_text_enabled' => true,
         'profile_text_required' => false,
+        'nickname_enabled' => true,
+        'nickname_required' => true,
     ],
 ];

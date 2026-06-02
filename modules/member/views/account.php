@@ -14,6 +14,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
             <dd><?php echo sr_e((string) $account['email']); ?></dd>
             <dt><?php echo sr_e(sr_t('member::ui.name.be0cd9bd')); ?></dt>
             <dd><?php echo sr_e((string) $account['display_name']); ?></dd>
+            <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
+                <dt><?php echo sr_e(sr_t('member::ui.nickname')); ?></dt>
+                <dd><?php echo sr_e((string) ($account['nickname'] ?? '')); ?></dd>
+            <?php } ?>
             <dt><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></dt>
             <dd><?php echo sr_e((string) $account['status']); ?></dd>
             <dt><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></dt>
@@ -43,6 +47,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <input id="modules_member_account_display_name" type="text" name="display_name" value="<?php echo sr_e((string) $account['display_name']); ?>" maxlength="120" required>
                     </label>
                 </p>
+                <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
+                    <p>
+                        <label for="modules_member_account_nickname">
+                        <span><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                            <input id="modules_member_account_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($account['nickname'] ?? '')); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
+                        </label>
+                        <small><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                    </p>
+                <?php } ?>
                 <p>
                     <label for="modules_member_account_locale">
                     <span><?php echo sr_e(sr_t('member::ui.locale.2deb1d6f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>

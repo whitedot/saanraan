@@ -171,8 +171,10 @@ if ($accountHelper !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($accountHelper, 'function sr_member_public_account_summary(PDO $pdo, int $accountId): ?array') !== false
-            && strpos($accountHelper, 'SELECT id, display_name, locale, status') !== false
+            && strpos($accountHelper, 'SELECT a.id, a.display_name, a.locale, a.status') !== false
             && strpos($accountHelper, "'display_name' => (string) \$account['display_name']") !== false
+            && strpos($accountHelper, "'nickname' => (string) (\$account['nickname'] ?? '')") !== false
+            && strpos($accountHelper, "'public_name' => sr_member_public_name(\$account, \$settings)") !== false
             && strpos($accountHelper, "'locale' => (string) \$account['locale']") !== false
             && strpos($accountHelper, "'status' => (string) \$account['status']") !== false,
         'Public account summary helper should expose only non-sensitive account summary fields.'

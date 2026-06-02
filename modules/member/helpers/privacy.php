@@ -117,6 +117,18 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
     }
 
     $profile = sr_member_profile($pdo, $accountId);
+    $nickname = [];
+    if (sr_member_nicknames_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT nickname, created_at, updated_at
+             FROM sr_member_nicknames
+             WHERE account_id = :account_id
+             LIMIT 1'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $nicknameRow = $stmt->fetch();
+        $nickname = is_array($nicknameRow) ? $nicknameRow : [];
+    }
 
     $stmt = $pdo->prepare(
         'SELECT consent_key, consent_version, consented, created_at
@@ -153,6 +165,7 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
     return [
         'exported_at' => sr_now(),
         'account' => $account,
+        'nickname' => $nickname,
         'profile' => $profile,
         'groups' => sr_member_group_privacy_export($pdo, $accountId),
         'consents' => $consents,

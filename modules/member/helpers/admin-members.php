@@ -283,10 +283,14 @@ function sr_admin_member_by_id(PDO $pdo, int $accountId): ?array
         return null;
     }
 
+    $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
+    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'COALESCE(n.nickname, \'\') AS nickname' : "'' AS nickname";
     $stmt = $pdo->prepare(
-        'SELECT id, account_identifier_hash, login_id_hash, email, email_hash, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at
-         FROM sr_member_accounts
-         WHERE id = :id
+        'SELECT a.id, a.account_identifier_hash, a.login_id_hash, a.email, a.email_hash, a.display_name, a.locale, a.status, a.email_verified_at, a.last_login_at, a.created_at, a.updated_at,
+                ' . $nicknameSelect . '
+         FROM sr_member_accounts a
+         ' . $join . '
+         WHERE a.id = :id
          LIMIT 1'
     );
     $stmt->execute(['id' => $accountId]);
@@ -312,6 +316,7 @@ function sr_admin_member_create_default_values(array $site = []): array
         'email' => '',
         'login_id' => '',
         'display_name' => '',
+        'nickname' => '',
         'locale' => $defaultLocale,
         'status' => 'active',
         'email_verified' => '1',
@@ -326,7 +331,8 @@ function sr_admin_member_create_values_from_post(array $site = []): array
 
     $values['email'] = $email === null ? '' : $email;
     $values['login_id'] = $loginId === null ? '' : sr_member_normalize_login_id($loginId);
-    $values['display_name'] = sr_post_string('display_name', 120);
+    $values['display_name'] = sr_member_normalize_display_name(sr_post_string('display_name', 120));
+    $values['nickname'] = sr_member_normalize_nickname(sr_post_string('nickname', 80));
     $values['locale'] = sr_post_string('locale', 20);
     $values['status'] = sr_post_string('status', 30);
     $values['email_verified'] = ($_POST['email_verified'] ?? '') === '1' ? '1' : '0';
@@ -350,7 +356,9 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
 
     $email = sr_normalize_identifier((string) $values['email']);
     $loginId = sr_member_normalize_login_id((string) $values['login_id']);
-    $displayName = trim((string) $values['display_name']);
+    $memberSettings = sr_member_settings($pdo);
+    $displayName = sr_member_normalize_display_name((string) $values['display_name']);
+    $nickname = sr_member_normalize_nickname((string) ($values['nickname'] ?? ''));
     $locale = (string) $values['locale'];
     $status = (string) $values['status'];
     $emailVerified = (string) $values['email_verified'] === '1';
@@ -358,6 +366,7 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
     $values['email'] = $email;
     $values['login_id'] = $loginId;
     $values['display_name'] = $displayName;
+    $values['nickname'] = $nickname;
 
     if ($emailInput === null) {
         $errors[] = sr_t('member::action.register.email_too_long');
@@ -375,8 +384,12 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
         $errors[] = sr_t('member::action.register.login_id_invalid');
     }
 
-    if ($displayName === '') {
-        $errors[] = sr_t('member::action.admin.name_required');
+    foreach (sr_member_display_name_validation_errors($displayName) as $displayNameError) {
+        $errors[] = $displayNameError;
+    }
+
+    foreach (sr_member_nickname_validation_errors($pdo, $nickname, $memberSettings) as $nicknameError) {
+        $errors[] = $nicknameError;
     }
 
     if ($password === null || $passwordConfirm === null) {
@@ -422,6 +435,7 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
     $createdAccountId = 0;
     if ($errors === []) {
         try {
+            $pdo->beginTransaction();
             $createdAccountId = sr_member_create_account($pdo, $runtimeConfig, [
                 'email' => $email,
                 'login_id' => $loginId,
@@ -431,7 +445,14 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
                 'status' => $status,
                 'email_verified_at' => $emailVerified ? sr_now() : null,
             ]);
+            if (!empty($memberSettings['nickname_enabled']) && $nickname !== '') {
+                sr_member_set_nickname($pdo, $createdAccountId, $nickname);
+            }
+            $pdo->commit();
         } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             sr_log_exception($exception, 'admin_member_create');
             $errors[] = sr_t('member::action.admin.create_failed');
         }
@@ -494,7 +515,14 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     }
 
     if ($errors === []) {
-        $stmt = $pdo->prepare('SELECT id, account_identifier_hash, email, email_hash, login_id_hash, display_name, locale, status FROM sr_member_accounts WHERE id = :id LIMIT 1');
+        $stmt = $pdo->prepare(
+            'SELECT a.id, a.account_identifier_hash, a.email, a.email_hash, a.login_id_hash, a.display_name, a.locale, a.status,
+                    COALESCE(n.nickname, \'\') AS nickname
+             FROM sr_member_accounts a
+             LEFT JOIN sr_member_nicknames n ON n.account_id = a.id
+             WHERE a.id = :id
+             LIMIT 1'
+        );
         $stmt->execute(['id' => $targetAccountId]);
         $targetAccount = $stmt->fetch();
 
@@ -561,12 +589,15 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $supportedLocales = sr_supported_locales($site);
         $emailInput = sr_post_string_without_truncation('email', 255);
         $email = sr_normalize_identifier((string) ($emailInput ?? ''));
-        $displayName = trim(sr_post_string('display_name', 120));
+        $memberSettings = sr_member_settings($pdo);
+        $displayName = sr_member_normalize_display_name(sr_post_string('display_name', 120));
+        $nickname = sr_member_normalize_nickname(sr_post_string('nickname', 80));
         $locale = sr_post_string('locale', 20);
         $resultExtra['edit_values'] = [
             'id' => $targetAccountId,
             'email' => $email,
             'display_name' => $displayName,
+            'nickname' => $nickname,
             'locale' => $locale,
             'status' => $status,
         ];
@@ -579,8 +610,12 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             $errors[] = sr_t('member::action.register.email_invalid');
         }
 
-        if ($displayName === '') {
-            $errors[] = sr_t('member::action.admin.name_required');
+        foreach (sr_member_display_name_validation_errors($displayName) as $displayNameError) {
+            $errors[] = $displayNameError;
+        }
+
+        foreach (sr_member_nickname_validation_errors($pdo, $nickname, $memberSettings, $targetAccountId) as $nicknameError) {
+            $errors[] = $nicknameError;
         }
 
         if (!in_array($locale, $supportedLocales, true)) {
@@ -648,6 +683,11 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'updated_at' => sr_now(),
                     'id' => $targetAccountId,
                 ]);
+                if (!empty($memberSettings['nickname_enabled']) && !in_array($status, ['withdrawn', 'anonymized'], true)) {
+                    sr_member_set_nickname($pdo, $targetAccountId, $nickname);
+                } else {
+                    sr_member_delete_nickname($pdo, $targetAccountId);
+                }
 
                 $revokedSessions = $status === 'active' ? 0 : sr_member_revoke_account_sessions($pdo, $targetAccountId);
                 if ($revokedSessions < 0) {
@@ -678,6 +718,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'before_status' => (string) $targetAccount['status'],
                     'after_status' => $status,
                     'email_changed' => $email !== (string) $targetAccount['email'],
+                    'nickname_changed' => $nickname !== (string) ($targetAccount['nickname'] ?? ''),
                     'login_id_changed' => false,
                     'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,
                     'privacy_cleanup' => $privacyCleanupResults,

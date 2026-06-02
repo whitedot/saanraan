@@ -25,6 +25,7 @@ $values = [
     'email' => '',
     'login_id' => '',
     'display_name' => '',
+    'nickname' => '',
 ];
 $registrationExtensionValues = sr_member_registration_extension_empty_values($registrationExtensionFields);
 $profileValues = sr_member_empty_profile();
@@ -51,7 +52,8 @@ if (sr_request_method() === 'POST') {
     $values = [
         'email' => $email,
         'login_id' => sr_member_normalize_login_id($loginId),
-        'display_name' => sr_post_string('display_name', 120),
+        'display_name' => sr_member_normalize_display_name(sr_post_string('display_name', 120)),
+        'nickname' => sr_member_normalize_nickname(sr_post_string('nickname', 80)),
     ];
     $registrationExtensionValues = sr_member_registration_extension_values_from_post($registrationExtensionFields, $errors);
     $password = sr_post_string_without_truncation('password', 255);
@@ -71,8 +73,12 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('member::action.register.login_id_invalid');
     }
 
-    if ($values['display_name'] === '') {
-        $errors[] = sr_t('member::action.register.display_name_required');
+    foreach (sr_member_display_name_validation_errors((string) $values['display_name']) as $displayNameError) {
+        $errors[] = $displayNameError;
+    }
+
+    foreach (sr_member_nickname_validation_errors($pdo, (string) $values['nickname'], $memberSettings) as $nicknameError) {
+        $errors[] = $nicknameError;
     }
 
     $errors = array_merge($errors, sr_member_registration_extension_validation_errors($pdo, $registrationExtensionContracts, $registrationExtensionValues, [
@@ -184,6 +190,9 @@ if (sr_request_method() === 'POST') {
             sr_member_record_consent($pdo, $accountId, 'marketing', '2026.04.001', $marketingConsent);
             if ($profileFieldsEnabled) {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
+            }
+            if (!empty($memberSettings['nickname_enabled']) && (string) $values['nickname'] !== '') {
+                sr_member_set_nickname($pdo, $accountId, (string) $values['nickname']);
             }
             $registrationExtensionMetadata = sr_member_registration_extension_save($pdo, $registrationExtensionContracts, $accountId, $registrationExtensionValues, [
                 'site' => $site,
