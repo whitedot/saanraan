@@ -321,7 +321,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div id="<?php echo sr_e($permissionModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($permissionModalId); ?>-label">
         <div class="modal-dialog modal-dialog-lg admin-permission-modal-dialog">
             <div class="modal-content">
-                <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="admin-form ui-form-theme" data-admin-permission-form>
+                <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="admin-form ui-form-theme" data-admin-permission-form data-admin-permission-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($permissionModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.admin.bedced78')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($permissionModalId); ?>">
@@ -602,6 +602,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             submit.disabled = accountInput.value === '' || !addFormHasGrantTarget(form);
         }
         syncAddRequiredIndicators(form);
+        syncOwnerPermissionState(form);
     }
 
     function syncAddRequiredIndicators(form) {
@@ -614,6 +615,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         form.querySelectorAll('[data-admin-permission-required-label]').forEach(function (label) {
             label.hidden = ownerSelected;
         });
+    }
+
+    function syncOwnerPermissionState(form) {
+        var ownerInput = form ? form.querySelector('input[name="is_owner"]') : null;
+        var ownerSelected = !!(ownerInput && ownerInput.checked);
+        var accountStatus = form ? (form.getAttribute('data-admin-permission-account-status') || 'active') : 'active';
+        var grantControlsDisabled = ownerSelected || accountStatus !== 'active';
+        if (!form) {
+            return;
+        }
+
+        form.querySelectorAll('[data-admin-permission-group], [data-admin-permission-action], [data-admin-permission-add]').forEach(function (control) {
+            control.disabled = grantControlsDisabled;
+        });
+
+        form.querySelectorAll('[data-admin-permission-selected] input[name="permission_keys[]"], [data-admin-permission-remove]').forEach(function (control) {
+            control.disabled = ownerSelected;
+        });
+
+        var groupSelect = form.querySelector('[data-admin-permission-group]');
+        var itemSelect = form.querySelector('[data-admin-permission-item]');
+        if (itemSelect) {
+            itemSelect.disabled = grantControlsDisabled || !groupSelect || groupSelect.value === '';
+        }
     }
 
     function addFormHasGrantTarget(form) {
@@ -682,6 +707,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
 
         hiddenWrap.innerHTML = '';
+        var ownerInput = form.querySelector('input[name="is_owner"]');
+        if (ownerInput && ownerInput.checked) {
+            return;
+        }
+
         var items = selectedPermissionItems(form);
         if (items.length === 0) {
             return;
@@ -750,6 +780,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             button.setAttribute('data-account-id', item.id || '');
             button.setAttribute('data-account-label', summary);
             button.setAttribute('data-account-identifier', item.account_public_hash || '');
+            button.setAttribute('data-account-status', item.status || '');
+            if (item.status !== 'active') {
+                button.disabled = true;
+                button.title = '정상 상태 회원에게만 관리자 권한을 부여할 수 있습니다.';
+            }
 
             var title = document.createElement('strong');
             title.textContent = item.display_name || item.account_public_hash || ('#' + item.id);
@@ -876,6 +911,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
+        syncOwnerPermissionState(form);
         validateAddForm(form, false);
         updateAddSubmit(form);
     });
@@ -898,6 +934,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             var accountIdentifier = pickForm ? pickForm.querySelector('[data-admin-permission-account-identifier]') : null;
             if (accountInput) {
                 accountInput.value = memberPickButton.getAttribute('data-account-id') || '';
+            }
+            if (pickForm) {
+                pickForm.setAttribute('data-admin-permission-account-status', memberPickButton.getAttribute('data-account-status') || '');
             }
             if (accountIdentifier) {
                 accountIdentifier.value = memberPickButton.getAttribute('data-account-identifier') || memberPickButton.getAttribute('data-account-label') || '';
@@ -981,6 +1020,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     document.querySelectorAll('[data-admin-permission-add-form]').forEach(function (form) {
         syncAddRequiredIndicators(form);
         updateAddSubmit(form);
+    });
+    document.querySelectorAll('[data-admin-permission-form]:not([data-admin-permission-add-form])').forEach(function (form) {
+        syncOwnerPermissionState(form);
     });
 })();
 </script>

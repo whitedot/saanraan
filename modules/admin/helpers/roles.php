@@ -463,6 +463,11 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
     $targetAccountId = sr_admin_post_positive_int('account_id');
     $selectedIsOwner = ($_POST['is_owner'] ?? '') === '1';
     $selectedPermissionKeys = sr_admin_post_permission_keys($pdo);
+    $requestedPermissionKeys = $selectedPermissionKeys;
+
+    if (!in_array($intent, ['', 'add_permission'], true)) {
+        $errors[] = sr_t('admin::action.roles.intent_invalid');
+    }
 
     if ($targetAccountId <= 0) {
         $errors[] = sr_t('admin::action.roles.account_required');
@@ -493,8 +498,26 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
 
     if ($errors === [] && $intent === 'add_permission') {
         $selectedIsOwner = $beforeIsOwner || $selectedIsOwner;
-        $selectedPermissionKeys = array_values(array_unique(array_merge($beforePermissionKeys, $selectedPermissionKeys)));
-        sort($selectedPermissionKeys);
+        if ($beforeIsOwner && $requestedPermissionKeys !== []) {
+            $errors[] = sr_t('admin::action.roles.owner_permission_redundant');
+        } elseif ($selectedIsOwner) {
+            $selectedPermissionKeys = [];
+        } else {
+            $selectedPermissionKeys = array_values(array_unique(array_merge($beforePermissionKeys, $selectedPermissionKeys)));
+            sort($selectedPermissionKeys);
+        }
+    }
+
+    if ($errors === [] && (string) $targetAccount['status'] !== 'active') {
+        $addsOwnerRole = $selectedIsOwner && !$beforeIsOwner;
+        $addsPermissionKeys = array_values(array_diff($selectedPermissionKeys, $beforePermissionKeys));
+        if ($addsOwnerRole || $addsPermissionKeys !== []) {
+            $errors[] = sr_t('admin::action.roles.inactive_account_grant_disallowed');
+        }
+    }
+
+    if ($errors === [] && $intent !== 'add_permission' && $selectedIsOwner) {
+        $selectedPermissionKeys = [];
     }
 
     if ($errors === [] && $beforeIsOwner && !$selectedIsOwner) {

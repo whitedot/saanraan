@@ -227,6 +227,16 @@ if (!is_string($adminRolesHelper) || strpos($adminRolesHelper, 'function sr_admi
     $errors[] = 'Admin role helper must prevent revoking the last active owner role.';
 }
 
+if (is_string($adminRolesHelper) && (
+    strpos($adminRolesHelper, "sr_t('admin::action.roles.intent_invalid')") === false
+    || strpos($adminRolesHelper, "sr_t('admin::action.roles.owner_permission_redundant')") === false
+    || strpos($adminRolesHelper, "sr_t('admin::action.roles.inactive_account_grant_disallowed')") === false
+    || strpos($adminRolesHelper, "\$addsOwnerRole = \$selectedIsOwner && !\$beforeIsOwner;") === false
+    || strpos($adminRolesHelper, "\$addsPermissionKeys = array_values(array_diff(\$selectedPermissionKeys, \$beforePermissionKeys));") === false
+)) {
+    $errors[] = 'Admin role helper must reject invalid permission intents, redundant owner menu grants, and new grants to inactive accounts.';
+}
+
 $adminInputHelper = file_get_contents($root . '/modules/admin/helpers/input.php');
 if (!is_string($adminInputHelper)) {
     $errors[] = 'Admin input helper cannot be read.';
