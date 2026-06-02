@@ -430,6 +430,7 @@ function sr_admin_audit_log_display_message(array $log): string
         'Member group rule saved.' => '회원 그룹 규칙이 저장되었습니다.',
         'Member group rules evaluated.' => '회원 그룹 규칙이 평가되었습니다.',
         'Member group membership changed.' => '회원 그룹 배정이 변경되었습니다.',
+        'Member group membership already active.' => '이미 활성 상태인 회원 그룹 배정입니다.',
         'Member settings updated.' => '회원 설정이 변경되었습니다.',
     ];
 

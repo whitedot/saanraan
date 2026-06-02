@@ -226,6 +226,7 @@ function sr_admin_event_type_label(string $eventType): string
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리자 권한 변경',
         'admin.permissions.changed' => '관리자 권한 변경',
+        'member.group.manual_grant_skipped' => '회원 그룹 수동 배정 중복 건너뜀',
         'content.settings.updated' => '콘텐츠 환경설정 변경',
         'content.asset_settings.updated' => '콘텐츠 포인트/금액 설정 변경',
         'content_group.asset_settings.updated' => '콘텐츠 그룹 포인트/금액 설정 변경',

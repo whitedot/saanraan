@@ -372,23 +372,23 @@ function sr_member_group_save(PDO $pdo, array $data): int
     return (int) $pdo->lastInsertId();
 }
 
-function sr_member_group_grant_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): void
+function sr_member_group_grant_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): string
 {
-    sr_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, true);
+    return sr_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, true);
 }
 
-function sr_member_group_revoke_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): void
+function sr_member_group_revoke_manual(PDO $pdo, int $accountId, int $groupId, int $actorAccountId): string
 {
-    sr_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, false);
+    return sr_member_group_set_manual_membership($pdo, $accountId, $groupId, $actorAccountId, false);
 }
 
-function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $groupId, int $actorAccountId, bool $grant): void
+function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $groupId, int $actorAccountId, bool $grant): string
 {
     $now = sr_now();
 
     if ($grant) {
         $stmt = $pdo->prepare(
-            "SELECT id FROM sr_member_group_memberships
+            "SELECT id, status FROM sr_member_group_memberships
              WHERE account_id = :account_id
                AND group_id = :group_id
                AND assignment_type = 'manual'
@@ -402,6 +402,10 @@ function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $gr
         $membership = $stmt->fetch();
 
         if (is_array($membership)) {
+            if ((string) ($membership['status'] ?? '') === 'active') {
+                return 'already_active';
+            }
+
             $membershipId = (int) $membership['id'];
             $stmt = $pdo->prepare(
                 "UPDATE sr_member_group_memberships
@@ -437,7 +441,7 @@ function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $gr
         }
 
         sr_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_granted', $actorAccountId, 'Manual group membership granted.', []);
-        return;
+        return 'granted';
     }
 
     $stmt = $pdo->prepare(
@@ -455,7 +459,7 @@ function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $gr
     ]);
     $membership = $stmt->fetch();
     if (!is_array($membership)) {
-        return;
+        return 'not_active';
     }
 
     $membershipId = (int) $membership['id'];
@@ -473,6 +477,7 @@ function sr_member_group_set_manual_membership(PDO $pdo, int $accountId, int $gr
     ]);
 
     sr_member_group_log($pdo, $groupId, $accountId, $membershipId, 'member.group.manual_revoked', $actorAccountId, 'Manual group membership revoked.', []);
+    return 'revoked';
 }
 
 function sr_member_group_log(PDO $pdo, int $groupId, int $accountId, ?int $membershipId, string $eventType, ?int $actorAccountId, string $message, array $metadata): void

@@ -44,6 +44,7 @@ return [
     'action.admin_groups.group_updated' => '회원 그룹을 수정했습니다.',
     'action.admin_groups.intent_invalid' => '회원 그룹 작업 값이 올바르지 않습니다.',
     'action.admin_groups.manual_granted' => '회원에게 그룹을 수동 배정했습니다.',
+    'action.admin_groups.manual_already_granted' => '이미 {group} 그룹에 수동 배정된 회원입니다. 새 배정은 추가하지 않았습니다.',
     'action.admin_groups.manual_revoked' => '회원 그룹 수동 배정을 해제했습니다.',
     'action.admin_groups.member_hash_required' => '회원 공개 해시를 입력하세요.',
     'action.admin_groups.module_key_invalid' => '재평가할 규칙 범위가 올바르지 않습니다.',

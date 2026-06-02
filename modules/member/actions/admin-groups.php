@@ -287,11 +287,18 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === []) {
             if ($intent === 'grant_manual') {
-                sr_member_group_grant_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
-                $eventType = 'member.group.manual_granted';
-                $notice = sr_t('member::action.admin_groups.manual_granted');
+                $membershipResult = sr_member_group_grant_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
+                if ($membershipResult === 'already_active') {
+                    $eventType = 'member.group.manual_grant_skipped';
+                    $notice = sr_t('member::action.admin_groups.manual_already_granted', [
+                        'group' => (string) ($group['title'] ?? ''),
+                    ]);
+                } else {
+                    $eventType = 'member.group.manual_granted';
+                    $notice = sr_t('member::action.admin_groups.manual_granted');
+                }
             } else {
-                sr_member_group_revoke_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
+                $membershipResult = sr_member_group_revoke_manual($pdo, $targetAccountId, $groupId, (int) $account['id']);
                 $eventType = 'member.group.manual_revoked';
                 $notice = sr_t('member::action.admin_groups.manual_revoked');
             }
@@ -303,10 +310,11 @@ if (sr_request_method() === 'POST') {
                 'target_type' => 'member_account',
                 'target_id' => (string) $targetAccountId,
                 'result' => 'success',
-                'message' => 'Member group membership changed.',
+                'message' => $eventType === 'member.group.manual_grant_skipped' ? 'Member group membership already active.' : 'Member group membership changed.',
                 'metadata' => [
                     'group_id' => $groupId,
                     'assignment_type' => 'manual',
+                    'membership_result' => $membershipResult,
                 ],
             ]);
             sr_admin_flash_result(sr_admin_action_result([], $notice));
