@@ -62,6 +62,8 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Treat HTTP smoke tests as the default follow-up when a local or staging base URL is available, or when a local PHP built-in server can be started safely without secrets or production data. Use `php -S 127.0.0.1:<port> -t .tools/public .tools/bin/dev-router.php` with an available port, then run `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> php .tools/bin/smoke-http.php`.
 - If the target environment is expected to have the community module installed, run the HTTP smoke test with `SR_SMOKE_EXPECT_COMMUNITY=1`.
 - Run authenticated smoke tests such as `php .tools/bin/smoke-community-auth.php` only against a local or staging database and only when explicit smoke-test credentials are available. These tests create and modify data, so do not run them against production.
+- For local or staging authenticated smoke tests, the temporary test administrator credentials are `admin` / `12341234`. These credentials are for testing only and must be removed from this file and any related test notes before milestone release.
+- When reward reclaim or other admin-only workflows need data to verify, create dummy local or staging data as needed. Do not use production data for destructive or mutating smoke tests.
 - Treat a smoke-test failure as a real finding unless the failure is clearly caused by missing local environment, unavailable credentials, or an already documented pre-existing issue. Record that distinction in the final response.
 
 ## GitHub Operations

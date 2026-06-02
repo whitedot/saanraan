@@ -13,8 +13,8 @@ if (sr_request_method() === 'GET' && sr_request_path() === '/admin/rewards') {
     sr_redirect('/admin/rewards/balances');
 }
 
-$allowedTransactionTypes = ['adjustment', 'grant', 'use', 'refund', 'expire'];
-$allowedReferenceTypes = ['', 'order', 'payment', 'refund', 'support_ticket', 'event', 'migration'];
+$allowedTransactionTypes = ['adjustment', 'grant', 'use', 'refund', 'expire', 'reclaim'];
+$allowedReferenceTypes = ['', 'order', 'payment', 'refund', 'reclaim', 'support_ticket', 'event', 'migration'];
 $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
@@ -47,6 +47,10 @@ if (sr_request_method() === 'POST') {
     $approvalAccountId = 0;
     if (!in_array($referenceType, $allowedReferenceTypes, true)) {
         $referenceType = '';
+    }
+    $transactionPermissionPath = $transactionType === 'reclaim' ? '/admin/rewards/transactions' : $rewardPermissionPath;
+    if ($transactionType === 'reclaim') {
+        sr_admin_require_permission($pdo, (int) $account['id'], $transactionPermissionPath, 'edit');
     }
 
     if ($targetAccountId <= 0) {
@@ -88,6 +92,10 @@ if (sr_request_method() === 'POST') {
         }
     }
 
+    if ($errors === [] && $transactionType === 'reclaim' && $rewardAdminPage !== 'transactions') {
+        $errors[] = sr_t('reward::action.admin.reclaim_transactions_page_required');
+    }
+
     if ($errors === [] && $transactionType === 'refund' && $referenceType === 'refund' && preg_match('/\Areward_transaction:([0-9]+)\z/', $referenceId, $matches) === 1) {
         $stmt = $pdo->prepare('SELECT transaction_type FROM sr_reward_transactions WHERE id = :id AND account_id = :account_id LIMIT 1');
         $stmt->execute([
@@ -99,11 +107,20 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('reward::action.admin.refund_original_not_found');
         } elseif ((string) ($row['transaction_type'] ?? '') === 'refund') {
             $errors[] = sr_t('reward::action.admin.refund_again_disallowed');
+        } elseif ((string) ($row['transaction_type'] ?? '') === 'reclaim') {
+            $errors[] = sr_t('reward::action.admin.refund_reclaim_disallowed');
+        }
+    }
+
+    if ($errors === [] && $transactionType === 'reclaim') {
+        $reclaimError = sr_reward_validate_reclaim_transaction($pdo, $targetAccountId, $amount, $referenceType, $referenceId);
+        if ($reclaimError !== null) {
+            $errors[] = $reclaimError;
         }
     }
 
     if ($errors === []) {
-        $limitResult = sr_reward_validate_admin_adjustment_limit($pdo, $runtimeConfig, (int) $account['id'], $rewardPermissionPath, $amount, $approvalIdentifier, $approvalNote);
+        $limitResult = sr_reward_validate_admin_adjustment_limit($pdo, $runtimeConfig, (int) $account['id'], $transactionPermissionPath, $amount, $approvalIdentifier, $approvalNote);
         if ($limitResult['error'] !== null) {
             $errors[] = (string) $limitResult['error'];
         }
@@ -112,6 +129,15 @@ if (sr_request_method() === 'POST') {
 
     if ($errors === []) {
         try {
+            $startedReclaimTransaction = $transactionType === 'reclaim' && !$pdo->inTransaction();
+            if ($startedReclaimTransaction) {
+                $pdo->beginTransaction();
+                $reclaimError = sr_reward_validate_reclaim_transaction($pdo, $targetAccountId, $amount, $referenceType, $referenceId, true);
+                if ($reclaimError !== null) {
+                    throw new RuntimeException('Reward reclaim target amount exceeded.');
+                }
+            }
+
             $transactionId = sr_reward_create_transaction($pdo, [
                 'account_id' => $targetAccountId,
                 'amount' => $amount,
@@ -140,15 +166,24 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
+            if ($startedReclaimTransaction) {
+                $pdo->commit();
+            }
+
             sr_admin_flash_result(sr_admin_action_result([], sr_t('reward::action.admin.transaction_saved')));
             $redirectIdentifier = sr_admin_member_public_hash($runtimeConfig, $targetAccountId);
             $redirectPath = $rewardAdminPage === 'transactions' ? '/admin/rewards/transactions' : '/admin/rewards/balances';
             sr_redirect($redirectPath . '?account_identifier=' . rawurlencode($redirectIdentifier));
         } catch (Throwable $exception) {
+            if (isset($startedReclaimTransaction) && $startedReclaimTransaction && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             if ($exception->getMessage() === 'Reward balance cannot be negative.') {
                 $errors[] = sr_t('reward::action.admin.balance_negative');
             } elseif ($exception->getMessage() === 'Reward transaction amount sign is invalid for type.') {
                 $errors[] = sr_t('reward::action.admin.amount_sign_mismatch');
+            } elseif ($exception->getMessage() === 'Reward reclaim target amount exceeded.') {
+                $errors[] = sr_t('reward::action.admin.reclaim_amount_exceeds_target');
             } else {
                 $errors[] = sr_t('reward::action.admin.transaction_save_failed');
             }
@@ -182,11 +217,13 @@ if ($rewardAdminPage === 'balances') {
 }
 
 $transactions = [];
+$rewardReclaimRemainingAmounts = [];
 $transactionSort = sr_admin_sort_from_request(sr_admin_asset_transaction_sort_options(), sr_admin_asset_transaction_default_sort());
 $transactionPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($rewardAdminPage === 'transactions') {
     $transactionPagination = sr_admin_pagination_from_total($pdo, sr_admin_asset_transaction_count($pdo, 'sr_reward_transactions', $accountIdFilter));
     $transactions = sr_admin_asset_transaction_rows($pdo, $runtimeConfig, 'sr_reward_transactions', $transactionSort, $transactionPagination, $accountIdFilter);
+    $rewardReclaimRemainingAmounts = sr_reward_reclaim_remaining_amounts_for_transactions($pdo, $transactions);
 }
 
 include SR_ROOT . '/modules/reward/views/admin-rewards.php';

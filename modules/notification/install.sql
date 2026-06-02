@@ -71,6 +71,7 @@ VALUES
     ('reward', 'transaction.refund', '적립금이 복원되었습니다.', '변동 금액: {amount_abs}원\n변동 후 잔액: {balance_after}원\n사유: {reason}\n발생 시각: {created_at}', '/account/rewards', '["site"]', 'active', NOW(), NOW()),
     ('reward', 'transaction.use', '적립금이 사용되었습니다.', '변동 금액: -{amount_abs}원\n변동 후 잔액: {balance_after}원\n사유: {reason}\n발생 시각: {created_at}', '/account/rewards', '["site"]', 'active', NOW(), NOW()),
     ('reward', 'transaction.expire', '적립금이 만료되었습니다.', '변동 금액: -{amount_abs}원\n변동 후 잔액: {balance_after}원\n사유: {reason}\n발생 시각: {created_at}', '/account/rewards', '["site"]', 'active', NOW(), NOW()),
+    ('reward', 'transaction.reclaim', '적립금이 회수되었습니다.', '변동 금액: -{amount_abs}원\n변동 후 잔액: {balance_after}원\n사유: {reason}\n발생 시각: {created_at}', '/account/rewards', '["site"]', 'active', NOW(), NOW()),
     ('reward', 'transaction.adjustment.increase', '적립금이 증가했습니다.', '변동 금액: {amount_abs}원\n변동 후 잔액: {balance_after}원\n사유: {reason}\n발생 시각: {created_at}', '/account/rewards', '["site"]', 'active', NOW(), NOW()),
     ('reward', 'transaction.adjustment.decrease', '적립금이 감소했습니다.', '변동 금액: -{amount_abs}원\n변동 후 잔액: {balance_after}원\n사유: {reason}\n발생 시각: {created_at}', '/account/rewards', '["site"]', 'active', NOW(), NOW()),
     ('deposit', 'transaction.deposit', '예치금이 입금되었습니다.', '변동 금액: {amount_abs}원\n변동 후 잔액: {balance_after}원\n사유: {reason}\n발생 시각: {created_at}', '/account/deposits', '["site"]', 'active', NOW(), NOW()),

@@ -203,7 +203,7 @@ function sr_reward_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfi
          FROM sr_reward_transactions
          WHERE created_by_account_id = :admin_account_id
            AND created_at >= :started_at
-           AND transaction_type IN ('adjustment', 'grant', 'use', 'refund', 'expire')"
+           AND transaction_type IN ('adjustment', 'grant', 'use', 'refund', 'expire', 'reclaim')"
     );
     $stmt->execute([
         'admin_account_id' => $adminAccountId,
@@ -327,11 +327,229 @@ function sr_reward_transaction_type_allows_amount(string $transactionType, int $
         return $amount > 0;
     }
 
-    if (in_array($transactionType, ['use', 'expire', 'withdraw', 'exchange_out', 'exchange_fee'], true)) {
+    if (in_array($transactionType, ['use', 'expire', 'reclaim', 'withdraw', 'exchange_out', 'exchange_fee'], true)) {
         return $amount < 0;
     }
 
     return $transactionType === 'adjustment';
+}
+
+function sr_reward_transaction_type_label(string $transactionType): string
+{
+    $labels = [
+        'adjustment' => '조정',
+        'grant' => '지급',
+        'use' => '사용',
+        'refund' => '환불',
+        'expire' => '만료',
+        'reclaim' => '회수',
+        'withdraw' => '출금',
+        'exchange_in' => '환전 입금',
+        'exchange_out' => '환전 출금',
+        'exchange_fee' => '환전 수수료',
+    ];
+
+    return $labels[$transactionType] ?? $transactionType;
+}
+
+function sr_reward_reclaim_reference_id(int $transactionId): string
+{
+    return 'reward_transaction:' . (string) $transactionId;
+}
+
+function sr_reward_reclaim_reference_transaction_id(string $referenceId): int
+{
+    if (preg_match('/\Areward_transaction:([0-9]+)\z/', $referenceId, $matches) !== 1) {
+        return 0;
+    }
+
+    return (int) $matches[1];
+}
+
+function sr_reward_reclaim_target(PDO $pdo, int $accountId, int $transactionId, bool $lock = false): ?array
+{
+    if ($accountId <= 0 || $transactionId <= 0) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, account_id, amount, transaction_type, reason, created_at
+         FROM sr_reward_transactions
+         WHERE id = :id AND account_id = :account_id
+         LIMIT 1' . ($lock ? ' FOR UPDATE' : '')
+    );
+    $stmt->execute([
+        'id' => $transactionId,
+        'account_id' => $accountId,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_reward_reclaimed_amount_for_target(PDO $pdo, int $accountId, int $transactionId, bool $lock = false): int
+{
+    if ($accountId <= 0 || $transactionId <= 0) {
+        return 0;
+    }
+
+    if ($lock) {
+        $stmt = $pdo->prepare(
+            "SELECT amount
+             FROM sr_reward_transactions
+             WHERE account_id = :account_id
+               AND transaction_type = 'reclaim'
+               AND reference_type = 'reclaim'
+               AND reference_id = :reference_id
+             FOR UPDATE"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'reference_id' => sr_reward_reclaim_reference_id($transactionId),
+        ]);
+
+        $reclaimedAmount = 0;
+        foreach ($stmt->fetchAll() as $row) {
+            if (is_array($row)) {
+                $reclaimedAmount += abs((int) ($row['amount'] ?? 0));
+            }
+        }
+
+        return $reclaimedAmount;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COALESCE(SUM(ABS(amount)), 0) AS reclaimed_amount
+         FROM sr_reward_transactions
+         WHERE account_id = :account_id
+           AND transaction_type = 'reclaim'
+           AND reference_type = 'reclaim'
+           AND reference_id = :reference_id"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'reference_id' => sr_reward_reclaim_reference_id($transactionId),
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? (int) ($row['reclaimed_amount'] ?? 0) : 0;
+}
+
+function sr_reward_reclaim_remaining_amount(PDO $pdo, int $accountId, int $transactionId): int
+{
+    $target = sr_reward_reclaim_target($pdo, $accountId, $transactionId);
+    if (!is_array($target)) {
+        return 0;
+    }
+
+    $targetAmount = (int) ($target['amount'] ?? 0);
+    if ($targetAmount <= 0) {
+        return 0;
+    }
+
+    return max(0, $targetAmount - sr_reward_reclaimed_amount_for_target($pdo, $accountId, $transactionId));
+}
+
+function sr_reward_reclaim_remaining_amounts_for_transactions(PDO $pdo, array $transactions): array
+{
+    $targets = [];
+    $referenceIds = [];
+    foreach ($transactions as $transaction) {
+        if (!is_array($transaction)) {
+            continue;
+        }
+
+        $transactionId = (int) ($transaction['id'] ?? 0);
+        $accountId = (int) ($transaction['account_id'] ?? 0);
+        $amount = (int) ($transaction['amount'] ?? 0);
+        if ($transactionId <= 0 || $accountId <= 0 || $amount <= 0) {
+            continue;
+        }
+
+        $referenceId = sr_reward_reclaim_reference_id($transactionId);
+        $targets[$accountId . ':' . $transactionId] = [
+            'account_id' => $accountId,
+            'transaction_id' => $transactionId,
+            'reference_id' => $referenceId,
+            'amount' => $amount,
+        ];
+        $referenceIds[$referenceId] = true;
+    }
+
+    if ($targets === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = [];
+    $index = 0;
+    foreach (array_keys($referenceIds) as $referenceId) {
+        $placeholder = ':reference_id_' . $index;
+        $placeholders[] = $placeholder;
+        $params[$placeholder] = $referenceId;
+        $index++;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT account_id, reference_id, COALESCE(SUM(ABS(amount)), 0) AS reclaimed_amount
+         FROM sr_reward_transactions
+         WHERE transaction_type = 'reclaim'
+           AND reference_type = 'reclaim'
+           AND reference_id IN (" . implode(', ', $placeholders) . ')
+         GROUP BY account_id, reference_id'
+    );
+    foreach ($params as $placeholder => $value) {
+        $stmt->bindValue($placeholder, $value);
+    }
+    $stmt->execute();
+
+    $reclaimedAmounts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+
+        $reclaimedAmounts[(int) ($row['account_id'] ?? 0) . ':' . (string) ($row['reference_id'] ?? '')] = (int) ($row['reclaimed_amount'] ?? 0);
+    }
+
+    $remainingAmounts = [];
+    foreach ($targets as $target) {
+        $key = (int) $target['account_id'] . ':' . (string) $target['reference_id'];
+        $remainingAmounts[(int) $target['transaction_id']] = max(0, (int) $target['amount'] - (int) ($reclaimedAmounts[$key] ?? 0));
+    }
+
+    return $remainingAmounts;
+}
+
+function sr_reward_validate_reclaim_transaction(PDO $pdo, int $accountId, int $amount, string $referenceType, string $referenceId, bool $lock = false): ?string
+{
+    if ($referenceType !== 'reclaim') {
+        return sr_t('reward::action.admin.reclaim_reference_required');
+    }
+
+    $targetTransactionId = sr_reward_reclaim_reference_transaction_id($referenceId);
+    if ($targetTransactionId <= 0) {
+        return sr_t('reward::action.admin.reclaim_reference_required');
+    }
+
+    $target = sr_reward_reclaim_target($pdo, $accountId, $targetTransactionId, $lock);
+    if (!is_array($target)) {
+        return sr_t('reward::action.admin.reclaim_original_not_found');
+    }
+
+    if ((int) ($target['amount'] ?? 0) <= 0) {
+        return sr_t('reward::action.admin.reclaim_original_not_positive');
+    }
+
+    $remainingAmount = max(
+        0,
+        (int) $target['amount'] - sr_reward_reclaimed_amount_for_target($pdo, $accountId, $targetTransactionId, $lock)
+    );
+    if (abs($amount) > $remainingAmount) {
+        return sr_t('reward::action.admin.reclaim_amount_exceeds_target');
+    }
+
+    return null;
 }
 
 function sr_reward_clean_key(string $value, int $maxLength): string

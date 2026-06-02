@@ -251,6 +251,7 @@
 - [ ] `/admin/rewards/balances` 리워드 잔액
 - [ ] `/admin/rewards/balances` 리워드 잔액 행 조정 모달
 - [ ] `/admin/rewards/balances` 리워드 조정 모달의 회원 검색 / 참조 검색 적용
+- [ ] `/admin/rewards/transactions` 리워드 거래 행 회수 모달에서 대상 내역의 남은 금액까지만 회수되고 거래 내역과 회원 화면에 회수로 표시되며, 회수 거래에는 환불 버튼이 표시되지 않음
 - [ ] `/admin/rewards/transactions` 리워드 거래 내역
 
 메모:

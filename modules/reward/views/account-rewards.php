@@ -136,7 +136,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
                         <?php foreach ($transactions as $transaction) { ?>
                             <tr>
                                 <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
-                                <td><?php echo sr_e((string) $transaction['transaction_type']); ?></td>
+                                <td><?php echo sr_e(sr_reward_transaction_type_label((string) $transaction['transaction_type'])); ?></td>
                                 <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?></td>
                                 <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?></td>
                                 <td><?php echo sr_e((string) $transaction['reason']); ?></td>
