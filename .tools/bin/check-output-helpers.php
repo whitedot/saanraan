@@ -11,6 +11,7 @@ require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/output.php';
 require_once $root . '/modules/site_menu/helpers.php';
+require_once $root . '/modules/seo/helpers.php';
 
 $errors = [];
 
@@ -136,6 +137,40 @@ $layoutPdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('community
 sr_output_helper_assert(
     sr_public_layout_optional_view_file('community.basic', 'community_home', $layoutPdo) === $root . '/modules/community/themes/basic/home.php',
     'Optional public layout view lookup should include enabled module layout contracts when PDO is provided.'
+);
+$seoPdo = new PDO('sqlite::memory:');
+$seoPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$seoPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$seoPdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)");
+$seoPdo->exec("CREATE TABLE sr_module_settings (module_id INTEGER NOT NULL, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL)");
+$seoPdo->exec("INSERT INTO sr_modules (id, module_key, status) VALUES (1, 'seo', 'enabled')");
+$seoPdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, 'title_suffix', 'Site Suffix', 'string')");
+$seoPdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, 'default_description', 'Default description', 'string')");
+$seoPdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, 'default_og_image', '/uploads/og.png', 'string')");
+$appliedSeo = sr_seo_apply_public_defaults($seoPdo, [
+    'title' => 'Page',
+    'og' => ['type' => 'article'],
+]);
+sr_output_helper_assert(
+    ($appliedSeo['title'] ?? '') === 'Page - Site Suffix'
+        && ($appliedSeo['description'] ?? '') === 'Default description'
+        && (($appliedSeo['og']['image'] ?? '') === '/uploads/og.png'),
+    'SEO module public defaults should apply title suffix, default description, and default OG image.'
+);
+$appliedSeoAgain = sr_seo_apply_public_defaults($seoPdo, $appliedSeo);
+sr_output_helper_assert(
+    ($appliedSeoAgain['title'] ?? '') === 'Page - Site Suffix',
+    'SEO title suffix should not be appended more than once.'
+);
+$explicitSeo = sr_seo_apply_public_defaults($seoPdo, [
+    'title' => 'Page',
+    'description' => 'Custom description',
+    'og' => ['image' => '/custom.png'],
+]);
+sr_output_helper_assert(
+    ($explicitSeo['description'] ?? '') === 'Custom description'
+        && (($explicitSeo['og']['image'] ?? '') === '/custom.png'),
+    'SEO public defaults should preserve explicit description and OG image values.'
 );
 sr_output_helper_assert(
     sr_color_scheme(['ui_color_scheme' => 'dark']) === 'dark',

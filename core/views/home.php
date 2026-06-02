@@ -13,19 +13,6 @@ $seo = [
     'canonical' => sr_canonical_url($site, '/'),
 ];
 
-if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'seo')) {
-    $seoSettings = sr_module_settings($pdo, 'seo');
-    if (!empty($seoSettings['title_suffix']) && is_string($seoSettings['title_suffix'])) {
-        $seo['title'] .= ' - ' . $seoSettings['title_suffix'];
-    }
-    if (!empty($seoSettings['default_description']) && is_string($seoSettings['default_description'])) {
-        $seo['description'] = $seoSettings['default_description'];
-    }
-    if (!empty($seoSettings['default_og_image']) && is_string($seoSettings['default_og_image'])) {
-        $seo['og'] = ['image' => $seoSettings['default_og_image']];
-    }
-}
-
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
 ?>
     <main>

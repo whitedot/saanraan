@@ -75,6 +75,46 @@ function sr_seo_settings(PDO $pdo): array
     return $settings;
 }
 
+function sr_seo_apply_public_defaults(PDO $pdo, array $seo): array
+{
+    try {
+        if (!sr_module_enabled($pdo, 'seo')) {
+            return $seo;
+        }
+
+        $settings = sr_seo_settings($pdo);
+    } catch (Throwable $exception) {
+        if (function_exists('sr_log_exception')) {
+            sr_log_exception($exception, 'seo_public_defaults_failed');
+        }
+        return $seo;
+    }
+
+    $titleSuffix = (string) ($settings['title_suffix'] ?? '');
+    if ($titleSuffix !== '') {
+        $title = trim((string) ($seo['title'] ?? ''));
+        if ($title !== '' && !str_ends_with($title, ' - ' . $titleSuffix)) {
+            $seo['title'] = $title . ' - ' . $titleSuffix;
+        }
+    }
+
+    $defaultDescription = (string) ($settings['default_description'] ?? '');
+    if ($defaultDescription !== '' && trim((string) ($seo['description'] ?? '')) === '') {
+        $seo['description'] = $defaultDescription;
+    }
+
+    $defaultOgImage = (string) ($settings['default_og_image'] ?? '');
+    if ($defaultOgImage !== '') {
+        $og = isset($seo['og']) && is_array($seo['og']) ? $seo['og'] : [];
+        if (trim((string) ($og['image'] ?? '')) === '') {
+            $og['image'] = $defaultOgImage;
+            $seo['og'] = $og;
+        }
+    }
+
+    return $seo;
+}
+
 function sr_seo_clean_single_line(string $value, int $maxLength): string
 {
     $value = trim(str_replace(["\r", "\n"], ' ', $value));
@@ -157,8 +197,8 @@ function sr_seo_upload_og_image(array $file): array
 
     $datePath = date('Y/m');
     $directory = SR_ROOT . '/storage/tmp/seo-og-images/' . $datePath;
-    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
-        throw new RuntimeException('OG 이미지 임시 디렉터리를 만들 수 없습니다.');
+    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('OG 이미지 임시 디렉터리를 만들 수 없습니다. storage/tmp 디렉터리 쓰기 권한을 확인해 주세요.');
     }
 
     $storedName = sr_upload_random_filename($targetFormat);

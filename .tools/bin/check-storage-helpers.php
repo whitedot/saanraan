@@ -69,6 +69,14 @@ sr_storage_helper_assert(
     'Development S3 public URL should keep HTTP-compatible local endpoint support.'
 );
 
+$storageHelperSource = file_get_contents($root . '/core/helpers/storage.php');
+if (is_string($storageHelperSource)) {
+    sr_storage_helper_assert(
+        strpos($storageHelperSource, '!@mkdir($directory, 0755, true)') !== false,
+        'Local storage directory creation should suppress raw mkdir warnings and throw a controlled exception.'
+    );
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "storage helper checks failed:\n");
     foreach ($errors as $error) {

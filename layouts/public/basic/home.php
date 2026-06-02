@@ -6,21 +6,8 @@ $homeSiteName = (string) ($homeSite['name'] ?? 'Saanraan');
 $homeDescription = sr_t('ui.page.2a0a8b79');
 $seo = [
     'title' => $homeSiteName,
-    'description' => $homeDescription,
     'canonical' => sr_canonical_url($homeSite, '/'),
 ];
-if ($homePdo instanceof PDO && sr_module_enabled($homePdo, 'seo')) {
-    $seoSettings = sr_module_settings($homePdo, 'seo');
-    if (!empty($seoSettings['title_suffix']) && is_string($seoSettings['title_suffix'])) {
-        $seo['title'] .= ' - ' . $seoSettings['title_suffix'];
-    }
-    if (!empty($seoSettings['default_description']) && is_string($seoSettings['default_description'])) {
-        $seo['description'] = $seoSettings['default_description'];
-    }
-    if (!empty($seoSettings['default_og_image']) && is_string($seoSettings['default_og_image'])) {
-        $seo['og'] = ['image' => $seoSettings['default_og_image']];
-    }
-}
 
 sr_public_layout_begin($homePdo, $homeSite, $seo);
 ?>

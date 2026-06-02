@@ -150,8 +150,8 @@ function sr_storage_local_put_file(string $sourcePath, string $key, array $optio
 {
     $targetPath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $key);
     $directory = dirname($targetPath);
-    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
-        throw new RuntimeException('로컬 저장 디렉터리를 만들 수 없습니다.');
+    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('로컬 저장 디렉터리를 만들 수 없습니다. storage 디렉터리 쓰기 권한을 확인해 주세요.');
     }
 
     $targetPath = sr_upload_safe_target_path($directory, basename($key));

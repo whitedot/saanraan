@@ -790,6 +790,10 @@ function sr_public_layout_end(): void
     $pdo = $layoutState['pdo'] ?? null;
     $site = is_array($layoutState['site'] ?? null) ? $layoutState['site'] : null;
     $seo = is_array($layoutState['seo'] ?? null) ? $layoutState['seo'] : [];
+    if ($pdo instanceof PDO && is_file(SR_ROOT . '/modules/seo/helpers.php')) {
+        require_once SR_ROOT . '/modules/seo/helpers.php';
+        $seo = sr_seo_apply_public_defaults($pdo, $seo);
+    }
     $layoutContext = is_array($layoutState['layout_context'] ?? null) ? $layoutState['layout_context'] : [];
     $layoutKey = (string) ($layoutContext['layout_key'] ?? '');
     if ($layoutKey === '') {
