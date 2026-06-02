@@ -5,11 +5,6 @@ return [
     'order' => 27,
     'items' => [
         [
-            'label' => sr_t('notification::ui.settings.845f5c6c'),
-            'path' => '/admin/notifications/settings',
-            'order' => 5,
-        ],
-        [
             'label' => sr_t('notification::ui.notification.list.7475cac1'),
             'path' => '/admin/notifications',
             'order' => 10,
@@ -18,6 +13,11 @@ return [
             'label' => sr_t('notification::ui.text.077631f5'),
             'path' => '/admin/notification-deliveries',
             'order' => 20,
+        ],
+        [
+            'label' => sr_t('notification::ui.settings.845f5c6c'),
+            'path' => '/admin/notifications/settings',
+            'order' => 30,
         ],
     ],
 ];
