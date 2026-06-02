@@ -201,7 +201,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <thead class="ui-table-head">
         <tr>
             <th<?php echo sr_admin_sort_aria('email', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.4ca2f9ab') . ' / ' . sr_t('admin::ui.email.3b7dbc4c'), 'email', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
-            <th<?php echo sr_admin_sort_aria('display_name', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.e8857c35'), 'display_name', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
+            <th<?php echo sr_admin_sort_aria('display_name', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.name.253d1510'), 'display_name', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
             <th<?php echo sr_admin_sort_aria('status', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.status.3808960c'), 'status', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
             <th<?php echo sr_admin_sort_aria('permission_count', $accountSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.4b72a63a'), 'permission_count', $accountSort, $accountSortOptions, $accountDefaultSort); ?></th>
             <th class="text-end"><?php echo sr_e(sr_t('admin::ui.text.16f64fe4')); ?></th>
