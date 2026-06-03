@@ -1370,8 +1370,82 @@
     }
   }
 
+  function dispatchFormEvent(control, type) {
+    if (!control || typeof Event !== 'function') {
+      return;
+    }
+
+    control.dispatchEvent(new Event(type, { bubbles: true }));
+  }
+
+  function clearCardFiltering(cardFiltering) {
+    if (!cardFiltering) {
+      return;
+    }
+
+    cardFiltering.querySelectorAll('[data-admin-select-badge-list]').forEach(function (root) {
+      root.querySelectorAll('[data-admin-select-badge-item]').forEach(function (item) {
+        item.remove();
+      });
+      root.querySelectorAll('option').forEach(function (option) {
+        option.hidden = false;
+        option.disabled = false;
+      });
+    });
+
+    cardFiltering.querySelectorAll('input, select, textarea').forEach(function (control) {
+      if (!control || control.disabled || control.type === 'hidden') {
+        return;
+      }
+
+      if (control.matches('[type="checkbox"], [type="radio"]')) {
+        control.checked = false;
+        dispatchFormEvent(control, 'change');
+        return;
+      }
+
+      if (control.tagName === 'SELECT') {
+        control.value = '';
+        if (control.value !== '' && control.options.length > 0) {
+          control.selectedIndex = 0;
+        }
+        dispatchFormEvent(control, 'change');
+        return;
+      }
+
+      control.value = '';
+      dispatchFormEvent(control, 'input');
+      dispatchFormEvent(control, 'change');
+    });
+  }
+
   document.addEventListener('click', function (event) {
     var target = getElementTarget(event.target);
+    var cardFilteringToggle = target && target.closest('[data-card-filtering-toggle]');
+
+    if (cardFilteringToggle) {
+      var cardFiltering = cardFilteringToggle.closest('[data-card-filtering]');
+      var cardFilteringBody = cardFiltering ? cardFiltering.querySelector('[data-card-filtering-body]') : null;
+
+      if (cardFilteringBody) {
+        event.preventDefault();
+
+        var expanded = cardFilteringToggle.getAttribute('aria-expanded') === 'true';
+        cardFilteringToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        cardFiltering.classList.toggle('card-filtering-open', !expanded);
+        cardFilteringBody.hidden = expanded;
+      }
+      return;
+    }
+
+    var cardFilteringReset = target && target.closest('[data-card-filtering-reset]');
+
+    if (cardFilteringReset) {
+      event.preventDefault();
+      clearCardFiltering(cardFilteringReset.closest('[data-card-filtering]'));
+      return;
+    }
+
     var removeTrigger = target && target.closest('[data-remove-element]');
 
     if (removeTrigger) {
