@@ -17,11 +17,7 @@ if (!is_array($storage)) {
 $driver = (string) $storage['driver'];
 $key = (string) $storage['key'];
 if ($driver === 's3') {
-    $url = sr_storage_public_url('s3', $key);
-    if ($url === '') {
-        $url = sr_storage_signed_url('s3', $key, 300);
-    }
-
+    $url = sr_storage_signed_url('s3', $key, 300);
     if ($url === '') {
         sr_render_error(404, '요청한 아이콘 이미지를 찾을 수 없습니다.');
     }

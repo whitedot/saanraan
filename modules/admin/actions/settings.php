@@ -49,6 +49,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     $postedCustomIconTypes = $_POST['custom_icon_key_type'] ?? [];
     $postedCustomIconMaterialNames = $_POST['custom_icon_key_material_name'] ?? [];
     $postedIconOverrides = [];
+    $uploadedIconReferences = [];
     if (!isset($adminSkinOptions[$postedSkinKey])) {
         $errors[] = '관리자 스킨 값이 올바르지 않습니다.';
     }
@@ -92,7 +93,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
             string $materialNameInput,
             bool $removeImage,
             mixed $file
-        ) use (&$errors, &$postedIconOverrides): void {
+        ) use (&$errors, &$postedIconOverrides, &$uploadedIconReferences): void {
             $symbolName = (string) $symbolName;
             $iconType = trim($iconType);
             if (!in_array($iconType, ['material', 'image'], true)) {
@@ -123,6 +124,9 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 try {
                     $uploaded = sr_admin_icon_upload_image($file);
                     $storageReference = (string) ($uploaded['storage_reference'] ?? '');
+                    if ($storageReference !== '') {
+                        $uploadedIconReferences[$storageReference] = true;
+                    }
                 } catch (Throwable $exception) {
                     $errors[] = (string) $symbolName . ' 아이콘 이미지: ' . $exception->getMessage();
                     return;
@@ -218,6 +222,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     }
 
     if ($errors !== []) {
+        sr_admin_delete_icon_image_references($uploadedIconReferences);
         $values = array_merge(sr_admin_post_site_setting_values($site ?? null), [
             'admin_skin_key' => $postedSkinKey,
             'admin_color_scheme' => $postedColorScheme,
@@ -246,6 +251,8 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
         $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
 
         if ($errors === []) {
+            $previousIconReferences = sr_admin_icon_image_references($adminIconOverrides);
+            $nextIconReferences = sr_admin_icon_image_references($postedIconOverrides);
             $previousSkinKey = $adminSkinKey;
             $previousColorScheme = $adminColorScheme;
             $previousListPaginationPerPage = $listPaginationPerPage;
@@ -283,6 +290,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
 
             if ($postedIconOverrides !== $adminIconOverrides) {
                 sr_admin_save_icon_key_overrides($pdo, $postedIconOverrides);
+                sr_admin_delete_icon_image_references(array_diff_key($previousIconReferences, $nextIconReferences));
             }
 
             if ($adminSettingsAfter !== $adminSettingsBefore) {
@@ -315,6 +323,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
             ]);
             $notice = '설정을 저장했습니다.';
         } else {
+            sr_admin_delete_icon_image_references($uploadedIconReferences);
             $adminSkinKey = $postedSkinKey;
             $adminColorScheme = $postedColorScheme;
             $listPaginationPerPage = $postedListPaginationPerPageInput;

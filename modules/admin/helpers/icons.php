@@ -476,6 +476,39 @@ function sr_admin_icon_image_storage_reference(string $reference): ?array
     return $storage;
 }
 
+function sr_admin_icon_image_references(array $iconOverrides): array
+{
+    $references = [];
+    foreach ($iconOverrides as $override) {
+        if (!is_array($override) || (string) ($override['type'] ?? '') !== 'image') {
+            continue;
+        }
+
+        $reference = (string) ($override['storage_reference'] ?? '');
+        if (sr_admin_icon_image_storage_reference($reference) !== null) {
+            $references[$reference] = true;
+        }
+    }
+
+    return $references;
+}
+
+function sr_admin_delete_icon_image_references(array $references): void
+{
+    foreach ($references as $reference => $_enabled) {
+        if (is_int($reference)) {
+            $reference = (string) $_enabled;
+        }
+
+        $storage = sr_admin_icon_image_storage_reference((string) $reference);
+        if (!is_array($storage)) {
+            continue;
+        }
+
+        sr_storage_delete((string) $storage['driver'], (string) $storage['key']);
+    }
+}
+
 function sr_admin_default_menu_icon_id(string $category): string
 {
     $icons = [

@@ -501,7 +501,7 @@ function sr_admin_menu_overrides(PDO $pdo): array
 
         $sortOrder = (int) ($row['sort_order'] ?? 1000);
         $isHidden = !empty($row['is_hidden']);
-        $iconName = sr_admin_normalize_menu_override_icon_name((string) ($row['icon_name'] ?? ''));
+        $iconName = sr_admin_normalize_menu_override_icon_name_for_save($pdo, (string) ($row['icon_name'] ?? ''));
         if ($iconName === '' && sr_admin_menu_override_is_stale_default($scope, $targetKey, $sortOrder, $isHidden)) {
             continue;
         }

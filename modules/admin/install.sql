@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS sr_admin_menu_overrides (
     target_key VARCHAR(190) NOT NULL,
     sort_order INT NOT NULL DEFAULT 1000,
     is_hidden TINYINT(1) NOT NULL DEFAULT 0,
-    icon_name VARCHAR(40) NOT NULL DEFAULT '',
+    icon_name VARCHAR(80) NOT NULL DEFAULT '',
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_sr_admin_menu_overrides_target (scope, target_key),
