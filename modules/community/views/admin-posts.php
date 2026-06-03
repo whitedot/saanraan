@@ -36,8 +36,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="admin-filter admin-community-post-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-post-search-grid">
-            <fieldset class="admin-filter-field admin-community-post-filter-status">
-                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></legend>
+            <div class="admin-filter-field admin-community-post-filter-status">
+                <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                 <div class="btn-group">
                     <?php foreach ($allowedPostStatuses as $index => $status) { ?>
                         <?php
@@ -50,7 +50,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field admin-community-post-filter-board">
             <label for="community_admin_posts_board_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></label>
             <select id="community_admin_posts_board_filter" name="board_id" class="form-select admin-filter-input">
@@ -194,8 +194,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="admin-filter admin-community-comment-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-comment-search-grid">
-            <fieldset class="admin-filter-field admin-community-comment-filter-status">
-                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></legend>
+            <div class="admin-filter-field admin-community-comment-filter-status">
+                <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                 <div class="btn-group">
                     <?php foreach ($allowedCommentStatuses as $index => $status) { ?>
                         <?php
@@ -208,7 +208,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field admin-community-comment-filter-board">
             <label for="community_admin_comments_board_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></label>
             <select id="community_admin_comments_board_filter" name="board_id" class="form-select admin-filter-input">

@@ -66,8 +66,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-filter admin-content-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-group-search-grid admin-content-filter-stack">
-                    <fieldset class="admin-filter-field">
-                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></legend>
+                    <div class="admin-filter-field">
+                        <label class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>
                         <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="<?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?>">
                             <?php foreach ($allowedGroupStatuses as $index => $status) { ?>
                                 <?php
@@ -80,7 +80,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </div>
-                    </fieldset>
+                    </div>
                     <div class="admin-filter-field">
                         <label for="content_admin_groups_field" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.b79bc9c8')); ?></label>
                         <select id="content_admin_groups_field" name="field" class="form-select admin-filter-input">

@@ -254,8 +254,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter admin-banner-filter ui-form-theme">
         <div class="admin-filter-grid admin-banner-search-grid">
-                    <fieldset class="admin-filter-field admin-banner-filter-status">
-                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></legend>
+                    <div class="admin-filter-field admin-banner-filter-status">
+                        <label class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></label>
                         <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?>">
                             <?php foreach ($allowedStatuses as $index => $status) { ?>
                                 <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
@@ -265,9 +265,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </div>
-                    </fieldset>
-                    <fieldset class="admin-filter-field admin-banner-filter-target">
-                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></legend>
+                    </div>
+                    <div class="admin-filter-field admin-banner-filter-target">
+                        <label class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></label>
                         <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?>">
                             <?php $bannerTargetOptions = [[sr_banner_public_target_option_value(), sr_t('banner::ui.banner.48de068b')]]; ?>
                             <?php foreach ($availableTargets as $target) { $bannerTargetOptions[] = [sr_banner_target_option_value($target), (string) $target['label']]; } ?>
@@ -282,7 +282,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </div>
-                    </fieldset>
+                    </div>
                     <div class="admin-filter-field admin-banner-filter-field">
                         <label for="modules_banner_admin_banners_field" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.search.b79bc9c8')); ?></label>
                         <select id="modules_banner_admin_banners_field" name="field" class="form-select admin-filter-input">

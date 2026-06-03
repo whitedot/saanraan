@@ -89,7 +89,41 @@ if (sr_request_method() === 'POST') {
 }
 
 $policySetSort = sr_admin_sort_from_request(sr_community_asset_policy_set_sort_options(), sr_community_asset_policy_set_default_sort());
-$policySets = sr_community_asset_policy_sets($pdo, false, $policySetSort);
+$policySetFilters = [
+    'status' => sr_admin_get_allowed_array('status', sr_community_asset_policy_set_statuses(), 30),
+    'field' => sr_get_string('field', 30),
+    'q' => trim(sr_get_string('q', 120)),
+];
+if (!in_array($policySetFilters['field'], ['all', 'key', 'title'], true)) {
+    $policySetFilters['field'] = 'all';
+}
+$policySets = array_values(array_filter(sr_community_asset_policy_sets($pdo, false, $policySetSort), static function (array $policySet) use ($policySetFilters): bool {
+    if ($policySetFilters['status'] !== [] && !in_array((string) ($policySet['status'] ?? ''), $policySetFilters['status'], true)) {
+        return false;
+    }
+    $keyword = (string) ($policySetFilters['q'] ?? '');
+    if ($keyword === '') {
+        return true;
+    }
+    $field = (string) ($policySetFilters['field'] ?? 'all');
+    $haystacks = [];
+    if ($field === 'key') {
+        $haystacks[] = (string) ($policySet['set_key'] ?? '');
+    } elseif ($field === 'title') {
+        $haystacks[] = (string) ($policySet['title'] ?? '');
+    } else {
+        $haystacks[] = (string) ($policySet['set_key'] ?? '');
+        $haystacks[] = (string) ($policySet['title'] ?? '');
+    }
+
+    foreach ($haystacks as $haystack) {
+        if (stripos($haystack, $keyword) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}));
 $values = is_array($sessionValues) && $sessionValues !== []
     ? $sessionValues
     : (is_array($editPolicySet) ? $editPolicySet : [

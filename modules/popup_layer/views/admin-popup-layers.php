@@ -228,8 +228,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-filter admin-popup-layer-filter ui-form-theme">
         <div class="admin-filter-grid admin-popup-layer-search-grid">
-                    <fieldset class="admin-filter-field admin-popup-layer-filter-status">
-                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></legend>
+                    <div class="admin-filter-field admin-popup-layer-filter-status">
+                        <label class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></label>
                         <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?>">
                             <?php foreach ($allowedStatuses as $index => $status) { ?>
                                 <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
@@ -239,9 +239,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </div>
-                    </fieldset>
-                    <fieldset class="admin-filter-field admin-popup-layer-filter-target">
-                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></legend>
+                    </div>
+                    <div class="admin-filter-field admin-popup-layer-filter-target">
+                        <label class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></label>
                         <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?>">
                             <?php $popupTargetOptions = [[sr_popup_layer_public_target_option_value(), sr_t('popup_layer::ui.text.11677edb')]]; ?>
                             <?php foreach ($availableTargets as $target) { $popupTargetOptions[] = [sr_popup_layer_target_option_value($target), sr_popup_layer_target_option_label($target)]; } ?>
@@ -256,7 +256,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </div>
-                    </fieldset>
+                    </div>
                     <div class="admin-filter-field admin-popup-layer-filter-field">
                         <label for="modules_popup_layer_admin_popup_layers_field" class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.search.b79bc9c8')); ?></label>
                         <select id="modules_popup_layer_admin_popup_layers_field" name="field" class="form-select admin-filter-input">

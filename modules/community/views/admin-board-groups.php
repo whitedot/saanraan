@@ -225,8 +225,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="admin-filter admin-community-board-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-community-board-group-search-grid">
-                <fieldset class="admin-filter-field admin-community-board-group-filter-status">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></legend>
+                <div class="admin-filter-field admin-community-board-group-filter-status">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                     <div class="btn-group">
                         <?php foreach ($allowedGroupStatuses as $index => $status) { ?>
                             <?php
@@ -239,7 +239,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <div class="admin-filter-field admin-community-board-group-filter-field">
                 <label for="community_admin_board_groups_field" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.b79bc9c8')); ?></label>
                 <select id="community_admin_board_groups_field" name="field" class="form-select admin-filter-input">

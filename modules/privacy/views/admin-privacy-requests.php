@@ -36,8 +36,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-filter admin-privacy-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-privacy-request-search-grid">
-                <fieldset class="admin-filter-field">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></legend>
+                <div class="admin-filter-field">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></label>
                     <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?>">
                         <?php foreach ($allowedStatuses as $index => $status) { ?>
                             <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
@@ -47,9 +47,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
-                <fieldset class="admin-filter-field">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?></legend>
+                </div>
+                <div class="admin-filter-field">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?></label>
                     <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?>">
                         <?php foreach ($allowedTypes as $index => $requestType) { ?>
                             <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedTypes) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
@@ -59,7 +59,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <div class="admin-filter-field">
                     <label for="privacy_request_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.search.b79bc9c8')); ?></label>
                     <select name="field" id="privacy_request_search_field" class="form-select admin-filter-input">

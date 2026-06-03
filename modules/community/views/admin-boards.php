@@ -213,8 +213,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-filter admin-community-board-filter ui-form-theme">
         <div class="admin-filter-grid admin-community-board-search-grid">
-                <fieldset class="admin-filter-field admin-community-board-filter-status">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></legend>
+                <div class="admin-filter-field admin-community-board-filter-status">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                     <div class="btn-group">
                         <?php foreach ($allowedStatuses as $index => $status) { ?>
                             <?php
@@ -227,7 +227,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <div class="admin-filter-field admin-community-board-filter-group">
                 <label for="community_admin_boards_group_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></label>
                 <select id="community_admin_boards_group_filter" name="group_id" class="form-select admin-filter-input">

@@ -5,6 +5,7 @@ $adminPageSubtitle = '커뮤니티 적립, 차감, 유료 열람, 첨부 다운�
 $adminContainerClass = 'admin-community-asset-policy-sets admin-ui-scope';
 $policySetPage = isset($policySetPage) ? (string) $policySetPage : 'list';
 $policySetSort = isset($policySetSort) && is_array($policySetSort) ? $policySetSort : sr_community_asset_policy_set_default_sort();
+$policySetFilters = isset($policySetFilters) && is_array($policySetFilters) ? $policySetFilters : ['status' => [], 'field' => 'all', 'q' => ''];
 $policySetCount = count($policySets ?? []);
 $policySetPagination = ['total' => $policySetCount, 'start' => $policySetCount > 0 ? 1 : 0, 'end' => $policySetCount];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -13,6 +14,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($policySetPage === 'list') { ?>
+    <?php $selectedPolicySetStatuses = is_array($policySetFilters['status'] ?? null) ? $policySetFilters['status'] : []; ?>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/community/asset-policy-sets')); ?>" class="admin-filter admin-community-asset-policy-set-filter ui-form-theme">
+        <div class="admin-filter-grid admin-community-asset-policy-set-search-grid">
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">상태</label>
+                <div class="btn-group" role="group" aria-label="상태">
+                    <?php $policySetStatuses = sr_community_asset_policy_set_statuses(); ?>
+                    <?php foreach ($policySetStatuses as $index => $status) { ?>
+                        <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($policySetStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="community_policy_set_status_filter_<?php echo sr_e($status); ?>">
+                            <input id="community_policy_set_status_filter_<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedPolicySetStatuses, true) ? ' checked' : ''; ?>>
+                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                        </label>
+                    <?php } ?>
+                </div>
+            </div>
+            <div class="admin-filter-field">
+                <label for="community_policy_set_filter_field" class="admin-filter-label">검색 대상</label>
+                <select id="community_policy_set_filter_field" name="field" class="form-select admin-filter-input">
+                    <?php foreach (['all' => '전체', 'key' => 'Key', 'title' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($policySetFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="admin-filter-field admin-community-asset-policy-set-filter-keyword">
+                <label for="community_policy_set_filter_q" class="admin-filter-label">검색어</label>
+                <input id="community_policy_set_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($policySetFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="Key 또는 이름">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+        </div>
+    </form>
+
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <div>

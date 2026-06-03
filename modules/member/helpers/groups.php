@@ -717,17 +717,110 @@ function sr_member_group_rule_params_from_input(array $definition, mixed $input,
     return $values;
 }
 
-function sr_member_group_rule_count(PDO $pdo): int
+function sr_member_group_rule_filter(array $allowedStatuses, array $allowedEvaluationPolicies, array $groups, array $ruleDefinitions): array
+{
+    $field = sr_get_string('field', 30);
+    if (!in_array($field, ['all', 'group', 'source', 'rule'], true)) {
+        $field = 'all';
+    }
+
+    $allowedGroupIds = [];
+    foreach ($groups as $group) {
+        $groupId = (int) ($group['id'] ?? 0);
+        if ($groupId > 0) {
+            $allowedGroupIds[] = (string) $groupId;
+        }
+    }
+
+    $allowedSourceModuleKeys = [];
+    foreach ($ruleDefinitions as $definition) {
+        $sourceModuleKey = (string) ($definition['source_module_key'] ?? '');
+        if ($sourceModuleKey !== '' && sr_is_safe_module_key($sourceModuleKey)) {
+            $allowedSourceModuleKeys[$sourceModuleKey] = $sourceModuleKey;
+        }
+    }
+
+    return [
+        'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
+        'evaluation_policy' => sr_admin_get_allowed_array('evaluation_policy', $allowedEvaluationPolicies, 30),
+        'group_id' => sr_admin_get_allowed_array('group_id', $allowedGroupIds, 20),
+        'source_module_key' => sr_admin_get_allowed_array('source_module_key', array_values($allowedSourceModuleKeys), 40),
+        'field' => $field,
+        'keyword' => trim(sr_get_string('q', 120)),
+    ];
+}
+
+function sr_member_group_rule_query_parts(array $filter): array
+{
+    $where = [];
+    $params = [];
+    $status = is_array($filter['status'] ?? null) ? $filter['status'] : [];
+    $evaluationPolicies = is_array($filter['evaluation_policy'] ?? null) ? $filter['evaluation_policy'] : [];
+    $groupIds = is_array($filter['group_id'] ?? null) ? $filter['group_id'] : [];
+    $sourceModuleKeys = is_array($filter['source_module_key'] ?? null) ? $filter['source_module_key'] : [];
+    $field = (string) ($filter['field'] ?? 'all');
+    $keyword = trim((string) ($filter['keyword'] ?? ''));
+
+    if ($status !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.status', 'rule_status', $status);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+    if ($evaluationPolicies !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.evaluation_policy', 'evaluation_policy', $evaluationPolicies);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+    if ($groupIds !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.group_id', 'group_id', $groupIds);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+    if ($sourceModuleKeys !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.source_module_key', 'source_module_key', $sourceModuleKeys);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
+    }
+    if ($keyword !== '') {
+        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+        if ($field === 'group') {
+            $where[] = "(g.title LIKE :keyword ESCAPE '\\\\' OR g.group_key LIKE :keyword ESCAPE '\\\\')";
+            $params['keyword'] = $like;
+        } elseif ($field === 'source') {
+            $where[] = "r.source_module_key LIKE :keyword ESCAPE '\\\\'";
+            $params['keyword'] = $like;
+        } elseif ($field === 'rule') {
+            $where[] = "r.rule_key LIKE :keyword ESCAPE '\\\\'";
+            $params['keyword'] = $like;
+        } else {
+            $where[] = "(g.title LIKE :group_keyword ESCAPE '\\\\' OR g.group_key LIKE :group_keyword ESCAPE '\\\\' OR r.source_module_key LIKE :source_keyword ESCAPE '\\\\' OR r.rule_key LIKE :rule_keyword ESCAPE '\\\\')";
+            $params['group_keyword'] = $like;
+            $params['source_keyword'] = $like;
+            $params['rule_keyword'] = $like;
+        }
+    }
+
+    return [
+        'where' => $where,
+        'params' => $params,
+    ];
+}
+
+function sr_member_group_rule_count(PDO $pdo, array $filter = []): int
 {
     if (!sr_member_groups_table_exists($pdo)) {
         return 0;
     }
 
-    $stmt = $pdo->query(
-        'SELECT COUNT(*) AS count_value
-         FROM sr_member_group_rules r
-         INNER JOIN sr_member_groups g ON g.id = r.group_id'
-    );
+    $queryParts = sr_member_group_rule_query_parts($filter);
+    $sql = 'SELECT COUNT(*) AS count_value
+            FROM sr_member_group_rules r
+            INNER JOIN sr_member_groups g ON g.id = r.group_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($queryParts['params']);
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
@@ -751,15 +844,19 @@ function sr_member_group_rule_default_sort(): array
     return sr_admin_sort_default('created_at', 'desc');
 }
 
-function sr_member_group_rules(PDO $pdo, int $limit = 0, int $offset = 0, array $sort = []): array
+function sr_member_group_rules(PDO $pdo, int $limit = 0, int $offset = 0, array $sort = [], array $filter = []): array
 {
     if (!sr_member_groups_table_exists($pdo)) {
         return [];
     }
 
+    $queryParts = sr_member_group_rule_query_parts($filter);
     $sql = 'SELECT r.*, g.group_key, g.title AS group_title
             FROM sr_member_group_rules r
             INNER JOIN sr_member_groups g ON g.id = r.group_id';
+    if ($queryParts['where'] !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $queryParts['where']);
+    }
     $sql .= function_exists('sr_admin_sort_order_sql')
         ? sr_admin_sort_order_sql(sr_member_group_rule_sort_options(), $sort, sr_member_group_rule_default_sort())
         : ' ORDER BY r.id DESC';
@@ -768,6 +865,9 @@ function sr_member_group_rules(PDO $pdo, int $limit = 0, int $offset = 0, array 
     }
 
     $stmt = $pdo->prepare($sql);
+    foreach ($queryParts['params'] as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, PDO::PARAM_STR);
+    }
     if ($limit > 0) {
         $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
         $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);

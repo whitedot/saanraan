@@ -47,8 +47,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="admin-filter admin-community-report-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-report-search-grid">
-            <fieldset class="admin-filter-field admin-community-report-filter-status">
-                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></legend>
+            <div class="admin-filter-field admin-community-report-filter-status">
+                <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
                 <div class="btn-group">
                     <?php foreach ($allowedStatuses as $index => $status) { ?>
                         <?php
@@ -61,9 +61,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     <?php } ?>
                 </div>
-            </fieldset>
-            <fieldset class="admin-filter-field admin-community-report-filter-target">
-                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></legend>
+            </div>
+            <div class="admin-filter-field admin-community-report-filter-target">
+                <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></label>
                 <div class="btn-group">
                     <?php foreach ($allowedTargetTypes as $index => $targetType) { ?>
                         <?php
@@ -76,9 +76,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     <?php } ?>
                 </div>
-            </fieldset>
-            <fieldset class="admin-filter-field admin-community-report-filter-reason">
-                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></legend>
+            </div>
+            <div class="admin-filter-field admin-community-report-filter-reason">
+                <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></label>
                 <div class="btn-group">
                     <?php foreach ($allowedReasonKeys as $index => $reasonKey) { ?>
                         <?php
@@ -91,7 +91,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field admin-community-report-filter-field">
             <label for="community_admin_reports_field" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.b79bc9c8')); ?></label>
             <select id="community_admin_reports_field" name="field" class="form-select admin-filter-input">

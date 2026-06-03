@@ -48,6 +48,22 @@ foreach ($stmt->fetchAll() as $row) {
         'label' => $moduleName !== '' ? sr_admin_module_name_label($moduleName) : $sourceModuleKey,
     ];
 }
+foreach ($ruleDefinitions as $definition) {
+    $sourceModuleKey = (string) ($definition['source_module_key'] ?? '');
+    if ($sourceModuleKey === '' || isset($memberRuleSourceOptions[$sourceModuleKey]) || !sr_is_safe_module_key($sourceModuleKey)) {
+        continue;
+    }
+
+    $metadata = sr_module_metadata($sourceModuleKey);
+    $moduleName = trim((string) ($metadata['name'] ?? ''));
+    $memberRuleSourceOptions[$sourceModuleKey] = [
+        'module_key' => $sourceModuleKey,
+        'label' => $moduleName !== '' ? sr_admin_module_name_label($moduleName) : $sourceModuleKey,
+    ];
+}
+uasort($memberRuleSourceOptions, static function (array $left, array $right): int {
+    return strcmp((string) ($left['label'] ?? ''), (string) ($right['label'] ?? ''));
+});
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $createGroupForm = null;
 $openCreateGroupModal = false;
@@ -471,9 +487,10 @@ if ($memberGroupsPage === 'groups') {
 }
 $groupRules = [];
 $groupRuleSort = sr_admin_sort_from_request(sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort());
-$groupRulePagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'rules' ? sr_member_group_rule_count($pdo) : 0);
+$groupRuleFilter = sr_member_group_rule_filter($allowedRuleStatuses, $allowedEvaluationPolicies, $groups, $ruleDefinitions);
+$groupRulePagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'rules' ? sr_member_group_rule_count($pdo, $groupRuleFilter) : 0);
 if ($memberGroupsPage === 'rules') {
-    $groupRules = sr_member_group_rules($pdo, (int) $groupRulePagination['per_page'], sr_admin_pagination_offset($groupRulePagination), $groupRuleSort);
+    $groupRules = sr_member_group_rules($pdo, (int) $groupRulePagination['per_page'], sr_admin_pagination_offset($groupRulePagination), $groupRuleSort, $groupRuleFilter);
 }
 $membershipsByGroupId = [];
 $membershipLogsByGroupId = [];

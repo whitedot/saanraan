@@ -23,8 +23,8 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
     <div class="admin-filter-grid admin-content-file-download-search-grid admin-content-filter-stack">
         <div class="card-filtering<?php echo $downloadLogDetailFilterOpen ? ' card-filtering-open' : ''; ?>" data-card-filtering>
             <div class="card-filtering-basic">
-                <fieldset class="admin-filter-field">
-                    <legend class="admin-filter-label">구분</legend>
+                <div class="admin-filter-field">
+                    <label class="admin-filter-label">구분</label>
                     <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="구분">
                         <?php foreach (['free' => '무료', 'paid' => '유료'] as $downloadType => $downloadTypeLabel) { ?>
                             <?php
@@ -37,9 +37,9 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
-                <fieldset class="admin-filter-field">
-                    <legend class="admin-filter-label">환불 상태</legend>
+                </div>
+                <div class="admin-filter-field">
+                    <label class="admin-filter-label">환불 상태</label>
                     <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="환불 상태">
                         <?php $refundStatusOptions = ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수']; ?>
                         <?php foreach ($refundStatusOptions as $index => $refundStatusLabel) { ?>
@@ -55,31 +55,31 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <label class="admin-filter-field card-filtering-field-fill" for="content_file_download_filter_q">
-                    <span class="admin-filter-label">검색</span>
+                    <label class="admin-filter-label">검색</label>
                     <input id="content_file_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="콘텐츠, 파일, 회원">
                 </label>
             </div>
             <div id="content_file_download_detail_filters" class="card-filtering-body" data-card-filtering-body<?php echo $downloadLogDetailFilterOpen ? '' : ' hidden'; ?>>
                 <label class="admin-filter-field" for="content_file_download_filter_content_id">
-                    <span class="admin-filter-label">콘텐츠 ID</span>
+                    <label class="admin-filter-label">콘텐츠 ID</label>
                     <input id="content_file_download_filter_content_id" type="number" min="1" name="content_id" value="<?php echo (int) ($filters['content_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['content_id']) : ''; ?>" class="form-input admin-filter-input">
                 </label>
                 <label class="admin-filter-field" for="content_file_download_filter_file_id">
-                    <span class="admin-filter-label">파일 ID</span>
+                    <label class="admin-filter-label">파일 ID</label>
                     <input id="content_file_download_filter_file_id" type="number" min="1" name="file_id" value="<?php echo (int) ($filters['file_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['file_id']) : ''; ?>" class="form-input admin-filter-input">
                 </label>
                 <label class="admin-filter-field" for="content_file_download_filter_account_id">
-                    <span class="admin-filter-label">회원 ID</span>
+                    <label class="admin-filter-label">회원 ID</label>
                     <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input admin-filter-input">
                 </label>
                 <label class="admin-filter-field" for="content_file_download_filter_date_from">
-                    <span class="admin-filter-label">시작일</span>
+                    <label class="admin-filter-label">시작일</label>
                     <input id="content_file_download_filter_date_from" type="date" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>" class="form-input admin-filter-input">
                 </label>
                 <label class="admin-filter-field" for="content_file_download_filter_date_to">
-                    <span class="admin-filter-label">종료일</span>
+                    <label class="admin-filter-label">종료일</label>
                     <input id="content_file_download_filter_date_to" type="date" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>" class="form-input admin-filter-input">
                 </label>
             </div>

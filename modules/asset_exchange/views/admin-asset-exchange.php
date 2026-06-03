@@ -158,48 +158,60 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-filter admin-asset-exchange-filter ui-form-theme">
     <div class="admin-filter-grid admin-asset-exchange-search-grid">
-        <fieldset class="admin-filter-field admin-asset-exchange-filter-status">
-            <legend class="admin-filter-label">상태</legend>
-            <div class="admin-check-list admin-filter-check-list">
-                <?php foreach ($policyStatusLabels as $value => $label) { ?>
+        <div class="admin-filter-field admin-asset-exchange-filter-status">
+            <label class="admin-filter-label">상태</label>
+            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="상태">
+                <?php $policyStatusValues = array_keys($policyStatusLabels); ?>
+                <?php foreach ($policyStatusLabels as $index => $label) { ?>
+                    <?php
+                    $value = (string) $index;
+                    $groupClass = array_search($value, $policyStatusValues, true) === 0 ? 'btn-group-start' : ($value === end($policyStatusValues) ? 'btn-group-end' : 'btn-group-middle');
+                    ?>
                     <?php $inputId = 'asset_exchange_filter_status_' . (string) $value; ?>
-                    <label class="admin-form-check form-label" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($value); ?>" class="form-checkbox"<?php echo in_array($value, $policyFilters['status'], true) ? ' checked' : ''; ?>>
+                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($value); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($value, $policyFilters['status'], true) ? ' checked' : ''; ?>>
                         <?php echo sr_e($label); ?>
                     </label>
                 <?php } ?>
             </div>
-        </fieldset>
-        <fieldset class="admin-filter-field admin-asset-exchange-filter-from">
-            <legend class="admin-filter-label">출금 항목</legend>
-            <div class="admin-check-list admin-filter-check-list">
+        </div>
+        <div class="admin-filter-field admin-asset-exchange-filter-from">
+            <label class="admin-filter-label">출금 항목</label>
+            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="출금 항목">
+                <?php $policyFilterOptionCount = count($policyFilterOptions); ?>
+                <?php $policyFilterOptionIndex = 0; ?>
                 <?php foreach ($policyFilterOptions as $asset) { ?>
                     <?php
                     $moduleKey = (string) ($asset['module_key'] ?? '');
                     $inputId = 'asset_exchange_filter_from_' . preg_replace('/[^a-z0-9_\-]/', '_', $moduleKey);
+                    $groupClass = $policyFilterOptionIndex === 0 ? 'btn-group-start' : ($policyFilterOptionIndex === $policyFilterOptionCount - 1 ? 'btn-group-end' : 'btn-group-middle');
+                    $policyFilterOptionIndex++;
                     ?>
-                    <label class="admin-form-check form-label" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="from_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-checkbox"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' checked' : ''; ?>>
+                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="from_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' checked' : ''; ?>>
                         <?php echo sr_e((string) $asset['label']); ?>
                     </label>
                 <?php } ?>
             </div>
-        </fieldset>
-        <fieldset class="admin-filter-field admin-asset-exchange-filter-to">
-            <legend class="admin-filter-label">입금 항목</legend>
-            <div class="admin-check-list admin-filter-check-list">
+        </div>
+        <div class="admin-filter-field admin-asset-exchange-filter-to">
+            <label class="admin-filter-label">입금 항목</label>
+            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="입금 항목">
+                <?php $policyFilterOptionIndex = 0; ?>
                 <?php foreach ($policyFilterOptions as $asset) { ?>
                     <?php
                     $moduleKey = (string) ($asset['module_key'] ?? '');
                     $inputId = 'asset_exchange_filter_to_' . preg_replace('/[^a-z0-9_\-]/', '_', $moduleKey);
+                    $groupClass = $policyFilterOptionIndex === 0 ? 'btn-group-start' : ($policyFilterOptionIndex === $policyFilterOptionCount - 1 ? 'btn-group-end' : 'btn-group-middle');
+                    $policyFilterOptionIndex++;
                     ?>
-                    <label class="admin-form-check form-label" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="to_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-checkbox"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' checked' : ''; ?>>
+                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="to_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' checked' : ''; ?>>
                         <?php echo sr_e((string) $asset['label']); ?>
                     </label>
                 <?php } ?>
             </div>
-        </fieldset>
+        </div>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>

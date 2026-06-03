@@ -122,8 +122,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter admin-content-download-file-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-download-file-search-grid admin-content-filter-stack">
-                    <fieldset class="admin-filter-field admin-content-download-file-filter-status">
-                        <legend class="admin-filter-label">상태</legend>
+                    <div class="admin-filter-field admin-content-download-file-filter-status">
+                        <label class="admin-filter-label">상태</label>
                         <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
                             <?php foreach (['active' => '사용', 'hidden' => '숨김'] as $index => $label) { ?>
                                 <?php
@@ -137,7 +137,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </div>
-                    </fieldset>
+                    </div>
                     <div class="admin-filter-field admin-content-download-file-filter-keyword">
                         <label for="content_download_file_filter_q" class="admin-filter-label">검색</label>
                         <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="파일 제목, 원본 파일명">

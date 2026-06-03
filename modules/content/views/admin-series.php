@@ -53,8 +53,8 @@ $selectedSeriesVisibilities = is_array($seriesFilters['visibility'] ?? null) ? $
 ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-filter admin-content-series-filter ui-form-theme">
     <div class="admin-filter-grid admin-content-series-search-grid admin-content-filter-stack">
-                <fieldset class="admin-filter-field admin-content-series-filter-status">
-                    <legend class="admin-filter-label">상태</legend>
+                <div class="admin-filter-field admin-content-series-filter-status">
+                    <label class="admin-filter-label">상태</label>
                     <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
                         <?php $seriesStatuses = sr_content_series_statuses(); ?>
                         <?php foreach ($seriesStatuses as $index => $status) { ?>
@@ -68,9 +68,9 @@ $selectedSeriesVisibilities = is_array($seriesFilters['visibility'] ?? null) ? $
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
-                <fieldset class="admin-filter-field admin-content-series-filter-visibility">
-                    <legend class="admin-filter-label">공개 범위</legend>
+                </div>
+                <div class="admin-filter-field admin-content-series-filter-visibility">
+                    <label class="admin-filter-label">공개 범위</label>
                     <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="공개 범위">
                         <?php $seriesVisibilities = sr_content_series_visibility_values(); ?>
                         <?php foreach ($seriesVisibilities as $index => $visibility) { ?>
@@ -84,7 +84,7 @@ $selectedSeriesVisibilities = is_array($seriesFilters['visibility'] ?? null) ? $
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <div class="admin-filter-field admin-content-series-filter-field">
                     <label for="content_series_filter_field" class="admin-filter-label">검색 대상</label>
                     <select id="content_series_filter_field" name="field" class="form-select admin-filter-input">

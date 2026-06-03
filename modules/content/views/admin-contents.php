@@ -669,8 +669,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-filter-grid admin-content-search-grid admin-content-filter-stack">
             <div class="card-filtering<?php echo $contentDetailFilterOpen ? ' card-filtering-open' : ''; ?>" data-card-filtering>
                 <div class="card-filtering-basic">
-                    <fieldset class="admin-filter-field admin-content-filter-status">
-                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></legend>
+                    <div class="admin-filter-field admin-content-filter-status">
+                        <label class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>
                         <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="<?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?>">
                             <?php foreach (sr_content_allowed_statuses() as $index => $status) { ?>
                                 <?php
@@ -683,7 +683,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </div>
-                    </fieldset>
+                    </div>
                     <div class="admin-filter-field admin-content-filter-field">
                         <label for="modules_content_admin_contents_field" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.b79bc9c8')); ?></label>
                         <select id="modules_content_admin_contents_field" name="field" class="form-select admin-filter-input">

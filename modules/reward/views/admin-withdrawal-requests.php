@@ -28,8 +28,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/rewards/withdrawal-requests')); ?>" class="admin-filter admin-reward-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-reward-request-filter-grid">
-            <fieldset class="admin-filter-field admin-reward-request-filter-status">
-                <legend class="admin-filter-label">상태</legend>
+            <div class="admin-filter-field admin-reward-request-filter-status">
+                <label class="admin-filter-label">상태</label>
                 <div class="btn-group">
                 <?php foreach ($requestStatusValues as $requestStatusIndex => $statusValue) { ?>
                     <?php
@@ -43,7 +43,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="btn btn-choice-light <?php echo sr_e($statusGroupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e($statusLabel); ?></label>
                 <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field admin-reward-request-filter-field">
             <label for="reward-withdrawal-search-field" class="admin-filter-label">검색 조건</label>
             <select id="reward-withdrawal-search-field" name="field" class="form-select admin-filter-input">

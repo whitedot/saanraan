@@ -68,8 +68,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter admin-notification-delivery-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-delivery-search-grid">
-                <fieldset class="admin-filter-field admin-notification-delivery-filter-channel">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></legend>
+                <div class="admin-filter-field admin-notification-delivery-filter-channel">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
                     <div class="btn-group">
                         <?php foreach ($allowedDeliveryChannels as $index => $channel) { ?>
                             <?php
@@ -82,9 +82,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
-                <fieldset class="admin-filter-field admin-notification-delivery-filter-status">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.3d8c9ee7')); ?></legend>
+                </div>
+                <div class="admin-filter-field admin-notification-delivery-filter-status">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.3d8c9ee7')); ?></label>
                     <div class="btn-group">
                         <?php foreach ($allowedDeliveryStatuses as $index => $status) { ?>
                             <?php
@@ -97,7 +97,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <div class="admin-filter-field admin-notification-delivery-filter-field">
                 <label for="notification_admin_delivery_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>
                 <select name="field" id="notification_admin_delivery_search_field" class="form-select admin-filter-input">
@@ -202,8 +202,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter admin-notification-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-search-grid">
-                <fieldset class="admin-filter-field admin-notification-filter-audience">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></legend>
+                <div class="admin-filter-field admin-notification-filter-audience">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>
                     <div class="btn-group">
                         <?php foreach ($allowedAudiences as $index => $audience) { ?>
                             <?php
@@ -216,9 +216,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
-                <fieldset class="admin-filter-field admin-notification-filter-status">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></legend>
+                </div>
+                <div class="admin-filter-field admin-notification-filter-status">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></label>
                     <div class="btn-group">
                         <?php foreach ($allowedNotificationStatuses as $index => $status) { ?>
                             <?php
@@ -231,7 +231,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <div class="admin-filter-field admin-notification-filter-field">
                 <label for="notification_admin_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>
                 <select name="field" id="notification_admin_search_field" class="form-select admin-filter-input">

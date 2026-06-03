@@ -252,8 +252,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php $selectedMemberStatuses = is_array($statusFilter ?? null) ? $statusFilter : []; ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter admin-member-filter ui-form-theme">
     <div class="admin-filter-grid admin-member-search-grid">
-                <fieldset class="admin-filter-field admin-member-filter-status">
-                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></legend>
+                <div class="admin-filter-field admin-member-filter-status">
+                    <label class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
                     <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?>">
                         <?php foreach ($allowedStatuses as $index => $status) { ?>
                             <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
@@ -263,7 +263,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </label>
                         <?php } ?>
                     </div>
-                </fieldset>
+                </div>
                 <div class="admin-filter-field admin-member-filter-field">
                     <label for="member-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
                     <select name="field" id="member-search-field" class="form-select admin-filter-input">

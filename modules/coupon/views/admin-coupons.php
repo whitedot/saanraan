@@ -88,8 +88,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($couponAdminPage === 'definitions') { ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-definition-filter-grid">
-            <fieldset class="admin-filter-field">
-                <legend class="admin-filter-label">상태</legend>
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">상태</label>
                 <div class="btn-group">
                     <?php foreach ($definitionStatusLabels as $index => $statusLabel) { ?>
                         <?php
@@ -101,9 +101,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $statusLabel); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
-            <fieldset class="admin-filter-field">
-                <legend class="admin-filter-label">사용처</legend>
+            </div>
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">사용처</label>
                 <div class="btn-group">
                     <?php $targetTypeKeys = array_keys($targetTypes); ?>
                     <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
@@ -116,7 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field admin-coupon-filter-keyword">
             <label for="coupon_definition_keyword_filter" class="admin-filter-label">검색어</label>
             <input id="coupon_definition_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($definitionFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="쿠폰 키, 이름, 대상 번호">
@@ -465,8 +465,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($couponAdminPage === 'issues') { ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-history-filter-grid">
-            <fieldset class="admin-filter-field">
-                <legend class="admin-filter-label">상태</legend>
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">상태</label>
                 <div class="btn-group">
                     <?php $issueStatusOptions = sr_coupon_issue_statuses(); ?>
                     <?php foreach ($issueStatusOptions as $index => $issueStatus) { ?>
@@ -478,9 +478,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issueStatus)); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
-            <fieldset class="admin-filter-field">
-                <legend class="admin-filter-label">사용처</legend>
+            </div>
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">사용처</label>
                 <div class="btn-group">
                     <?php $targetTypeKeys = array_keys($targetTypes); ?>
                     <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
@@ -493,7 +493,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field">
             <label for="coupon_issue_member_field_filter" class="admin-filter-label">회원 검색</label>
             <select id="coupon_issue_member_field_filter" name="field" class="form-select admin-filter-input">
@@ -575,8 +575,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($couponAdminPage === 'redemptions') { ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-redemption-filter-grid">
-            <fieldset class="admin-filter-field">
-                <legend class="admin-filter-label">상태</legend>
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">상태</label>
                 <div class="btn-group">
                     <?php $redemptionStatusOptions = ['redeemed', 'refunded']; ?>
                     <?php foreach ($redemptionStatusOptions as $index => $redemptionStatusOption) { ?>
@@ -588,9 +588,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_coupon_redemption_status_label((string) $redemptionStatusOption)); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
-            <fieldset class="admin-filter-field">
-                <legend class="admin-filter-label">환급 정책</legend>
+            </div>
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">환급 정책</label>
                 <div class="btn-group">
                     <?php $policyKeys = array_keys($refundablePolicies); ?>
                     <?php foreach ($refundablePolicies as $policy => $policyLabel) { ?>
@@ -603,9 +603,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $policyLabel); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
-            <fieldset class="admin-filter-field">
-                <legend class="admin-filter-label">사용처</legend>
+            </div>
+            <div class="admin-filter-field">
+                <label class="admin-filter-label">사용처</label>
                 <div class="btn-group">
                     <?php $targetTypeKeys = array_keys($targetTypes); ?>
                     <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
@@ -618,7 +618,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field">
             <label for="coupon_redemption_member_field_filter" class="admin-filter-label">회원 검색</label>
             <select id="coupon_redemption_member_field_filter" name="field" class="form-select admin-filter-input">

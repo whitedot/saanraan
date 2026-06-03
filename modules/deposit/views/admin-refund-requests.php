@@ -28,8 +28,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/deposits/refund-requests')); ?>" class="admin-filter admin-deposit-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-deposit-request-filter-grid">
-            <fieldset class="admin-filter-field admin-deposit-request-filter-status">
-                <legend class="admin-filter-label">상태</legend>
+            <div class="admin-filter-field admin-deposit-request-filter-status">
+                <label class="admin-filter-label">상태</label>
                 <div class="btn-group">
                 <?php foreach ($requestStatusValues as $requestStatusIndex => $statusValue) { ?>
                     <?php
@@ -43,7 +43,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="btn btn-choice-light <?php echo sr_e($statusGroupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e($statusLabel); ?></label>
                 <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field admin-deposit-request-filter-field">
             <label for="deposit-refund-search-field" class="admin-filter-label">검색 조건</label>
             <select id="deposit-refund-search-field" name="field" class="form-select admin-filter-input">

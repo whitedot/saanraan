@@ -38,8 +38,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/series')); ?>" class="admin-filter admin-community-series-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-series-search-grid">
-            <fieldset class="admin-filter-field admin-community-series-filter-status">
-                <legend class="admin-filter-label">상태</legend>
+            <div class="admin-filter-field admin-community-series-filter-status">
+                <label class="admin-filter-label">상태</label>
                 <div class="btn-group">
                     <?php foreach (sr_community_series_statuses() as $index => $status) { ?>
                         <?php
@@ -51,9 +51,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_community_series_status_label($status)); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
-            <fieldset class="admin-filter-field admin-community-series-filter-visibility">
-                <legend class="admin-filter-label">공개 범위</legend>
+            </div>
+            <div class="admin-filter-field admin-community-series-filter-visibility">
+                <label class="admin-filter-label">공개 범위</label>
                 <div class="btn-group">
                     <?php foreach (sr_community_series_visibility_values() as $index => $visibility) { ?>
                         <?php
@@ -65,7 +65,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_community_series_visibility_label($visibility)); ?></label>
                     <?php } ?>
                 </div>
-            </fieldset>
+            </div>
             <div class="admin-filter-field admin-community-series-filter-field">
             <label for="community_series_filter_field" class="admin-filter-label">검색 대상</label>
             <select id="community_series_filter_field" name="field" class="form-select admin-filter-input">
