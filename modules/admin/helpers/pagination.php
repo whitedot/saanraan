@@ -124,6 +124,7 @@ function sr_admin_pagination_url(int $page, string $pageParam = 'page'): string
         if (!is_array($params)) {
             $params = [];
         }
+        $params = sr_admin_normalize_query_params($params);
     }
 
     unset($params[$pageParam]);

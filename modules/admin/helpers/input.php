@@ -66,6 +66,27 @@ function sr_admin_get_allowed_array(string $key, array $allowedValues, int $maxL
     return array_values($values);
 }
 
+function sr_admin_normalize_query_params(array $params): array
+{
+    $normalized = [];
+
+    foreach ($params as $key => $value) {
+        if (is_array($value)) {
+            if (array_is_list($value) && count($value) === 1 && !is_array($value[0])) {
+                $normalized[$key] = (string) $value[0];
+                continue;
+            }
+
+            $normalized[$key] = $value;
+            continue;
+        }
+
+        $normalized[$key] = $value;
+    }
+
+    return $normalized;
+}
+
 function sr_admin_sql_in_condition(string $column, string $paramPrefix, $values): array
 {
     $values = is_array($values) ? $values : [$values];

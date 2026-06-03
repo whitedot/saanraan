@@ -72,6 +72,7 @@ function sr_admin_sort_url(array $options, array $defaultSort, string $sortKey =
         if (!is_array($params)) {
             $params = [];
         }
+        $params = sr_admin_normalize_query_params($params);
     }
 
     unset($params[$pageParam], $params[$sortParam], $params[$dirParam]);
