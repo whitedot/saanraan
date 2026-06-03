@@ -31,6 +31,7 @@ if ($searchField !== 'all') {
 if ($searchKeyword !== '') {
     $requestListRedirectParams['q'] = $searchKeyword;
 }
+$requestListRedirectParams = sr_admin_normalize_query_params($requestListRedirectParams);
 $requestListRedirectPath = '/admin/rewards/withdrawal-requests'
     . ($requestListRedirectParams === [] ? '' : '?' . http_build_query($requestListRedirectParams, '', '&', PHP_QUERY_RFC3986));
 $requestBatchLimit = 100;
