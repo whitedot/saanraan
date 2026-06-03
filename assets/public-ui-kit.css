@@ -397,22 +397,28 @@
 .btn-choice-warning { --btn-choice-color: var(--color-warning); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
 .btn-choice-info { --btn-choice-color: var(--color-info); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
 .btn-choice-dark { --btn-choice-color: var(--color-dark); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+.btn-group { align-items: stretch; display: inline-flex; gap: 0; max-width: 100%; vertical-align: middle; }
+[class*=btn-choice-]:is(.btn-group-middle, .btn-group-end) { border-inline-start-color: transparent; }
 @media (hover: hover) {
     [class*=btn-choice-]:hover { background-color: var(--btn-choice-hover-bg); color: var(--btn-choice-color); }
 }
 [class*=btn-choice-]:is(:focus, :focus-visible, :active) { background-color: var(--btn-choice-hover-bg); color: var(--btn-choice-color); }
 input:checked + [class*=btn-choice-],
+[class*=btn-choice-]:has(> .form-choice-toggle-input:checked),
 [class*=btn-choice-].is-active,
 [class*=btn-choice-][aria-pressed=true] { z-index: 20; background-color: var(--btn-choice-color, var(--color-primary)); border-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
 @media (hover: hover) {
     input:checked + [class*=btn-choice-]:hover,
+    [class*=btn-choice-]:has(> .form-choice-toggle-input:checked):hover,
     [class*=btn-choice-].is-active:hover,
     [class*=btn-choice-][aria-pressed=true]:hover { background-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
 }
 input:checked + [class*=btn-choice-]:is(:focus, :focus-visible, :active),
+[class*=btn-choice-]:has(> .form-choice-toggle-input:checked):is(:focus, :focus-visible, :active),
 [class*=btn-choice-].is-active:is(:focus, :focus-visible, :active),
 [class*=btn-choice-][aria-pressed=true]:is(:focus, :focus-visible, :active) { background-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
-input:focus-visible + [class*=btn-choice-] { z-index: 21; box-shadow: 0 0 0 3px color-mix(in oklab, var(--btn-choice-color, var(--color-primary)) 14%, transparent); }
+input:focus-visible + [class*=btn-choice-],
+[class*=btn-choice-]:has(> .form-choice-toggle-input:focus-visible) { z-index: 21; box-shadow: 0 0 0 3px color-mix(in oklab, var(--btn-choice-color, var(--color-primary)) 14%, transparent); }
 .form-checkbox:focus-visible,
 .form-radio:focus-visible,
 .form-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--form-choice-color, var(--color-primary)) 12%, transparent); }
@@ -941,6 +947,19 @@ input:focus-visible + [class*=btn-choice-] { z-index: 21; box-shadow: 0 0 0 3px 
 .sample-body-md { font-size: var(--text-md); line-height: var(--text-md--line-height); }
 .sample-heading-size { font-size: var(--text-lg); line-height: var(--text-lg--line-height); }
 .sample-nowrap { white-space: nowrap; }
+.card-filtering { background-color: var(--color-default-50); border: 1px solid var(--color-default-200); border-radius: var(--radius); margin: 0; padding: 0; }
+.card-filtering-summary { align-items: center; color: var(--text-strong); cursor: pointer; display: flex; font-size: var(--type-small-size); font-weight: var(--font-weight-semibold); gap: calc(var(--spacing) * 2); justify-content: space-between; line-height: var(--type-small-line-height); list-style: none; padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4); }
+details.card-filtering > .card-filtering-summary::-webkit-details-marker { display: none; }
+details.card-filtering > .card-filtering-summary::after { content: "expand_more"; font-family: "Material Symbols Outlined"; font-size: 1.25rem; font-weight: 400; line-height: 1; }
+details.card-filtering[open] > .card-filtering-summary::after { content: "expand_less"; }
+.card-filtering-body { border-top: 1px solid var(--color-default-200); display: grid; gap: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 4); }
+.card-filtering-field { display: grid; gap: calc(var(--spacing) * 2); min-width: 0; }
+.card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) { align-items: center; display: grid; gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3); grid-template-columns: minmax(5.5rem, 8rem) minmax(0, 1fr); min-width: 0; }
+.card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) > :is(.form-label, .admin-filter-label) { color: var(--text-muted); font-size: var(--type-small-size); line-height: var(--type-small-line-height); margin: 0; min-width: 0; }
+.card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) > :is(.form-input, .form-select, .form-textarea, .admin-filter-input, .btn-group) { min-width: 0; width: 100%; }
+@media (max-width: 767px) {
+    .card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) { align-items: stretch; grid-template-columns: minmax(0, 1fr); }
+}
 .sample-hidden { display: none !important; }
 .sample-noninteractive { pointer-events: none; }
 .sample-surface-muted { background-color: var(--color-default-100); }
@@ -1028,6 +1047,7 @@ input:focus-visible + [class*=btn-choice-] { z-index: 21; box-shadow: 0 0 0 3px 
 .sample-card-header-stacked { border-style: dashed; display: block; }
 .sample-card-header-stacked .card-title { margin-bottom: calc(var(--spacing) * 1.25); }
 .sample-card-footer-muted { color: var(--color-default-400); }
+.sample-card-filtering { margin-top: var(--spacing-base, 20px); }
 .sample-card-accent-line { border-inline-start-width: 3px; border-inline-start-style: solid; }
 .sample-card-title-primary,
 .sample-card-title-dark { margin-bottom: calc(var(--spacing) * 3); }

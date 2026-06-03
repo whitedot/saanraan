@@ -39,18 +39,12 @@ $filters = [
     'content_id' => (int) sr_get_string('content_id', 20),
     'file_id' => (int) sr_get_string('file_id', 20),
     'account_id' => (int) sr_get_string('account_id', 20),
-    'download_type' => sr_get_string('download_type', 20),
-    'refund_status' => sr_get_string('refund_status', 20),
+    'download_type' => sr_content_admin_multi_filter_values('download_type', ['free', 'paid']),
+    'refund_status' => sr_content_admin_multi_filter_values('refund_status', ['none', 'refunded', 'access_revoked']),
     'date_from' => sr_get_string('date_from', 10),
     'date_to' => sr_get_string('date_to', 10),
     'q' => sr_get_string('q', 120),
 ];
-if (!in_array((string) $filters['download_type'], ['', 'free', 'paid'], true)) {
-    $filters['download_type'] = '';
-}
-if (!in_array((string) $filters['refund_status'], ['', 'none', 'refunded', 'access_revoked'], true)) {
-    $filters['refund_status'] = '';
-}
 if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', (string) $filters['date_from']) !== 1) {
     $filters['date_from'] = '';
 }

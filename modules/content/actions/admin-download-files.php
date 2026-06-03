@@ -152,12 +152,9 @@ if ($fileId > 0 && !is_array($editingFile)) {
 }
 
 $filters = [
-    'status' => sr_get_string('status', 20),
+    'status' => sr_content_admin_multi_filter_values('status', ['active', 'hidden']),
     'q' => sr_get_string('q', 120),
 ];
-if (!in_array((string) $filters['status'], ['', 'active', 'hidden'], true)) {
-    $filters['status'] = 'active';
-}
 $downloadFileSortOptions = sr_content_admin_download_file_sort_options();
 $downloadFileDefaultSort = sr_content_admin_download_file_default_sort();
 $downloadFileSort = sr_admin_sort_from_request($downloadFileSortOptions, $downloadFileDefaultSort);

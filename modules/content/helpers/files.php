@@ -608,10 +608,15 @@ function sr_content_admin_download_file_where_sql(array $filters): array
 {
     $conditions = [];
     $params = [];
-    $status = (string) ($filters['status'] ?? 'active');
-    if ($status !== '') {
-        $conditions[] = 'f.status = :status';
-        $params['status'] = $status;
+    $statuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    if ($statuses !== []) {
+        $placeholders = [];
+        foreach (array_values($statuses) as $index => $status) {
+            $paramKey = 'status_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $status;
+        }
+        $conditions[] = 'f.status IN (' . implode(', ', $placeholders) . ')';
     }
     $q = trim((string) ($filters['q'] ?? ''));
     if ($q !== '') {
@@ -731,19 +736,31 @@ function sr_content_admin_file_download_log_where_sql(array $filters): array
         $params['account_id'] = $accountId;
     }
 
-    $downloadType = (string) ($filters['download_type'] ?? '');
-    if (in_array($downloadType, ['free', 'paid'], true)) {
-        $conditions[] = 'd.download_type = :download_type';
-        $params['download_type'] = $downloadType;
+    $downloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
+    if ($downloadTypes !== []) {
+        $placeholders = [];
+        foreach (array_values($downloadTypes) as $index => $downloadType) {
+            $paramKey = 'download_type_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $downloadType;
+        }
+        $conditions[] = 'd.download_type IN (' . implode(', ', $placeholders) . ')';
     }
 
-    $refundStatus = (string) ($filters['refund_status'] ?? '');
-    if (in_array($refundStatus, ['none', 'refunded', 'access_revoked'], true)) {
-        if ($refundStatus === 'none') {
-            $conditions[] = "d.refund_status = ''";
-        } else {
-            $conditions[] = 'd.refund_status = :refund_status';
-            $params['refund_status'] = $refundStatus;
+    $refundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
+    if ($refundStatuses !== []) {
+        $refundConditions = [];
+        foreach (array_values($refundStatuses) as $index => $refundStatus) {
+            if ((string) $refundStatus === 'none') {
+                $refundConditions[] = "d.refund_status = ''";
+                continue;
+            }
+            $paramKey = 'refund_status_' . (string) $index;
+            $refundConditions[] = 'd.refund_status = :' . $paramKey;
+            $params[$paramKey] = (string) $refundStatus;
+        }
+        if ($refundConditions !== []) {
+            $conditions[] = '(' . implode(' OR ', $refundConditions) . ')';
         }
     }
 

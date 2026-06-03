@@ -10,49 +10,80 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$selectedDownloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
+$selectedRefundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
+$downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
+    || (int) ($filters['file_id'] ?? 0) > 0
+    || (int) ($filters['account_id'] ?? 0) > 0
+    || (string) ($filters['date_from'] ?? '') !== ''
+    || (string) ($filters['date_to'] ?? '') !== ''
+    || (string) ($filters['q'] ?? '') !== '';
+?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/content/file-downloads')); ?>" class="admin-filter admin-content-file-download-filter ui-form-theme">
-    <div class="admin-filter-grid admin-content-file-download-search-grid">
-        <label class="admin-filter-field" for="content_file_download_filter_type">
-            <span class="admin-filter-label">구분</span>
-            <select id="content_file_download_filter_type" name="download_type" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($filters['download_type'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
-                <option value="free"<?php echo (string) ($filters['download_type'] ?? '') === 'free' ? ' selected' : ''; ?>>무료</option>
-                <option value="paid"<?php echo (string) ($filters['download_type'] ?? '') === 'paid' ? ' selected' : ''; ?>>유료</option>
-            </select>
-        </label>
-        <label class="admin-filter-field" for="content_file_download_filter_refund_status">
-            <span class="admin-filter-label">환불 상태</span>
-            <select id="content_file_download_filter_refund_status" name="refund_status" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($filters['refund_status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
-                <option value="none"<?php echo (string) ($filters['refund_status'] ?? '') === 'none' ? ' selected' : ''; ?>>미처리</option>
-                <option value="refunded"<?php echo (string) ($filters['refund_status'] ?? '') === 'refunded' ? ' selected' : ''; ?>>환불 완료</option>
-                <option value="access_revoked"<?php echo (string) ($filters['refund_status'] ?? '') === 'access_revoked' ? ' selected' : ''; ?>>접근권 회수</option>
-            </select>
-        </label>
-        <label class="admin-filter-field" for="content_file_download_filter_content_id">
-            <span class="admin-filter-label">콘텐츠 ID</span>
-            <input id="content_file_download_filter_content_id" type="number" min="1" name="content_id" value="<?php echo (int) ($filters['content_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['content_id']) : ''; ?>" class="form-input admin-filter-input">
-        </label>
-        <label class="admin-filter-field" for="content_file_download_filter_file_id">
-            <span class="admin-filter-label">파일 ID</span>
-            <input id="content_file_download_filter_file_id" type="number" min="1" name="file_id" value="<?php echo (int) ($filters['file_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['file_id']) : ''; ?>" class="form-input admin-filter-input">
-        </label>
-        <label class="admin-filter-field" for="content_file_download_filter_account_id">
-            <span class="admin-filter-label">회원 ID</span>
-            <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input admin-filter-input">
-        </label>
-        <label class="admin-filter-field" for="content_file_download_filter_date_from">
-            <span class="admin-filter-label">시작일</span>
-            <input id="content_file_download_filter_date_from" type="date" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>" class="form-input admin-filter-input">
-        </label>
-        <label class="admin-filter-field" for="content_file_download_filter_date_to">
-            <span class="admin-filter-label">종료일</span>
-            <input id="content_file_download_filter_date_to" type="date" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>" class="form-input admin-filter-input">
-        </label>
-        <label class="admin-filter-field" for="content_file_download_filter_q">
-            <span class="admin-filter-label">검색</span>
-            <input id="content_file_download_filter_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="콘텐츠, 파일, 회원">
-        </label>
+    <div class="admin-filter-grid admin-content-file-download-search-grid admin-content-filter-stack">
+        <fieldset class="admin-filter-field">
+            <legend class="admin-filter-label">구분</legend>
+            <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="구분">
+                <?php foreach (['free' => '무료', 'paid' => '유료'] as $downloadType => $downloadTypeLabel) { ?>
+                    <?php
+                    $inputId = 'content_file_download_filter_type_' . $downloadType;
+                    $groupClass = $downloadType === 'free' ? 'btn-group-start' : 'btn-group-end';
+                    ?>
+                    <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-primary <?php echo sr_e($groupClass); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="download_type[]" value="<?php echo sr_e($downloadType); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($downloadType, $selectedDownloadTypes, true) ? ' checked' : ''; ?>>
+                        <?php echo sr_e($downloadTypeLabel); ?>
+                    </label>
+                <?php } ?>
+            </div>
+        </fieldset>
+        <fieldset class="admin-filter-field">
+            <legend class="admin-filter-label">환불 상태</legend>
+            <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="환불 상태">
+                <?php $refundStatusOptions = ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수']; ?>
+                <?php foreach ($refundStatusOptions as $index => $refundStatusLabel) { ?>
+                    <?php
+                    $refundStatus = (string) $index;
+                    $optionIndex = array_search($refundStatus, array_keys($refundStatusOptions), true);
+                    $groupClass = $optionIndex === 0 ? 'btn-group-start' : ($optionIndex === count($refundStatusOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                    $inputId = 'content_file_download_filter_refund_status_' . $refundStatus;
+                    ?>
+                    <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-primary <?php echo sr_e($groupClass); ?>">
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="refund_status[]" value="<?php echo sr_e($refundStatus); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($refundStatus, $selectedRefundStatuses, true) ? ' checked' : ''; ?>>
+                        <?php echo sr_e($refundStatusLabel); ?>
+                    </label>
+                <?php } ?>
+            </div>
+        </fieldset>
+        <details class="card-filtering"<?php echo $downloadLogDetailFilterOpen ? ' open' : ''; ?>>
+            <summary class="card-filtering-summary">상세 조건</summary>
+            <div class="card-filtering-body">
+                <label class="admin-filter-field" for="content_file_download_filter_content_id">
+                    <span class="admin-filter-label">콘텐츠 ID</span>
+                    <input id="content_file_download_filter_content_id" type="number" min="1" name="content_id" value="<?php echo (int) ($filters['content_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['content_id']) : ''; ?>" class="form-input admin-filter-input">
+                </label>
+                <label class="admin-filter-field" for="content_file_download_filter_file_id">
+                    <span class="admin-filter-label">파일 ID</span>
+                    <input id="content_file_download_filter_file_id" type="number" min="1" name="file_id" value="<?php echo (int) ($filters['file_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['file_id']) : ''; ?>" class="form-input admin-filter-input">
+                </label>
+                <label class="admin-filter-field" for="content_file_download_filter_account_id">
+                    <span class="admin-filter-label">회원 ID</span>
+                    <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input admin-filter-input">
+                </label>
+                <label class="admin-filter-field" for="content_file_download_filter_date_from">
+                    <span class="admin-filter-label">시작일</span>
+                    <input id="content_file_download_filter_date_from" type="date" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>" class="form-input admin-filter-input">
+                </label>
+                <label class="admin-filter-field" for="content_file_download_filter_date_to">
+                    <span class="admin-filter-label">종료일</span>
+                    <input id="content_file_download_filter_date_to" type="date" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>" class="form-input admin-filter-input">
+                </label>
+                <label class="admin-filter-field" for="content_file_download_filter_q">
+                    <span class="admin-filter-label">검색</span>
+                    <input id="content_file_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="콘텐츠, 파일, 회원">
+                </label>
+            </div>
+        </details>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>

@@ -661,44 +661,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
+    <?php
+    $selectedContentStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    $contentDetailFilterOpen = (int) ($filters['content_group_id'] ?? 0) > 0 || (string) ($filters['field'] ?? 'all') !== 'all' || (string) ($filters['q'] ?? '') !== '';
+    ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content')); ?>" class="admin-filter admin-content-filter ui-form-theme">
-        <div class="admin-filter-grid admin-content-search-grid">
-            <div class="admin-filter-field admin-content-filter-status">
-                <label for="modules_content_admin_contents_status" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>
-                <select id="modules_content_admin_contents_status" name="status" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.all.a4b69faf')); ?></option>
-                    <?php foreach (sr_content_allowed_statuses() as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($filters['status'] ?? '') === $status ? ' selected' : ''; ?>>
+        <div class="admin-filter-grid admin-content-search-grid admin-content-filter-stack">
+            <fieldset class="admin-filter-field admin-content-filter-status">
+                <legend class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></legend>
+                <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="<?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?>">
+                    <?php foreach (sr_content_allowed_statuses() as $index => $status) { ?>
+                        <?php
+                        $inputId = 'modules_content_admin_contents_status_' . $status;
+                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count(sr_content_allowed_statuses()) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        ?>
+                        <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-primary <?php echo sr_e($groupClass); ?>">
+                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedContentStatuses, true) ? ' checked' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </option>
+                        </label>
                     <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-content-filter-group">
-                <label for="modules_content_admin_contents_content_group_id" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></label>
-                <select id="modules_content_admin_contents_content_group_id" name="content_group_id" class="form-select admin-filter-input">
-                    <option value="0"<?php echo (int) ($filters['content_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.all.a4b69faf')); ?></option>
-                    <?php foreach ($pageGroups as $pageGroup) { ?>
-                        <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($filters['content_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) ($pageGroup['title'] ?? $pageGroup['group_key'])); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-content-filter-field">
-                <label for="modules_content_admin_contents_field" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.b79bc9c8')); ?></label>
-                <select id="modules_content_admin_contents_field" name="field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => sr_t('content::ui.all.a4b69faf'), 'title' => sr_t('content::ui.text.08b17e43'), 'slug' => 'Slug'] as $fieldValue => $fieldLabel) { ?>
-                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                            <?php echo sr_e($fieldLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-content-filter-keyword">
-                <label for="modules_content_admin_contents_q" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.bda397fc')); ?></label>
-                <input id="modules_content_admin_contents_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('content::ui.slug.afd81de7')); ?>">
-            </div>
+                </div>
+            </fieldset>
+            <details class="card-filtering"<?php echo $contentDetailFilterOpen ? ' open' : ''; ?>>
+                <summary class="card-filtering-summary">상세 조건</summary>
+                <div class="card-filtering-body">
+                    <div class="admin-filter-field admin-content-filter-group">
+                        <label for="modules_content_admin_contents_content_group_id" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></label>
+                        <select id="modules_content_admin_contents_content_group_id" name="content_group_id" class="form-select admin-filter-input">
+                            <option value="0"<?php echo (int) ($filters['content_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($pageGroups as $pageGroup) { ?>
+                                <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($filters['content_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) ($pageGroup['title'] ?? $pageGroup['group_key'])); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="admin-filter-field admin-content-filter-field">
+                        <label for="modules_content_admin_contents_field" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.b79bc9c8')); ?></label>
+                        <select id="modules_content_admin_contents_field" name="field" class="form-select admin-filter-input">
+                            <?php foreach (['all' => sr_t('content::ui.all.a4b69faf'), 'title' => sr_t('content::ui.text.08b17e43'), 'slug' => 'Slug'] as $fieldValue => $fieldLabel) { ?>
+                                <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                                    <?php echo sr_e($fieldLabel); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="admin-filter-field admin-content-filter-keyword">
+                        <label for="modules_content_admin_contents_q" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.bda397fc')); ?></label>
+                        <input id="modules_content_admin_contents_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('content::ui.slug.afd81de7')); ?>">
+                    </div>
+                </div>
+            </details>
             <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
         </div>
     </form>

@@ -117,20 +117,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a href="<?php echo sr_e(sr_url('/admin/content/files?status=hidden')); ?>" class="admin-summary-meta">숨김 <?php echo sr_e((string) (int) ($downloadFileStatusCounts['hidden'] ?? 0)); ?>개</a>
         </div>
     </div>
+    <?php
+    $selectedDownloadFileStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    $downloadFileDetailFilterOpen = (string) ($filters['q'] ?? '') !== '';
+    ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter admin-content-download-file-filter ui-form-theme">
-        <div class="admin-filter-grid admin-content-download-file-search-grid">
-            <div class="admin-filter-field admin-content-download-file-filter-status">
-                <label for="content_download_file_filter_status" class="admin-filter-label">상태</label>
-                <select id="content_download_file_filter_status" name="status" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>>전체</option>
-                    <option value="active"<?php echo (string) ($filters['status'] ?? '') === 'active' ? ' selected' : ''; ?>>사용</option>
-                    <option value="hidden"<?php echo (string) ($filters['status'] ?? '') === 'hidden' ? ' selected' : ''; ?>>숨김</option>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-content-download-file-filter-keyword">
-                <label for="content_download_file_filter_q" class="admin-filter-label">검색</label>
-                <input id="content_download_file_filter_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
-            </div>
+        <div class="admin-filter-grid admin-content-download-file-search-grid admin-content-filter-stack">
+            <fieldset class="admin-filter-field admin-content-download-file-filter-status">
+                <legend class="admin-filter-label">상태</legend>
+                <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
+                    <?php foreach (['active' => '사용', 'hidden' => '숨김'] as $index => $label) { ?>
+                        <?php
+                        $status = (string) $index;
+                        $inputId = 'content_download_file_filter_status_' . $status;
+                        $groupClass = $status === 'active' ? 'btn-group-start' : 'btn-group-end';
+                        ?>
+                        <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-primary <?php echo sr_e($groupClass); ?>">
+                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedDownloadFileStatuses, true) ? ' checked' : ''; ?>>
+                            <?php echo sr_e($label); ?>
+                        </label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <details class="card-filtering"<?php echo $downloadFileDetailFilterOpen ? ' open' : ''; ?>>
+                <summary class="card-filtering-summary">상세 조건</summary>
+                <div class="card-filtering-body">
+                    <div class="admin-filter-field admin-content-download-file-filter-keyword">
+                        <label for="content_download_file_filter_q" class="admin-filter-label">검색</label>
+                        <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
+                    </div>
+                </div>
+            </details>
             <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
         </div>
     </form>

@@ -101,6 +101,33 @@
                         </div>
                         <!-- 카드 끝-->
                                 </div>
+
+                    <details class="card-filtering sample-card-filtering" open>
+                        <summary class="card-filtering-summary"><?php echo sr_e(sr_t('ui.card.filtering.summary')); ?></summary>
+                        <div class="card-filtering-body">
+                            <div class="card-filtering-field">
+                                <span class="form-label"><?php echo sr_e(sr_t('ui.card.filtering.status')); ?></span>
+                                <div class="btn-group" role="group">
+                                    <label class="btn btn-choice-primary btn-group-start">
+                                        <input type="checkbox" class="form-choice-toggle-input sr-only" checked>
+                                        <?php echo sr_e(sr_t('ui.card.filtering.option.active')); ?>
+                                    </label>
+                                    <label class="btn btn-choice-primary btn-group-middle">
+                                        <input type="checkbox" class="form-choice-toggle-input sr-only">
+                                        <?php echo sr_e(sr_t('ui.card.filtering.option.pending')); ?>
+                                    </label>
+                                    <label class="btn btn-choice-primary btn-group-end">
+                                        <input type="checkbox" class="form-choice-toggle-input sr-only">
+                                        <?php echo sr_e(sr_t('ui.card.filtering.option.hidden')); ?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="card-filtering-field">
+                                <label for="public_ui_card_filtering_keyword" class="form-label"><?php echo sr_e(sr_t('ui.card.filtering.keyword')); ?></label>
+                                <input id="public_ui_card_filtering_keyword" type="text" class="form-input" value="<?php echo sr_e(sr_t('ui.card.filtering.sample')); ?>">
+                            </div>
+                        </div>
+                    </details>
                             </div>
                         </div>
 

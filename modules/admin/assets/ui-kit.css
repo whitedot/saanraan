@@ -927,6 +927,10 @@
     color: var(--color-default-400);
 }
 
+.sample-card-filtering {
+    margin-top: var(--spacing-base, 20px);
+}
+
 .sample-card-accent-line {
     border-inline-start-width: 3px;
     border-inline-start-style: solid;

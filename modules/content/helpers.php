@@ -720,10 +720,7 @@ function sr_content_enabled_groups(PDO $pdo): array
 
 function sr_content_admin_group_filters(): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, sr_content_group_statuses(), true)) {
-        $status = '';
-    }
+    $statuses = sr_content_admin_multi_filter_values('status', sr_content_group_statuses());
 
     $field = sr_get_string('field', 20);
     if (!in_array($field, ['all', 'key', 'title'], true)) {
@@ -731,10 +728,30 @@ function sr_content_admin_group_filters(): array
     }
 
     return [
-        'status' => $status,
+        'status' => $statuses,
         'field' => $field,
         'q' => sr_content_clean_single_line(sr_get_string('q', 120), 120),
     ];
+}
+
+function sr_content_admin_multi_filter_values(string $key, array $allowedValues): array
+{
+    $rawValues = $_GET[$key] ?? [];
+    if (!is_array($rawValues)) {
+        $rawValues = [$rawValues];
+    }
+
+    $allowedMap = array_fill_keys(array_map('strval', $allowedValues), true);
+    $selected = [];
+    foreach ($rawValues as $rawValue) {
+        $value = is_scalar($rawValue) ? trim((string) $rawValue) : '';
+        if ($value === '' || !isset($allowedMap[$value])) {
+            continue;
+        }
+        $selected[$value] = $value;
+    }
+
+    return array_values($selected);
 }
 
 function sr_content_admin_group_status_counts(PDO $pdo): array
@@ -767,9 +784,15 @@ function sr_content_admin_group_query_parts(array $filters): array
 {
     $where = [];
     $params = [];
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 'g.status = :status';
-        $params['status'] = (string) $filters['status'];
+    $statuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    if ($statuses !== []) {
+        $placeholders = [];
+        foreach (array_values($statuses) as $index => $status) {
+            $paramKey = 'status_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $status;
+        }
+        $where[] = 'g.status IN (' . implode(', ', $placeholders) . ')';
     }
 
     if ((string) ($filters['q'] ?? '') !== '') {
@@ -866,10 +889,7 @@ function sr_content_admin_group_list(PDO $pdo, array $filters, int $limit = 0, i
 
 function sr_content_admin_filters(): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, sr_content_allowed_statuses(), true)) {
-        $status = '';
-    }
+    $statuses = sr_content_admin_multi_filter_values('status', sr_content_allowed_statuses());
 
     $field = sr_get_string('field', 20);
     if (!in_array($field, ['all', 'title', 'slug'], true)) {
@@ -877,7 +897,7 @@ function sr_content_admin_filters(): array
     }
 
     return [
-        'status' => $status,
+        'status' => $statuses,
         'content_group_id' => (int) sr_get_string('content_group_id', 20),
         'field' => $field,
         'q' => sr_content_clean_single_line(sr_get_string('q', 120), 120),
@@ -1050,9 +1070,15 @@ function sr_content_admin_query_parts(array $filters): array
 {
     $where = [];
     $params = [];
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 'p.status = :status';
-        $params['status'] = (string) $filters['status'];
+    $statuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    if ($statuses !== []) {
+        $placeholders = [];
+        foreach (array_values($statuses) as $index => $status) {
+            $paramKey = 'status_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $status;
+        }
+        $where[] = 'p.status IN (' . implode(', ', $placeholders) . ')';
     }
 
     if ((int) ($filters['content_group_id'] ?? 0) > 0) {

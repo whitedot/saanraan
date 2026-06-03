@@ -141,15 +141,8 @@ function sr_content_series_list(PDO $pdo): array
 
 function sr_content_admin_series_filters(): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, sr_content_series_statuses(), true)) {
-        $status = '';
-    }
-
-    $visibility = sr_get_string('visibility', 30);
-    if ($visibility !== '' && !in_array($visibility, sr_content_series_visibility_values(), true)) {
-        $visibility = '';
-    }
+    $statuses = sr_content_admin_multi_filter_values('status', sr_content_series_statuses());
+    $visibilities = sr_content_admin_multi_filter_values('visibility', sr_content_series_visibility_values());
 
     $field = sr_get_string('field', 20);
     if (!in_array($field, ['all', 'key', 'title'], true)) {
@@ -157,8 +150,8 @@ function sr_content_admin_series_filters(): array
     }
 
     return [
-        'status' => $status,
-        'visibility' => $visibility,
+        'status' => $statuses,
+        'visibility' => $visibilities,
         'field' => $field,
         'q' => trim(sr_get_string('q', 120)),
     ];
@@ -169,14 +162,26 @@ function sr_content_admin_series_query_parts(array $filters): array
     $where = [];
     $params = [];
 
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 's.status = :status';
-        $params['status'] = (string) $filters['status'];
+    $statuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    if ($statuses !== []) {
+        $placeholders = [];
+        foreach (array_values($statuses) as $index => $status) {
+            $paramKey = 'status_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $status;
+        }
+        $where[] = 's.status IN (' . implode(', ', $placeholders) . ')';
     }
 
-    if ((string) ($filters['visibility'] ?? '') !== '') {
-        $where[] = 's.visibility = :visibility';
-        $params['visibility'] = (string) $filters['visibility'];
+    $visibilities = is_array($filters['visibility'] ?? null) ? $filters['visibility'] : [];
+    if ($visibilities !== []) {
+        $placeholders = [];
+        foreach (array_values($visibilities) as $index => $visibility) {
+            $paramKey = 'visibility_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = (string) $visibility;
+        }
+        $where[] = 's.visibility IN (' . implode(', ', $placeholders) . ')';
     }
 
     $keyword = trim((string) ($filters['q'] ?? ''));

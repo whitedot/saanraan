@@ -271,6 +271,13 @@ return [
     'ui.block.70ab008d' => 'Block
                                     버튼',
     'ui.browser.defaults.8abc599f' => '브라우저 기본값 (Browser Defaults)',
+    'ui.card.filtering.keyword' => '검색어',
+    'ui.card.filtering.option.active' => '활성',
+    'ui.card.filtering.option.hidden' => '숨김',
+    'ui.card.filtering.option.pending' => '대기',
+    'ui.card.filtering.sample' => '샘플 키워드',
+    'ui.card.filtering.status' => '상태',
+    'ui.card.filtering.summary' => '상세 조건',
     'ui.card.with.tabs.07403201' => '탭이 있는 카드 (Card with Tabs)',
     'ui.checkbox.toggle.50291b0c' => '체크박스 토글 (Checkbox Toggle)',
     'ui.checkboxes.3f234b18' => '체크박스 (Checkboxes)',

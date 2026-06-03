@@ -125,7 +125,7 @@
 
                                             <div class="ui-kit-column-lg-2">
                                                 <div class="input-icon-group">
-                                                    <?php echo sr_material_icon_html('discount', 'input-icon'); ?>
+                                                    <?php echo sr_material_icon_html('sell', 'input-icon'); ?>
                                                     <select id="discount" class="form-select">
                                                         <option selected><?php echo sr_e(sr_t('admin::ui.select.80a8056b')); ?></option>
                                                         <option><?php echo sr_e(sr_t('admin::ui.text.123a955e')); ?></option>
