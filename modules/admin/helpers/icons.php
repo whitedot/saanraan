@@ -493,8 +493,9 @@ function sr_admin_icon_image_references(array $iconOverrides): array
     return $references;
 }
 
-function sr_admin_delete_icon_image_references(array $references): void
+function sr_admin_delete_icon_image_references(array $references): array
 {
+    $failed = [];
     foreach ($references as $reference => $_enabled) {
         if (is_int($reference)) {
             $reference = (string) $_enabled;
@@ -505,8 +506,13 @@ function sr_admin_delete_icon_image_references(array $references): void
             continue;
         }
 
-        sr_storage_delete((string) $storage['driver'], (string) $storage['key']);
+        if (!sr_storage_delete((string) $storage['driver'], (string) $storage['key'])) {
+            $failed[(string) $reference] = true;
+            error_log('[saanraan] admin icon image delete failed: ' . sr_log_sensitive_text_sanitize(sr_log_line_value((string) $reference, 220)));
+        }
     }
+
+    return $failed;
 }
 
 function sr_admin_default_menu_icon_id(string $category): string

@@ -50,6 +50,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     $postedCustomIconMaterialNames = $_POST['custom_icon_key_material_name'] ?? [];
     $postedIconOverrides = [];
     $uploadedIconReferences = [];
+    $iconOverridesSaved = false;
     if (!isset($adminSkinOptions[$postedSkinKey])) {
         $errors[] = '관리자 스킨 값이 올바르지 않습니다.';
     }
@@ -222,7 +223,10 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     }
 
     if ($errors !== []) {
-        sr_admin_delete_icon_image_references($uploadedIconReferences);
+        $failedIconDeletes = sr_admin_delete_icon_image_references($uploadedIconReferences);
+        if ($failedIconDeletes !== []) {
+            $errors[] = '업로드 실패 처리 중 일부 아이콘 이미지 파일을 삭제하지 못했습니다. 오류 로그를 확인해 주세요.';
+        }
         $values = array_merge(sr_admin_post_site_setting_values($site ?? null), [
             'admin_skin_key' => $postedSkinKey,
             'admin_color_scheme' => $postedColorScheme,
@@ -235,95 +239,123 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     }
 
     if ($errors === []) {
-        $postResult = sr_admin_handle_settings_post(
-            $pdo,
-            $account,
-            $site ?? null
-        );
-        $errors = $postResult['errors'];
-        $notice = (string) $postResult['notice'];
-        $values = array_merge($postResult['values'], [
-            'admin_skin_key' => $postedSkinKey,
-            'admin_color_scheme' => $postedColorScheme,
-            'list_pagination_per_page' => $postedListPaginationPerPageInput,
-            'admin_editor' => $postedAdminEditor,
-        ]);
-        $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
-
-        if ($errors === []) {
-            $previousIconReferences = sr_admin_icon_image_references($adminIconOverrides);
-            $nextIconReferences = sr_admin_icon_image_references($postedIconOverrides);
-            $previousSkinKey = $adminSkinKey;
-            $previousColorScheme = $adminColorScheme;
-            $previousListPaginationPerPage = $listPaginationPerPage;
-            $previousAdminEditor = $adminEditorKey;
-            $adminSettingsBefore = [
-                'admin_skin_key' => $previousSkinKey,
-                'admin_color_scheme' => $previousColorScheme,
-                'list_pagination_per_page' => $previousListPaginationPerPage,
-                'admin_editor' => $previousAdminEditor,
-                'icon_key_overrides' => $adminIconOverrides,
-            ];
-            $adminSettingsAfter = [
+        try {
+            $postResult = sr_admin_handle_settings_post(
+                $pdo,
+                $account,
+                $site ?? null
+            );
+            $errors = $postResult['errors'];
+            $notice = (string) $postResult['notice'];
+            $values = array_merge($postResult['values'], [
                 'admin_skin_key' => $postedSkinKey,
                 'admin_color_scheme' => $postedColorScheme,
-                'list_pagination_per_page' => (int) $postedListPaginationPerPage,
+                'list_pagination_per_page' => $postedListPaginationPerPageInput,
                 'admin_editor' => $postedAdminEditor,
-                'icon_key_overrides' => $postedIconOverrides,
-            ];
-
-            if ($postedSkinKey !== $previousSkinKey) {
-                sr_admin_save_skin_key($pdo, $postedSkinKey);
-            }
-
-            if ($postedColorScheme !== $previousColorScheme) {
-                sr_admin_save_color_scheme($pdo, $postedColorScheme);
-            }
-
-            if ((int) $postedListPaginationPerPage !== $previousListPaginationPerPage) {
-                sr_admin_save_list_pagination_per_page($pdo, (int) $postedListPaginationPerPage);
-            }
-
-            if ($postedAdminEditor !== $previousAdminEditor) {
-                sr_admin_save_editor_key($pdo, $postedAdminEditor);
-            }
-
-            if ($postedIconOverrides !== $adminIconOverrides) {
-                sr_admin_save_icon_key_overrides($pdo, $postedIconOverrides);
-                sr_admin_delete_icon_image_references(array_diff_key($previousIconReferences, $nextIconReferences));
-            }
-
-            if ($adminSettingsAfter !== $adminSettingsBefore) {
-                sr_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'admin.settings.updated',
-                    'target_type' => 'module',
-                    'target_id' => 'admin',
-                    'result' => 'success',
-                    'message' => 'Admin settings updated.',
-                    'metadata' => [
-                        'before' => $adminSettingsBefore,
-                        'after' => $adminSettingsAfter,
-                    ],
-                ]);
-            }
-
-            $adminSettings = sr_admin_settings($pdo);
-            $adminIconOverrides = sr_admin_icon_custom_map($pdo);
-            $adminSkinKey = sr_admin_skin_key($adminSettings);
-            $adminColorScheme = sr_admin_color_scheme($adminSettings);
-            $listPaginationPerPage = sr_admin_list_pagination_per_page($adminSettings);
-            $adminEditorKey = sr_admin_editor_key($pdo, $adminSettings);
-            $values = array_merge($values, [
-                'admin_skin_key' => $adminSkinKey,
-                'admin_color_scheme' => $adminColorScheme,
-                'list_pagination_per_page' => $listPaginationPerPage,
-                'admin_editor' => $adminEditorKey,
             ]);
-            $notice = '설정을 저장했습니다.';
-        } else {
-            sr_admin_delete_icon_image_references($uploadedIconReferences);
+            $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
+
+            if ($errors === []) {
+                $previousIconReferences = sr_admin_icon_image_references($adminIconOverrides);
+                $nextIconReferences = sr_admin_icon_image_references($postedIconOverrides);
+                $previousSkinKey = $adminSkinKey;
+                $previousColorScheme = $adminColorScheme;
+                $previousListPaginationPerPage = $listPaginationPerPage;
+                $previousAdminEditor = $adminEditorKey;
+                $adminSettingsBefore = [
+                    'admin_skin_key' => $previousSkinKey,
+                    'admin_color_scheme' => $previousColorScheme,
+                    'list_pagination_per_page' => $previousListPaginationPerPage,
+                    'admin_editor' => $previousAdminEditor,
+                    'icon_key_overrides' => $adminIconOverrides,
+                ];
+                $adminSettingsAfter = [
+                    'admin_skin_key' => $postedSkinKey,
+                    'admin_color_scheme' => $postedColorScheme,
+                    'list_pagination_per_page' => (int) $postedListPaginationPerPage,
+                    'admin_editor' => $postedAdminEditor,
+                    'icon_key_overrides' => $postedIconOverrides,
+                ];
+
+                if ($postedSkinKey !== $previousSkinKey) {
+                    sr_admin_save_skin_key($pdo, $postedSkinKey);
+                }
+
+                if ($postedColorScheme !== $previousColorScheme) {
+                    sr_admin_save_color_scheme($pdo, $postedColorScheme);
+                }
+
+                if ((int) $postedListPaginationPerPage !== $previousListPaginationPerPage) {
+                    sr_admin_save_list_pagination_per_page($pdo, (int) $postedListPaginationPerPage);
+                }
+
+                if ($postedAdminEditor !== $previousAdminEditor) {
+                    sr_admin_save_editor_key($pdo, $postedAdminEditor);
+                }
+
+                if ($postedIconOverrides !== $adminIconOverrides) {
+                    sr_admin_save_icon_key_overrides($pdo, $postedIconOverrides);
+                    $iconOverridesSaved = true;
+                    $failedIconDeletes = sr_admin_delete_icon_image_references(array_diff_key($previousIconReferences, $nextIconReferences));
+                    if ($failedIconDeletes !== []) {
+                        $errors[] = '설정은 저장했지만 일부 이전 아이콘 이미지 파일을 삭제하지 못했습니다. 오류 로그를 확인해 주세요.';
+                    }
+                }
+
+                if ($adminSettingsAfter !== $adminSettingsBefore) {
+                    sr_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'admin.settings.updated',
+                        'target_type' => 'module',
+                        'target_id' => 'admin',
+                        'result' => 'success',
+                        'message' => 'Admin settings updated.',
+                        'metadata' => [
+                            'before' => $adminSettingsBefore,
+                            'after' => $adminSettingsAfter,
+                        ],
+                    ]);
+                }
+
+                $adminSettings = sr_admin_settings($pdo);
+                $adminIconOverrides = sr_admin_icon_custom_map($pdo);
+                $adminSkinKey = sr_admin_skin_key($adminSettings);
+                $adminColorScheme = sr_admin_color_scheme($adminSettings);
+                $listPaginationPerPage = sr_admin_list_pagination_per_page($adminSettings);
+                $adminEditorKey = sr_admin_editor_key($pdo, $adminSettings);
+                $values = array_merge($values, [
+                    'admin_skin_key' => $adminSkinKey,
+                    'admin_color_scheme' => $adminColorScheme,
+                    'list_pagination_per_page' => $listPaginationPerPage,
+                    'admin_editor' => $adminEditorKey,
+                ]);
+                $notice = '설정을 저장했습니다.';
+            } else {
+                $failedIconDeletes = sr_admin_delete_icon_image_references($uploadedIconReferences);
+                if ($failedIconDeletes !== []) {
+                    $errors[] = '저장 실패 처리 중 일부 아이콘 이미지 파일을 삭제하지 못했습니다. 오류 로그를 확인해 주세요.';
+                }
+                $adminSkinKey = $postedSkinKey;
+                $adminColorScheme = $postedColorScheme;
+                $listPaginationPerPage = $postedListPaginationPerPageInput;
+                $adminEditorKey = $postedAdminEditor;
+            }
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'admin_settings_save_failed');
+            if (!$iconOverridesSaved) {
+                $failedIconDeletes = sr_admin_delete_icon_image_references($uploadedIconReferences);
+                if ($failedIconDeletes !== []) {
+                    $errors[] = '저장 오류 처리 중 일부 아이콘 이미지 파일을 삭제하지 못했습니다. 오류 로그를 확인해 주세요.';
+                }
+            }
+            $errors[] = '설정 저장 중 오류가 발생했습니다. 오류 로그를 확인해 주세요.';
+            $values = array_merge(sr_admin_post_site_setting_values($site ?? null), [
+                'admin_skin_key' => $postedSkinKey,
+                'admin_color_scheme' => $postedColorScheme,
+                'list_pagination_per_page' => $postedListPaginationPerPageInput,
+                'admin_editor' => $postedAdminEditor,
+            ]);
             $adminSkinKey = $postedSkinKey;
             $adminColorScheme = $postedColorScheme;
             $listPaginationPerPage = $postedListPaginationPerPageInput;
