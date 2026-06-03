@@ -620,7 +620,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
     }
     $stmt->execute($params);
-    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, sr_link_card_normalized_refs((string) ($values['body_text'] ?? '')), $accountId);
+    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $accountId);
 }
 
 function sr_community_account_can_edit_post(array $post, array $account): bool
@@ -1065,10 +1065,7 @@ function sr_community_validate_post_input(array $values): array
     }
     $pdo = $GLOBALS['pdo'] ?? null;
     if ($pdo instanceof PDO && is_string($bodyText)) {
-        $errors = array_merge($errors, sr_link_card_validate_tokens($pdo, $bodyText, [
-            'content:content',
-            'commerce:product',
-        ]));
+        $errors = array_merge($errors, sr_link_card_token_rejection_errors($bodyText));
     }
 
     return $errors;
@@ -1110,7 +1107,7 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $stmt->execute($params);
 
     $postId = (int) $pdo->lastInsertId();
-    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, sr_link_card_normalized_refs((string) ($values['body_text'] ?? '')), $authorAccountId);
+    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $authorAccountId);
 
     return $postId;
 }
@@ -1295,11 +1292,6 @@ function sr_community_post_body_html(array $post): string
         $html = sr_community_sanitize_post_html($bodyText);
     } else {
         $html = sr_community_plain_text_html($bodyText);
-    }
-
-    $pdo = $GLOBALS['pdo'] ?? null;
-    if ($pdo instanceof PDO) {
-        return sr_link_card_render_body($pdo, $html);
     }
 
     return $html;

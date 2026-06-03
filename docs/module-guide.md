@@ -46,9 +46,8 @@ CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type =>
 - 다른 모듈이 이 모듈을 활용할 때는 양방향 공유 테이블보다 안정 식별자 기반의 단방향 참조나 명시적 계약 파일을 우선한다.
 - 파일 업로드, 메일 운영 화면, 백업, healthcheck처럼 공통으로 보이지만 정책 판단이 들어가는 기능은 먼저 선택 모듈 후보로 검토한다.
 
-모듈 간 링크 카드는 배치 모듈이 자기 참조 테이블을 소유한다. 본문 저장 문법은 `{{sr_link_card module="community" entity_type="post" entity_id="1" variant="compact" label="선택 제목" slot="body"}}`이며, 저장 action은 최종 본문에서 `sr_link_card_normalized_refs()`로 토큰을 재추출한 뒤 `sr_link_card_reconcile_table()`로 자기 테이블을 동기화한다. 대상 모듈은 `sr_{module_key}_link_card_resolve_many(PDO $pdo, array $types): array` helper로 카드 표시 데이터를 제공한다. 클라이언트 widget HTML이나 hidden 참조 목록은 저장 진실원으로 쓰지 않는다.
-링크 카드 표현은 `compact`, `full`, `inline` variant만 공통 helper가 해석한다. 제목, 요약, URL, 상태, 깨짐 여부는 대상 모듈 resolver가 반환하고, 카드 외형의 기본 class는 `sr-link-card` 계열을 사용한다. 배치 모듈이 추가 외형을 입히더라도 원본 이동 링크, 깨진 카드의 비활성 링크, 제목 대체 텍스트는 유지해야 한다.
-검색 삽입 UI는 대상 모듈이 제공하는 공개 대상 검색 helper를 JSON action으로 감싸고, 공통 `data-link-card-picker` 스크립트가 선택 대상에서 토큰 문자열을 생성해 CKEditor 또는 일반 textarea에 삽입한다. 검색 결과는 현재 공개 렌더링 가능한 대상만 반환해야 한다.
+모듈 간 본문 연결은 본문 저장값을 참조 원장으로 쓰지 않는다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, 시스템 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 작성 편의를 위한 보조 기능으로만 동작하고, 선택한 대상은 CKEditor에서는 허용 HTML 조각으로, 일반 textarea에서는 제목과 URL 중심의 텍스트로 삽입한다.
+검색 삽입 UI는 대상 모듈이 제공하는 공개 대상 검색 helper를 JSON action으로 감싼다. 검색 결과는 현재 공개 링크로 안내할 수 있는 대상만 반환해야 하며, 저장 이후의 본문은 일반 링크/인용 HTML 또는 텍스트이므로 별도 링크 카드 참조 점검 화면을 요구하지 않는다.
 
 코어에 넣지 않는다:
 

@@ -68,12 +68,6 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'admin content link refs entry',
-        'path' => '/admin/content/link-refs',
-        'allowed_statuses' => [200, 302, 403, 404],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
         'label' => 'admin content link card targets entry',
         'path' => '/admin/content/link-card-targets?target=community_post&q=test',
         'allowed_statuses' => [200, 302, 403, 404],
@@ -106,7 +100,7 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community link card targets auth guard',
+        'label' => 'community link insert targets auth guard',
         'path' => '/community/link-card-targets?target=content&q=test',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
@@ -250,12 +244,6 @@ $checks = [
     [
         'label' => 'community admin posts entry',
         'path' => '/admin/community/posts',
-        'allowed_statuses' => [200, 302, 403, 404],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
-        'label' => 'community admin link refs entry',
-        'path' => '/admin/community/link-refs',
         'allowed_statuses' => [200, 302, 403, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],

@@ -219,13 +219,7 @@ function sr_content_html_body_enabled(PDO $pdo): bool
 
 function sr_content_body_html(array $page): string
 {
-    $html = sr_body_text_html($page);
-    $pdo = $GLOBALS['pdo'] ?? null;
-    if ($pdo instanceof PDO) {
-        return sr_link_card_render_body($pdo, $html);
-    }
-
-    return $html;
+    return sr_body_text_html($page);
 }
 
 function sr_content_link_card_resolve_many(PDO $pdo, array $types): array
@@ -1875,10 +1869,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     if (!in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)) {
         $errors[] = '본문 형식이 올바르지 않습니다.';
     }
-    $errors = array_merge($errors, sr_link_card_validate_tokens($pdo, (string) ($values['body_text'] ?? ''), [
-        'community:post',
-        'commerce:product',
-    ]));
+    $errors = array_merge($errors, sr_link_card_token_rejection_errors((string) ($values['body_text'] ?? '')));
 
     if ((int) ($values['asset_access_enabled'] ?? 0) === 1) {
         $assetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? '');
@@ -2101,7 +2092,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
             sr_content_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'content'));
         }
 
-        sr_link_card_reconcile_table($pdo, 'sr_content_link_refs', 'content_id', $pageId, sr_link_card_normalized_refs((string) ($values['body_text'] ?? '')), $accountId);
+        sr_link_card_reconcile_table($pdo, 'sr_content_link_refs', 'content_id', $pageId, [], $accountId);
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
         $pdo->commit();
     } catch (Throwable $exception) {

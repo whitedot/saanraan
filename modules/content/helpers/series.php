@@ -39,36 +39,46 @@ function sr_content_series_visibility_label(string $visibility): string
 
 function sr_content_series_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByConnection = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByConnection)) {
+        return $existsByConnection[$cacheKey];
     }
 
     try {
-        $pdo->query('SELECT 1 FROM sr_content_series LIMIT 1');
-        $exists = true;
+        $pdo->query(
+            'SELECT id, series_key, title, description, status, visibility, sort_order, created_by, updated_by, created_at, updated_at
+             FROM sr_content_series
+             LIMIT 0'
+        );
+        $existsByConnection[$cacheKey] = true;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByConnection[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByConnection[$cacheKey];
 }
 
 function sr_content_series_items_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByConnection = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByConnection)) {
+        return $existsByConnection[$cacheKey];
     }
 
     try {
-        $pdo->query('SELECT 1 FROM sr_content_series_items LIMIT 1');
-        $exists = true;
+        $pdo->query(
+            'SELECT id, series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_by, created_at, updated_at
+             FROM sr_content_series_items
+             LIMIT 0'
+        );
+        $existsByConnection[$cacheKey] = true;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByConnection[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByConnection[$cacheKey];
 }
 
 function sr_content_series_supported(PDO $pdo): bool

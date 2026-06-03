@@ -162,6 +162,15 @@ function sr_link_card_validate_tokens(PDO $pdo, string $bodyText, array $allowed
     return $errors;
 }
 
+function sr_link_card_token_rejection_errors(string $bodyText): array
+{
+    if (sr_link_card_extract_tokens($bodyText) === []) {
+        return [];
+    }
+
+    return ['본문에는 링크 카드 토큰을 저장할 수 없습니다. 검색 삽입은 일반 HTML 또는 텍스트 링크로 저장해 주세요.'];
+}
+
 function sr_link_card_ref_key(string $module, string $entityType, string $entityId): string
 {
     return $module . ':' . $entityType . ':' . $entityId;

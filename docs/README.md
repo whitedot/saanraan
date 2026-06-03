@@ -35,6 +35,7 @@
 | [nginx 샘플 설정](deployment/nginx-saanraan.conf) | PHP-FPM 기반 nginx 배포 예시 |
 | [릴리스 절차](release-process.md) | 릴리스 준비와 배포 절차 |
 | [스모크 테스트 기준](smoke-test.md) | 배포 전후 최소 검증 |
+| [사이트 초기화와 더미 데이터 기준](site-reset-and-fixtures.md) | QA 환경 초기화와 실제 등록 경로 기반 더미 데이터 기준 |
 | [관리자 UI 작성 기준](admin-ui-guide.md) | 관리자 화면 공통 UI 작성 기준 |
 | [관리자 목록 컬럼 기준](admin-list-columns.md) | 관리자 목록별 노출 컬럼과 좁은 화면 기준 |
 

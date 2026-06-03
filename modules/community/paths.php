@@ -50,7 +50,6 @@ return [
     'POST /admin/community/posts' => 'actions/admin-posts.php',
     'GET /admin/community/comments' => 'actions/admin-comments.php',
     'POST /admin/community/comments' => 'actions/admin-comments.php',
-    'GET /admin/community/link-refs' => 'actions/admin-link-refs.php',
     'GET /admin/community/reports' => 'actions/admin-reports.php',
     'POST /admin/community/reports' => 'actions/admin-reports.php',
     'GET /admin/community/series' => 'actions/admin-series.php',

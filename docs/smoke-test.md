@@ -214,6 +214,22 @@ php .tools/bin/smoke-community-auth.php
 모듈 수명주기 판정이 core helper 기준으로 유지되고, /admin/modules와 /admin/updates가 같은 pending SQL/버전 차이를 표시함
 ```
 
+## QA 더미 데이터 준비
+
+관리자 계정 외 사이트 데이터를 비우고 다시 채우는 기준은 [사이트 초기화와 더미 데이터 기준](site-reset-and-fixtures.md)을 따른다. 더미 데이터는 DB 직접 insert 대신 실제 등록/저장 HTTP 경로를 사용하고, 기본 검수 세트는 주요 도메인별 10-15건을 만든다.
+
+더미 데이터 준비 후에는 다음을 기록한다.
+
+```text
+사용한 base URL
+보존한 관리자 계정
+실행한 등록 경로
+도메인별 생성 전/후 카운트
+실패한 경로와 실패 사유
+php .tools/bin/check.php 결과
+가능한 HTTP smoke 결과
+```
+
 ## 실패 시 확인 순서
 
 HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.

@@ -16,7 +16,6 @@ return [
     'GET /admin/content/files' => 'actions/admin-download-files.php',
     'POST /admin/content/files' => 'actions/admin-download-files.php',
     'GET /admin/content/link-card-targets' => 'actions/admin-link-card-targets.php',
-    'GET /admin/content/link-refs' => 'actions/admin-link-refs.php',
     'GET /admin/content/file-downloads' => 'actions/admin-file-downloads.php',
     'POST /admin/content/file-downloads' => 'actions/admin-file-downloads.php',
     'GET /admin/content/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',

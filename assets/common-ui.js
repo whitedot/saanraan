@@ -521,14 +521,28 @@
     textarea.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  window.srInsertEditorText = function srInsertEditorText(textareaId, text) {
+  function insertHtmlIntoEditor(editor, html) {
+    if (!editor || !editor.model || typeof editor.model.change !== 'function' || !editor.data || !editor.data.processor || typeof editor.data.toModel !== 'function') {
+      return false;
+    }
+
+    try {
+      editor.model.change(function () {
+        var viewFragment = editor.data.processor.toView(html);
+        var modelFragment = editor.data.toModel(viewFragment);
+        editor.model.insertContent(modelFragment);
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  window.srInsertEditorContent = function srInsertEditorContent(textareaId, text, html) {
     var textarea = document.getElementById(textareaId);
     var editor = window.srCkeditorInstances && textareaId ? window.srCkeditorInstances[textareaId] : null;
 
-    if (editor && editor.model && typeof editor.model.change === 'function') {
-      editor.model.change(function (writer) {
-        editor.model.insertContent(writer.createText(text));
-      });
+    if (html && insertHtmlIntoEditor(editor, html)) {
       if (textarea) {
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
         textarea.dispatchEvent(new Event('change', { bubbles: true }));
@@ -544,21 +558,62 @@
     return true;
   };
 
-  function tokenValue(value) {
-    return String(value || '').replace(/[{}]/g, '').replace(/"/g, "'");
+  window.srInsertEditorText = function srInsertEditorText(textareaId, text) {
+    return window.srInsertEditorContent(textareaId, text, '');
+  };
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function (character) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[character];
+    });
   }
 
-  function buildToken(item, variant) {
-    var token = '{{sr_link_card module="' + tokenValue(item.module)
-      + '" entity_type="' + tokenValue(item.entity_type)
-      + '" entity_id="' + tokenValue(item.entity_id)
-      + '" variant="' + tokenValue(variant || 'compact') + '"';
-    var label = tokenValue(item.title || '');
-    if (label !== '') {
-      token += ' label="' + label + '"';
+  function safeUrl(value) {
+    var url = String(value || '').trim();
+    if (/^(\/(?!\/)|https?:\/\/)/i.test(url)) {
+      return url;
     }
 
-    return token + ' slot="body"}}';
+    return '';
+  }
+
+  function buildInsertContent(item) {
+    var title = String(item.title || '(제목 없음)').trim();
+    var summary = String(item.summary || '').trim();
+    var meta = String(item.meta || '').trim();
+    var url = safeUrl(item.url || '');
+    var textParts = [title];
+
+    if (url !== '') {
+      textParts.push(url);
+    }
+    if (summary !== '') {
+      textParts.push(summary);
+    } else if (meta !== '') {
+      textParts.push(meta);
+    }
+
+    var titleHtml = url !== ''
+      ? '<a href="' + escapeHtml(url) + '">' + escapeHtml(title) + '</a>'
+      : escapeHtml(title);
+    var html = '<blockquote><p><strong>' + titleHtml + '</strong></p>';
+    if (summary !== '') {
+      html += '<p>' + escapeHtml(summary) + '</p>';
+    } else if (meta !== '') {
+      html += '<p>' + escapeHtml(meta) + '</p>';
+    }
+    html += '</blockquote>';
+
+    return {
+      text: textParts.join('\n'),
+      html: html
+    };
   }
 
   function pickerState(picker) {
@@ -659,13 +714,13 @@
     var state = pickerState(picker);
     var item = state.selected;
     var textareaId = picker.dataset.textarea || '';
-    var variant = picker.dataset.variant || 'compact';
     if (!item) {
       setMessage(picker, picker.dataset.selectLabel || '삽입할 대상을 먼저 선택해 주세요.');
       return;
     }
 
-    window.srInsertEditorText(textareaId, buildToken(item, variant));
+    var content = buildInsertContent(item);
+    window.srInsertEditorContent(textareaId, content.text, content.html);
   }
 
   document.addEventListener('click', function (event) {
