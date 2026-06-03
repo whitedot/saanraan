@@ -46,14 +46,21 @@ $redemptionStatusClasses = [
     'redeemed' => 'is-normal',
     'refunded' => 'is-normal',
 ];
-$definitionFilters = isset($definitionFilters) && is_array($definitionFilters) ? $definitionFilters : ['status' => '', 'target_type' => '', 'q' => ''];
-$issueFilters = isset($issueFilters) && is_array($issueFilters) ? $issueFilters : ['status' => '', 'target_type' => '', 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
-$redemptionFilters = isset($redemptionFilters) && is_array($redemptionFilters) ? $redemptionFilters : ['status' => '', 'target_type' => '', 'refundable_policy' => '', 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
+$definitionFilters = isset($definitionFilters) && is_array($definitionFilters) ? $definitionFilters : ['status' => [], 'target_type' => [], 'q' => ''];
+$issueFilters = isset($issueFilters) && is_array($issueFilters) ? $issueFilters : ['status' => [], 'target_type' => [], 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
+$redemptionFilters = isset($redemptionFilters) && is_array($redemptionFilters) ? $redemptionFilters : ['status' => [], 'target_type' => [], 'refundable_policy' => [], 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
 $definitionSort = isset($definitionSort) && is_array($definitionSort) ? $definitionSort : (sr_coupon_admin_definition_default_sort() + ['is_default' => true]);
 $issueSort = isset($issueSort) && is_array($issueSort) ? $issueSort : (sr_coupon_admin_issue_default_sort() + ['is_default' => true]);
 $redemptionSort = isset($redemptionSort) && is_array($redemptionSort) ? $redemptionSort : (sr_coupon_admin_redemption_default_sort() + ['is_default' => true]);
 $issueAccountFilter = is_array($issueFilters['account'] ?? null) ? $issueFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $redemptionAccountFilter = is_array($redemptionFilters['account'] ?? null) ? $redemptionFilters['account'] : ['field' => 'all', 'keyword' => ''];
+$selectedDefinitionStatuses = is_array($definitionFilters['status'] ?? null) ? $definitionFilters['status'] : [];
+$selectedDefinitionTargetTypes = is_array($definitionFilters['target_type'] ?? null) ? $definitionFilters['target_type'] : [];
+$selectedIssueStatuses = is_array($issueFilters['status'] ?? null) ? $issueFilters['status'] : [];
+$selectedIssueTargetTypes = is_array($issueFilters['target_type'] ?? null) ? $issueFilters['target_type'] : [];
+$selectedRedemptionStatuses = is_array($redemptionFilters['status'] ?? null) ? $redemptionFilters['status'] : [];
+$selectedRedemptionPolicies = is_array($redemptionFilters['refundable_policy'] ?? null) ? $redemptionFilters['refundable_policy'] : [];
+$selectedRedemptionTargetTypes = is_array($redemptionFilters['target_type'] ?? null) ? $redemptionFilters['target_type'] : [];
 $couponAccountSearchFields = [
     'all' => '전체',
     'hash' => '공개 해시',
@@ -81,29 +88,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($couponAdminPage === 'definitions') { ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-definition-filter-grid">
-        <div class="admin-filter-field">
-            <label for="coupon_definition_status_filter" class="admin-filter-label">상태</label>
-            <select id="coupon_definition_status_filter" name="status" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($definitionStatusLabels as $statusValue => $statusLabel) { ?>
-                    <option value="<?php echo sr_e((string) $statusValue); ?>"<?php echo (string) ($definitionFilters['status'] ?? '') === (string) $statusValue ? ' selected' : ''; ?>><?php echo sr_e((string) $statusLabel); ?></option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field">
-            <label for="coupon_definition_target_type_filter" class="admin-filter-label">사용처</label>
-            <select id="coupon_definition_target_type_filter" name="target_type" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
-                    <option value="<?php echo sr_e((string) $targetType); ?>"<?php echo (string) ($definitionFilters['target_type'] ?? '') === (string) $targetType ? ' selected' : ''; ?>><?php echo sr_e((string) $targetTypeLabel); ?></option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field admin-coupon-filter-keyword">
+            <fieldset class="admin-filter-field">
+                <legend class="admin-filter-label">상태</legend>
+                <div class="btn-group">
+                    <?php foreach ($definitionStatusLabels as $index => $statusLabel) { ?>
+                        <?php
+                        $statusValue = (string) $index;
+                        $groupClass = $index === array_key_first($definitionStatusLabels) ? 'btn-group-start' : ($index === array_key_last($definitionStatusLabels) ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'coupon_definition_status_filter_' . $statusValue;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($statusValue); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($statusValue, $selectedDefinitionStatuses, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $statusLabel); ?></label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <fieldset class="admin-filter-field">
+                <legend class="admin-filter-label">사용처</legend>
+                <div class="btn-group">
+                    <?php $targetTypeKeys = array_keys($targetTypes); ?>
+                    <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
+                        <?php
+                        $targetIndex = array_search($targetType, $targetTypeKeys, true);
+                        $groupClass = $targetIndex === 0 ? 'btn-group-start' : ($targetIndex === count($targetTypeKeys) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'coupon_definition_target_type_filter_' . (string) $targetType;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="target_type[]" value="<?php echo sr_e((string) $targetType); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array((string) $targetType, $selectedDefinitionTargetTypes, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <div class="admin-filter-field admin-coupon-filter-keyword">
             <label for="coupon_definition_keyword_filter" class="admin-filter-label">검색어</label>
             <input id="coupon_definition_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($definitionFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="쿠폰 키, 이름, 대상 번호">
-        </div>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>
 
@@ -447,41 +465,52 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($couponAdminPage === 'issues') { ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-history-filter-grid">
-        <div class="admin-filter-field">
-            <label for="coupon_issue_status_filter" class="admin-filter-label">상태</label>
-            <select id="coupon_issue_status_filter" name="status" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach (sr_coupon_issue_statuses() as $issueStatus) { ?>
-                    <option value="<?php echo sr_e((string) $issueStatus); ?>"<?php echo (string) ($issueFilters['status'] ?? '') === (string) $issueStatus ? ' selected' : ''; ?>><?php echo sr_e(sr_coupon_issue_status_label((string) $issueStatus)); ?></option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field">
-            <label for="coupon_issue_target_type_filter" class="admin-filter-label">사용처</label>
-            <select id="coupon_issue_target_type_filter" name="target_type" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
-                    <option value="<?php echo sr_e((string) $targetType); ?>"<?php echo (string) ($issueFilters['target_type'] ?? '') === (string) $targetType ? ' selected' : ''; ?>><?php echo sr_e((string) $targetTypeLabel); ?></option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field">
+            <fieldset class="admin-filter-field">
+                <legend class="admin-filter-label">상태</legend>
+                <div class="btn-group">
+                    <?php $issueStatusOptions = sr_coupon_issue_statuses(); ?>
+                    <?php foreach ($issueStatusOptions as $index => $issueStatus) { ?>
+                        <?php
+                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($issueStatusOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'coupon_issue_status_filter_' . (string) $issueStatus;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e((string) $issueStatus); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array((string) $issueStatus, $selectedIssueStatuses, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issueStatus)); ?></label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <fieldset class="admin-filter-field">
+                <legend class="admin-filter-label">사용처</legend>
+                <div class="btn-group">
+                    <?php $targetTypeKeys = array_keys($targetTypes); ?>
+                    <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
+                        <?php
+                        $targetIndex = array_search($targetType, $targetTypeKeys, true);
+                        $groupClass = $targetIndex === 0 ? 'btn-group-start' : ($targetIndex === count($targetTypeKeys) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'coupon_issue_target_type_filter_' . (string) $targetType;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="target_type[]" value="<?php echo sr_e((string) $targetType); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array((string) $targetType, $selectedIssueTargetTypes, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <div class="admin-filter-field">
             <label for="coupon_issue_member_field_filter" class="admin-filter-label">회원 검색</label>
             <select id="coupon_issue_member_field_filter" name="field" class="form-select admin-filter-input">
                 <?php foreach ($couponAccountSearchFields as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e((string) $fieldValue); ?>"<?php echo (string) ($issueAccountFilter['field'] ?? 'all') === (string) $fieldValue ? ' selected' : ''; ?>><?php echo sr_e((string) $fieldLabel); ?></option>
                 <?php } ?>
             </select>
-        </div>
-        <div class="admin-filter-field admin-coupon-filter-keyword">
+            </div>
+            <div class="admin-filter-field admin-coupon-filter-keyword">
             <label for="coupon_issue_member_keyword_filter" class="admin-filter-label">회원 검색어</label>
             <input id="coupon_issue_member_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($issueAccountFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="공개 해시, 이메일, 로그인 ID, 이름">
-        </div>
-        <div class="admin-filter-field admin-coupon-filter-keyword">
+            </div>
+            <div class="admin-filter-field admin-coupon-filter-keyword">
             <label for="coupon_issue_keyword_filter" class="admin-filter-label">쿠폰 검색어</label>
             <input id="coupon_issue_keyword_filter" type="text" name="coupon_q" value="<?php echo sr_e((string) ($issueFilters['coupon_q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="쿠폰 키, 이름">
-        </div>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>
 
@@ -546,50 +575,67 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($couponAdminPage === 'redemptions') { ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-redemption-filter-grid">
-        <div class="admin-filter-field">
-            <label for="coupon_redemption_status_filter" class="admin-filter-label">상태</label>
-            <select id="coupon_redemption_status_filter" name="status" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach (['redeemed', 'refunded'] as $redemptionStatusOption) { ?>
-                    <option value="<?php echo sr_e((string) $redemptionStatusOption); ?>"<?php echo (string) ($redemptionFilters['status'] ?? '') === (string) $redemptionStatusOption ? ' selected' : ''; ?>><?php echo sr_e(sr_coupon_redemption_status_label((string) $redemptionStatusOption)); ?></option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field">
-            <label for="coupon_redemption_refundable_policy_filter" class="admin-filter-label">환급 정책</label>
-            <select id="coupon_redemption_refundable_policy_filter" name="refundable_policy" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($refundablePolicies as $policy => $policyLabel) { ?>
-                    <option value="<?php echo sr_e((string) $policy); ?>"<?php echo (string) ($redemptionFilters['refundable_policy'] ?? '') === (string) $policy ? ' selected' : ''; ?>><?php echo sr_e((string) $policyLabel); ?></option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field">
-            <label for="coupon_redemption_target_type_filter" class="admin-filter-label">사용처</label>
-            <select id="coupon_redemption_target_type_filter" name="target_type" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
-                    <option value="<?php echo sr_e((string) $targetType); ?>"<?php echo (string) ($redemptionFilters['target_type'] ?? '') === (string) $targetType ? ' selected' : ''; ?>><?php echo sr_e((string) $targetTypeLabel); ?></option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field">
+            <fieldset class="admin-filter-field">
+                <legend class="admin-filter-label">상태</legend>
+                <div class="btn-group">
+                    <?php $redemptionStatusOptions = ['redeemed', 'refunded']; ?>
+                    <?php foreach ($redemptionStatusOptions as $index => $redemptionStatusOption) { ?>
+                        <?php
+                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($redemptionStatusOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'coupon_redemption_status_filter_' . (string) $redemptionStatusOption;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e((string) $redemptionStatusOption); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array((string) $redemptionStatusOption, $selectedRedemptionStatuses, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_coupon_redemption_status_label((string) $redemptionStatusOption)); ?></label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <fieldset class="admin-filter-field">
+                <legend class="admin-filter-label">환급 정책</legend>
+                <div class="btn-group">
+                    <?php $policyKeys = array_keys($refundablePolicies); ?>
+                    <?php foreach ($refundablePolicies as $policy => $policyLabel) { ?>
+                        <?php
+                        $policyIndex = array_search($policy, $policyKeys, true);
+                        $groupClass = $policyIndex === 0 ? 'btn-group-start' : ($policyIndex === count($policyKeys) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'coupon_redemption_refundable_policy_filter_' . (string) $policy;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="refundable_policy[]" value="<?php echo sr_e((string) $policy); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array((string) $policy, $selectedRedemptionPolicies, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $policyLabel); ?></label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <fieldset class="admin-filter-field">
+                <legend class="admin-filter-label">사용처</legend>
+                <div class="btn-group">
+                    <?php $targetTypeKeys = array_keys($targetTypes); ?>
+                    <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
+                        <?php
+                        $targetIndex = array_search($targetType, $targetTypeKeys, true);
+                        $groupClass = $targetIndex === 0 ? 'btn-group-start' : ($targetIndex === count($targetTypeKeys) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'coupon_redemption_target_type_filter_' . (string) $targetType;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="target_type[]" value="<?php echo sr_e((string) $targetType); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array((string) $targetType, $selectedRedemptionTargetTypes, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <div class="admin-filter-field">
             <label for="coupon_redemption_member_field_filter" class="admin-filter-label">회원 검색</label>
             <select id="coupon_redemption_member_field_filter" name="field" class="form-select admin-filter-input">
                 <?php foreach ($couponAccountSearchFields as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e((string) $fieldValue); ?>"<?php echo (string) ($redemptionAccountFilter['field'] ?? 'all') === (string) $fieldValue ? ' selected' : ''; ?>><?php echo sr_e((string) $fieldLabel); ?></option>
                 <?php } ?>
             </select>
-        </div>
-        <div class="admin-filter-field admin-coupon-filter-keyword">
+            </div>
+            <div class="admin-filter-field admin-coupon-filter-keyword">
             <label for="coupon_redemption_member_keyword_filter" class="admin-filter-label">회원 검색어</label>
             <input id="coupon_redemption_member_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($redemptionAccountFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="공개 해시, 이메일, 로그인 ID, 이름">
-        </div>
-        <div class="admin-filter-field admin-coupon-filter-keyword">
+            </div>
+            <div class="admin-filter-field admin-coupon-filter-keyword">
             <label for="coupon_redemption_keyword_filter" class="admin-filter-label">쿠폰 검색어</label>
             <input id="coupon_redemption_keyword_filter" type="text" name="coupon_q" value="<?php echo sr_e((string) ($redemptionFilters['coupon_q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="쿠폰 키, 이름">
-        </div>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>
 

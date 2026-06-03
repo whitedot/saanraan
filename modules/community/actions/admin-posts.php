@@ -47,27 +47,21 @@ if ($postCategoryFilterId > 0 && !isset($postCategoryIds[$postCategoryFilterId])
     $postCategoryFilterId = 0;
 }
 $postListFilters = [
-    'status' => sr_get_string('status', 30),
+    'status' => sr_admin_get_allowed_array('status', $allowedPostStatuses, 30),
     'board_id' => $postBoardFilterId,
     'category_id' => $postCategoryFilterId,
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
-if ($postListFilters['status'] !== '' && !in_array($postListFilters['status'], $allowedPostStatuses, true)) {
-    $postListFilters['status'] = '';
-}
 if (!in_array($postListFilters['field'], ['all', 'title', 'author', 'board'], true)) {
     $postListFilters['field'] = 'all';
 }
 $commentListFilters = [
-    'status' => sr_get_string('status', 30),
+    'status' => sr_admin_get_allowed_array('status', $allowedCommentStatuses, 30),
     'board_id' => $postBoardFilterId,
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
-if ($commentListFilters['status'] !== '' && !in_array($commentListFilters['status'], $allowedCommentStatuses, true)) {
-    $commentListFilters['status'] = '';
-}
 if (!in_array($commentListFilters['field'], ['all', 'body', 'author', 'post', 'board'], true)) {
     $commentListFilters['field'] = 'all';
 }

@@ -122,8 +122,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter admin-content-download-file-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-download-file-search-grid admin-content-filter-stack">
-            <div class="card-filtering" data-card-filtering>
-                <div class="card-filtering-basic">
                     <fieldset class="admin-filter-field admin-content-download-file-filter-status">
                         <legend class="admin-filter-label">상태</legend>
                         <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
@@ -140,16 +138,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </div>
                     </fieldset>
-                    <div class="admin-filter-field admin-content-download-file-filter-keyword card-filtering-field-fill">
+                    <div class="admin-filter-field admin-content-download-file-filter-keyword">
                         <label for="content_download_file_filter_q" class="admin-filter-label">검색</label>
                         <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
                     </div>
-                </div>
-                <div class="card-filtering-actions">
-                    <button type="button" class="btn btn-outline-light" data-card-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
                     <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
-                </div>
-            </div>
         </div>
     </form>
 

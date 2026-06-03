@@ -29,22 +29,18 @@ $popupLayerDefaultStatus = sr_popup_layer_default_status($popupLayerSettings);
 $popupLayerDefaultTargetOption = sr_popup_layer_default_target_option($popupLayerSettings, $availableTargets);
 $popupLayerDefaultMatchType = sr_popup_layer_default_match_type($popupLayerSettings);
 $popupLayerDefaultDismissCookieDays = sr_popup_layer_default_dismiss_cookie_days($popupLayerSettings);
+$allowedTargetOptions = [sr_popup_layer_public_target_option_value()];
+foreach ($availableTargets as $availableTarget) {
+    $allowedTargetOptions[] = sr_popup_layer_target_option_value($availableTarget);
+}
 $filters = [
-    'status' => sr_get_string('status', 30),
-    'target' => sr_get_string('target', 300),
+    'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
+    'target' => sr_admin_get_allowed_array('target', $allowedTargetOptions, 300),
     'field' => sr_get_string('field', 20),
     'q' => sr_popup_layer_clean_single_line(sr_get_string('q', 120), 120),
 ];
-if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
-    $filters['status'] = '';
-}
 if (!in_array($filters['field'], ['all', 'title', 'subject'], true)) {
     $filters['field'] = 'all';
-}
-$filterPublicTarget = sr_popup_layer_is_public_target_option($filters['target']);
-$filterTarget = $filters['target'] !== '' && !$filterPublicTarget ? sr_popup_layer_find_target($availableTargets, $filters['target']) : null;
-if ($filters['target'] !== '' && !$filterPublicTarget && $filterTarget === null) {
-    $filters['target'] = '';
 }
 
 if (sr_request_method() === 'POST') {
@@ -297,17 +293,30 @@ $popupSql = 'SELECT p.id, p.title, p.status, p.skin_key, p.starts_at, p.ends_at,
              LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id';
 $popupParams = [];
 $popupWhere = [];
-if ($filters['status'] !== '') {
-    $popupWhere[] = 'p.status = :status';
-    $popupParams['status'] = $filters['status'];
+if (($filters['status'] ?? []) !== []) {
+    [$statusCondition, $statusParams] = sr_admin_sql_in_condition('p.status', 'status', $filters['status']);
+    $popupWhere[] = $statusCondition;
+    $popupParams = array_merge($popupParams, $statusParams);
 }
-if ($filterTarget !== null) {
-    $popupWhere[] = 't.module_key = :filter_module_key AND t.point_key = :filter_point_key AND t.slot_key = :filter_slot_key';
-    $popupParams['filter_module_key'] = (string) $filterTarget['module_key'];
-    $popupParams['filter_point_key'] = (string) $filterTarget['point_key'];
-    $popupParams['filter_slot_key'] = (string) $filterTarget['slot_key'];
-} elseif ($filterPublicTarget) {
-    $popupWhere[] = 't.id IS NULL';
+if (($filters['target'] ?? []) !== []) {
+    $targetWhere = [];
+    foreach ($filters['target'] as $targetIndex => $targetOption) {
+        if (sr_popup_layer_is_public_target_option((string) $targetOption)) {
+            $targetWhere[] = 't.id IS NULL';
+            continue;
+        }
+        $filterTarget = sr_popup_layer_find_target($availableTargets, (string) $targetOption);
+        if ($filterTarget === null) {
+            continue;
+        }
+        $targetWhere[] = '(t.module_key = :filter_module_key_' . $targetIndex . ' AND t.point_key = :filter_point_key_' . $targetIndex . ' AND t.slot_key = :filter_slot_key_' . $targetIndex . ')';
+        $popupParams['filter_module_key_' . $targetIndex] = (string) $filterTarget['module_key'];
+        $popupParams['filter_point_key_' . $targetIndex] = (string) $filterTarget['point_key'];
+        $popupParams['filter_slot_key_' . $targetIndex] = (string) $filterTarget['slot_key'];
+    }
+    if ($targetWhere !== []) {
+        $popupWhere[] = '(' . implode(' OR ', $targetWhere) . ')';
+    }
 }
 if ($filters['q'] !== '') {
     if ($filters['field'] === 'title') {

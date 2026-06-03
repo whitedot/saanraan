@@ -60,31 +60,19 @@ if ($notificationCreateFlash !== []) {
 }
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $notificationListFilters = [
-    'audience' => sr_get_string('audience', 30),
-    'status' => sr_get_string('status', 30),
+    'audience' => sr_admin_get_allowed_array('audience', $allowedAudiences, 30),
+    'status' => sr_admin_get_allowed_array('status', $allowedNotificationStatuses, 30),
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
 $deliveryListFilters = [
-    'delivery_channel' => sr_get_string('delivery_channel', 30),
-    'delivery_status' => sr_get_string('delivery_status', 30),
+    'delivery_channel' => sr_admin_get_allowed_array('delivery_channel', $allowedDeliveryChannels, 30),
+    'delivery_status' => sr_admin_get_allowed_array('delivery_status', $allowedDeliveryStatuses, 30),
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
-if ($notificationListFilters['audience'] !== '' && !in_array($notificationListFilters['audience'], $allowedAudiences, true)) {
-    $notificationListFilters['audience'] = '';
-}
-if ($notificationListFilters['status'] !== '' && !in_array($notificationListFilters['status'], $allowedNotificationStatuses, true)) {
-    $notificationListFilters['status'] = '';
-}
 if (!in_array($notificationListFilters['field'], ['all', 'title', 'body', 'link', 'account', 'id'], true)) {
     $notificationListFilters['field'] = 'all';
-}
-if ($deliveryListFilters['delivery_channel'] !== '' && !in_array($deliveryListFilters['delivery_channel'], $allowedDeliveryChannels, true)) {
-    $deliveryListFilters['delivery_channel'] = '';
-}
-if ($deliveryListFilters['delivery_status'] !== '' && !in_array($deliveryListFilters['delivery_status'], $allowedDeliveryStatuses, true)) {
-    $deliveryListFilters['delivery_status'] = '';
 }
 if (!in_array($deliveryListFilters['field'], ['all', 'id', 'notification', 'title', 'recipient'], true)) {
     $deliveryListFilters['field'] = 'all';
@@ -372,13 +360,15 @@ $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status
                 LEFT JOIN sr_notifications n ON n.id = d.notification_id';
 $deliveryParams = [];
 $deliveryWhere = ["d.channel <> 'site'"];
-if ($deliveryListFilters['delivery_channel'] !== '') {
-    $deliveryWhere[] = 'd.channel = :delivery_channel';
-    $deliveryParams['delivery_channel'] = $deliveryListFilters['delivery_channel'];
+if (($deliveryListFilters['delivery_channel'] ?? []) !== []) {
+    [$condition, $conditionParams] = sr_admin_sql_in_condition('d.channel', 'delivery_channel', $deliveryListFilters['delivery_channel']);
+    $deliveryWhere[] = $condition;
+    $deliveryParams = array_merge($deliveryParams, $conditionParams);
 }
-if ($deliveryListFilters['delivery_status'] !== '') {
-    $deliveryWhere[] = 'd.status = :delivery_status';
-    $deliveryParams['delivery_status'] = $deliveryListFilters['delivery_status'];
+if (($deliveryListFilters['delivery_status'] ?? []) !== []) {
+    [$condition, $conditionParams] = sr_admin_sql_in_condition('d.status', 'delivery_status', $deliveryListFilters['delivery_status']);
+    $deliveryWhere[] = $condition;
+    $deliveryParams = array_merge($deliveryParams, $conditionParams);
 }
 if ($deliveryListFilters['q'] !== '') {
     $deliveryLike = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $deliveryListFilters['q']) . '%';

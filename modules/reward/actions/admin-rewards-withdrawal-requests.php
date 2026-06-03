@@ -14,17 +14,15 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 
-$statusFilter = sr_get_string('status', 20);
-if (!in_array($statusFilter, ['', 'pending', 'completed', 'rejected', 'canceled'], true)) {
-    $statusFilter = '';
-}
+$allowedStatusFilters = ['pending', 'completed', 'rejected', 'canceled'];
+$statusFilter = sr_admin_get_allowed_array('status', $allowedStatusFilters, 20);
 $searchField = sr_get_string('field', 20);
 if (!in_array($searchField, ['all', 'member', 'bank', 'note', 'request'], true)) {
     $searchField = 'all';
 }
 $searchKeyword = sr_reward_clean_text(sr_get_string('q', 120), 120);
 $requestListRedirectParams = [];
-if ($statusFilter !== '') {
+if ($statusFilter !== []) {
     $requestListRedirectParams['status'] = $statusFilter;
 }
 if ($searchField !== 'all') {
@@ -36,7 +34,7 @@ if ($searchKeyword !== '') {
 $requestListRedirectPath = '/admin/rewards/withdrawal-requests'
     . ($requestListRedirectParams === [] ? '' : '?' . http_build_query($requestListRedirectParams, '', '&', PHP_QUERY_RFC3986));
 $requestBatchLimit = 100;
-$requestBatchIncludesPending = $statusFilter === '' || $statusFilter === 'pending';
+$requestBatchIncludesPending = $statusFilter === [] || in_array('pending', $statusFilter, true);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();

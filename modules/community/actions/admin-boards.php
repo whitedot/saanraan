@@ -78,15 +78,12 @@ if ($boardGroupFilterId > 0 && !isset($boardGroupIds[$boardGroupFilterId])) {
     $boardGroupFilterId = 0;
 }
 $boardListFilters = [
-    'status' => sr_get_string('status', 30),
+    'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
     'group_id' => $boardGroupFilterId,
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
 $newBoardGroupId = $communityBoardsPage === 'new' ? $boardGroupFilterId : 0;
-if ($boardListFilters['status'] !== '' && !in_array($boardListFilters['status'], $allowedStatuses, true)) {
-    $boardListFilters['status'] = '';
-}
 if (!in_array($boardListFilters['field'], ['all', 'key', 'title', 'group'], true)) {
     $boardListFilters['field'] = 'all';
 }

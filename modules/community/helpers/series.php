@@ -175,15 +175,8 @@ function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0)
 
 function sr_community_admin_series_filters(): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, sr_community_series_statuses(), true)) {
-        $status = '';
-    }
-
-    $visibility = sr_get_string('visibility', 30);
-    if ($visibility !== '' && !in_array($visibility, sr_community_series_visibility_values(), true)) {
-        $visibility = '';
-    }
+    $status = sr_admin_get_allowed_array('status', sr_community_series_statuses(), 30);
+    $visibility = sr_admin_get_allowed_array('visibility', sr_community_series_visibility_values(), 30);
 
     $field = sr_get_string('field', 20);
     if (!in_array($field, ['all', 'title', 'board', 'owner', 'note'], true)) {
@@ -203,14 +196,16 @@ function sr_community_admin_series_query_parts(array $filters): array
     $where = [];
     $params = [];
 
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 's.status = :status';
-        $params['status'] = (string) $filters['status'];
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('s.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    if ((string) ($filters['visibility'] ?? '') !== '') {
-        $where[] = 's.visibility = :visibility';
-        $params['visibility'] = (string) $filters['visibility'];
+    if (($filters['visibility'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('s.visibility', 'visibility', $filters['visibility']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $keyword = trim((string) ($filters['q'] ?? ''));

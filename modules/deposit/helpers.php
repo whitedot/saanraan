@@ -488,7 +488,7 @@ function sr_deposit_refund_requests_for_account(PDO $pdo, int $accountId, int $l
     return $stmt->fetchAll();
 }
 
-function sr_deposit_admin_refund_request_count(PDO $pdo, string $status, string $field = 'all', string $keyword = ''): int
+function sr_deposit_admin_refund_request_count(PDO $pdo, $status, string $field = 'all', string $keyword = ''): int
 {
     $filter = sr_deposit_admin_refund_request_filter_sql($status, $field, $keyword);
     $stmt = $pdo->prepare(
@@ -525,7 +525,7 @@ function sr_deposit_admin_refund_request_pending_ids(PDO $pdo, string $field = '
     return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
 }
 
-function sr_deposit_admin_refund_request_rows(PDO $pdo, array $runtimeConfig, string $status, array $pagination, string $field = 'all', string $keyword = ''): array
+function sr_deposit_admin_refund_request_rows(PDO $pdo, array $runtimeConfig, $status, array $pagination, string $field = 'all', string $keyword = ''): array
 {
     $filter = sr_deposit_admin_refund_request_filter_sql($status, $field, $keyword);
     $params = $filter['params'];
@@ -559,13 +559,16 @@ function sr_deposit_admin_refund_request_rows(PDO $pdo, array $runtimeConfig, st
     return $rows;
 }
 
-function sr_deposit_admin_refund_request_filter_sql(string $status, string $field, string $keyword): array
+function sr_deposit_admin_refund_request_filter_sql($status, string $field, string $keyword): array
 {
     $where = [];
     $params = [];
-    if ($status !== '' && in_array($status, ['pending', 'completed', 'rejected', 'canceled'], true)) {
-        $where[] = 'r.status = :status';
-        $params['status'] = $status;
+    $statuses = is_array($status) ? $status : ($status === '' ? [] : [(string) $status]);
+    $statuses = array_values(array_intersect($statuses, ['pending', 'completed', 'rejected', 'canceled']));
+    if ($statuses !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.status', 'status', $statuses);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $field = in_array($field, ['all', 'member', 'bank', 'note', 'request'], true) ? $field : 'all';

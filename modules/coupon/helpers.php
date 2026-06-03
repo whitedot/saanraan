@@ -277,19 +277,9 @@ function sr_coupon_definitions(PDO $pdo, int $limit = 100): array
 
 function sr_coupon_admin_definition_filters(PDO $pdo): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, sr_coupon_statuses(), true)) {
-        $status = '';
-    }
-
-    $targetType = sr_get_string('target_type', 60);
-    if ($targetType !== '' && !array_key_exists($targetType, sr_coupon_target_types($pdo))) {
-        $targetType = '';
-    }
-
     return [
-        'status' => $status,
-        'target_type' => $targetType,
+        'status' => sr_admin_get_allowed_array('status', sr_coupon_statuses(), 30),
+        'target_type' => sr_admin_get_allowed_array('target_type', array_keys(sr_coupon_target_types($pdo)), 60),
         'q' => sr_coupon_clean_text(sr_get_string('q', 120), 120),
     ];
 }
@@ -322,16 +312,16 @@ function sr_coupon_admin_definitions(PDO $pdo, array $filters, int $limit = 100,
         $orderSql = ' ORDER BY id DESC';
     }
 
-    $status = (string) ($filters['status'] ?? '');
-    if ($status !== '') {
-        $where[] = 'status = :status';
-        $params['status'] = $status;
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    $targetType = (string) ($filters['target_type'] ?? '');
-    if ($targetType !== '') {
-        $where[] = 'target_type = :target_type';
-        $params['target_type'] = $targetType;
+    if (($filters['target_type'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('target_type', 'target_type', $filters['target_type']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $keyword = sr_coupon_clean_text((string) ($filters['q'] ?? ''), 120);
@@ -353,19 +343,9 @@ function sr_coupon_admin_definitions(PDO $pdo, array $filters, int $limit = 100,
 
 function sr_coupon_admin_issue_filters(PDO $pdo, array $runtimeConfig): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, sr_coupon_issue_statuses(), true)) {
-        $status = '';
-    }
-
-    $targetType = sr_get_string('target_type', 60);
-    if ($targetType !== '' && !array_key_exists($targetType, sr_coupon_target_types($pdo))) {
-        $targetType = '';
-    }
-
     return [
-        'status' => $status,
-        'target_type' => $targetType,
+        'status' => sr_admin_get_allowed_array('status', sr_coupon_issue_statuses(), 30),
+        'target_type' => sr_admin_get_allowed_array('target_type', array_keys(sr_coupon_target_types($pdo)), 60),
         'coupon_q' => sr_coupon_clean_text(sr_get_string('coupon_q', 120), 120),
         'account' => sr_admin_member_account_lookup_filter($pdo, $runtimeConfig),
     ];
@@ -402,16 +382,16 @@ function sr_coupon_admin_issues(PDO $pdo, array $runtimeConfig, array $filters, 
         $orderSql = ' ORDER BY i.id DESC';
     }
 
-    $status = (string) ($filters['status'] ?? '');
-    if ($status !== '') {
-        $where[] = 'i.status = :status';
-        $params['status'] = $status;
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('i.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    $targetType = (string) ($filters['target_type'] ?? '');
-    if ($targetType !== '') {
-        $where[] = 'd.target_type = :target_type';
-        $params['target_type'] = $targetType;
+    if (($filters['target_type'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('d.target_type', 'target_type', $filters['target_type']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $couponKeyword = sr_coupon_clean_text((string) ($filters['coupon_q'] ?? ''), 120);
@@ -452,25 +432,10 @@ function sr_coupon_admin_issues(PDO $pdo, array $runtimeConfig, array $filters, 
 
 function sr_coupon_admin_redemption_filters(PDO $pdo, array $runtimeConfig): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, ['redeemed', 'refunded'], true)) {
-        $status = '';
-    }
-
-    $targetType = sr_get_string('target_type', 60);
-    if ($targetType !== '' && !array_key_exists($targetType, sr_coupon_target_types($pdo))) {
-        $targetType = '';
-    }
-
-    $refundablePolicy = sr_get_string('refundable_policy', 30);
-    if ($refundablePolicy !== '' && !array_key_exists($refundablePolicy, sr_coupon_refundable_policies())) {
-        $refundablePolicy = '';
-    }
-
     return [
-        'status' => $status,
-        'target_type' => $targetType,
-        'refundable_policy' => $refundablePolicy,
+        'status' => sr_admin_get_allowed_array('status', ['redeemed', 'refunded'], 30),
+        'target_type' => sr_admin_get_allowed_array('target_type', array_keys(sr_coupon_target_types($pdo)), 60),
+        'refundable_policy' => sr_admin_get_allowed_array('refundable_policy', array_keys(sr_coupon_refundable_policies()), 30),
         'coupon_q' => sr_coupon_clean_text(sr_get_string('coupon_q', 120), 120),
         'account' => sr_admin_member_account_lookup_filter($pdo, $runtimeConfig),
     ];
@@ -788,22 +753,22 @@ function sr_coupon_admin_redemptions(PDO $pdo, array $runtimeConfig, int $limit 
         $orderSql = ' ORDER BY r.id DESC';
     }
 
-    $status = (string) ($filters['status'] ?? '');
-    if ($status !== '') {
-        $where[] = 'r.status = :status';
-        $params['status'] = $status;
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    $targetType = (string) ($filters['target_type'] ?? '');
-    if ($targetType !== '') {
-        $where[] = 'r.target_type = :target_type';
-        $params['target_type'] = $targetType;
+    if (($filters['target_type'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.target_type', 'target_type', $filters['target_type']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    $refundablePolicy = (string) ($filters['refundable_policy'] ?? '');
-    if ($refundablePolicy !== '') {
-        $where[] = 'd.refundable_policy = :refundable_policy';
-        $params['refundable_policy'] = $refundablePolicy;
+    if (($filters['refundable_policy'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('d.refundable_policy', 'refundable_policy', $filters['refundable_policy']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $couponKeyword = sr_coupon_clean_text((string) ($filters['coupon_q'] ?? ''), 120);

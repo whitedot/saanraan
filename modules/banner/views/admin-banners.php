@@ -248,47 +248,56 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
+    <?php
+    $selectedBannerStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    $selectedBannerTargets = is_array($filters['target'] ?? null) ? $filters['target'] : [];
+    ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter admin-banner-filter ui-form-theme">
         <div class="admin-filter-grid admin-banner-search-grid">
-            <div class="admin-filter-field admin-banner-filter-status">
-                <label for="modules_banner_admin_banners_status" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></label>
-                <select id="modules_banner_admin_banners_status" name="status" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($filters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('banner::ui.all.a4b69faf')); ?></option>
-                    <?php foreach ($allowedStatuses as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($filters['status'] ?? '') === $status ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-banner-filter-target">
-                <label for="modules_banner_admin_banners_target" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></label>
-                <select id="modules_banner_admin_banners_target" name="target" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($filters['target'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('banner::ui.all.a4b69faf')); ?></option>
-                    <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo (string) ($filters['target'] ?? '') === sr_banner_public_target_option_value() ? ' selected' : ''; ?>><?php echo sr_e(sr_t('banner::ui.banner.48de068b')); ?></option>
-                    <?php foreach ($availableTargets as $target) { ?>
-                        <?php $optionValue = sr_banner_target_option_value($target); ?>
-                        <option value="<?php echo sr_e($optionValue); ?>"<?php echo (string) ($filters['target'] ?? '') === $optionValue ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $target['label']); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-banner-filter-field">
-                <label for="modules_banner_admin_banners_field" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.search.b79bc9c8')); ?></label>
-                <select id="modules_banner_admin_banners_field" name="field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => sr_t('banner::ui.all.a4b69faf'), 'title' => sr_t('banner::ui.text.08b17e43'), 'link' => sr_t('banner::ui.text.3d54da9c')] as $fieldValue => $fieldLabel) { ?>
-                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                            <?php echo sr_e($fieldLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-banner-filter-keyword">
-                <label for="modules_banner_admin_banners_q" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.search.bda397fc')); ?></label>
-                <input id="modules_banner_admin_banners_q" type="search" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('banner::ui.text.b2273378')); ?>">
-            </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('banner::ui.search.4b8d541e')); ?></button>
+                    <fieldset class="admin-filter-field admin-banner-filter-status">
+                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></legend>
+                        <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?>">
+                            <?php foreach ($allowedStatuses as $index => $status) { ?>
+                                <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
+                                <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="modules_banner_admin_banners_status_<?php echo sr_e($status); ?>">
+                                    <input id="modules_banner_admin_banners_status_<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedBannerStatuses, true) ? ' checked' : ''; ?>>
+                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                                </label>
+                            <?php } ?>
+                        </div>
+                    </fieldset>
+                    <fieldset class="admin-filter-field admin-banner-filter-target">
+                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></legend>
+                        <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?>">
+                            <?php $bannerTargetOptions = [[sr_banner_public_target_option_value(), sr_t('banner::ui.banner.48de068b')]]; ?>
+                            <?php foreach ($availableTargets as $target) { $bannerTargetOptions[] = [sr_banner_target_option_value($target), (string) $target['label']]; } ?>
+                            <?php foreach ($bannerTargetOptions as $index => $targetOption) { ?>
+                                <?php
+                                $targetValue = (string) $targetOption[0];
+                                $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($bannerTargetOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                                ?>
+                                <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="modules_banner_admin_banners_target_<?php echo sr_e((string) $index); ?>">
+                                    <input id="modules_banner_admin_banners_target_<?php echo sr_e((string) $index); ?>" type="checkbox" name="target[]" value="<?php echo sr_e($targetValue); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($targetValue, $selectedBannerTargets, true) ? ' checked' : ''; ?>>
+                                    <?php echo sr_e((string) $targetOption[1]); ?>
+                                </label>
+                            <?php } ?>
+                        </div>
+                    </fieldset>
+                    <div class="admin-filter-field admin-banner-filter-field">
+                        <label for="modules_banner_admin_banners_field" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.search.b79bc9c8')); ?></label>
+                        <select id="modules_banner_admin_banners_field" name="field" class="form-select admin-filter-input">
+                            <?php foreach (['all' => sr_t('banner::ui.all.a4b69faf'), 'title' => sr_t('banner::ui.text.08b17e43'), 'link' => sr_t('banner::ui.text.3d54da9c')] as $fieldValue => $fieldLabel) { ?>
+                                <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                                    <?php echo sr_e($fieldLabel); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="admin-filter-field admin-banner-filter-keyword">
+                        <label for="modules_banner_admin_banners_q" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.search.bda397fc')); ?></label>
+                        <input id="modules_banner_admin_banners_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('banner::ui.text.b2273378')); ?>">
+                    </div>
+                    <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('banner::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 

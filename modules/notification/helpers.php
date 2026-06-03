@@ -337,14 +337,16 @@ function sr_notification_admin_notification_query_parts(array $filters): array
     $where = [];
     $params = [];
 
-    if ((string) ($filters['audience'] ?? '') !== '') {
-        $where[] = 'n.audience = :audience';
-        $params['audience'] = (string) $filters['audience'];
+    if (($filters['audience'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('n.audience', 'audience', $filters['audience']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 'n.status = :status';
-        $params['status'] = (string) $filters['status'];
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('n.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $keyword = trim((string) ($filters['q'] ?? ''));

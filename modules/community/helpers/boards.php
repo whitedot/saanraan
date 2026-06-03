@@ -386,14 +386,15 @@ function sr_community_admin_board_query_parts(array $filters): array
 {
     $where = [];
     $params = [];
-    $status = (string) ($filters['status'] ?? '');
+    $status = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     $groupId = (int) ($filters['group_id'] ?? 0);
     $field = (string) ($filters['field'] ?? 'all');
     $keyword = trim((string) ($filters['q'] ?? ''));
 
-    if ($status !== '') {
-        $where[] = 'b.status = :status';
-        $params['status'] = $status;
+    if ($status !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('b.status', 'status', $status);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     if ($groupId > 0) {
@@ -676,13 +677,14 @@ function sr_community_admin_board_group_query_parts(array $filters): array
 {
     $where = [];
     $params = [];
-    $status = (string) ($filters['status'] ?? '');
+    $status = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     $field = (string) ($filters['field'] ?? 'all');
     $keyword = trim((string) ($filters['q'] ?? ''));
 
-    if ($status !== '') {
-        $where[] = 'g.status = :status';
-        $params['status'] = $status;
+    if ($status !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('g.status', 'status', $status);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     if ($keyword !== '') {

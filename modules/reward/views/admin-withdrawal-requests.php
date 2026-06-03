@@ -1,8 +1,7 @@
 <?php
 
-$statusFilter = isset($statusFilter) ? (string) $statusFilter : '';
+$statusFilter = isset($statusFilter) && is_array($statusFilter) ? $statusFilter : [];
 $requestStatusOptions = [
-    '' => '전체',
     'pending' => '대기',
     'completed' => '완료',
     'rejected' => '거부',
@@ -21,20 +20,6 @@ $searchFieldOptions = [
     'note' => '메모',
     'request' => '신청/거래 번호',
 ];
-$requestStatusUrl = static function (string $statusValue) use ($searchField, $searchKeyword): string {
-    $params = [];
-    if ($statusValue !== '') {
-        $params['status'] = $statusValue;
-    }
-    if ($searchField !== 'all') {
-        $params['field'] = $searchField;
-    }
-    if ($searchKeyword !== '') {
-        $params['q'] = $searchKeyword;
-    }
-
-    return sr_url('/admin/rewards/withdrawal-requests' . ($params === [] ? '' : '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986)));
-};
 $requestListActionUrl = sr_url((string) ($_SERVER['REQUEST_URI'] ?? '/admin/rewards/withdrawal-requests'));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -43,37 +28,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/rewards/withdrawal-requests')); ?>" class="admin-filter admin-reward-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-reward-request-filter-grid">
-        <div class="admin-filter-field admin-reward-request-filter-status">
-            <span class="admin-filter-label">상태</span>
-            <div class="admin-sort-button-group" role="group" aria-label="출금 신청 상태 필터">
+            <fieldset class="admin-filter-field admin-reward-request-filter-status">
+                <legend class="admin-filter-label">상태</legend>
+                <div class="btn-group">
                 <?php foreach ($requestStatusValues as $requestStatusIndex => $statusValue) { ?>
                     <?php
                     $statusLabel = (string) $requestStatusOptions[$statusValue];
                     $statusGroupClass = $requestStatusIndex === 0
                         ? 'btn-group-start'
                         : ($requestStatusIndex === $requestStatusCount - 1 ? 'btn-group-end' : 'btn-group-middle');
-                    $statusButtonClass = 'btn ' . $statusGroupClass . ' ' . ($statusFilter === $statusValue ? 'btn-solid-primary' : 'btn-solid-light');
+                    $inputId = 'reward-withdrawal-status-' . $statusValue;
                     ?>
-                    <a href="<?php echo sr_e($requestStatusUrl($statusValue)); ?>" class="<?php echo sr_e($statusButtonClass); ?>"<?php echo $statusFilter === $statusValue ? ' aria-current="true"' : ''; ?>><?php echo sr_e($statusLabel); ?></a>
+                    <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($statusValue); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($statusValue, $statusFilter, true) ? ' checked' : ''; ?>>
+                    <label class="btn btn-choice-light <?php echo sr_e($statusGroupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e($statusLabel); ?></label>
                 <?php } ?>
-            </div>
-        </div>
-        <?php if ($statusFilter !== '') { ?>
-            <input type="hidden" name="status" value="<?php echo sr_e($statusFilter); ?>">
-        <?php } ?>
-        <div class="admin-filter-field admin-reward-request-filter-field">
+                </div>
+            </fieldset>
+            <div class="admin-filter-field admin-reward-request-filter-field">
             <label for="reward-withdrawal-search-field" class="admin-filter-label">검색 조건</label>
             <select id="reward-withdrawal-search-field" name="field" class="form-select admin-filter-input">
                 <?php foreach ($searchFieldOptions as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo $searchField === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                 <?php } ?>
             </select>
-        </div>
-        <div class="admin-filter-field admin-reward-request-filter-keyword">
+            </div>
+            <div class="admin-filter-field admin-reward-request-filter-keyword">
             <label for="reward-withdrawal-search-keyword" class="admin-filter-label">검색어</label>
-            <input id="reward-withdrawal-search-keyword" type="search" name="q" value="<?php echo sr_e($searchKeyword); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="회원, 계좌, 메모, 신청 번호">
-        </div>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            <input id="reward-withdrawal-search-keyword" type="text" name="q" value="<?php echo sr_e($searchKeyword); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="회원, 계좌, 메모, 신청 번호">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>
 

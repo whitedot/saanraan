@@ -241,19 +241,22 @@ function sr_community_report_query_parts(array $filters): array
     $where = [];
     $params = [];
 
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 'r.status = :status';
-        $params['status'] = (string) $filters['status'];
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    if ((string) ($filters['target_type'] ?? '') !== '') {
-        $where[] = 'r.target_type = :target_type';
-        $params['target_type'] = (string) $filters['target_type'];
+    if (($filters['target_type'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.target_type', 'target_type', $filters['target_type']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    if ((string) ($filters['reason_key'] ?? '') !== '') {
-        $where[] = 'r.reason_key = :reason_key';
-        $params['reason_key'] = (string) $filters['reason_key'];
+    if (($filters['reason_key'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('r.reason_key', 'reason_key', $filters['reason_key']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $keyword = trim((string) ($filters['q'] ?? ''));

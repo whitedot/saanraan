@@ -366,9 +366,10 @@ function sr_community_admin_post_query_parts(array $filters, bool $categorySuppo
     $where = [];
     $params = [];
 
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 'p.status = :status';
-        $params['status'] = (string) $filters['status'];
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('p.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     if ((int) ($filters['board_id'] ?? 0) > 0) {
@@ -647,9 +648,10 @@ function sr_community_admin_comment_query_parts(array $filters): array
     $where = [];
     $params = [];
 
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 'c.status = :status';
-        $params['status'] = (string) $filters['status'];
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('c.status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     if ((int) ($filters['board_id'] ?? 0) > 0) {

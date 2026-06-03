@@ -66,8 +66,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-filter admin-content-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-group-search-grid admin-content-filter-stack">
-            <div class="card-filtering" data-card-filtering>
-                <div class="card-filtering-basic">
                     <fieldset class="admin-filter-field">
                         <legend class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></legend>
                         <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="<?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?>">
@@ -93,16 +91,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                     </div>
-                    <div class="admin-filter-field card-filtering-field-fill">
+                    <div class="admin-filter-field">
                         <label for="content_admin_groups_q" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.bda397fc')); ?></label>
                         <input id="content_admin_groups_q" type="text" name="q" value="<?php echo sr_e((string) ($pageGroupFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('content::ui.key.name.7852e80c')); ?>">
                     </div>
-                </div>
-                <div class="card-filtering-actions">
-                    <button type="button" class="btn btn-outline-light" data-card-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
                     <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
-                </div>
-            </div>
         </div>
     </form>
 

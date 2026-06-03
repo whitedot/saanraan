@@ -20,21 +20,12 @@ $allowedStatuses = sr_community_report_statuses();
 $allowedReasonKeys = sr_community_report_reason_keys();
 $allowedTargetTypes = ['post', 'comment', 'message'];
 $reportListFilters = [
-    'status' => sr_get_string('status', 30),
-    'target_type' => sr_get_string('target_type', 30),
-    'reason_key' => sr_get_string('reason_key', 30),
+    'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
+    'target_type' => sr_admin_get_allowed_array('target_type', $allowedTargetTypes, 30),
+    'reason_key' => sr_admin_get_allowed_array('reason_key', $allowedReasonKeys, 30),
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
-if ($reportListFilters['status'] !== '' && !in_array($reportListFilters['status'], $allowedStatuses, true)) {
-    $reportListFilters['status'] = '';
-}
-if ($reportListFilters['target_type'] !== '' && !in_array($reportListFilters['target_type'], $allowedTargetTypes, true)) {
-    $reportListFilters['target_type'] = '';
-}
-if ($reportListFilters['reason_key'] !== '' && !in_array($reportListFilters['reason_key'], $allowedReasonKeys, true)) {
-    $reportListFilters['reason_key'] = '';
-}
 if (!in_array($reportListFilters['field'], ['all', 'target', 'reporter', 'reported', 'reviewer', 'memo'], true)) {
     $reportListFilters['field'] = 'all';
 }

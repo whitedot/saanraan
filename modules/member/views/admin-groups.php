@@ -311,34 +311,36 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
 
+    <?php $selectedMemberGroupStatuses = is_array($groupListFilter['status'] ?? null) ? $groupListFilter['status'] : []; ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="admin-filter admin-member-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-member-group-search-grid">
-            <div class="admin-filter-field">
-                <label for="member-group-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
-                <select name="status" id="member-group-status-filter" class="form-select admin-filter-input">
-                    <option value=""><?php echo sr_e(sr_t('member::ui.all.a4b69faf')); ?></option>
-                    <?php foreach ($allowedStatuses as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($groupListFilter['status'] ?? '') === $status ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field">
-                <label for="member-group-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
-                <select name="field" id="member-group-search-field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'key' => sr_t('member::ui.key.1057ecca'), 'title' => sr_t('member::ui.text.97e73d18'), 'description' => sr_t('member::ui.text.8c3f651d')] as $fieldValue => $fieldLabel) { ?>
-                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupListFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                            <?php echo sr_e($fieldLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-member-group-filter-keyword">
-                <label for="member-group-search-keyword" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="<?php echo sr_e(sr_t('member::ui.key.60df9e41')); ?>">
-            </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
+                    <fieldset class="admin-filter-field">
+                        <legend class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></legend>
+                        <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?>">
+                            <?php foreach ($allowedStatuses as $index => $status) { ?>
+                                <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
+                                <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="member-group-status-filter-<?php echo sr_e($status); ?>">
+                                    <input id="member-group-status-filter-<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedMemberGroupStatuses, true) ? ' checked' : ''; ?>>
+                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                                </label>
+                            <?php } ?>
+                        </div>
+                    </fieldset>
+                    <div class="admin-filter-field">
+                        <label for="member-group-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
+                        <select name="field" id="member-group-search-field" class="form-select admin-filter-input">
+                            <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'key' => sr_t('member::ui.key.1057ecca'), 'title' => sr_t('member::ui.text.97e73d18'), 'description' => sr_t('member::ui.text.8c3f651d')] as $fieldValue => $fieldLabel) { ?>
+                                <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupListFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                                    <?php echo sr_e($fieldLabel); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="admin-filter-field admin-member-group-filter-keyword">
+                        <label for="member-group-search-keyword" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
+                        <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="<?php echo sr_e(sr_t('member::ui.key.60df9e41')); ?>">
+                    </div>
+                    <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 

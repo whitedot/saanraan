@@ -151,19 +151,11 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
 function sr_admin_privacy_request_filters(array $allowedStatuses, array $allowedTypes): array
 {
     $filters = [
-        'status' => sr_get_string('status', 30),
-        'request_type' => sr_get_string('request_type', 40),
+        'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
+        'request_type' => sr_admin_get_allowed_array('request_type', $allowedTypes, 40),
         'field' => sr_get_string('field', 20),
         'q' => trim(sr_get_string('q', 120)),
     ];
-
-    if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
-        $filters['status'] = '';
-    }
-
-    if ($filters['request_type'] !== '' && !in_array($filters['request_type'], $allowedTypes, true)) {
-        $filters['request_type'] = '';
-    }
 
     if (!in_array($filters['field'], ['all', 'id', 'account', 'requester', 'message', 'note'], true)) {
         $filters['field'] = 'all';
@@ -197,14 +189,16 @@ function sr_admin_privacy_request_query_parts(array $filters): array
     $where = [];
     $params = [];
 
-    if ((string) ($filters['status'] ?? '') !== '') {
-        $where[] = 'status = :status';
-        $params['status'] = (string) $filters['status'];
+    if (($filters['status'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('status', 'status', $filters['status']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
-    if ((string) ($filters['request_type'] ?? '') !== '') {
-        $where[] = 'request_type = :request_type';
-        $params['request_type'] = (string) $filters['request_type'];
+    if (($filters['request_type'] ?? []) !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('request_type', 'request_type', $filters['request_type']);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $keyword = trim((string) ($filters['q'] ?? ''));

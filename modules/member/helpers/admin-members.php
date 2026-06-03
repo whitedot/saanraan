@@ -857,14 +857,9 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     return sr_admin_action_result($errors, $notice) + $resultExtra;
 }
 
-function sr_admin_member_status_filter(array $allowedStatuses): string
+function sr_admin_member_status_filter(array $allowedStatuses): array
 {
-    $statusFilter = sr_get_string('status', 30);
-    if ($statusFilter !== '' && !in_array($statusFilter, $allowedStatuses, true)) {
-        return '';
-    }
-
-    return $statusFilter;
+    return sr_admin_get_allowed_array('status', $allowedStatuses, 30);
 }
 
 function sr_admin_member_search_filter(PDO $pdo, array $config): array
@@ -912,14 +907,15 @@ function sr_admin_member_status_counts(PDO $pdo): array
     return $counts;
 }
 
-function sr_admin_member_query_parts(string $statusFilter, array $searchFilter = []): array
+function sr_admin_member_query_parts(array $statusFilter, array $searchFilter = []): array
 {
     $params = [];
     $where = [];
 
-    if ($statusFilter !== '') {
-        $where[] = 'a.status = :status';
-        $params['status'] = $statusFilter;
+    if ($statusFilter !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('a.status', 'status', $statusFilter);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     $field = (string) ($searchFilter['field'] ?? 'all');
@@ -965,7 +961,7 @@ function sr_admin_member_query_parts(string $statusFilter, array $searchFilter =
     ];
 }
 
-function sr_admin_member_count(PDO $pdo, string $statusFilter, array $searchFilter = []): int
+function sr_admin_member_count(PDO $pdo, array $statusFilter, array $searchFilter = []): int
 {
     $queryParts = sr_admin_member_query_parts($statusFilter, $searchFilter);
     $whereSql = $queryParts['where'] === [] ? '' : 'WHERE ' . implode(' AND ', $queryParts['where']);
@@ -999,7 +995,7 @@ function sr_admin_member_default_sort(): array
     return sr_admin_sort_default('created_at', 'desc');
 }
 
-function sr_admin_members(PDO $pdo, string $statusFilter, array $searchFilter = [], int $limit = 0, int $offset = 0, array $sort = []): array
+function sr_admin_members(PDO $pdo, array $statusFilter, array $searchFilter = [], int $limit = 0, int $offset = 0, array $sort = []): array
 {
     $members = [];
     $hasSessionTable = sr_member_sessions_table_exists($pdo);

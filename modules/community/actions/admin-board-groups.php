@@ -52,13 +52,10 @@ $publicBannerSettingLabels = sr_community_public_banner_setting_labels();
 $publicPopupLayerSettingLabels = sr_community_public_popup_layer_setting_labels();
 $publicDisplaySettingLabels = sr_community_public_display_setting_labels();
 $boardGroupListFilters = [
-    'status' => sr_get_string('status', 30),
+    'status' => sr_admin_get_allowed_array('status', $allowedGroupStatuses, 30),
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];
-if ($boardGroupListFilters['status'] !== '' && !in_array($boardGroupListFilters['status'], $allowedGroupStatuses, true)) {
-    $boardGroupListFilters['status'] = '';
-}
 if (!in_array($boardGroupListFilters['field'], ['all', 'key', 'title'], true)) {
     $boardGroupListFilters['field'] = 'all';
 }

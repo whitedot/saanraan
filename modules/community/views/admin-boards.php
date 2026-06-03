@@ -13,11 +13,12 @@ if ($communityBoardsPage === 'new') {
     $adminPageSubtitle = sr_t('community::ui.edit.d3b31e46');
     $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
 }
-$boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $boardListFilters : ['status' => '', 'group_id' => 0, 'field' => 'all', 'q' => ''];
+$boardListFilters = isset($boardListFilters) && is_array($boardListFilters) ? $boardListFilters : ['status' => [], 'group_id' => 0, 'field' => 'all', 'q' => ''];
 $boardSort = isset($boardSort) && is_array($boardSort) ? $boardSort : sr_community_admin_board_default_sort();
 $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ? $boardStatusCounts : [];
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
+$selectedBoardStatuses = is_array($boardListFilters['status'] ?? null) ? $boardListFilters['status'] : [];
 
 $settingSourceLabels = [
     'board' => ['visible' => sr_t('community::ui.scope.current_only'), 'sr' => '적용', 'toast' => ''],
@@ -212,18 +213,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-filter admin-community-board-filter ui-form-theme">
         <div class="admin-filter-grid admin-community-board-search-grid">
-            <div class="admin-filter-field admin-community-board-filter-status">
-                <label for="community_admin_boards_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
-                <select id="community_admin_boards_status_filter" name="status" class="form-select admin-filter-input">
-                    <option value=""<?php echo (string) ($boardListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
-                    <?php foreach ($allowedStatuses as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($boardListFilters['status'] ?? '') === $status ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-community-board-filter-group">
+                <fieldset class="admin-filter-field admin-community-board-filter-status">
+                    <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></legend>
+                    <div class="btn-group">
+                        <?php foreach ($allowedStatuses as $index => $status) { ?>
+                            <?php
+                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                            $inputId = 'community_admin_boards_status_filter_' . $status;
+                            ?>
+                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedBoardStatuses, true) ? ' checked' : ''; ?>>
+                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
+                                <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                </fieldset>
+                <div class="admin-filter-field admin-community-board-filter-group">
                 <label for="community_admin_boards_group_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></label>
                 <select id="community_admin_boards_group_filter" name="group_id" class="form-select admin-filter-input">
                     <option value="0"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
@@ -233,8 +238,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-            </div>
-            <div class="admin-filter-field admin-community-board-filter-field">
+                </div>
+                <div class="admin-filter-field admin-community-board-filter-field">
                 <label for="community_admin_boards_field" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.b79bc9c8')); ?></label>
                 <select id="community_admin_boards_field" name="field" class="form-select admin-filter-input">
                     <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => 'key', 'title' => sr_t('community::ui.name.253d1510'), 'group' => sr_t('community::ui.text.5d908ddd')] as $fieldValue => $fieldLabel) { ?>
@@ -243,12 +248,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-            </div>
-            <div class="admin-filter-field admin-community-board-filter-keyword">
+                </div>
+                <div class="admin-filter-field admin-community-board-filter-keyword">
                 <label for="community_admin_boards_q" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
-                <input id="community_admin_boards_q" type="search" name="q" value="<?php echo sr_e((string) ($boardListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.key.name.9f150e7e')); ?>">
-            </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
+                <input id="community_admin_boards_q" type="text" name="q" value="<?php echo sr_e((string) ($boardListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.key.name.9f150e7e')); ?>">
+                </div>
+                <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 

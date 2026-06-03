@@ -29,22 +29,18 @@ $bannerDefaultStatus = sr_banner_default_status($bannerSettings);
 $bannerDefaultTargetOption = sr_banner_default_target_option($bannerSettings, $availableTargets);
 $bannerDefaultMatchType = sr_banner_default_match_type($bannerSettings);
 $bannerDefaultSortOrder = sr_banner_default_sort_order($bannerSettings);
+$allowedTargetOptions = [sr_banner_public_target_option_value()];
+foreach ($availableTargets as $availableTarget) {
+    $allowedTargetOptions[] = sr_banner_target_option_value($availableTarget);
+}
 $filters = [
-    'status' => sr_get_string('status', 30),
-    'target' => sr_get_string('target', 300),
+    'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
+    'target' => sr_admin_get_allowed_array('target', $allowedTargetOptions, 300),
     'field' => sr_get_string('field', 20),
     'q' => sr_banner_clean_single_line(sr_get_string('q', 120), 120),
 ];
-if ($filters['status'] !== '' && !in_array($filters['status'], $allowedStatuses, true)) {
-    $filters['status'] = '';
-}
 if (!in_array($filters['field'], ['all', 'title', 'link'], true)) {
     $filters['field'] = 'all';
-}
-$filterPublicTarget = sr_banner_is_public_target_option($filters['target']);
-$filterTarget = $filters['target'] !== '' && !$filterPublicTarget ? sr_banner_target_from_option($filters['target']) : null;
-if ($filters['target'] !== '' && !$filterPublicTarget && $filterTarget === null) {
-    $filters['target'] = '';
 }
 
 if (sr_request_method() === 'POST') {
@@ -358,17 +354,30 @@ $bannerSortOptions = [
 ];
 $bannerDefaultSort = sr_admin_sort_default('sort_order', 'asc');
 $bannerSort = sr_admin_sort_from_request($bannerSortOptions, $bannerDefaultSort);
-if ($filters['status'] !== '') {
-    $bannerWhere[] = 'b.status = :status';
-    $bannerParams['status'] = $filters['status'];
+if (($filters['status'] ?? []) !== []) {
+    [$statusCondition, $statusParams] = sr_admin_sql_in_condition('b.status', 'status', $filters['status']);
+    $bannerWhere[] = $statusCondition;
+    $bannerParams = array_merge($bannerParams, $statusParams);
 }
-if ($filterTarget !== null) {
-    $bannerWhere[] = 't.module_key = :filter_module_key AND t.point_key = :filter_point_key AND t.slot_key = :filter_slot_key';
-    $bannerParams['filter_module_key'] = (string) $filterTarget['module_key'];
-    $bannerParams['filter_point_key'] = (string) $filterTarget['point_key'];
-    $bannerParams['filter_slot_key'] = (string) $filterTarget['slot_key'];
-} elseif ($filterPublicTarget) {
-    $bannerWhere[] = 't.id IS NULL';
+if (($filters['target'] ?? []) !== []) {
+    $targetWhere = [];
+    foreach ($filters['target'] as $targetIndex => $targetOption) {
+        if (sr_banner_is_public_target_option((string) $targetOption)) {
+            $targetWhere[] = 't.id IS NULL';
+            continue;
+        }
+        $filterTarget = sr_banner_target_from_option((string) $targetOption);
+        if ($filterTarget === null) {
+            continue;
+        }
+        $targetWhere[] = '(t.module_key = :filter_module_key_' . $targetIndex . ' AND t.point_key = :filter_point_key_' . $targetIndex . ' AND t.slot_key = :filter_slot_key_' . $targetIndex . ')';
+        $bannerParams['filter_module_key_' . $targetIndex] = (string) $filterTarget['module_key'];
+        $bannerParams['filter_point_key_' . $targetIndex] = (string) $filterTarget['point_key'];
+        $bannerParams['filter_slot_key_' . $targetIndex] = (string) $filterTarget['slot_key'];
+    }
+    if ($targetWhere !== []) {
+        $bannerWhere[] = '(' . implode(' OR ', $targetWhere) . ')';
+    }
 }
 if ($filters['q'] !== '') {
     if ($filters['field'] === 'title') {

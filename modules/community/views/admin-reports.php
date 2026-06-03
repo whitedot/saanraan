@@ -3,7 +3,7 @@
 $adminPageTitle = '커뮤니티 신고 관리';
 $adminPageSubtitle = sr_t('community::ui.status.search.9842179b');
 $adminContainerClass = 'admin-page-community-report-list admin-ui-scope';
-$reportListFilters = isset($reportListFilters) && is_array($reportListFilters) ? $reportListFilters : ['status' => '', 'target_type' => '', 'reason_key' => '', 'field' => 'all', 'q' => ''];
+$reportListFilters = isset($reportListFilters) && is_array($reportListFilters) ? $reportListFilters : ['status' => [], 'target_type' => [], 'reason_key' => [], 'field' => 'all', 'q' => ''];
 $reportStatusCounts = isset($reportStatusCounts) && is_array($reportStatusCounts) ? $reportStatusCounts : [];
 $allowedStatuses = isset($allowedStatuses) && is_array($allowedStatuses) ? $allowedStatuses : [];
 $allowedReasonKeys = isset($allowedReasonKeys) && is_array($allowedReasonKeys) ? $allowedReasonKeys : [];
@@ -14,6 +14,9 @@ $reportTargetLabels = [
     'message' => sr_t('community::ui.text.919bd592'),
 ];
 $totalReports = (int) ($reportStatusCounts['total'] ?? count($reports ?? []));
+$selectedReportStatuses = is_array($reportListFilters['status'] ?? null) ? $reportListFilters['status'] : [];
+$selectedReportTargetTypes = is_array($reportListFilters['target_type'] ?? null) ? $reportListFilters['target_type'] : [];
+$selectedReportReasonKeys = is_array($reportListFilters['reason_key'] ?? null) ? $reportListFilters['reason_key'] : [];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -44,40 +47,52 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="admin-filter admin-community-report-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-report-search-grid">
-        <div class="admin-filter-field admin-community-report-filter-status">
-            <label for="community_admin_reports_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
-            <select id="community_admin_reports_status_filter" name="status" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($reportListFilters['status'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
-                <?php foreach ($allowedStatuses as $status) { ?>
-                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($reportListFilters['status'] ?? '') === $status ? ' selected' : ''; ?>>
-                        <?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field admin-community-report-filter-target">
-            <label for="community_admin_reports_target_type_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></label>
-            <select id="community_admin_reports_target_type_filter" name="target_type" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($reportListFilters['target_type'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
-                <?php foreach ($allowedTargetTypes as $targetType) { ?>
-                    <option value="<?php echo sr_e($targetType); ?>"<?php echo (string) ($reportListFilters['target_type'] ?? '') === $targetType ? ' selected' : ''; ?>>
-                        <?php echo sr_e((string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'))); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field admin-community-report-filter-reason">
-            <label for="community_admin_reports_reason_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></label>
-            <select id="community_admin_reports_reason_filter" name="reason_key" class="form-select admin-filter-input">
-                <option value=""<?php echo (string) ($reportListFilters['reason_key'] ?? '') === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
-                <?php foreach ($allowedReasonKeys as $reasonKey) { ?>
-                    <option value="<?php echo sr_e($reasonKey); ?>"<?php echo (string) ($reportListFilters['reason_key'] ?? '') === $reasonKey ? ' selected' : ''; ?>>
-                        <?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field admin-community-report-filter-field">
+            <fieldset class="admin-filter-field admin-community-report-filter-status">
+                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></legend>
+                <div class="btn-group">
+                    <?php foreach ($allowedStatuses as $index => $status) { ?>
+                        <?php
+                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'community_admin_reports_status_filter_' . $status;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedReportStatuses, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
+                            <?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?>
+                        </label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <fieldset class="admin-filter-field admin-community-report-filter-target">
+                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></legend>
+                <div class="btn-group">
+                    <?php foreach ($allowedTargetTypes as $index => $targetType) { ?>
+                        <?php
+                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedTargetTypes) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'community_admin_reports_target_type_filter_' . $targetType;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="target_type[]" value="<?php echo sr_e($targetType); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($targetType, $selectedReportTargetTypes, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
+                            <?php echo sr_e((string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'))); ?>
+                        </label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <fieldset class="admin-filter-field admin-community-report-filter-reason">
+                <legend class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></legend>
+                <div class="btn-group">
+                    <?php foreach ($allowedReasonKeys as $index => $reasonKey) { ?>
+                        <?php
+                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedReasonKeys) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                        $inputId = 'community_admin_reports_reason_filter_' . $reasonKey;
+                        ?>
+                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="reason_key[]" value="<?php echo sr_e($reasonKey); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($reasonKey, $selectedReportReasonKeys, true) ? ' checked' : ''; ?>>
+                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
+                            <?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?>
+                        </label>
+                    <?php } ?>
+                </div>
+            </fieldset>
+            <div class="admin-filter-field admin-community-report-filter-field">
             <label for="community_admin_reports_field" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.b79bc9c8')); ?></label>
             <select id="community_admin_reports_field" name="field" class="form-select admin-filter-input">
                 <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'target' => sr_t('community::ui.text.8c609deb'), 'reporter' => sr_t('community::ui.text.84780e6f'), 'reported' => sr_t('community::ui.member.7a284377'), 'reviewer' => sr_t('community::ui.text.750086e9'), 'memo' => sr_t('community::ui.text.c8a14bcd')] as $fieldValue => $fieldLabel) { ?>
@@ -86,12 +101,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </option>
                 <?php } ?>
             </select>
-        </div>
-        <div class="admin-filter-field admin-community-report-filter-keyword">
+            </div>
+            <div class="admin-filter-field admin-community-report-filter-keyword">
             <label for="community_admin_reports_q" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
-            <input id="community_admin_reports_q" type="search" name="q" value="<?php echo sr_e((string) ($reportListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.member.fbbe7c33')); ?>">
-        </div>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
+            <input id="community_admin_reports_q" type="text" name="q" value="<?php echo sr_e((string) ($reportListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.member.fbbe7c33')); ?>">
+            </div>
+            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
     </div>
 </form>
 

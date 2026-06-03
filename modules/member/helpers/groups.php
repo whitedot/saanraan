@@ -126,18 +126,13 @@ function sr_member_groups(PDO $pdo): array
 
 function sr_admin_member_group_list_filter(array $allowedStatuses): array
 {
-    $status = sr_get_string('status', 30);
-    if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
-        $status = '';
-    }
-
     $field = sr_get_string('field', 30);
     if (!in_array($field, ['all', 'key', 'title', 'description'], true)) {
         $field = 'all';
     }
 
     return [
-        'status' => $status,
+        'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
         'field' => $field,
         'keyword' => trim(sr_get_string('q', 120)),
     ];
@@ -147,13 +142,14 @@ function sr_admin_member_group_query_parts(array $filter): array
 {
     $where = [];
     $params = [];
-    $status = (string) ($filter['status'] ?? '');
+    $status = is_array($filter['status'] ?? null) ? $filter['status'] : [];
     $field = (string) ($filter['field'] ?? 'all');
     $keyword = trim((string) ($filter['keyword'] ?? ''));
 
-    if ($status !== '') {
-        $where[] = 'g.status = :status';
-        $params['status'] = $status;
+    if ($status !== []) {
+        [$condition, $conditionParams] = sr_admin_sql_in_condition('g.status', 'status', $status);
+        $where[] = $condition;
+        $params = array_merge($params, $conditionParams);
     }
 
     if ($keyword !== '') {
@@ -277,13 +273,13 @@ function sr_admin_member_group_status_counts(PDO $pdo): array
 
 function sr_admin_member_group_filter_rows(array $groups, array $filter): array
 {
-    $status = (string) ($filter['status'] ?? '');
+    $status = is_array($filter['status'] ?? null) ? $filter['status'] : [];
     $field = (string) ($filter['field'] ?? 'all');
     $keyword = trim((string) ($filter['keyword'] ?? ''));
     $keyword = function_exists('mb_strtolower') ? mb_strtolower($keyword, 'UTF-8') : strtolower($keyword);
 
     return array_values(array_filter($groups, static function (array $group) use ($status, $field, $keyword): bool {
-        if ($status !== '' && (string) ($group['status'] ?? '') !== $status) {
+        if ($status !== [] && !in_array((string) ($group['status'] ?? ''), $status, true)) {
             return false;
         }
 
