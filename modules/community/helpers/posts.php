@@ -533,12 +533,15 @@ function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, i
     $keyword = trim(preg_replace('/\s+/', ' ', $keyword) ?? '');
     $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
     $limit = max(1, min(20, $limit));
-    $where = $keyword === '' ? '1 = 1' : "(p.id = :id OR p.title LIKE :keyword_like ESCAPE '\\\\' OR b.title LIKE :keyword_like ESCAPE '\\\\' OR b.board_key LIKE :keyword_like ESCAPE '\\\\')";
+    $where = $keyword === '' ? '1 = 1' : "(p.id = :id OR p.title LIKE :keyword_post_title ESCAPE '\\\\' OR b.title LIKE :keyword_board_title ESCAPE '\\\\' OR b.board_key LIKE :keyword_board_key ESCAPE '\\\\')";
     $params = [];
     if ($keyword !== '') {
+        $keywordLike = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
         $params = [
             'id' => preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0,
-            'keyword_like' => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%',
+            'keyword_post_title' => $keywordLike,
+            'keyword_board_title' => $keywordLike,
+            'keyword_board_key' => $keywordLike,
         ];
     }
 

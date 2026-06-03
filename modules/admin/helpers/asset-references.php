@@ -35,8 +35,12 @@ function sr_admin_asset_reference_search(PDO $pdo, array $config, array $options
     }
 
     if ($keyword !== '') {
-        $where[] = "(t.reference_id LIKE :keyword_like ESCAPE '\\\\' OR t.reason LIKE :keyword_like ESCAPE '\\\\' OR a.email LIKE :keyword_like ESCAPE '\\\\' OR a.display_name LIKE :keyword_like ESCAPE '\\\\')";
-        $params['keyword_like'] = sr_admin_asset_reference_like($keyword);
+        $keywordLike = sr_admin_asset_reference_like($keyword);
+        $where[] = "(t.reference_id LIKE :keyword_reference_id ESCAPE '\\\\' OR t.reason LIKE :keyword_reason ESCAPE '\\\\' OR a.email LIKE :keyword_email ESCAPE '\\\\' OR a.display_name LIKE :keyword_display_name ESCAPE '\\\\')";
+        $params['keyword_reference_id'] = $keywordLike;
+        $params['keyword_reason'] = $keywordLike;
+        $params['keyword_email'] = $keywordLike;
+        $params['keyword_display_name'] = $keywordLike;
     }
 
     $stmt = $pdo->prepare(

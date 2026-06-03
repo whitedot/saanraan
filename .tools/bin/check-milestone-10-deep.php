@@ -136,10 +136,10 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $adminId = (int) m10_value($pdo, "SELECT account_id FROM sr_admin_account_roles WHERE role_key = 'owner' ORDER BY id ASC LIMIT 1");
-    $writerId = m10_account($pdo, $config, 'm10_writer', 'm10-writer@example.test', 'M10 작성자');
-    $memberId = m10_account($pdo, $config, 'm10_member', 'm10-member@example.test', 'M10 회원');
-    $limitedAdminId = m10_account($pdo, $config, 'm10_limited_admin', 'm10-limited-admin@example.test', 'M10 제한관리자');
-    $cleanupId = m10_account($pdo, $config, 'm10_cleanup', 'm10-cleanup@example.test', 'M10 정리대상');
+    $writerId = m10_account($pdo, $config, 'm10_writer', 'm10-writer@example.test', 'M10작성자');
+    $memberId = m10_account($pdo, $config, 'm10_member', 'm10-member@example.test', 'M10회원');
+    $limitedAdminId = m10_account($pdo, $config, 'm10_limited_admin', 'm10-limited-admin@example.test', 'M10제한관리자');
+    $cleanupId = m10_account($pdo, $config, 'm10_cleanup', 'm10-cleanup@example.test', 'M10정리대상');
 
     m10_assert($adminId > 0, '#132 owner role exists');
 

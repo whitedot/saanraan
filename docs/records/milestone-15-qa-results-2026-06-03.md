@@ -1,0 +1,164 @@
+# 마일스톤 15 QA 실행 기록 - 2026-06-03
+
+## 범위
+
+GitHub 마일스톤 `15`에 연결된 브라우저 QA 이슈 #174부터 #202까지를 대상으로 로컬 자동 검사와 HTTP 스모크 테스트를 실행했다.
+
+대상 환경:
+
+- 브랜치: `main`
+- 작업 트리: 실행 시작 시점 기준 변경 없음
+- PHP: 호스트 PHP 8.4.12
+- HTTP 스모크 기준 URL: `http://127.0.0.1:46721`
+- 서버 실행 명령: `php -S 127.0.0.1:46721 -t .tools/public .tools/bin/dev-router.php`
+
+## 추가 전수 route QA
+
+마일스톤 15 이슈 #175-#202의 대상 경로를 이슈별로 매핑하는 `.tools/bin/check-milestone-15-route-qa.php`를 추가했다.
+
+검사 범위:
+
+- 관리자 계정 로그인 후 이슈별 대표 GET 경로 응답 확인
+- 비로그인 관리자 경로 보호 확인
+- 대표 POST 경로의 CSRF/검증 실패 응답 확인
+- 공개/회원/관리자 경로의 500, PHP 오류 본문, 내부 원문 노출 확인
+- 보호 파일 직접 접근 확인
+
+실행 명령:
+
+```sh
+php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 12341234
+```
+
+결과:
+
+- 통과: #175-#183, #185, #187-#191, #193-#194, #196-#202
+- 실패: #184, #186, #192, #195
+
+실패 상세:
+
+- #184: `GET /admin/content/link-card-targets?target=community_post&q=test`가 500을 반환했다.
+- #186: `GET /admin/points/reference-search?q=qa`, `GET /admin/rewards/reference-search?q=qa`, `GET /admin/deposits/reference-search?q=qa`가 500을 반환했다.
+- #192: `GET /email/verified`가 500을 반환했다. 서버 로그 기준 `sr_member_settings()` 로드 누락이다.
+- #195: `POST /community/edit`가 존재하지 않는 id 없이 호출될 때 500을 반환했고, 서버 로그에 `POST action did not call sr_require_csrf()` 계약 위반이 남았다.
+
+## 실행 결과
+
+통과:
+
+- `git diff --check`
+- `php .tools/bin/check.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46721 php .tools/bin/smoke-http.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46721 SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46721 SR_SMOKE_IDENTIFIER=admin SR_SMOKE_PASSWORD=... php .tools/bin/smoke-community-auth.php`
+- `php .tools/bin/check.php`
+- `git diff --check`
+
+실패 또는 제한:
+
+- `.tools/bin/php -v`
+  - Docker 소켓 접근 권한이 없어 프로젝트 PHP 래퍼가 실행되지 않았다.
+  - 같은 QA는 호스트 `php` 명령으로 실행했다.
+- `php .tools/bin/check-deployment-config.php`
+  - `config/config.php` 권한이 `0640`이라 그룹/기타 사용자 읽기 또는 쓰기 차단 기준을 만족하지 못했다.
+- `php .tools/bin/check-milestone-10-deep.php`
+  - `Display name cannot contain spaces.` 예외로 실패했다.
+- `php .tools/bin/check-milestone-11-consistency.php`
+  - `Display name cannot contain spaces.` 예외로 실패했다.
+- 이전 마일스톤 전체 인증 스모크 계정 세트(`writer_m10` 등)는 현재 로컬 DB에서 로그인되지 않아 전체 인증 흐름을 완료하지 못했다.
+  - 최소 인증 커뮤니티 스모크는 `admin` 테스트 계정으로 통과했다.
+- 마일스톤 15 테스트 계정 `writer_m15`, `recipient_m15`, `reporter_m15`, `admin_m15`를 로컬 DB에 준비한 뒤 전체 인증 커뮤니티 스모크를 실행했다.
+  - 회원 글 작성, 수정, 댓글, 스크랩, 쪽지 송수신, 신고, 관리자 신고 처리, 댓글 숨김, 게시글 숨김 데이터는 DB에서 반영을 확인했다.
+  - 기존 스모크 스크립트는 관리자 처리 POST가 `200`을 반환한다고 기대하지만 현재 구현은 성공 후 `302` redirect를 반환해 스크립트 종료 상태는 실패였다.
+
+## HTTP 스모크 요약
+
+기본 HTTP 스모크와 `SR_SMOKE_EXPECT_COMMUNITY=1` 모드는 모두 통과했다.
+
+확인된 주요 항목:
+
+- `/`, `/login`, `/ui-kit` 공개 진입
+- `/admin`, `/admin/updates`, 콘텐츠/커뮤니티 관리자 진입의 로그인 흐름
+- 커뮤니티 공개 목록과 비로그인 작성/수정/삭제/댓글/쪽지/스크랩 보호 흐름
+- `/sitemap.xml`, `/assets/saanraan.css`
+- SQL, PHP, 설정, 저장소, 문서, 도구, Git 메타데이터 직접 접근 보호
+
+## 판정
+
+마일스톤 15 QA의 자동 기본 게이트와 비인증 HTTP 스모크는 통과했다. 이슈별 대표 route/security probe는 끝까지 실행했으며, 4개 이슈에서 500 또는 요청 계약 위반을 확인했다.
+
+남은 실패는 다음 두 종류로 분리된다.
+
+- 로컬 운영 파일 권한 문제: `config/config.php`가 배포 보호 검사 기준보다 열려 있다.
+- 기존 정합성 검사 fixture와 현재 표시 이름 검증 규칙의 충돌: 마일스톤 10/11 심화 검사에서 공백 포함 표시 이름 예외가 발생한다.
+- 마일스톤 15 route QA에서 확인된 신규 실패: #184, #186, #192, #195.
+
+전체 브라우저 QA 이슈 #174-#202의 Playwright/Chromium 전수 검증, axe 접근성 검사, 시각 회귀 baseline, named snapshot restore, fixture catalog 기반 DB 단언, 동시성/레이트리밋/외부 mock 검증은 현재 저장소에 #174 하니스가 없어 완료하지 못했다. 이슈 상태 변경은 수행하지 않았다.
+
+## 재실행 - 2026-06-03 10:48
+
+사용자 요청에 따라 현재 저장소에서 실행 가능한 전체 자동/HTTP/route/security/인증 QA를 다시 수행했다.
+
+재실행 환경:
+
+- HTTP 스모크 기준 URL: `http://127.0.0.1:44999`
+- 서버 실행 명령: `php -S 127.0.0.1:44999 -t .tools/public .tools/bin/dev-router.php`
+
+재실행 결과:
+
+- `git diff --check`: 통과
+- `php .tools/bin/check.php`: 통과
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:44999 php .tools/bin/smoke-http.php`: 통과
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:44999 SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php`: 통과
+- `php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:44999 admin 12341234`: 실패
+  - #184: `/admin/content/link-card-targets?target=community_post&q=test` 500
+  - #186: `/admin/points/reference-search?q=qa`, `/admin/rewards/reference-search?q=qa`, `/admin/deposits/reference-search?q=qa` 500
+  - #192: `/email/verified` 500
+  - #195: `POST /community/edit` 500
+- 최소 인증 커뮤니티 스모크: 통과
+- 전체 인증 커뮤니티 스모크: 실패
+  - 관리자 처리 POST 3건은 구현상 `302` redirect를 반환해 스모크 기대 상태 `200`과 달랐다.
+  - 댓글 숨김 후 공개 상세 검증에서 고정 댓글 문구가 남아 실패했다.
+  - DB 대조 결과 최신 관리자 처리 대상 게시글은 `hidden`, 신고는 `resolved`로 반영됐고, 최신 댓글 중 하나는 `hidden` 상태로 반영됐다.
+
+마일스톤 15 이슈 #174-#202는 재확인 시점에도 모두 `OPEN` 상태였다.
+
+## 오류 수정 검증 - 2026-06-03 11:00
+
+재실행에서 발견된 마일스톤 15 route/security 오류를 수정한 뒤 같은 로컬 서버 기준으로 다시 검증했다.
+
+수정한 항목:
+
+- #184: 커뮤니티 링크 카드 대상 검색에서 동일 PDO named placeholder를 반복 사용하던 쿼리를 고유 placeholder로 분리했다.
+- #186: 포인트/리워드/예치금 reference 검색에서 동일 PDO named placeholder를 반복 사용하던 쿼리를 고유 placeholder로 분리했다.
+- #192: `/email/verified` 액션에서 회원 helper를 명시적으로 로드하도록 수정했다.
+- #195: `POST /community/edit` 요청은 글 조회 전에 CSRF를 먼저 검증하도록 수정해 누락된 `id` 요청이 500으로 끝나지 않게 했다.
+- 인증 커뮤니티 스모크: 반복 실행 시 이전 댓글/본문과 충돌하지 않도록 실행 토큰을 넣고, 관리자 성공 POST의 `302` redirect를 정상 응답으로 허용했다.
+- 기존 마일스톤 10/11 검사 fixture: 현재 표시 이름 정책에 맞게 공백 없는 표시 이름을 사용하도록 수정했다.
+- 로컬 배포 설정 검사: `config/config.php` 권한을 `0600`으로 조정했다.
+
+수정 후 통과:
+
+- `php -l` 대상 수정 PHP 파일 전체
+- `php .tools/bin/check-deployment-config.php`
+- `php .tools/bin/check.php`
+- `git diff --check`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46351 php .tools/bin/smoke-http.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46351 SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46351 ... php .tools/bin/smoke-community-auth.php`
+- `php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:46351 admin 12341234`
+
+마일스톤 15 route/security probe는 #175-#202 전체가 통과했다.
+
+전체 `.tools/bin/check-*.php` 반복 실행 결과, 마일스톤 15와 일반 체크는 통과했고 다음 기존 정합성 검사만 남았다.
+
+- `php .tools/bin/check-milestone-10-deep.php`
+  - 표시 이름 fatal은 수정됐다.
+  - 현재 로컬 DB에는 `sr_content_comments`가 없어 `content_comments_not_installed`로 중단된다.
+- `php .tools/bin/check-milestone-11-consistency.php`
+  - 표시 이름 fatal은 수정됐다.
+  - 현재 로컬 DB에 `srdddddd_*`, `srsdfsdf_*`, `srtest2_*`, `srtest_*`, `testsr_*`, `toy_*` 등 이전 테스트 prefix 테이블이 남아 있어 namespace 검사가 실패한다.
+  - 현재 `sr_` 스키마에는 일부 검사 대상 컬럼/테이블 상태가 맞지 않아 schema, sitemap, privacy contract 단언이 실패한다.
+  - `storage/logs/error.log`는 `www-data:www-data` 소유 파일이라 현재 CLI 사용자로 로그 쓰기가 거부된다. 권한 변경도 현재 사용자 권한으로는 수행할 수 없었다.
+
+따라서 이번 마일스톤 15 QA에서 발견된 route/security/HTTP/auth smoke 오류는 수정 후 통과했다. 남은 실패는 깨끗한 로컬 DB fixture 또는 파일 소유권 정리가 필요한 기존 마일스톤 10/11 정합성 환경 문제로 분리했다.

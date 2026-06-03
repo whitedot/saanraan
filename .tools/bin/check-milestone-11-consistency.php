@@ -180,10 +180,10 @@ try {
     $now = sr_now();
     $site = sr_load_site($pdo);
     $adminId = (int) m11_value($pdo, "SELECT account_id FROM sr_admin_account_roles WHERE role_key = 'owner' ORDER BY id ASC LIMIT 1");
-    $memberAId = m11_account($pdo, $config, 'm11_member_a', 'm11-member-a@example.test', 'M11 회원 A');
-    $memberBId = m11_account($pdo, $config, 'm11_member_b', 'm11-member-b@example.test', 'M11 회원 B');
-    $limitedAdminId = m11_account($pdo, $config, 'm11_limited_admin', 'm11-limited-admin@example.test', 'M11 제한관리자');
-    $cleanupId = m11_account($pdo, $config, 'm11_cleanup', 'm11-cleanup@example.test', 'M11 정리대상');
+    $memberAId = m11_account($pdo, $config, 'm11_member_a', 'm11-member-a@example.test', 'M11회원A');
+    $memberBId = m11_account($pdo, $config, 'm11_member_b', 'm11-member-b@example.test', 'M11회원B');
+    $limitedAdminId = m11_account($pdo, $config, 'm11_limited_admin', 'm11-limited-admin@example.test', 'M11제한관리자');
+    $cleanupId = m11_account($pdo, $config, 'm11_cleanup', 'm11-cleanup@example.test', 'M11정리대상');
 
     m11_assert($adminId > 0, '#142 consistency fixture has owner admin');
 

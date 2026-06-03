@@ -6,6 +6,10 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    sr_require_csrf();
+}
+
 $postIdValue = sr_get_string('id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
 $post = sr_community_post_for_read($pdo, $postId, $account);
@@ -69,8 +73,6 @@ $values = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    sr_require_csrf();
-
     $submittedPostIdValue = sr_post_string('post_id', 20);
     $submittedPostId = preg_match('/\A[1-9][0-9]*\z/', $submittedPostIdValue) === 1 ? (int) $submittedPostIdValue : 0;
     if ($submittedPostId !== $postId) {

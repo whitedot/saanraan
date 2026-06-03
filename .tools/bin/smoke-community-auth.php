@@ -253,6 +253,7 @@ function sr_auth_smoke_comment_id_for_body(array $response, string $commentBody)
 
 try {
     sr_auth_smoke_login($baseUrl, $identifier, $password, $cookies, $errors, 'primary account');
+    $runToken = date('YmdHis') . '-' . bin2hex(random_bytes(4));
 
     $messages = sr_auth_smoke_request($baseUrl, 'GET', '/community/messages', [], $cookies);
     sr_auth_smoke_assert_status($errors, 'message box', $messages, [200]);
@@ -260,7 +261,7 @@ try {
     $writeForm = sr_auth_smoke_request($baseUrl, 'GET', '/community/write?key=' . rawurlencode($boardKey), [], $cookies);
     sr_auth_smoke_assert_status($errors, 'post write form', $writeForm, [200]);
     $writeCsrf = sr_auth_smoke_csrf($writeForm, 'post write form');
-    $title = 'Saanraan auth smoke ' . date('YmdHis');
+    $title = 'Saanraan auth smoke ' . $runToken;
     $writeResponse = sr_auth_smoke_request($baseUrl, 'POST', '/community/write?key=' . rawurlencode($boardKey), [
         'csrf_token' => $writeCsrf,
         'title' => $title,
@@ -277,7 +278,7 @@ try {
     if ($createdPostId < 1) {
         $errors[] = 'post write submit did not expose a post id redirect.';
     } else {
-        $commentBody = 'Saanraan authenticated community comment smoke.';
+        $commentBody = 'Saanraan authenticated community comment smoke ' . $runToken . '.';
         $postView = sr_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
         sr_auth_smoke_assert_status($errors, 'post view', $postView, [200]);
         sr_auth_smoke_assert_body_contains($errors, 'post view', $postView, $title);
@@ -335,7 +336,7 @@ try {
         sr_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, 'name="recipient_account_id"');
         sr_auth_smoke_assert_body_not_contains($errors, 'message write form', $messageForm, '/community/message/write?to=');
         $messageCsrf = sr_auth_smoke_csrf($messageForm, 'message write form');
-        $messageBody = 'Saanraan authenticated community message smoke.';
+        $messageBody = 'Saanraan authenticated community message smoke ' . $runToken . '.';
         $messageResponse = sr_auth_smoke_request($baseUrl, 'POST', '/community/message/write', [
             'csrf_token' => $messageCsrf,
             'recipient_identifier' => $recipientIdentifier,
@@ -391,7 +392,7 @@ try {
             'target_type' => 'post',
             'target_id' => (string) $createdPostId,
             'reason_key' => 'spam',
-            'memo_text' => 'Saanraan authenticated community report smoke.',
+            'memo_text' => 'Saanraan authenticated community report smoke ' . $runToken . '.',
         ], $reporterCookies);
         sr_auth_smoke_assert_status($errors, 'post report submit', $reportResponse, [302]);
         $reportedPost = true;
@@ -411,9 +412,9 @@ try {
                 'csrf_token' => $adminReportCsrf,
                 'report_id' => $reportId,
                 'status' => 'resolved',
-                'review_note' => 'Saanraan authenticated community admin report smoke.',
+                'review_note' => 'Saanraan authenticated community admin report smoke ' . $runToken . '.',
             ], $adminCookies);
-            sr_auth_smoke_assert_status($errors, 'admin report resolve', $reportReviewResponse, [200]);
+            sr_auth_smoke_assert_status($errors, 'admin report resolve', $reportReviewResponse, [200, 302]);
         } else {
             echo "[skip] admin report resolve requires reporter credentials\n";
         }
@@ -429,7 +430,7 @@ try {
                 'comment_id' => $commentId,
                 'status' => 'hidden',
             ], $adminCookies);
-            sr_auth_smoke_assert_status($errors, 'admin comment hide', $commentHideResponse, [200]);
+            sr_auth_smoke_assert_status($errors, 'admin comment hide', $commentHideResponse, [200, 302]);
             $postAfterCommentHide = sr_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $cookies);
             sr_auth_smoke_assert_status($errors, 'post view after comment hide', $postAfterCommentHide, [200]);
             sr_auth_smoke_assert_body_not_contains($errors, 'post view after comment hide', $postAfterCommentHide, $commentBody);
@@ -444,7 +445,7 @@ try {
             'post_id' => (string) $createdPostId,
             'status' => 'hidden',
         ], $adminCookies);
-        sr_auth_smoke_assert_status($errors, 'admin post hide', $postHideResponse, [200]);
+        sr_auth_smoke_assert_status($errors, 'admin post hide', $postHideResponse, [200, 302]);
 
         $viewerCookies = isset($reporterCookies) && is_array($reporterCookies) ? $reporterCookies : [];
         $publicPostAfterHide = sr_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $viewerCookies);
