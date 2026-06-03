@@ -29,7 +29,6 @@ return [
             'paths.php',
             'admin-menu.php',
             'output-slots.php',
-            'dashboard.php',
         ],
         'consumes' => [
             'menu-links.php',

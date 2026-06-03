@@ -17,11 +17,7 @@ if (!sr_admin_is_owner($pdo, (int) $account['id'])) {
     sr_render_error(403, sr_t('admin::auth.role_required'));
 }
 
-$modules = sr_admin_dashboard_modules($pdo);
 $moduleDashboardSections = sr_admin_dashboard_module_sections($pdo);
-$installProtectionSummary = sr_admin_dashboard_install_protection_summary($config);
-$authRuntimeSummary = sr_admin_dashboard_auth_runtime_summary($pdo, $config);
-$sensitiveSettingSummary = sr_admin_dashboard_sensitive_setting_summary($pdo, $config);
 $recoveryMarkers = sr_admin_dashboard_recovery_markers();
 $moduleBackupSummary = sr_admin_dashboard_module_backup_summary();
 

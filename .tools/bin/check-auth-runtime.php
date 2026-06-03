@@ -38,6 +38,18 @@ function sr_auth_runtime_require(string $path, string $pattern, string $message)
     }
 }
 
+function sr_auth_runtime_forbid(string $path, string $pattern, string $message): void
+{
+    $content = sr_auth_runtime_read($path);
+    if ($content === '') {
+        return;
+    }
+
+    if (preg_match($pattern, $content) === 1) {
+        sr_auth_runtime_error($message . ': ' . $path);
+    }
+}
+
 foreach ([
     'database/core/install.sql',
 ] as $path) {
@@ -117,8 +129,7 @@ sr_auth_runtime_require('modules/admin/helpers/dashboard.php', '/function sr_adm
 sr_auth_runtime_require('modules/admin/helpers/dashboard.php', '/sr_trusted_proxy_config_errors/', 'Dashboard trusted proxy validation is missing');
 sr_auth_runtime_require('modules/admin/helpers/dashboard.php', '/sr_admin_dashboard_mail_transport_ready/', 'Mail transport dashboard validation is missing');
 sr_auth_runtime_require('modules/admin/helpers/dashboard.php', '/sr_mail_http_api_endpoint_is_allowed/', 'Dashboard HTTP API mail endpoint validation is missing');
-sr_auth_runtime_require('modules/admin/views/dashboard.php', '/인증 런타임/', 'Auth runtime dashboard view is missing');
-sr_auth_runtime_require('modules/admin/views/dashboard.php', '/고위험 설정/', 'Sensitive setting dashboard view is missing');
+sr_auth_runtime_forbid('modules/admin/views/dashboard.php', '/인증 런타임|고위험 설정|install_protection|sensitive_settings|auth_runtime|data-admin-dashboard-section="modules"/', 'Removed dashboard diagnostics should not be rendered');
 sr_auth_runtime_require('docs/deployment-protection.md', '/로드밸런서와 클라우드 런타임/', 'Cloud runtime deployment documentation is missing');
 sr_auth_runtime_require('docs/deployment-protection.md', '/http_api/', 'HTTP API mail documentation is missing');
 

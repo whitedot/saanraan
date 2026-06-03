@@ -1045,7 +1045,7 @@ return [
 | `admin` | `paths.php` | `admin-menu.php`, `paths.php`, `homepage-candidates.php` |
 | `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php` |
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
-| `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `menu-links.php` |
+| `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
 | `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php` | 없음 |
