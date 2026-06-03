@@ -156,36 +156,21 @@ function sr_admin_asset_transaction_default_sort(): array
     return sr_admin_sort_default('created_at', 'desc');
 }
 
-function sr_admin_logo_asset_sort_options(): array
+function sr_admin_logo_sort_options(): array
 {
     return [
-        'usage_key' => ['columns' => ['usage_key', 'id']],
+        'position_key' => ['columns' => ['position_key', 'sort_order', 'id']],
         'title' => ['columns' => ['title', 'id']],
-        'size_bytes' => ['columns' => ['size_bytes', 'id']],
         'status' => ['columns' => ['status', 'id']],
+        'starts_at' => ['columns' => ['starts_at', 'ends_at', 'id']],
+        'sort_order' => ['columns' => ['sort_order', 'id']],
         'created_at' => ['columns' => ['created_at', 'id']],
     ];
 }
 
-function sr_admin_logo_asset_default_sort(): array
+function sr_admin_logo_default_sort(): array
 {
-    return sr_admin_sort_default('created_at', 'desc');
-}
-
-function sr_admin_logo_assignment_sort_options(): array
-{
-    return [
-        'usage_key' => ['columns' => ['a.usage_key', 'a.sort_order', 'a.id']],
-        'title' => ['columns' => ['asset.title', 'a.id']],
-        'status' => ['columns' => ['a.status', 'a.id']],
-        'starts_at' => ['columns' => ['a.starts_at', 'a.ends_at', 'a.id']],
-        'sort_order' => ['columns' => ['a.sort_order', 'a.id']],
-    ];
-}
-
-function sr_admin_logo_assignment_default_sort(): array
-{
-    return sr_admin_sort_default('usage_key', 'asc');
+    return sr_admin_sort_default('position_key', 'asc');
 }
 
 function sr_admin_audit_log_sort_options(): array

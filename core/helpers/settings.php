@@ -577,6 +577,7 @@ function sr_module_known_contract_files(): array
         'homepage-candidates.php',
         'editor-options.php',
         'coupon-targets.php',
+        'logo-positions.php',
     ];
 }
 

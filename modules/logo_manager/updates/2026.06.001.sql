@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS sr_logo_manager_assignments;
+DROP TABLE IF EXISTS sr_logo_manager_assets;
+
 CREATE TABLE IF NOT EXISTS sr_logo_manager_logos (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     position_key VARCHAR(120) NOT NULL,

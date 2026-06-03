@@ -2,59 +2,106 @@
 
 declare(strict_types=1);
 
-function sr_logo_manager_usage_options(): array
+function sr_logo_manager_default_position_options(): array
 {
     return [
-        'admin_sidebar' => [
-            'label' => sr_t('logo_manager::usage.admin_sidebar.label'),
-            'hint' => sr_t('logo_manager::usage.admin_sidebar.hint'),
+        'admin.sidebar' => [
+            'label' => sr_t('logo_manager::position.admin_sidebar.label'),
+            'hint' => sr_t('logo_manager::position.admin_sidebar.hint'),
             'max_bytes' => 2097152,
+            'surface' => 'admin',
         ],
-        'public_header' => [
-            'label' => sr_t('logo_manager::usage.public_header.label'),
-            'hint' => sr_t('logo_manager::usage.public_header.hint'),
+        'public.header.desktop' => [
+            'label' => sr_t('logo_manager::position.public_header_desktop.label'),
+            'hint' => sr_t('logo_manager::position.public_header_desktop.hint'),
             'max_bytes' => 3145728,
+            'surface' => 'public',
         ],
-        'mobile' => [
-            'label' => sr_t('logo_manager::usage.mobile.label'),
-            'hint' => sr_t('logo_manager::usage.mobile.hint'),
+        'public.header.mobile' => [
+            'label' => sr_t('logo_manager::position.public_header_mobile.label'),
+            'hint' => sr_t('logo_manager::position.public_header_mobile.hint'),
             'max_bytes' => 2097152,
+            'surface' => 'public',
         ],
-        'favicon' => [
-            'label' => sr_t('logo_manager::usage.favicon.label'),
-            'hint' => sr_t('logo_manager::usage.favicon.hint'),
+        'public.favicon' => [
+            'label' => sr_t('logo_manager::position.favicon.label'),
+            'hint' => sr_t('logo_manager::position.favicon.hint'),
             'max_bytes' => 1048576,
+            'surface' => 'global',
         ],
-        'og_image' => [
-            'label' => sr_t('logo_manager::usage.og_image.label'),
-            'hint' => sr_t('logo_manager::usage.og_image.hint'),
+        'public.og_image' => [
+            'label' => sr_t('logo_manager::position.og_image.label'),
+            'hint' => sr_t('logo_manager::position.og_image.hint'),
             'max_bytes' => 5242880,
+            'surface' => 'public',
         ],
     ];
 }
 
-function sr_logo_manager_default_usage_options(): array
+function sr_logo_manager_position_options(?PDO $pdo = null): array
 {
-    return sr_logo_manager_usage_options();
+    $options = sr_logo_manager_default_position_options();
+    if (!$pdo instanceof PDO) {
+        return $options;
+    }
+
+    foreach (sr_enabled_module_contract_files($pdo, 'logo-positions.php', ['logo_manager']) as $moduleKey => $file) {
+        $positions = sr_load_module_contract_file($moduleKey, $file);
+        if (is_callable($positions)) {
+            $positions = $positions($pdo);
+        }
+        if (!is_array($positions)) {
+            continue;
+        }
+
+        foreach ($positions as $position) {
+            if (!is_array($position)) {
+                continue;
+            }
+            $positionKey = sr_logo_manager_clean_position_key((string) ($position['position_key'] ?? ''));
+            if ($positionKey === '') {
+                continue;
+            }
+
+            $label = sr_logo_manager_clean_single_line((string) ($position['label'] ?? $positionKey), 120);
+            $hint = sr_logo_manager_clean_single_line((string) ($position['hint'] ?? ''), 180);
+            $maxBytes = (int) ($position['max_bytes'] ?? 3145728);
+            $options[$positionKey] = [
+                'label' => $label !== '' ? $label : $positionKey,
+                'hint' => $hint,
+                'max_bytes' => max(1024, min(10485760, $maxBytes)),
+                'surface' => sr_logo_manager_clean_single_line((string) ($position['surface'] ?? 'public'), 40),
+                'module_key' => $moduleKey,
+            ];
+        }
+    }
+
+    uasort($options, static function (array $left, array $right): int {
+        return strcmp((string) ($left['label'] ?? ''), (string) ($right['label'] ?? ''));
+    });
+
+    return $options;
 }
 
-function sr_logo_manager_usage_key(string $usageKey): string
+function sr_logo_manager_clean_position_key(string $positionKey): string
 {
-    $usageKey = strtolower(trim($usageKey));
-    return isset(sr_logo_manager_usage_options()[$usageKey]) ? $usageKey : 'public_header';
+    $positionKey = strtolower(trim($positionKey));
+    return preg_match('/\A[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*){1,5}\z/', $positionKey) === 1 ? $positionKey : '';
 }
 
-function sr_logo_manager_default_usage_key(string $usageKey): string
+function sr_logo_manager_position_key(string $positionKey, ?PDO $pdo = null): string
 {
-    return sr_logo_manager_usage_key($usageKey);
+    $positionKey = sr_logo_manager_clean_position_key($positionKey);
+    $options = sr_logo_manager_position_options($pdo);
+    return $positionKey !== '' && isset($options[$positionKey]) ? $positionKey : 'public.header.desktop';
 }
 
-function sr_logo_manager_usage_label(string $usageKey): string
+function sr_logo_manager_position_label(string $positionKey, ?PDO $pdo = null): string
 {
-    $options = sr_logo_manager_usage_options();
-    $usageKey = sr_logo_manager_usage_key($usageKey);
+    $options = sr_logo_manager_position_options($pdo);
+    $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
 
-    return (string) ($options[$usageKey]['label'] ?? $usageKey);
+    return (string) ($options[$positionKey]['label'] ?? $positionKey);
 }
 
 function sr_logo_manager_status_label(string $status): string
@@ -65,6 +112,24 @@ function sr_logo_manager_status_label(string $status): string
         'disabled' => '중지',
         default => $status,
     };
+}
+
+function sr_logo_manager_table_exists(PDO $pdo): bool
+{
+    static $cache = [];
+    $cacheKey = method_exists($pdo, 'srTablePrefix') ? $pdo->srTablePrefix() : 'sr_';
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_logo_manager_logos LIMIT 1');
+        $cache[$cacheKey] = true;
+    } catch (Throwable) {
+        $cache[$cacheKey] = false;
+    }
+
+    return $cache[$cacheKey];
 }
 
 function sr_logo_manager_clean_single_line(string $value, int $maxLength): string
@@ -122,19 +187,19 @@ function sr_logo_manager_svg_upload_mime_is_allowed(string $mimeType): bool
     return in_array(strtolower(trim($mimeType)), ['image/svg+xml', 'text/xml', 'application/xml', 'text/plain'], true);
 }
 
-function sr_logo_manager_upload_max_bytes(string $usageKey): int
+function sr_logo_manager_upload_max_bytes(string $positionKey, ?PDO $pdo = null): int
 {
-    $options = sr_logo_manager_usage_options();
-    $usageKey = sr_logo_manager_usage_key($usageKey);
+    $options = sr_logo_manager_position_options($pdo);
+    $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
 
-    return (int) ($options[$usageKey]['max_bytes'] ?? 3145728);
+    return (int) ($options[$positionKey]['max_bytes'] ?? 3145728);
 }
 
-function sr_logo_manager_upload_image(array $file, string $usageKey): array
+function sr_logo_manager_upload_image(array $file, string $positionKey, ?PDO $pdo = null): array
 {
-    $usageKey = sr_logo_manager_usage_key($usageKey);
+    $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
     $validated = sr_upload_validate_file($file, [
-        'max_bytes' => sr_logo_manager_upload_max_bytes($usageKey),
+        'max_bytes' => sr_logo_manager_upload_max_bytes($positionKey, $pdo),
         'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp', 'svg'],
         'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'text/xml', 'application/xml', 'text/plain'],
     ]);
@@ -461,15 +526,15 @@ function sr_logo_manager_image_storage_reference(string $reference): ?array
     return $storage;
 }
 
-function sr_logo_manager_asset_url(array $asset): string
+function sr_logo_manager_logo_url(array $logo): string
 {
-    $publicUrl = trim((string) ($asset['public_url'] ?? ''));
+    $publicUrl = trim((string) ($logo['public_url'] ?? ''));
     if ($publicUrl !== '' && (sr_is_safe_relative_url($publicUrl) || sr_is_http_url($publicUrl))) {
         return $publicUrl;
     }
 
-    $driver = (string) ($asset['storage_driver'] ?? 'local');
-    $key = (string) ($asset['storage_key'] ?? '');
+    $driver = (string) ($logo['storage_driver'] ?? 'local');
+    $key = (string) ($logo['storage_key'] ?? '');
     if (!in_array($driver, ['local', 's3'], true) || !sr_logo_manager_image_storage_key_is_valid($key)) {
         return '';
     }
@@ -513,29 +578,36 @@ function sr_logo_manager_admin_datetime_value(mixed $value): string
     return $date instanceof DateTimeImmutable ? $date->format('Y-m-d\TH:i') : '';
 }
 
-function sr_logo_manager_active_assignment(PDO $pdo, string $usageKey, ?string $now = null): ?array
+function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now = null): ?array
 {
-    $usageKey = sr_logo_manager_usage_key($usageKey);
+    $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
+    if (!sr_logo_manager_table_exists($pdo)) {
+        return null;
+    }
+
     $now = $now !== null ? $now : sr_now();
     try {
         $stmt = $pdo->prepare(
-            "SELECT a.id AS assignment_id, a.usage_key, a.asset_id, a.alt_text AS assignment_alt_text, a.link_url,
-                    a.starts_at, a.ends_at, a.sort_order, asset.title, asset.alt_text AS asset_alt_text,
-                    asset.storage_driver, asset.storage_key, asset.public_url, asset.mime_type,
-                    asset.width, asset.height
-             FROM sr_logo_manager_assignments a
-             INNER JOIN sr_logo_manager_assets asset ON asset.id = a.asset_id
-             WHERE a.usage_key = :usage_key
-               AND a.status = 'active'
-               AND asset.status = 'active'
-               AND (a.starts_at IS NULL OR a.starts_at <= :now_start)
-               AND (a.ends_at IS NULL OR a.ends_at >= :now_end)
-             ORDER BY CASE WHEN a.starts_at IS NULL AND a.ends_at IS NULL THEN 1 ELSE 0 END ASC,
-                      a.sort_order ASC, a.starts_at DESC, a.id DESC
+            "SELECT id, position_key, title, alt_text, link_url, starts_at, ends_at, sort_order,
+                    storage_driver, storage_key, public_url, mime_type, width, height
+             FROM sr_logo_manager_logos
+             WHERE position_key = :position_key
+               AND status = 'active'
+               AND (starts_at IS NULL OR starts_at <= :now_start)
+               AND (ends_at IS NULL OR ends_at >= :now_end)
+             ORDER BY CASE WHEN starts_at IS NULL AND ends_at IS NULL THEN 1 ELSE 0 END ASC,
+                      CASE WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN 0 ELSE 1 END ASC,
+                      CASE
+                          WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN TIMESTAMPDIFF(SECOND, starts_at, ends_at)
+                          ELSE 2147483647
+                      END ASC,
+                      sort_order ASC,
+                      starts_at DESC,
+                      id DESC
              LIMIT 1"
         );
         $stmt->execute([
-            'usage_key' => $usageKey,
+            'position_key' => $positionKey,
             'now_start' => $now,
             'now_end' => $now,
         ]);
@@ -543,51 +615,51 @@ function sr_logo_manager_active_assignment(PDO $pdo, string $usageKey, ?string $
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     } catch (Throwable $exception) {
-        sr_log_exception($exception, 'logo_manager_active_assignment_failed');
+        sr_log_exception($exception, 'logo_manager_active_logo_failed');
         return null;
     }
 }
 
-function sr_logo_manager_default_assignment(PDO $pdo, string $usageKey): ?array
+function sr_logo_manager_default_logo(PDO $pdo, string $positionKey): ?array
 {
-    $usageKey = sr_logo_manager_default_usage_key($usageKey);
+    $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
+    if (!sr_logo_manager_table_exists($pdo)) {
+        return null;
+    }
+
     try {
         $stmt = $pdo->prepare(
-            "SELECT a.id AS assignment_id, a.usage_key, a.asset_id, a.alt_text AS assignment_alt_text, a.link_url,
-                    a.starts_at, a.ends_at, a.sort_order, asset.title, asset.alt_text AS asset_alt_text,
-                    asset.storage_driver, asset.storage_key, asset.public_url, asset.mime_type,
-                    asset.width, asset.height
-             FROM sr_logo_manager_assignments a
-             INNER JOIN sr_logo_manager_assets asset ON asset.id = a.asset_id
-             WHERE a.usage_key = :usage_key
-               AND a.status = 'active'
-               AND asset.status = 'active'
-               AND a.starts_at IS NULL
-               AND a.ends_at IS NULL
-             ORDER BY a.id DESC
+            "SELECT id, position_key, title, alt_text, link_url, starts_at, ends_at, sort_order,
+                    storage_driver, storage_key, public_url, mime_type, width, height
+             FROM sr_logo_manager_logos
+             WHERE position_key = :position_key
+               AND status = 'active'
+               AND starts_at IS NULL
+               AND ends_at IS NULL
+             ORDER BY sort_order ASC, id DESC
              LIMIT 1"
         );
-        $stmt->execute(['usage_key' => $usageKey]);
+        $stmt->execute(['position_key' => $positionKey]);
 
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     } catch (Throwable $exception) {
-        sr_log_exception($exception, 'logo_manager_default_assignment_failed');
+        sr_log_exception($exception, 'logo_manager_default_logo_failed');
         return null;
     }
 }
 
-function sr_logo_manager_render_logo(PDO $pdo, string $usageKey, ?array $site = null, array $attributes = []): string
+function sr_logo_manager_render_logo(PDO $pdo, string $positionKey, ?array $site = null, array $attributes = []): string
 {
-    $assignment = sr_logo_manager_active_assignment($pdo, $usageKey);
-    if (!is_array($assignment)) {
+    $logo = sr_logo_manager_active_logo($pdo, $positionKey);
+    if (!is_array($logo)) {
         return '';
     }
 
-    $src = sr_logo_manager_asset_url([
-        'public_url' => $assignment['public_url'] ?? '',
-        'storage_driver' => $assignment['storage_driver'] ?? 'local',
-        'storage_key' => $assignment['storage_key'] ?? '',
+    $src = sr_logo_manager_logo_url([
+        'public_url' => $logo['public_url'] ?? '',
+        'storage_driver' => $logo['storage_driver'] ?? 'local',
+        'storage_key' => $logo['storage_key'] ?? '',
     ]);
     if ($src === '') {
         return '';
@@ -596,18 +668,15 @@ function sr_logo_manager_render_logo(PDO $pdo, string $usageKey, ?array $site = 
     if (array_key_exists('alt', $attributes)) {
         $alt = sr_logo_manager_clean_single_line((string) $attributes['alt'], 160);
     } else {
-        $alt = trim((string) ($assignment['assignment_alt_text'] ?? ''));
-        if ($alt === '') {
-            $alt = trim((string) ($assignment['asset_alt_text'] ?? ''));
-        }
+        $alt = trim((string) ($logo['alt_text'] ?? ''));
         if ($alt === '') {
             $alt = is_array($site) ? trim((string) ($site['site_name'] ?? $site['name'] ?? '')) : '';
         }
     }
 
     $class = sr_logo_manager_clean_single_line((string) ($attributes['class'] ?? 'site-logo-image'), 120);
-    $width = (int) ($assignment['width'] ?? 0);
-    $height = (int) ($assignment['height'] ?? 0);
+    $width = (int) ($logo['width'] ?? 0);
+    $height = (int) ($logo['height'] ?? 0);
 
     $html = '<img class="' . sr_e($class) . '" src="' . sr_e(sr_logo_manager_url_for_output($src)) . '" alt="' . sr_e($alt) . '"';
     if ($width > 0 && $height > 0) {
@@ -618,15 +687,15 @@ function sr_logo_manager_render_logo(PDO $pdo, string $usageKey, ?array $site = 
     return $html;
 }
 
-function sr_logo_manager_active_url(PDO $pdo, string $usageKey): string
+function sr_logo_manager_active_url(PDO $pdo, string $positionKey): string
 {
-    $assignment = sr_logo_manager_active_assignment($pdo, $usageKey);
-    return is_array($assignment) ? sr_logo_manager_asset_url($assignment) : '';
+    $logo = sr_logo_manager_active_logo($pdo, $positionKey);
+    return is_array($logo) ? sr_logo_manager_logo_url($logo) : '';
 }
 
 function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 {
-    $url = sr_logo_manager_active_url($pdo, 'favicon');
+    $url = sr_logo_manager_active_url($pdo, 'public.favicon');
     if ($url === '') {
         return '';
     }
@@ -638,5 +707,5 @@ function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 
 function sr_logo_manager_og_image_url(PDO $pdo): string
 {
-    return sr_logo_manager_active_url($pdo, 'og_image');
+    return sr_logo_manager_active_url($pdo, 'public.og_image');
 }

@@ -70,6 +70,7 @@ modules/{module_key}/
 - menu-links.php (optional)
 - output-slots.php (optional)
 - extension-points.php (optional)
+- logo-positions.php (optional)
 - privacy-export.php (optional)
 - privacy-cleanup.php (optional)
 - sitemap.php (optional)
@@ -877,6 +878,7 @@ return [
 - `homepage-candidates.php`: 관리자 초기화면 후보와 저장 경로 사용 가능 여부
 - `editor-options.php`: textarea 강화 에디터 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
+- `logo-positions.php`: 모듈별 로고 출력 위치 후보
 
 계약 파일 규칙:
 
@@ -958,6 +960,14 @@ return [
 - `assets_function` callable 형식은 `function (PDO $pdo, string $presetKey): string`이다.
 - 화면 소유 모듈은 저장한 editor key를 core helper에 넘기고, core helper는 활성 플러그인의 계약만 읽어 textarea 속성과 에셋 HTML을 만든다.
 
+`logo-positions.php`:
+
+- 배열 또는 callable을 반환한다.
+- 각 항목은 `position_key`, `label`, 선택 `hint`, 선택 `surface`, 선택 `max_bytes`를 제공한다.
+- `position_key`는 `module.area.name`처럼 점으로 구분한 소문자/숫자/underscore key를 사용한다.
+- 로고매니저는 이 계약을 로고 배치 생성 화면의 출력 위치 선택지로만 사용한다.
+- 실제 출력은 화면 소유 모듈이나 레이아웃이 `sr_logo_manager_render_logo($pdo, $positionKey, ...)`를 명시적으로 호출해야 한다.
+
 `privacy-export.php`:
 
 - 배열 또는 callable을 반환한다.
@@ -1036,6 +1046,7 @@ return [
 | `homepage-candidates.php` | core/admin | `candidates_function`으로 초기화면 후보 표시, `available_function`으로 저장값 사용 가능 여부 확인. `available_function`은 가능 `true`, 소유 경로의 불가 `false`, 미소유 경로 `null`을 반환 | 모듈이 제공하는 공개 초기화면 후보와 경로 검증 |
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
+| `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 출력 위치 후보 |
 
 현재 번들 모듈 기준 제공/소비 지도:
 
@@ -1047,7 +1058,7 @@ return [
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
 | `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php` |
-| `logo_manager` | `paths.php`, `admin-menu.php` | 없음 |
+| `logo_manager` | `paths.php`, `admin-menu.php` | `logo-positions.php` |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |

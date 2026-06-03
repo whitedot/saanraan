@@ -27,7 +27,7 @@
 | 회원 | `asset_exchange` | 포인트/금액 항목 간 환전 정책과 실행 로그 |
 | 회원 | `coupon` | 쿠폰·이용권 종류, 지급, 사용 이력 |
 | 사이트 | `site_menu` | 사이트 공통 메뉴 |
-| 사이트 | `logo_manager` | 기본 로고와 이벤트 로고 |
+| 사이트 | `logo_manager` | 출력 위치별 로고 배치 |
 | 사이트 | `banner` | 출력 슬롯용 배너 |
 | 사이트 | `popup_layer` | 팝업레이어 |
 | 사이트 | `seo` | robots, sitemap, SEO 보조 |
@@ -68,7 +68,7 @@
 | 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_comments`, `sr_content_link_refs`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs` |
 | 커뮤니티 | `sr_community_boards`, `sr_community_board_groups`, `sr_community_board_settings`, `sr_community_board_group_settings`, `sr_community_board_setting_sources`, `sr_community_asset_policy_sets`, `sr_community_categories`, `sr_community_series`, `sr_community_series_items`, `sr_community_series_scraps`, `sr_community_posts`, `sr_community_comments`, `sr_community_link_refs`, `sr_community_attachments`, `sr_community_reports`, `sr_community_scraps`, `sr_community_messages`, `sr_community_levels`, `sr_community_account_levels`, `sr_community_level_logs`, `sr_community_asset_logs`, `sr_community_access_entitlements` |
 | 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_point_expiration_consumptions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
-| 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_assets`, `sr_logo_manager_assignments`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
+| 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_logos`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
 | 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates` |
 
 상세 컬럼과 인덱스는 설치 SQL과 Wiki DB 명세를 정본으로 본다. 이 문서는 1.0 전 구현 표면을 빠르게 확인하기 위한 보조 문서다.

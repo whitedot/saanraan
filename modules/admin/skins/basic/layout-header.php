@@ -33,11 +33,11 @@ $adminFaviconHtml = '';
 $adminBrandIconUrl = '';
 if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
-    $adminBrandLogoHtml = sr_logo_manager_render_logo($pdo, 'admin_sidebar', $site ?? null, [
+    $adminBrandLogoHtml = sr_logo_manager_render_logo($pdo, 'admin.sidebar', $site ?? null, [
         'class' => 'admin-sidebar-brand-logo',
         'alt' => '',
     ]);
-    $adminBrandIconUrl = sr_logo_manager_active_url($pdo, 'favicon');
+    $adminBrandIconUrl = sr_logo_manager_active_url($pdo, 'public.favicon');
     $adminFaviconHtml = sr_logo_manager_favicon_link_tag($pdo);
 }
 $adminBrandInitialSource = trim((string) ($adminShell['site_title'] ?? ''));

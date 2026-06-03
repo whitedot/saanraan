@@ -2,9 +2,9 @@
 
 return [
     'name' => '로고 매니저',
-    'version' => '2026.05.002',
+    'version' => '2026.06.001',
     'type' => 'module',
-    'description' => '관리자/공개 화면의 기본 로고와 이벤트 로고를 관리합니다.',
+    'description' => '출력 위치별 로고와 적용 기간을 관리합니다.',
     'admin' => [
         'category' => 'site',
         'category_label' => '사이트',
@@ -25,6 +25,9 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+        ],
+        'consumes' => [
+            'logo-positions.php',
         ],
     ],
 ];

@@ -162,6 +162,7 @@ function sr_check_module_lifecycle_metadata(): void
         'homepage-candidates.php' => true,
         'editor-options.php' => true,
         'coupon-targets.php' => true,
+        'logo-positions.php' => true,
     ];
 
     foreach ($requiredModules as $moduleKey) {
@@ -310,6 +311,7 @@ function sr_check_module_contract_files(): void
         'homepage-candidates.php',
         'editor-options.php',
         'coupon-targets.php',
+        'logo-positions.php',
     ];
 
     foreach (sr_check_module_dirs() as $moduleDir) {
