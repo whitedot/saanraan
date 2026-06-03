@@ -39,32 +39,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="get" action="<?php echo sr_e(sr_url('/admin/community/series')); ?>" class="admin-filter admin-community-series-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-series-search-grid">
             <div class="admin-filter-field admin-community-series-filter-status">
-                <label class="admin-filter-label">상태</label>
-                <div class="btn-group">
-                    <?php foreach (sr_community_series_statuses() as $index => $status) { ?>
-                        <?php
-                        $seriesStatuses = sr_community_series_statuses();
-                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                        $inputId = 'community_series_filter_status_' . $status;
-                        ?>
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedSeriesStatuses, true) ? ' checked' : ''; ?>>
-                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_community_series_status_label($status)); ?></label>
+                <label for="community_series_filter_status" class="admin-filter-label">상태</label>
+                <select id="community_series_filter_status" name="status" class="form-select admin-filter-input">
+                    <option value="">전체</option>
+                    <?php foreach (sr_community_series_statuses() as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedSeriesStatuses, true) ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_community_series_status_label($status)); ?>
+                        </option>
                     <?php } ?>
-                </div>
+                </select>
             </div>
             <div class="admin-filter-field admin-community-series-filter-visibility">
-                <label class="admin-filter-label">공개 범위</label>
-                <div class="btn-group">
-                    <?php foreach (sr_community_series_visibility_values() as $index => $visibility) { ?>
-                        <?php
-                        $seriesVisibilities = sr_community_series_visibility_values();
-                        $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesVisibilities) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                        $inputId = 'community_series_filter_visibility_' . $visibility;
-                        ?>
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="visibility[]" value="<?php echo sr_e($visibility); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' checked' : ''; ?>>
-                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e(sr_community_series_visibility_label($visibility)); ?></label>
+                <label for="community_series_filter_visibility" class="admin-filter-label">공개 범위</label>
+                <select id="community_series_filter_visibility" name="visibility" class="form-select admin-filter-input">
+                    <option value="">전체</option>
+                    <?php foreach (sr_community_series_visibility_values() as $visibility) { ?>
+                        <option value="<?php echo sr_e($visibility); ?>"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_community_series_visibility_label($visibility)); ?>
+                        </option>
                     <?php } ?>
-                </div>
+                </select>
             </div>
             <div class="admin-filter-field admin-community-series-filter-field">
             <label for="community_series_filter_field" class="admin-filter-label">검색 대상</label>

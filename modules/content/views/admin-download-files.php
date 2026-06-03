@@ -123,20 +123,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter admin-content-download-file-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-download-file-search-grid admin-content-filter-stack">
                     <div class="admin-filter-field admin-content-download-file-filter-status">
-                        <label class="admin-filter-label">상태</label>
-                        <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
-                            <?php foreach (['active' => '사용', 'hidden' => '숨김'] as $index => $label) { ?>
-                                <?php
-                                $status = (string) $index;
-                                $inputId = 'content_download_file_filter_status_' . $status;
-                                $groupClass = $status === 'active' ? 'btn-group-start' : 'btn-group-end';
-                                ?>
-                                <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
-                                    <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedDownloadFileStatuses, true) ? ' checked' : ''; ?>>
+                        <label for="content_download_file_filter_status" class="admin-filter-label">상태</label>
+                        <select id="content_download_file_filter_status" name="status" class="form-select admin-filter-input">
+                            <option value="">전체</option>
+                            <?php foreach (['active' => '사용', 'hidden' => '숨김'] as $status => $label) { ?>
+                                <option value="<?php echo sr_e((string) $status); ?>"<?php echo in_array((string) $status, $selectedDownloadFileStatuses, true) ? ' selected' : ''; ?>>
                                     <?php echo sr_e($label); ?>
-                                </label>
+                                </option>
                             <?php } ?>
-                        </div>
+                        </select>
                     </div>
                     <div class="admin-filter-field admin-content-download-file-filter-keyword">
                         <label for="content_download_file_filter_q" class="admin-filter-label">검색</label>

@@ -894,6 +894,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .admin-filter-label {
     color: var(--text-muted);
     font-size: var(--type-meta-size);
+    font-weight: var(--font-weight-semibold);
     line-height: var(--type-meta-line-height);
 }
 
@@ -939,11 +940,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: 100%;
 }
 
-.admin-audit-search-grid fieldset.admin-filter-field {
-    border: 0;
-    margin: 0;
-    padding: 0;
-}
 
 .admin-audit-search-grid .admin-audit-check-list {
     align-items: center;

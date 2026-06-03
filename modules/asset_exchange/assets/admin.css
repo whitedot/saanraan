@@ -37,26 +37,6 @@
     width: fit-content;
 }
 
-.admin-asset-exchange-search-grid .admin-asset-exchange-filter-button-group {
-    max-width: min(22rem, calc(100vw - 2rem));
-    overflow-x: auto;
-    width: fit-content;
-}
-
-.admin-asset-exchange-search-grid .admin-asset-exchange-filter-button-group .btn {
-    white-space: nowrap;
-}
-
-.admin-asset-exchange-log-search-grid .admin-asset-exchange-filter-button-group {
-    max-width: min(24rem, calc(100vw - 2rem));
-    overflow-x: auto;
-    width: fit-content;
-}
-
-.admin-asset-exchange-log-search-grid .admin-asset-exchange-filter-button-group .btn {
-    white-space: nowrap;
-}
-
 .admin-asset-exchange-log-filter-keyword {
     min-width: 16rem;
     width: auto;
@@ -82,8 +62,6 @@
     .admin-filter-grid.admin-asset-exchange-log-search-grid,
     .admin-asset-exchange-search-grid .admin-filter-field,
     .admin-asset-exchange-log-search-grid .admin-filter-field,
-    .admin-asset-exchange-search-grid .admin-asset-exchange-filter-button-group,
-    .admin-asset-exchange-log-search-grid .admin-asset-exchange-filter-button-group,
     .admin-asset-exchange-log-filter-keyword,
     .admin-asset-exchange-search-grid .admin-filter-submit {
         width: 100%;
@@ -92,11 +70,6 @@
     .admin-filter-grid.admin-asset-exchange-search-grid,
     .admin-filter-grid.admin-asset-exchange-log-search-grid {
         grid-template-columns: 1fr;
-    }
-
-    .admin-asset-exchange-search-grid .admin-asset-exchange-filter-button-group,
-    .admin-asset-exchange-log-search-grid .admin-asset-exchange-filter-button-group {
-        max-width: none;
     }
 
     .admin-asset-exchange-log-search-grid .admin-filter-submit {

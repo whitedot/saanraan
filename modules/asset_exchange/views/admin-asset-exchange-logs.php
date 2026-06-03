@@ -11,38 +11,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange/logs')); ?>" class="admin-filter admin-asset-exchange-log-filter ui-form-theme">
     <div class="admin-filter-grid admin-asset-exchange-log-search-grid">
         <div class="admin-filter-field admin-asset-exchange-log-filter-status">
-            <label class="admin-filter-label">상태</label>
-            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="상태">
-                <?php $logStatusValues = array_keys($logStatusLabels); ?>
+            <label for="asset_exchange_log_filter_status" class="admin-filter-label">상태</label>
+            <select id="asset_exchange_log_filter_status" name="status" class="form-select admin-filter-input">
+                <option value="">전체</option>
                 <?php foreach ($logStatusLabels as $status => $label) { ?>
-                    <?php $statusIndex = array_search($status, $logStatusValues, true); ?>
-                    <?php $groupClass = $statusIndex === 0 ? 'btn-group-start' : ($statusIndex === count($logStatusValues) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                    <?php $inputId = 'asset_exchange_log_filter_status_' . (string) $status; ?>
-                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e((string) $status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array((string) $status, $selectedLogStatuses, true) ? ' checked' : ''; ?>>
+                    <option value="<?php echo sr_e((string) $status); ?>"<?php echo in_array((string) $status, $selectedLogStatuses, true) ? ' selected' : ''; ?>>
                         <?php echo sr_e((string) $label); ?>
-                    </label>
+                    </option>
                 <?php } ?>
-            </div>
+            </select>
         </div>
         <div class="admin-filter-field admin-asset-exchange-log-filter-asset">
-            <label class="admin-filter-label">항목</label>
-            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="항목">
-                <?php $assetFilterIndex = 0; ?>
-                <?php $assetFilterCount = count($assets); ?>
+            <label for="asset_exchange_log_filter_asset" class="admin-filter-label">항목</label>
+            <select id="asset_exchange_log_filter_asset" name="asset" class="form-select admin-filter-input">
+                <option value="">전체</option>
                 <?php foreach ($assets as $asset) { ?>
-                    <?php
-                    $moduleKey = (string) ($asset['module_key'] ?? '');
-                    $inputId = 'asset_exchange_log_filter_asset_' . preg_replace('/[^a-z0-9_\-]/', '_', $moduleKey);
-                    $groupClass = $assetFilterIndex === 0 ? 'btn-group-start' : ($assetFilterIndex === $assetFilterCount - 1 ? 'btn-group-end' : 'btn-group-middle');
-                    $assetFilterIndex++;
-                    ?>
-                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="asset[]" value="<?php echo sr_e($moduleKey); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($moduleKey, $selectedLogAssets, true) ? ' checked' : ''; ?>>
+                    <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
+                    <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $selectedLogAssets, true) ? ' selected' : ''; ?>>
                         <?php echo sr_e((string) ($asset['label'] ?? $moduleKey)); ?>
-                    </label>
+                    </option>
                 <?php } ?>
-            </div>
+            </select>
         </div>
         <div class="admin-filter-field admin-asset-exchange-log-filter-field">
             <label for="asset_exchange_log_filter_field" class="admin-filter-label">검색 대상</label>

@@ -159,58 +159,39 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-filter admin-asset-exchange-filter ui-form-theme">
     <div class="admin-filter-grid admin-asset-exchange-search-grid">
         <div class="admin-filter-field admin-asset-exchange-filter-status">
-            <label class="admin-filter-label">상태</label>
-            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="상태">
-                <?php $policyStatusValues = array_keys($policyStatusLabels); ?>
-                <?php foreach ($policyStatusLabels as $index => $label) { ?>
-                    <?php
-                    $value = (string) $index;
-                    $groupClass = array_search($value, $policyStatusValues, true) === 0 ? 'btn-group-start' : ($value === end($policyStatusValues) ? 'btn-group-end' : 'btn-group-middle');
-                    ?>
-                    <?php $inputId = 'asset_exchange_filter_status_' . (string) $value; ?>
-                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($value); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($value, $policyFilters['status'], true) ? ' checked' : ''; ?>>
+            <label for="asset_exchange_filter_status" class="admin-filter-label">상태</label>
+            <select id="asset_exchange_filter_status" name="status" class="form-select admin-filter-input">
+                <option value="">전체</option>
+                <?php foreach ($policyStatusLabels as $value => $label) { ?>
+                    <option value="<?php echo sr_e((string) $value); ?>"<?php echo in_array((string) $value, $policyFilters['status'], true) ? ' selected' : ''; ?>>
                         <?php echo sr_e($label); ?>
-                    </label>
+                    </option>
                 <?php } ?>
-            </div>
+            </select>
         </div>
         <div class="admin-filter-field admin-asset-exchange-filter-from">
-            <label class="admin-filter-label">출금 항목</label>
-            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="출금 항목">
-                <?php $policyFilterOptionCount = count($policyFilterOptions); ?>
-                <?php $policyFilterOptionIndex = 0; ?>
+            <label for="asset_exchange_filter_from" class="admin-filter-label">출금 항목</label>
+            <select id="asset_exchange_filter_from" name="from_module_key" class="form-select admin-filter-input">
+                <option value="">전체</option>
                 <?php foreach ($policyFilterOptions as $asset) { ?>
-                    <?php
-                    $moduleKey = (string) ($asset['module_key'] ?? '');
-                    $inputId = 'asset_exchange_filter_from_' . preg_replace('/[^a-z0-9_\-]/', '_', $moduleKey);
-                    $groupClass = $policyFilterOptionIndex === 0 ? 'btn-group-start' : ($policyFilterOptionIndex === $policyFilterOptionCount - 1 ? 'btn-group-end' : 'btn-group-middle');
-                    $policyFilterOptionIndex++;
-                    ?>
-                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="from_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' checked' : ''; ?>>
+                    <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
+                    <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' selected' : ''; ?>>
                         <?php echo sr_e((string) $asset['label']); ?>
-                    </label>
+                    </option>
                 <?php } ?>
-            </div>
+            </select>
         </div>
         <div class="admin-filter-field admin-asset-exchange-filter-to">
-            <label class="admin-filter-label">입금 항목</label>
-            <div class="btn-group admin-asset-exchange-filter-button-group" role="group" aria-label="입금 항목">
-                <?php $policyFilterOptionIndex = 0; ?>
+            <label for="asset_exchange_filter_to" class="admin-filter-label">입금 항목</label>
+            <select id="asset_exchange_filter_to" name="to_module_key" class="form-select admin-filter-input">
+                <option value="">전체</option>
                 <?php foreach ($policyFilterOptions as $asset) { ?>
-                    <?php
-                    $moduleKey = (string) ($asset['module_key'] ?? '');
-                    $inputId = 'asset_exchange_filter_to_' . preg_replace('/[^a-z0-9_\-]/', '_', $moduleKey);
-                    $groupClass = $policyFilterOptionIndex === 0 ? 'btn-group-start' : ($policyFilterOptionIndex === $policyFilterOptionCount - 1 ? 'btn-group-end' : 'btn-group-middle');
-                    $policyFilterOptionIndex++;
-                    ?>
-                    <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="to_module_key[]" value="<?php echo sr_e($moduleKey); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' checked' : ''; ?>>
+                    <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
+                    <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' selected' : ''; ?>>
                         <?php echo sr_e((string) $asset['label']); ?>
-                    </label>
+                    </option>
                 <?php } ?>
-            </div>
+            </select>
         </div>
         <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>

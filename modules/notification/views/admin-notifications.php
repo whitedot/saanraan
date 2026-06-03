@@ -69,34 +69,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter admin-notification-delivery-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-delivery-search-grid">
                 <div class="admin-filter-field admin-notification-delivery-filter-channel">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
-                    <div class="btn-group">
-                        <?php foreach ($allowedDeliveryChannels as $index => $channel) { ?>
-                            <?php
-                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedDeliveryChannels) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            $inputId = 'notification_admin_delivery_channel_filter_' . $channel;
-                            ?>
-                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="delivery_channel[]" value="<?php echo sr_e($channel); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($channel, $selectedDeliveryChannels, true) ? ' checked' : ''; ?>>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                                <?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?>
-                            </label>
+                    <label for="notification_admin_delivery_channel_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
+                    <select id="notification_admin_delivery_channel_filter" name="delivery_channel" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedDeliveryChannels as $channel) { ?>
+                            <option value="<?php echo sr_e($channel); ?>"<?php echo in_array($channel, $selectedDeliveryChannels, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?></option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-notification-delivery-filter-status">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.3d8c9ee7')); ?></label>
-                    <div class="btn-group">
-                        <?php foreach ($allowedDeliveryStatuses as $index => $status) { ?>
-                            <?php
-                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedDeliveryStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            $inputId = 'notification_admin_delivery_status_filter_' . $status;
-                            ?>
-                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="delivery_status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedDeliveryStatuses, true) ? ' checked' : ''; ?>>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                                <?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?>
-                            </label>
+                    <label for="notification_admin_delivery_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.3d8c9ee7')); ?></label>
+                    <select id="notification_admin_delivery_status_filter" name="delivery_status" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedDeliveryStatuses as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedDeliveryStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?></option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-notification-delivery-filter-field">
                 <label for="notification_admin_delivery_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>
@@ -203,34 +191,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter admin-notification-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-search-grid">
                 <div class="admin-filter-field admin-notification-filter-audience">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>
-                    <div class="btn-group">
-                        <?php foreach ($allowedAudiences as $index => $audience) { ?>
-                            <?php
-                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedAudiences) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            $inputId = 'notification_admin_audience_filter_' . $audience;
-                            ?>
-                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="audience[]" value="<?php echo sr_e($audience); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($audience, $selectedNotificationAudiences, true) ? ' checked' : ''; ?>>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                                <?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?>
-                            </label>
+                    <label for="notification_admin_audience_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>
+                    <select id="notification_admin_audience_filter" name="audience" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedAudiences as $audience) { ?>
+                            <option value="<?php echo sr_e($audience); ?>"<?php echo in_array($audience, $selectedNotificationAudiences, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-notification-filter-status">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></label>
-                    <div class="btn-group">
-                        <?php foreach ($allowedNotificationStatuses as $index => $status) { ?>
-                            <?php
-                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedNotificationStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            $inputId = 'notification_admin_status_filter_' . $status;
-                            ?>
-                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedNotificationStatuses, true) ? ' checked' : ''; ?>>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                                <?php echo sr_e(sr_admin_code_label($status, 'notification_status')); ?>
-                            </label>
+                    <label for="notification_admin_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></label>
+                    <select id="notification_admin_status_filter" name="status" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedNotificationStatuses as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedNotificationStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'notification_status')); ?></option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-notification-filter-field">
                 <label for="notification_admin_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>

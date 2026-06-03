@@ -253,16 +253,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter admin-member-filter ui-form-theme">
     <div class="admin-filter-grid admin-member-search-grid">
                 <div class="admin-filter-field admin-member-filter-status">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
-                    <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?>">
-                        <?php foreach ($allowedStatuses as $index => $status) { ?>
-                            <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="admin-status-filter-<?php echo sr_e($status); ?>">
-                                <input id="admin-status-filter-<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedMemberStatuses, true) ? ' checked' : ''; ?>>
+                    <label for="admin-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
+                    <select id="admin-status-filter" name="status" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('member::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedStatuses as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedMemberStatuses, true) ? ' selected' : ''; ?>>
                                 <?php echo sr_e(sr_admin_code_label($status, 'member_status')); ?>
-                            </label>
+                            </option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-member-filter-field">
                     <label for="member-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>

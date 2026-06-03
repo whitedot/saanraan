@@ -24,8 +24,6 @@
 .admin-page-member-groups .admin-member-group-rule-filter .admin-filter-field{min-width:0;width:fit-content}
 .admin-page-member-groups .admin-member-group-rule-filter-keyword{width:100%}
 .admin-page-member-groups .admin-member-group-rule-filter-keyword .admin-filter-input{width:100%}
-.admin-page-member-groups .admin-member-group-rule-filter .btn-group{max-width:min(24rem,calc(100vw - 2rem));overflow-x:auto;width:fit-content}
-.admin-page-member-groups .admin-member-group-rule-filter .btn{white-space:nowrap}
 .admin-page-member-groups .admin-member-group-rule-filter .admin-filter-submit{justify-content:center;width:fit-content}
 .admin-page-member-groups .admin-member-group-table{table-layout:auto}
 .admin-page-member-groups .admin-member-group-table th,.admin-page-member-groups .admin-member-group-table td{overflow:hidden;text-overflow:ellipsis}
@@ -57,7 +55,7 @@
     .admin-page-member-groups .admin-member-group-search-grid{grid-template-columns:1fr}
     .admin-page-member-groups .admin-member-group-filter-keyword{grid-column:auto}
     .admin-page-member-groups .admin-member-group-rule-search-grid{grid-template-columns:1fr}
-    .admin-page-member-groups .admin-member-group-rule-filter .admin-filter-field,.admin-page-member-groups .admin-member-group-rule-filter .admin-filter-input,.admin-page-member-groups .admin-member-group-rule-filter .btn-group{width:100%;max-width:100%}
+    .admin-page-member-groups .admin-member-group-rule-filter .admin-filter-field,.admin-page-member-groups .admin-member-group-rule-filter .admin-filter-input{width:100%;max-width:100%}
     .admin-page-member-groups .admin-member-group-rule-filter-keyword{grid-column:auto}
     .admin-page-member-groups .admin-member-group-table :is(th,td:not(.admin-empty-state)):nth-child(1){display:none}
 }

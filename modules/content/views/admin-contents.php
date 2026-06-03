@@ -670,19 +670,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="card-filtering<?php echo $contentDetailFilterOpen ? ' card-filtering-open' : ''; ?>" data-card-filtering>
                 <div class="card-filtering-basic">
                     <div class="admin-filter-field admin-content-filter-status">
-                        <label class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>
-                        <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="<?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?>">
-                            <?php foreach (sr_content_allowed_statuses() as $index => $status) { ?>
-                                <?php
-                                $inputId = 'modules_content_admin_contents_status_' . $status;
-                                $groupClass = $index === 0 ? 'btn-group-start' : ($index === count(sr_content_allowed_statuses()) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                                ?>
-                                <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
-                                    <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedContentStatuses, true) ? ' checked' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </label>
+                        <label for="modules_content_admin_contents_status" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>
+                        <select id="modules_content_admin_contents_status" name="status" class="form-select admin-filter-input">
+                            <option value=""><?php echo sr_e(sr_t('content::ui.all.a4b69faf')); ?></option>
+                            <?php foreach (sr_content_allowed_statuses() as $status) { ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedContentStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                             <?php } ?>
-                        </div>
+                        </select>
                     </div>
                     <div class="admin-filter-field admin-content-filter-field">
                         <label for="modules_content_admin_contents_field" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.b79bc9c8')); ?></label>

@@ -29,20 +29,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="get" action="<?php echo sr_e(sr_url('/admin/rewards/withdrawal-requests')); ?>" class="admin-filter admin-reward-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-reward-request-filter-grid">
             <div class="admin-filter-field admin-reward-request-filter-status">
-                <label class="admin-filter-label">상태</label>
-                <div class="btn-group">
-                <?php foreach ($requestStatusValues as $requestStatusIndex => $statusValue) { ?>
-                    <?php
-                    $statusLabel = (string) $requestStatusOptions[$statusValue];
-                    $statusGroupClass = $requestStatusIndex === 0
-                        ? 'btn-group-start'
-                        : ($requestStatusIndex === $requestStatusCount - 1 ? 'btn-group-end' : 'btn-group-middle');
-                    $inputId = 'reward-withdrawal-status-' . $statusValue;
-                    ?>
-                    <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($statusValue); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($statusValue, $statusFilter, true) ? ' checked' : ''; ?>>
-                    <label class="btn btn-choice-light <?php echo sr_e($statusGroupClass); ?>" for="<?php echo sr_e($inputId); ?>"><?php echo sr_e($statusLabel); ?></label>
-                <?php } ?>
-                </div>
+                <label for="reward-withdrawal-status" class="admin-filter-label">상태</label>
+                <select id="reward-withdrawal-status" name="status" class="form-select admin-filter-input">
+                    <option value="">전체</option>
+                    <?php foreach ($requestStatusValues as $statusValue) { ?>
+                        <option value="<?php echo sr_e($statusValue); ?>"<?php echo in_array($statusValue, $statusFilter, true) ? ' selected' : ''; ?>><?php echo sr_e((string) $requestStatusOptions[$statusValue]); ?></option>
+                    <?php } ?>
+                </select>
             </div>
             <div class="admin-filter-field admin-reward-request-filter-field">
             <label for="reward-withdrawal-search-field" class="admin-filter-label">검색 조건</label>

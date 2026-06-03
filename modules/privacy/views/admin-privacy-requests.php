@@ -37,28 +37,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-filter admin-privacy-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-privacy-request-search-grid">
                 <div class="admin-filter-field">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></label>
-                    <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?>">
-                        <?php foreach ($allowedStatuses as $index => $status) { ?>
-                            <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="privacy_request_status_<?php echo sr_e($status); ?>">
-                                <input id="privacy_request_status_<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedPrivacyRequestStatuses, true) ? ' checked' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
-                            </label>
+                    <label for="privacy_request_status" class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></label>
+                    <select id="privacy_request_status" name="status" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('privacy::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedStatuses as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedPrivacyRequestStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?></option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?></label>
-                    <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?>">
-                        <?php foreach ($allowedTypes as $index => $requestType) { ?>
-                            <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedTypes) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="privacy_request_type_<?php echo sr_e($requestType); ?>">
-                                <input id="privacy_request_type_<?php echo sr_e($requestType); ?>" type="checkbox" name="request_type[]" value="<?php echo sr_e($requestType); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($requestType, $selectedPrivacyRequestTypes, true) ? ' checked' : ''; ?>>
-                                <?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?>
-                            </label>
+                    <label for="privacy_request_type" class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?></label>
+                    <select id="privacy_request_type" name="request_type" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('privacy::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedTypes as $requestType) { ?>
+                            <option value="<?php echo sr_e($requestType); ?>"<?php echo in_array($requestType, $selectedPrivacyRequestTypes, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field">
                     <label for="privacy_request_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.search.b79bc9c8')); ?></label>

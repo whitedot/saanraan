@@ -18,17 +18,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/community/asset-policy-sets')); ?>" class="admin-filter admin-community-asset-policy-set-filter ui-form-theme">
         <div class="admin-filter-grid admin-community-asset-policy-set-search-grid">
             <div class="admin-filter-field">
-                <label class="admin-filter-label">상태</label>
-                <div class="btn-group" role="group" aria-label="상태">
-                    <?php $policySetStatuses = sr_community_asset_policy_set_statuses(); ?>
-                    <?php foreach ($policySetStatuses as $index => $status) { ?>
-                        <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($policySetStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="community_policy_set_status_filter_<?php echo sr_e($status); ?>">
-                            <input id="community_policy_set_status_filter_<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedPolicySetStatuses, true) ? ' checked' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </label>
+                <label for="community_policy_set_status_filter" class="admin-filter-label">상태</label>
+                <select id="community_policy_set_status_filter" name="status" class="form-select admin-filter-input">
+                    <option value="">전체</option>
+                    <?php foreach (sr_community_asset_policy_set_statuses() as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedPolicySetStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                     <?php } ?>
-                </div>
+                </select>
             </div>
             <div class="admin-filter-field">
                 <label for="community_policy_set_filter_field" class="admin-filter-label">검색 대상</label>

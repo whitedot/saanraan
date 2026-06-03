@@ -67,19 +67,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-filter admin-content-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-group-search-grid admin-content-filter-stack">
                     <div class="admin-filter-field">
-                        <label class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>
-                        <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="<?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?>">
-                            <?php foreach ($allowedGroupStatuses as $index => $status) { ?>
-                                <?php
-                                $inputId = 'content_admin_groups_status_filter_' . $status;
-                                $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedGroupStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                                ?>
-                                <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
-                                    <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedGroupStatuses, true) ? ' checked' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </label>
+                        <label for="content_admin_groups_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>
+                        <select id="content_admin_groups_status_filter" name="status" class="form-select admin-filter-input">
+                            <option value=""><?php echo sr_e(sr_t('content::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($allowedGroupStatuses as $status) { ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedGroupStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                             <?php } ?>
-                        </div>
+                        </select>
                     </div>
                     <div class="admin-filter-field">
                         <label for="content_admin_groups_field" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.search.b79bc9c8')); ?></label>

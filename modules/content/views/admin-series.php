@@ -54,36 +54,28 @@ $selectedSeriesVisibilities = is_array($seriesFilters['visibility'] ?? null) ? $
 <form method="get" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-filter admin-content-series-filter ui-form-theme">
     <div class="admin-filter-grid admin-content-series-search-grid admin-content-filter-stack">
                 <div class="admin-filter-field admin-content-series-filter-status">
-                    <label class="admin-filter-label">상태</label>
-                    <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
+                    <label for="content_series_filter_status" class="admin-filter-label">상태</label>
+                    <select id="content_series_filter_status" name="status" class="form-select admin-filter-input">
+                        <option value="">전체</option>
                         <?php $seriesStatuses = sr_content_series_statuses(); ?>
-                        <?php foreach ($seriesStatuses as $index => $status) { ?>
-                            <?php
-                            $inputId = 'content_series_filter_status_' . $status;
-                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            ?>
-                            <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
-                                <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedSeriesStatuses, true) ? ' checked' : ''; ?>>
+                        <?php foreach ($seriesStatuses as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedSeriesStatuses, true) ? ' selected' : ''; ?>>
                                 <?php echo sr_e(sr_content_series_status_label($status)); ?>
-                            </label>
+                            </option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-content-series-filter-visibility">
-                    <label class="admin-filter-label">공개 범위</label>
-                    <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="공개 범위">
+                    <label for="content_series_filter_visibility" class="admin-filter-label">공개 범위</label>
+                    <select id="content_series_filter_visibility" name="visibility" class="form-select admin-filter-input">
+                        <option value="">전체</option>
                         <?php $seriesVisibilities = sr_content_series_visibility_values(); ?>
-                        <?php foreach ($seriesVisibilities as $index => $visibility) { ?>
-                            <?php
-                            $inputId = 'content_series_filter_visibility_' . $visibility;
-                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesVisibilities) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            ?>
-                            <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
-                                <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="visibility[]" value="<?php echo sr_e($visibility); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' checked' : ''; ?>>
+                        <?php foreach ($seriesVisibilities as $visibility) { ?>
+                            <option value="<?php echo sr_e($visibility); ?>"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' selected' : ''; ?>>
                                 <?php echo sr_e(sr_content_series_visibility_label($visibility)); ?>
-                            </label>
+                            </option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-content-series-filter-field">
                     <label for="content_series_filter_field" class="admin-filter-label">검색 대상</label>

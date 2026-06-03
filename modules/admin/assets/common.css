@@ -121,7 +121,6 @@ input:focus-visible + [class*=btn-choice-],[class*=btn-choice-]:has(> .form-choi
 .card-filtering-field{display:grid;gap:calc(var(--spacing) * 2);min-width:0}
 .card-filtering .card-filtering-body>:is(.card-filtering-field,.admin-filter-field){align-items:center;display:grid;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);grid-template-columns:minmax(5.5rem,8rem) minmax(0,1fr);min-inline-size:0;min-width:0}
 .card-filtering .card-filtering-body>:is(.card-filtering-field,.admin-filter-field)>:is(.form-label,.admin-filter-label),.card-filtering .card-filtering-basic>:is(.card-filtering-field,.admin-filter-field)>:is(.form-label,.admin-filter-label){color:var(--text-muted);display:block;font-size:var(--type-small-size);font-weight:var(--font-weight-semibold);line-height:var(--type-small-line-height);margin:0;min-width:0;padding:0}
-.card-filtering .card-filtering-basic>fieldset.admin-filter-field>legend.admin-filter-label{margin-block-end:calc(var(--spacing) * 2.25)}
 .card-filtering .card-filtering-body>:is(.card-filtering-field,.admin-filter-field)>:is(.form-input,.form-select,.form-textarea,.admin-filter-input,.btn-group,.admin-select-badge-list){min-width:0;width:100%}
 .card-filtering-basic{align-items:start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 3);padding:calc(var(--spacing) * 4) calc(var(--spacing) * 4) 0}
 .card-filtering .card-filtering-basic>:is(.card-filtering-field,.admin-filter-field){align-items:start;display:grid;gap:calc(var(--spacing) * 2.25);min-inline-size:0;min-width:0;width:fit-content}

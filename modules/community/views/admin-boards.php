@@ -214,19 +214,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-filter admin-community-board-filter ui-form-theme">
         <div class="admin-filter-grid admin-community-board-search-grid">
                 <div class="admin-filter-field admin-community-board-filter-status">
-                    <label class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
-                    <div class="btn-group">
-                        <?php foreach ($allowedStatuses as $index => $status) { ?>
-                            <?php
-                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            $inputId = 'community_admin_boards_status_filter_' . $status;
-                            ?>
-                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedBoardStatuses, true) ? ' checked' : ''; ?>>
-                            <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="<?php echo sr_e($inputId); ?>">
-                                <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                            </label>
+                    <label for="community_admin_boards_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
+                    <select id="community_admin_boards_status_filter" name="status" class="form-select admin-filter-input">
+                        <option value=""><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
+                        <?php foreach ($allowedStatuses as $status) { ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedBoardStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field admin-community-board-filter-group">
                 <label for="community_admin_boards_group_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></label>

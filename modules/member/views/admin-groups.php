@@ -316,16 +316,15 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="admin-filter admin-member-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-member-group-search-grid">
                     <div class="admin-filter-field">
-                        <label class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
-                        <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?>">
-                            <?php foreach ($allowedStatuses as $index => $status) { ?>
-                                <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                                <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="member-group-status-filter-<?php echo sr_e($status); ?>">
-                                    <input id="member-group-status-filter-<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedMemberGroupStatuses, true) ? ' checked' : ''; ?>>
+                        <label for="member-group-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
+                        <select id="member-group-status-filter" name="status" class="form-select admin-filter-input">
+                            <option value=""><?php echo sr_e(sr_t('member::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($allowedStatuses as $status) { ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedMemberGroupStatuses, true) ? ' selected' : ''; ?>>
                                     <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </label>
+                                </option>
                             <?php } ?>
-                        </div>
+                        </select>
                     </div>
                     <div class="admin-filter-field">
                         <label for="member-group-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
@@ -648,28 +647,26 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <form method="get" action="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="admin-filter admin-member-group-rule-filter ui-form-theme">
         <div class="admin-filter-grid admin-member-group-rule-search-grid">
             <div class="admin-filter-field">
-                <label class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
-                <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?>">
-                    <?php foreach ($allowedRuleStatuses as $index => $status) { ?>
-                        <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedRuleStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="member-group-rule-status-filter-<?php echo sr_e($status); ?>">
-                            <input id="member-group-rule-status-filter-<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedGroupRuleStatuses, true) ? ' checked' : ''; ?>>
+                <label for="member-group-rule-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
+                <select id="member-group-rule-status-filter" name="status" class="form-select admin-filter-input">
+                    <option value="">전체</option>
+                    <?php foreach ($allowedRuleStatuses as $status) { ?>
+                        <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedGroupRuleStatuses, true) ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </label>
+                        </option>
                     <?php } ?>
-                </div>
+                </select>
             </div>
             <div class="admin-filter-field">
-                <label class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></label>
-                <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?>">
-                    <?php foreach ($allowedEvaluationPolicies as $index => $policy) { ?>
-                        <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedEvaluationPolicies) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                        <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="member-group-rule-policy-filter-<?php echo sr_e($policy); ?>">
-                            <input id="member-group-rule-policy-filter-<?php echo sr_e($policy); ?>" type="checkbox" name="evaluation_policy[]" value="<?php echo sr_e($policy); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($policy, $selectedGroupRuleEvaluationPolicies, true) ? ' checked' : ''; ?>>
+                <label for="member-group-rule-policy-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></label>
+                <select id="member-group-rule-policy-filter" name="evaluation_policy" class="form-select admin-filter-input">
+                    <option value="">전체</option>
+                    <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
+                        <option value="<?php echo sr_e($policy); ?>"<?php echo in_array($policy, $selectedGroupRuleEvaluationPolicies, true) ? ' selected' : ''; ?>>
                             <?php echo sr_e(sr_admin_code_label($policy, 'evaluation_policy')); ?>
-                        </label>
+                        </option>
                     <?php } ?>
-                </div>
+                </select>
             </div>
             <div class="admin-filter-field">
                 <label for="member_group_rule_filter_group" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></label>

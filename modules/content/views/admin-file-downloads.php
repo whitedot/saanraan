@@ -24,37 +24,27 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
         <div class="card-filtering<?php echo $downloadLogDetailFilterOpen ? ' card-filtering-open' : ''; ?>" data-card-filtering>
             <div class="card-filtering-basic">
                 <div class="admin-filter-field">
-                    <label class="admin-filter-label">구분</label>
-                    <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="구분">
+                    <label for="content_file_download_filter_type" class="admin-filter-label">구분</label>
+                    <select id="content_file_download_filter_type" name="download_type" class="form-select admin-filter-input">
+                        <option value="">전체</option>
                         <?php foreach (['free' => '무료', 'paid' => '유료'] as $downloadType => $downloadTypeLabel) { ?>
-                            <?php
-                            $inputId = 'content_file_download_filter_type_' . $downloadType;
-                            $groupClass = $downloadType === 'free' ? 'btn-group-start' : 'btn-group-end';
-                            ?>
-                            <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
-                                <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="download_type[]" value="<?php echo sr_e($downloadType); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($downloadType, $selectedDownloadTypes, true) ? ' checked' : ''; ?>>
+                            <option value="<?php echo sr_e($downloadType); ?>"<?php echo in_array($downloadType, $selectedDownloadTypes, true) ? ' selected' : ''; ?>>
                                 <?php echo sr_e($downloadTypeLabel); ?>
-                            </label>
+                            </option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <div class="admin-filter-field">
-                    <label class="admin-filter-label">환불 상태</label>
-                    <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="환불 상태">
+                    <label for="content_file_download_filter_refund_status" class="admin-filter-label">환불 상태</label>
+                    <select id="content_file_download_filter_refund_status" name="refund_status" class="form-select admin-filter-input">
+                        <option value="">전체</option>
                         <?php $refundStatusOptions = ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수']; ?>
-                        <?php foreach ($refundStatusOptions as $index => $refundStatusLabel) { ?>
-                            <?php
-                            $refundStatus = (string) $index;
-                            $optionIndex = array_search($refundStatus, array_keys($refundStatusOptions), true);
-                            $groupClass = $optionIndex === 0 ? 'btn-group-start' : ($optionIndex === count($refundStatusOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            $inputId = 'content_file_download_filter_refund_status_' . $refundStatus;
-                            ?>
-                            <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
-                                <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="refund_status[]" value="<?php echo sr_e($refundStatus); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($refundStatus, $selectedRefundStatuses, true) ? ' checked' : ''; ?>>
+                        <?php foreach ($refundStatusOptions as $refundStatus => $refundStatusLabel) { ?>
+                            <option value="<?php echo sr_e((string) $refundStatus); ?>"<?php echo in_array((string) $refundStatus, $selectedRefundStatuses, true) ? ' selected' : ''; ?>>
                                 <?php echo sr_e($refundStatusLabel); ?>
-                            </label>
+                            </option>
                         <?php } ?>
-                    </div>
+                    </select>
                 </div>
                 <label class="admin-filter-field card-filtering-field-fill" for="content_file_download_filter_q">
                     <label class="admin-filter-label">검색</label>

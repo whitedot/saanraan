@@ -229,33 +229,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-filter admin-popup-layer-filter ui-form-theme">
         <div class="admin-filter-grid admin-popup-layer-search-grid">
                     <div class="admin-filter-field admin-popup-layer-filter-status">
-                        <label class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></label>
-                        <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?>">
-                            <?php foreach ($allowedStatuses as $index => $status) { ?>
-                                <?php $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($allowedStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle'); ?>
-                                <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="modules_popup_layer_admin_popup_layers_status_filter_<?php echo sr_e($status); ?>">
-                                    <input id="modules_popup_layer_admin_popup_layers_status_filter_<?php echo sr_e($status); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedPopupStatuses, true) ? ' checked' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </label>
+                        <label for="modules_popup_layer_admin_popup_layers_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></label>
+                        <select id="modules_popup_layer_admin_popup_layers_status_filter" name="status" class="form-select admin-filter-input">
+                            <option value=""><?php echo sr_e(sr_t('popup_layer::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($allowedStatuses as $status) { ?>
+                                <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedPopupStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                             <?php } ?>
-                        </div>
+                        </select>
                     </div>
                     <div class="admin-filter-field admin-popup-layer-filter-target">
-                        <label class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></label>
-                        <div class="btn-group" role="group" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?>">
+                        <label for="modules_popup_layer_admin_popup_layers_target_filter" class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></label>
+                        <select id="modules_popup_layer_admin_popup_layers_target_filter" name="target" class="form-select admin-filter-input">
+                            <option value=""><?php echo sr_e(sr_t('popup_layer::ui.all.a4b69faf')); ?></option>
                             <?php $popupTargetOptions = [[sr_popup_layer_public_target_option_value(), sr_t('popup_layer::ui.text.11677edb')]]; ?>
                             <?php foreach ($availableTargets as $target) { $popupTargetOptions[] = [sr_popup_layer_target_option_value($target), sr_popup_layer_target_option_label($target)]; } ?>
-                            <?php foreach ($popupTargetOptions as $index => $targetOption) { ?>
-                                <?php
-                                $targetValue = (string) $targetOption[0];
-                                $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($popupTargetOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                                ?>
-                                <label class="btn btn-choice-light <?php echo sr_e($groupClass); ?>" for="modules_popup_layer_admin_popup_layers_target_filter_<?php echo sr_e((string) $index); ?>">
-                                    <input id="modules_popup_layer_admin_popup_layers_target_filter_<?php echo sr_e((string) $index); ?>" type="checkbox" name="target[]" value="<?php echo sr_e($targetValue); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($targetValue, $selectedPopupTargets, true) ? ' checked' : ''; ?>>
-                                    <?php echo sr_e((string) $targetOption[1]); ?>
-                                </label>
+                            <?php foreach ($popupTargetOptions as $targetOption) { ?>
+                                <?php $targetValue = (string) $targetOption[0]; ?>
+                                <option value="<?php echo sr_e($targetValue); ?>"<?php echo in_array($targetValue, $selectedPopupTargets, true) ? ' selected' : ''; ?>><?php echo sr_e((string) $targetOption[1]); ?></option>
                             <?php } ?>
-                        </div>
+                        </select>
                     </div>
                     <div class="admin-filter-field admin-popup-layer-filter-field">
                         <label for="modules_popup_layer_admin_popup_layers_field" class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.search.b79bc9c8')); ?></label>
