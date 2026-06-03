@@ -212,13 +212,14 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
     <?php
 };
 
-$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions): void {
+$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuIconOptions, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions): void {
     $editingItem = is_array($item);
     $itemId = $editingItem ? (int) ($item['id'] ?? 0) : 0;
     $itemMenuId = $editingItem ? (int) ($item['menu_id'] ?? $menuId) : $menuId;
     $itemParentId = $editingItem ? (int) ($item['parent_id'] ?? 0) : $parentId;
     $label = $editingItem ? (string) ($item['label'] ?? '') : '';
     $url = $editingItem ? (string) ($item['url'] ?? '/') : '/';
+    $iconName = $editingItem ? (string) ($item['icon_name'] ?? '') : '';
     $targetValue = $editingItem ? (string) ($item['target'] ?? 'self') : 'self';
     $statusValue = $editingItem ? (string) ($item['status'] ?? 'enabled') : 'enabled';
     $sortOrder = $editingItem ? (int) ($item['sort_order'] ?? $defaultSortOrder) : $defaultSortOrder;
@@ -278,6 +279,17 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
                             <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" required data-site-menu-url-input>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_icon_name"><?php echo sr_e(sr_t('site_menu::ui.icon.8b29d6ef')); ?></label>
+                        <div class="admin-form-field">
+                            <select id="<?php echo sr_e($modalId); ?>_icon_name" name="icon_name" class="form-select">
+                                <option value=""<?php echo $iconName === '' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('site_menu::ui.icon.none.9445f03f')); ?></option>
+                                <?php foreach ($siteMenuIconOptions as $optionIconName => $_enabled) { ?>
+                                    <option value="<?php echo sr_e((string) $optionIconName); ?>"<?php echo $iconName === (string) $optionIconName ? ' selected' : ''; ?>><?php echo sr_e((string) $optionIconName); ?></option>
+                                <?php } ?>
+                            </select>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -399,7 +411,12 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                     <div class="admin-menu-target admin-menu-target-depth-<?php echo sr_e((string) $rowDepth); ?>">
                                         <span class="admin-menu-tree-branch" aria-hidden="true"></span>
                                         <span class="admin-menu-target-copy">
-                                            <span class="admin-menu-target-label"><?php echo sr_e((string) $row['label']); ?></span>
+                                            <span class="admin-menu-target-label">
+                                                <?php if (trim((string) ($row['icon_name'] ?? '')) !== '' && sr_site_menu_icon_allowed($pdo, (string) $row['icon_name'])) { ?>
+                                                    <?php echo sr_icon(sr_admin_icon_material_name($pdo, (string) $row['icon_name']), 'admin-site-menu-target-icon'); ?>
+                                                <?php } ?>
+                                                <span><?php echo sr_e((string) $row['label']); ?></span>
+                                            </span>
                                             <span class="admin-menu-target-context"><?php echo sr_e((string) $row['menu_key']); ?></span>
                                         </span>
                                     </div>

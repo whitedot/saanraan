@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS sr_site_menu_items (
     parent_id BIGINT UNSIGNED NULL,
     label VARCHAR(120) NOT NULL,
     url VARCHAR(255) NOT NULL,
+    icon_name VARCHAR(80) NOT NULL DEFAULT '',
     target VARCHAR(20) NOT NULL DEFAULT 'self',
     status VARCHAR(30) NOT NULL DEFAULT 'enabled',
     sort_order INT NOT NULL DEFAULT 100,

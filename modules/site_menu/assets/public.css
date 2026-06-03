@@ -16,6 +16,17 @@
     position: relative;
 }
 
+.sr-site-menu-item > a {
+    align-items: center;
+    gap: .35em;
+    display: inline-flex;
+}
+
+.sr-site-menu-link-icon {
+    font-size: 1.1em;
+    line-height: 1;
+}
+
 .sr-site-menu-item > .sr-site-menu-list {
     display: none;
     min-width: 11rem;

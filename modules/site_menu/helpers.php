@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/admin/helpers.php';
+
 function sr_site_menu_clean_key(string $value): string
 {
     $value = strtolower(trim($value));
@@ -41,6 +43,41 @@ function sr_site_menu_layout_slot_menu_key(string $slotKey): string
     ];
 
     return (string) ($map[$slotKey] ?? '');
+}
+
+function sr_site_menu_icon_allowed(PDO $pdo, string $name): bool
+{
+    $name = trim($name);
+    if (sr_admin_menu_symbol_allowed($name)) {
+        return true;
+    }
+
+    $custom = sr_admin_icon_custom_map($pdo)[$name] ?? null;
+    return is_array($custom) && (string) ($custom['type'] ?? 'material') === 'material';
+}
+
+function sr_site_menu_icon_options(PDO $pdo): array
+{
+    $allowed = sr_admin_allowed_menu_symbol_icons();
+    foreach (sr_admin_icon_custom_map($pdo) as $name => $custom) {
+        $name = trim((string) $name);
+        if (sr_admin_custom_icon_key_is_valid($name) && is_array($custom) && (string) ($custom['type'] ?? 'material') === 'material') {
+            $allowed[$name] = true;
+        }
+    }
+    ksort($allowed, SORT_STRING);
+
+    return $allowed;
+}
+
+function sr_site_menu_clean_icon_name(PDO $pdo, string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    return sr_site_menu_icon_allowed($pdo, $value) ? $value : '';
 }
 
 function sr_site_menu_options(PDO $pdo): array
@@ -150,7 +187,7 @@ function sr_site_menu_render(PDO $pdo, string $menuKey, string $layoutSlotKey = 
     }
 
     $stmt = $pdo->prepare(
-        "SELECT i.id, i.parent_id, i.label, i.url, i.target
+        "SELECT i.id, i.parent_id, i.label, i.url, i.icon_name, i.target
          FROM sr_site_menus m
          INNER JOIN sr_site_menu_items i ON i.menu_id = m.id
          WHERE m.menu_key = :menu_key
@@ -176,13 +213,13 @@ function sr_site_menu_render(PDO $pdo, string $menuKey, string $layoutSlotKey = 
         ? ' sr-site-menu-slot-' . str_replace('_', '-', sr_e($layoutSlotKey))
         : '';
     $html = '<nav class="sr-site-menu sr-site-menu-' . sr_e($menuKey) . $slotClass . '" aria-label="' . sr_e($menuKey) . '">';
-    $html .= sr_site_menu_render_item_list($itemsByParent, 0, 1);
+    $html .= sr_site_menu_render_item_list($pdo, $itemsByParent, 0, 1);
     $html .= '</nav>';
 
     return $html;
 }
 
-function sr_site_menu_render_item_list(array $itemsByParent, int $parentId, int $depth): string
+function sr_site_menu_render_item_list(PDO $pdo, array $itemsByParent, int $parentId, int $depth): string
 {
     if ($depth > 3 || empty($itemsByParent[$parentId])) {
         return '';
@@ -193,9 +230,15 @@ function sr_site_menu_render_item_list(array $itemsByParent, int $parentId, int 
         $itemId = (int) ($item['id'] ?? 0);
         $target = (string) ($item['target'] ?? 'self');
         $targetAttribute = $target === 'blank' ? ' target="_blank" rel="noopener noreferrer"' : '';
-        $childrenHtml = $itemId > 0 ? sr_site_menu_render_item_list($itemsByParent, $itemId, $depth + 1) : '';
+        $childrenHtml = $itemId > 0 ? sr_site_menu_render_item_list($pdo, $itemsByParent, $itemId, $depth + 1) : '';
         $html .= '<li class="sr-site-menu-item sr-site-menu-item-depth-' . sr_e((string) $depth) . '">';
-        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . '>' . sr_e((string) $item['label']) . '</a>';
+        $labelHtml = '';
+        $iconName = trim((string) ($item['icon_name'] ?? ''));
+        if ($iconName !== '' && sr_site_menu_icon_allowed($pdo, $iconName)) {
+            $labelHtml .= sr_icon(sr_admin_icon_material_name($pdo, $iconName), 'sr-site-menu-link-icon');
+        }
+        $labelHtml .= '<span class="sr-site-menu-link-label">' . sr_e((string) $item['label']) . '</span>';
+        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . '>' . $labelHtml . '</a>';
         $html .= $childrenHtml;
         $html .= '</li>';
     }

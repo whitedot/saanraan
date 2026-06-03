@@ -32,6 +32,8 @@ return [
     'ui.delete.6139b6c3' => '삭제',
     'ui.edit.3537f0cc' => '수정',
     'ui.edit.e6e14581' => '항목 수정',
+    'ui.icon.8b29d6ef' => '아이콘',
+    'ui.icon.none.9445f03f' => '아이콘 없음',
     'ui.menu.13b36d6d' => '메뉴',
     'ui.menu.28e3b026' => '메뉴 항목을 정리해 공개 화면 탐색을 구성합니다.',
     'ui.menu.33822da6' => '활성 메뉴',

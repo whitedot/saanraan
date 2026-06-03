@@ -17,6 +17,7 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $menuLinkSuggestions = sr_site_menu_link_suggestions($pdo);
+$siteMenuIconOptions = sr_site_menu_icon_options($pdo);
 
 function sr_site_menu_admin_parent_depth(PDO $pdo, int $menuId, int $parentId, int $excludeItemId = 0): ?int
 {
@@ -183,6 +184,7 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'save_item') {
         $label = sr_site_menu_clean_label(sr_post_string('label', 120));
         $url = sr_site_menu_clean_url(sr_post_string('url', 255));
+        $iconName = sr_site_menu_clean_icon_name($pdo, sr_post_string('icon_name', 80));
         $target = sr_post_string('target', 20);
         $status = sr_post_string('status', 30);
         $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
@@ -244,13 +246,14 @@ if (sr_request_method() === 'POST') {
             if ($itemId > 0) {
                 $stmt = $pdo->prepare(
                     'UPDATE sr_site_menu_items
-                     SET parent_id = :parent_id, label = :label, url = :url, target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
+                     SET parent_id = :parent_id, label = :label, url = :url, icon_name = :icon_name, target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
                      WHERE id = :id AND menu_id = :menu_id'
                 );
                 $stmt->execute([
                     'parent_id' => $parentId > 0 ? $parentId : null,
                     'label' => $label,
                     'url' => $url,
+                    'icon_name' => $iconName,
                     'target' => $target,
                     'status' => $status,
                     'sort_order' => $sortOrder,
@@ -261,15 +264,16 @@ if (sr_request_method() === 'POST') {
             } else {
                 $stmt = $pdo->prepare(
                     'INSERT INTO sr_site_menu_items
-                        (menu_id, parent_id, label, url, target, status, sort_order, created_at, updated_at)
+                        (menu_id, parent_id, label, url, icon_name, target, status, sort_order, created_at, updated_at)
                      VALUES
-                        (:menu_id, :parent_id, :label, :url, :target, :status, :sort_order, :created_at, :updated_at)'
+                        (:menu_id, :parent_id, :label, :url, :icon_name, :target, :status, :sort_order, :created_at, :updated_at)'
                 );
                 $stmt->execute([
                     'menu_id' => $menuId,
                     'parent_id' => $parentId > 0 ? $parentId : null,
                     'label' => $label,
                     'url' => $url,
+                    'icon_name' => $iconName,
                     'target' => $target,
                     'status' => $status,
                     'sort_order' => $sortOrder,
@@ -406,7 +410,7 @@ foreach ($stmt->fetchAll() as $row) {
 $items = [];
 $menuParentNextSortOrders = [];
 $stmt = $pdo->query(
-    'SELECT i.id, i.menu_id, i.parent_id, m.menu_key, i.label, i.url, i.target, i.status, i.sort_order, i.updated_at
+    'SELECT i.id, i.menu_id, i.parent_id, m.menu_key, i.label, i.url, i.icon_name, i.target, i.status, i.sort_order, i.updated_at
      FROM sr_site_menu_items i
     INNER JOIN sr_site_menus m ON m.id = i.menu_id
      ORDER BY m.menu_key ASC, i.sort_order ASC, i.id ASC'
