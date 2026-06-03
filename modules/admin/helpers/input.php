@@ -66,13 +66,38 @@ function sr_admin_get_allowed_array(string $key, array $allowedValues, int $maxL
     return array_values($values);
 }
 
+function sr_admin_single_value_query_keys(): array
+{
+    return [
+        'status',
+        'target_type',
+        'request_type',
+        'reason_key',
+        'audience',
+        'delivery_channel',
+        'delivery_status',
+        'evaluation_policy',
+        'group_id',
+        'source_module_key',
+        'asset',
+        'target',
+        'visibility',
+        'refundable_policy',
+        'download_type',
+        'refund_status',
+        'from_module_key',
+        'to_module_key',
+    ];
+}
+
 function sr_admin_normalize_query_params(array $params): array
 {
     $normalized = [];
+    $singleValueKeys = array_fill_keys(sr_admin_single_value_query_keys(), true);
 
     foreach ($params as $key => $value) {
         if (is_array($value)) {
-            if (array_is_list($value) && count($value) === 1 && !is_array($value[0])) {
+            if (isset($singleValueKeys[(string) $key]) && array_is_list($value) && count($value) === 1 && !is_array($value[0])) {
                 $normalized[$key] = (string) $value[0];
                 continue;
             }
