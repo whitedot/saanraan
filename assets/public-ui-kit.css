@@ -973,6 +973,9 @@ input:focus-visible + [class*=btn-choice-],
 .table-filtering-field-fill > :is(.form-input, .form-textarea, .admin-filter-input) { width: 100%; }
 .table-filtering-field > :is(.form-select) { max-width: min(16rem, 100%); width: max-content; }
 .table-filtering-actions { align-items: end; display: flex; gap: calc(var(--spacing) * 3); margin-inline-start: auto; }
+.table-filtering-plain { flex-wrap: wrap; }
+.table-filtering-plain > .admin-filter-grid { flex: 1 1 auto; min-width: 0; width: 100%; }
+.table-filtering-plain > .admin-filter-header, .table-filtering-plain > .admin-summary-stats { flex: 1 0 100%; margin: 0; }
 .table-filtering-card { align-items: stretch; display: block; padding: 0; }
 .table-filtering-card > .table-filtering-fields { padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4) 0; }
 .table-filtering-body { border-top: 1px solid var(--color-default-200); display: grid; gap: calc(var(--spacing) * 3); margin-top: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4) 0; }

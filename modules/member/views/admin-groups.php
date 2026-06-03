@@ -236,7 +236,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             $paramOptions = sr_member_group_rule_param_options($pdo, $param);
                             ?>
                             <label class="admin-filter-field" for="<?php echo sr_e($paramFieldId); ?>">
-                                <label class="admin-filter-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></label>
+                                <span class="admin-filter-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
                                 <?php if ($paramType === 'bool') { ?>
                                     <select id="<?php echo sr_e($paramFieldId); ?>" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-select">
                                         <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.2eb73fba')); ?></option>
@@ -670,7 +670,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </div>
             <div class="admin-filter-field">
                 <label for="member_group_rule_filter_group" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></label>
-                <select id="member_group_rule_filter_group" name="group_id[]" class="form-select admin-filter-input">
+                <select id="member_group_rule_filter_group" name="group_id" class="form-select admin-filter-input">
                     <option value="">전체</option>
                     <?php foreach ($groups as $group) { ?>
                         <?php $groupId = (string) (int) ($group['id'] ?? 0); ?>
@@ -680,7 +680,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             </div>
             <div class="admin-filter-field">
                 <label for="member_group_rule_filter_source" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></label>
-                <select id="member_group_rule_filter_source" name="source_module_key[]" class="form-select admin-filter-input">
+                <select id="member_group_rule_filter_source" name="source_module_key" class="form-select admin-filter-input">
                     <option value="">전체</option>
                     <?php foreach ($memberRuleSourceOptions as $sourceModuleKey => $sourceOption) { ?>
                         <option value="<?php echo sr_e((string) $sourceModuleKey); ?>"<?php echo in_array((string) $sourceModuleKey, $selectedGroupRuleSourceModuleKeys, true) ? ' selected' : ''; ?>><?php echo sr_e((string) ($sourceOption['label'] ?? $sourceModuleKey)); ?></option>
