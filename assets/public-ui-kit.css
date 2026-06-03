@@ -390,16 +390,29 @@
     .ui-kit-hover-ink-primary:hover { color: var(--color-primary); }
     .ui-kit-hover-ink-default-700:hover { color: var(--color-default-700); }
 }
-.btn-choice-primary { border-color: var(--color-primary); color: var(--color-primary); background-color: transparent; }
-.btn-choice-secondary { border-color: var(--color-secondary); color: var(--color-secondary); background-color: transparent; }
-input:checked + .btn-choice-primary,
-.btn-choice-primary.is-active,
-.btn-choice-primary[aria-pressed=true] { background-color: var(--color-primary); border-color: var(--color-primary); color: var(--color-white); }
-input:checked + .btn-choice-secondary,
-.btn-choice-secondary.is-active,
-.btn-choice-secondary[aria-pressed=true] { background-color: var(--color-secondary); border-color: var(--color-secondary); color: var(--color-white); }
-input:focus-visible + .btn-choice-primary { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 14%, transparent); }
-input:focus-visible + .btn-choice-secondary { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-secondary) 14%, transparent); }
+.btn-choice-primary { --btn-choice-color: var(--color-primary); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+.btn-choice-secondary { --btn-choice-color: var(--color-secondary); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+.btn-choice-success { --btn-choice-color: var(--color-success); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+.btn-choice-danger { --btn-choice-color: var(--color-danger); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+.btn-choice-warning { --btn-choice-color: var(--color-warning); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+.btn-choice-info { --btn-choice-color: var(--color-info); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+.btn-choice-dark { --btn-choice-color: var(--color-dark); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
+@media (hover: hover) {
+    [class*=btn-choice-]:hover { background-color: var(--btn-choice-hover-bg); color: var(--btn-choice-color); }
+}
+[class*=btn-choice-]:is(:focus, :focus-visible, :active) { background-color: var(--btn-choice-hover-bg); color: var(--btn-choice-color); }
+input:checked + [class*=btn-choice-],
+[class*=btn-choice-].is-active,
+[class*=btn-choice-][aria-pressed=true] { z-index: 20; background-color: var(--btn-choice-color, var(--color-primary)); border-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
+@media (hover: hover) {
+    input:checked + [class*=btn-choice-]:hover,
+    [class*=btn-choice-].is-active:hover,
+    [class*=btn-choice-][aria-pressed=true]:hover { background-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
+}
+input:checked + [class*=btn-choice-]:is(:focus, :focus-visible, :active),
+[class*=btn-choice-].is-active:is(:focus, :focus-visible, :active),
+[class*=btn-choice-][aria-pressed=true]:is(:focus, :focus-visible, :active) { background-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
+input:focus-visible + [class*=btn-choice-] { z-index: 21; box-shadow: 0 0 0 3px color-mix(in oklab, var(--btn-choice-color, var(--color-primary)) 14%, transparent); }
 .form-checkbox:focus-visible,
 .form-radio:focus-visible,
 .form-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--form-choice-color, var(--color-primary)) 12%, transparent); }
