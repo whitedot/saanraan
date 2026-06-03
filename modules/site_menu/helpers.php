@@ -45,6 +45,32 @@ function sr_site_menu_layout_slot_menu_key(string $slotKey): string
     return (string) ($map[$slotKey] ?? '');
 }
 
+function sr_site_menu_items_icon_name_column_exists(PDO $pdo): bool
+{
+    static $cache = [];
+
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $cache)) {
+        return (bool) $cache[$cacheKey];
+    }
+
+    try {
+        $stmt = $pdo->query(
+            "SELECT COUNT(*) AS column_count
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = 'sr_site_menu_items'
+               AND COLUMN_NAME = 'icon_name'"
+        );
+        $row = $stmt->fetch();
+        $cache[$cacheKey] = is_array($row) && (int) ($row['column_count'] ?? 0) > 0;
+    } catch (Throwable $exception) {
+        $cache[$cacheKey] = false;
+    }
+
+    return (bool) $cache[$cacheKey];
+}
+
 function sr_site_menu_icon_allowed(PDO $pdo, string $name): bool
 {
     $name = trim($name);
@@ -186,8 +212,9 @@ function sr_site_menu_render(PDO $pdo, string $menuKey, string $layoutSlotKey = 
         return '';
     }
 
+    $iconNameSelect = sr_site_menu_items_icon_name_column_exists($pdo) ? 'i.icon_name' : "'' AS icon_name";
     $stmt = $pdo->prepare(
-        "SELECT i.id, i.parent_id, i.label, i.url, i.icon_name, i.target
+        "SELECT i.id, i.parent_id, i.label, i.url, " . $iconNameSelect . ", i.target
          FROM sr_site_menus m
          INNER JOIN sr_site_menu_items i ON i.menu_id = m.id
          WHERE m.menu_key = :menu_key
