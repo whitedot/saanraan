@@ -2,7 +2,7 @@
 
 $adminPageTitle = sr_t('admin::ui.admin.menu.c4a18693');
 $adminPageSubtitle = sr_t('admin::ui.admin.menu.help.7144cc38');
-$adminMenuIconOptions = sr_admin_allowed_menu_symbol_icons();
+$adminMenuIconOptions = sr_admin_allowed_menu_icon_options($pdo);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

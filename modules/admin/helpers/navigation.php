@@ -608,9 +608,9 @@ function sr_admin_apply_menu_overrides(PDO $pdo, array $groups): array
                 }
 
                 $moduleGroup['order'] = (int) $groupOverride['sort_order'];
-                $overrideIconName = sr_admin_normalize_menu_override_icon_name((string) ($groupOverride['icon_name'] ?? ''));
+                $overrideIconName = sr_admin_normalize_menu_override_icon_name_for_save($pdo, (string) ($groupOverride['icon_name'] ?? ''));
                 if ($overrideIconName !== '') {
-                    $moduleGroup['admin_icon'] = sr_admin_menu_symbol_icon($overrideIconName);
+                    $moduleGroup['admin_icon'] = sr_admin_menu_icon($pdo, $overrideIconName);
                 }
             }
 
@@ -700,6 +700,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
         $categoryOrder = (int) ($group['order'] ?? 1000);
         $categoryOverride = $overrides['category'][$categoryKey] ?? [];
         $rows[] = sr_admin_menu_override_form_row(
+            $pdo,
             'category',
             $categoryKey,
             '',
@@ -732,6 +733,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
             $groupOverride = $overrides['group'][$moduleKey] ?? [];
             $groupDefaultIconName = sr_admin_menu_form_icon_name($moduleGroup['admin_icon'] ?? null, $categoryKey);
             $rows[] = sr_admin_menu_override_form_row(
+                $pdo,
                 'group',
                 $moduleKey,
                 $categoryKey,
@@ -767,6 +769,7 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
                 $itemOrder = (int) ($item['order'] ?? 1000);
                 $itemOverride = $overrides['item'][$targetKey] ?? [];
                 $rows[] = sr_admin_menu_override_form_row(
+                    $pdo,
                     'item',
                     $targetKey,
                     $moduleKey,
@@ -786,13 +789,13 @@ function sr_admin_menu_override_form_rows(PDO $pdo): array
     return $rows;
 }
 
-function sr_admin_menu_override_form_row(string $scope, string $targetKey, string $parentKey, string $label, int $defaultOrder, array $override, array $display = []): array
+function sr_admin_menu_override_form_row(PDO $pdo, string $scope, string $targetKey, string $parentKey, string $label, int $defaultOrder, array $override, array $display = []): array
 {
     $sortOrder = array_key_exists('sort_order', $override) ? (int) $override['sort_order'] : $defaultOrder;
     $canHide = sr_admin_menu_target_can_hide($scope, $targetKey);
     $defaultIconName = sr_admin_normalize_menu_override_icon_name((string) ($display['default_icon_name'] ?? ''));
     $iconName = $scope === 'group'
-        ? sr_admin_normalize_menu_override_icon_name((string) ($override['icon_name'] ?? ''))
+        ? sr_admin_normalize_menu_override_icon_name_for_save($pdo, (string) ($override['icon_name'] ?? ''))
         : '';
 
     return [
@@ -837,6 +840,13 @@ function sr_admin_normalize_menu_override_icon_name(string $name): string
     $name = trim($name);
 
     return sr_admin_menu_symbol_allowed($name) ? $name : '';
+}
+
+function sr_admin_normalize_menu_override_icon_name_for_save(PDO $pdo, string $name): string
+{
+    $name = trim($name);
+
+    return sr_admin_menu_icon_allowed($pdo, $name) ? $name : '';
 }
 
 function sr_admin_handle_menu_post(PDO $pdo, array $account): array
@@ -908,7 +918,7 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
             }
 
             $rawIconName = trim((string) $rawIconName);
-            if ($rawIconName !== '' && !sr_admin_menu_symbol_allowed($rawIconName)) {
+            if ($rawIconName !== '' && !sr_admin_menu_icon_allowed($pdo, $rawIconName)) {
                 $errors[] = sr_t('admin::action.menu.icon_value_invalid');
                 continue;
             }
@@ -955,7 +965,7 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
 
 function sr_admin_save_menu_override(PDO $pdo, string $scope, string $targetKey, int $sortOrder, bool $isHidden, string $iconName, string $now): void
 {
-    $iconName = $scope === 'group' ? sr_admin_normalize_menu_override_icon_name($iconName) : '';
+    $iconName = $scope === 'group' ? sr_admin_normalize_menu_override_icon_name_for_save($pdo, $iconName) : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_admin_menu_overrides (scope, target_key, sort_order, is_hidden, icon_name, updated_at)
          VALUES (:scope, :target_key, :sort_order, :is_hidden, :icon_name, :updated_at)
@@ -980,7 +990,7 @@ function sr_admin_ensure_menu_overrides_table(PDO $pdo): void
             target_key VARCHAR(190) NOT NULL,
             sort_order INT NOT NULL DEFAULT 1000,
             is_hidden TINYINT(1) NOT NULL DEFAULT 0,
-            icon_name VARCHAR(40) NOT NULL DEFAULT \'\',
+            icon_name VARCHAR(80) NOT NULL DEFAULT \'\',
             updated_at DATETIME NOT NULL,
             PRIMARY KEY (id),
             UNIQUE KEY uq_sr_admin_menu_overrides_target (scope, target_key),
@@ -994,18 +1004,24 @@ function sr_admin_ensure_menu_overrides_icon_column(PDO $pdo): void
 {
     try {
         $stmt = $pdo->prepare(
-            "SELECT COUNT(*)
+            "SELECT CHARACTER_MAXIMUM_LENGTH
              FROM INFORMATION_SCHEMA.COLUMNS
              WHERE TABLE_SCHEMA = DATABASE()
                AND TABLE_NAME = 'sr_admin_menu_overrides'
                AND COLUMN_NAME = 'icon_name'"
         );
         $stmt->execute();
-        if ((int) $stmt->fetchColumn() > 0) {
+        $length = $stmt->fetchColumn();
+        $stmt->closeCursor();
+        if ($length !== false) {
+            $length = (int) $length;
+            if ($length > 0 && $length < 80) {
+                $pdo->exec("ALTER TABLE sr_admin_menu_overrides MODIFY COLUMN icon_name VARCHAR(80) NOT NULL DEFAULT ''");
+            }
             return;
         }
 
-        $pdo->exec("ALTER TABLE sr_admin_menu_overrides ADD COLUMN icon_name VARCHAR(40) NOT NULL DEFAULT '' AFTER is_hidden");
+        $pdo->exec("ALTER TABLE sr_admin_menu_overrides ADD COLUMN icon_name VARCHAR(80) NOT NULL DEFAULT '' AFTER is_hidden");
     } catch (PDOException $exception) {
         if ((string) $exception->getCode() !== '42S21') {
             throw $exception;

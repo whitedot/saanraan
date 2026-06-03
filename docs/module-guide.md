@@ -820,7 +820,7 @@ $postsPerPage = (int) sr_module_setting($pdo, 'board', 'posts_per_page', 20);
 
 CKEditor처럼 독립 도메인 관리 화면이 아니라 다른 화면의 입력 경험을 보강하는 플러그인은 적용 대상과 도메인 정책을 자기 설정에 두지 않는다. 설정 route가 필요하면 `paths.php`로 URL을 소유하고, 접근성이 필요한 번들 플러그인은 `플러그인` 같은 별도 분류 아래 설정 메뉴를 제공할 수 있다.
 
-`admin.icon`은 모듈 메뉴 그룹의 기본 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼 이름과 Google Material Symbols 매핑은 admin 모듈의 공통 아이콘 계약이 소유하며, admin skin은 이 계약으로 Material 아이콘을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.png', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `jpg`, `jpeg`, `png`, `gif`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다. 운영자가 `/admin/menu`에서 모듈 그룹 아이콘을 선택하면 해당 Material 심볼 오버라이드가 이 기본 선언보다 우선한다.
+`admin.icon`은 모듈 메뉴 그룹의 기본 아이콘 표현을 맡는다. 관리자 shell이 제공하는 허용 심볼을 쓸 때는 `['type' => 'symbol', 'name' => 'users']`처럼 선언한다. 허용 심볼 이름과 Google Material Symbols 매핑은 admin 모듈의 공통 아이콘 계약이 소유하며, admin skin은 이 계약으로 Material 아이콘을 렌더링한다. 모듈 고유 이미지가 필요하면 `['type' => 'asset', 'path' => 'assets/admin-menu-icon.png', 'alt' => '배너']`처럼 자기 모듈의 `assets/` 아래 파일을 선언한다. 자산 아이콘은 `jpg`, `jpeg`, `png`, `gif`, `webp`만 허용하며 외부 URL이나 `..` 경로는 무시된다. 선언이 없거나 유효하지 않으면 카테고리 기본 아이콘으로 표시한다. 운영자가 `/admin/menu`에서 모듈 그룹 아이콘을 선택하면 해당 공용 아이콘 키 오버라이드가 이 기본 선언보다 우선한다.
 
 `admin.stylesheets`는 모듈 관리자 본문에만 필요한 CSS 파일 목록이다. 파일은 자기 모듈의 `assets/` 아래 `.css` 파일만 선언한다. admin skin은 공용 UI kit과 공통 관리자 CSS 뒤에 활성 모듈의 stylesheet를 출력하므로, 모듈 CSS는 공통 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 재정의하지 않고 자기 모듈 class 또는 필요한 관리자 본문 class 아래로 범위를 좁힌다.
 

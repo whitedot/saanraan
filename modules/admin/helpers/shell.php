@@ -283,7 +283,7 @@ function sr_admin_shell_menu_icon(PDO $pdo, mixed $icon, string $category): arra
             }
         }
 
-        $symbolIcon = sr_admin_menu_symbol_icon((string) ($icon['name'] ?? ''));
+        $symbolIcon = sr_admin_menu_icon($pdo, (string) ($icon['name'] ?? ''));
         if ($symbolIcon !== []) {
             return sr_admin_icon_render_icon($pdo, (string) $symbolIcon['name']);
         }

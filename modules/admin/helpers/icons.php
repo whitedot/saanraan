@@ -227,6 +227,55 @@ function sr_admin_allowed_menu_symbol_icons(): array
     return $allowed;
 }
 
+function sr_admin_menu_custom_icon_keys(PDO $pdo): array
+{
+    $allowed = [];
+    foreach (sr_admin_icon_custom_map($pdo) as $name => $custom) {
+        $name = trim((string) $name);
+        if (!sr_admin_custom_icon_key_is_valid($name) || !is_array($custom)) {
+            continue;
+        }
+
+        $type = (string) ($custom['type'] ?? 'material');
+        if (in_array($type, ['material', 'image'], true)) {
+            $allowed[$name] = true;
+        }
+    }
+
+    return $allowed;
+}
+
+function sr_admin_menu_icon_allowed(PDO $pdo, string $name): bool
+{
+    $name = trim($name);
+    if (sr_admin_menu_symbol_allowed($name)) {
+        return true;
+    }
+
+    $customKeys = sr_admin_menu_custom_icon_keys($pdo);
+
+    return !empty($customKeys[$name]);
+}
+
+function sr_admin_allowed_menu_icon_options(PDO $pdo): array
+{
+    $allowed = sr_admin_allowed_menu_symbol_icons();
+    $customKeys = sr_admin_menu_custom_icon_keys($pdo);
+    ksort($customKeys, SORT_STRING);
+    foreach ($customKeys as $name => $_enabled) {
+        $allowed[$name] = true;
+    }
+
+    return $allowed;
+}
+
+function sr_admin_menu_icon(PDO $pdo, string $name): array
+{
+    $name = trim($name);
+
+    return sr_admin_menu_icon_allowed($pdo, $name) ? ['type' => 'symbol', 'name' => $name] : [];
+}
+
 function sr_admin_menu_symbol_icon(string $name): array
 {
     $name = trim($name);
