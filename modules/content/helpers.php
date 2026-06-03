@@ -1611,12 +1611,14 @@ function sr_content_coupon_target_search(PDO $pdo, string $targetType, string $k
 
     $keyword = sr_content_clean_text($keyword, 120);
     $limit = max(1, min(30, $limit));
-    $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR slug LIKE :keyword_like ESCAPE '\\\\')";
+    $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_title ESCAPE '\\\\' OR slug LIKE :keyword_slug ESCAPE '\\\\')";
     $params = [];
     if ($keyword !== '') {
+        $keywordLike = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
         $params = [
             'id' => preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0,
-            'keyword_like' => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%',
+            'keyword_title' => $keywordLike,
+            'keyword_slug' => $keywordLike,
         ];
     }
 
@@ -1646,12 +1648,14 @@ function sr_content_link_card_search_content_targets(PDO $pdo, string $keyword, 
 {
     $keyword = sr_content_clean_text($keyword, 120);
     $limit = max(1, min(20, $limit));
-    $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR slug LIKE :keyword_like ESCAPE '\\\\')";
+    $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_title ESCAPE '\\\\' OR slug LIKE :keyword_slug ESCAPE '\\\\')";
     $params = [];
     if ($keyword !== '') {
+        $keywordLike = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
         $params = [
             'id' => preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0,
-            'keyword_like' => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%',
+            'keyword_title' => $keywordLike,
+            'keyword_slug' => $keywordLike,
         ];
     }
 

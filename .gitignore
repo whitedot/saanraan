@@ -1,2 +1,5 @@
 dist/
 .claude/
+.tools/browser-qa/results/
+.tools/browser-qa/test-results/
+.tools/browser-qa/node_modules/

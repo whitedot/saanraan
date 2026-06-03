@@ -162,3 +162,67 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
   - `storage/logs/error.log`는 `www-data:www-data` 소유 파일이라 현재 CLI 사용자로 로그 쓰기가 거부된다. 권한 변경도 현재 사용자 권한으로는 수행할 수 없었다.
 
 따라서 이번 마일스톤 15 QA에서 발견된 route/security/HTTP/auth smoke 오류는 수정 후 통과했다. 남은 실패는 깨끗한 로컬 DB fixture 또는 파일 소유권 정리가 필요한 기존 마일스톤 10/11 정합성 환경 문제로 분리했다.
+
+## 실제 브라우저 자동화 실행 - 2026-06-03 11:04
+
+사용자 요청에 따라 Playwright + Chromium 기반 실제 브라우저 자동화 suite를 추가하고 실행했다.
+
+추가한 하니스:
+
+- `.tools/browser-qa/playwright.config.js`
+- `.tools/browser-qa/tests/milestone-15-browser-smoke.spec.js`
+- `.tools/browser-qa/package.json`
+- `.tools/browser-qa/package-lock.json`
+
+실행 환경:
+
+- HTTP 기준 URL: `http://127.0.0.1:46351`
+- 서버 실행 명령: `php -S 127.0.0.1:46351 -t .tools/public .tools/bin/dev-router.php`
+- 브라우저: Playwright Chromium, system Chrome channel
+- 관리자 계정: `admin` / `12341234`
+
+실행 명령:
+
+- `npm install --prefix .tools/browser-qa --save-dev @playwright/test@1.60.0`
+- `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:46351 SR_BROWSER_QA_ADMIN_IDENTIFIER=admin SR_BROWSER_QA_ADMIN_PASSWORD=12341234 .tools/browser-qa/node_modules/.bin/playwright test -c .tools/browser-qa/playwright.config.js`
+
+1차 실제 브라우저 실행 결과:
+
+- 28 passed, 2 failed
+- 실패 #195: `/community/link-card-targets?target=content&q=test`가 실제 브라우저에서 500을 반환했다.
+- 실패 #191 보호 파일 테스트: 앱 문제가 아니라 Playwright 실패 영상 저장용 `ffmpeg` 미설치로 새 page 생성이 실패했다.
+
+추가 수정:
+
+- `modules/content/helpers.php`
+  - 콘텐츠 쿠폰 대상 검색과 콘텐츠 링크 카드 대상 검색의 반복 named placeholder를 고유 placeholder로 분리했다.
+- Playwright 설정
+  - 로컬에 `ffmpeg`가 없는 환경에서도 실패 분석이 가능하도록 실패 영상 저장을 끄고 screenshot 중심으로 조정했다.
+  - 결과/스크린샷/test-results/node_modules 경로를 git 추적에서 제외했다.
+- #200 브라우저 route probe
+  - `/banner/image`, `/logo-manager/image`, `/seo/image`는 실제 라우트가 쓰는 `file` 파라미터로 호출하도록 조정했다.
+
+수정 후 실제 브라우저 재실행 결과:
+
+- `30 passed (1.8m)`
+- #175-#202 각 이슈 route coverage: 통과
+- #190 모바일 레이아웃 browser pass: 통과
+- #191 보호 파일 browser pass: 통과
+- 각 이슈 대표 스크린샷은 `.tools/browser-qa/results/screenshots/`에 생성됐다.
+- JSON 결과는 `.tools/browser-qa/results/milestone-15-browser-results.json`에 생성됐다.
+
+수정 후 함께 재확인한 자동 검증:
+
+- `php -l modules/content/helpers.php`
+- `node -c .tools/browser-qa/playwright.config.js`
+- `node -c .tools/browser-qa/tests/milestone-15-browser-smoke.spec.js`
+- `php .tools/bin/check.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46351 php .tools/bin/smoke-http.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46351 SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php`
+- `php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:46351 admin 12341234`
+
+판정:
+
+- 이번 실행으로 #175-#202에 대해 실제 Chromium 브라우저 기반 route/render/security smoke는 통과했다.
+- 다만 #174 본문이 요구하는 named snapshot restore, idempotent fixture catalog, DB helper 단언, axe 접근성 자동 검사, Firefox/WebKit 핵심 tier, 시각 회귀 baseline, 동시성/레이트리밋/외부 mock 검증은 아직 별도 하니스가 없어 완료하지 못했다.
+- 따라서 이슈 본문 기준의 “전체 서비스 실제 브라우저 자동화 QA 커버리지” 완료 판정은 아직 보류한다.
