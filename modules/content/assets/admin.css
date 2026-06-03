@@ -39,13 +39,14 @@
 .admin-content-series-list .admin-content-series-title-cell .form-input+.form-input{margin-top:calc(var(--spacing) * 1)}
 .admin-content-series-list .admin-content-series-sort-input{width:6rem}
 .admin-content-series-list .admin-content-series-date-cell{white-space:nowrap}
-.admin-content-download-files .admin-content-download-file-filter{max-width:100%;width:100%}
+.admin-content-download-files .admin-content-download-file-filter,.admin-content-file-downloads .admin-content-file-download-filter{max-width:100%;width:100%}
 .admin-content-download-files .admin-content-download-file-search-grid{align-items:end;grid-template-columns:max-content minmax(14rem,20rem) max-content;justify-content:start;width:fit-content;max-width:100%}
-.admin-content-download-files .admin-content-download-file-filter .admin-filter-field{min-width:0}
+.admin-content-file-downloads .admin-content-file-download-search-grid{align-items:stretch;grid-template-columns:minmax(0,1fr);justify-content:stretch;width:100%;max-width:100%}
+.admin-content-download-files .admin-content-download-file-filter .admin-filter-field,.admin-content-file-downloads .admin-content-file-download-filter .admin-filter-field{min-width:0}
 .admin-content-group-list .admin-content-group-filter .admin-filter-input,.admin-content-series-list .admin-content-series-filter .admin-filter-input{width:fit-content;max-width:100%}
 .admin-content-group-list .admin-content-group-filter .admin-filter-field:has(input) .admin-filter-input,.admin-content-series-list .admin-content-series-filter-keyword .admin-filter-input{min-width:14rem;width:100%;max-width:100%}
 .admin-content-download-files .admin-content-download-file-filter-keyword .admin-filter-input{min-width:14rem;width:100%;max-width:100%}
-.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit{justify-content:center;width:auto}
+.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit,.admin-content-file-downloads .admin-content-file-download-filter .admin-filter-submit{justify-content:center;width:auto}
 .admin-content-asset-policy-sets .admin-content-asset-policy-set-search-grid{grid-template-columns:max-content max-content minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
 .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter .admin-filter-field{min-width:0;width:fit-content}
 .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter-keyword{width:100%}
@@ -59,20 +60,20 @@
 .admin-content-file-charge-policy{width:10rem}
 .admin-content-file-charge-control>.admin-form-help{margin-top:calc(var(--spacing) * 1.5)}
 @media (max-width:1023px){
-    .admin-content-list .admin-content-filter .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit{grid-column:1 / -1;width:100%}
-    .admin-content-list .admin-content-filter .table-filtering-actions .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .table-filtering-actions .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .table-filtering-actions .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .table-filtering-actions .admin-filter-submit{grid-column:auto;width:auto}
+    .admin-content-list .admin-content-filter .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit,.admin-content-file-downloads .admin-content-file-download-filter .admin-filter-submit{grid-column:1 / -1;width:100%}
+    .admin-content-list .admin-content-filter .table-filtering-actions .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .table-filtering-actions .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .table-filtering-actions .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .table-filtering-actions .admin-filter-submit,.admin-content-file-downloads .admin-content-file-download-filter .table-filtering-actions .admin-filter-submit{grid-column:auto;width:auto}
     .admin-content-group-list .admin-content-group-search-grid,.admin-content-series-list .admin-content-series-search-grid,.admin-content-download-files .admin-content-download-file-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%}
     .admin-content-group-list .admin-content-group-filter .admin-filter-input,.admin-content-series-list .admin-content-series-filter .admin-filter-input{width:100%}
     .admin-content-asset-policy-sets .admin-content-asset-policy-set-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter-keyword,.admin-content-asset-policy-sets .admin-content-asset-policy-set-filter .admin-filter-submit{grid-column:1 / -1}
     .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter .admin-filter-submit{width:100%}
-    .admin-content-download-files .admin-content-download-file-filter,.admin-content-download-files .admin-content-download-file-search-grid{width:100%}
+    .admin-content-download-files .admin-content-download-file-filter,.admin-content-download-files .admin-content-download-file-search-grid,.admin-content-file-downloads .admin-content-file-download-filter,.admin-content-file-downloads .admin-content-file-download-search-grid{width:100%}
     .admin-content-download-files .admin-content-download-file-filter-keyword .admin-filter-input{width:100%}
 }
 
 @media (max-width:767px){
-    .admin-content-group-list .admin-content-group-search-grid,.admin-content-series-list .admin-content-series-search-grid,.admin-content-download-files .admin-content-download-file-search-grid{grid-template-columns:1fr}
-    .admin-content-group-list .admin-content-group-filter-keyword,.admin-content-series-list .admin-content-series-filter-keyword,.admin-content-download-files .admin-content-download-file-filter-keyword,.admin-content-group-list .admin-content-group-filter .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit{grid-column:auto}
+    .admin-content-group-list .admin-content-group-search-grid,.admin-content-series-list .admin-content-series-search-grid,.admin-content-download-files .admin-content-download-file-search-grid,.admin-content-file-downloads .admin-content-file-download-search-grid{grid-template-columns:1fr}
+    .admin-content-group-list .admin-content-group-filter-keyword,.admin-content-series-list .admin-content-series-filter-keyword,.admin-content-download-files .admin-content-download-file-filter-keyword,.admin-content-group-list .admin-content-group-filter .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit,.admin-content-file-downloads .admin-content-file-download-filter .admin-filter-submit{grid-column:auto}
     .admin-content-asset-policy-sets .admin-content-asset-policy-set-search-grid{grid-template-columns:1fr}
     .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter .admin-filter-field,.admin-content-asset-policy-sets .admin-content-asset-policy-set-filter .admin-filter-input{width:100%;max-width:100%}
     .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter-keyword,.admin-content-asset-policy-sets .admin-content-asset-policy-set-filter .admin-filter-submit{grid-column:auto}
