@@ -119,36 +119,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <?php
     $selectedDownloadFileStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
-    $downloadFileDetailFilterOpen = (string) ($filters['q'] ?? '') !== '';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter admin-content-download-file-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-download-file-search-grid admin-content-filter-stack">
-            <fieldset class="admin-filter-field admin-content-download-file-filter-status">
-                <legend class="admin-filter-label">상태</legend>
-                <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
-                    <?php foreach (['active' => '사용', 'hidden' => '숨김'] as $index => $label) { ?>
-                        <?php
-                        $status = (string) $index;
-                        $inputId = 'content_download_file_filter_status_' . $status;
-                        $groupClass = $status === 'active' ? 'btn-group-start' : 'btn-group-end';
-                        ?>
-                        <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-primary <?php echo sr_e($groupClass); ?>">
-                            <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedDownloadFileStatuses, true) ? ' checked' : ''; ?>>
-                            <?php echo sr_e($label); ?>
-                        </label>
-                    <?php } ?>
-                </div>
-            </fieldset>
-            <details class="card-filtering"<?php echo $downloadFileDetailFilterOpen ? ' open' : ''; ?>>
-                <summary class="card-filtering-summary">상세 조건</summary>
-                <div class="card-filtering-body">
-                    <div class="admin-filter-field admin-content-download-file-filter-keyword">
+            <div class="card-filtering" data-card-filtering>
+                <div class="card-filtering-basic">
+                    <fieldset class="admin-filter-field admin-content-download-file-filter-status">
+                        <legend class="admin-filter-label">상태</legend>
+                        <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
+                            <?php foreach (['active' => '사용', 'hidden' => '숨김'] as $index => $label) { ?>
+                                <?php
+                                $status = (string) $index;
+                                $inputId = 'content_download_file_filter_status_' . $status;
+                                $groupClass = $status === 'active' ? 'btn-group-start' : 'btn-group-end';
+                                ?>
+                                <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
+                                    <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedDownloadFileStatuses, true) ? ' checked' : ''; ?>>
+                                    <?php echo sr_e($label); ?>
+                                </label>
+                            <?php } ?>
+                        </div>
+                    </fieldset>
+                    <div class="admin-filter-field admin-content-download-file-filter-keyword card-filtering-field-fill">
                         <label for="content_download_file_filter_q" class="admin-filter-label">검색</label>
                         <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
                     </div>
                 </div>
-            </details>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
+                <div class="card-filtering-actions">
+                    <button type="button" class="btn btn-outline-light" data-card-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
+                </div>
+            </div>
         </div>
     </form>
 

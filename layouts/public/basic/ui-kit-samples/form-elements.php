@@ -954,22 +954,22 @@
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkPrimary"
-                                                            class="form-checkbox form-choice-primary" checked />
+                                                            class="form-checkbox form-choice-outline form-choice-primary" checked />
                                                         <label for="checkPrimary">Primary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkSecondary"
-                                                            class="form-checkbox form-choice-secondary" checked />
+                                                            class="form-checkbox form-choice-outline form-choice-secondary" checked />
                                                         <label for="checkSecondary">Secondary</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkSuccess"
-                                                            class="form-checkbox form-choice-success" checked />
+                                                            class="form-checkbox form-choice-outline form-choice-success" checked />
                                                         <label for="checkSuccess">Success</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkInfo"
-                                                            class="form-checkbox form-choice-info" checked />
+                                                            class="form-checkbox form-choice-outline form-choice-info" checked />
                                                         <label for="checkInfo">Info</label>
                                                     </div>
                                                 </div>
@@ -977,17 +977,17 @@
                                                 <div class="ui-kit-stack-3">
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkWarning"
-                                                            class="form-checkbox form-choice-warning" checked />
+                                                            class="form-checkbox form-choice-outline form-choice-warning" checked />
                                                         <label for="checkWarning">Warning</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkDanger"
-                                                            class="form-checkbox form-choice-danger" checked />
+                                                            class="form-checkbox form-choice-outline form-choice-danger" checked />
                                                         <label for="checkDanger">Danger</label>
                                                     </div>
                                                     <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
                                                         <input type="checkbox" id="checkDark"
-                                                            class="form-checkbox form-choice-dark" checked />
+                                                            class="form-checkbox form-choice-outline form-choice-dark" checked />
                                                         <label for="checkDark">Dark</label>
                                                     </div>
                                                 </div>
@@ -1248,6 +1248,23 @@
 
                                         <div class="sample-field-divider"></div>
 
+                                        <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
+                                            <div>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 토글 색상</label>
+                                            </div>
+
+                                            <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2 ui-kit-column-lg-2">
+                                                <?php foreach (['primary' => 'Primary', 'secondary' => 'Secondary', 'success' => 'Success', 'info' => 'Info', 'warning' => 'Warning', 'danger' => 'Danger', 'dark' => 'Dark', 'light' => 'Light'] as $choiceColor => $choiceLabel) { ?>
+                                                    <div>
+                                                        <input type="checkbox" id="toggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="form-choice-toggle-input sample-hidden" checked />
+                                                        <label for="toggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="btn btn-choice-<?php echo sr_e($choiceColor); ?>"><?php echo sr_e($choiceLabel); ?></label>
+                                                    </div>
+                                                <?php } ?>
+                                            </div>
+                                        </div>
+
+                                        <div class="sample-field-divider"></div>
+
                                         <!-- Toggle Radios -->
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
@@ -1275,6 +1292,23 @@
                                                     <label for="radioRight"
                                                         class="btn btn-choice-secondary btn-group-end"><?php echo sr_e(sr_t('ui.text.f594aa6a')); ?></label>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="sample-field-divider"></div>
+
+                                        <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
+                                            <div>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">라디오 토글 색상</label>
+                                            </div>
+
+                                            <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2 ui-kit-column-lg-2">
+                                                <?php foreach (['primary' => 'Primary', 'secondary' => 'Secondary', 'success' => 'Success', 'info' => 'Info', 'warning' => 'Warning', 'danger' => 'Danger', 'dark' => 'Dark', 'light' => 'Light'] as $choiceColor => $choiceLabel) { ?>
+                                                    <div>
+                                                        <input type="radio" name="radioToggleColor" id="radioToggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="form-choice-toggle-input sample-hidden"<?php echo $choiceColor === 'primary' ? ' checked' : ''; ?> />
+                                                        <label for="radioToggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="btn btn-choice-<?php echo sr_e($choiceColor); ?>"><?php echo sr_e($choiceLabel); ?></label>
+                                                    </div>
+                                                <?php } ?>
                                             </div>
                                         </div>
                                     </div>

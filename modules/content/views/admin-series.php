@@ -50,45 +50,43 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php
 $selectedSeriesStatuses = is_array($seriesFilters['status'] ?? null) ? $seriesFilters['status'] : [];
 $selectedSeriesVisibilities = is_array($seriesFilters['visibility'] ?? null) ? $seriesFilters['visibility'] : [];
-$seriesDetailFilterOpen = (string) ($seriesFilters['field'] ?? 'all') !== 'all' || (string) ($seriesFilters['q'] ?? '') !== '';
 ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-filter admin-content-series-filter ui-form-theme">
     <div class="admin-filter-grid admin-content-series-search-grid admin-content-filter-stack">
-        <fieldset class="admin-filter-field admin-content-series-filter-status">
-            <legend class="admin-filter-label">상태</legend>
-            <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
-                <?php $seriesStatuses = sr_content_series_statuses(); ?>
-                <?php foreach ($seriesStatuses as $index => $status) { ?>
-                    <?php
-                    $inputId = 'content_series_filter_status_' . $status;
-                    $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                    ?>
-                    <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-primary <?php echo sr_e($groupClass); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedSeriesStatuses, true) ? ' checked' : ''; ?>>
-                        <?php echo sr_e(sr_content_series_status_label($status)); ?>
-                    </label>
-                <?php } ?>
-            </div>
-        </fieldset>
-        <fieldset class="admin-filter-field admin-content-series-filter-visibility">
-            <legend class="admin-filter-label">공개 범위</legend>
-            <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="공개 범위">
-                <?php $seriesVisibilities = sr_content_series_visibility_values(); ?>
-                <?php foreach ($seriesVisibilities as $index => $visibility) { ?>
-                    <?php
-                    $inputId = 'content_series_filter_visibility_' . $visibility;
-                    $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesVisibilities) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                    ?>
-                    <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-primary <?php echo sr_e($groupClass); ?>">
-                        <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="visibility[]" value="<?php echo sr_e($visibility); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' checked' : ''; ?>>
-                        <?php echo sr_e(sr_content_series_visibility_label($visibility)); ?>
-                    </label>
-                <?php } ?>
-            </div>
-        </fieldset>
-        <details class="card-filtering"<?php echo $seriesDetailFilterOpen ? ' open' : ''; ?>>
-            <summary class="card-filtering-summary">상세 조건</summary>
-            <div class="card-filtering-body">
+        <div class="card-filtering" data-card-filtering>
+            <div class="card-filtering-basic">
+                <fieldset class="admin-filter-field admin-content-series-filter-status">
+                    <legend class="admin-filter-label">상태</legend>
+                    <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="상태">
+                        <?php $seriesStatuses = sr_content_series_statuses(); ?>
+                        <?php foreach ($seriesStatuses as $index => $status) { ?>
+                            <?php
+                            $inputId = 'content_series_filter_status_' . $status;
+                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesStatuses) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                            ?>
+                            <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
+                                <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="status[]" value="<?php echo sr_e($status); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($status, $selectedSeriesStatuses, true) ? ' checked' : ''; ?>>
+                                <?php echo sr_e(sr_content_series_status_label($status)); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                </fieldset>
+                <fieldset class="admin-filter-field admin-content-series-filter-visibility">
+                    <legend class="admin-filter-label">공개 범위</legend>
+                    <div class="btn-group admin-content-filter-toggle-group" role="group" aria-label="공개 범위">
+                        <?php $seriesVisibilities = sr_content_series_visibility_values(); ?>
+                        <?php foreach ($seriesVisibilities as $index => $visibility) { ?>
+                            <?php
+                            $inputId = 'content_series_filter_visibility_' . $visibility;
+                            $groupClass = $index === 0 ? 'btn-group-start' : ($index === count($seriesVisibilities) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                            ?>
+                            <label for="<?php echo sr_e($inputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>">
+                                <input id="<?php echo sr_e($inputId); ?>" type="checkbox" name="visibility[]" value="<?php echo sr_e($visibility); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' checked' : ''; ?>>
+                                <?php echo sr_e(sr_content_series_visibility_label($visibility)); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                </fieldset>
                 <div class="admin-filter-field admin-content-series-filter-field">
                     <label for="content_series_filter_field" class="admin-filter-label">검색 대상</label>
                     <select id="content_series_filter_field" name="field" class="form-select admin-filter-input">
@@ -97,13 +95,16 @@ $seriesDetailFilterOpen = (string) ($seriesFilters['field'] ?? 'all') !== 'all' 
                         <?php } ?>
                     </select>
                 </div>
-                <div class="admin-filter-field admin-content-series-filter-keyword">
+                <div class="admin-filter-field admin-content-series-filter-keyword card-filtering-field-fill">
                     <label for="content_series_filter_q" class="admin-filter-label">검색어</label>
                     <input id="content_series_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($seriesFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="key 또는 제목">
                 </div>
             </div>
-        </details>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            <div class="card-filtering-actions">
+                <button type="button" class="btn btn-outline-light" data-card-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
+            </div>
+        </div>
     </div>
 </form>
 

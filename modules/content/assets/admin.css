@@ -1,9 +1,10 @@
 .admin-content-filter-stack{grid-template-columns:minmax(0,1fr);align-items:stretch;justify-content:stretch;width:100%}
-.admin-content-filter-stack .admin-filter-field{border:0;display:grid;gap:calc(var(--spacing) * 1.5);margin:0;min-width:0;padding:0}
+.admin-content-filter-stack .admin-filter-field{border:0;display:grid;gap:calc(var(--spacing) * 1.5);margin:0;min-inline-size:0;min-width:0;padding:0}
 .admin-content-filter-toggle-group{display:inline-flex;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;width:max-content;max-width:100%}
 .admin-content-filter-toggle-group .btn{min-height:calc(var(--spacing) * 9);white-space:nowrap}
 .admin-content-filter-stack .admin-filter-input{max-width:100%;width:100%}
 .admin-content-filter-stack .admin-filter-submit{justify-content:center;justify-self:start;width:auto}
+.admin-content-filter-stack .card-filtering-actions .admin-filter-submit{justify-self:auto;width:auto}
 .admin-content-list .admin-content-search-grid{grid-template-columns:minmax(0,1fr);align-items:stretch;justify-content:stretch;width:100%}
 .admin-content-list .admin-content-filter .admin-filter-field{min-width:0}
 .admin-content-list .admin-content-filter .admin-filter-submit{justify-content:center;width:auto}
@@ -54,6 +55,7 @@
 .admin-content-file-charge-control>.admin-form-help{margin-top:calc(var(--spacing) * 1.5)}
 @media (max-width:1023px){
     .admin-content-list .admin-content-filter .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .admin-filter-submit{grid-column:1 / -1;width:100%}
+    .admin-content-list .admin-content-filter .card-filtering-actions .admin-filter-submit,.admin-content-group-list .admin-content-group-filter .card-filtering-actions .admin-filter-submit,.admin-content-series-list .admin-content-series-filter .card-filtering-actions .admin-filter-submit,.admin-content-download-files .admin-content-download-file-filter .card-filtering-actions .admin-filter-submit{grid-column:auto;width:auto}
     .admin-content-download-files .admin-content-download-file-filter,.admin-content-download-files .admin-content-download-file-search-grid{width:100%}
     .admin-content-download-files .admin-content-download-file-filter-keyword .admin-filter-input{width:100%}
 }

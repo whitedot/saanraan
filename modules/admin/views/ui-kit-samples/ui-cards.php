@@ -107,15 +107,15 @@
                             <div class="card-filtering-field">
                                 <span class="form-label"><?php echo sr_e(sr_t('admin::ui.card.filtering.status')); ?></span>
                                 <div class="btn-group" role="group">
-                                    <label class="btn btn-choice-primary btn-group-start">
+                                    <label class="btn btn-choice-light btn-group-start">
                                         <input type="checkbox" class="form-choice-toggle-input sr-only" checked>
                                         <?php echo sr_e(sr_t('admin::ui.card.filtering.option.active')); ?>
                                     </label>
-                                    <label class="btn btn-choice-primary btn-group-middle">
+                                    <label class="btn btn-choice-light btn-group-middle">
                                         <input type="checkbox" class="form-choice-toggle-input sr-only">
                                         <?php echo sr_e(sr_t('admin::ui.card.filtering.option.pending')); ?>
                                     </label>
-                                    <label class="btn btn-choice-primary btn-group-end">
+                                    <label class="btn btn-choice-light btn-group-end">
                                         <input type="checkbox" class="form-choice-toggle-input sr-only">
                                         <?php echo sr_e(sr_t('admin::ui.card.filtering.option.hidden')); ?>
                                     </label>
@@ -162,7 +162,7 @@
                         </div>
                         <div class="card-filtering-actions">
                             <button type="button" class="btn btn-solid-light card-filtering-toggle" data-card-filtering-toggle aria-expanded="true" aria-controls="admin_ui_card_filtering_detail"><?php echo sr_e(sr_t('admin::ui.card.filtering.summary')); ?></button>
-                            <button type="button" class="btn btn-solid-light" data-card-filtering-reset><?php echo sr_e(sr_t('admin::ui.text.893f3d94')); ?></button>
+                            <button type="button" class="btn btn-outline-light" data-card-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('admin::ui.text.893f3d94')); ?></button>
                             <button type="button" class="btn btn-solid-primary card-filtering-submit"><?php echo sr_e(sr_t('admin::ui.search.4b8d541e')); ?></button>
                         </div>
                     </div>
