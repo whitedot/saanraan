@@ -964,34 +964,6 @@ input:focus-visible + [class*=btn-choice-],
 .sample-body-md { font-size: var(--text-md); line-height: var(--text-md--line-height); }
 .sample-heading-size { font-size: var(--text-lg); line-height: var(--text-lg--line-height); }
 .sample-nowrap { white-space: nowrap; }
-.card-filtering { background-color: var(--color-default-50); border: 1px solid var(--color-default-200); border-radius: var(--radius); margin: 0; padding: 0; }
-.card-filtering-body { border-top: 1px solid var(--color-default-200); display: grid; gap: calc(var(--spacing) * 3); margin-top: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4) 0; }
-.card-filtering-body[hidden] { display: none; }
-.card-filtering-field { display: grid; gap: calc(var(--spacing) * 2); min-width: 0; }
-.card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) { align-items: center; display: grid; gap: calc(var(--spacing) * 2) calc(var(--spacing) * 3); grid-template-columns: minmax(5.5rem, 8rem) minmax(0, 1fr); min-inline-size: 0; min-width: 0; }
-.card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) > :is(.form-label, .admin-filter-label), .card-filtering .card-filtering-basic > :is(.card-filtering-field, .admin-filter-field) > :is(.form-label, .admin-filter-label) { color: var(--text-muted); display: block; font-size: var(--type-small-size); font-weight: var(--font-weight-semibold); line-height: var(--type-small-line-height); margin: 0; min-width: 0; padding: 0; }
-.card-filtering .card-filtering-basic > fieldset.admin-filter-field > legend.admin-filter-label { margin-block-end: calc(var(--spacing) * 2.25); }
-.card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) > :is(.form-input, .form-select, .form-textarea, .admin-filter-input, .btn-group, .admin-select-badge-list) { min-width: 0; width: 100%; }
-.card-filtering-basic { align-items: start; display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4) 0; }
-.card-filtering .card-filtering-basic > :is(.card-filtering-field, .admin-filter-field) { align-items: start; display: grid; gap: calc(var(--spacing) * 2.25); min-inline-size: 0; min-width: 0; width: fit-content; }
-.card-filtering .card-filtering-basic > :is(.card-filtering-field-fill) { flex: 1 1 18rem; width: auto; }
-.card-filtering .card-filtering-basic > :is(.card-filtering-field, .admin-filter-field) > :is(.form-input, .form-textarea, .admin-filter-input) { max-width: 100%; width: min(16rem, 100vw); }
-.card-filtering .card-filtering-basic > :is(.card-filtering-field-fill) > :is(.form-input, .form-textarea, .admin-filter-input) { width: 100%; }
-.card-filtering .card-filtering-basic > :is(.card-filtering-field, .admin-filter-field) > :is(.form-select) { max-width: min(16rem, 100%); width: max-content; }
-.card-filtering .card-filtering-basic > :is(.card-filtering-field, .admin-filter-field) > :is(.btn-group, .admin-select-badge-list) { max-width: 100%; width: fit-content; }
-.card-filtering-actions { align-items: start; display: flex; gap: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 4); }
-.card-filtering-body + .card-filtering-actions { padding-top: calc(var(--spacing) * 3); }
-.card-filtering-toggle { justify-self: start; }
-.card-filtering-toggle::before { content: "expand_more"; font-family: "Material Symbols Outlined"; font-size: 1.25rem; font-weight: 400; line-height: 1; }
-.card-filtering-toggle[aria-expanded=true]::before { content: "expand_less"; }
-.card-filtering-actions > :is(.admin-filter-submit, .card-filtering-submit) { margin-inline-start: auto; }
-@media (max-width: 767px) {
-    .card-filtering .card-filtering-body > :is(.card-filtering-field, .admin-filter-field) { align-items: stretch; grid-template-columns: minmax(0, 1fr); }
-    .card-filtering .card-filtering-basic > :is(.card-filtering-field, .admin-filter-field) { width: 100%; }
-    .card-filtering .card-filtering-basic > :is(.card-filtering-field, .admin-filter-field) > :is(.form-input, .form-select, .form-textarea, .admin-filter-input, .btn-group, .admin-select-badge-list) { width: 100%; }
-    .card-filtering-actions { flex-wrap: wrap; }
-    .card-filtering-actions > :is(.admin-filter-submit, .card-filtering-submit) { margin-inline-start: 0; }
-}
 .table-filtering { align-items: end; background-color: var(--color-default-50); border: 1px solid var(--color-default-200); border-radius: var(--radius); display: flex; gap: calc(var(--spacing) * 3); margin: 0; padding: calc(var(--spacing) * 4); }
 .table-filtering-fields { align-items: start; display: flex; flex: 1 1 auto; flex-wrap: wrap; gap: calc(var(--spacing) * 3); min-width: 0; }
 .table-filtering-field { display: grid; gap: calc(var(--spacing) * 2.25); min-inline-size: 0; min-width: 0; width: fit-content; }
@@ -1010,14 +982,14 @@ input:focus-visible + [class*=btn-choice-],
 .table-filtering-card > .table-filtering-actions { align-items: start; margin-inline-start: 0; padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4) calc(var(--spacing) * 4); }
 .table-filtering-toggle::before { content: "expand_more"; font-family: "Material Symbols Outlined"; font-size: 1.25rem; font-weight: 400; line-height: 1; }
 .table-filtering-toggle[aria-expanded=true]::before { content: "expand_less"; }
-.table-filtering-actions > .table-filtering-submit { margin-inline-start: auto; }
+.table-filtering-actions > :is(.admin-filter-submit, .table-filtering-submit) { margin-inline-start: auto; }
 @media (max-width: 767px) {
     .table-filtering { align-items: stretch; flex-wrap: wrap; }
     .table-filtering-fields, .table-filtering-field { width: 100%; }
     .table-filtering-field > :is(.form-input, .form-select, .form-textarea, .admin-filter-input, .btn-group, .admin-select-badge-list) { width: 100%; }
     .table-filtering-body > .table-filtering-field { align-items: stretch; grid-template-columns: minmax(0, 1fr); }
     .table-filtering-actions { flex-wrap: wrap; margin-inline-start: 0; width: 100%; }
-    .table-filtering-actions > .table-filtering-submit { margin-inline-start: 0; }
+    .table-filtering-actions > :is(.admin-filter-submit, .table-filtering-submit) { margin-inline-start: 0; }
 }
 .admin-select-badge-list { display: grid; gap: calc(var(--spacing) * 1.5); min-width: 0; }
 .admin-select-badge-list-select { max-width: 24rem; }

@@ -1378,12 +1378,12 @@
     control.dispatchEvent(new Event(type, { bubbles: true }));
   }
 
-  function clearCardFiltering(cardFiltering) {
-    if (!cardFiltering) {
+  function clearTableFiltering(tableFiltering) {
+    if (!tableFiltering) {
       return;
     }
 
-    cardFiltering.querySelectorAll('[data-admin-select-badge-list]').forEach(function (root) {
+    tableFiltering.querySelectorAll('[data-admin-select-badge-list]').forEach(function (root) {
       root.querySelectorAll('[data-admin-select-badge-item]').forEach(function (item) {
         item.remove();
       });
@@ -1393,7 +1393,7 @@
       });
     });
 
-    cardFiltering.querySelectorAll('input, select, textarea').forEach(function (control) {
+    tableFiltering.querySelectorAll('input, select, textarea').forEach(function (control) {
       if (!control || control.disabled || control.type === 'hidden') {
         return;
       }
@@ -1421,29 +1421,28 @@
 
   document.addEventListener('click', function (event) {
     var target = getElementTarget(event.target);
-    var cardFilteringToggle = target && target.closest('[data-card-filtering-toggle], [data-table-filtering-toggle]');
+    var tableFilteringToggle = target && target.closest('[data-table-filtering-toggle]');
 
-    if (cardFilteringToggle) {
-      var cardFiltering = cardFilteringToggle.closest('[data-card-filtering], [data-table-filtering]');
-      var cardFilteringBody = cardFiltering ? cardFiltering.querySelector('[data-card-filtering-body], [data-table-filtering-body]') : null;
+    if (tableFilteringToggle) {
+      var tableFiltering = tableFilteringToggle.closest('[data-table-filtering]');
+      var tableFilteringBody = tableFiltering ? tableFiltering.querySelector('[data-table-filtering-body]') : null;
 
-      if (cardFilteringBody) {
+      if (tableFilteringBody) {
         event.preventDefault();
 
-        var expanded = cardFilteringToggle.getAttribute('aria-expanded') === 'true';
-        cardFilteringToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        cardFiltering.classList.toggle('card-filtering-open', !expanded);
-        cardFiltering.classList.toggle('table-filtering-open', !expanded);
-        cardFilteringBody.hidden = expanded;
+        var expanded = tableFilteringToggle.getAttribute('aria-expanded') === 'true';
+        tableFilteringToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        tableFiltering.classList.toggle('table-filtering-open', !expanded);
+        tableFilteringBody.hidden = expanded;
       }
       return;
     }
 
-    var cardFilteringReset = target && target.closest('[data-card-filtering-reset], [data-table-filtering-reset]');
+    var tableFilteringReset = target && target.closest('[data-table-filtering-reset]');
 
-    if (cardFilteringReset) {
+    if (tableFilteringReset) {
       event.preventDefault();
-      clearCardFiltering(cardFilteringReset.closest('[data-card-filtering], [data-table-filtering]'));
+      clearTableFiltering(tableFilteringReset.closest('[data-table-filtering]'));
       return;
     }
 
