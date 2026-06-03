@@ -2,6 +2,7 @@
 
 $adminPageTitle = sr_t('admin::ui.admin.menu.c4a18693');
 $adminPageSubtitle = sr_t('admin::ui.admin.menu.help.7144cc38');
+$adminMenuIconOptions = sr_admin_allowed_menu_symbol_icons();
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -25,6 +26,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.admin.menu.fold.54b48c17')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.admin.menu.icon.8b29d6ef')); ?></th>
                 <th><?php echo sr_e(sr_t('admin::ui.text.0eeb676f')); ?></th>
             </tr>
         </thead>
@@ -77,6 +79,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </span>
                         </div>
+                    </td>
+                    <td>
+                        <?php if (!empty($row['can_edit_icon'])) { ?>
+                            <?php
+                            $iconInputId = 'modules_admin_menu_icon_name_' . preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $row['form_key']);
+                            $currentIconName = (string) ($row['icon_name'] ?? '');
+                            $defaultIconName = (string) ($row['default_icon_name'] ?? '');
+                            ?>
+                            <label class="sr-only" for="<?php echo sr_e($iconInputId); ?>"><?php echo sr_e((string) $row['label'] . ' ' . sr_t('admin::ui.admin.menu.icon.8b29d6ef')); ?></label>
+                            <select id="<?php echo sr_e($iconInputId); ?>" name="icon_name[<?php echo sr_e((string) $row['form_key']); ?>]" class="form-select form-select-sm">
+                                <option value=""><?php echo sr_e($defaultIconName !== '' ? sr_t('admin::ui.admin.menu.icon.default.41d51ca3', ['icon' => $defaultIconName]) : sr_t('admin::ui.admin.menu.icon.default_plain.28977edb')); ?></option>
+                                <?php foreach ($adminMenuIconOptions as $iconName => $_enabled) { ?>
+                                    <option value="<?php echo sr_e((string) $iconName); ?>"<?php echo $currentIconName === (string) $iconName ? ' selected' : ''; ?>><?php echo sr_e((string) $iconName); ?></option>
+                                <?php } ?>
+                            </select>
+                        <?php } else { ?>
+                            <span class="text-muted" aria-hidden="true">-</span>
+                        <?php } ?>
                     </td>
                     <td>
                         <?php if ($canHide) { ?>

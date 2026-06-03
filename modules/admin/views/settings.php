@@ -94,6 +94,35 @@ $siteSettingsHelp = [
         ]),
     ],
 ];
+$adminIconOverrideCount = 0;
+$adminIconRows = [];
+foreach ($adminIconDefaults as $adminIconSymbolName => $_adminIconDefaultMaterialName) {
+    if (is_array($adminIconOverrides[$adminIconSymbolName] ?? null)) {
+        $adminIconOverrideCount++;
+    }
+    $adminIconRows[(string) $adminIconSymbolName] = [
+        'key' => (string) $adminIconSymbolName,
+        'default_material_name' => (string) $_adminIconDefaultMaterialName,
+        'is_default' => true,
+    ];
+}
+foreach ($adminIconOverrides as $adminIconSymbolName => $adminIconCustom) {
+    $adminIconSymbolName = (string) $adminIconSymbolName;
+    if (isset($adminIconDefaults[$adminIconSymbolName]) || !sr_admin_custom_icon_key_is_valid($adminIconSymbolName)) {
+        continue;
+    }
+    $adminIconOverrideCount++;
+    if (is_array($adminIconCustom) && (string) ($adminIconCustom['type'] ?? '') === 'material') {
+        $adminIconDefaultMaterialName = sr_material_icon_name((string) ($adminIconCustom['material_name'] ?? $adminIconSymbolName));
+    } else {
+        $adminIconDefaultMaterialName = sr_material_icon_name($adminIconSymbolName);
+    }
+    $adminIconRows[$adminIconSymbolName] = [
+        'key' => $adminIconSymbolName,
+        'default_material_name' => $adminIconDefaultMaterialName,
+        'is_default' => false,
+    ];
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -109,7 +138,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 <?php } ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="site">
     <section class="admin-card card">
@@ -259,7 +288,99 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-form-help">알림 등록처럼 관리자에서 긴 본문을 작성하는 화면에 적용됩니다.</p>
             </div>
         </div>
+        <div class="admin-form-row">
+            <span class="form-label"><?php echo sr_e(sr_t('admin::ui.admin.menu.icon.8b29d6ef')); ?></span>
+            <div class="admin-form-field">
+                <div class="admin-icon-settings-summary">
+                    <span>Google Material Symbols</span>
+                    <small><?php echo sr_e(number_format($adminIconOverrideCount)); ?>개 커스텀</small>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-icon-key-settings-modal" data-overlay="#admin-icon-key-settings-modal">설정</button>
+                </div>
+                <p class="admin-form-help">공용 아이콘 키를 Material 이름이나 업로드 이미지로 바꿀 수 있습니다.</p>
+            </div>
+        </div>
     </section>
+    <div id="admin-icon-key-settings-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-icon-key-settings-modal-title" aria-hidden="true" inert data-overlay-stack="true">
+        <div class="modal-dialog modal-dialog-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="admin-icon-key-settings-modal-title" class="modal-title">공용 아이콘 설정</h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-icon-key-settings-modal">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body admin-icon-key-modal-body">
+                    <div class="admin-icon-key-list" data-admin-icon-key-list>
+                        <?php foreach ($adminIconRows as $adminIconRow) { ?>
+                            <?php
+                            $iconSymbolName = (string) ($adminIconRow['key'] ?? '');
+                            $iconDefaultMaterialName = (string) ($adminIconRow['default_material_name'] ?? $iconSymbolName);
+                            $iconIsDefault = !empty($adminIconRow['is_default']);
+                            $iconCustom = is_array($adminIconOverrides[$iconSymbolName] ?? null) ? $adminIconOverrides[$iconSymbolName] : [];
+                            $iconType = (string) ($iconCustom['type'] ?? 'material');
+                            if (!in_array($iconType, ['material', 'image'], true)) {
+                                $iconType = 'material';
+                            }
+                            $iconMaterialName = $iconType === 'material'
+                                ? sr_material_icon_name((string) ($iconCustom['material_name'] ?? $iconDefaultMaterialName))
+                                : sr_material_icon_name((string) $iconDefaultMaterialName);
+                            $iconStorageReference = $iconType === 'image' ? (string) ($iconCustom['storage_reference'] ?? '') : '';
+                            $iconHasImage = $iconStorageReference !== '' && sr_admin_icon_image_storage_reference($iconStorageReference) !== null;
+                            $iconInputIdSuffix = preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $iconSymbolName);
+                            $iconTypeInputId = 'admin_icon_key_type_' . $iconInputIdSuffix;
+                            $iconMaterialInputId = 'admin_icon_key_material_' . $iconInputIdSuffix;
+                            $iconImageInputId = 'admin_settings_icon_image_' . $iconInputIdSuffix;
+                            ?>
+                            <div class="admin-icon-key-item" data-admin-icon-key-item data-admin-icon-key-default="<?php echo sr_e((string) $iconDefaultMaterialName); ?>">
+                                <?php if ($iconIsDefault) { ?>
+                                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-icon-key-reset" aria-label="<?php echo sr_e((string) $iconSymbolName); ?> 초기화" title="초기화" data-admin-icon-key-reset>
+                                        <?php echo sr_material_icon_html('restart_alt'); ?>
+                                    </button>
+                                <?php } else { ?>
+                                    <label class="btn btn-icon-xs btn-ghost-default admin-icon-key-delete" aria-label="<?php echo sr_e((string) $iconSymbolName); ?> 제거" title="제거">
+                                        <input type="checkbox" name="icon_key_delete[<?php echo sr_e((string) $iconSymbolName); ?>]" value="1" data-admin-icon-key-delete>
+                                        <?php echo sr_material_icon_html('delete'); ?>
+                                    </label>
+                                <?php } ?>
+                                <span class="admin-icon-key-name"><?php echo sr_e((string) $iconSymbolName); ?></span>
+                                <span class="admin-icon-key-preview" data-admin-icon-key-preview>
+                                    <?php if ($iconHasImage) { ?>
+                                        <img src="<?php echo sr_e(sr_url('/admin/icon-image?file=' . rawurlencode($iconStorageReference))); ?>" alt="">
+                                    <?php } else { ?>
+                                        <?php echo sr_material_icon_html($iconMaterialName); ?>
+                                    <?php } ?>
+                                </span>
+                                <label class="sr-only" for="<?php echo sr_e($iconTypeInputId); ?>">표시 방식</label>
+                                <select id="<?php echo sr_e($iconTypeInputId); ?>" name="icon_key_type[<?php echo sr_e((string) $iconSymbolName); ?>]" class="form-select form-select-sm" data-admin-icon-key-type>
+                                    <option value="material"<?php echo $iconType === 'material' ? ' selected' : ''; ?>>Material</option>
+                                    <option value="image"<?php echo $iconType === 'image' ? ' selected' : ''; ?>>이미지</option>
+                                </select>
+                                <label class="sr-only" for="<?php echo sr_e($iconMaterialInputId); ?>">Material 이름</label>
+                                <input id="<?php echo sr_e($iconMaterialInputId); ?>" type="text" name="icon_key_material_name[<?php echo sr_e((string) $iconSymbolName); ?>]" value="<?php echo sr_e($iconMaterialName); ?>" class="form-input form-input-sm" maxlength="80" pattern="[a-z0-9_]+" data-admin-key-input data-admin-icon-key-material>
+                                <label class="sr-only" for="<?php echo sr_e($iconImageInputId); ?>">이미지 파일</label>
+                                <input id="<?php echo sr_e($iconImageInputId); ?>" type="file" name="icon_key_image_<?php echo sr_e((string) $iconSymbolName); ?>" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input form-input-sm admin-icon-key-file" data-admin-icon-key-file>
+                                <span class="admin-icon-key-file-name" data-admin-icon-key-file-name></span>
+                                <?php if ($iconHasImage) { ?>
+                                    <label class="admin-form-check form-label admin-icon-key-remove">
+                                        <input type="checkbox" name="icon_key_remove_image[<?php echo sr_e((string) $iconSymbolName); ?>]" value="1" class="form-checkbox" data-admin-icon-key-remove>
+                                        <span>제거</span>
+                                    </label>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
+                    </div>
+                    <div class="admin-icon-key-add">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-icon-key-add><?php echo sr_material_icon_html('add'); ?>키 추가</button>
+                    </div>
+                    <p class="admin-form-help">Material 이름은 Google Material Symbols의 ligature 이름입니다. 이미지 업로드는 JPG, PNG, GIF, WebP / 최대 <?php echo sr_e(sr_admin_icon_format_bytes(sr_admin_icon_upload_max_bytes())); ?> / 512px 이하만 허용합니다.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-icon-key-settings-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
         <a href="<?php echo sr_e(sr_url('/')); ?>" class="btn btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('admin::ui.text.b47e1675')); ?></a>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
@@ -287,6 +408,142 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             updateRequiredCheckboxGroup(root);
         });
     });
+
+    function bindAdminIconKeyFile(input) {
+        var item = input.closest('[data-admin-icon-key-item]');
+        var fileName = item ? item.querySelector('[data-admin-icon-key-file-name]') : null;
+        var preview = item ? item.querySelector('[data-admin-icon-key-preview]') : null;
+        var defaultFileName = fileName ? fileName.textContent : '';
+
+        if (preview) {
+            preview.dataset.defaultHtml = preview.innerHTML;
+        }
+
+        input.addEventListener('change', function () {
+            var file = input.files && input.files.length > 0 ? input.files[0] : null;
+            var typeSelect = item ? item.querySelector('[data-admin-icon-key-type]') : null;
+
+            if (preview && preview.dataset.previewUrl) {
+                URL.revokeObjectURL(preview.dataset.previewUrl);
+                delete preview.dataset.previewUrl;
+            }
+
+            if (fileName) {
+                fileName.textContent = file ? file.name : defaultFileName;
+            }
+
+            if (!file) {
+                if (preview) {
+                    preview.innerHTML = preview.dataset.defaultHtml || '';
+                }
+                return;
+            }
+
+            if (typeSelect) {
+                typeSelect.value = 'image';
+            }
+
+            if (!preview || !file.type || file.type.indexOf('image/') !== 0) {
+                return;
+            }
+
+            var image = document.createElement('img');
+            var previewUrl = URL.createObjectURL(file);
+            image.src = previewUrl;
+            image.alt = '';
+            preview.dataset.previewUrl = previewUrl;
+            preview.replaceChildren(image);
+        });
+    }
+
+    document.querySelectorAll('[data-admin-icon-key-file]').forEach(bindAdminIconKeyFile);
+
+    document.querySelectorAll('[data-admin-icon-key-delete]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            var item = input.closest('[data-admin-icon-key-item]');
+            if (item) {
+                item.classList.toggle('is-deleted', input.checked);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-admin-icon-key-reset]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var item = button.closest('[data-admin-icon-key-item]');
+            if (!item) {
+                return;
+            }
+
+            var defaultMaterialName = item.getAttribute('data-admin-icon-key-default') || 'folder';
+            var typeSelect = item.querySelector('[data-admin-icon-key-type]');
+            var materialInput = item.querySelector('[data-admin-icon-key-material]');
+            var fileInput = item.querySelector('[data-admin-icon-key-file]');
+            var fileName = item.querySelector('[data-admin-icon-key-file-name]');
+            var removeInput = item.querySelector('[data-admin-icon-key-remove]');
+            var preview = item.querySelector('[data-admin-icon-key-preview]');
+
+            if (typeSelect) {
+                typeSelect.value = 'material';
+            }
+
+            if (materialInput) {
+                materialInput.value = defaultMaterialName;
+            }
+
+            if (fileInput) {
+                fileInput.value = '';
+            }
+
+            if (fileName) {
+                fileName.textContent = '';
+            }
+
+            if (removeInput) {
+                removeInput.checked = true;
+            }
+
+            if (preview) {
+                if (preview.dataset.previewUrl) {
+                    URL.revokeObjectURL(preview.dataset.previewUrl);
+                    delete preview.dataset.previewUrl;
+                }
+                preview.innerHTML = '<span class="sr-icon material-symbols-outlined" aria-hidden="true" data-sr-material-icon="1">' + defaultMaterialName + '</span>';
+            }
+        });
+    });
+
+    var iconKeyAddButton = document.querySelector('[data-admin-icon-key-add]');
+    var iconKeyList = document.querySelector('[data-admin-icon-key-list]');
+    var iconKeyAddIndex = 0;
+    if (iconKeyAddButton && iconKeyList) {
+        iconKeyAddButton.addEventListener('click', function () {
+            var row = document.createElement('div');
+            var index = iconKeyAddIndex++;
+            row.className = 'admin-icon-key-item admin-icon-key-item-custom';
+            row.setAttribute('data-admin-icon-key-item', '');
+            row.setAttribute('data-admin-icon-key-default', 'help');
+            row.innerHTML = ''
+                + '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-icon-key-delete" aria-label="제거" title="제거" data-admin-icon-key-remove-row><?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('delete')); ?></button>'
+                + '<input type="text" name="custom_icon_key[]" class="form-input form-input-sm admin-icon-key-name-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" placeholder="icon_key" data-admin-key-input>'
+                + '<span class="admin-icon-key-preview" data-admin-icon-key-preview><?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('help')); ?></span>'
+                + '<label class="sr-only" for="custom_icon_key_type_' + index + '">표시 방식</label>'
+                + '<select id="custom_icon_key_type_' + index + '" name="custom_icon_key_type[]" class="form-select form-select-sm" data-admin-icon-key-type><option value="material">Material</option><option value="image">이미지</option></select>'
+                + '<label class="sr-only" for="custom_icon_key_material_' + index + '">Material 이름</label>'
+                + '<input id="custom_icon_key_material_' + index + '" type="text" name="custom_icon_key_material_name[]" value="help" class="form-input form-input-sm" maxlength="80" pattern="[a-z0-9_]+" data-admin-key-input data-admin-icon-key-material>'
+                + '<label class="sr-only" for="custom_icon_key_image_' + index + '">이미지 파일</label>'
+                + '<input id="custom_icon_key_image_' + index + '" type="file" name="custom_icon_key_image[]" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input form-input-sm admin-icon-key-file" data-admin-icon-key-file>'
+                + '<span class="admin-icon-key-file-name" data-admin-icon-key-file-name></span>'
+                + '<span></span>';
+            iconKeyList.appendChild(row);
+            bindAdminIconKeyFile(row.querySelector('[data-admin-icon-key-file]'));
+            var removeButton = row.querySelector('[data-admin-icon-key-remove-row]');
+            if (removeButton) {
+                removeButton.addEventListener('click', function () {
+                    row.remove();
+                });
+            }
+        });
+    }
 }());
 </script>
 

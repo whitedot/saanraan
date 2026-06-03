@@ -431,9 +431,23 @@ function sr_editor_assets_html(PDO $pdo, string $editorKey, string $presetKey = 
     return function_exists($assetsFunction) ? (string) $assetsFunction($pdo, $presetKey) : '';
 }
 
+function sr_material_icon_stylesheet_url(): string
+{
+    return 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0';
+}
+
 function sr_material_icon_font_url(): string
 {
     return sr_url('/assets/fonts/material-symbols-outlined.ttf');
+}
+
+function sr_icon_stylesheet_tags(): string
+{
+    return implode(PHP_EOL, [
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '<link rel="stylesheet" href="' . sr_e(sr_material_icon_stylesheet_url()) . '">',
+    ]);
 }
 
 function sr_material_icon_name(string $name): string
@@ -485,6 +499,11 @@ function sr_ui_arrow_icon_html(string $direction = 'down', string $class = '', s
 
 function sr_material_icon_html(string $name, string $class = '', string $label = '', string $id = ''): string
 {
+    return sr_icon($name, $class, $label, $id);
+}
+
+function sr_icon(string $name, string $class = '', string $label = '', string $id = ''): string
+{
     $classes = trim('sr-icon material-symbols-outlined ' . sr_material_icon_class_attr($class));
     $iconName = sr_material_icon_name($name);
     $label = trim($label);
@@ -500,13 +519,18 @@ function sr_material_icon_html(string $name, string $class = '', string $label =
 
 function sr_material_icon_bootstrap_script(): string
 {
+    return sr_icon_bootstrap_script();
+}
+
+function sr_icon_bootstrap_script(): string
+{
     return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"","check").then(y,function(){r.classList.add("sr-material-icons-unavailable")})}else{y()}})();</script>';
 }
 
 function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null): string
 {
     $tags = [
-        '<link rel="preload" as="font" type="font/ttf" href="' . sr_e(sr_material_icon_font_url()) . '" crossorigin>',
+        sr_icon_stylesheet_tags(),
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/tokens.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/icons.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/common.css')) . '">',

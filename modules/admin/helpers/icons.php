@@ -272,6 +272,161 @@ function sr_admin_material_icon_name(string $symbolName): string
     return (string) ($icons[$symbolName] ?? $icons['folder']);
 }
 
+function sr_admin_icon_custom_map(PDO $pdo): array
+{
+    $settings = sr_admin_settings($pdo);
+    $customMap = $settings['icon_key_overrides'] ?? [];
+
+    return is_array($customMap) ? $customMap : [];
+}
+
+function sr_admin_icon_material_name(PDO $pdo, string $symbolName): string
+{
+    $symbolName = trim($symbolName);
+    $custom = sr_admin_icon_custom_map($pdo)[$symbolName] ?? null;
+    if (is_array($custom) && (string) ($custom['type'] ?? 'material') === 'material') {
+        $materialName = sr_material_icon_name((string) ($custom['material_name'] ?? ''));
+        if ($materialName !== 'help' || trim((string) ($custom['material_name'] ?? '')) === 'help') {
+            return $materialName;
+        }
+    }
+
+    return sr_admin_material_icon_name($symbolName);
+}
+
+function sr_admin_icon_render_icon(PDO $pdo, string $symbolName): array
+{
+    $symbolName = trim($symbolName);
+    $custom = sr_admin_icon_custom_map($pdo)[$symbolName] ?? null;
+    if (is_array($custom) && (string) ($custom['type'] ?? '') === 'image') {
+        $storageReference = (string) ($custom['storage_reference'] ?? '');
+        if (sr_admin_icon_image_storage_reference($storageReference) !== null) {
+            return [
+                'type' => 'asset',
+                'url' => sr_url('/admin/icon-image?file=' . rawurlencode($storageReference)),
+                'alt' => '',
+                'symbol_name' => $symbolName,
+            ];
+        }
+    }
+
+    return [
+        'type' => 'material',
+        'name' => sr_admin_icon_material_name($pdo, $symbolName),
+        'symbol_name' => $symbolName,
+    ];
+}
+
+function sr_admin_icon_upload_max_bytes(): int
+{
+    return 1048576;
+}
+
+function sr_admin_icon_format_bytes(int $bytes): string
+{
+    if ($bytes >= 1048576) {
+        return number_format($bytes / 1048576, 1) . ' MB';
+    }
+
+    if ($bytes >= 1024) {
+        return number_format($bytes / 1024, 1) . ' KB';
+    }
+
+    return number_format(max(0, $bytes)) . ' bytes';
+}
+
+function sr_admin_icon_upload_was_provided(mixed $file): bool
+{
+    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+}
+
+function sr_admin_custom_icon_key_is_valid(string $key): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) === 1;
+}
+
+function sr_admin_icon_upload_array_file(array $files, int $index): ?array
+{
+    if (!isset($files['error'][$index])) {
+        return null;
+    }
+
+    return [
+        'name' => (string) ($files['name'][$index] ?? ''),
+        'type' => (string) ($files['type'][$index] ?? ''),
+        'tmp_name' => (string) ($files['tmp_name'][$index] ?? ''),
+        'error' => (int) ($files['error'][$index] ?? UPLOAD_ERR_NO_FILE),
+        'size' => (int) ($files['size'][$index] ?? 0),
+    ];
+}
+
+function sr_admin_icon_image_mime_is_allowed(string $mimeType): bool
+{
+    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/gif', 'image/webp'], true);
+}
+
+function sr_admin_icon_image_format_for_mime(string $mimeType): string
+{
+    return match (strtolower(trim($mimeType))) {
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        default => '',
+    };
+}
+
+function sr_admin_icon_upload_image(array $file): array
+{
+    $validated = sr_upload_validate_file($file, [
+        'max_bytes' => sr_admin_icon_upload_max_bytes(),
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    ]);
+
+    $sourcePath = (string) $validated['tmp_name'];
+    $targetFormat = sr_admin_icon_image_format_for_mime((string) $validated['mime_type']);
+    if ($targetFormat === '') {
+        throw new RuntimeException('허용되지 않은 아이콘 이미지 형식입니다.');
+    }
+
+    $dimensions = @getimagesize($sourcePath);
+    if (!is_array($dimensions) || (int) ($dimensions[0] ?? 0) < 1 || (int) ($dimensions[1] ?? 0) < 1) {
+        throw new RuntimeException('아이콘 이미지 크기를 확인할 수 없습니다.');
+    }
+    if ((int) $dimensions[0] > 512 || (int) $dimensions[1] > 512) {
+        throw new RuntimeException('아이콘 이미지는 가로/세로 512px 이하만 업로드할 수 있습니다.');
+    }
+
+    $datePath = date('Y/m');
+    $storageKey = 'admin/icons/' . $datePath . '/' . sr_upload_random_filename($targetFormat);
+    $stored = sr_storage_put_file($sourcePath, $storageKey, [
+        'content_type' => (string) $validated['mime_type'],
+    ]);
+
+    return [
+        'driver' => (string) $stored['driver'],
+        'storage_key' => $storageKey,
+        'storage_reference' => sr_storage_reference((string) $stored['driver'], $storageKey),
+        'mime_type' => (string) $validated['mime_type'],
+    ];
+}
+
+function sr_admin_icon_image_storage_key_is_valid(string $key): bool
+{
+    return preg_match('#\Aadmin/icons/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|gif|webp)\z#', $key) === 1;
+}
+
+function sr_admin_icon_image_storage_reference(string $reference): ?array
+{
+    $storage = sr_storage_parse_reference($reference);
+    if (!is_array($storage) || !sr_admin_icon_image_storage_key_is_valid((string) $storage['key'])) {
+        return null;
+    }
+
+    return $storage;
+}
+
 function sr_admin_default_menu_icon_id(string $category): string
 {
     $icons = [

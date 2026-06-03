@@ -39,7 +39,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, null); ?>
     <?php echo sr_stylesheet_tag(['/assets/install.css']); ?>
-    <?php echo sr_material_icon_bootstrap_script(); ?>
+    <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body class="sr-install-page">
     <main class="sr-install-shell" data-install-current-step="<?php echo sr_e($initialInstallStepKey); ?>">

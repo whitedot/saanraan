@@ -55,7 +55,7 @@ if ($layoutPdo instanceof PDO) {
     <?php echo sr_seo_tags($layoutSeo, $layoutSite); ?>
     <?php echo $layoutFaviconHtml; ?>
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo); ?>
-    <?php echo sr_material_icon_bootstrap_script(); ?>
+    <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body>
     <header class="public-site-header">

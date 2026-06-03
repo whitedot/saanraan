@@ -1,6 +1,6 @@
 # 배포 보호 기준
 
-산란은 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하며, self-hosted Material Symbols 폰트를 `font/ttf` MIME으로 제공하는 기준선이다.
+산란은 공유호스팅과 Apache 배포를 위한 기본 `.htaccess`를 루트에 포함한다. 이 파일은 내부 디렉터리 직접 접근을 차단하고, 공개 정적 asset과 가상 URL 요청만 허용하는 기준선이다. 기본 아이콘셋인 Google Material Symbols는 Google Fonts CDN에서 호출하고, CDN이 막히는 환경을 위해 번들 폰트를 fallback으로 둔다.
 
 다만 `.htaccess`는 Apache에서 `AllowOverride`와 `mod_rewrite`가 활성화된 경우에만 적용된다. Nginx, Caddy, IIS, 일부 관리형 호스팅, 또는 `.htaccess`를 무시하는 Apache 설정에서는 같은 차단 규칙을 서버 설정이나 호스팅 패널에서 별도로 적용해야 한다. nginx에서는 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 기준으로 운영 환경에 맞는 `server/location` 규칙을 구성한다.
 
@@ -69,7 +69,7 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 ## 서버별 처리
 
-Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/fonts/material-symbols-outlined.ttf`가 정적 폰트로 응답하는지 확인한다.
+Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다.
 
 nginx는 PHP-FPM과 front controller 구성을 사용한다. 저장소의 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 운영 서버 설정에 복사한 뒤 `server_name`, `root`, `fastcgi_pass`를 환경에 맞게 바꾼다. `location` 순서는 보안 규칙의 일부이므로 유지한다. 특히 `/modules/{module_key}/assets/`와 CKEditor 공개 파일은 허용하되, 그 밖의 `modules/` 내부 파일은 직접 열리지 않아야 한다.
 

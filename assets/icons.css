@@ -1,6 +1,7 @@
 /*
  * Saanraan project icon layer.
- * Material Symbols is self-hosted so public/admin runtimes do not depend on an external icon runtime.
+ * Material Symbols is loaded from the Google Fonts CDN by PHP stylesheet helpers,
+ * with the bundled font kept as a shared-hosting fallback.
  */
 
 @font-face{font-family:"Material Symbols Outlined";font-style:normal;font-weight:400;src:url("fonts/material-symbols-outlined.ttf") format("truetype");font-display:block}

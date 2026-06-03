@@ -504,6 +504,11 @@ function sr_admin_save_editor_key(PDO $pdo, string $editorKey): void
     sr_admin_save_module_setting($pdo, 'admin_editor', sr_editor_normalize_key($editorKey));
 }
 
+function sr_admin_save_icon_key_overrides(PDO $pdo, array $iconKeyOverrides): void
+{
+    sr_admin_save_module_setting($pdo, 'icon_key_overrides', json_encode($iconKeyOverrides, JSON_UNESCAPED_SLASHES), 'json');
+}
+
 function sr_admin_save_module_setting(PDO $pdo, string $settingKey, string $settingValue, string $valueType = 'string'): void
 {
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'admin' LIMIT 1");

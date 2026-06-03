@@ -63,7 +63,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
     <?php echo sr_seo_tags($seo, $site ?? null); ?>
     <?php echo $adminFaviconHtml; ?>
     <?php echo sr_admin_stylesheet_tag($pdo ?? null); ?>
-    <?php echo sr_material_icon_bootstrap_script(); ?>
+    <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body>
     <script>
@@ -101,7 +101,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                 </a>
                 <button type="button" id="btn_gnb" class="admin-sidebar-toggle" aria-label="<?php echo sr_e(sr_t('admin::ui.text.076c3ee0')); ?>" aria-pressed="false">
                     <span aria-hidden="true">
-                        <?php echo sr_material_icon_html('keyboard_double_arrow_left', 'admin-shell-control-icon'); ?>
+                        <?php echo sr_icon('keyboard_double_arrow_left', 'admin-shell-control-icon'); ?>
                     </span>
                 </button>
             </h2>
@@ -141,13 +141,13 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                                     $navIconName = sr_admin_material_icon_name((string) ($navIcon['name'] ?? $navItem['icon_id'] ?? 'folder'));
                                                 }
                                                 ?>
-                                                <?php echo sr_material_icon_html($navIconName, 'admin-nav-icon admin-nav-icon-symbol'); ?>
+                                                <?php echo sr_icon($navIconName, 'admin-nav-icon admin-nav-icon-symbol'); ?>
                                             <?php } ?>
                                             <span class="admin-nav-trigger-label"><?php echo sr_e((string) $navItem['title']); ?></span>
                                         </span>
                                         <?php if ($navHasSubmenu) { ?>
                                             <span class="admin-nav-caret" aria-hidden="true">
-                                                <?php echo sr_material_icon_html('keyboard_arrow_down', 'admin-nav-caret-icon'); ?>
+                                                <?php echo sr_icon('keyboard_arrow_down', 'admin-nav-caret-icon'); ?>
                                             </span>
                                         <?php } ?>
                                     <?php if ($navDirectUrl !== '') { ?>
@@ -199,7 +199,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
         <div id="hd_top" class="admin-topbar">
             <div class="hd_top_left admin-topbar-left">
                 <button type="button" id="btn_gnb_mobile" class="admin-mobile-menu-button" aria-controls="gnb" aria-expanded="false" aria-label="<?php echo sr_e(sr_t('admin::ui.menu.ff7070c7')); ?>">
-                    <?php echo sr_material_icon_html('menu', 'admin-shell-control-icon'); ?>
+                    <?php echo sr_icon('menu', 'admin-shell-control-icon'); ?>
                 </button>
                 <div class="hd_breadcrumb admin-breadcrumb">
                     <span><?php echo sr_e(sr_t('admin::ui.dashboard.2b1a8070')); ?></span>
@@ -213,18 +213,18 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                     <ul>
                         <li class="tnb_li admin-toolbar-item">
                             <button type="button" id="admin_theme_toggle" class="tnb_icon_btn admin-toolbar-icon-button" aria-pressed="false" aria-label="<?php echo sr_e(sr_t('admin::ui.text.3d1bf22c')); ?>" title="<?php echo sr_e(sr_t('admin::ui.text.3d1bf22c')); ?>" data-admin-theme-url="<?php echo sr_e(sr_url('/admin/color-scheme')); ?>" data-admin-theme-csrf="<?php echo sr_e(sr_csrf_token()); ?>">
-                                <?php echo sr_material_icon_html('dark_mode', 'admin-shell-control-icon', '', 'admin_theme_toggle_icon'); ?>
+                                <?php echo sr_icon('dark_mode', 'admin-shell-control-icon', '', 'admin_theme_toggle_icon'); ?>
                             </button>
                         </li>
                         <li class="tnb_li admin-toolbar-item">
                             <a class="tnb_icon_btn admin-toolbar-icon-button" href="<?php echo sr_e((string) $adminShell['site_home_url']); ?>" target="_blank" title="<?php echo sr_e(sr_t('admin::ui.text.0b39b6a4')); ?>" aria-label="<?php echo sr_e(sr_t('admin::ui.text.0b39b6a4')); ?>">
-                                <?php echo sr_material_icon_html('home', 'admin-shell-control-icon'); ?>
+                                <?php echo sr_icon('home', 'admin-shell-control-icon'); ?>
                             </a>
                         </li>
                         <li class="tnb_li admin-toolbar-item relative">
                             <details class="admin-profile-dropdown">
                                 <summary class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">
-                                    <?php echo sr_material_icon_html('person', 'admin-shell-control-icon'); ?>
+                                    <?php echo sr_icon('person', 'admin-shell-control-icon'); ?>
                                     <?php if ($adminShellAccountDisplayName !== '') { ?>
                                         <span class="admin-profile-name">
                                             <span class="admin-profile-name-text"><?php echo sr_e($adminShellAccountDisplayName); ?></span>
@@ -235,7 +235,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                 <ul class="tnb_mb_area admin-toolbar-menu" role="menu" aria-orientation="vertical">
                                     <li>
                                         <a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>">
-                                            <?php echo sr_material_icon_html('manage_accounts', 'admin-profile-menu-icon'); ?>
+                                            <?php echo sr_icon('manage_accounts', 'admin-profile-menu-icon'); ?>
                                             <span><?php echo sr_e(sr_t('admin::ui.text.25914f73')); ?></span>
                                         </a>
                                     </li>
@@ -243,7 +243,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                         <form method="post" action="<?php echo sr_e((string) $adminShell['logout_url']); ?>">
                                             <?php echo sr_csrf_field(); ?>
                                             <button type="submit">
-                                                <?php echo sr_material_icon_html('logout', 'admin-profile-menu-icon'); ?>
+                                                <?php echo sr_icon('logout', 'admin-profile-menu-icon'); ?>
                                                 <span><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></span>
                                             </button>
                                         </form>

@@ -75,7 +75,7 @@ function sr_admin_shell_navigation_items(PDO $pdo, string $currentPath, int $acc
 
         $sections[] = [
             'title' => $title,
-            'icon' => sr_admin_shell_menu_icon($group['admin_icon'] ?? null, $category),
+            'icon' => sr_admin_shell_menu_icon($pdo, $group['admin_icon'] ?? null, $category),
             'icon_id' => sr_admin_shell_icon_id($category),
             'active' => $active,
             'section_class' => $active ? ' is-active' : '',
@@ -183,7 +183,7 @@ function sr_admin_shell_navigation_group_items(PDO $pdo, array $group, string $c
 
         $navGroups[] = [
             'title' => $moduleLabel !== '' ? $moduleLabel : '메뉴',
-            'icon' => sr_admin_shell_menu_icon($moduleGroup['admin_icon'] ?? null, $category),
+            'icon' => sr_admin_shell_menu_icon($pdo, $moduleGroup['admin_icon'] ?? null, $category),
             'icon_id' => sr_admin_shell_icon_id($category),
             'active' => $active,
             'item_class' => $active ? ($hasSubmenu ? ' is-open is-active' : ' is-current is-active') : '',
@@ -268,7 +268,7 @@ function sr_admin_shell_icon_id(string $category): string
     return sr_admin_default_menu_icon_id($category);
 }
 
-function sr_admin_shell_menu_icon(mixed $icon, string $category): array
+function sr_admin_shell_menu_icon(PDO $pdo, mixed $icon, string $category): array
 {
     if (is_array($icon)) {
         $type = trim((string) ($icon['type'] ?? 'symbol'));
@@ -285,21 +285,13 @@ function sr_admin_shell_menu_icon(mixed $icon, string $category): array
 
         $symbolIcon = sr_admin_menu_symbol_icon((string) ($icon['name'] ?? ''));
         if ($symbolIcon !== []) {
-            return [
-                'type' => 'material',
-                'name' => sr_admin_material_icon_name((string) $symbolIcon['name']),
-                'symbol_name' => (string) $symbolIcon['name'],
-            ];
+            return sr_admin_icon_render_icon($pdo, (string) $symbolIcon['name']);
         }
     }
 
     $symbolName = sr_admin_shell_icon_id($category);
 
-    return [
-        'type' => 'material',
-        'name' => sr_admin_material_icon_name($symbolName),
-        'symbol_name' => $symbolName,
-    ];
+    return sr_admin_icon_render_icon($pdo, $symbolName);
 }
 
 function sr_admin_shell_class_attr(string $class): string
@@ -320,7 +312,7 @@ function sr_admin_stylesheet_tag(?PDO $pdo = null): string
         '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
         '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
         '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
-        '<link rel="preload" as="font" type="font/ttf" href="' . sr_e(sr_material_icon_font_url()) . '" crossorigin>',
+        sr_icon_stylesheet_tags(),
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/tokens.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/assets/icons.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url('/modules/admin/assets/common.css')) . '">',

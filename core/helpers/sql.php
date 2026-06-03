@@ -16,7 +16,15 @@ function sr_execute_sql_file(PDO $pdo, string $file): void
     $sql = sr_sql_replace_runtime_placeholders($pdo, $sql);
 
     foreach (sr_split_sql_statements($sql) as $statement) {
-        $pdo->exec($statement);
+        sr_execute_sql_statement($pdo, $statement);
+    }
+}
+
+function sr_execute_sql_statement(PDO $pdo, string $statement): void
+{
+    $result = $pdo->query($statement);
+    if ($result instanceof PDOStatement) {
+        $result->closeCursor();
     }
 }
 
