@@ -45,7 +45,7 @@ return [
             'order' => 80,
         ],
         [
-            'label' => '멤버 그룹별 설정',
+            'label' => '회원 그룹별 설정',
             'path' => '/admin/community/asset-policy-sets',
             'order' => 90,
         ],

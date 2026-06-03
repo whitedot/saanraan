@@ -496,7 +496,7 @@ function sr_community_asset_policy_set_summary(array $policySet, string $operati
     }
 
     if ($summaries === []) {
-        return '활성 멤버 그룹별 적용 없음';
+        return '활성 회원 그룹별 적용 없음';
     }
 
     $remaining = max(0, $eligibleCount - count($summaries));
@@ -528,7 +528,7 @@ function sr_community_asset_policy_set_checkboxes_html(string $id, string $name,
     if ($assetSourceSelector !== '') {
         $rootAttributes .= ' data-admin-select-badge-asset-source="' . sr_e($assetSourceSelector) . '"';
     }
-    return sr_admin_select_badge_list_html($id, $name, sr_community_asset_policy_set_picker_options($policySets, $operation, $pdo), array_map('strval', sr_community_asset_policy_set_ids_from_value($selectedIds)), '등록된 멤버 그룹별 적용 없음', '그룹 선택', $rootAttributes);
+    return sr_admin_select_badge_list_html($id, $name, sr_community_asset_policy_set_picker_options($policySets, $operation, $pdo), array_map('strval', sr_community_asset_policy_set_ids_from_value($selectedIds)), '등록된 회원 그룹별 적용 없음', '그룹 선택', $rootAttributes);
 }
 
 function sr_community_asset_policy_set_ids_validation_errors(PDO $pdo, array $setIds, string $label): array
@@ -536,7 +536,7 @@ function sr_community_asset_policy_set_ids_validation_errors(PDO $pdo, array $se
     $errors = [];
     foreach (sr_community_asset_policy_set_ids_from_value($setIds) as $setId) {
         if (!is_array(sr_community_asset_policy_set_by_id($pdo, (int) $setId))) {
-            $errors[] = $label . ' 멤버 그룹별 적용을 찾을 수 없습니다.';
+            $errors[] = $label . ' 회원 그룹별 적용을 찾을 수 없습니다.';
             break;
         }
     }
@@ -569,7 +569,7 @@ function sr_community_asset_policy_set_asset_match_errors(PDO $pdo, array $setId
             }
         }
         if (!$matched) {
-            $errors[] = $label . ' 멤버 그룹별 적용은 선택한 포인트/금액 항목에 맞는 정책만 선택하세요.';
+            $errors[] = $label . ' 회원 그룹별 적용은 선택한 포인트/금액 항목에 맞는 정책만 선택하세요.';
             break;
         }
     }
