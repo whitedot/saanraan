@@ -88,44 +88,6 @@
                     </div>
                 </div>
             </div>
-
-            <div class="card">
-                <div class="card-header ui-kit-block-flow">
-                    <h3 class="card-title">Table Text</h3>
-                    <p class="sample-caption">테이블 안에서 본문, 메타, 코드가 함께 쓰이는 예시입니다.</p>
-                </div>
-                <div class="card-body">
-                    <div class="table-wrapper">
-                        <table class="table table-sm">
-                            <caption class="type-caption">역할 기반 토큰은 표 캡션과 셀 내부 보조 정보에도 사용할 수 있습니다.</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Role</th>
-                                    <th scope="col">Example</th>
-                                    <th scope="col">Token</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="type-small">Meta</span></td>
-                                    <td><span class="type-meta">마지막 수정 2026-05-30</span></td>
-                                    <td><code class="type-code">--type-meta-size</code></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="type-small">Body</span></td>
-                                    <td><span class="type-body">한글 English 12345 긴단어테스트LongWordSample</span></td>
-                                    <td><code class="type-code">--type-body-size</code></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="type-small">Code</span></td>
-                                    <td><code class="type-code">permission_keys[]</code></td>
-                                    <td><code class="type-code">--type-code-size</code></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
