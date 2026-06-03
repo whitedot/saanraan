@@ -1421,11 +1421,11 @@
 
   document.addEventListener('click', function (event) {
     var target = getElementTarget(event.target);
-    var cardFilteringToggle = target && target.closest('[data-card-filtering-toggle]');
+    var cardFilteringToggle = target && target.closest('[data-card-filtering-toggle], [data-table-filtering-toggle]');
 
     if (cardFilteringToggle) {
-      var cardFiltering = cardFilteringToggle.closest('[data-card-filtering]');
-      var cardFilteringBody = cardFiltering ? cardFiltering.querySelector('[data-card-filtering-body]') : null;
+      var cardFiltering = cardFilteringToggle.closest('[data-card-filtering], [data-table-filtering]');
+      var cardFilteringBody = cardFiltering ? cardFiltering.querySelector('[data-card-filtering-body], [data-table-filtering-body]') : null;
 
       if (cardFilteringBody) {
         event.preventDefault();
@@ -1433,16 +1433,17 @@
         var expanded = cardFilteringToggle.getAttribute('aria-expanded') === 'true';
         cardFilteringToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
         cardFiltering.classList.toggle('card-filtering-open', !expanded);
+        cardFiltering.classList.toggle('table-filtering-open', !expanded);
         cardFilteringBody.hidden = expanded;
       }
       return;
     }
 
-    var cardFilteringReset = target && target.closest('[data-card-filtering-reset]');
+    var cardFilteringReset = target && target.closest('[data-card-filtering-reset], [data-table-filtering-reset]');
 
     if (cardFilteringReset) {
       event.preventDefault();
-      clearCardFiltering(cardFilteringReset.closest('[data-card-filtering]'));
+      clearCardFiltering(cardFilteringReset.closest('[data-card-filtering], [data-table-filtering]'));
       return;
     }
 
