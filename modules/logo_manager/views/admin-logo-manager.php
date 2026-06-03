@@ -147,14 +147,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('position_key', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.position.label'), 'position_key', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.ac97396d'), 'title', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.status.e10195a1'), 'status', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
-                    <th<?php echo sr_admin_sort_aria('starts_at', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.b918d5af'), 'starts_at', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('starts_at', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.65bdaefd'), 'starts_at', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('ends_at', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.26c25fca'), 'ends_at', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
+                    <th<?php echo sr_admin_sort_aria('duration', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.duration.label'), 'duration', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('sort_order', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.3788952d'), 'sort_order', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('logo_manager::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($logos === []) { ?>
-                    <tr><td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
+                    <tr><td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($logos as $logo) { ?>
                         <tr>
@@ -164,7 +166,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_e((string) $logo['title']); ?>
                             </td>
                             <td><span class="admin-status <?php echo (string) $logo['status'] === 'active' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_logo_manager_status_label((string) $logo['status'])); ?></span></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($logo['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?><br><?php echo sr_e((string) ($logo['ends_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($logo['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($logo['ends_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_logo_manager_duration_label($logo['starts_at'] ?? null, $logo['ends_at'] ?? null)); ?></td>
                             <td><?php echo sr_e((string) $logo['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">

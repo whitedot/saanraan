@@ -29,12 +29,6 @@ function sr_logo_manager_default_position_options(): array
             'max_bytes' => 1048576,
             'surface' => 'global',
         ],
-        'public.og_image' => [
-            'label' => sr_t('logo_manager::position.og_image.label'),
-            'hint' => sr_t('logo_manager::position.og_image.hint'),
-            'max_bytes' => 5242880,
-            'surface' => 'public',
-        ],
     ];
 }
 
@@ -578,6 +572,51 @@ function sr_logo_manager_admin_datetime_value(mixed $value): string
     return $date instanceof DateTimeImmutable ? $date->format('Y-m-d\TH:i') : '';
 }
 
+function sr_logo_manager_duration_label(mixed $startsAt, mixed $endsAt): string
+{
+    if (!is_string($startsAt) || $startsAt === '' || !is_string($endsAt) || $endsAt === '') {
+        return sr_t('logo_manager::ui.duration.always_or_open');
+    }
+
+    try {
+        $start = new DateTimeImmutable($startsAt);
+        $end = new DateTimeImmutable($endsAt);
+    } catch (Throwable) {
+        return sr_t('logo_manager::ui.duration.unknown');
+    }
+
+    $seconds = $end->getTimestamp() - $start->getTimestamp();
+    if ($seconds < 0) {
+        return sr_t('logo_manager::ui.duration.invalid');
+    }
+    if ($seconds === 0) {
+        return '0' . sr_t('logo_manager::ui.duration.second');
+    }
+
+    $days = intdiv($seconds, 86400);
+    $seconds %= 86400;
+    $hours = intdiv($seconds, 3600);
+    $seconds %= 3600;
+    $minutes = intdiv($seconds, 60);
+    $seconds %= 60;
+
+    $parts = [];
+    if ($days > 0) {
+        $parts[] = (string) $days . sr_t('logo_manager::ui.duration.day');
+    }
+    if ($hours > 0) {
+        $parts[] = (string) $hours . sr_t('logo_manager::ui.duration.hour');
+    }
+    if ($minutes > 0 && count($parts) < 2) {
+        $parts[] = (string) $minutes . sr_t('logo_manager::ui.duration.minute');
+    }
+    if ($seconds > 0 && $parts === []) {
+        $parts[] = (string) $seconds . sr_t('logo_manager::ui.duration.second');
+    }
+
+    return implode(' ', array_slice($parts, 0, 2));
+}
+
 function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now = null): ?array
 {
     $positionKey = sr_logo_manager_position_key($positionKey, $pdo);
@@ -703,9 +742,4 @@ function sr_logo_manager_favicon_link_tag(PDO $pdo): string
     $href = sr_e(sr_logo_manager_url_for_output($url));
     return '<link rel="icon" href="' . $href . '">' . PHP_EOL
         . '<link rel="apple-touch-icon" href="' . $href . '">';
-}
-
-function sr_logo_manager_og_image_url(PDO $pdo): string
-{
-    return sr_logo_manager_active_url($pdo, 'public.og_image');
 }

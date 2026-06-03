@@ -163,6 +163,8 @@ function sr_admin_logo_sort_options(): array
         'title' => ['columns' => ['title', 'id']],
         'status' => ['columns' => ['status', 'id']],
         'starts_at' => ['columns' => ['starts_at', 'ends_at', 'id']],
+        'ends_at' => ['columns' => ['ends_at', 'starts_at', 'id']],
+        'duration' => ['columns' => ["CASE WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN TIMESTAMPDIFF(SECOND, starts_at, ends_at) ELSE 2147483647 END", 'id']],
         'sort_order' => ['columns' => ['sort_order', 'id']],
         'created_at' => ['columns' => ['created_at', 'id']],
     ];

@@ -174,7 +174,9 @@ if ($logoTableExists) {
     $logoCountRow = $stmt->fetch();
     $logoPagination = sr_admin_pagination_from_total($pdo, is_array($logoCountRow) ? (int) ($logoCountRow['count_value'] ?? 0) : 0, 'logo_page');
     $stmt = $pdo->query(
-        'SELECT id, position_key, title, alt_text, link_url, status, starts_at, ends_at, sort_order,
+        'SELECT id, position_key, title, alt_text, link_url, status, starts_at, ends_at,
+                CASE WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN TIMESTAMPDIFF(SECOND, starts_at, ends_at) ELSE NULL END AS duration_seconds,
+                sort_order,
                 storage_driver, storage_key, public_url, mime_type, width, height, size_bytes, created_at
          FROM sr_logo_manager_logos
          ' . sr_admin_sort_order_sql($logoSortOptions, $logoSort, $logoDefaultSort) . '
