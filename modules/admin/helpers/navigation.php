@@ -291,6 +291,8 @@ function sr_admin_apply_dynamic_module_menu_labels(PDO $pdo, string $moduleKey, 
                 $menu['items'][$index]['label'] = $pointDisplayName . ' 잔액';
             } elseif ($path === '/admin/points/transactions') {
                 $menu['items'][$index]['label'] = $pointDisplayName . ' 거래 내역';
+            } elseif ($path === '/admin/points/settings') {
+                $menu['items'][$index]['label'] = $pointDisplayName . ' 환경설정';
             }
         }
     }

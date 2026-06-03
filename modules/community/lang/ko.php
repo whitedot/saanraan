@@ -565,7 +565,7 @@ return [
     'ui.nav.comments' => '댓글 관리',
     'ui.nav.posts' => '게시글 관리',
     'ui.nav.reports' => '신고 관리',
-    'ui.nav.settings' => '환경설정',
+    'ui.nav.settings' => '커뮤니티 환경설정',
     'ui.page.13726597' => '게시글 페이지',
     'ui.asset.amount.0df01f4b' => '{label} 금액',
     'ui.required.1f227c67' => '(필수)',

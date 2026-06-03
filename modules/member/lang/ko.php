@@ -314,7 +314,7 @@ return [
     'ui.member.list.7b664c16' => '회원 그룹 목록',
     'ui.member.list.d8e6279a' => '회원 목록',
     'ui.member.profile_updated_at.8f8c0f24' => '프로필 수정일',
-    'ui.member.settings.6b4c84f7' => '환경설정',
+    'ui.member.settings.6b4c84f7' => '회원 환경설정',
     'ui.member.settings.df7b9920' => '회원 설정',
     'ui.member.status.edit.a11441b7' => '회원 기본 정보와 상태를 수정합니다.',
     'ui.member.status.search.5798c9ca' => '회원 상태를 한눈에 확인하고, 조건 검색과 빠른 관리 동선을 자연스럽게 이어가세요.',

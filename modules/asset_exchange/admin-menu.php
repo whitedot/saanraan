@@ -15,7 +15,7 @@ return [
             'order' => 20,
         ],
         [
-            'label' => '환경설정',
+            'label' => '환전 환경설정',
             'path' => '/admin/asset-exchange/settings',
             'order' => 30,
         ],

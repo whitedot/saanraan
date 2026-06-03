@@ -90,7 +90,7 @@ return [
     'ui.settings.default_expiration_days_help' => '새 지급 거래에 적용할 유효기간 일수입니다. 0이면 포인트 만료를 사용하지 않습니다.',
     'ui.settings.days_unit' => '일',
     'ui.settings.expire_due' => '수동 만료 실행',
-    'ui.settings.menu' => '환경설정',
+    'ui.settings.menu' => '포인트 환경설정',
     'ui.settings.save' => '환경설정 저장',
     'ui.settings.subtitle' => '포인트 항목의 표시 이름, 단위, 만료 정책을 관리합니다.',
     'ui.settings.title' => '포인트 환경설정',

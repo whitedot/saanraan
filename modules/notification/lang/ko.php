@@ -33,7 +33,7 @@ return [
     'ui.search.4b8d541e' => '검색',
     'ui.search.b79bc9c8' => '검색 조건',
     'ui.search.bda397fc' => '검색어',
-    'ui.settings.845f5c6c' => '환경설정',
+    'ui.settings.845f5c6c' => '알림 환경설정',
     'ui.status.3d8c9ee7' => '발송 상태',
     'ui.status.e10195a1' => '상태',
     'ui.text.077631f5' => '이메일 발송 작업',

@@ -20,7 +20,7 @@ return [
             'order' => 40,
         ],
         [
-            'label' => '환경설정',
+            'label' => '예치금 환경설정',
             'path' => '/admin/deposits/settings',
             'order' => 50,
         ],

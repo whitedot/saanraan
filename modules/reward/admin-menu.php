@@ -20,7 +20,7 @@ return [
             'order' => 40,
         ],
         [
-            'label' => '환경설정',
+            'label' => '적립금 환경설정',
             'path' => '/admin/rewards/settings',
             'order' => 50,
         ],

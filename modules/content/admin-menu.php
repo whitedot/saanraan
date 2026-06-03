@@ -35,7 +35,7 @@ return [
             'order' => 27,
         ],
         [
-            'label' => '환경설정',
+            'label' => '콘텐츠 환경설정',
             'path' => '/admin/content/settings',
             'order' => 30,
         ],
