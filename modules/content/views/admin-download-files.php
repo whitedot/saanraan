@@ -120,7 +120,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $selectedDownloadFileStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter admin-content-download-file-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter table-filtering table-filtering-plain admin-content-download-file-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-download-file-search-grid admin-content-filter-stack">
                     <div class="admin-filter-field admin-content-download-file-filter-status">
                         <label for="content_download_file_filter_status" class="admin-filter-label">상태</label>

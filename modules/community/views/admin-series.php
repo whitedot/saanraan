@@ -36,7 +36,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/series')); ?>" class="admin-filter admin-community-series-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/series')); ?>" class="admin-filter table-filtering table-filtering-plain admin-community-series-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-series-search-grid">
             <div class="admin-filter-field admin-community-series-filter-status">
                 <label for="community_series_filter_status" class="admin-filter-label">상태</label>

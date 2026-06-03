@@ -313,7 +313,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     </div>
 
     <?php $selectedMemberGroupStatuses = is_array($groupListFilter['status'] ?? null) ? $groupListFilter['status'] : []; ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="admin-filter admin-member-group-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="admin-filter table-filtering table-filtering-plain admin-member-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-member-group-search-grid">
                     <div class="admin-filter-field">
                         <label for="member-group-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
@@ -644,7 +644,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     $selectedGroupRuleGroupIds = is_array($groupRuleFilter['group_id'] ?? null) ? $groupRuleFilter['group_id'] : [];
     $selectedGroupRuleSourceModuleKeys = is_array($groupRuleFilter['source_module_key'] ?? null) ? $groupRuleFilter['source_module_key'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="admin-filter admin-member-group-rule-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="admin-filter table-filtering table-filtering-plain admin-member-group-rule-filter ui-form-theme">
         <div class="admin-filter-grid admin-member-group-rule-search-grid">
             <div class="admin-filter-field">
                 <label for="member-group-rule-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>

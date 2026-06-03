@@ -252,7 +252,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $selectedBannerStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     $selectedBannerTargets = is_array($filters['target'] ?? null) ? $filters['target'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter admin-banner-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter table-filtering table-filtering-plain admin-banner-filter ui-form-theme">
         <div class="admin-filter-grid admin-banner-search-grid">
                     <div class="admin-filter-field admin-banner-filter-status">
                         <label for="modules_banner_admin_banners_status" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></label>

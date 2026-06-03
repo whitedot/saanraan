@@ -15,7 +15,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($policySetPage === 'list') { ?>
     <?php $selectedPolicySetStatuses = is_array($policySetFilters['status'] ?? null) ? $policySetFilters['status'] : []; ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="admin-filter admin-content-asset-policy-set-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="admin-filter table-filtering table-filtering-plain admin-content-asset-policy-set-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-asset-policy-set-search-grid">
             <div class="admin-filter-field">
                 <label for="content_policy_set_status_filter" class="admin-filter-label">상태</label>

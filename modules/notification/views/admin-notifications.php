@@ -66,7 +66,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter admin-notification-delivery-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter table-filtering table-filtering-plain admin-notification-delivery-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-delivery-search-grid">
                 <div class="admin-filter-field admin-notification-delivery-filter-channel">
                     <label for="notification_admin_delivery_channel_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
@@ -188,7 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter admin-notification-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter table-filtering table-filtering-plain admin-notification-filter ui-form-theme">
         <div class="admin-filter-grid admin-notification-search-grid">
                 <div class="admin-filter-field admin-notification-filter-audience">
                     <label for="notification_admin_audience_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>

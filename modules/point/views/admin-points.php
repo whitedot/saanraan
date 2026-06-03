@@ -154,7 +154,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url($pointAdminPage === 'transactions' ? '/admin/points/transactions' : '/admin/points/balances')); ?>" class="admin-filter admin-asset-member-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url($pointAdminPage === 'transactions' ? '/admin/points/transactions' : '/admin/points/balances')); ?>" class="admin-filter table-filtering table-filtering-plain admin-asset-member-filter ui-form-theme">
     <div class="admin-filter-grid admin-asset-member-search-grid">
         <div class="admin-filter-field">
             <label for="point-member-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('point::ui.search.b79bc9c8')); ?></label>

@@ -11,7 +11,7 @@ $auditResultFilters = is_array($filters['result'] ?? null) ? $filters['result'] 
 $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['actor_type'] : [];
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter admin-audit-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-filter table-filtering table-filtering-plain admin-audit-filter ui-form-theme">
     <?php if (($filters['event_type'] ?? '') !== '') { ?>
         <input type="hidden" name="event_type" value="<?php echo sr_e((string) $filters['event_type']); ?>">
     <?php } ?>

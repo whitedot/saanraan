@@ -34,7 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="admin-filter admin-community-post-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="admin-filter table-filtering table-filtering-plain admin-community-post-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-post-search-grid">
             <div class="admin-filter-field admin-community-post-filter-status">
                 <label for="community_admin_posts_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>
@@ -186,7 +186,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="admin-filter admin-community-comment-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="admin-filter table-filtering table-filtering-plain admin-community-comment-filter ui-form-theme">
     <div class="admin-filter-grid admin-community-comment-search-grid">
             <div class="admin-filter-field admin-community-comment-filter-status">
                 <label for="community_admin_comments_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>

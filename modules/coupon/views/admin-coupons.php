@@ -86,7 +86,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($couponAdminPage === 'definitions') { ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-filter table-filtering table-filtering-plain admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-definition-filter-grid">
             <div class="admin-filter-field">
                 <label for="coupon_definition_status_filter" class="admin-filter-label">상태</label>
@@ -453,7 +453,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($couponAdminPage === 'issues') { ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/issues')); ?>" class="admin-filter table-filtering table-filtering-plain admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-history-filter-grid">
             <div class="admin-filter-field">
                 <label for="coupon_issue_status_filter" class="admin-filter-label">상태</label>
@@ -553,7 +553,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($couponAdminPage === 'redemptions') { ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="admin-filter admin-coupon-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="admin-filter table-filtering table-filtering-plain admin-coupon-filter ui-form-theme">
     <div class="admin-filter-grid admin-coupon-redemption-filter-grid">
             <div class="admin-filter-field">
                 <label for="coupon_redemption_status_filter" class="admin-filter-label">상태</label>

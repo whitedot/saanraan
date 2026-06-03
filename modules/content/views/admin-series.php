@@ -51,7 +51,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 $selectedSeriesStatuses = is_array($seriesFilters['status'] ?? null) ? $seriesFilters['status'] : [];
 $selectedSeriesVisibilities = is_array($seriesFilters['visibility'] ?? null) ? $seriesFilters['visibility'] : [];
 ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-filter admin-content-series-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-filter table-filtering table-filtering-plain admin-content-series-filter ui-form-theme">
     <div class="admin-filter-grid admin-content-series-search-grid admin-content-filter-stack">
                 <div class="admin-filter-field admin-content-series-filter-status">
                     <label for="content_series_filter_status" class="admin-filter-label">상태</label>

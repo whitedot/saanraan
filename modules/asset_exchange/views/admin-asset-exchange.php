@@ -156,7 +156,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-filter admin-asset-exchange-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-filter table-filtering table-filtering-plain admin-asset-exchange-filter ui-form-theme">
     <div class="admin-filter-grid admin-asset-exchange-search-grid">
         <div class="admin-filter-field admin-asset-exchange-filter-status">
             <label for="asset_exchange_filter_status" class="admin-filter-label">상태</label>

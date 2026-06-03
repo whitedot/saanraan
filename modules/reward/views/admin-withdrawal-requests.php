@@ -26,7 +26,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/rewards/withdrawal-requests')); ?>" class="admin-filter admin-reward-request-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/rewards/withdrawal-requests')); ?>" class="admin-filter table-filtering table-filtering-plain admin-reward-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-reward-request-filter-grid">
             <div class="admin-filter-field admin-reward-request-filter-status">
                 <label for="reward-withdrawal-status" class="admin-filter-label">상태</label>

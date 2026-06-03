@@ -223,7 +223,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="admin-filter admin-community-board-group-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="admin-filter table-filtering table-filtering-plain admin-community-board-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-community-board-group-search-grid">
                 <div class="admin-filter-field admin-community-board-group-filter-status">
                     <label for="community_admin_board_groups_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></label>

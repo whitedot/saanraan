@@ -250,7 +250,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 
 <?php $selectedMemberStatuses = is_array($statusFilter ?? null) ? $statusFilter : []; ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter admin-member-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-filter table-filtering table-filtering-plain admin-member-filter ui-form-theme">
     <div class="admin-filter-grid admin-member-search-grid">
                 <div class="admin-filter-field admin-member-filter-status">
                     <label for="admin-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>

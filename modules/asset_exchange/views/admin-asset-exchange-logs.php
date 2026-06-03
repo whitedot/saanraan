@@ -8,7 +8,7 @@ $selectedLogAssets = is_array($logFilters['asset'] ?? null) ? $logFilters['asset
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange/logs')); ?>" class="admin-filter admin-asset-exchange-log-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange/logs')); ?>" class="admin-filter table-filtering table-filtering-plain admin-asset-exchange-log-filter ui-form-theme">
     <div class="admin-filter-grid admin-asset-exchange-log-search-grid">
         <div class="admin-filter-field admin-asset-exchange-log-filter-status">
             <label for="asset_exchange_log_filter_status" class="admin-filter-label">상태</label>

@@ -34,7 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-filter admin-privacy-request-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-filter table-filtering table-filtering-plain admin-privacy-request-filter ui-form-theme">
     <div class="admin-filter-grid admin-privacy-request-search-grid">
                 <div class="admin-filter-field">
                     <label for="privacy_request_status" class="admin-filter-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></label>

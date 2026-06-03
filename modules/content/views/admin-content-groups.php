@@ -64,7 +64,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $selectedGroupStatuses = is_array($pageGroupFilters['status'] ?? null) ? $pageGroupFilters['status'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-filter admin-content-group-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-filter table-filtering table-filtering-plain admin-content-group-filter ui-form-theme">
         <div class="admin-filter-grid admin-content-group-search-grid admin-content-filter-stack">
                     <div class="admin-filter-field">
                         <label for="content_admin_groups_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?></label>

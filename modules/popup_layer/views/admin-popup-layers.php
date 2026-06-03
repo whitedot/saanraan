@@ -226,7 +226,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $selectedPopupStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     $selectedPopupTargets = is_array($filters['target'] ?? null) ? $filters['target'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-filter admin-popup-layer-filter ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-filter table-filtering table-filtering-plain admin-popup-layer-filter ui-form-theme">
         <div class="admin-filter-grid admin-popup-layer-search-grid">
                     <div class="admin-filter-field admin-popup-layer-filter-status">
                         <label for="modules_popup_layer_admin_popup_layers_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></label>
