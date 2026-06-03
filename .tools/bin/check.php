@@ -530,7 +530,7 @@ function sr_check_module_routes_conflict(string $leftRoute, string $rightRoute):
 
 function sr_check_php_lint(): void
 {
-    $phpFiles = sr_check_files('.', 'php', ['.git', 'dist']);
+    $phpFiles = sr_check_files('.', 'php', ['.git', 'config', 'dist', 'storage']);
     foreach (sr_check_files('.tools/bin', '', []) as $file) {
         $header = file_get_contents($file, false, null, 0, 200);
         if (!is_string($header)) {
