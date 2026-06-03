@@ -1,0 +1,38 @@
+{
+  "labels": [
+    "이메일 또는 아이디 (필수)",
+    "비밀번호 (필수)"
+  ],
+  "controls": [
+    {
+      "tag": "input",
+      "name": "csrf_token",
+      "type": "hidden",
+      "text": ""
+    },
+    {
+      "tag": "input",
+      "name": "next",
+      "type": "hidden",
+      "text": ""
+    },
+    {
+      "tag": "input",
+      "name": "identifier",
+      "type": "text",
+      "text": ""
+    },
+    {
+      "tag": "input",
+      "name": "password",
+      "type": "password",
+      "text": ""
+    },
+    {
+      "tag": "button",
+      "name": "",
+      "type": "submit",
+      "text": "로그인"
+    }
+  ]
+}

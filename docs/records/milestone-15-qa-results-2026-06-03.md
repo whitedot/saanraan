@@ -278,3 +278,42 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
 - 관리자 테마 및 UI-KIT 색상 대비 토큰 정리
 
 따라서 현재까지 “실제 브라우저 route/render/security + Firefox/WebKit core + axe 대표 smoke”는 통과했다. 이슈 #174의 전체 완료 기준은 snapshot/fixture/DB helper/시각 회귀/동시성 계층이 추가된 뒤 닫는 것이 맞다.
+
+## #174 남은 QA 계층 보강 - 2026-06-03 11:35
+
+#174 완료 조건 중 남아 있던 자동화 계층을 추가했다.
+
+추가한 항목:
+
+- `.tools/bin/check-milestone-15-deep-qa.php`
+  - 반복 실행 가능한 `m15_deep` fixture 계정
+  - 관리자 권한 helper 단언
+  - 포인트/적립금/예치금 잔액 및 거래 helper 단언
+  - 알림/전달, 감사 로그, 개인정보 요청 DB 단언
+  - rate limit helper 증가 단언
+  - 고정 권한 row 중복 방지를 통한 idempotent fixture catalog 단언
+- `.tools/browser-qa/tests/milestone-15-deep-browser.spec.js`
+  - named snapshot restore: `m15-login-contract.txt`
+  - visual baseline: `m15-login-page.png`
+  - 외부 provider mock: `m15-external.example.test`
+  - 동시 public route smoke
+- Playwright project `chromium-m15-deep`
+  - deep browser QA는 전용 프로젝트에서만 실행하고, `chromium-full` route 전수 검증에서는 제외했다.
+- axe 접근성 smoke
+  - `/login`, `/admin/ui-kit`, `/admin`, `/community`, `/account` 대표 경로의 serious/critical 위반을 확인한다.
+  - UI-KIT 및 색상 스타일 변경은 이번 커밋에서 제외했으므로 `color-contrast`는 기존처럼 별도 보류 결함으로 필터링한다.
+
+실행 명령:
+
+- `php .tools/bin/check-milestone-15-deep-qa.php`
+- `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:46351 .tools/browser-qa/node_modules/.bin/playwright test -c .tools/browser-qa/playwright.config.js --project=chromium-m15-deep --update-snapshots`
+- `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:46351 SR_BROWSER_QA_ADMIN_IDENTIFIER=admin SR_BROWSER_QA_ADMIN_PASSWORD=12341234 .tools/browser-qa/node_modules/.bin/playwright test -c .tools/browser-qa/playwright.config.js --project=chromium-full -g "axe accessibility representative smoke"`
+- `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:46351 SR_BROWSER_QA_ADMIN_IDENTIFIER=admin SR_BROWSER_QA_ADMIN_PASSWORD=12341234 .tools/browser-qa/node_modules/.bin/playwright test -c .tools/browser-qa/playwright.config.js`
+
+결과:
+
+- Milestone 15 deep QA: `11 checks` 통과
+- chromium-m15-deep: `3 passed`
+- 전체 Playwright suite: `37 passed (2.2m)`
+
+이제 #174에서 별도 하니스가 없어서 보류했던 named snapshot restore, idempotent fixture catalog, DB helper 단언, 시각 회귀 baseline, 동시성/레이트리밋/외부 mock 검증은 자동화 suite 안에 포함됐다. 관리자/UI-KIT 색상 대비 토큰 정리는 스타일 변경 범위라 이번 커밋에서는 제외하고 별도 후속 항목으로 남긴다.

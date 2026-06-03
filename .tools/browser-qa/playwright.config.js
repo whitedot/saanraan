@@ -25,6 +25,7 @@ module.exports = {
   projects: [
     {
       name: 'chromium-full',
+      grepInvert: /milestone 15 deep browser QA/,
       use: {
         browserName: 'chromium',
         channel: 'chrome',
@@ -42,6 +43,14 @@ module.exports = {
       grep: /tier 2 core smoke/,
       use: {
         browserName: 'webkit',
+      },
+    },
+    {
+      name: 'chromium-m15-deep',
+      grep: /milestone 15 deep browser QA/,
+      use: {
+        browserName: 'chromium',
+        channel: 'chrome',
       },
     },
   ],
