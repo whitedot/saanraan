@@ -1,7 +1,7 @@
 <?php
 
 $communityBoardGroupsPage = isset($communityBoardGroupsPage) ? (string) $communityBoardGroupsPage : 'list';
-$adminPageTitle = sr_t('community::ui.community.59e9d360');
+$adminPageTitle = '커뮤니티 게시판 그룹 관리';
 $adminPageSubtitle = sr_t('community::ui.status.search.e64383a1');
 $adminContainerClass = 'admin-page-community-board-group-list admin-ui-scope';
 if ($communityBoardGroupsPage === 'new') {

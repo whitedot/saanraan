@@ -5,7 +5,7 @@ $assetGroupPolicyInputId = isset($assetGroupPolicyInputId) ? (string) $assetGrou
 $assetGroupPolicyRows = isset($assetGroupPolicyRows) && is_array($assetGroupPolicyRows) ? $assetGroupPolicyRows : [];
 $assetGroupPolicyGroups = isset($assetGroupPolicyGroups) && is_array($assetGroupPolicyGroups) ? $assetGroupPolicyGroups : [];
 $assetGroupPolicyAssetModules = isset($assetGroupPolicyAssetModules) && is_array($assetGroupPolicyAssetModules) ? $assetGroupPolicyAssetModules : [];
-$assetGroupPolicySectionTitle = isset($assetGroupPolicySectionTitle) ? (string) $assetGroupPolicySectionTitle : '회원 그룹별 금액 조정 규칙';
+$assetGroupPolicySectionTitle = isset($assetGroupPolicySectionTitle) ? (string) $assetGroupPolicySectionTitle : '회원 그룹별 설정 규칙';
 $assetGroupPolicyHelpText = isset($assetGroupPolicyHelpText) ? (string) $assetGroupPolicyHelpText : '회원 그룹 조건에 따라 기본 금액을 최종 금액, 증감 조정, 배율, 0원 처리로 조정합니다. 증감 조정은 지급에서는 더하고 차감에서는 뺍니다.';
 $assetGroupPolicyShowMinLevel = !empty($assetGroupPolicyShowMinLevel);
 $assetGroupPolicyModeHelpModalId = $assetGroupPolicyInputId . '_mode_help_modal';
@@ -80,7 +80,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
     </div>
     <div class="table-wrapper">
         <table class="table admin-asset-group-policy-table">
-            <caption class="sr-only"><?php echo sr_e('회원 그룹별 금액 조정 규칙 목록'); ?></caption>
+            <caption class="sr-only"><?php echo sr_e('회원 그룹별 설정 규칙 목록'); ?></caption>
             <colgroup>
                 <col class="admin-asset-group-policy-col-group">
                 <col class="admin-asset-group-policy-col-mode">

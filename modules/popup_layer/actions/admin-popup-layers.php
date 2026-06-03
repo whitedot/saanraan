@@ -331,6 +331,7 @@ $popupSortOptions = [
     'status' => ['columns' => ['p.status', 'p.id']],
     'skin_key' => ['columns' => ['p.skin_key', 'p.id']],
     'starts_at' => ['columns' => ['p.starts_at', 'p.id']],
+    'ends_at' => ['columns' => ['p.ends_at', 'p.id']],
     'dismiss_cookie_days' => ['columns' => ['p.dismiss_cookie_days', 'p.id']],
     'updated_at' => ['columns' => ['p.updated_at', 'p.id']],
 ];

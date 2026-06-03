@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = sr_t('community::ui.community.451bb85e');
+$adminPageTitle = '커뮤니티 신고 관리';
 $adminPageSubtitle = sr_t('community::ui.status.search.9842179b');
 $adminContainerClass = 'admin-page-community-report-list admin-ui-scope';
 $reportListFilters = isset($reportListFilters) && is_array($reportListFilters) ? $reportListFilters : ['status' => '', 'target_type' => '', 'reason_key' => '', 'field' => 'all', 'q' => ''];

@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = sr_t('site_menu::ui.menu.a14f2522');
+$adminPageTitle = sr_t('site_menu::ui.menu.766fbd09');
 $adminContainerClass = 'admin-page-site-menu admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 

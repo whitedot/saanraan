@@ -2,7 +2,7 @@
 
 $bannerAdminPage = isset($bannerAdminPage) ? (string) $bannerAdminPage : 'list';
 $editing = is_array($editBanner);
-$adminPageTitle = $bannerAdminPage === 'form' ? ($editing ? sr_t('banner::ui.banner.edit.52756afa') : sr_t('banner::ui.banner.b0dbbde9')) : sr_t('banner::ui.banner.63182d60');
+$adminPageTitle = $bannerAdminPage === 'form' ? ($editing ? sr_t('banner::ui.banner.edit.52756afa') : sr_t('banner::ui.banner.b0dbbde9')) : sr_t('banner::ui.banner.list.f989d740');
 $adminPageSubtitle = $bannerAdminPage === 'form' ? sr_t('banner::ui.banner.71184934') : sr_t('banner::ui.banner.status.search.ae378c83');
 $adminContainerClass = $bannerAdminPage === 'form' ? 'admin-page-banner-form admin-ui-scope' : 'admin-page-banner-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
@@ -12,6 +12,7 @@ $bannerSortOptions = isset($bannerSortOptions) && is_array($bannerSortOptions) ?
     'skin_key' => ['columns' => ['b.skin_key', 'b.id']],
     'click_count' => ['columns' => ['b.click_count', 'b.id']],
     'starts_at' => ['columns' => ['b.starts_at', 'b.id']],
+    'ends_at' => ['columns' => ['b.ends_at', 'b.id']],
     'sort_order' => ['columns' => ['b.sort_order', 'b.id']],
 ];
 $bannerDefaultSort = isset($bannerDefaultSort) && is_array($bannerDefaultSort) ? $bannerDefaultSort : sr_admin_sort_default('sort_order', 'asc');
@@ -316,7 +317,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th><?php echo sr_e(sr_t('banner::ui.text.3d54da9c')); ?></th>
                     <th<?php echo sr_admin_sort_aria('click_count', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.a6bb9eae'), 'click_count', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></th>
-                    <th<?php echo sr_admin_sort_aria('starts_at', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.b918d5af'), 'starts_at', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('starts_at', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.65bdaefd'), 'starts_at', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('ends_at', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.26c25fca'), 'ends_at', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('sort_order', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.3788952d'), 'sort_order', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('banner::ui.text.29ae8f30')); ?></th>
                 </tr>
@@ -324,7 +326,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($banners === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('banner::ui.create.banner.a9744568')); ?></td>
+                        <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('banner::ui.create.banner.a9744568')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($banners as $banner) { ?>
@@ -357,10 +359,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($banner['click_count'] ?? 0))); ?></td>
                             <td class="admin-table-break admin-banner-target-cell"><?php echo sr_e($bannerTargetLabel); ?></td>
-                            <td class="admin-table-nowrap admin-banner-date-cell">
-                                <?php echo sr_e((string) ($banner['starts_at'] ?? '-')); ?><br>
-                                <?php echo sr_e((string) ($banner['ends_at'] ?? '-')); ?>
-                            </td>
+                            <td class="admin-table-nowrap admin-banner-date-cell"><?php echo sr_e((string) ($banner['starts_at'] ?? '-')); ?></td>
+                            <td class="admin-table-nowrap admin-banner-date-cell"><?php echo sr_e((string) ($banner['ends_at'] ?? '-')); ?></td>
                             <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $banner['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">

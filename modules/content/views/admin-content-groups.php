@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = $pageGroupsPage === 'list' ? sr_t('content::ui.content.5875c5b3') : ($pageGroupsPage === 'edit' ? sr_t('content::ui.content.edit.700b7706') : sr_t('content::ui.content.5a50b240'));
+$adminPageTitle = $pageGroupsPage === 'list' ? '콘텐츠 그룹 관리' : ($pageGroupsPage === 'edit' ? sr_t('content::ui.content.edit.700b7706') : sr_t('content::ui.content.5a50b240'));
 $adminPageSubtitle = $pageGroupsPage === 'list' ? sr_t('content::ui.content.status.group.6193db1c') : sr_t('content::ui.content.list.menu.active.b056b4c2');
 $adminContainerClass = $pageGroupsPage === 'list' ? 'admin-content-group-list admin-ui-scope' : 'admin-content-group-form admin-ui-scope';
 $contentGroupFormPage = $pageGroupsPage !== 'list';

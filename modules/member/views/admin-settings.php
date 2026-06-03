@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = sr_t('member::ui.member.settings.df7b9920');
+$adminPageTitle = sr_t('member::ui.member.settings.6b4c84f7');
 $memberSettingsHelpOpenLabel = sr_t('member::help.open');
 $memberSettingsHelp = [
     'allow_registration' => [

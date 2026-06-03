@@ -353,6 +353,7 @@ $bannerSortOptions = [
     'skin_key' => ['columns' => ['b.skin_key', 'b.id']],
     'click_count' => ['columns' => ['b.click_count', 'b.id']],
     'starts_at' => ['columns' => ['b.starts_at', 'b.id']],
+    'ends_at' => ['columns' => ['b.ends_at', 'b.id']],
     'sort_order' => ['columns' => ['b.sort_order', 'b.id']],
 ];
 $bannerDefaultSort = sr_admin_sort_default('sort_order', 'asc');

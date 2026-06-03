@@ -1,7 +1,7 @@
 <?php
 
 $notificationAdminPage = isset($notificationAdminPage) ? (string) $notificationAdminPage : 'list';
-$adminPageTitle = sr_t('notification::ui.notification.12ddd6ca');
+$adminPageTitle = sr_t('notification::ui.notification.list.7475cac1');
 $adminContainerClass = 'admin-page-notification-list admin-ui-scope';
 if ($notificationAdminPage === 'deliveries') {
     $adminPageTitle = sr_t('notification::ui.notification.56c30db0');

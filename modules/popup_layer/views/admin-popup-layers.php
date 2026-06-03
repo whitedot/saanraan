@@ -2,7 +2,7 @@
 
 $popupLayerAdminPage = isset($popupLayerAdminPage) ? (string) $popupLayerAdminPage : 'list';
 $editing = is_array($editPopup);
-$adminPageTitle = $popupLayerAdminPage === 'form' ? ($editing ? sr_t('popup_layer::ui.edit.b0a3dd3e') : sr_t('popup_layer::ui.text.628a32fc')) : sr_t('popup_layer::ui.text.1063d585');
+$adminPageTitle = $popupLayerAdminPage === 'form' ? ($editing ? sr_t('popup_layer::ui.edit.b0a3dd3e') : sr_t('popup_layer::ui.text.628a32fc')) : sr_t('popup_layer::ui.list.2144397c');
 $adminPageSubtitle = $popupLayerAdminPage === 'form' ? sr_t('popup_layer::ui.close.130bd932') : sr_t('popup_layer::ui.status.search.2a2d14e6');
 $adminContainerClass = $popupLayerAdminPage === 'form' ? 'admin-page-popup-layer-form admin-ui-scope' : 'admin-page-popup-layer-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
@@ -11,6 +11,7 @@ $popupSortOptions = isset($popupSortOptions) && is_array($popupSortOptions) ? $p
     'status' => ['columns' => ['p.status', 'p.id']],
     'skin_key' => ['columns' => ['p.skin_key', 'p.id']],
     'starts_at' => ['columns' => ['p.starts_at', 'p.id']],
+    'ends_at' => ['columns' => ['p.ends_at', 'p.id']],
     'dismiss_cookie_days' => ['columns' => ['p.dismiss_cookie_days', 'p.id']],
     'updated_at' => ['columns' => ['p.updated_at', 'p.id']],
 ];
@@ -285,7 +286,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('status', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.status.e10195a1'), 'status', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('skin_key', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.776b723f'), 'skin_key', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th><?php echo sr_e(sr_t('popup_layer::ui.text.8c609deb')); ?></th>
-                    <th<?php echo sr_admin_sort_aria('starts_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.b918d5af'), 'starts_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('starts_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.65bdaefd'), 'starts_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('ends_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.26c25fca'), 'ends_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('dismiss_cookie_days', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.close.06cddc6e'), 'dismiss_cookie_days', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('updated_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.edit.d3a98476'), 'updated_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('popup_layer::ui.text.29ae8f30')); ?></th>
@@ -294,7 +296,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($popups === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
+                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($popups as $popup) { ?>
@@ -320,10 +322,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_e($popupTargetLabel); ?><br>
                                 <?php echo sr_e((string) $popup['match_type'] . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
                             </td>
-                            <td class="admin-table-nowrap admin-popup-layer-date-cell">
-                                <?php echo sr_e((string) ($popup['starts_at'] ?? '-')); ?><br>
-                                <?php echo sr_e((string) ($popup['ends_at'] ?? '-')); ?>
-                            </td>
+                            <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['starts_at'] ?? '-')); ?></td>
+                            <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['ends_at'] ?? '-')); ?></td>
                             <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $popup['dismiss_cookie_days']); ?></td>
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) $popup['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">

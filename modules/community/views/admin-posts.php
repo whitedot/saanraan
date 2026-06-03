@@ -1,7 +1,7 @@
 <?php
 
 $communityPostsPage = isset($communityPostsPage) ? (string) $communityPostsPage : 'posts';
-$adminPageTitle = $communityPostsPage === 'comments' ? sr_t('community::ui.community.94192c53') : sr_t('community::ui.community.4ef66a6d');
+$adminPageTitle = $communityPostsPage === 'comments' ? '커뮤니티 댓글 관리' : '커뮤니티 게시글 관리';
 $adminPageSubtitle = $communityPostsPage === 'comments' ? sr_t('community::ui.status.6bd8f817') : sr_t('community::ui.status.search.af9eb6e6');
 $adminContainerClass = $communityPostsPage === 'comments' ? 'admin-page-community-comment-list admin-ui-scope' : 'admin-page-community-post-list admin-ui-scope';
 $postListFilters = isset($postListFilters) && is_array($postListFilters) ? $postListFilters : ['status' => '', 'board_id' => 0, 'category_id' => 0, 'field' => 'all', 'q' => ''];

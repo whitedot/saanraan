@@ -1,7 +1,7 @@
 <?php
 
-$adminPageTitle = '콘텐츠 회원 그룹별 금액 조정';
-$adminPageSubtitle = '콘텐츠 유료 열람, 다운로드, 완료 버튼에서 회원 그룹별로 최종 금액을 조정하는 규칙입니다.';
+$adminPageTitle = '콘텐츠 회원 그룹별 설정';
+$adminPageSubtitle = '콘텐츠 유료 열람, 다운로드, 완료 버튼에서 회원 그룹별 최종 금액을 설정하는 규칙입니다.';
 $adminContainerClass = 'admin-content-asset-policy-sets admin-ui-scope';
 $policySetPage = isset($policySetPage) ? (string) $policySetPage : 'list';
 $policySetSort = isset($policySetSort) && is_array($policySetSort) ? $policySetSort : sr_content_asset_policy_set_default_sort();
@@ -16,19 +16,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header">
             <div>
-                <h2 class="card-title">회원 그룹별 금액 조정 목록</h2>
+                <h2 class="card-title">회원 그룹별 설정 목록</h2>
             </div>
-            <a href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=new')); ?>" class="btn btn-sm btn-outline-secondary">새 조정 규칙</a>
+            <a href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=new')); ?>" class="btn btn-sm btn-outline-secondary">새 설정</a>
         </div>
         <div class="admin-list-summary-row">
             <?php if (empty($policySetSort['is_default'])) { ?>
-                <a href="<?php echo sr_e(sr_admin_sort_url(sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="콘텐츠 회원 그룹별 금액 조정 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+                <a href="<?php echo sr_e(sr_admin_sort_url(sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="콘텐츠 회원 그룹별 설정 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
             <?php echo sr_admin_pagination_summary_html($policySetPagination); ?>
         </div>
         <div class="table-wrapper">
             <table class="table">
-                <caption class="sr-only">콘텐츠 회원 그룹별 금액 조정 목록</caption>
+                <caption class="sr-only">콘텐츠 회원 그룹별 설정 목록</caption>
                 <thead class="ui-table-head">
                     <tr>
                         <th<?php echo sr_admin_sort_aria('title', $policySetSort); ?>><?php echo sr_admin_sort_header_html('이름', 'title', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>
@@ -41,7 +41,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if (($policySets ?? []) === []) { ?>
                         <tr>
-                            <td colspan="5" class="admin-empty-state">등록된 회원 그룹별 금액 조정 규칙이 없습니다.</td>
+                            <td colspan="5" class="admin-empty-state">등록된 회원 그룹별 설정이 없습니다.</td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach (($policySets ?? []) as $policySet) { ?>
@@ -60,7 +60,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($policySet['updated_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
-                                        <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=edit&id=' . (string) (int) ($policySet['id'] ?? 0))); ?>" aria-label="회원 그룹별 금액 조정 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
+                                        <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=edit&id=' . (string) (int) ($policySet['id'] ?? 0))); ?>" aria-label="회원 그룹별 설정 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
                                     </div>
                                 </td>
                             </tr>
@@ -75,7 +75,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="set_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
         <section class="admin-card card">
-            <h2><?php echo $policySetPage === 'edit' ? '회원 그룹별 금액 조정 수정' : '회원 그룹별 금액 조정 생성'; ?></h2>
+            <h2><?php echo $policySetPage === 'edit' ? '회원 그룹별 설정 수정' : '회원 그룹별 설정 생성'; ?></h2>
             <div class="admin-form-row">
                 <label class="form-label" for="content_policy_set_key">Key <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
@@ -106,7 +106,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <?php
-        $assetGroupPolicySectionTitle = '회원 그룹별 금액 조정 규칙';
+        $assetGroupPolicySectionTitle = '회원 그룹별 설정 규칙';
         $assetGroupPolicyFieldName = 'policies';
         $assetGroupPolicyInputId = 'content_asset_policy_set_policies';
         $assetGroupPolicyRows = sr_content_asset_group_policies_from_value($values['policies_json'] ?? '');

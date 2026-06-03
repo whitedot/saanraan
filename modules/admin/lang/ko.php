@@ -43,7 +43,7 @@ return [
     'nav.modules' => '모듈·플러그인 관리',
     'nav.retention' => '데이터 정리',
     'nav.roles' => '관리자 권한',
-    'nav.settings' => '환경설정',
+    'nav.settings' => '사이트 설정',
     'nav.updates' => '업데이트',
     'retention.help.audit_logs.body.1' => '관리자 작업 로그는 설정 변경, 권한 변경, 정리 실행처럼 운영자가 한 중요한 작업 기록입니다.',
     'retention.help.audit_logs.body.2' => '문제 원인을 확인해야 할 수 있으므로 인증 로그보다 길게 보관하는 것을 권장합니다.',

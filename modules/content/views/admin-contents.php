@@ -29,7 +29,7 @@ $contentSeriesValues = [
     'series_sort_order' => array_key_exists('series_sort_order', $values) ? (int) $values['series_sort_order'] : (is_array($currentContentSeriesItem) ? (int) ($currentContentSeriesItem['sort_order'] ?? 0) : 0),
 ];
 
-$adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')) : sr_t('content::ui.content.6c84a1b3');
+$adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')) : '콘텐츠 관리';
 $adminPageSubtitle = $pageAdminPage === 'form' ? sr_t('content::ui.content.status.85bf8a35') : sr_t('content::ui.content.status.search.29f7335b');
 $adminContainerClass = $pageAdminPage === 'form' ? 'admin-content-form admin-ui-scope' : 'admin-content-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'content_group_id' => 0, 'field' => 'all', 'q' => ''];

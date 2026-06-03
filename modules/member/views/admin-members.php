@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = sr_t('member::ui.member.781c100e');
+$adminPageTitle = sr_t('member::ui.member.list.d8e6279a');
 $adminPageSubtitle = sr_t('member::ui.member.status.search.5798c9ca');
 $adminContainerClass = 'admin-page-member-list admin-ui-scope';
 $memberAdminPage = isset($memberAdminPage) ? (string) $memberAdminPage : 'members';
