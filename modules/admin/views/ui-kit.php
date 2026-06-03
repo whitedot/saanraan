@@ -52,4 +52,42 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 </div>
 
+<script>
+(function () {
+    var root = document.querySelector('.admin-ui-kit-samples');
+    if (!root) {
+        return;
+    }
+
+    root.querySelectorAll('button.dropdown-toggle:not([aria-label]):not([aria-labelledby])').forEach(function (button) {
+        button.setAttribute('aria-label', 'Open sample menu');
+    });
+
+    root.querySelectorAll('select:not([aria-label]):not([aria-labelledby])').forEach(function (select) {
+        var group = select.closest('.ui-kit-grid');
+        var label = group ? group.querySelector('.form-label') : null;
+        var labelText = label ? label.textContent.trim() : '';
+        select.setAttribute('aria-label', labelText || 'Sample select');
+    });
+
+    root.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([aria-label]):not([aria-labelledby])').forEach(function (input) {
+        if (input.id && root.querySelector('label[for="' + input.id.replace(/"/g, '\\"') + '"]')) {
+            return;
+        }
+
+        var group = input.closest('.ui-kit-grid');
+        var label = group ? group.querySelector('.form-label') : null;
+        var labelText = label ? label.textContent.trim() : '';
+        input.setAttribute('aria-label', labelText || input.getAttribute('placeholder') || 'Sample input');
+    });
+
+    root.querySelectorAll('textarea:not([aria-label]):not([aria-labelledby])').forEach(function (textarea) {
+        var group = textarea.closest('.ui-kit-grid');
+        var label = group ? group.querySelector('.form-label') : null;
+        var labelText = label ? label.textContent.trim() : '';
+        textarea.setAttribute('aria-label', labelText || textarea.getAttribute('placeholder') || 'Sample textarea');
+    });
+})();
+</script>
+
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

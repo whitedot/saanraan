@@ -2086,6 +2086,14 @@ window.AdminShell = {
         } catch (err) {}
         window.requestAnimationFrame(clearSidebarRestoring);
         syncThemeUI();
+        document.querySelectorAll('.table-wrapper').forEach(wrapper => {
+            if (!wrapper.hasAttribute('tabindex')) {
+                wrapper.setAttribute('tabindex', '0');
+            }
+            if (!wrapper.hasAttribute('aria-label') && !wrapper.hasAttribute('aria-labelledby')) {
+                wrapper.setAttribute('aria-label', 'Scrollable table');
+            }
+        });
         updateMenuScrollbar();
         window.requestAnimationFrame(updateMenuScrollbar);
     }

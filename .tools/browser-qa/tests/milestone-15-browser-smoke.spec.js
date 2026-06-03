@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { AxeBuilder } = require('@axe-core/playwright');
 const fs = require('fs');
 const path = require('path');
 
@@ -63,6 +64,9 @@ const protectedPaths = [
   '/.tools/bin/check.php',
   '/.git/HEAD',
 ];
+
+const tier2CoreRoutes = ['/login', '/', '/community', '/admin', '/admin/ui-kit', '/account'];
+const axeRoutes = ['/login', '/admin/ui-kit', '/admin', '/community', '/account'];
 
 function isProtectedMemberPath(route) {
   return route.startsWith('/admin')
@@ -170,6 +174,30 @@ test.describe('milestone 15 browser smoke', () => {
       expect(response, `${route} should return a browser response`).not.toBeNull();
       expect([403, 404], `${route} status`).toContain(response.status());
       await assertNoBrowserFailures(page, route, []);
+    }
+  });
+
+  test('tier 2 core smoke across alternate browsers', async ({ page }) => {
+    await login(page);
+    for (const route of tier2CoreRoutes) {
+      await visit(page, route);
+      await expect(page.locator('body')).toBeVisible();
+    }
+  });
+
+  test('axe accessibility representative smoke', async ({ page }) => {
+    await login(page);
+    for (const route of axeRoutes) {
+      await visit(page, route);
+      const results = await new AxeBuilder({ page }).analyze();
+      const highImpactViolations = results.violations.filter((violation) => {
+        if (violation.id === 'color-contrast') {
+          return false;
+        }
+
+        return violation.impact === 'critical' || violation.impact === 'serious';
+      });
+      expect(highImpactViolations, `${route} serious/critical axe violations`).toEqual([]);
     }
   });
 });

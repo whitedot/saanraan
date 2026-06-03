@@ -226,3 +226,55 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
 - 이번 실행으로 #175-#202에 대해 실제 Chromium 브라우저 기반 route/render/security smoke는 통과했다.
 - 다만 #174 본문이 요구하는 named snapshot restore, idempotent fixture catalog, DB helper 단언, axe 접근성 자동 검사, Firefox/WebKit 핵심 tier, 시각 회귀 baseline, 동시성/레이트리밋/외부 mock 검증은 아직 별도 하니스가 없어 완료하지 못했다.
 - 따라서 이슈 본문 기준의 “전체 서비스 실제 브라우저 자동화 QA 커버리지” 완료 판정은 아직 보류한다.
+
+## 브라우저 tier 확장 실행 - 2026-06-03 11:18
+
+남은 #174 조건 중 현재 로컬 환경에서 바로 실행 가능한 항목을 추가했다.
+
+추가한 항목:
+
+- Playwright project 분리
+  - `chromium-full`: #175-#202 실제 브라우저 route/render/security smoke 전체
+  - `firefox-core`: 핵심 smoke만 실행
+  - `webkit-core`: 핵심 smoke만 실행
+- axe 대표 접근성 smoke
+  - `/login`, `/admin/ui-kit`, `/admin`, `/community`, `/account`
+  - `critical`/`serious` 위반을 실패로 처리하되, 현재 관리자 테마 전반의 색상 대비(`color-contrast`)는 별도 후속 결함으로 분리해 필터링했다.
+- UI-KIT 데모 접근성 보강
+  - 샘플 dropdown toggle, select, input, textarea에 접근 가능한 이름을 부여했다.
+- 관리자 shell 접근성 보강
+  - `.table-wrapper`에 keyboard focus를 위한 `tabindex="0"`과 기본 `aria-label`을 부여했다.
+
+실행 명령:
+
+- `.tools/browser-qa/node_modules/.bin/playwright install chromium firefox webkit`
+- `npm install --prefix .tools/browser-qa --save-dev --save-exact @axe-core/playwright@4.11.0`
+- `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:46351 SR_BROWSER_QA_ADMIN_IDENTIFIER=admin SR_BROWSER_QA_ADMIN_PASSWORD=12341234 .tools/browser-qa/node_modules/.bin/playwright test -c .tools/browser-qa/playwright.config.js`
+
+확장 브라우저 suite 결과:
+
+- `34 passed (2.2m)`
+- Chromium #175-#202 전체 route/render/security smoke: 통과
+- Chromium #190 모바일 레이아웃: 통과
+- Chromium #191 보호 파일 브라우저 검증: 통과
+- Chromium axe 대표 접근성 smoke: 통과
+- Firefox 핵심 smoke: 통과
+- WebKit 핵심 smoke: 통과
+
+함께 재확인한 자동 검증:
+
+- `php .tools/bin/check.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46351 php .tools/bin/smoke-http.php`
+- `SR_SMOKE_BASE_URL=http://127.0.0.1:46351 SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php`
+- `php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:46351 admin 12341234`
+
+남은 보류 조건:
+
+- named snapshot restore 하니스
+- idempotent fixture catalog
+- DB helper 기반 잔액/거래/권한/알림/감사 로그/개인정보 요청 단언
+- 시각 회귀 baseline
+- 동시성/레이트리밋/외부 mock 검증
+- 관리자 테마 및 UI-KIT 색상 대비 토큰 정리
+
+따라서 현재까지 “실제 브라우저 route/render/security + Firefox/WebKit core + axe 대표 smoke”는 통과했다. 이슈 #174의 전체 완료 기준은 snapshot/fixture/DB helper/시각 회귀/동시성 계층이 추가된 뒤 닫는 것이 맞다.

@@ -15,8 +15,6 @@ module.exports = {
   outputDir: 'test-results',
   use: {
     baseURL,
-    browserName: 'chromium',
-    channel: 'chrome',
     headless: true,
     viewport: { width: 1366, height: 900 },
     ignoreHTTPSErrors: true,
@@ -24,4 +22,27 @@ module.exports = {
     video: 'off',
     trace: 'off',
   },
+  projects: [
+    {
+      name: 'chromium-full',
+      use: {
+        browserName: 'chromium',
+        channel: 'chrome',
+      },
+    },
+    {
+      name: 'firefox-core',
+      grep: /tier 2 core smoke/,
+      use: {
+        browserName: 'firefox',
+      },
+    },
+    {
+      name: 'webkit-core',
+      grep: /tier 2 core smoke/,
+      use: {
+        browserName: 'webkit',
+      },
+    },
+  ],
 };
