@@ -1208,6 +1208,9 @@ function sr_content_admin_sort_url(string $sortKey = '', string $sortDir = ''): 
         if (!is_array($params)) {
             $params = [];
         }
+        if (function_exists('sr_admin_normalize_query_params')) {
+            $params = sr_admin_normalize_query_params($params);
+        }
     }
 
     unset($params['page'], $params['sort'], $params['dir']);
