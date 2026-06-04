@@ -64,7 +64,7 @@ if ($pageGroupsPage === 'edit') {
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content-groups', $intent === 'delete_group' ? 'delete' : 'edit');
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content-groups', in_array($intent, ['delete_group', 'retry_storage_cleanup_failure'], true) ? 'delete' : 'edit');
     $groupId = (int) sr_post_string('group_id', 20);
     $isUpdate = $intent === 'update_group';
 
@@ -108,6 +108,19 @@ if (sr_request_method() === 'POST') {
     if ($intent === 'retry_storage_cleanup_failure') {
         $failureId = (int) sr_post_string('failure_id', 20);
         $retryResult = sr_content_retry_storage_cleanup_failure($pdo, $failureId);
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'content.storage_cleanup.retry',
+            'target_type' => 'content_storage_cleanup_failure',
+            'target_id' => (string) $failureId,
+            'result' => empty($retryResult['ok']) ? 'failure' : 'success',
+            'message' => 'Content storage cleanup retry processed.',
+            'metadata' => [
+                'failure_id' => $failureId,
+                'message' => (string) ($retryResult['message'] ?? ''),
+            ],
+        ]);
         if (empty($retryResult['ok'])) {
             $_SESSION['sr_content_group_admin_errors'] = [(string) ($retryResult['message'] ?? '저장소 파일 정리 재시도에 실패했습니다.')];
         } else {

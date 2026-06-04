@@ -92,7 +92,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', $intent === 'delete_board' ? 'delete' : 'edit');
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', in_array($intent, ['delete_board', 'retry_storage_cleanup_failure'], true) ? 'delete' : 'edit');
 
     if ($intent === 'delete_board') {
         $boardIdValue = sr_post_string('board_id', 20);
@@ -137,6 +137,19 @@ if (sr_request_method() === 'POST') {
         $failureIdValue = sr_post_string('failure_id', 20);
         $failureId = preg_match('/\A[1-9][0-9]*\z/', $failureIdValue) === 1 ? (int) $failureIdValue : 0;
         $retryResult = sr_community_retry_storage_cleanup_failure($pdo, $failureId);
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'community.storage_cleanup.retry',
+            'target_type' => 'community_storage_cleanup_failure',
+            'target_id' => (string) $failureId,
+            'result' => empty($retryResult['ok']) ? 'failure' : 'success',
+            'message' => 'Community storage cleanup retry processed.',
+            'metadata' => [
+                'failure_id' => $failureId,
+                'message' => (string) ($retryResult['message'] ?? ''),
+            ],
+        ]);
         if (empty($retryResult['ok'])) {
             $errors[] = (string) ($retryResult['message'] ?? '저장소 파일 정리 재시도에 실패했습니다.');
         } else {
