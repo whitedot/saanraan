@@ -2183,6 +2183,135 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
     ]);
 }
 
+function sr_content_copy_suggestion(array $content): array
+{
+    $title = sr_content_clean_single_line((string) ($content['title'] ?? '') . ' 복사본', 160);
+    $slugBase = sr_content_clean_slug((string) ($content['slug'] ?? 'content') . '-copy');
+    if (!sr_content_slug_is_valid($slugBase)) {
+        $slugBase = 'content-copy';
+    }
+
+    return [
+        'title' => $title,
+        'slug' => $slugBase,
+    ];
+}
+
+function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $accountId): int
+{
+    $source = sr_content_by_id($pdo, $sourceContentId);
+    if (!is_array($source)) {
+        throw new RuntimeException('복사할 콘텐츠를 찾을 수 없습니다.');
+    }
+
+    $newTitle = sr_content_clean_single_line((string) ($values['title'] ?? ''), 160);
+    $newSlug = sr_content_clean_slug((string) ($values['slug'] ?? ''));
+    $errors = [];
+    if ($newTitle === '') {
+        $errors[] = '새 콘텐츠 제목을 입력하세요.';
+    }
+    if (!sr_content_slug_is_valid($newSlug)) {
+        $errors[] = 'slug는 3-120자의 소문자 영문, 숫자, 하이픈만 사용할 수 있습니다.';
+    } elseif (sr_content_slug_exists($pdo, $newSlug, 0)) {
+        $errors[] = '이미 사용 중인 slug입니다.';
+    }
+    if ($errors !== []) {
+        throw new InvalidArgumentException(implode("\n", $errors));
+    }
+
+    $now = sr_now();
+    $pdo->beginTransaction();
+    try {
+        $copy = $source;
+        $copy['title'] = $newTitle;
+        $copy['slug'] = $newSlug;
+        $copy['status'] = 'draft';
+        $copy['scheduled_publish_at'] = '';
+        $copy['published_at'] = null;
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_content_items
+                (content_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+             VALUES
+                (:content_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'content_group_id' => (int) ($copy['content_group_id'] ?? 0) > 0 ? (int) $copy['content_group_id'] : null,
+            'slug' => $newSlug,
+            'title' => $newTitle,
+            'summary' => (string) ($copy['summary'] ?? ''),
+            'body_text' => (string) ($copy['body_text'] ?? ''),
+            'body_format' => (string) ($copy['body_format'] ?? 'plain'),
+            'status' => 'draft',
+            'layout_key' => (string) ($copy['layout_key'] ?? ''),
+            'asset_access_enabled' => (int) ($copy['asset_access_enabled'] ?? 0),
+            'asset_module' => (string) ($copy['asset_module'] ?? ''),
+            'asset_access_amount' => (int) ($copy['asset_access_amount'] ?? 0),
+            'asset_access_amounts_json' => (string) ($copy['asset_access_amounts_json'] ?? '{}'),
+            'asset_access_group_policies_json' => (string) ($copy['asset_access_group_policies_json'] ?? ''),
+            'asset_access_policy_set_id' => (int) ($copy['asset_access_policy_set_id'] ?? 0),
+            'asset_charge_policy' => (string) ($copy['asset_charge_policy'] ?? 'once'),
+            'asset_action_enabled' => (int) ($copy['asset_action_enabled'] ?? 0),
+            'asset_action_module' => (string) ($copy['asset_action_module'] ?? ''),
+            'asset_action_amount' => (int) ($copy['asset_action_amount'] ?? 0),
+            'asset_action_amounts_json' => (string) ($copy['asset_action_amounts_json'] ?? '{}'),
+            'asset_action_group_policies_json' => (string) ($copy['asset_action_group_policies_json'] ?? ''),
+            'asset_action_policy_set_id' => (int) ($copy['asset_action_policy_set_id'] ?? 0),
+            'asset_action_direction' => (string) ($copy['asset_action_direction'] ?? 'grant'),
+            'asset_action_label' => (string) ($copy['asset_action_label'] ?? '완료'),
+            'banner_before_content_id' => (int) ($copy['banner_before_content_id'] ?? 0),
+            'banner_after_content_id' => (int) ($copy['banner_after_content_id'] ?? 0),
+            'popup_layer_id' => (int) ($copy['popup_layer_id'] ?? 0),
+            'seo_title' => (string) ($copy['seo_title'] ?? ''),
+            'seo_description' => (string) ($copy['seo_description'] ?? ''),
+            'created_by' => $accountId,
+            'updated_by' => $accountId,
+            'published_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $newContentId = (int) $pdo->lastInsertId();
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_content_setting_sources (content_id, setting_key, source, created_at, updated_at)
+             SELECT :new_content_id, setting_key, source, :created_at, :updated_at
+             FROM sr_content_setting_sources
+             WHERE content_id = :source_content_id'
+        );
+        $stmt->execute([
+            'new_content_id' => $newContentId,
+            'created_at' => $now,
+            'updated_at' => $now,
+            'source_content_id' => $sourceContentId,
+        ]);
+
+        $stmt = $pdo->prepare(
+            'INSERT IGNORE INTO sr_content_link_refs
+                (content_id, target_module, target_entity_type, target_entity_id, slot_key, variant, label, sort_order, created_by, created_at, updated_at)
+             SELECT :new_content_id, target_module, target_entity_type, target_entity_id, slot_key, variant, label, sort_order, :created_by, :created_at, :updated_at
+             FROM sr_content_link_refs
+             WHERE content_id = :source_content_id'
+        );
+        $stmt->execute([
+            'new_content_id' => $newContentId,
+            'created_by' => $accountId,
+            'created_at' => $now,
+            'updated_at' => $now,
+            'source_content_id' => $sourceContentId,
+        ]);
+
+        sr_content_record_revision($pdo, $newContentId, $copy, $accountId, $now);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return $newContentId;
+}
+
 function sr_content_hide(PDO $pdo, int $pageId, int $accountId): bool
 {
     $page = sr_content_by_id($pdo, $pageId);

@@ -39,6 +39,8 @@ return [
     'GET /admin/community/boards/new' => 'actions/admin-board-new.php',
     'POST /admin/community/boards/create' => 'actions/admin-board-create.php',
     'GET /admin/community/boards/edit' => 'actions/admin-board-edit.php',
+    'GET /admin/community/boards/copy' => 'actions/admin-board-copy.php',
+    'POST /admin/community/boards/copy' => 'actions/admin-board-copy.php',
     'POST /admin/community/boards/update' => 'actions/admin-board-update.php',
     'GET /admin/community/board-groups' => 'actions/admin-board-groups.php',
     'POST /admin/community/board-groups' => 'actions/admin-board-groups.php',

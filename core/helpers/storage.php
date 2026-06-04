@@ -73,6 +73,29 @@ function sr_storage_put_file(string $sourcePath, string $key, array $options = [
     return sr_storage_local_put_file($sourcePath, $key, $options);
 }
 
+function sr_storage_copy(string $driver, string $sourceKey, string $targetKey, array $options = []): array
+{
+    $driver = strtolower(trim($driver));
+    if (!in_array($driver, ['local', 's3'], true) || !sr_storage_key_is_safe($sourceKey) || !sr_storage_key_is_safe($targetKey)) {
+        throw new RuntimeException('복사할 저장소 key가 올바르지 않습니다.');
+    }
+
+    if (empty($options['overwrite']) && sr_storage_head($driver, $targetKey, isset($options['config']) && is_array($options['config']) ? $options['config'] : null) !== null) {
+        throw new RuntimeException('같은 저장소 key가 이미 존재합니다.');
+    }
+
+    if ($driver === 's3') {
+        throw new RuntimeException('현재 저장소 driver에서는 첨부파일 포함 복사를 지원하지 않습니다.');
+    }
+
+    $sourcePath = sr_storage_local_path($sourceKey);
+    if (!is_string($sourcePath) || !is_file($sourcePath)) {
+        throw new RuntimeException('원본 파일을 찾을 수 없습니다.');
+    }
+
+    return sr_storage_local_put_file($sourcePath, $targetKey, $options);
+}
+
 function sr_storage_delete(string $driver, string $key, ?array $config = null): bool
 {
     if (!sr_storage_key_is_safe($key)) {

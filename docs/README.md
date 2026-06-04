@@ -84,6 +84,7 @@
 - [마일스톤 4 링크 카드 구현 기록 - 2026-06-01](records/milestone-4-link-card-2026-06-01.md)
 - [마일스톤 10 기능 테스트 결과 기록 - 2026-06-02](records/milestone-10-test-results-2026-06-02.md)
 - [마일스톤 11 정합성 테스트 결과 기록 - 2026-06-02](records/milestone-11-consistency-test-results-2026-06-02.md)
+- [마일스톤 16 운영 항목 복사 구현 기록 - 2026-06-04](records/milestone-16-operational-copy-2026-06-04.md)
 
 ## Wiki로 충분한 문서
 

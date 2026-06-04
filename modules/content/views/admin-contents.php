@@ -643,6 +643,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
+            <?php if ($editing) { ?>
+                <a href="<?php echo sr_e(sr_url('/admin/content/copy?id=' . rawurlencode((string) $editPage['id']))); ?>" class="btn btn-solid-light"><?php echo sr_e('복사'); ?></a>
+            <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
         </div>
     </form>
@@ -790,6 +793,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <a href="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
                                         <?php } ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
+                                        <a href="<?php echo sr_e(sr_url('/admin/content/copy?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
                                         <?php if ((string) $page['status'] !== 'hidden') { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>
