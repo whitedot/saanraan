@@ -835,11 +835,13 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     color: var(--text-strong);
 }
 
-.table-filtering-form > .table-filtering-fields {
+.table-filtering-form.table-filtering-plain > .table-filtering-fields,
+.table-filtering-form > .table-filtering-fields[class*="-search-grid"],
+.table-filtering-form > .table-filtering-fields[class*="-filter-grid"] {
     align-items: end;
     display: grid;
     gap: calc(var(--spacing) * 3);
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    grid-template-columns: max-content minmax(14rem, 1fr) max-content;
     justify-content: stretch;
 }
 

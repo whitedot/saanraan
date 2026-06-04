@@ -121,6 +121,8 @@ input:focus-visible + [class*=btn-choice-],[class*=btn-choice-]:has(> .form-choi
 .table-filtering-field-fill{flex:1 1 18rem;width:auto}
 .table-filtering-field>:is(.form-label,.table-filtering-label){color:var(--text-muted);display:block;font-size:var(--type-meta-size);font-weight:var(--font-weight-medium);line-height:var(--type-meta-line-height);margin:0;min-width:0;padding:0}
 .table-filtering-field>:is(.form-input,.form-textarea,.table-filtering-input){max-width:100%;width:min(16rem,100vw)}
+.table-filtering-plain>.table-filtering-fields>.table-filtering-field:has(:is(input[name=q],textarea[name=q])){width:100%}
+.table-filtering-plain>.table-filtering-fields>.table-filtering-field:has(:is(input[name=q],textarea[name=q]))>:is(.form-input,.form-textarea,.table-filtering-input){width:100%}
 .table-filtering-field-fill>:is(.form-input,.form-textarea,.table-filtering-input){width:100%}
 .table-filtering-field>:is(.form-select){max-width:min(16rem,100%);width:max-content}
 .table-filtering-actions{align-items:end;display:flex;gap:calc(var(--spacing) * 3);margin-inline-start:auto}
