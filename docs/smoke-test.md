@@ -38,6 +38,8 @@ php .tools/bin/smoke-http.php http://127.0.0.1:8080
 SR_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
 ```
 
+하위 경로에 설치된 환경은 base URL에 해당 경로를 포함한다. 예를 들어 `https://example.com/saanraan`처럼 실행하면 로그인 보호 redirect도 같은 하위 경로 기준으로 검증한다.
+
 커뮤니티 모듈이 설치되어 있어야 하는 스테이징 검수에서는 404 허용을 제거한 강한 모드로 실행한다.
 
 ```sh

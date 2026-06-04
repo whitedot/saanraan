@@ -20,6 +20,8 @@ if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl)) {
     exit(2);
 }
 $expectCommunity = getenv('SR_SMOKE_EXPECT_COMMUNITY') === '1';
+$basePath = (string) (parse_url($baseUrl, PHP_URL_PATH) ?? '');
+$basePath = $basePath !== '/' ? rtrim($basePath, '/') : '';
 
 $checks = [
     [
@@ -487,7 +489,8 @@ foreach ($checks as $check) {
     if ($status === 302 && isset($check['redirect_path_prefixes']) && is_array($check['redirect_path_prefixes'])) {
         $matchedRedirect = false;
         foreach ($check['redirect_path_prefixes'] as $prefix) {
-            if (str_starts_with($locationPath, (string) $prefix)) {
+            $prefix = (string) $prefix;
+            if (str_starts_with($locationPath, $prefix) || ($basePath !== '' && str_starts_with($locationPath, $basePath . $prefix))) {
                 $matchedRedirect = true;
                 break;
             }
