@@ -2310,11 +2310,18 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
                 INNER JOIN sr_content_files f ON f.id = l.file_id AND f.status = 'active'
                 WHERE l.content_id = :source_link_content_id
                   AND l.status = 'active'
-                UNION
+                UNION ALL
                 SELECT f.id AS file_id, 0 AS sort_order
                 FROM sr_content_files f
                 WHERE f.content_id = :source_legacy_content_id
                   AND f.status = 'active'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM sr_content_file_links existing_link
+                      WHERE existing_link.content_id = :source_existing_link_content_id
+                        AND existing_link.file_id = f.id
+                        AND existing_link.status = 'active'
+                  )
              ) linked_files
              ON DUPLICATE KEY UPDATE
                 sort_order = VALUES(sort_order),
@@ -2327,6 +2334,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'updated_at' => $now,
             'source_link_content_id' => $sourceContentId,
             'source_legacy_content_id' => $sourceContentId,
+            'source_existing_link_content_id' => $sourceContentId,
         ]);
 
         sr_content_record_revision($pdo, $newContentId, $copy, $accountId, $now);

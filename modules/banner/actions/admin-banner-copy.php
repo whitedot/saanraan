@@ -33,6 +33,7 @@ if (!is_array($sourceBanner)) {
 $values = [
     'title' => sr_post_string('title', 160),
 ];
+$copyClicks = ($_POST['copy_clicks'] ?? '') === '1';
 $errors = [];
 
 $title = sr_banner_clean_single_line((string) $values['title'], 160);
@@ -46,9 +47,9 @@ if ($errors === []) {
         $pdo->beginTransaction();
         $stmt = $pdo->prepare(
             'INSERT INTO sr_banners
-                (title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, created_at, updated_at)
+                (title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, click_count, created_at, updated_at)
              VALUES
-                (:title, :body_text, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :created_at, :updated_at)'
+                (:title, :body_text, :link_url, :image_url, :status, :skin_key, :starts_at, :ends_at, :sort_order, :click_count, :created_at, :updated_at)'
         );
         $stmt->execute([
             'title' => $title,
@@ -60,6 +61,7 @@ if ($errors === []) {
             'starts_at' => $sourceBanner['starts_at'] ?? null,
             'ends_at' => $sourceBanner['ends_at'] ?? null,
             'sort_order' => (int) ($sourceBanner['sort_order'] ?? 0),
+            'click_count' => $copyClicks ? (int) ($sourceBanner['click_count'] ?? 0) : 0,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -81,6 +83,19 @@ if ($errors === []) {
                 'created_at' => $now,
             ]);
         }
+        if ($copyClicks) {
+            $stmt = $pdo->prepare(
+                'INSERT IGNORE INTO sr_banner_clicks
+                    (banner_id, click_key_hash, clicked_at)
+                 SELECT :new_banner_id, click_key_hash, clicked_at
+                 FROM sr_banner_clicks
+                 WHERE banner_id = :source_banner_id'
+            );
+            $stmt->execute([
+                'new_banner_id' => $newBannerId,
+                'source_banner_id' => $bannerId,
+            ]);
+        }
         $pdo->commit();
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
@@ -90,7 +105,10 @@ if ($errors === []) {
             'target_id' => (string) $newBannerId,
             'result' => 'success',
             'message' => 'Banner copied.',
-            'metadata' => ['source_banner_id' => $bannerId],
+            'metadata' => [
+                'source_banner_id' => $bannerId,
+                'copy_clicks' => $copyClicks,
+            ],
         ]);
         sr_admin_redirect_with_result(sr_admin_action_result([], '배너 복사본을 만들었습니다.'), '/admin/banners/edit?id=' . (string) $newBannerId);
     } catch (Throwable $exception) {

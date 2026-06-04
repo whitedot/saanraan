@@ -82,7 +82,17 @@ $bannerCopyModalHtml = static function (array $banner, string $returnTo): string
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e($title); ?>" class="form-input form-control-full" maxlength="160" required data-overlay-focus>
-                                <p class="admin-form-help"><?php echo sr_e('복사본은 draft로 저장되며 클릭 수와 클릭 로그는 복사하지 않습니다.'); ?></p>
+                                <p class="admin-form-help"><?php echo sr_e('복사본은 draft로 저장됩니다.'); ?></p>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-copy-clicks"><?php echo sr_e('클릭 데이터'); ?></label>
+                            <div class="admin-form-field">
+                                <label class="admin-form-check form-label" for="<?php echo sr_e($modalId); ?>-copy-clicks">
+                                    <input id="<?php echo sr_e($modalId); ?>-copy-clicks" type="checkbox" name="copy_clicks" value="1" class="form-checkbox">
+                                    <?php echo sr_e('클릭 수와 클릭 로그를 함께 복사'); ?>
+                                </label>
+                                <p class="admin-form-help"><?php echo sr_e('선택하지 않으면 복사본의 클릭 수는 0으로 시작합니다.'); ?></p>
                             </div>
                         </div>
                     </div>
