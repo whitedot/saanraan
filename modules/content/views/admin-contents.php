@@ -204,7 +204,19 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                                     </label>
                                     <p class="admin-form-help"><?php echo sr_e('원본 시리즈에 섞지 않고 새 시리즈 사본을 만들며, 현재 콘텐츠 항목만 새 콘텐츠로 연결합니다.'); ?></p>
                                     <?php foreach ($seriesSuggestions as $seriesSuggestion) { ?>
-                                        <p class="admin-form-help"><?php echo sr_e((string) $seriesSuggestion['title'] . ' / key: ' . (string) $seriesSuggestion['series_key']); ?></p>
+                                        <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>
+                                        <div class="admin-form-row">
+                                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-series-key-<?php echo sr_e((string) $seriesId); ?>"><?php echo sr_e('시리즈 key'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                                            <div class="admin-form-field">
+                                                <input id="<?php echo sr_e($modalId); ?>-series-key-<?php echo sr_e((string) $seriesId); ?>" type="text" name="content_series_keys[<?php echo sr_e((string) $seriesId); ?>]" value="<?php echo sr_e((string) $seriesSuggestion['series_key']); ?>" class="form-input form-control-full" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" data-admin-key-input>
+                                            </div>
+                                        </div>
+                                        <div class="admin-form-row">
+                                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-series-title-<?php echo sr_e((string) $seriesId); ?>"><?php echo sr_e('시리즈 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                                            <div class="admin-form-field">
+                                                <input id="<?php echo sr_e($modalId); ?>-series-title-<?php echo sr_e((string) $seriesId); ?>" type="text" name="content_series_titles[<?php echo sr_e((string) $seriesId); ?>]" value="<?php echo sr_e((string) $seriesSuggestion['title']); ?>" class="form-input form-control-full" maxlength="160">
+                                            </div>
+                                        </div>
                                     <?php } ?>
                                 </div>
                             </div>

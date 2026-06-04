@@ -25,6 +25,8 @@ $values = [
     'title' => sr_post_string('title', 160),
     'slug' => sr_post_string('slug', 120),
     'copy_series' => ($_POST['copy_series'] ?? '') === '1',
+    'series_keys' => is_array($_POST['content_series_keys'] ?? null) ? $_POST['content_series_keys'] : [],
+    'series_titles' => is_array($_POST['content_series_titles'] ?? null) ? $_POST['content_series_titles'] : [],
 ];
 $errors = [];
 

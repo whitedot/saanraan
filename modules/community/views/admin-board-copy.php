@@ -3,6 +3,7 @@
 $adminPageTitle = '게시판 복사';
 $adminPageSubtitle = '게시판 설정 또는 운영 데이터를 새 disabled 게시판으로 복사합니다.';
 $adminContainerClass = 'admin-community-board-form admin-ui-scope';
+$communityBoardCopySeriesSuggestions = sr_community_board_copy_series_suggestions($pdo, (int) $sourceBoard['id']);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -21,7 +22,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_e('게시글 ' . number_format((int) $copyCounts['posts']) . ', 댓글 ' . number_format((int) $copyCounts['comments']) . ', 링크 참조 ' . number_format((int) $copyCounts['link_refs']) . ', 첨부 ' . number_format((int) $copyCounts['attachments']) . ', 시리즈 ' . number_format((int) ($copyCounts['series'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) $copyCounts['bytes'])); ?>
             </dd>
             <dt><?php echo sr_e('복사 상태'); ?></dt>
-            <dd><?php echo sr_e('복사본 게시판은 disabled로 저장됩니다. 신고, 스크랩, 자산 로그, 알림, 시리즈는 복사하지 않습니다.'); ?></dd>
+            <dd><?php echo sr_e('복사본 게시판은 disabled로 저장됩니다. 신고, 스크랩, 자산 로그, 알림은 복사하지 않습니다. 시리즈는 아래 선택지를 켠 경우에만 새 사본으로 복사합니다.'); ?></dd>
         </dl>
         <?php if ($limitErrors !== []) { ?>
             <div class="alert alert-warning">
@@ -64,6 +65,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html('게시글 포함 복사 시 시리즈도 새 사본으로 복사'); ?>
                     </label>
                     <p class="admin-form-help"><?php echo sr_e('설정만 복사에서는 적용되지 않습니다. 원본 시리즈에 사본 글을 섞지 않고 새 게시판 안에 새 시리즈를 만듭니다.'); ?></p>
+                    <?php foreach ($communityBoardCopySeriesSuggestions as $seriesSuggestion) { ?>
+                        <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="community_board_copy_series_title_<?php echo sr_e((string) $seriesId); ?>"><?php echo sr_e('시리즈 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                            <div class="admin-form-field">
+                                <input id="community_board_copy_series_title_<?php echo sr_e((string) $seriesId); ?>" type="text" name="community_series_titles[<?php echo sr_e((string) $seriesId); ?>]" value="<?php echo sr_e((string) $seriesSuggestion['title']); ?>" class="form-input form-control-full" maxlength="160">
+                            </div>
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
         <?php } ?>

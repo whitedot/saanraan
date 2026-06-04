@@ -10,7 +10,7 @@ $account = sr_member_require_login($pdo);
 $boardId = sr_request_method() === 'POST' ? (int) sr_post_string('board_id', 20) : (int) sr_get_string('id', 20);
 if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'edit');
-    if ((string) sr_post_string('mode', 20) === 'full') {
+    if ((string) sr_post_string('mode', 20) === 'full' || (string) sr_post_string('intent', 30) === 'start_batch') {
         sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
     }
     sr_require_csrf();
@@ -30,6 +30,7 @@ $values = [
     'title' => sr_request_method() === 'POST' ? sr_post_string('title', 120) : (string) $suggestion['title'],
     'mode' => sr_request_method() === 'POST' ? sr_post_string('mode', 20) : 'settings',
     'copy_series' => ($_POST['copy_series'] ?? '') === '1',
+    'series_titles' => is_array($_POST['community_series_titles'] ?? null) ? $_POST['community_series_titles'] : [],
 ];
 $copyCounts = sr_community_board_copy_counts($pdo, $boardId);
 $limitErrors = sr_community_board_copy_limit_errors($copyCounts);
@@ -38,6 +39,7 @@ $errors = [];
 if (sr_request_method() === 'POST') {
     try {
         if (sr_post_string('intent', 30) === 'start_batch') {
+            $values['mode'] = 'full';
             $newJobId = sr_community_board_copy_job_create($pdo, $boardId, $values, (int) $account['id']);
             sr_redirect('/admin/community/board-copy-jobs?id=' . (string) $newJobId);
         }

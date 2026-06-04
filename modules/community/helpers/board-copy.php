@@ -112,6 +112,71 @@ function sr_community_board_copy_counts(PDO $pdo, int $boardId): array
     return $counts;
 }
 
+function sr_community_board_copy_series_suggestions(PDO $pdo, int $boardId): array
+{
+    if ($boardId < 1 || !sr_community_series_supported($pdo)) {
+        return [];
+    }
+    $stmt = $pdo->prepare(
+        'SELECT DISTINCT s.id, s.title
+         FROM sr_community_series s
+         INNER JOIN sr_community_series_items si ON si.series_id = s.id
+         INNER JOIN sr_community_posts p ON p.id = si.post_id
+         WHERE s.board_id = :board_id
+           AND p.board_id = :board_id_for_posts
+         ORDER BY s.id ASC'
+    );
+    $stmt->execute(['board_id' => $boardId, 'board_id_for_posts' => $boardId]);
+
+    return array_map(static function (array $row): array {
+        return [
+            'series_id' => (int) $row['id'],
+            'title' => sr_community_clean_single_line((string) ($row['title'] ?? '') . ' 복사본', 160),
+        ];
+    }, $stmt->fetchAll());
+}
+
+function sr_community_board_copy_series_validate_options(PDO $pdo, int $boardId, array $values): array
+{
+    if (empty($values['copy_series'])) {
+        return [];
+    }
+    $suggestions = sr_community_board_copy_series_suggestions($pdo, $boardId);
+    if ($suggestions === []) {
+        return [];
+    }
+    $titles = is_array($values['series_titles'] ?? null) ? $values['series_titles'] : [];
+    $errors = [];
+    foreach ($suggestions as $suggestion) {
+        $seriesId = (int) $suggestion['series_id'];
+        $title = sr_community_clean_single_line((string) ($titles[(string) $seriesId] ?? $titles[$seriesId] ?? $suggestion['title']), 160);
+        if ($title === '') {
+            $errors[] = '새 커뮤니티 시리즈 제목을 입력하세요.';
+        }
+        $titles[(string) $seriesId] = $title;
+    }
+    $GLOBALS['sr_community_board_copy_series_options'][$boardId] = ['series_titles' => $titles];
+
+    return $errors;
+}
+
+function sr_community_board_copy_series_option_title(int $sourceBoardId, int $seriesId): string
+{
+    if ($sourceBoardId < 1 || $seriesId < 1 || !isset($GLOBALS['sr_community_board_copy_series_options']) || !is_array($GLOBALS['sr_community_board_copy_series_options'])) {
+        return '';
+    }
+    $options = $GLOBALS['sr_community_board_copy_series_options'][$sourceBoardId] ?? null;
+    if (!is_array($options)) {
+        return '';
+    }
+    $titles = $options['series_titles'] ?? null;
+    if (!is_array($titles)) {
+        return '';
+    }
+
+    return sr_community_clean_single_line((string) ($titles[(string) $seriesId] ?? $titles[$seriesId] ?? ''), 160);
+}
+
 function sr_community_board_copy_limit_errors(array $counts): array
 {
     $limits = sr_community_board_copy_limits();
@@ -158,6 +223,7 @@ function sr_community_copy_board(PDO $pdo, int $sourceBoardId, array $values, in
     }
     if ($mode === 'full') {
         $errors = array_merge($errors, sr_community_board_copy_limit_errors(sr_community_board_copy_counts($pdo, $sourceBoardId)));
+        $errors = array_merge($errors, sr_community_board_copy_series_validate_options($pdo, $sourceBoardId, $values));
     }
     if ($errors !== []) {
         throw new InvalidArgumentException(implode("\n", $errors));
@@ -364,7 +430,7 @@ function sr_community_copy_board_series(PDO $pdo, int $sourceBoardId, int $newBo
         $insertSeries->execute([
             'board_id' => $newBoardId,
             'owner_account_id' => (int) ($series['owner_account_id'] ?? 0),
-            'title' => sr_community_clean_single_line((string) ($series['title'] ?? '') . ' 복사본', 160),
+            'title' => sr_community_board_copy_series_option_title($sourceBoardId, (int) $series['id']) ?: sr_community_clean_single_line((string) ($series['title'] ?? '') . ' 복사본', 160),
             'description' => (string) ($series['description'] ?? ''),
             'status' => (string) ($series['status'] ?? 'active'),
             'visibility' => (string) ($series['visibility'] ?? 'public'),

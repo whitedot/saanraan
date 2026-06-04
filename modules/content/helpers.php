@@ -2259,6 +2259,12 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
     if ($errors !== []) {
         throw new InvalidArgumentException(implode("\n", $errors));
     }
+    if (!empty($values['copy_series'])) {
+        $seriesErrors = sr_content_copy_series_validate_options($pdo, $sourceContentId, $values);
+        if ($seriesErrors !== []) {
+            throw new InvalidArgumentException(implode("\n", $seriesErrors));
+        }
+    }
 
     $now = sr_now();
     $pdo->beginTransaction();
@@ -2423,20 +2429,27 @@ function sr_content_copy_series_for_content(PDO $pdo, int $sourceContentId, int 
     );
 
     foreach ($stmt->fetchAll() as $series) {
-        $baseKey = str_replace('-', '_', sr_content_clean_slug((string) ($series['series_key'] ?? 'series') . '-copy'));
-        if (!sr_content_series_key_is_valid($baseKey)) {
-            $baseKey = 'series_copy';
+        $seriesKey = sr_content_copy_series_option_value($sourceContentId, (int) $series['id'], 'series_keys');
+        $seriesTitle = sr_content_copy_series_option_value($sourceContentId, (int) $series['id'], 'series_titles');
+        if ($seriesKey === '') {
+            $baseKey = str_replace('-', '_', sr_content_clean_slug((string) ($series['series_key'] ?? 'series') . '-copy'));
+            if (!sr_content_series_key_is_valid($baseKey)) {
+                $baseKey = 'series_copy';
+            }
+            $seriesKey = $baseKey;
+            $suffix = 2;
+            while (sr_content_series_key_exists($pdo, $seriesKey)) {
+                $seriesKey = substr($baseKey, 0, 54) . '_' . (string) $suffix;
+                $suffix++;
+            }
         }
-        $seriesKey = $baseKey;
-        $suffix = 2;
-        while (sr_content_series_key_exists($pdo, $seriesKey)) {
-            $seriesKey = substr($baseKey, 0, 54) . '_' . (string) $suffix;
-            $suffix++;
+        if ($seriesTitle === '') {
+            $seriesTitle = sr_content_clean_single_line((string) ($series['title'] ?? '') . ' 복사본', 160);
         }
 
         $insertSeries->execute([
             'series_key' => $seriesKey,
-            'title' => sr_content_clean_single_line((string) ($series['title'] ?? '') . ' 복사본', 160),
+            'title' => $seriesTitle,
             'description' => (string) ($series['description'] ?? ''),
             'status' => (string) ($series['status'] ?? 'active'),
             'visibility' => (string) ($series['visibility'] ?? 'public'),
@@ -2462,6 +2475,61 @@ function sr_content_copy_series_for_content(PDO $pdo, int $sourceContentId, int 
     }
 
     return $created;
+}
+
+function sr_content_copy_series_option_value(int $sourceContentId, int $seriesId, string $key): string
+{
+    $sourceContentId = max(0, $sourceContentId);
+    $seriesId = max(0, $seriesId);
+    if ($sourceContentId < 1 || $seriesId < 1 || !isset($GLOBALS['sr_content_copy_series_options']) || !is_array($GLOBALS['sr_content_copy_series_options'])) {
+        return '';
+    }
+    $options = $GLOBALS['sr_content_copy_series_options'][$sourceContentId] ?? null;
+    if (!is_array($options)) {
+        return '';
+    }
+    $values = $options[$key] ?? null;
+    if (!is_array($values)) {
+        return '';
+    }
+
+    return trim((string) ($values[(string) $seriesId] ?? $values[$seriesId] ?? ''));
+}
+
+function sr_content_copy_series_validate_options(PDO $pdo, int $sourceContentId, array $values): array
+{
+    $suggestions = sr_content_copy_series_suggestions($pdo, $sourceContentId);
+    if ($suggestions === []) {
+        return [];
+    }
+
+    $keys = is_array($values['series_keys'] ?? null) ? $values['series_keys'] : [];
+    $titles = is_array($values['series_titles'] ?? null) ? $values['series_titles'] : [];
+    $errors = [];
+    $seen = [];
+    foreach ($suggestions as $suggestion) {
+        $seriesId = (int) $suggestion['series_id'];
+        $seriesKey = strtolower(trim((string) ($keys[(string) $seriesId] ?? $keys[$seriesId] ?? $suggestion['series_key'])));
+        $seriesTitle = sr_content_clean_single_line((string) ($titles[(string) $seriesId] ?? $titles[$seriesId] ?? $suggestion['title']), 160);
+        if (!sr_content_series_key_is_valid($seriesKey)) {
+            $errors[] = '시리즈 key는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
+        } elseif (isset($seen[$seriesKey]) || sr_content_series_key_exists($pdo, $seriesKey)) {
+            $errors[] = '이미 사용 중인 시리즈 key입니다: ' . $seriesKey;
+        }
+        if ($seriesTitle === '') {
+            $errors[] = '새 시리즈 제목을 입력하세요.';
+        }
+        $seen[$seriesKey] = true;
+        $keys[(string) $seriesId] = $seriesKey;
+        $titles[(string) $seriesId] = $seriesTitle;
+    }
+
+    $GLOBALS['sr_content_copy_series_options'][$sourceContentId] = [
+        'series_keys' => $keys,
+        'series_titles' => $titles,
+    ];
+
+    return $errors;
 }
 
 function sr_content_hide(PDO $pdo, int $pageId, int $accountId): bool

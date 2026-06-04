@@ -29,6 +29,8 @@ if (sr_request_method() === 'POST') {
         } elseif ($intent === 'retry') {
             $pdo->prepare("UPDATE sr_community_board_copy_jobs SET status = 'pending', lock_token = '', locked_at = NULL, updated_at = :updated_at WHERE id = :id AND status IN ('failed', 'paused')")
                 ->execute(['updated_at' => sr_now(), 'id' => $jobId]);
+            $pdo->prepare("UPDATE sr_community_board_copy_job_maps SET status = 'pending', updated_at = :updated_at WHERE job_id = :job_id AND status = 'failed'")
+                ->execute(['updated_at' => sr_now(), 'job_id' => $jobId]);
             $notice = '복사 작업을 재시도할 수 있습니다.';
         }
     } catch (Throwable $exception) {
