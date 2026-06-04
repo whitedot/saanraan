@@ -12,6 +12,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $counts = sr_community_board_copy_job_json($job, 'counts_json');
     $options = sr_community_board_copy_job_json($job, 'options_json');
+    $jobStatus = (string) ($job['status'] ?? '');
+    $canRun = in_array($jobStatus, ['pending', 'running', 'cleanup_required'], true);
+    $canRetry = in_array($jobStatus, ['failed', 'paused'], true);
+    $canCancel = !in_array($jobStatus, ['completed', 'cancelled', 'cleanup_required'], true);
     ?>
     <section class="admin-card card">
         <h2><?php echo sr_e('작업 #' . (string) (int) $job['id']); ?></h2>
@@ -30,13 +34,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </dl>
         <div class="admin-form-actions">
-            <?php if (!in_array((string) $job['status'], ['completed', 'cancelled'], true)) { ?>
+            <?php if ($canRun || $canRetry || $canCancel) { ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/board-copy-jobs?id=' . rawurlencode((string) (int) $job['id']))); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $job['id']); ?>">
-                    <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e('다음 묶음 처리'); ?></button>
-                    <button type="submit" name="intent" value="retry" class="btn btn-solid-light"><?php echo sr_e('재시도 준비'); ?></button>
-                    <button type="submit" name="intent" value="cancel" class="btn btn-solid-danger" data-confirm="<?php echo sr_e('생성된 대상 게시판과 파일을 정리합니다. 계속할까요?'); ?>"><?php echo sr_e('취소 및 정리'); ?></button>
+                    <?php if ($canRun) { ?>
+                        <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '정리 다시 시도' : '다음 묶음 처리'); ?></button>
+                    <?php } ?>
+                    <?php if ($canRetry) { ?>
+                        <button type="submit" name="intent" value="retry" class="btn btn-solid-light"><?php echo sr_e('재시도 준비'); ?></button>
+                    <?php } ?>
+                    <?php if ($canCancel) { ?>
+                        <button type="submit" name="intent" value="cancel" class="btn btn-solid-danger" data-confirm="<?php echo sr_e('생성된 대상 게시판과 파일을 정리합니다. 계속할까요?'); ?>"><?php echo sr_e('취소 및 정리'); ?></button>
+                    <?php } ?>
                 </form>
             <?php } ?>
             <?php if ((int) ($job['target_board_id'] ?? 0) > 0) { ?>
