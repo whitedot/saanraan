@@ -106,11 +106,12 @@ function sr_admin_filter_toggle_group_html(string $id, string $name, array $opti
     $index = 0;
     $lastIndex = max(0, count($toggleOptions) - 1);
     foreach ($toggleOptions as $value => $label) {
+        $optionValue = (string) $value;
 
         $groupClass = $index === $lastIndex ? 'btn-group-end' : 'btn-group-middle';
         $inputId = $idBase . '_' . (string) $index;
         $html .= '<span class="filtering-toggle-item">'
-            . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($value) . '" class="form-choice-toggle-input sr-only" data-filtering-toggle-choice' . (isset($selectedMap[$value]) ? ' checked' : '') . '>'
+            . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($optionValue) . '" class="form-choice-toggle-input sr-only" data-filtering-toggle-choice' . (isset($selectedMap[$optionValue]) ? ' checked' : '') . '>'
             . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light ' . $groupClass . '">' . sr_e((string) $label) . '</label>'
             . '</span>';
         $index++;
@@ -155,10 +156,11 @@ function sr_admin_filter_radio_toggle_group_html(string $id, string $name, array
     $index = 0;
     $lastIndex = max(0, count($toggleOptions) - 1);
     foreach ($toggleOptions as $value => $label) {
+        $optionValue = (string) $value;
         $groupClass = $index === $lastIndex ? 'btn-group-end' : 'btn-group-middle';
         $inputId = $idBase . '_' . (string) $index;
         $html .= '<span class="filtering-toggle-item">'
-            . '<input id="' . sr_e($inputId) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice' . ($selectedValue === $value ? ' checked' : '') . '>'
+            . '<input id="' . sr_e($inputId) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($optionValue) . '" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice' . ($selectedValue === $optionValue ? ' checked' : '') . '>'
             . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light ' . $groupClass . '">' . sr_e((string) $label) . '</label>'
             . '</span>';
         $index++;
