@@ -339,6 +339,7 @@ $popupSortOptions = [
     'title' => ['columns' => ['p.title', 'p.id']],
     'status' => ['columns' => ['p.status', 'p.id']],
     'skin_key' => ['columns' => ['p.skin_key', 'p.id']],
+    'target' => ['columns' => ['t.module_key', 't.point_key', 't.slot_key', 't.match_type', 't.subject_id', 'p.id']],
     'starts_at' => ['columns' => ['p.starts_at', 'p.id']],
     'ends_at' => ['columns' => ['p.ends_at', 'p.id']],
     'dismiss_cookie_days' => ['columns' => ['p.dismiss_cookie_days', 'p.id']],

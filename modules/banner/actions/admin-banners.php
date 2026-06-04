@@ -371,6 +371,7 @@ $bannerSortOptions = [
     'status' => ['columns' => ['b.status', 'b.id']],
     'skin_key' => ['columns' => ['b.skin_key', 'b.id']],
     'click_count' => ['columns' => ['b.click_count', 'b.id']],
+    'target' => ['columns' => ['t.module_key', 't.point_key', 't.slot_key', 't.match_type', 't.subject_id', 'b.id']],
     'starts_at' => ['columns' => ['b.starts_at', 'b.id']],
     'ends_at' => ['columns' => ['b.ends_at', 'b.id']],
     'sort_order' => ['columns' => ['b.sort_order', 'b.id']],

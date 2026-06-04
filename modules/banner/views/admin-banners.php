@@ -11,6 +11,7 @@ $bannerSortOptions = isset($bannerSortOptions) && is_array($bannerSortOptions) ?
     'status' => ['columns' => ['b.status', 'b.id']],
     'skin_key' => ['columns' => ['b.skin_key', 'b.id']],
     'click_count' => ['columns' => ['b.click_count', 'b.id']],
+    'target' => ['columns' => ['t.module_key', 't.point_key', 't.slot_key', 't.match_type', 't.subject_id', 'b.id']],
     'starts_at' => ['columns' => ['b.starts_at', 'b.id']],
     'ends_at' => ['columns' => ['b.ends_at', 'b.id']],
     'sort_order' => ['columns' => ['b.sort_order', 'b.id']],
@@ -393,7 +394,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <div>
                 <h2 class="card-title"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></h2>
-                <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('banner::ui.active.status.banner.active.d22e3e06')); ?></p>
             </div>
             <a href="<?php echo sr_e(sr_url('/admin/banners/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('banner::ui.banner.c0e70d2c')); ?></a>
         </div>
@@ -413,7 +413,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('skin_key', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.776b723f'), 'skin_key', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th><?php echo sr_e(sr_t('banner::ui.text.3d54da9c')); ?></th>
                     <th<?php echo sr_admin_sort_aria('click_count', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.a6bb9eae'), 'click_count', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
-                    <th><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('target', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.76389a62'), 'target', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('starts_at', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.65bdaefd'), 'starts_at', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('ends_at', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.26c25fca'), 'ends_at', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('sort_order', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.3788952d'), 'sort_order', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
@@ -445,14 +445,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-break admin-banner-title-cell"><?php echo sr_e((string) $banner['title']); ?></td>
                             <td class="admin-table-nowrap">
                                 <span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($bannerStatus, 'content_status')); ?></span>
-                                <?php if ($bannerStatus !== 'enabled') { ?>
-                                    <br><small><?php echo sr_e(sr_t('banner::ui.active.b452ffcd')); ?></small>
-                                <?php } ?>
                             </td>
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')])); ?></td>
-                            <td class="admin-table-break admin-banner-link-cell">
-                                <?php echo sr_e(sr_banner_link_type_label((string) ($banner['link_url'] ?? ''))); ?><br>
-                                <?php echo sr_e((string) ($banner['link_url'] ?? '')); ?>
+                            <td class="admin-table-nowrap admin-banner-link-cell">
+                                <?php if ((string) ($banner['link_url'] ?? '') !== '') { ?>
+                                    <a href="<?php echo sr_e((string) $banner['link_url']); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e('링크 새 탭에서 열기'); ?>" title="<?php echo sr_e('링크 새 탭에서 열기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                                <?php } else { ?>
+                                    <?php echo sr_e(sr_banner_link_type_label((string) ($banner['link_url'] ?? ''))); ?>
+                                <?php } ?>
                             </td>
                             <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($banner['click_count'] ?? 0))); ?></td>
                             <td class="admin-table-break admin-banner-target-cell"><?php echo sr_e($bannerTargetLabel); ?></td>
@@ -461,12 +461,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $banner['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <?php
                                     $bannerCopyModalId = 'banner-copy-modal-' . (string) (int) $banner['id'];
                                     $bannerCopyModals .= $bannerCopyModalHtml($banner, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners'));
                                     ?>
                                     <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($bannerCopyModalId); ?>" data-overlay="#<?php echo sr_e($bannerCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
+                                    <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $banner['id']); ?>">

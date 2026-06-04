@@ -10,6 +10,7 @@ $popupSortOptions = isset($popupSortOptions) && is_array($popupSortOptions) ? $p
     'title' => ['columns' => ['p.title', 'p.id']],
     'status' => ['columns' => ['p.status', 'p.id']],
     'skin_key' => ['columns' => ['p.skin_key', 'p.id']],
+    'target' => ['columns' => ['t.module_key', 't.point_key', 't.slot_key', 't.match_type', 't.subject_id', 'p.id']],
     'starts_at' => ['columns' => ['p.starts_at', 'p.id']],
     'ends_at' => ['columns' => ['p.ends_at', 'p.id']],
     'dismiss_cookie_days' => ['columns' => ['p.dismiss_cookie_days', 'p.id']],
@@ -339,8 +340,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th<?php echo sr_admin_sort_aria('title', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.08b17e43'), 'title', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.status.e10195a1'), 'status', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('skin_key', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.776b723f'), 'skin_key', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
-                    <th><?php echo sr_e(sr_t('popup_layer::ui.text.8c609deb')); ?></th>
+                    <th<?php echo sr_admin_sort_aria('target', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.8c609deb'), 'target', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('starts_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.65bdaefd'), 'starts_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('ends_at', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.26c25fca'), 'ends_at', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('dismiss_cookie_days', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.close.06cddc6e'), 'dismiss_cookie_days', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
@@ -351,7 +351,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($popups === []) { ?>
                     <tr>
-                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
+                        <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($popups as $popup) { ?>
@@ -372,7 +372,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td class="admin-table-break admin-popup-layer-title-cell"><?php echo sr_e((string) $popup['title']); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($popupStatus, 'content_status')); ?></span></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e(sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($popup['skin_key'] ?? 'basic')])); ?></td>
                             <td class="admin-table-break admin-popup-layer-target-cell">
                                 <?php echo sr_e($popupTargetLabel); ?><br>
                                 <?php echo sr_e((string) $popup['match_type'] . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>
@@ -383,12 +382,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) $popup['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <?php
                                     $popupLayerCopyModalId = 'popup-layer-copy-modal-' . (string) (int) $popup['id'];
                                     $popupLayerCopyModals .= $popupLayerCopyModalHtml($popup, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/popup-layers'));
                                     ?>
                                     <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($popupLayerCopyModalId); ?>" data-overlay="#<?php echo sr_e($popupLayerCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
+                                    <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popup['id']); ?>">
