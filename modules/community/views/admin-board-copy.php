@@ -29,7 +29,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php foreach ($limitErrors as $limitError) { ?>
                     <p><?php echo sr_e($limitError); ?></p>
                 <?php } ?>
-                <p><?php echo sr_e('상한 초과 게시판은 배치 복사 작업으로 나누어 처리할 수 있습니다.'); ?></p>
+                <?php if ($batchAvailable) { ?>
+                    <p><?php echo sr_e('상한 초과 게시판은 배치 복사 작업으로 나누어 처리할 수 있습니다.'); ?></p>
+                <?php } else { ?>
+                    <p><?php echo sr_e('첨부파일 저장소 또는 원본 파일 상태를 먼저 정리한 뒤 다시 시도하세요.'); ?></p>
+                <?php } ?>
             </div>
         <?php } ?>
         <div class="admin-form-row">
@@ -81,7 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
         <div class="admin-form-actions">
-            <?php if ($limitErrors !== []) { ?>
+            <?php if ($batchAvailable) { ?>
                 <button type="submit" name="intent" value="start_batch" class="btn btn-solid-primary"><?php echo sr_e('배치 복사 작업 만들기'); ?></button>
             <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('복사본 만들기'); ?></button>

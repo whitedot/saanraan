@@ -34,11 +34,16 @@ $values = [
 ];
 $copyCounts = sr_community_board_copy_counts($pdo, $boardId);
 $limitErrors = sr_community_board_copy_limit_errors($copyCounts);
+$batchErrors = sr_community_board_copy_batch_errors($copyCounts);
+$batchAvailable = $batchErrors === [];
 $errors = [];
 
 if (sr_request_method() === 'POST') {
     try {
         if (sr_post_string('intent', 30) === 'start_batch') {
+            if ($batchErrors !== []) {
+                throw new InvalidArgumentException(implode("\n", $batchErrors));
+            }
             $values['mode'] = 'full';
             $newJobId = sr_community_board_copy_job_create($pdo, $boardId, $values, (int) $account['id']);
             sr_redirect('/admin/community/board-copy-jobs?id=' . (string) $newJobId);

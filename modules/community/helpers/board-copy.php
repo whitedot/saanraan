@@ -179,6 +179,14 @@ function sr_community_board_copy_series_option_title(int $sourceBoardId, int $se
 
 function sr_community_board_copy_limit_errors(array $counts): array
 {
+    return array_merge(
+        sr_community_board_copy_batch_threshold_errors($counts),
+        sr_community_board_copy_batch_block_errors($counts)
+    );
+}
+
+function sr_community_board_copy_batch_threshold_errors(array $counts): array
+{
     $limits = sr_community_board_copy_limits();
     $errors = [];
     foreach (['posts', 'comments', 'link_refs', 'attachments'] as $key) {
@@ -189,11 +197,31 @@ function sr_community_board_copy_limit_errors(array $counts): array
     if ((int) ($counts['bytes'] ?? 0) > (int) $limits['bytes']) {
         $errors[] = '첨부 총량이 동기 복사 상한을 초과했습니다.';
     }
+
+    return $errors;
+}
+
+function sr_community_board_copy_batch_block_errors(array $counts): array
+{
+    $errors = [];
     if (!empty($counts['unsupported_storage'])) {
         $errors[] = '현재 저장소 driver에서는 첨부파일 포함 복사를 지원하지 않습니다.';
     }
     if (($counts['missing_files'] ?? []) !== []) {
         $errors[] = '원본 첨부파일을 확인할 수 없어 복사를 시작하지 않았습니다.';
+    }
+
+    return $errors;
+}
+
+function sr_community_board_copy_batch_errors(array $counts): array
+{
+    $errors = sr_community_board_copy_batch_block_errors($counts);
+    if ($errors !== []) {
+        return $errors;
+    }
+    if (sr_community_board_copy_batch_threshold_errors($counts) === []) {
+        $errors[] = '배치 복사가 필요한 상한 초과 항목이 없습니다.';
     }
 
     return $errors;

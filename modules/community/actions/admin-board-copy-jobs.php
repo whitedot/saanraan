@@ -8,6 +8,7 @@ require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'edit');
+sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 
 $jobId = (int) sr_get_string('id', 20);
 $errors = [];
