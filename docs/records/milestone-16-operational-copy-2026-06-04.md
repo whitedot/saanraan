@@ -40,9 +40,9 @@
 - 콘텐츠 복사 모달은 원본 콘텐츠가 시리즈에 속한 경우 `시리즈도 새 사본으로 복사` 선택지를 제공한다.
 - 선택하지 않으면 기존처럼 시리즈 연결을 복사하지 않는다.
 - 선택하면 원본 시리즈에 사본 콘텐츠를 섞지 않고 새 콘텐츠 시리즈 row와 새 item row를 만든다.
-- 새 콘텐츠 시리즈 key/title은 원본 기반으로 제안하고 운영자가 수정할 수 있으며, 서버에서 key 형식과 중복을 검증한다.
+- 새 콘텐츠 시리즈 key/title은 원본 기반으로 제안하고 운영자가 수정할 수 있으며, 선택 시 브라우저 required와 서버 검증으로 key 형식, 중복, 제목 입력을 확인한다.
 - 커뮤니티 게시판 전체 복사는 원본 게시글이 커뮤니티 시리즈에 속한 경우 `게시글 포함 복사 시 시리즈도 새 사본으로 복사` 선택지를 제공한다.
-- 선택하면 새 게시판 안에 새 커뮤니티 시리즈를 만들고, 복사된 post map에 있는 항목만 새 post ID로 연결한다. 새 커뮤니티 시리즈 title은 운영자가 수정할 수 있다.
+- 선택하면 새 게시판 안에 새 커뮤니티 시리즈를 만들고, 복사된 post map에 있는 항목만 새 post ID로 연결한다. 새 커뮤니티 시리즈 title은 운영자가 수정할 수 있으며, 선택 시 브라우저 required와 서버 검증을 모두 적용한다.
 - 콘텐츠/커뮤니티 모두 원본 시리즈의 운영 note/moderation 결과는 새 사본에 섞지 않는다.
 
 ## #208 대량 게시판 배치 복사
@@ -51,7 +51,9 @@
 - 게시판 전체 복사가 동기 상한을 넘으면 복사 확인 화면에서 `배치 복사 작업 만들기`로 job을 생성할 수 있다.
 - `/admin/community/board-copy-jobs` 화면에서 작업 상태, 단계, 원본/대상 게시판, 복사 수, 마지막 오류를 확인하고 `다음 묶음 처리`, `재시도 준비`, `취소 및 정리`를 실행한다.
 - runner는 `prepare`, `board`, `posts`, `comments`, `link_refs`, `attachments`, 선택적 `series`, `verify`, `complete`, `cleanup` 단계를 순서대로 처리한다.
+- prepare 단계가 실제 복사 map을 만든 뒤 job의 count 기준을 map 기준으로 다시 저장하므로, job 생성과 prepare 사이의 원본 변경이 verify 기준을 어긋나게 하지 않는다.
 - 대상 게시판은 완료 후에도 `disabled` 상태로 유지하며 운영자가 검토 후 직접 활성화한다.
 - cron 없는 shared hosting에서도 버튼 반복으로 진행할 수 있고, helper는 같은 처리 단위를 CLI/cron에서 재사용할 수 있게 분리했다.
 - stage 처리 중 실패 map이 생기면 job을 `failed`로 멈추고, 재시도 시 실패 map을 `pending`으로 되돌린 뒤 같은 stage부터 이어간다.
 - verify 단계는 대상 게시판 disabled 상태, 게시글/댓글/링크 참조/첨부 count, 복사된 첨부파일 storage head와 checksum을 확인한다.
+- cleanup 단계는 복사된 파일 삭제가 실패하면 target DB 삭제로 넘어가지 않고 job을 `cleanup_required`에 남긴다. 실패 map은 `cleanup_failed`로 남아 재시도할 수 있다.

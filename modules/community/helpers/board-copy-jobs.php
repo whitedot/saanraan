@@ -184,6 +184,7 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
     $stage = (string) ($job['stage'] ?? 'prepare');
     if ($stage === 'prepare') {
         sr_community_board_copy_job_prepare($pdo, $job);
+        sr_community_board_copy_job_refresh_counts($pdo, $job);
         return ['done' => false, 'stage' => 'board', 'status' => 'running', 'message' => '복사 대상 목록을 준비했습니다.'];
     }
     if ($stage === 'board') {
@@ -213,7 +214,16 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
         return ['done' => true, 'stage' => 'complete', 'status' => 'completed', 'message' => '게시판 배치 복사가 완료되었습니다.'];
     }
     if ($stage === 'cleanup') {
-        sr_community_board_copy_job_cleanup($pdo, $job);
+        $cleanupFailed = sr_community_board_copy_job_cleanup($pdo, $job);
+        if ($cleanupFailed > 0) {
+            return [
+                'done' => true,
+                'stage' => 'cleanup',
+                'status' => 'cleanup_required',
+                'message' => '일부 파일을 정리하지 못했습니다. 정리 상태를 확인한 뒤 다시 시도하세요.',
+                'error' => '정리 실패 항목 ' . (string) $cleanupFailed . '개가 남아 있습니다.',
+            ];
+        }
         return ['done' => true, 'stage' => 'cleanup', 'status' => 'cancelled', 'message' => '복사 작업을 정리했습니다.'];
     }
 
@@ -255,6 +265,41 @@ function sr_community_board_copy_job_prepare(PDO $pdo, array $job): void
             ]);
         }
     }
+}
+
+function sr_community_board_copy_job_refresh_counts(PDO $pdo, array $job): void
+{
+    $jobId = (int) $job['id'];
+    $counts = sr_community_board_copy_job_json($job, 'counts_json');
+    foreach ([
+        'post' => 'posts',
+        'comment' => 'comments',
+        'link_ref' => 'link_refs',
+        'attachment' => 'attachments',
+        'series' => 'series',
+        'series_item' => 'series_items',
+    ] as $entityType => $countKey) {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND entity_type = :entity_type');
+        $stmt->execute(['job_id' => $jobId, 'entity_type' => $entityType]);
+        $counts[$countKey] = (int) $stmt->fetchColumn();
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COALESCE(SUM(a.size_bytes), 0)
+         FROM sr_community_board_copy_job_maps m
+         INNER JOIN sr_community_attachments a ON a.id = m.source_id
+         WHERE m.job_id = :job_id
+           AND m.entity_type = 'attachment'"
+    );
+    $stmt->execute(['job_id' => $jobId]);
+    $counts['bytes'] = (int) $stmt->fetchColumn();
+
+    $pdo->prepare('UPDATE sr_community_board_copy_jobs SET counts_json = :counts_json, updated_at = :updated_at WHERE id = :id')
+        ->execute([
+            'counts_json' => json_encode($counts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'updated_at' => sr_now(),
+            'id' => $jobId,
+        ]);
 }
 
 function sr_community_board_copy_job_create_board(PDO $pdo, array $job): void
@@ -751,18 +796,24 @@ function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
     }
 }
 
-function sr_community_board_copy_job_cleanup(PDO $pdo, array $job): void
+function sr_community_board_copy_job_cleanup(PDO $pdo, array $job): int
 {
     $jobId = (int) $job['id'];
-    $stmt = $pdo->prepare("SELECT * FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND created_storage_driver <> '' AND created_storage_key <> '' ORDER BY id DESC");
+    $failed = 0;
+    $stmt = $pdo->prepare("SELECT * FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND created_storage_driver <> '' AND created_storage_key <> '' AND status <> 'cleaned' ORDER BY id DESC");
     $stmt->execute(['job_id' => $jobId]);
     foreach ($stmt->fetchAll() as $map) {
         if (sr_storage_delete((string) $map['created_storage_driver'], (string) $map['created_storage_key'])) {
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleaned');
         } else {
+            $failed++;
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleanup_failed', '파일 삭제 실패');
         }
     }
+    if ($failed > 0) {
+        return $failed;
+    }
+
     $targetBoardId = sr_community_board_copy_job_target_board_id($pdo, $job);
     if ($targetBoardId > 0) {
         foreach ([
@@ -780,4 +831,6 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job): void
             $pdo->prepare($sql)->execute(['board_id' => $targetBoardId]);
         }
     }
+
+    return 0;
 }

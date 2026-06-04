@@ -61,16 +61,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label"><?php echo sr_e('시리즈'); ?></span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="community_board_copy_series">
-                        <input id="community_board_copy_series" type="checkbox" name="copy_series" value="1" class="form-checkbox"<?php echo !empty($values['copy_series']) ? ' checked' : ''; ?>>
+                        <input id="community_board_copy_series" type="checkbox" name="copy_series" value="1" class="form-checkbox"<?php echo !empty($values['copy_series']) ? ' checked' : ''; ?> data-copy-series-toggle>
                         <?php echo sr_admin_choice_label_html('게시글 포함 복사 시 시리즈도 새 사본으로 복사'); ?>
                     </label>
                     <p class="admin-form-help"><?php echo sr_e('설정만 복사에서는 적용되지 않습니다. 원본 시리즈에 사본 글을 섞지 않고 새 게시판 안에 새 시리즈를 만듭니다.'); ?></p>
                     <?php foreach ($communityBoardCopySeriesSuggestions as $seriesSuggestion) { ?>
                         <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>
                         <div class="admin-form-row">
-                            <label class="form-label" for="community_board_copy_series_title_<?php echo sr_e((string) $seriesId); ?>"><?php echo sr_e('시리즈 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                            <label class="form-label" for="community_board_copy_series_title_<?php echo sr_e((string) $seriesId); ?>"><?php echo sr_e('시리즈 제목'); ?> <span class="sr-required-label" data-copy-series-required-label<?php echo !empty($values['copy_series']) ? '' : ' hidden'; ?>><?php echo sr_e('(필수)'); ?></span></label>
                             <div class="admin-form-field">
-                                <input id="community_board_copy_series_title_<?php echo sr_e((string) $seriesId); ?>" type="text" name="community_series_titles[<?php echo sr_e((string) $seriesId); ?>]" value="<?php echo sr_e((string) $seriesSuggestion['title']); ?>" class="form-input form-control-full" maxlength="160">
+                                <input id="community_board_copy_series_title_<?php echo sr_e((string) $seriesId); ?>" type="text" name="community_series_titles[<?php echo sr_e((string) $seriesId); ?>]" value="<?php echo sr_e((string) $seriesSuggestion['title']); ?>" class="form-input form-control-full" maxlength="160"<?php echo !empty($values['copy_series']) ? ' required' : ''; ?> data-copy-series-input>
                             </div>
                         </div>
                     <?php } ?>
@@ -88,5 +88,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-copy-series-toggle]').forEach(function (toggle) {
+        var form = toggle.closest('form');
+        var sync = function () {
+            var required = toggle.checked;
+            if (!form) {
+                return;
+            }
+            form.querySelectorAll('[data-copy-series-input]').forEach(function (input) {
+                input.required = required;
+            });
+            form.querySelectorAll('[data-copy-series-required-label]').forEach(function (label) {
+                label.hidden = !required;
+            });
+        };
+        toggle.addEventListener('change', sync);
+        sync();
+    });
+});
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
