@@ -17,10 +17,8 @@ if ($returnTo === '' || !sr_is_safe_relative_url($returnTo)) {
 }
 
 $stmt = $pdo->prepare(
-    'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count,
-            t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
+    'SELECT b.id, b.title, b.body_text, b.link_url, b.image_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count
      FROM sr_banners b
-     LEFT JOIN sr_banner_targets t ON t.banner_id = b.id
      WHERE b.id = :id
      LIMIT 1'
 );
@@ -31,12 +29,12 @@ if (!is_array($sourceBanner)) {
 }
 
 $values = [
-    'title' => sr_post_string('title', 160),
+    'title' => sr_post_string('title', 120),
 ];
 $copyClicks = ($_POST['copy_clicks'] ?? '') === '1';
 $errors = [];
 
-$title = sr_banner_clean_single_line((string) $values['title'], 160);
+$title = sr_banner_clean_single_line((string) $values['title'], 120);
 if ($title === '') {
     $errors[] = '새 배너 제목을 입력하세요.';
 }
@@ -66,23 +64,18 @@ if ($errors === []) {
             'updated_at' => $now,
         ]);
         $newBannerId = (int) $pdo->lastInsertId();
-        if ((string) ($sourceBanner['module_key'] ?? '') !== '') {
-            $stmt = $pdo->prepare(
-                'INSERT INTO sr_banner_targets
-                    (banner_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
-                 VALUES
-                    (:banner_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
-            );
-            $stmt->execute([
-                'banner_id' => $newBannerId,
-                'module_key' => (string) $sourceBanner['module_key'],
-                'point_key' => (string) $sourceBanner['point_key'],
-                'slot_key' => (string) $sourceBanner['slot_key'],
-                'subject_id' => (string) ($sourceBanner['subject_id'] ?? ''),
-                'match_type' => (string) ($sourceBanner['match_type'] ?? 'all'),
-                'created_at' => $now,
-            ]);
-        }
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_banner_targets
+                (banner_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
+             SELECT :new_banner_id, module_key, point_key, slot_key, subject_id, match_type, :created_at
+             FROM sr_banner_targets
+             WHERE banner_id = :source_banner_id'
+        );
+        $stmt->execute([
+            'new_banner_id' => $newBannerId,
+            'created_at' => $now,
+            'source_banner_id' => $bannerId,
+        ]);
         if ($copyClicks) {
             $stmt = $pdo->prepare(
                 'INSERT IGNORE INTO sr_banner_clicks

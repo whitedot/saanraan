@@ -17,10 +17,8 @@ if ($returnTo === '' || !sr_is_safe_relative_url($returnTo)) {
 }
 
 $stmt = $pdo->prepare(
-    'SELECT p.id, p.title, p.body_text, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days,
-            t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
+    'SELECT p.id, p.title, p.body_text, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days
      FROM sr_popup_layers p
-     LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id
      WHERE p.id = :id
      LIMIT 1'
 );
@@ -31,11 +29,11 @@ if (!is_array($sourcePopup)) {
 }
 
 $values = [
-    'title' => sr_post_string('title', 160),
+    'title' => sr_post_string('title', 120),
 ];
 $errors = [];
 
-$title = sr_popup_layer_clean_single_line((string) $values['title'], 160);
+$title = sr_popup_layer_clean_single_line((string) $values['title'], 120);
 if ($title === '') {
     $errors[] = '새 팝업레이어 제목을 입력하세요.';
 }
@@ -62,23 +60,18 @@ if ($errors === []) {
             'updated_at' => $now,
         ]);
         $newPopupId = (int) $pdo->lastInsertId();
-        if ((string) ($sourcePopup['module_key'] ?? '') !== '') {
-            $stmt = $pdo->prepare(
-                'INSERT INTO sr_popup_layer_targets
-                    (popup_layer_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
-                 VALUES
-                    (:popup_layer_id, :module_key, :point_key, :slot_key, :subject_id, :match_type, :created_at)'
-            );
-            $stmt->execute([
-                'popup_layer_id' => $newPopupId,
-                'module_key' => (string) $sourcePopup['module_key'],
-                'point_key' => (string) $sourcePopup['point_key'],
-                'slot_key' => (string) $sourcePopup['slot_key'],
-                'subject_id' => (string) ($sourcePopup['subject_id'] ?? ''),
-                'match_type' => (string) ($sourcePopup['match_type'] ?? 'all'),
-                'created_at' => $now,
-            ]);
-        }
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_popup_layer_targets
+                (popup_layer_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
+             SELECT :new_popup_id, module_key, point_key, slot_key, subject_id, match_type, :created_at
+             FROM sr_popup_layer_targets
+             WHERE popup_layer_id = :source_popup_id'
+        );
+        $stmt->execute([
+            'new_popup_id' => $newPopupId,
+            'created_at' => $now,
+            'source_popup_id' => $popupId,
+        ]);
         $pdo->commit();
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],

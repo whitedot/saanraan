@@ -52,7 +52,7 @@ $popupLayerCopyModalHtml = static function (array $popup, string $returnTo): str
         return '';
     }
     $modalId = 'popup-layer-copy-modal-' . (string) $popupId;
-    $title = sr_popup_layer_clean_single_line((string) ($popup['title'] ?? '') . ' 복사본', 160);
+    $title = sr_popup_layer_clean_single_line((string) ($popup['title'] ?? '') . ' 복사본', 120);
     ob_start();
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
@@ -71,7 +71,7 @@ $popupLayerCopyModalHtml = static function (array $popup, string $returnTo): str
                         <div class="admin-form-row">
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
                             <div class="admin-form-field">
-                                <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e($title); ?>" class="form-input form-control-full" maxlength="160" required data-overlay-focus>
+                                <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e($title); ?>" class="form-input form-control-full" maxlength="120" required data-overlay-focus>
                                 <p class="admin-form-help"><?php echo sr_e('복사본은 draft로 저장됩니다.'); ?></p>
                             </div>
                         </div>
