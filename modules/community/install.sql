@@ -275,6 +275,53 @@ CREATE TABLE IF NOT EXISTS sr_community_series_scraps (
     KEY idx_sr_community_series_scraps_series_id (series_id, id)
 );
 
+CREATE TABLE IF NOT EXISTS sr_community_board_copy_jobs (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    source_board_id BIGINT UNSIGNED NOT NULL,
+    target_board_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    requested_by BIGINT UNSIGNED NULL,
+    mode VARCHAR(40) NOT NULL DEFAULT 'posts_comments_attachments',
+    status VARCHAR(30) NOT NULL DEFAULT 'pending',
+    stage VARCHAR(40) NOT NULL DEFAULT 'prepare',
+    source_snapshot_json MEDIUMTEXT NULL,
+    options_json TEXT NULL,
+    counts_json TEXT NULL,
+    processed_json TEXT NULL,
+    last_error TEXT NULL,
+    cleanup_error TEXT NULL,
+    lock_token VARCHAR(80) NOT NULL DEFAULT '',
+    locked_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    started_at DATETIME NULL,
+    completed_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_sr_community_board_copy_jobs_status_stage_updated (status, stage, updated_at, id),
+    KEY idx_sr_community_board_copy_jobs_source (source_board_id, id),
+    KEY idx_sr_community_board_copy_jobs_target (target_board_id, id),
+    KEY idx_sr_community_board_copy_jobs_requested (requested_by, created_at, id),
+    KEY idx_sr_community_board_copy_jobs_lock (status, locked_at, id)
+);
+
+CREATE TABLE IF NOT EXISTS sr_community_board_copy_job_maps (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    job_id BIGINT UNSIGNED NOT NULL,
+    entity_type VARCHAR(40) NOT NULL,
+    source_id BIGINT UNSIGNED NOT NULL,
+    target_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    status VARCHAR(30) NOT NULL DEFAULT 'pending',
+    error_text TEXT NULL,
+    created_storage_driver VARCHAR(20) NOT NULL DEFAULT '',
+    created_storage_key VARCHAR(255) NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_community_board_copy_job_maps_source (job_id, entity_type, source_id),
+    KEY idx_sr_community_board_copy_job_maps_status (job_id, entity_type, status, id),
+    KEY idx_sr_community_board_copy_job_maps_cleanup (job_id, status, created_storage_driver, created_storage_key),
+    KEY idx_sr_community_board_copy_job_maps_target (job_id, entity_type, target_id)
+);
+
 CREATE TABLE IF NOT EXISTS sr_community_levels (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     level_value INT UNSIGNED NOT NULL,

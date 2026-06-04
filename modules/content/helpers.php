@@ -2197,6 +2197,47 @@ function sr_content_copy_suggestion(array $content): array
     ];
 }
 
+function sr_content_copy_series_suggestions(PDO $pdo, int $contentId): array
+{
+    if ($contentId < 1 || !sr_content_series_supported($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT s.id, s.series_key, s.title, si.episode_label, si.sort_order
+         FROM sr_content_series_items si
+         INNER JOIN sr_content_series s ON s.id = si.series_id
+         WHERE si.active_content_id = :content_id
+         ORDER BY s.id ASC'
+    );
+    $stmt->execute(['content_id' => $contentId]);
+
+    $suggestions = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $baseKey = sr_content_clean_slug((string) ($row['series_key'] ?? 'series') . '-copy');
+        $baseKey = str_replace('-', '_', $baseKey);
+        if (!sr_content_series_key_is_valid($baseKey)) {
+            $baseKey = 'series_copy';
+        }
+        $candidate = $baseKey;
+        $suffix = 2;
+        while (sr_content_series_key_exists($pdo, $candidate)) {
+            $candidate = substr($baseKey, 0, 54) . '_' . (string) $suffix;
+            $suffix++;
+        }
+
+        $suggestions[] = [
+            'series_id' => (int) $row['id'],
+            'series_key' => $candidate,
+            'title' => sr_content_clean_single_line((string) ($row['title'] ?? '') . ' 복사본', 160),
+            'episode_label' => (string) ($row['episode_label'] ?? ''),
+            'sort_order' => (int) ($row['sort_order'] ?? 0),
+        ];
+    }
+
+    return $suggestions;
+}
+
 function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $accountId): int
 {
     $source = sr_content_by_id($pdo, $sourceContentId);
@@ -2338,6 +2379,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
         ]);
 
         sr_content_record_revision($pdo, $newContentId, $copy, $accountId, $now);
+        if (!empty($values['copy_series'])) {
+            sr_content_copy_series_for_content($pdo, $sourceContentId, $newContentId, $accountId, $now);
+        }
         $pdo->commit();
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {
@@ -2347,6 +2391,77 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
     }
 
     return $newContentId;
+}
+
+function sr_content_copy_series_for_content(PDO $pdo, int $sourceContentId, int $newContentId, int $accountId, string $now): array
+{
+    if ($sourceContentId < 1 || $newContentId < 1 || !sr_content_series_supported($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT s.*, si.episode_label, si.item_status, si.sort_order AS item_sort_order, si.created_by AS item_created_by, si.created_at AS item_created_at, si.updated_at AS item_updated_at
+         FROM sr_content_series_items si
+         INNER JOIN sr_content_series s ON s.id = si.series_id
+         WHERE si.active_content_id = :content_id
+         ORDER BY s.id ASC'
+    );
+    $stmt->execute(['content_id' => $sourceContentId]);
+
+    $created = [];
+    $insertSeries = $pdo->prepare(
+        'INSERT INTO sr_content_series
+            (series_key, title, description, status, visibility, sort_order, created_by, updated_by, created_at, updated_at)
+         VALUES
+            (:series_key, :title, :description, :status, :visibility, :sort_order, :created_by, :updated_by, :created_at, :updated_at)'
+    );
+    $insertItem = $pdo->prepare(
+        'INSERT INTO sr_content_series_items
+            (series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_by, created_at, updated_at)
+         VALUES
+            (:series_id, :content_id, :active_content_id, :episode_label, :item_status, :sort_order, :created_by, :created_at, :updated_at)'
+    );
+
+    foreach ($stmt->fetchAll() as $series) {
+        $baseKey = str_replace('-', '_', sr_content_clean_slug((string) ($series['series_key'] ?? 'series') . '-copy'));
+        if (!sr_content_series_key_is_valid($baseKey)) {
+            $baseKey = 'series_copy';
+        }
+        $seriesKey = $baseKey;
+        $suffix = 2;
+        while (sr_content_series_key_exists($pdo, $seriesKey)) {
+            $seriesKey = substr($baseKey, 0, 54) . '_' . (string) $suffix;
+            $suffix++;
+        }
+
+        $insertSeries->execute([
+            'series_key' => $seriesKey,
+            'title' => sr_content_clean_single_line((string) ($series['title'] ?? '') . ' 복사본', 160),
+            'description' => (string) ($series['description'] ?? ''),
+            'status' => (string) ($series['status'] ?? 'active'),
+            'visibility' => (string) ($series['visibility'] ?? 'public'),
+            'sort_order' => (int) ($series['sort_order'] ?? 0),
+            'created_by' => $accountId,
+            'updated_by' => $accountId,
+            'created_at' => (string) ($series['created_at'] ?? $now),
+            'updated_at' => (string) ($series['updated_at'] ?? $now),
+        ]);
+        $newSeriesId = (int) $pdo->lastInsertId();
+        $insertItem->execute([
+            'series_id' => $newSeriesId,
+            'content_id' => $newContentId,
+            'active_content_id' => $newContentId,
+            'episode_label' => (string) ($series['episode_label'] ?? ''),
+            'item_status' => (string) ($series['item_status'] ?? 'active'),
+            'sort_order' => (int) ($series['item_sort_order'] ?? 0),
+            'created_by' => $series['item_created_by'] !== null ? (int) $series['item_created_by'] : null,
+            'created_at' => (string) ($series['item_created_at'] ?? $now),
+            'updated_at' => (string) ($series['item_updated_at'] ?? $now),
+        ]);
+        $created[] = ['source_series_id' => (int) $series['id'], 'new_series_id' => $newSeriesId];
+    }
+
+    return $created;
 }
 
 function sr_content_hide(PDO $pdo, int $pageId, int $accountId): bool

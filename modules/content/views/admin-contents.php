@@ -165,6 +165,7 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
     }
     $modalId = 'content-copy-modal-' . (string) $contentId;
     $suggestion = sr_content_copy_suggestion($content);
+    $seriesSuggestions = sr_content_copy_series_suggestions($GLOBALS['pdo'], $contentId);
     ob_start();
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
@@ -190,9 +191,24 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-slug"><?php echo sr_e('Slug'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($modalId); ?>-slug" type="text" name="slug" value="<?php echo sr_e((string) $suggestion['slug']); ?>" class="form-input form-control-full" maxlength="120" pattern="[a-z0-9][a-z0-9\-]{1,118}[a-z0-9]" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-slug-input>
-                                <p class="admin-form-help"><?php echo sr_e('복사본은 초안으로 저장됩니다. 댓글, 이용 로그, 리비전, 시리즈 연결은 복사하지 않습니다.'); ?></p>
+                                <p class="admin-form-help"><?php echo sr_e('복사본은 초안으로 저장됩니다. 댓글, 이용 로그, 리비전은 복사하지 않습니다.'); ?></p>
                             </div>
                         </div>
+                        <?php if ($seriesSuggestions !== []) { ?>
+                            <div class="admin-form-row">
+                                <span class="form-label"><?php echo sr_e('시리즈'); ?></span>
+                                <div class="admin-form-field">
+                                    <label class="admin-form-check form-label" for="<?php echo sr_e($modalId); ?>-copy-series">
+                                        <input id="<?php echo sr_e($modalId); ?>-copy-series" type="checkbox" name="copy_series" value="1" class="form-checkbox">
+                                        <?php echo sr_admin_choice_label_html('시리즈도 새 사본으로 복사'); ?>
+                                    </label>
+                                    <p class="admin-form-help"><?php echo sr_e('원본 시리즈에 섞지 않고 새 시리즈 사본을 만들며, 현재 콘텐츠 항목만 새 콘텐츠로 연결합니다.'); ?></p>
+                                    <?php foreach ($seriesSuggestions as $seriesSuggestion) { ?>
+                                        <p class="admin-form-help"><?php echo sr_e((string) $seriesSuggestion['title'] . ' / key: ' . (string) $seriesSuggestion['series_key']); ?></p>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        <?php } ?>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e('취소'); ?></button>

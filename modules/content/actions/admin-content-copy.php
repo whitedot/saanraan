@@ -24,6 +24,7 @@ if (!is_array($sourceContent)) {
 $values = [
     'title' => sr_post_string('title', 160),
     'slug' => sr_post_string('slug', 120),
+    'copy_series' => ($_POST['copy_series'] ?? '') === '1',
 ];
 $errors = [];
 

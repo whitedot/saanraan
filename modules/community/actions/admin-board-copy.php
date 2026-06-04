@@ -29,6 +29,7 @@ $values = [
     'board_key' => sr_request_method() === 'POST' ? sr_post_string('board_key', 60) : (string) $suggestion['board_key'],
     'title' => sr_request_method() === 'POST' ? sr_post_string('title', 120) : (string) $suggestion['title'],
     'mode' => sr_request_method() === 'POST' ? sr_post_string('mode', 20) : 'settings',
+    'copy_series' => ($_POST['copy_series'] ?? '') === '1',
 ];
 $copyCounts = sr_community_board_copy_counts($pdo, $boardId);
 $limitErrors = sr_community_board_copy_limit_errors($copyCounts);
@@ -36,6 +37,10 @@ $errors = [];
 
 if (sr_request_method() === 'POST') {
     try {
+        if (sr_post_string('intent', 30) === 'start_batch') {
+            $newJobId = sr_community_board_copy_job_create($pdo, $boardId, $values, (int) $account['id']);
+            sr_redirect('/admin/community/board-copy-jobs?id=' . (string) $newJobId);
+        }
         $newBoardId = sr_community_copy_board($pdo, $boardId, $values, (int) $account['id']);
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],

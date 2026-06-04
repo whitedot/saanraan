@@ -41,6 +41,8 @@ return [
     'GET /admin/community/boards/edit' => 'actions/admin-board-edit.php',
     'GET /admin/community/boards/copy' => 'actions/admin-board-copy.php',
     'POST /admin/community/boards/copy' => 'actions/admin-board-copy.php',
+    'GET /admin/community/board-copy-jobs' => 'actions/admin-board-copy-jobs.php',
+    'POST /admin/community/board-copy-jobs' => 'actions/admin-board-copy-jobs.php',
     'POST /admin/community/boards/update' => 'actions/admin-board-update.php',
     'GET /admin/community/board-groups' => 'actions/admin-board-groups.php',
     'POST /admin/community/board-groups' => 'actions/admin-board-groups.php',
