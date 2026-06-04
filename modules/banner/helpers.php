@@ -290,6 +290,39 @@ function sr_banner_target_option_value(array $target): string
     return (string) $target['module_key'] . '|' . (string) $target['point_key'] . '|' . (string) $target['slot_key'];
 }
 
+function sr_banner_target_admin_label(array $target): string
+{
+    $pointKey = (string) ($target['point_key'] ?? '');
+    $slotKey = (string) ($target['slot_key'] ?? '');
+
+    $pointLabels = [
+        'site.home' => '홈',
+        'content.view' => '콘텐츠 상세',
+        'community.home' => '커뮤니티 홈',
+        'community.board.list' => '게시판 목록',
+        'community.post.view' => '게시글 보기',
+        'community.post.form' => '게시글 작성',
+        'member.login' => '로그인',
+        'member.register' => '회원가입',
+    ];
+    $slotLabels = [
+        'before_content' => '본문 위',
+        'after_content' => '본문 아래',
+        'before_list' => '목록 위',
+        'after_list' => '목록 아래',
+        'before_comments' => '댓글 위',
+        'after_comments' => '댓글 아래',
+        'before_form' => '폼 위',
+        'after_form' => '폼 아래',
+    ];
+
+    $pointLabel = (string) ($pointLabels[$pointKey] ?? sr_banner_clean_single_line((string) ($target['point_label'] ?? $pointKey), 80));
+    $slotLabel = (string) ($slotLabels[$slotKey] ?? sr_banner_clean_single_line((string) ($target['slot_label'] ?? $slotKey), 80));
+    $label = trim($pointLabel . ' - ' . $slotLabel);
+
+    return $label !== '-' && $label !== '' ? $label : sr_banner_target_option_value($target);
+}
+
 function sr_banner_public_target_option_value(): string
 {
     return '__public__';
@@ -330,7 +363,7 @@ function sr_banner_target_labels(array $targets): array
     $labels = [];
 
     foreach ($targets as $target) {
-        $labels[sr_banner_target_option_value($target)] = (string) ($target['label'] ?? sr_banner_target_option_value($target));
+        $labels[sr_banner_target_option_value($target)] = sr_banner_target_admin_label($target);
     }
 
     return $labels;

@@ -179,7 +179,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php foreach ($availableTargets as $target) { ?>
                                                 <?php $optionValue = sr_banner_target_option_value($target); ?>
                                                 <option value="<?php echo sr_e($optionValue); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e((string) $target['label']); ?>
+                                                    <?php echo sr_e(sr_banner_target_admin_label($target)); ?>
                                                 </option>
                                             <?php } ?>
                                         </select>
@@ -286,7 +286,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $bannerDetailFilterOpen = $selectedBannerStatuses !== [] || $selectedBannerTargets !== [];
     $bannerTargetOptions = [[sr_banner_public_target_option_value(), sr_t('banner::ui.banner.48de068b')]];
     foreach ($availableTargets as $target) {
-        $bannerTargetOptions[] = [sr_banner_target_option_value($target), (string) $target['label']];
+        $bannerTargetOptions[] = [sr_banner_target_option_value($target), sr_banner_target_admin_label($target)];
     }
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="filtering-form admin-banner-filter ui-form-theme">

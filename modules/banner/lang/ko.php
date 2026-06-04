@@ -141,7 +141,7 @@ return [
     'ui.text.cb0f2404' => '내용',
     'ui.text.cead00a8' => '이미지 업로드',
     'ui.use_image' => '이미지 배너',
-    'ui.use_image.choice' => '이미지를 표시',
+    'ui.use_image.choice' => '사용',
     'ui.use_image.help' => '켜면 이미지 URL이나 업로드 이미지 중 하나가 필요합니다. 끄면 입력한 텍스트를 배너에 표시합니다.',
     'ui.url.help.6f5481db' => '외부 http/https 링크는 새 창으로 열립니다.',
     'ui.url.help.e0a0162e' => '이미지 배너를 켰을 때 / 내부 경로 또는 http/https URL을 입력하세요. 이미지 파일을 업로드하면 업로드 이미지가 우선 적용됩니다.',
