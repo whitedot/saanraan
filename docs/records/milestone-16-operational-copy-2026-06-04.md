@@ -50,6 +50,7 @@
 - 커뮤니티 모듈 소유 테이블 `sr_community_board_copy_jobs`, `sr_community_board_copy_job_maps`를 추가했다.
 - 게시판 전체 복사가 동기 상한을 넘으면 복사 확인 화면에서 `배치 복사 작업 만들기`로 job을 생성할 수 있다.
 - `/admin/community/board-copy-jobs` 화면에서 작업 상태, 단계, 원본/대상 게시판, 복사 수, 마지막 오류를 확인하고 상태별로 `다음 묶음 처리`, `재시도 준비`, `취소 및 정리`, `정리 다시 시도`를 실행한다.
+- `running` 상태의 작업은 다른 요청이 lock을 들고 있을 수 있으므로 `취소 및 정리`를 노출하지 않는다. 취소 정리는 `pending`, `failed`, `paused` 상태에서만 실행한다.
 - runner는 `prepare`, `board`, `posts`, `comments`, `link_refs`, `attachments`, 선택적 `series`, `verify`, `complete`, `cleanup` 단계를 순서대로 처리한다.
 - prepare 단계가 실제 복사 map을 만든 뒤 job의 count 기준을 map 기준으로 다시 저장하므로, job 생성과 prepare 사이의 원본 변경이 verify 기준을 어긋나게 하지 않는다.
 - 대상 게시판은 완료 후에도 `disabled` 상태로 유지하며 운영자가 검토 후 직접 활성화한다.

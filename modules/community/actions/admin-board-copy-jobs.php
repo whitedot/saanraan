@@ -30,8 +30,8 @@ if (sr_request_method() === 'POST') {
             $result = sr_community_board_copy_job_run($pdo, $jobId, (int) $account['id']);
             $notice = (string) ($result['message'] ?? '복사 작업을 처리했습니다.');
         } elseif ($intent === 'cancel') {
-            if (in_array($status, ['completed', 'cancelled'], true)) {
-                throw new RuntimeException('이미 종료된 작업은 정리할 수 없습니다.');
+            if (!in_array($status, ['pending', 'failed', 'paused'], true)) {
+                throw new RuntimeException('현재 상태에서는 취소 및 정리를 실행할 수 없습니다.');
             }
             $pdo->prepare("UPDATE sr_community_board_copy_jobs SET status = 'cleanup_required', stage = 'cleanup', updated_at = :updated_at WHERE id = :id AND status NOT IN ('completed', 'cancelled')")
                 ->execute(['updated_at' => sr_now(), 'id' => $jobId]);
@@ -46,6 +46,8 @@ if (sr_request_method() === 'POST') {
             $pdo->prepare("UPDATE sr_community_board_copy_job_maps SET status = 'pending', updated_at = :updated_at WHERE job_id = :job_id AND status = 'failed'")
                 ->execute(['updated_at' => sr_now(), 'job_id' => $jobId]);
             $notice = '복사 작업을 재시도할 수 있습니다.';
+        } else {
+            throw new RuntimeException('지원하지 않는 작업입니다.');
         }
     } catch (Throwable $exception) {
         if (function_exists('sr_log_exception')) {

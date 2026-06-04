@@ -15,7 +15,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $jobStatus = (string) ($job['status'] ?? '');
     $canRun = in_array($jobStatus, ['pending', 'running', 'cleanup_required'], true);
     $canRetry = in_array($jobStatus, ['failed', 'paused'], true);
-    $canCancel = !in_array($jobStatus, ['completed', 'cancelled', 'cleanup_required'], true);
+    $canCancel = in_array($jobStatus, ['pending', 'failed', 'paused'], true);
     ?>
     <section class="admin-card card">
         <h2><?php echo sr_e('작업 #' . (string) (int) $job['id']); ?></h2>
