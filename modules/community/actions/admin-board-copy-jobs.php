@@ -33,8 +33,11 @@ if (sr_request_method() === 'POST') {
             if (!in_array($status, ['pending', 'failed', 'paused'], true)) {
                 throw new RuntimeException('현재 상태에서는 취소 및 정리를 실행할 수 없습니다.');
             }
-            $pdo->prepare("UPDATE sr_community_board_copy_jobs SET status = 'cleanup_required', stage = 'cleanup', updated_at = :updated_at WHERE id = :id AND status NOT IN ('completed', 'cancelled')")
-                ->execute(['updated_at' => sr_now(), 'id' => $jobId]);
+            $stmt = $pdo->prepare("UPDATE sr_community_board_copy_jobs SET status = 'cleanup_required', stage = 'cleanup', updated_at = :updated_at WHERE id = :id AND status IN ('pending', 'failed', 'paused')");
+            $stmt->execute(['updated_at' => sr_now(), 'id' => $jobId]);
+            if ($stmt->rowCount() < 1) {
+                throw new RuntimeException('현재 상태에서는 취소 및 정리를 실행할 수 없습니다.');
+            }
             $result = sr_community_board_copy_job_run($pdo, $jobId, (int) $account['id']);
             $notice = (string) ($result['message'] ?? '복사 작업을 정리했습니다.');
         } elseif ($intent === 'retry') {
