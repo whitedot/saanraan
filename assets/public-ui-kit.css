@@ -406,6 +406,16 @@
     [class*=btn-choice-]:hover { background-color: var(--btn-choice-hover-bg); color: var(--btn-choice-color); }
 }
 [class*=btn-choice-]:is(:focus, :focus-visible, :active) { background-color: var(--btn-choice-hover-bg); color: var(--btn-choice-color); }
+input.form-choice-toggle-input[type=checkbox] + [class*=btn-choice-],
+input.form-choice-toggle-input[type=radio] + [class*=btn-choice-] { align-items: center; gap: calc(var(--spacing) * 1.25); }
+input.form-choice-toggle-input[type=checkbox] + [class*=btn-choice-]::before,
+input.form-choice-toggle-input[type=radio] + [class*=btn-choice-]::before { align-items: center; background-color: color-mix(in oklab, currentColor 8%, transparent); border: 1.25px solid currentColor; box-sizing: border-box; content: ""; display: inline-flex; flex: 0 0 auto; height: .6875rem; justify-content: center; line-height: 1; opacity: .78; width: .6875rem; }
+input.form-choice-toggle-input[type=checkbox] + [class*=btn-choice-]::before { border-radius: calc(var(--radius) * .35); font-size: .5625rem; font-weight: var(--font-weight-bold); }
+input.form-choice-toggle-input[type=radio] + [class*=btn-choice-]::before { border-radius: 9999px; }
+input.form-choice-toggle-input[type=checkbox]:checked + [class*=btn-choice-]::before { background-color: var(--color-white); border-color: var(--color-white); color: var(--btn-choice-color, var(--color-primary)); content: "✓"; opacity: 1; }
+input.form-choice-toggle-input[type=radio]:checked + [class*=btn-choice-]::before { background: radial-gradient(circle at center, var(--btn-choice-color, var(--color-primary)) 0 32%, var(--color-white) 36% 100%); border-color: var(--color-white); opacity: 1; }
+input.form-choice-toggle-input[type=checkbox]:checked + .btn-choice-light::before { color: var(--color-dark); }
+input.form-choice-toggle-input[type=radio]:checked + .btn-choice-light::before { background: radial-gradient(circle at center, var(--color-dark) 0 32%, var(--color-white) 36% 100%); }
 input:checked + [class*=btn-choice-],
 [class*=btn-choice-]:has(> .form-choice-toggle-input:checked),
 [class*=btn-choice-].is-active,
