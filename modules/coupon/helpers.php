@@ -278,7 +278,7 @@ function sr_coupon_definitions(PDO $pdo, int $limit = 100): array
 function sr_coupon_admin_definition_filters(PDO $pdo): array
 {
     return [
-        'status' => sr_admin_get_allowed_array('status', sr_coupon_statuses(), 30),
+        'status' => sr_admin_get_allowed_single_array('status', sr_coupon_statuses(), 30),
         'target_type' => sr_admin_get_allowed_array('target_type', array_keys(sr_coupon_target_types($pdo)), 60),
         'q' => sr_coupon_clean_text(sr_get_string('q', 120), 120),
     ];
@@ -433,9 +433,9 @@ function sr_coupon_admin_issues(PDO $pdo, array $runtimeConfig, array $filters, 
 function sr_coupon_admin_redemption_filters(PDO $pdo, array $runtimeConfig): array
 {
     return [
-        'status' => sr_admin_get_allowed_array('status', ['redeemed', 'refunded'], 30),
+        'status' => sr_admin_get_allowed_single_array('status', ['redeemed', 'refunded'], 30),
         'target_type' => sr_admin_get_allowed_array('target_type', array_keys(sr_coupon_target_types($pdo)), 60),
-        'refundable_policy' => sr_admin_get_allowed_array('refundable_policy', array_keys(sr_coupon_refundable_policies()), 30),
+        'refundable_policy' => sr_admin_get_allowed_single_array('refundable_policy', array_keys(sr_coupon_refundable_policies()), 30),
         'coupon_q' => sr_coupon_clean_text(sr_get_string('coupon_q', 120), 120),
         'account' => sr_admin_member_account_lookup_filter($pdo, $runtimeConfig),
     ];

@@ -11,8 +11,8 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/asset-exchange/l
 
 $assets = sr_asset_exchange_assets($pdo);
 $logFilters = [
-    'status' => sr_admin_get_allowed_array('status', ['completed', 'failed'], 30),
-    'asset' => sr_admin_get_allowed_array('asset', array_keys($assets), 40),
+    'status' => sr_admin_get_allowed_single_array('status', ['completed', 'failed'], 30),
+    'asset' => sr_admin_get_allowed_single_array('asset', array_keys($assets), 40),
     'field' => sr_get_string('field', 30),
     'q' => trim(sr_get_string('q', 120)),
 ];

@@ -176,7 +176,7 @@ function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0)
 function sr_community_admin_series_filters(): array
 {
     $status = sr_admin_get_allowed_array('status', sr_community_series_statuses(), 30);
-    $visibility = sr_admin_get_allowed_array('visibility', sr_community_series_visibility_values(), 30);
+    $visibility = sr_admin_get_allowed_single_array('visibility', sr_community_series_visibility_values(), 30);
 
     $field = sr_get_string('field', 20);
     if (!in_array($field, ['all', 'title', 'board', 'owner', 'note'], true)) {

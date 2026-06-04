@@ -754,6 +754,13 @@ function sr_content_admin_multi_filter_values(string $key, array $allowedValues)
     return array_values($selected);
 }
 
+function sr_content_admin_single_filter_values(string $key, array $allowedValues): array
+{
+    $values = sr_content_admin_multi_filter_values($key, $allowedValues);
+
+    return $values === [] ? [] : [(string) $values[0]];
+}
+
 function sr_content_admin_group_status_counts(PDO $pdo): array
 {
     $counts = [

@@ -66,6 +66,13 @@ function sr_admin_get_allowed_array(string $key, array $allowedValues, int $maxL
     return array_values($values);
 }
 
+function sr_admin_get_allowed_single_array(string $key, array $allowedValues, int $maxLength = 80): array
+{
+    $values = sr_admin_get_allowed_array($key, $allowedValues, $maxLength);
+
+    return $values === [] ? [] : [(string) $values[0]];
+}
+
 function sr_admin_single_value_query_keys(): array
 {
     return [

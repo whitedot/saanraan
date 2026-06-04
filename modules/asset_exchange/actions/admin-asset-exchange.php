@@ -22,15 +22,18 @@ $assetExchangeGetList = static function (string $key, int $maxLength = 40): arra
         $rawValues = [(string) $rawValues];
     }
 
-    $values = [];
     foreach ($rawValues as $rawValue) {
+        if (is_array($rawValue)) {
+            continue;
+        }
+
         $value = sr_asset_exchange_clean_module_key(substr((string) $rawValue, 0, $maxLength));
         if ($value !== '') {
-            $values[$value] = true;
+            return [$value];
         }
     }
 
-    return array_keys($values);
+    return [];
 };
 $assetExchangeStatusList = static function (): array {
     $rawValues = $_GET['status'] ?? [];
@@ -38,15 +41,18 @@ $assetExchangeStatusList = static function (): array {
         $rawValues = [(string) $rawValues];
     }
 
-    $values = [];
     foreach ($rawValues as $rawValue) {
+        if (is_array($rawValue)) {
+            continue;
+        }
+
         $value = (string) $rawValue;
         if (in_array($value, ['enabled', 'disabled'], true)) {
-            $values[$value] = true;
+            return [$value];
         }
     }
 
-    return array_keys($values);
+    return [];
 };
 $policyFilters = [
     'status' => $assetExchangeStatusList(),

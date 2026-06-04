@@ -142,7 +142,7 @@ function sr_content_series_list(PDO $pdo): array
 function sr_content_admin_series_filters(): array
 {
     $statuses = sr_content_admin_multi_filter_values('status', sr_content_series_statuses());
-    $visibilities = sr_content_admin_multi_filter_values('visibility', sr_content_series_visibility_values());
+    $visibilities = sr_content_admin_single_filter_values('visibility', sr_content_series_visibility_values());
 
     $field = sr_get_string('field', 20);
     if (!in_array($field, ['all', 'key', 'title'], true)) {

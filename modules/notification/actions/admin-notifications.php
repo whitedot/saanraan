@@ -60,8 +60,8 @@ if ($notificationCreateFlash !== []) {
 }
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $notificationListFilters = [
-    'audience' => sr_admin_get_allowed_array('audience', $allowedAudiences, 30),
-    'status' => sr_admin_get_allowed_array('status', $allowedNotificationStatuses, 30),
+    'audience' => sr_admin_get_allowed_single_array('audience', $allowedAudiences, 30),
+    'status' => sr_admin_get_allowed_single_array('status', $allowedNotificationStatuses, 30),
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
 ];

@@ -741,10 +741,10 @@ function sr_member_group_rule_filter(array $allowedStatuses, array $allowedEvalu
     }
 
     return [
-        'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
-        'evaluation_policy' => sr_admin_get_allowed_array('evaluation_policy', $allowedEvaluationPolicies, 30),
-        'group_id' => sr_admin_get_allowed_array('group_id', $allowedGroupIds, 20),
-        'source_module_key' => sr_admin_get_allowed_array('source_module_key', array_values($allowedSourceModuleKeys), 40),
+        'status' => sr_admin_get_allowed_single_array('status', $allowedStatuses, 30),
+        'evaluation_policy' => sr_admin_get_allowed_single_array('evaluation_policy', $allowedEvaluationPolicies, 30),
+        'group_id' => sr_admin_get_allowed_single_array('group_id', $allowedGroupIds, 20),
+        'source_module_key' => sr_admin_get_allowed_single_array('source_module_key', array_values($allowedSourceModuleKeys), 40),
         'field' => $field,
         'keyword' => trim(sr_get_string('q', 120)),
     ];
