@@ -1378,6 +1378,28 @@
     control.dispatchEvent(new Event(type, { bubbles: true }));
   }
 
+  function resetSelectToDefault(select) {
+    var options;
+    var defaultIndex;
+
+    if (!select) {
+      return;
+    }
+
+    options = Array.prototype.slice.call(select.options || []);
+    if (select.multiple) {
+      options.forEach(function (option) {
+        option.selected = option.defaultSelected;
+      });
+      return;
+    }
+
+    defaultIndex = options.findIndex(function (option) {
+      return option.defaultSelected;
+    });
+    select.selectedIndex = defaultIndex >= 0 ? defaultIndex : (options.length > 0 ? 0 : -1);
+  }
+
   function clearTableFiltering(tableFiltering) {
     if (!tableFiltering) {
       return;
@@ -1399,39 +1421,20 @@
       }
 
       if (control.matches('[type="checkbox"], [type="radio"]')) {
-        control.checked = false;
+        control.checked = control.defaultChecked;
         dispatchFormEvent(control, 'change');
         return;
       }
 
       if (control.tagName === 'SELECT') {
-        control.value = '';
-        if (control.value !== '' && control.options.length > 0) {
-          control.selectedIndex = 0;
-        }
+        resetSelectToDefault(control);
         dispatchFormEvent(control, 'change');
         return;
       }
 
-      control.value = '';
+      control.value = control.defaultValue;
       dispatchFormEvent(control, 'input');
       dispatchFormEvent(control, 'change');
-    });
-
-    tableFiltering.querySelectorAll('[data-table-filtering-toggle-group]').forEach(function (group) {
-      var allControl = group.querySelector('[data-table-filtering-toggle-all]');
-      if (allControl && !allControl.disabled) {
-        allControl.checked = true;
-        dispatchFormEvent(allControl, 'change');
-      }
-    });
-
-    tableFiltering.querySelectorAll('[data-table-filtering-radio-toggle-group]').forEach(function (group) {
-      var firstRadio = group.querySelector('input[type="radio"]');
-      if (firstRadio && !firstRadio.disabled) {
-        firstRadio.checked = true;
-        dispatchFormEvent(firstRadio, 'change');
-      }
     });
   }
 
@@ -1611,6 +1614,7 @@
         if (option.selected || select.value === option.value) {
           input.checked = true;
         }
+        input.defaultChecked = input.checked;
 
         label.setAttribute('for', id);
         label.className = 'btn btn-choice-light ' + groupClass;
