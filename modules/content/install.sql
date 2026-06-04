@@ -291,7 +291,11 @@ CREATE TABLE IF NOT EXISTS sr_content_file_links (
 CREATE TABLE IF NOT EXISTS sr_content_file_download_logs (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     content_id BIGINT UNSIGNED NOT NULL,
+    content_title_snapshot VARCHAR(160) NOT NULL DEFAULT '',
+    content_slug_snapshot VARCHAR(160) NOT NULL DEFAULT '',
     file_id BIGINT UNSIGNED NOT NULL,
+    file_title_snapshot VARCHAR(160) NOT NULL DEFAULT '',
+    file_original_name_snapshot VARCHAR(160) NOT NULL DEFAULT '',
     account_id BIGINT UNSIGNED NULL,
     download_type VARCHAR(20) NOT NULL DEFAULT 'free',
     charge_policy VARCHAR(20) NOT NULL DEFAULT 'once',

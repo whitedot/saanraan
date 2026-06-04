@@ -1453,14 +1453,6 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     }
 
     $attachmentFiles = sr_community_board_attachment_storage_refs($pdo, $boardId);
-    foreach ($attachmentFiles as $attachmentFile) {
-        if (!sr_storage_delete((string) $attachmentFile['driver'], (string) $attachmentFile['key'])) {
-            $check['can_delete'] = false;
-            $check['errors'] = ['게시판 첨부 파일을 삭제하지 못했습니다. 저장소 권한 또는 S3 설정을 확인해 주세요.'];
-            return $check;
-        }
-    }
-
     $pdo->beginTransaction();
     try {
         $deletedSettingSources = sr_community_optional_count($pdo, 'sr_community_board_setting_sources', 'board_id = :board_id', ['board_id' => $boardId]);
@@ -1522,13 +1514,21 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
         throw $exception;
     }
 
+    $failedAttachmentFiles = 0;
+    foreach ($attachmentFiles as $attachmentFile) {
+        if (!sr_storage_delete((string) $attachmentFile['driver'], (string) $attachmentFile['key'])) {
+            $failedAttachmentFiles++;
+        }
+    }
+
     $check['deleted_settings'] = $deletedSettings;
     $check['deleted_setting_sources'] = $deletedSettingSources;
     $check['deleted_categories'] = $deletedCategories;
     $check['deleted_posts'] = $deletedPosts;
     $check['deleted_comments'] = $deletedComments;
     $check['deleted_attachments'] = $deletedAttachments;
-    $check['deleted_attachment_files'] = count($attachmentFiles);
+    $check['deleted_attachment_files'] = count($attachmentFiles) - $failedAttachmentFiles;
+    $check['failed_attachment_files'] = $failedAttachmentFiles;
     $check['deleted_series'] = $deletedSeries;
     return $check;
 }

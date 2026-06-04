@@ -660,6 +660,31 @@ function sr_content_file_download_logs_table_exists(PDO $pdo): bool
     return $exists;
 }
 
+function sr_content_file_download_log_snapshot_columns_exist(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS column_count
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME IN (\'content_title_snapshot\', \'content_slug_snapshot\', \'file_title_snapshot\', \'file_original_name_snapshot\')'
+        );
+        $stmt->execute(['table_name' => 'sr_content_file_download_logs']);
+        $row = $stmt->fetch();
+        $exists = is_array($row) && (int) ($row['column_count'] ?? 0) === 4;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
 function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId, array $accessResult = []): void
 {
     if (!sr_content_file_download_logs_table_exists($pdo)) {
@@ -676,14 +701,17 @@ function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId,
     $accessLogIdsJson = json_encode(array_values($accessLogIds), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $downloadType = (int) ($file['asset_download_enabled'] ?? 0) === 1 ? 'paid' : 'free';
     $amount = $downloadType === 'paid' && $accessLogIds !== [] ? (int) ($accessResult['amount'] ?? 0) : 0;
+    $hasSnapshots = sr_content_file_download_log_snapshot_columns_exist($pdo);
+    $snapshotColumnsSql = $hasSnapshots ? ', content_title_snapshot, content_slug_snapshot, file_title_snapshot, file_original_name_snapshot' : '';
+    $snapshotValuesSql = $hasSnapshots ? ', :content_title_snapshot, :content_slug_snapshot, :file_title_snapshot, :file_original_name_snapshot' : '';
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_file_download_logs
-            (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at)
+            (content_id, file_id, account_id, download_type, charge_policy, asset_module, amount, asset_access_log_ids_json, created_at' . $snapshotColumnsSql . ')
          VALUES
-            (:content_id, :file_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :created_at)'
+            (:content_id, :file_id, :account_id, :download_type, :charge_policy, :asset_module, :amount, :asset_access_log_ids_json, :created_at' . $snapshotValuesSql . ')'
     );
-    $stmt->execute([
+    $params = [
         'content_id' => (int) ($file['content_id'] ?? 0),
         'file_id' => (int) ($file['id'] ?? 0),
         'account_id' => $accountId !== null && $accountId > 0 ? $accountId : null,
@@ -693,15 +721,22 @@ function sr_content_record_file_download(PDO $pdo, array $file, ?int $accountId,
         'amount' => $amount,
         'asset_access_log_ids_json' => is_string($accessLogIdsJson) ? $accessLogIdsJson : '[]',
         'created_at' => sr_now(),
-    ]);
+    ];
+    if ($hasSnapshots) {
+        $params['content_title_snapshot'] = sr_content_clean_single_line((string) ($file['content_title'] ?? ''), 160);
+        $params['content_slug_snapshot'] = sr_content_clean_slug((string) ($file['slug'] ?? ''));
+        $params['file_title_snapshot'] = sr_content_clean_single_line((string) ($file['title'] ?? ''), 160);
+        $params['file_original_name_snapshot'] = sr_content_clean_single_line((string) ($file['original_name'] ?? ''), 160);
+    }
+    $stmt->execute($params);
 }
 
 function sr_content_admin_file_download_log_sort_options(): array
 {
     return [
         'created_at' => ['label' => '다운로드 시각', 'columns' => ['d.created_at', 'd.id']],
-        'content_title' => ['label' => '콘텐츠', 'columns' => ['p.title', 'd.id']],
-        'file_title' => ['label' => '파일', 'columns' => ['f.title', 'd.id']],
+        'content_title' => ['label' => '콘텐츠', 'columns' => ['content_title', 'd.id']],
+        'file_title' => ['label' => '파일', 'columns' => ['file_title', 'd.id']],
         'account_id' => ['label' => '회원', 'columns' => ['d.account_id', 'd.id']],
         'download_type' => ['label' => '구분', 'columns' => ['d.download_type', 'd.id']],
         'amount' => ['label' => '금액', 'columns' => ['d.amount', 'd.id']],
@@ -713,7 +748,7 @@ function sr_content_admin_file_download_log_default_sort(): array
     return sr_admin_sort_default('created_at', 'desc');
 }
 
-function sr_content_admin_file_download_log_where_sql(array $filters): array
+function sr_content_admin_file_download_log_where_sql(PDO $pdo, array $filters): array
 {
     $conditions = [];
     $params = [];
@@ -778,7 +813,10 @@ function sr_content_admin_file_download_log_where_sql(array $filters): array
 
     $q = trim((string) ($filters['q'] ?? ''));
     if ($q !== '') {
-        $conditions[] = '(p.title LIKE :q OR p.slug LIKE :q OR f.title LIKE :q OR f.original_name LIKE :q OR a.email LIKE :q OR a.display_name LIKE :q)';
+        $snapshotSearchSql = sr_content_file_download_log_snapshot_columns_exist($pdo)
+            ? ' OR d.content_title_snapshot LIKE :q OR d.content_slug_snapshot LIKE :q OR d.file_title_snapshot LIKE :q OR d.file_original_name_snapshot LIKE :q'
+            : '';
+        $conditions[] = '(p.title LIKE :q OR p.slug LIKE :q OR f.title LIKE :q OR f.original_name LIKE :q' . $snapshotSearchSql . ' OR a.email LIKE :q OR a.display_name LIKE :q)';
         $params['q'] = '%' . $q . '%';
     }
 
@@ -794,7 +832,7 @@ function sr_content_admin_file_download_log_count(PDO $pdo, array $filters): int
         return 0;
     }
 
-    $where = sr_content_admin_file_download_log_where_sql($filters);
+    $where = sr_content_admin_file_download_log_where_sql($pdo, $filters);
     $stmt = $pdo->prepare(
         'SELECT COUNT(*) AS count_value
          FROM sr_content_file_download_logs d
@@ -815,14 +853,19 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
         return [];
     }
 
-    $where = sr_content_admin_file_download_log_where_sql($filters);
+    $where = sr_content_admin_file_download_log_where_sql($pdo, $filters);
+    $hasSnapshots = sr_content_file_download_log_snapshot_columns_exist($pdo);
+    $contentTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(p.title, ''), NULLIF(d.content_title_snapshot, ''))" : 'p.title';
+    $contentSlugSelect = $hasSnapshots ? "COALESCE(NULLIF(p.slug, ''), NULLIF(d.content_slug_snapshot, ''))" : 'p.slug';
+    $fileTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(f.title, ''), NULLIF(d.file_title_snapshot, ''))" : 'f.title';
+    $fileOriginalNameSelect = $hasSnapshots ? "COALESCE(NULLIF(f.original_name, ''), NULLIF(d.file_original_name_snapshot, ''))" : 'f.original_name';
     $stmt = $pdo->prepare(
         'SELECT d.*,
-                p.title AS content_title,
-                p.slug AS content_slug,
+                ' . $contentTitleSelect . ' AS content_title,
+                ' . $contentSlugSelect . ' AS content_slug,
                 p.status AS content_status,
-                f.title AS file_title,
-                f.original_name,
+                ' . $fileTitleSelect . ' AS file_title,
+                ' . $fileOriginalNameSelect . ' AS original_name,
                 f.status AS file_status,
                 a.email,
                 a.display_name,

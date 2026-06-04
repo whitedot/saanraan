@@ -1572,16 +1572,6 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
 
     $contentIds = sr_content_group_content_ids($pdo, $groupId);
     $files = sr_content_group_file_rows_for_delete($pdo, $contentIds);
-    foreach ($files as $file) {
-        $driver = function_exists('sr_content_file_storage_driver') ? sr_content_file_storage_driver($file) : (string) ($file['storage_driver'] ?? 'local');
-        $key = function_exists('sr_content_file_storage_key') ? sr_content_file_storage_key($file) : (string) ($file['storage_key'] ?? '');
-        if ($key !== '' && !sr_storage_delete($driver, $key)) {
-            $check['can_delete'] = false;
-            $check['errors'] = ['콘텐츠 파일을 삭제하지 못했습니다. 저장소 권한 또는 S3 설정을 확인해 주세요.'];
-            return $check;
-        }
-    }
-
     $pdo->beginTransaction();
     try {
         $deletedSettings = sr_content_optional_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
@@ -1638,11 +1628,21 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
         throw $exception;
     }
 
+    $failedFiles = 0;
+    foreach ($files as $file) {
+        $driver = function_exists('sr_content_file_storage_driver') ? sr_content_file_storage_driver($file) : (string) ($file['storage_driver'] ?? 'local');
+        $key = function_exists('sr_content_file_storage_key') ? sr_content_file_storage_key($file) : (string) ($file['storage_key'] ?? '');
+        if ($key !== '' && !sr_storage_delete($driver, $key)) {
+            $failedFiles++;
+        }
+    }
+
     $check['deleted_settings'] = $deletedSettings;
     $check['deleted_contents'] = $deletedContents;
     $check['deleted_comments'] = $deletedComments;
     $check['deleted_revisions'] = $deletedRevisions;
-    $check['deleted_files'] = $deletedFiles;
+    $check['deleted_files'] = $deletedFiles - $failedFiles;
+    $check['failed_files'] = $failedFiles;
     return $check;
 }
 

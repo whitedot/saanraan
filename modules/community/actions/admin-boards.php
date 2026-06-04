@@ -119,10 +119,14 @@ if (sr_request_method() === 'POST') {
                     'deleted_comments' => (int) ($deleteResult['deleted_comments'] ?? 0),
                     'deleted_attachments' => (int) ($deleteResult['deleted_attachments'] ?? 0),
                     'deleted_attachment_files' => (int) ($deleteResult['deleted_attachment_files'] ?? 0),
+                    'failed_attachment_files' => (int) ($deleteResult['failed_attachment_files'] ?? 0),
                     'deleted_series' => (int) ($deleteResult['deleted_series'] ?? 0),
                 ],
             ]);
             $notice = '게시판을 삭제했습니다.';
+            if ((int) ($deleteResult['failed_attachment_files'] ?? 0) > 0) {
+                $notice .= ' 단, 일부 첨부 파일 저장소 삭제가 실패했습니다. 감사 로그의 실패 개수를 확인해 주세요.';
+            }
         }
 
         sr_admin_flash_result(sr_admin_action_result($errors, $notice));

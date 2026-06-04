@@ -90,9 +90,13 @@ if (sr_request_method() === 'POST') {
                     'deleted_comments' => (int) ($deleteResult['deleted_comments'] ?? 0),
                     'deleted_revisions' => (int) ($deleteResult['deleted_revisions'] ?? 0),
                     'deleted_files' => (int) ($deleteResult['deleted_files'] ?? 0),
+                    'failed_files' => (int) ($deleteResult['failed_files'] ?? 0),
                 ],
             ]);
             $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹을 삭제했습니다.';
+            if ((int) ($deleteResult['failed_files'] ?? 0) > 0) {
+                $_SESSION['sr_content_group_admin_notice'] .= ' 단, 일부 파일 저장소 삭제가 실패했습니다. 감사 로그의 실패 개수를 확인해 주세요.';
+            }
         } else {
             $_SESSION['sr_content_group_admin_errors'] = $errors;
         }
