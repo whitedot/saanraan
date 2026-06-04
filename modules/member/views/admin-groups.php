@@ -235,8 +235,8 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             $paramFieldId = $fieldPrefix . '_param_' . preg_replace('/[^a-zA-Z0-9_]+/', '_', (string) $definitionKey . '_' . $paramKey);
                             $paramOptions = sr_member_group_rule_param_options($pdo, $param);
                             ?>
-                            <label class="admin-filter-field" for="<?php echo sr_e($paramFieldId); ?>">
-                                <span class="admin-filter-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
+                            <label class="table-filtering-field" for="<?php echo sr_e($paramFieldId); ?>">
+                                <span class="table-filtering-label"><?php echo sr_e((string) ($param['label'] ?? $paramKey)); ?></span>
                                 <?php if ($paramType === 'bool') { ?>
                                     <select id="<?php echo sr_e($paramFieldId); ?>" name="rule_param[<?php echo sr_e((string) $definitionKey); ?>][<?php echo sr_e($paramKey); ?>]"<?php echo $panelActive ? '' : ' disabled'; ?> class="form-select">
                                         <option value="1"<?php echo !empty($paramValue) ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.2eb73fba')); ?></option>
@@ -313,22 +313,15 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     </div>
 
     <?php $selectedMemberGroupStatuses = is_array($groupListFilter['status'] ?? null) ? $groupListFilter['status'] : []; ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="admin-filter table-filtering table-filtering-plain admin-member-group-filter ui-form-theme">
-        <div class="admin-filter-grid admin-member-group-search-grid">
-                    <div class="admin-filter-field">
-                        <label for="member-group-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
-                        <select id="member-group-status-filter" name="status" class="form-select admin-filter-input">
-                            <option value=""><?php echo sr_e(sr_t('member::ui.all.a4b69faf')); ?></option>
-                            <?php foreach ($allowedStatuses as $status) { ?>
-                                <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedMemberGroupStatuses, true) ? ' selected' : ''; ?>>
-                                    <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-member-group-filter ui-form-theme">
+        <div class="table-filtering-fields admin-member-group-search-grid">
+                    <div class="table-filtering-field">
+                        <span class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
+                        <?php echo sr_admin_filter_toggle_group_html('member-group-status-filter', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedMemberGroupStatuses, sr_t('member::ui.all.a4b69faf')); ?>
                     </div>
-                    <div class="admin-filter-field">
-                        <label for="member-group-search-field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
-                        <select name="field" id="member-group-search-field" class="form-select admin-filter-input">
+                    <div class="table-filtering-field">
+                        <label for="member-group-search-field" class="table-filtering-label">검색조건</label>
+                        <select name="field" id="member-group-search-field" class="form-select table-filtering-input">
                             <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'key' => sr_t('member::ui.key.1057ecca'), 'title' => sr_t('member::ui.text.97e73d18'), 'description' => sr_t('member::ui.text.8c3f651d')] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupListFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
@@ -336,11 +329,11 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             <?php } ?>
                         </select>
                     </div>
-                    <div class="admin-filter-field admin-member-group-filter-keyword">
-                        <label for="member-group-search-keyword" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                        <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" placeholder="<?php echo sr_e(sr_t('member::ui.key.60df9e41')); ?>">
+                    <div class="table-filtering-field admin-member-group-filter-keyword">
+                        <label for="member-group-search-keyword" class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
+                        <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input table-filtering-input" placeholder="<?php echo sr_e(sr_t('member::ui.key.60df9e41')); ?>">
                     </div>
-                    <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
@@ -644,22 +637,15 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     $selectedGroupRuleGroupIds = is_array($groupRuleFilter['group_id'] ?? null) ? $groupRuleFilter['group_id'] : [];
     $selectedGroupRuleSourceModuleKeys = is_array($groupRuleFilter['source_module_key'] ?? null) ? $groupRuleFilter['source_module_key'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="admin-filter table-filtering table-filtering-plain admin-member-group-rule-filter ui-form-theme">
-        <div class="admin-filter-grid admin-member-group-rule-search-grid">
-            <div class="admin-filter-field">
-                <label for="member-group-rule-status-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></label>
-                <select id="member-group-rule-status-filter" name="status" class="form-select admin-filter-input">
-                    <option value="">전체</option>
-                    <?php foreach ($allowedRuleStatuses as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedGroupRuleStatuses, true) ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-member-group-rule-filter ui-form-theme">
+        <div class="table-filtering-fields admin-member-group-rule-search-grid">
+            <div class="table-filtering-field">
+                <span class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
+                <?php echo sr_admin_filter_toggle_group_html('member-group-rule-status-filter', 'status', sr_admin_code_label_options($allowedRuleStatuses, 'content_status'), $selectedGroupRuleStatuses, '전체'); ?>
             </div>
-            <div class="admin-filter-field">
-                <label for="member-group-rule-policy-filter" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></label>
-                <select id="member-group-rule-policy-filter" name="evaluation_policy" class="form-select admin-filter-input">
+            <div class="table-filtering-field">
+                <label for="member-group-rule-policy-filter" class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></label>
+                <select id="member-group-rule-policy-filter" name="evaluation_policy" class="form-select table-filtering-input">
                     <option value="">전체</option>
                     <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
                         <option value="<?php echo sr_e($policy); ?>"<?php echo in_array($policy, $selectedGroupRuleEvaluationPolicies, true) ? ' selected' : ''; ?>>
@@ -668,9 +654,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <?php } ?>
                 </select>
             </div>
-            <div class="admin-filter-field">
-                <label for="member_group_rule_filter_group" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></label>
-                <select id="member_group_rule_filter_group" name="group_id" class="form-select admin-filter-input">
+            <div class="table-filtering-field">
+                <label for="member_group_rule_filter_group" class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></label>
+                <select id="member_group_rule_filter_group" name="group_id" class="form-select table-filtering-input">
                     <option value="">전체</option>
                     <?php foreach ($groups as $group) { ?>
                         <?php $groupId = (string) (int) ($group['id'] ?? 0); ?>
@@ -678,28 +664,28 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <?php } ?>
                 </select>
             </div>
-            <div class="admin-filter-field">
-                <label for="member_group_rule_filter_source" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></label>
-                <select id="member_group_rule_filter_source" name="source_module_key" class="form-select admin-filter-input">
+            <div class="table-filtering-field">
+                <label for="member_group_rule_filter_source" class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></label>
+                <select id="member_group_rule_filter_source" name="source_module_key" class="form-select table-filtering-input">
                     <option value="">전체</option>
                     <?php foreach ($memberRuleSourceOptions as $sourceModuleKey => $sourceOption) { ?>
                         <option value="<?php echo sr_e((string) $sourceModuleKey); ?>"<?php echo in_array((string) $sourceModuleKey, $selectedGroupRuleSourceModuleKeys, true) ? ' selected' : ''; ?>><?php echo sr_e((string) ($sourceOption['label'] ?? $sourceModuleKey)); ?></option>
                     <?php } ?>
                 </select>
             </div>
-            <div class="admin-filter-field">
-                <label for="member_group_rule_filter_field" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.b79bc9c8')); ?></label>
-                <select id="member_group_rule_filter_field" name="field" class="form-select admin-filter-input">
+            <div class="table-filtering-field">
+                <label for="member_group_rule_filter_field" class="table-filtering-label">검색조건</label>
+                <select id="member_group_rule_filter_field" name="field" class="form-select table-filtering-input">
                     <?php foreach (['all' => '전체', 'group' => sr_t('member::ui.text.5d908ddd'), 'source' => sr_t('member::ui.text.291ac971'), 'rule' => '규칙 key'] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupRuleFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                     <?php } ?>
                 </select>
             </div>
-            <div class="admin-filter-field admin-member-group-rule-filter-keyword">
-                <label for="member_group_rule_filter_q" class="admin-filter-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="그룹, 모듈, 규칙 key">
+            <div class="table-filtering-field admin-member-group-rule-filter-keyword">
+                <label for="member_group_rule_filter_q" class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
+                <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="그룹, 모듈, 규칙 key">
             </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
+            <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 

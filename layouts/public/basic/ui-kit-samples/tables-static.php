@@ -42,7 +42,7 @@ $uiKitTableRows = [
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field table-filtering-field-fill" for="public_ui_table_filtering_plain_keyword">
+                    <label class="table-filtering-field-fill" for="public_ui_table_filtering_plain_keyword">
                         <span class="form-label">검색어</span>
                         <input id="public_ui_table_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
                     </label>
@@ -66,7 +66,7 @@ $uiKitTableRows = [
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field table-filtering-field-fill" for="public_ui_table_filtering_card_keyword">
+                    <label class="table-filtering-field-fill" for="public_ui_table_filtering_card_keyword">
                         <span class="form-label">검색어</span>
                         <input id="public_ui_table_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
                     </label>

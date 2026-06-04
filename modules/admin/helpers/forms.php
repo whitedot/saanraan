@@ -73,6 +73,58 @@ function sr_admin_checkbox_list_html(string $id, string $name, array $options, a
     return $html . '</div>';
 }
 
+function sr_admin_filter_toggle_group_html(string $id, string $name, array $options, array $selectedValues, string $allLabel = '전체'): string
+{
+    $selectedMap = [];
+    foreach ($selectedValues as $selectedValue) {
+        $selectedMap[(string) $selectedValue] = true;
+    }
+
+    $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
+    $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'admin_filter_toggle';
+    $name = preg_replace('/\[\]\z/', '', trim($name)) ?? trim($name);
+    $name = $name !== '' ? $name : 'filter';
+    $html = '<div id="' . sr_e($id) . '" class="table-filtering-toggle-group" data-table-filtering-toggle-group>';
+
+    $html .= '<span class="table-filtering-toggle-item">'
+        . '<input id="' . sr_e($idBase . '_all') . '" type="checkbox" class="form-choice-toggle-input sr-only" data-table-filtering-toggle-all' . ($selectedMap === [] ? ' checked' : '') . '>'
+        . '<label for="' . sr_e($idBase . '_all') . '" class="btn btn-choice-light btn-group-start">' . sr_e($allLabel) . '</label>'
+        . '</span>';
+
+    $index = 0;
+    $lastIndex = max(0, count($options) - 1);
+    foreach ($options as $value => $label) {
+        $value = (string) $value;
+        if ($value === '') {
+            continue;
+        }
+
+        $groupClass = $index === $lastIndex ? 'btn-group-end' : 'btn-group-middle';
+        $inputId = $idBase . '_' . (string) $index;
+        $html .= '<span class="table-filtering-toggle-item">'
+            . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($value) . '" class="form-choice-toggle-input sr-only" data-table-filtering-toggle-choice' . (isset($selectedMap[$value]) ? ' checked' : '') . '>'
+            . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light ' . $groupClass . '">' . sr_e((string) $label) . '</label>'
+            . '</span>';
+        $index++;
+    }
+
+    return $html . '</div>';
+}
+
+function sr_admin_code_label_options(array $values, string $type): array
+{
+    $options = [];
+    foreach ($values as $value) {
+        $value = (string) $value;
+        if ($value === '') {
+            continue;
+        }
+        $options[$value] = sr_admin_code_label($value, $type);
+    }
+
+    return $options;
+}
+
 function sr_admin_select_badge_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음', string $placeholder = '선택', string $rootAttributes = ''): string
 {
     $selectedMap = [];

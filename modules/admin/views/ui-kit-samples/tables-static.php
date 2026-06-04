@@ -37,12 +37,12 @@ $uiKitTableRows = [
                         </select>
                     </label>
                     <label class="table-filtering-field" for="admin_ui_table_filtering_plain_condition">
-                        <span class="form-label">검색 조건</span>
+                        <span class="form-label">검색조건</span>
                         <select id="admin_ui_table_filtering_plain_condition" class="form-select" name="condition">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field table-filtering-field-fill" for="admin_ui_table_filtering_plain_keyword">
+                    <label class="table-filtering-field-fill" for="admin_ui_table_filtering_plain_keyword">
                         <span class="form-label">검색어</span>
                         <input id="admin_ui_table_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
                     </label>
@@ -61,12 +61,12 @@ $uiKitTableRows = [
                         </select>
                     </label>
                     <label class="table-filtering-field" for="admin_ui_table_filtering_card_condition">
-                        <span class="form-label">검색 조건</span>
+                        <span class="form-label">검색조건</span>
                         <select id="admin_ui_table_filtering_card_condition" class="form-select" name="condition">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field table-filtering-field-fill" for="admin_ui_table_filtering_card_keyword">
+                    <label class="table-filtering-field-fill" for="admin_ui_table_filtering_card_keyword">
                         <span class="form-label">검색어</span>
                         <input id="admin_ui_table_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
                     </label>

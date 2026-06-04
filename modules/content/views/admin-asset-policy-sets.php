@@ -14,31 +14,39 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($policySetPage === 'list') { ?>
-    <?php $selectedPolicySetStatuses = is_array($policySetFilters['status'] ?? null) ? $policySetFilters['status'] : []; ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="admin-filter table-filtering table-filtering-plain admin-content-asset-policy-set-filter ui-form-theme">
-        <div class="admin-filter-grid admin-content-asset-policy-set-search-grid">
-            <div class="admin-filter-field">
-                <label for="content_policy_set_status_filter" class="admin-filter-label">상태</label>
-                <select id="content_policy_set_status_filter" name="status" class="form-select admin-filter-input">
-                    <option value="">전체</option>
-                    <?php foreach (sr_content_asset_policy_set_statuses() as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedPolicySetStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
-                    <?php } ?>
-                </select>
+    <?php
+    $selectedPolicySetStatuses = is_array($policySetFilters['status'] ?? null) ? $policySetFilters['status'] : [];
+    $policySetDetailFilterOpen = $selectedPolicySetStatuses !== [];
+    ?>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets')); ?>" class="table-filtering-form admin-content-asset-policy-set-filter ui-form-theme">
+        <div class="table-filtering-fields admin-content-asset-policy-set-search-grid">
+            <div class="table-filtering table-filtering-card<?php echo $policySetDetailFilterOpen ? ' table-filtering-open' : ''; ?>" data-table-filtering>
+                <div class="table-filtering-fields">
+                    <div class="table-filtering-field">
+                        <label for="content_policy_set_filter_field" class="table-filtering-label">검색조건</label>
+                        <select id="content_policy_set_filter_field" name="field" class="form-select table-filtering-input">
+                            <?php foreach (['all' => '전체', 'key' => 'Key', 'title' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                                <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($policySetFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="table-filtering-field-fill table-filtering-field admin-content-asset-policy-set-filter-keyword">
+                        <label for="content_policy_set_filter_q" class="table-filtering-label">검색어</label>
+                        <input id="content_policy_set_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($policySetFilters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="Key 또는 이름">
+                    </div>
+                </div>
+                <div id="content_policy_set_detail_filters" class="table-filtering-body" data-table-filtering-body<?php echo $policySetDetailFilterOpen ? '' : ' hidden'; ?>>
+                    <div class="table-filtering-field">
+                        <span class="table-filtering-label">상태</span>
+                        <?php echo sr_admin_filter_toggle_group_html('content_policy_set_status_filter', 'status', sr_admin_code_label_options(sr_content_asset_policy_set_statuses(), 'content_status'), $selectedPolicySetStatuses, '전체'); ?>
+                    </div>
+                </div>
+                <div class="table-filtering-actions">
+                    <button type="button" class="btn btn-solid-light table-filtering-toggle" data-table-filtering-toggle aria-expanded="<?php echo $policySetDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="content_policy_set_detail_filters">상세검색</button>
+                    <button type="button" class="btn btn-outline-light" data-table-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+                    <button type="submit" class="btn btn-solid-primary table-filtering-submit">검색</button>
+                </div>
             </div>
-            <div class="admin-filter-field">
-                <label for="content_policy_set_filter_field" class="admin-filter-label">검색 대상</label>
-                <select id="content_policy_set_filter_field" name="field" class="form-select admin-filter-input">
-                    <?php foreach (['all' => '전체', 'key' => 'Key', 'title' => '이름'] as $fieldValue => $fieldLabel) { ?>
-                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($policySetFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="admin-filter-field admin-content-asset-policy-set-filter-keyword">
-                <label for="content_policy_set_filter_q" class="admin-filter-label">검색어</label>
-                <input id="content_policy_set_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($policySetFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="Key 또는 이름">
-            </div>
-            <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
         </div>
     </form>
 

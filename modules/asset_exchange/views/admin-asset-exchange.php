@@ -156,44 +156,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="admin-filter table-filtering table-filtering-plain admin-asset-exchange-filter ui-form-theme">
-    <div class="admin-filter-grid admin-asset-exchange-search-grid">
-        <div class="admin-filter-field admin-asset-exchange-filter-status">
-            <label for="asset_exchange_filter_status" class="admin-filter-label">상태</label>
-            <select id="asset_exchange_filter_status" name="status" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($policyStatusLabels as $value => $label) { ?>
-                    <option value="<?php echo sr_e((string) $value); ?>"<?php echo in_array((string) $value, $policyFilters['status'], true) ? ' selected' : ''; ?>>
-                        <?php echo sr_e($label); ?>
-                    </option>
-                <?php } ?>
-            </select>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="table-filtering-form admin-asset-exchange-filter ui-form-theme">
+    <div class="table-filtering-fields admin-asset-exchange-search-grid">
+        <div class="table-filtering table-filtering-card<?php echo $policyFilterActive ? ' table-filtering-open' : ''; ?>" data-table-filtering>
+            <div id="asset_exchange_detail_filters" class="table-filtering-body" data-table-filtering-body<?php echo $policyFilterActive ? '' : ' hidden'; ?>>
+                <div class="table-filtering-field admin-asset-exchange-filter-status">
+                    <span class="table-filtering-label">상태</span>
+                    <?php echo sr_admin_filter_toggle_group_html('asset_exchange_filter_status', 'status', $policyStatusLabels, $policyFilters['status'], '전체'); ?>
+                </div>
+                <div class="table-filtering-field admin-asset-exchange-filter-from">
+                    <label for="asset_exchange_filter_from" class="table-filtering-label">출금 항목</label>
+                    <select id="asset_exchange_filter_from" name="from_module_key" class="form-select table-filtering-input">
+                        <option value="">전체</option>
+                        <?php foreach ($policyFilterOptions as $asset) { ?>
+                            <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
+                            <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $asset['label']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="table-filtering-field admin-asset-exchange-filter-to">
+                    <label for="asset_exchange_filter_to" class="table-filtering-label">입금 항목</label>
+                    <select id="asset_exchange_filter_to" name="to_module_key" class="form-select table-filtering-input">
+                        <option value="">전체</option>
+                        <?php foreach ($policyFilterOptions as $asset) { ?>
+                            <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
+                            <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $asset['label']); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="table-filtering-actions">
+                <button type="button" class="btn btn-solid-light table-filtering-toggle" data-table-filtering-toggle aria-expanded="<?php echo $policyFilterActive ? 'true' : 'false'; ?>" aria-controls="asset_exchange_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-table-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+                <button type="submit" class="btn btn-solid-primary table-filtering-submit">검색</button>
+            </div>
         </div>
-        <div class="admin-filter-field admin-asset-exchange-filter-from">
-            <label for="asset_exchange_filter_from" class="admin-filter-label">출금 항목</label>
-            <select id="asset_exchange_filter_from" name="from_module_key" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($policyFilterOptions as $asset) { ?>
-                    <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
-                    <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' selected' : ''; ?>>
-                        <?php echo sr_e((string) $asset['label']); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </div>
-        <div class="admin-filter-field admin-asset-exchange-filter-to">
-            <label for="asset_exchange_filter_to" class="admin-filter-label">입금 항목</label>
-            <select id="asset_exchange_filter_to" name="to_module_key" class="form-select admin-filter-input">
-                <option value="">전체</option>
-                <?php foreach ($policyFilterOptions as $asset) { ?>
-                    <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
-                    <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' selected' : ''; ?>>
-                        <?php echo sr_e((string) $asset['label']); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-solid-primary admin-filter-submit">검색</button>
     </div>
 </form>
 

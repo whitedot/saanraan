@@ -120,24 +120,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $selectedDownloadFileStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="admin-filter table-filtering table-filtering-plain admin-content-download-file-filter ui-form-theme">
-        <div class="admin-filter-grid admin-content-download-file-search-grid admin-content-filter-stack">
-                    <div class="admin-filter-field admin-content-download-file-filter-status">
-                        <label for="content_download_file_filter_status" class="admin-filter-label">상태</label>
-                        <select id="content_download_file_filter_status" name="status" class="form-select admin-filter-input">
-                            <option value="">전체</option>
-                            <?php foreach (['active' => '사용', 'hidden' => '숨김'] as $status => $label) { ?>
-                                <option value="<?php echo sr_e((string) $status); ?>"<?php echo in_array((string) $status, $selectedDownloadFileStatuses, true) ? ' selected' : ''; ?>>
-                                    <?php echo sr_e($label); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-content-download-file-filter ui-form-theme">
+        <div class="table-filtering-fields admin-content-download-file-search-grid admin-content-filter-stack">
+                    <div class="table-filtering-field admin-content-download-file-filter-status">
+                        <span class="table-filtering-label">상태</span>
+                        <?php echo sr_admin_filter_toggle_group_html('content_download_file_filter_status', 'status', ['active' => '사용', 'hidden' => '숨김'], $selectedDownloadFileStatuses, '전체'); ?>
                     </div>
-                    <div class="admin-filter-field admin-content-download-file-filter-keyword">
-                        <label for="content_download_file_filter_q" class="admin-filter-label">검색</label>
-                        <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
+                    <div class="table-filtering-field admin-content-download-file-filter-keyword">
+                        <label for="content_download_file_filter_q" class="table-filtering-label">검색</label>
+                        <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
                     </div>
-                    <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 

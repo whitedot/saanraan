@@ -1,7 +1,7 @@
 .admin-page-privacy-request-list .admin-privacy-request-search-grid{grid-template-columns:fit-content(9rem) fit-content(10rem) fit-content(12rem) minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
-.admin-page-privacy-request-list .admin-privacy-request-filter .admin-filter-field{min-width:0}
-.admin-page-privacy-request-list .admin-filter-input{width:100%}
-.admin-page-privacy-request-list .admin-filter-submit{justify-content:center;min-width:0;width:auto}
+.admin-page-privacy-request-list .admin-privacy-request-filter .table-filtering-field{min-width:0}
+.admin-page-privacy-request-list .table-filtering-input{width:100%}
+.admin-page-privacy-request-list .table-filtering-submit{justify-content:center;min-width:0;width:auto}
 .admin-page-privacy-request-list .admin-privacy-request-table{table-layout:auto}
 .admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(1),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(2),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(3),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(5),.admin-page-privacy-request-list .admin-privacy-request-table th:nth-child(6){width:1%}
 .privacy-request-edit-form .admin-form-check{align-items:center;display:flex;gap:.45rem;font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-normal)}
@@ -13,5 +13,5 @@
 .admin-list-form .privacy-request-manage .form-select,
 .admin-list-form .privacy-request-manage .form-textarea{width:100%}
 .admin-list-form .privacy-request-manage .admin-form-check{align-items:center;display:inline-flex;gap:calc(var(--spacing) * 1.5);margin:0}
-@media (max-width:1023px){.admin-page-privacy-request-list .admin-privacy-request-search-grid{grid-template-columns:1fr}.admin-page-privacy-request-list .admin-filter-submit{justify-content:center;width:100%}}
+@media (max-width:1023px){.admin-page-privacy-request-list .admin-privacy-request-search-grid{grid-template-columns:1fr}.admin-page-privacy-request-list .table-filtering-submit{justify-content:center;width:100%}}
 @media (max-width:767px){.admin-page-privacy-request-list .admin-privacy-request-table :is(th,td:not(.admin-empty-state)):nth-child(1),.admin-page-privacy-request-list .admin-privacy-request-table :is(th,td):nth-child(5){display:none}.admin-list-form .privacy-request-manage{min-width:14rem}}

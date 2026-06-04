@@ -66,29 +66,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-filter table-filtering table-filtering-plain admin-notification-delivery-filter ui-form-theme">
-        <div class="admin-filter-grid admin-notification-delivery-search-grid">
-                <div class="admin-filter-field admin-notification-delivery-filter-channel">
-                    <label for="notification_admin_delivery_channel_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
-                    <select id="notification_admin_delivery_channel_filter" name="delivery_channel" class="form-select admin-filter-input">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-notification-delivery-filter ui-form-theme">
+        <div class="table-filtering-fields admin-notification-delivery-search-grid">
+                <div class="table-filtering-field admin-notification-delivery-filter-channel">
+                    <label for="notification_admin_delivery_channel_filter" class="table-filtering-label"><?php echo sr_e(sr_t('notification::ui.text.3f2758e3')); ?></label>
+                    <select id="notification_admin_delivery_channel_filter" name="delivery_channel" class="form-select table-filtering-input">
                         <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
                         <?php foreach ($allowedDeliveryChannels as $channel) { ?>
                             <option value="<?php echo sr_e($channel); ?>"<?php echo in_array($channel, $selectedDeliveryChannels, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($channel, 'notification_channel')); ?></option>
                         <?php } ?>
                     </select>
                 </div>
-                <div class="admin-filter-field admin-notification-delivery-filter-status">
-                    <label for="notification_admin_delivery_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.3d8c9ee7')); ?></label>
-                    <select id="notification_admin_delivery_status_filter" name="delivery_status" class="form-select admin-filter-input">
-                        <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
-                        <?php foreach ($allowedDeliveryStatuses as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedDeliveryStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?></option>
-                        <?php } ?>
-                    </select>
+                <div class="table-filtering-field admin-notification-delivery-filter-status">
+                    <span class="table-filtering-label"><?php echo sr_e(sr_t('notification::ui.status.3d8c9ee7')); ?></span>
+                    <?php echo sr_admin_filter_toggle_group_html('notification_admin_delivery_status_filter', 'delivery_status', sr_admin_code_label_options($allowedDeliveryStatuses, 'delivery_status'), $selectedDeliveryStatuses, sr_t('notification::ui.all.a4b69faf')); ?>
                 </div>
-                <div class="admin-filter-field admin-notification-delivery-filter-field">
-                <label for="notification_admin_delivery_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>
-                <select name="field" id="notification_admin_delivery_search_field" class="form-select admin-filter-input">
+                <div class="table-filtering-field admin-notification-delivery-filter-field">
+                <label for="notification_admin_delivery_search_field" class="table-filtering-label">검색조건</label>
+                <select name="field" id="notification_admin_delivery_search_field" class="form-select table-filtering-input">
                     <?php foreach (['all' => sr_t('notification::ui.all.a4b69faf'), 'id' => sr_t('notification::ui.id.14dddbba'), 'notification' => sr_t('notification::ui.notification.id.ccc3eb79'), 'title' => sr_t('notification::ui.notification.b99c9635'), 'recipient' => sr_t('notification::ui.text.fb3853ea')] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($deliveryListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
@@ -96,11 +91,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
                 </div>
-                <div class="admin-filter-field admin-notification-delivery-filter-keyword">
-                <label for="notification_admin_delivery_search_keyword" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.bda397fc')); ?></label>
-                <input type="text" id="notification_admin_delivery_search_keyword" name="q" value="<?php echo sr_e((string) ($deliveryListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('notification::ui.id.notification.id.f7f271dc')); ?>">
+                <div class="table-filtering-field admin-notification-delivery-filter-keyword">
+                <label for="notification_admin_delivery_search_keyword" class="table-filtering-label"><?php echo sr_e(sr_t('notification::ui.search.bda397fc')); ?></label>
+                <input type="text" id="notification_admin_delivery_search_keyword" name="q" value="<?php echo sr_e((string) ($deliveryListFilters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('notification::ui.id.notification.id.f7f271dc')); ?>">
                 </div>
-                <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('notification::ui.search.4b8d541e')); ?></button>
+                <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('notification::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
@@ -188,29 +183,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="admin-filter table-filtering table-filtering-plain admin-notification-filter ui-form-theme">
-        <div class="admin-filter-grid admin-notification-search-grid">
-                <div class="admin-filter-field admin-notification-filter-audience">
-                    <label for="notification_admin_audience_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>
-                    <select id="notification_admin_audience_filter" name="audience" class="form-select admin-filter-input">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-notification-filter ui-form-theme">
+        <div class="table-filtering-fields admin-notification-search-grid">
+                <div class="table-filtering-field admin-notification-filter-audience">
+                    <label for="notification_admin_audience_filter" class="table-filtering-label"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?></label>
+                    <select id="notification_admin_audience_filter" name="audience" class="form-select table-filtering-input">
                         <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
                         <?php foreach ($allowedAudiences as $audience) { ?>
                             <option value="<?php echo sr_e($audience); ?>"<?php echo in_array($audience, $selectedNotificationAudiences, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
                         <?php } ?>
                     </select>
                 </div>
-                <div class="admin-filter-field admin-notification-filter-status">
-                    <label for="notification_admin_status_filter" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></label>
-                    <select id="notification_admin_status_filter" name="status" class="form-select admin-filter-input">
-                        <option value=""><?php echo sr_e(sr_t('notification::ui.all.a4b69faf')); ?></option>
-                        <?php foreach ($allowedNotificationStatuses as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedNotificationStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'notification_status')); ?></option>
-                        <?php } ?>
-                    </select>
+                <div class="table-filtering-field admin-notification-filter-status">
+                    <span class="table-filtering-label"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></span>
+                    <?php echo sr_admin_filter_toggle_group_html('notification_admin_status_filter', 'status', sr_admin_code_label_options($allowedNotificationStatuses, 'notification_status'), $selectedNotificationStatuses, sr_t('notification::ui.all.a4b69faf')); ?>
                 </div>
-                <div class="admin-filter-field admin-notification-filter-field">
-                <label for="notification_admin_search_field" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.b79bc9c8')); ?></label>
-                <select name="field" id="notification_admin_search_field" class="form-select admin-filter-input">
+                <div class="table-filtering-field admin-notification-filter-field">
+                <label for="notification_admin_search_field" class="table-filtering-label">검색조건</label>
+                <select name="field" id="notification_admin_search_field" class="form-select table-filtering-input">
                     <?php foreach (['all' => sr_t('notification::ui.all.a4b69faf'), 'title' => sr_t('notification::ui.text.08b17e43'), 'body' => sr_t('notification::ui.text.cb0f2404'), 'link' => sr_t('notification::ui.text.3d54da9c'), 'account' => sr_t('notification::ui.member.id.07083483'), 'id' => sr_t('notification::ui.notification.id.ccc3eb79')] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($notificationListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
@@ -218,11 +208,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
                 </div>
-                <div class="admin-filter-field admin-notification-filter-keyword">
-                <label for="notification_admin_search_keyword" class="admin-filter-label"><?php echo sr_e(sr_t('notification::ui.search.bda397fc')); ?></label>
-                <input type="text" id="notification_admin_search_keyword" name="q" value="<?php echo sr_e((string) ($notificationListFilters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('notification::ui.id.c7b74a34')); ?>">
+                <div class="table-filtering-field admin-notification-filter-keyword">
+                <label for="notification_admin_search_keyword" class="table-filtering-label"><?php echo sr_e(sr_t('notification::ui.search.bda397fc')); ?></label>
+                <input type="text" id="notification_admin_search_keyword" name="q" value="<?php echo sr_e((string) ($notificationListFilters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('notification::ui.id.c7b74a34')); ?>">
                 </div>
-                <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('notification::ui.search.4b8d541e')); ?></button>
+                <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('notification::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 

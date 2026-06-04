@@ -251,33 +251,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $selectedBannerStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     $selectedBannerTargets = is_array($filters['target'] ?? null) ? $filters['target'] : [];
+    $bannerDetailFilterOpen = $selectedBannerStatuses !== [] || $selectedBannerTargets !== [];
+    $bannerTargetOptions = [[sr_banner_public_target_option_value(), sr_t('banner::ui.banner.48de068b')]];
+    foreach ($availableTargets as $target) {
+        $bannerTargetOptions[] = [sr_banner_target_option_value($target), (string) $target['label']];
+    }
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-filter table-filtering table-filtering-plain admin-banner-filter ui-form-theme">
-        <div class="admin-filter-grid admin-banner-search-grid">
-                    <div class="admin-filter-field admin-banner-filter-status">
-                        <label for="modules_banner_admin_banners_status" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></label>
-                        <select id="modules_banner_admin_banners_status" name="status" class="form-select admin-filter-input">
-                            <option value=""><?php echo sr_e(sr_t('banner::ui.all.a4b69faf')); ?></option>
-                            <?php foreach ($allowedStatuses as $status) { ?>
-                                <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedBannerStatuses, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
-                            <?php } ?>
-                        </select>
-                    </div>
-                    <div class="admin-filter-field admin-banner-filter-target">
-                        <label for="modules_banner_admin_banners_target" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></label>
-                        <select id="modules_banner_admin_banners_target" name="target" class="form-select admin-filter-input">
-                            <option value=""><?php echo sr_e(sr_t('banner::ui.all.a4b69faf')); ?></option>
-                            <?php $bannerTargetOptions = [[sr_banner_public_target_option_value(), sr_t('banner::ui.banner.48de068b')]]; ?>
-                            <?php foreach ($availableTargets as $target) { $bannerTargetOptions[] = [sr_banner_target_option_value($target), (string) $target['label']]; } ?>
-                            <?php foreach ($bannerTargetOptions as $targetOption) { ?>
-                                <?php $targetValue = (string) $targetOption[0]; ?>
-                                <option value="<?php echo sr_e($targetValue); ?>"<?php echo in_array($targetValue, $selectedBannerTargets, true) ? ' selected' : ''; ?>><?php echo sr_e((string) $targetOption[1]); ?></option>
-                            <?php } ?>
-                        </select>
-                    </div>
-                    <div class="admin-filter-field admin-banner-filter-field">
-                        <label for="modules_banner_admin_banners_field" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.search.b79bc9c8')); ?></label>
-                        <select id="modules_banner_admin_banners_field" name="field" class="form-select admin-filter-input">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="table-filtering-form admin-banner-filter ui-form-theme">
+        <div class="table-filtering-fields admin-banner-search-grid">
+            <div class="table-filtering table-filtering-card<?php echo $bannerDetailFilterOpen ? ' table-filtering-open' : ''; ?>" data-table-filtering>
+                <div class="table-filtering-fields">
+                    <div class="table-filtering-field admin-banner-filter-field">
+                        <label for="modules_banner_admin_banners_field" class="table-filtering-label">검색조건</label>
+                        <select id="modules_banner_admin_banners_field" name="field" class="form-select table-filtering-input">
                             <?php foreach (['all' => sr_t('banner::ui.all.a4b69faf'), 'title' => sr_t('banner::ui.text.08b17e43'), 'link' => sr_t('banner::ui.text.3d54da9c')] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
@@ -285,11 +271,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                     </div>
-                    <div class="admin-filter-field admin-banner-filter-keyword">
-                        <label for="modules_banner_admin_banners_q" class="admin-filter-label"><?php echo sr_e(sr_t('banner::ui.search.bda397fc')); ?></label>
-                        <input id="modules_banner_admin_banners_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input admin-filter-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('banner::ui.text.b2273378')); ?>">
+                    <div class="table-filtering-field-fill table-filtering-field admin-banner-filter-keyword">
+                        <label for="modules_banner_admin_banners_q" class="table-filtering-label"><?php echo sr_e(sr_t('banner::ui.search.bda397fc')); ?></label>
+                        <input id="modules_banner_admin_banners_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('banner::ui.text.b2273378')); ?>">
                     </div>
-                    <button type="submit" class="btn btn-solid-primary admin-filter-submit"><?php echo sr_e(sr_t('banner::ui.search.4b8d541e')); ?></button>
+                </div>
+                <div id="modules_banner_admin_banners_detail_filters" class="table-filtering-body" data-table-filtering-body<?php echo $bannerDetailFilterOpen ? '' : ' hidden'; ?>>
+                    <div class="table-filtering-field admin-banner-filter-status">
+                        <span class="table-filtering-label"><?php echo sr_e(sr_t('banner::ui.status.e10195a1')); ?></span>
+                        <?php echo sr_admin_filter_toggle_group_html('modules_banner_admin_banners_status', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedBannerStatuses, sr_t('banner::ui.all.a4b69faf')); ?>
+                    </div>
+                    <div class="table-filtering-field admin-banner-filter-target">
+                        <label for="modules_banner_admin_banners_target" class="table-filtering-label"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></label>
+                        <select id="modules_banner_admin_banners_target" name="target" class="form-select table-filtering-input">
+                            <option value=""><?php echo sr_e(sr_t('banner::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($bannerTargetOptions as $targetOption) { ?>
+                                <?php $targetValue = (string) $targetOption[0]; ?>
+                                <option value="<?php echo sr_e($targetValue); ?>"<?php echo in_array($targetValue, $selectedBannerTargets, true) ? ' selected' : ''; ?>><?php echo sr_e((string) $targetOption[1]); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-filtering-actions">
+                    <button type="button" class="btn btn-solid-light table-filtering-toggle" data-table-filtering-toggle aria-expanded="<?php echo $bannerDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="modules_banner_admin_banners_detail_filters">상세검색</button>
+                    <button type="button" class="btn btn-outline-light" data-table-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('banner::ui.search.4b8d541e')); ?></button>
+                </div>
+            </div>
         </div>
     </form>
 

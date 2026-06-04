@@ -1417,6 +1417,281 @@
       dispatchFormEvent(control, 'input');
       dispatchFormEvent(control, 'change');
     });
+
+    tableFiltering.querySelectorAll('[data-table-filtering-toggle-group]').forEach(function (group) {
+      var allControl = group.querySelector('[data-table-filtering-toggle-all]');
+      if (allControl && !allControl.disabled) {
+        allControl.checked = true;
+        dispatchFormEvent(allControl, 'change');
+      }
+    });
+
+    tableFiltering.querySelectorAll('[data-table-filtering-radio-toggle-group]').forEach(function (group) {
+      var firstRadio = group.querySelector('input[type="radio"]');
+      if (firstRadio && !firstRadio.disabled) {
+        firstRadio.checked = true;
+        dispatchFormEvent(firstRadio, 'change');
+      }
+    });
+  }
+
+  function tableFilteringControlIsActive(control) {
+    if (!control || control.disabled || control.type === 'hidden') {
+      return false;
+    }
+    if (control.matches('[type="checkbox"], [type="radio"]')) {
+      return control.checked && !control.matches('[data-table-filtering-toggle-all]') && control.value !== '' && control.value !== '0';
+    }
+    if (control.tagName === 'SELECT') {
+      return control.value !== '' && control.value !== '0';
+    }
+    return String(control.value || '').trim() !== '';
+  }
+
+  function tableFilteringFieldHasSelection(field) {
+    return !!(field && field.querySelector('select, [data-table-filtering-toggle-group], .admin-check-list input[type="checkbox"]'));
+  }
+
+  function tableFilteringFieldIsPrimary(field) {
+    return !!(field && (
+      field.querySelector('select[name="field"]') ||
+      field.querySelector('input[name="q"], textarea[name="q"]')
+    ));
+  }
+
+  function tableFilteringFieldIsActive(field) {
+    if (!field) {
+      return false;
+    }
+    return Array.prototype.some.call(field.querySelectorAll('input, select, textarea'), tableFilteringControlIsActive);
+  }
+
+  function enhancePlainTableFiltering() {
+    var autoIndex = 0;
+
+    document.querySelectorAll('form.table-filtering-form.table-filtering-plain:not([data-table-filtering-enhanced])').forEach(function (form) {
+      var grid = form.querySelector(':scope > .table-filtering-fields');
+      if (!grid) {
+        return;
+      }
+
+      var children = Array.prototype.slice.call(grid.children);
+      var selectableCount = children.filter(tableFilteringFieldHasSelection).length;
+      if (selectableCount < 3) {
+        form.setAttribute('data-table-filtering-enhanced', 'skipped');
+        return;
+      }
+
+      var submit = children.find(function (child) {
+        return child.matches && child.matches('button[type="submit"], input[type="submit"]');
+      });
+      var fields = children.filter(function (child) {
+        return child !== submit;
+      });
+      var primaryFields = fields.filter(tableFilteringFieldIsPrimary);
+      var detailFields = fields.filter(function (field) {
+        return primaryFields.indexOf(field) === -1;
+      });
+
+      if (primaryFields.length === 0 || detailFields.length === 0) {
+        form.setAttribute('data-table-filtering-enhanced', 'skipped');
+        return;
+      }
+
+      var detailOpen = detailFields.some(tableFilteringFieldIsActive);
+      var detailId = (form.id || 'admin_auto_table_filtering') + '_detail_' + String(autoIndex);
+      autoIndex += 1;
+
+      var card = document.createElement('div');
+      card.className = 'table-filtering table-filtering-card' + (detailOpen ? ' table-filtering-open' : '');
+      card.setAttribute('data-table-filtering', '');
+
+      var fieldWrap = document.createElement('div');
+      fieldWrap.className = 'table-filtering-fields';
+      primaryFields.forEach(function (field) {
+        field.classList.add('table-filtering-field');
+        if (field.querySelector('input[name="q"], textarea[name="q"]')) {
+          field.classList.add('table-filtering-field-fill');
+        }
+        fieldWrap.appendChild(field);
+      });
+
+      var detailWrap = document.createElement('div');
+      detailWrap.id = detailId;
+      detailWrap.className = 'table-filtering-body';
+      detailWrap.setAttribute('data-table-filtering-body', '');
+      detailWrap.hidden = !detailOpen;
+      detailFields.forEach(function (field) {
+        field.classList.add('table-filtering-field');
+        detailWrap.appendChild(field);
+      });
+
+      var actions = document.createElement('div');
+      actions.className = 'table-filtering-actions';
+
+      var toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'btn btn-solid-light table-filtering-toggle';
+      toggle.setAttribute('data-table-filtering-toggle', '');
+      toggle.setAttribute('aria-expanded', detailOpen ? 'true' : 'false');
+      toggle.setAttribute('aria-controls', detailId);
+      toggle.textContent = '상세검색';
+      actions.appendChild(toggle);
+
+      var reset = document.createElement('button');
+      reset.type = 'button';
+      reset.className = 'btn btn-outline-light';
+      reset.setAttribute('data-table-filtering-reset', '');
+      reset.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화';
+      actions.appendChild(reset);
+
+      if (submit) {
+        actions.appendChild(submit);
+      }
+
+      card.appendChild(fieldWrap);
+      card.appendChild(detailWrap);
+      card.appendChild(actions);
+      grid.appendChild(card);
+      form.classList.remove('table-filtering', 'table-filtering-plain');
+      form.setAttribute('data-table-filtering-enhanced', 'card');
+    });
+  }
+
+  function optionText(option) {
+    return String(option ? option.textContent || '' : '').replace(/\s+/g, ' ').trim();
+  }
+
+  function detailSelectShouldBecomeRadio(select) {
+    if (!select || select.multiple || !select.name || select.disabled || select.dataset.adminDetailRadioToggleSource === '1') {
+      return false;
+    }
+    if (!select.closest('[data-table-filtering-body]')) {
+      return false;
+    }
+    return select.options && select.options.length > 0;
+  }
+
+  function enhanceDetailSelects() {
+    var index = 0;
+
+    document.querySelectorAll('[data-table-filtering-body] select:not([data-admin-detail-radio-toggle-source])').forEach(function (select) {
+      if (!detailSelectShouldBecomeRadio(select)) {
+        return;
+      }
+
+      var group = document.createElement('div');
+      var selectId = select.id || ('admin_detail_radio_select_' + String(index));
+      var options = Array.prototype.slice.call(select.options).filter(function (option) {
+        return !option.disabled;
+      });
+
+      if (options.length === 0) {
+        return;
+      }
+
+      group.className = 'table-filtering-toggle-group table-filtering-radio-toggle-group';
+      group.setAttribute('data-table-filtering-radio-toggle-group', '');
+      group.setAttribute('data-table-filtering-radio-source', '#' + selectId);
+
+      options.forEach(function (option, optionIndex) {
+        var id = selectId + '_radio_' + String(index) + '_' + String(optionIndex);
+        var item = document.createElement('span');
+        var input = document.createElement('input');
+        var label = document.createElement('label');
+        var groupClass = optionIndex === 0 ? 'btn-group-start' : (optionIndex === options.length - 1 ? 'btn-group-end' : 'btn-group-middle');
+
+        item.className = 'table-filtering-toggle-item';
+        input.id = id;
+        input.type = 'radio';
+        input.name = select.name;
+        input.value = option.value;
+        input.className = 'form-choice-toggle-input sr-only';
+        input.setAttribute('data-table-filtering-radio-toggle-choice', '');
+        if (option.selected || select.value === option.value) {
+          input.checked = true;
+        }
+
+        label.setAttribute('for', id);
+        label.className = 'btn btn-choice-light ' + groupClass;
+        label.textContent = optionText(option);
+
+        item.appendChild(input);
+        item.appendChild(label);
+        group.appendChild(item);
+      });
+
+      select.id = selectId;
+      select.dataset.adminDetailRadioToggleSource = '1';
+      select.disabled = true;
+      select.hidden = true;
+      select.classList.add('admin-detail-radio-toggle-source');
+      select.parentNode.insertBefore(group, select.nextSibling);
+      index += 1;
+    });
+  }
+
+  function syncFilterCheckboxToggleGroup(group, sourceControl) {
+    if (!group) {
+      return;
+    }
+
+    var allControl = group.querySelector('[data-table-filtering-toggle-all]');
+    var choices = Array.prototype.slice.call(group.querySelectorAll('[data-table-filtering-toggle-choice]'));
+
+    if (!allControl || choices.length === 0) {
+      return;
+    }
+
+    if (sourceControl === allControl && allControl.checked) {
+      choices.forEach(function (control) {
+        if (control.checked) {
+          control.checked = false;
+          dispatchFormEvent(control, 'change');
+        }
+      });
+      return;
+    }
+
+    var checkedChoices = choices.filter(function (control) {
+      return control.checked;
+    });
+
+    if (checkedChoices.length === 0) {
+      if (!allControl.checked) {
+        allControl.checked = true;
+        dispatchFormEvent(allControl, 'change');
+      }
+      return;
+    }
+
+    if (checkedChoices.length === choices.length) {
+      choices.forEach(function (control) {
+        control.checked = false;
+        dispatchFormEvent(control, 'change');
+      });
+      if (!allControl.checked) {
+        allControl.checked = true;
+        dispatchFormEvent(allControl, 'change');
+      }
+      return;
+    }
+
+    if (allControl.checked) {
+      allControl.checked = false;
+      dispatchFormEvent(allControl, 'change');
+    }
+  }
+
+  function initTableFilteringEnhancements() {
+    enhancePlainTableFiltering();
+    enhanceDetailSelects();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTableFilteringEnhancements);
+  } else {
+    initTableFilteringEnhancements();
   }
 
   document.addEventListener('click', function (event) {
@@ -1443,6 +1718,20 @@
     if (tableFilteringReset) {
       event.preventDefault();
       clearTableFiltering(tableFilteringReset.closest('[data-table-filtering]'));
+      return;
+    }
+
+    var filterToggleAll = target && target.closest('[data-table-filtering-toggle-all]');
+
+    if (filterToggleAll) {
+      syncFilterCheckboxToggleGroup(filterToggleAll.closest('[data-table-filtering-toggle-group]'), filterToggleAll);
+      return;
+    }
+
+    var filterToggleChoice = target && target.closest('[data-table-filtering-toggle-choice]');
+
+    if (filterToggleChoice) {
+      syncFilterCheckboxToggleGroup(filterToggleChoice.closest('[data-table-filtering-toggle-group]'), filterToggleChoice);
       return;
     }
 

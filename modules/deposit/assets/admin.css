@@ -4,7 +4,7 @@
     width: 100%;
 }
 
-.admin-filter-grid.admin-deposit-request-filter-grid {
+.table-filtering-fields.admin-deposit-request-filter-grid {
     align-items: end;
     display: grid;
     gap: calc(var(--spacing) * 3);
@@ -13,12 +13,12 @@
     width: 100%;
 }
 
-.admin-deposit-request-filter .admin-filter-field {
+.admin-deposit-request-filter .table-filtering-field {
     min-width: 0;
     width: fit-content;
 }
 
-.admin-deposit-request-filter .admin-filter-label {
+.admin-deposit-request-filter .table-filtering-label {
     color: var(--text-muted);
     display: block;
     font-size: var(--type-meta-size);
@@ -33,7 +33,7 @@
     overflow-x: auto;
 }
 
-.admin-deposit-request-filter-field .admin-filter-input {
+.admin-deposit-request-filter-field .table-filtering-input {
     field-sizing: content;
     min-width: 6rem;
     width: fit-content;
@@ -44,12 +44,12 @@
     width: 100%;
 }
 
-.admin-deposit-request-filter-keyword .admin-filter-input {
+.admin-deposit-request-filter-keyword .table-filtering-input {
     min-width: 0;
     width: 100%;
 }
 
-.admin-deposit-request-filter .admin-filter-submit {
+.admin-deposit-request-filter .table-filtering-submit {
     width: fit-content;
 }
 
@@ -58,19 +58,19 @@
         width: 100%;
     }
 
-    .admin-filter-grid.admin-deposit-request-filter-grid {
+    .table-filtering-fields.admin-deposit-request-filter-grid {
         display: grid;
         grid-template-columns: 1fr;
         width: 100%;
     }
 
-    .admin-deposit-request-filter .admin-filter-field,
-    .admin-deposit-request-filter .admin-filter-input,
-    .admin-deposit-request-filter .admin-filter-submit {
+    .admin-deposit-request-filter .table-filtering-field,
+    .admin-deposit-request-filter .table-filtering-input,
+    .admin-deposit-request-filter .table-filtering-submit {
         width: 100%;
     }
 
-    .admin-deposit-request-filter-keyword .admin-filter-input {
+    .admin-deposit-request-filter-keyword .table-filtering-input {
         min-width: 0;
     }
 }
