@@ -55,6 +55,48 @@ $bannerHelpBodyHtml = static function (array $keys): string {
 
     return $html;
 };
+$bannerCopyModals = '';
+$bannerCopyModalHtml = static function (array $banner, string $returnTo): string {
+    $bannerId = (int) ($banner['id'] ?? 0);
+    if ($bannerId < 1) {
+        return '';
+    }
+    $modalId = 'banner-copy-modal-' . (string) $bannerId;
+    $title = sr_banner_clean_single_line((string) ($banner['title'] ?? '') . ' 복사본', 160);
+    ob_start();
+    ?>
+    <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <div class="modal-content ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/copy')); ?>">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e('배너 복사'); ?></h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $bannerId); ?>">
+                        <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
+                        <p class="admin-form-help"><?php echo sr_e((string) ($banner['title'] ?? '')); ?></p>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e($title); ?>" class="form-input form-control-full" maxlength="160" required data-overlay-focus>
+                                <p class="admin-form-help"><?php echo sr_e('복사본은 draft로 저장되며 클릭 수와 클릭 로그는 복사하지 않습니다.'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e('취소'); ?></button>
+                        <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e('복사본 만들기'); ?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php
+    return (string) ob_get_clean();
+};
 $bannerHelp = [
     'link_url' => [
         'id' => 'banner_admin_help_link_url',
@@ -265,11 +307,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('banner::ui.list.f07b3200')); ?></a>
             <?php if ($editing) { ?>
-                <a href="<?php echo sr_e(sr_url('/admin/banners/copy?id=' . rawurlencode((string) $editBanner['id']))); ?>" class="btn btn-solid-light"><?php echo sr_e('복사'); ?></a>
+                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="banner-copy-modal-<?php echo sr_e((string) (int) $editBanner['id']); ?>" data-overlay="#banner-copy-modal-<?php echo sr_e((string) (int) $editBanner['id']); ?>"><?php echo sr_e('복사'); ?></button>
             <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('banner::ui.save.5fb92622')); ?></button>
         </div>
     </form>
+    <?php echo $editing ? $bannerCopyModalHtml($editBanner, '/admin/banners/edit?id=' . rawurlencode((string) $editBanner['id'])) : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
@@ -409,7 +452,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
-                                    <a href="<?php echo sr_e(sr_url('/admin/banners/copy?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
+                                    <?php
+                                    $bannerCopyModalId = 'banner-copy-modal-' . (string) (int) $banner['id'];
+                                    $bannerCopyModals .= $bannerCopyModalHtml($banner, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners'));
+                                    ?>
+                                    <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($bannerCopyModalId); ?>" data-overlay="#<?php echo sr_e($bannerCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="banner_id" value="<?php echo sr_e((string) $banner['id']); ?>">
@@ -424,6 +471,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
         </div>
     </section>
+    <?php echo $bannerCopyModals; ?>
     <?php echo sr_admin_pagination_html($bannerPagination, '배너 목록 페이지'); ?>
 <?php } ?>
 

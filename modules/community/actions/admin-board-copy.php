@@ -16,6 +16,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 } else {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'view');
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/posts', 'view');
 }
 
 $sourceBoard = sr_community_board_by_id($pdo, $boardId);

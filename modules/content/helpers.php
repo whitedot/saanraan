@@ -2300,6 +2300,35 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'source_content_id' => $sourceContentId,
         ]);
 
+        $stmt = $pdo->prepare(
+            "INSERT INTO sr_content_file_links
+                (content_id, file_id, sort_order, status, created_at, updated_at)
+             SELECT :new_content_id, linked_files.file_id, linked_files.sort_order, 'active', :created_at, :updated_at
+             FROM (
+                SELECT l.file_id, l.sort_order
+                FROM sr_content_file_links l
+                INNER JOIN sr_content_files f ON f.id = l.file_id AND f.status = 'active'
+                WHERE l.content_id = :source_link_content_id
+                  AND l.status = 'active'
+                UNION
+                SELECT f.id AS file_id, 0 AS sort_order
+                FROM sr_content_files f
+                WHERE f.content_id = :source_legacy_content_id
+                  AND f.status = 'active'
+             ) linked_files
+             ON DUPLICATE KEY UPDATE
+                sort_order = VALUES(sort_order),
+                status = 'active',
+                updated_at = VALUES(updated_at)"
+        );
+        $stmt->execute([
+            'new_content_id' => $newContentId,
+            'created_at' => $now,
+            'updated_at' => $now,
+            'source_link_content_id' => $sourceContentId,
+            'source_legacy_content_id' => $sourceContentId,
+        ]);
+
         sr_content_record_revision($pdo, $newContentId, $copy, $accountId, $now);
         $pdo->commit();
     } catch (Throwable $exception) {

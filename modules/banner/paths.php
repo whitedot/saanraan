@@ -9,7 +9,6 @@ return [
     'GET /admin/banners/subject-search' => 'actions/admin-banner-subject-search.php',
     'GET /admin/banners/new' => 'actions/admin-banner-new.php',
     'GET /admin/banners/edit' => 'actions/admin-banner-edit.php',
-    'GET /admin/banners/copy' => 'actions/admin-banner-copy.php',
     'POST /admin/banners/copy' => 'actions/admin-banner-copy.php',
     'POST /admin/banners/save' => 'actions/admin-banner-save.php',
     'POST /admin/banners/delete' => 'actions/admin-banner-delete.php',

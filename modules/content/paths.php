@@ -22,7 +22,6 @@ return [
     'POST /admin/content/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
     'GET /admin/content/new' => 'actions/admin-content-new.php',
     'GET /admin/content/edit' => 'actions/admin-content-edit.php',
-    'GET /admin/content/copy' => 'actions/admin-content-copy.php',
     'POST /admin/content/copy' => 'actions/admin-content-copy.php',
     'POST /admin/content/save' => 'actions/admin-content-save.php',
     'POST /admin/content/delete' => 'actions/admin-content-delete.php',

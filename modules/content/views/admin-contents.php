@@ -157,6 +157,54 @@ $contentHelpBodyHtml = static function (array $keys): string {
 
     return $html;
 };
+$contentCopyModals = '';
+$contentCopyModalHtml = static function (array $content, string $returnTo): string {
+    $contentId = (int) ($content['id'] ?? 0);
+    if ($contentId < 1) {
+        return '';
+    }
+    $modalId = 'content-copy-modal-' . (string) $contentId;
+    $suggestion = sr_content_copy_suggestion($content);
+    ob_start();
+    ?>
+    <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <div class="modal-content ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/content/copy')); ?>">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e('콘텐츠 복사'); ?></h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="content_id" value="<?php echo sr_e((string) $contentId); ?>">
+                        <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
+                        <p class="admin-form-help"><?php echo sr_e((string) ($content['title'] ?? '')); ?></p>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e((string) $suggestion['title']); ?>" class="form-input form-control-full" maxlength="160" required data-overlay-focus>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-slug"><?php echo sr_e('Slug'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($modalId); ?>-slug" type="text" name="slug" value="<?php echo sr_e((string) $suggestion['slug']); ?>" class="form-input form-control-full" maxlength="120" pattern="[a-z0-9][a-z0-9\-]{1,118}[a-z0-9]" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-slug-input>
+                                <p class="admin-form-help"><?php echo sr_e('복사본은 초안으로 저장됩니다. 댓글, 이용 로그, 리비전, 시리즈 연결은 복사하지 않습니다.'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e('취소'); ?></button>
+                        <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e('복사본 만들기'); ?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php
+    return (string) ob_get_clean();
+};
 $contentHelp = [
     'title' => [
         'id' => 'content_admin_help_title',
@@ -644,11 +692,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
             <?php if ($editing) { ?>
-                <a href="<?php echo sr_e(sr_url('/admin/content/copy?id=' . rawurlencode((string) $editPage['id']))); ?>" class="btn btn-solid-light"><?php echo sr_e('복사'); ?></a>
+                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>" data-overlay="#content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>"><?php echo sr_e('복사'); ?></button>
             <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
         </div>
     </form>
+    <?php echo $editing ? $contentCopyModalHtml($editPage, '/admin/content/edit?id=' . rawurlencode((string) $editPage['id'])) : ''; ?>
     <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $contentEditorKey, 'content_basic') : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
@@ -793,7 +842,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <a href="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
                                         <?php } ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
-                                        <a href="<?php echo sr_e(sr_url('/admin/content/copy?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
+                                        <?php
+                                        $contentCopyModalId = 'content-copy-modal-' . (string) (int) $page['id'];
+                                        $contentCopyModals .= $contentCopyModalHtml($page, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/content'));
+                                        ?>
+                                        <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCopyModalId); ?>" data-overlay="#<?php echo sr_e($contentCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                         <?php if ((string) $page['status'] !== 'hidden') { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>
@@ -810,6 +863,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </table>
         </div>
     </section>
+    <?php echo $contentCopyModals; ?>
     <?php echo sr_admin_pagination_html($pagePagination, '콘텐츠 목록 페이지'); ?>
 <?php } ?>
 

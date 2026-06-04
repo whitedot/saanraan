@@ -241,19 +241,22 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
     $postMap = [];
     $stmt = $pdo->prepare('SELECT * FROM sr_community_posts WHERE board_id = :board_id ORDER BY id ASC');
     $stmt->execute(['board_id' => $sourceBoardId]);
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
+    $categoryValueSql = $categorySupported ? ':category_id, ' : '';
+    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts') ? 'author_public_name_snapshot, ' : '';
+    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $insertPost = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, category_id, author_account_id, author_public_name_snapshot, title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, :category_id, :author_account_id, :author_public_name_snapshot, :title, :body_text, :body_format, :status, 0, :last_commented_at, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     foreach ($stmt->fetchAll() as $post) {
         $sourceCategoryId = (int) ($post['category_id'] ?? 0);
-        $insertPost->execute([
+        $params = [
             'board_id' => $newBoardId,
-            'category_id' => $sourceCategoryId > 0 && isset($categoryMap[$sourceCategoryId]) ? $categoryMap[$sourceCategoryId] : null,
             'author_account_id' => (int) $post['author_account_id'],
-            'author_public_name_snapshot' => (string) ($post['author_public_name_snapshot'] ?? ''),
             'title' => (string) $post['title'],
             'body_text' => (string) $post['body_text'],
             'body_format' => (string) ($post['body_format'] ?? 'plain'),
@@ -261,7 +264,14 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
             'last_commented_at' => $post['last_commented_at'] ?? null,
             'created_at' => (string) $post['created_at'],
             'updated_at' => (string) $post['updated_at'],
-        ]);
+        ];
+        if ($categorySupported) {
+            $params['category_id'] = $sourceCategoryId > 0 && isset($categoryMap[$sourceCategoryId]) ? $categoryMap[$sourceCategoryId] : null;
+        }
+        if ($authorSnapshotColumnSql !== '') {
+            $params['author_public_name_snapshot'] = (string) ($post['author_public_name_snapshot'] ?? '');
+        }
+        $insertPost->execute($params);
         $postMap[(int) $post['id']] = (int) $pdo->lastInsertId();
     }
 
@@ -275,25 +285,30 @@ function sr_community_copy_board_comments(PDO $pdo, array $postMap): void
     if ($postMap === []) {
         return;
     }
+    $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments') ? 'author_public_name_snapshot, ' : '';
+    $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $insert = $pdo->prepare(
         'INSERT INTO sr_community_comments
-            (post_id, author_account_id, author_public_name_snapshot, body_text, status, created_at, updated_at)
+            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, status, created_at, updated_at)
          VALUES
-            (:post_id, :author_account_id, :author_public_name_snapshot, :body_text, :status, :created_at, :updated_at)'
+            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, :status, :created_at, :updated_at)'
     );
     foreach ($postMap as $sourcePostId => $newPostId) {
         $stmt = $pdo->prepare('SELECT * FROM sr_community_comments WHERE post_id = :post_id ORDER BY id ASC');
         $stmt->execute(['post_id' => (int) $sourcePostId]);
         foreach ($stmt->fetchAll() as $comment) {
-            $insert->execute([
+            $params = [
                 'post_id' => (int) $newPostId,
                 'author_account_id' => (int) $comment['author_account_id'],
-                'author_public_name_snapshot' => (string) ($comment['author_public_name_snapshot'] ?? ''),
                 'body_text' => (string) $comment['body_text'],
                 'status' => (string) $comment['status'],
                 'created_at' => (string) $comment['created_at'],
                 'updated_at' => (string) $comment['updated_at'],
-            ]);
+            ];
+            if ($authorSnapshotColumnSql !== '') {
+                $params['author_public_name_snapshot'] = (string) ($comment['author_public_name_snapshot'] ?? '');
+            }
+            $insert->execute($params);
         }
     }
 }
