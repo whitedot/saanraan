@@ -120,17 +120,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $selectedDownloadFileStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-content-download-file-filter ui-form-theme">
-        <div class="table-filtering-fields admin-content-download-file-search-grid admin-content-filter-stack">
-                    <div class="table-filtering-field admin-content-download-file-filter-status">
-                        <span class="table-filtering-label">상태</span>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="filtering-form filtering filtering-plain admin-content-download-file-filter ui-form-theme">
+        <div class="filtering-fields admin-content-download-file-search-grid admin-content-filter-stack">
+                    <div class="filtering-field admin-content-download-file-filter-status">
+                        <span class="filtering-label">상태</span>
                         <?php echo sr_admin_filter_toggle_group_html('content_download_file_filter_status', 'status', ['active' => '사용', 'hidden' => '숨김'], $selectedDownloadFileStatuses, '전체'); ?>
                     </div>
-                    <div class="table-filtering-field admin-content-download-file-filter-keyword">
-                        <label for="content_download_file_filter_q" class="table-filtering-label">검색</label>
-                        <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
+                    <div class="filtering-field admin-content-download-file-filter-keyword">
+                        <label for="content_download_file_filter_q" class="filtering-label">검색</label>
+                        <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
                     </div>
-                    <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 

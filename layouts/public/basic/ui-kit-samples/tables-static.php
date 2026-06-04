@@ -28,67 +28,67 @@ $uiKitTableRows = [
 <div class="ui-kit-sample-section" data-ui-kit-sample="tables-static">
     <div class="container-fluid">
         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base ui-kit-space-after-base">
-            <form class="table-filtering table-filtering-plain" action="#" method="get">
-                <div class="table-filtering-fields">
-                    <label class="table-filtering-field" for="public_ui_table_filtering_plain_status">
+            <form class="filtering filtering-plain" action="#" method="get">
+                <div class="filtering-fields">
+                    <label class="filtering-field" for="public_ui_filtering_plain_status">
                         <span class="form-label">상태</span>
-                        <select id="public_ui_table_filtering_plain_status" class="form-select" name="status">
+                        <select id="public_ui_filtering_plain_status" class="form-select" name="status">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field" for="public_ui_table_filtering_plain_condition">
+                    <label class="filtering-field" for="public_ui_filtering_plain_condition">
                         <span class="form-label">검색 조건</span>
-                        <select id="public_ui_table_filtering_plain_condition" class="form-select" name="condition">
+                        <select id="public_ui_filtering_plain_condition" class="form-select" name="condition">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field-fill" for="public_ui_table_filtering_plain_keyword">
+                    <label class="filtering-field-fill" for="public_ui_filtering_plain_keyword">
                         <span class="form-label">검색어</span>
-                        <input id="public_ui_table_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
+                        <input id="public_ui_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
                     </label>
                 </div>
-                <div class="table-filtering-actions">
-                    <button type="submit" class="btn btn-solid-primary table-filtering-submit">검색</button>
+                <div class="filtering-actions">
+                    <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
                 </div>
             </form>
 
-            <form class="table-filtering table-filtering-card" action="#" method="get" data-table-filtering>
-                <div class="table-filtering-fields">
-                    <label class="table-filtering-field" for="public_ui_table_filtering_card_status">
+            <form class="filtering filtering-card" action="#" method="get" data-filtering>
+                <div class="filtering-fields">
+                    <label class="filtering-field" for="public_ui_filtering_card_status">
                         <span class="form-label">상태</span>
-                        <select id="public_ui_table_filtering_card_status" class="form-select" name="status">
+                        <select id="public_ui_filtering_card_status" class="form-select" name="status">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field" for="public_ui_table_filtering_card_condition">
+                    <label class="filtering-field" for="public_ui_filtering_card_condition">
                         <span class="form-label">검색 조건</span>
-                        <select id="public_ui_table_filtering_card_condition" class="form-select" name="condition">
+                        <select id="public_ui_filtering_card_condition" class="form-select" name="condition">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field-fill" for="public_ui_table_filtering_card_keyword">
+                    <label class="filtering-field-fill" for="public_ui_filtering_card_keyword">
                         <span class="form-label">검색어</span>
-                        <input id="public_ui_table_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
+                        <input id="public_ui_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
                     </label>
                 </div>
-                <div id="public_ui_table_filtering_card_detail" class="table-filtering-body" data-table-filtering-body hidden>
-                    <label class="table-filtering-field" for="public_ui_table_filtering_card_category">
+                <div id="public_ui_filtering_card_detail" class="filtering-body" data-filtering-body hidden>
+                    <label class="filtering-field" for="public_ui_filtering_card_category">
                         <span class="form-label">분류</span>
-                        <select id="public_ui_table_filtering_card_category" class="form-select" name="category">
+                        <select id="public_ui_filtering_card_category" class="form-select" name="category">
                             <option value="">전체</option>
                             <option>공지</option>
                             <option>가이드</option>
                         </select>
                     </label>
-                    <label class="table-filtering-field" for="public_ui_table_filtering_card_author">
+                    <label class="filtering-field" for="public_ui_filtering_card_author">
                         <span class="form-label">작성자</span>
-                        <input id="public_ui_table_filtering_card_author" type="text" class="form-input" name="author">
+                        <input id="public_ui_filtering_card_author" type="text" class="form-input" name="author">
                     </label>
                 </div>
-                <div class="table-filtering-actions">
-                    <button type="button" class="btn btn-solid-light table-filtering-toggle" data-table-filtering-toggle aria-expanded="false" aria-controls="public_ui_table_filtering_card_detail">상세검색</button>
-                    <button type="button" class="btn btn-outline-light" data-table-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
-                    <button type="submit" class="btn btn-solid-primary table-filtering-submit">검색</button>
+                <div class="filtering-actions">
+                    <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="false" aria-controls="public_ui_filtering_card_detail">상세검색</button>
+                    <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
+                    <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
                 </div>
             </form>
         </div>

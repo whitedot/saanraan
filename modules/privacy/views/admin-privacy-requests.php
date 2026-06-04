@@ -34,24 +34,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-privacy-request-filter ui-form-theme">
-    <div class="table-filtering-fields admin-privacy-request-search-grid">
-                <div class="table-filtering-field">
-                    <span class="table-filtering-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></span>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="filtering-form filtering filtering-plain admin-privacy-request-filter ui-form-theme">
+    <div class="filtering-fields admin-privacy-request-search-grid">
+                <div class="filtering-field">
+                    <span class="filtering-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></span>
                     <?php echo sr_admin_filter_toggle_group_html('privacy_request_status', 'status', sr_admin_code_label_options($allowedStatuses, 'privacy_request_status'), $selectedPrivacyRequestStatuses, sr_t('privacy::ui.all.a4b69faf')); ?>
                 </div>
-                <div class="table-filtering-field">
-                    <label for="privacy_request_type" class="table-filtering-label"><?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?></label>
-                    <select id="privacy_request_type" name="request_type" class="form-select table-filtering-input">
+                <div class="filtering-field">
+                    <label for="privacy_request_type" class="filtering-label"><?php echo sr_e(sr_t('privacy::ui.text.9305558c')); ?></label>
+                    <select id="privacy_request_type" name="request_type" class="form-select filtering-input">
                         <option value=""><?php echo sr_e(sr_t('privacy::ui.all.a4b69faf')); ?></option>
                         <?php foreach ($allowedTypes as $requestType) { ?>
                             <option value="<?php echo sr_e($requestType); ?>"<?php echo in_array($requestType, $selectedPrivacyRequestTypes, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                         <?php } ?>
                     </select>
                 </div>
-                <div class="table-filtering-field">
-                    <label for="privacy_request_search_field" class="table-filtering-label">검색조건</label>
-                    <select name="field" id="privacy_request_search_field" class="form-select table-filtering-input">
+                <div class="filtering-field">
+                    <label for="privacy_request_search_field" class="filtering-label">검색조건</label>
+                    <select name="field" id="privacy_request_search_field" class="form-select filtering-input">
                         <?php foreach (['all' => sr_t('privacy::ui.all.a4b69faf'), 'id' => sr_t('privacy::ui.id.ea1d060e'), 'account' => sr_t('privacy::ui.id.e2088e89'), 'requester' => sr_t('privacy::ui.text.16bf0f07'), 'message' => sr_t('privacy::ui.text.c165c36d'), 'note' => sr_t('privacy::ui.admin.35568056')] as $fieldValue => $fieldLabel) { ?>
                             <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($privacyRequestListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                 <?php echo sr_e($fieldLabel); ?>
@@ -59,11 +59,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 </div>
-                <div class="table-filtering-field">
-                    <label for="privacy_request_search_keyword" class="table-filtering-label"><?php echo sr_e(sr_t('privacy::ui.search.bda397fc')); ?></label>
-                    <input type="text" name="q" id="privacy_request_search_keyword" value="<?php echo sr_e((string) ($privacyRequestListFilters['q'] ?? '')); ?>" class="form-input table-filtering-input" placeholder="<?php echo sr_e(sr_t('privacy::ui.id.602ff8c1')); ?>">
+                <div class="filtering-field">
+                    <label for="privacy_request_search_keyword" class="filtering-label"><?php echo sr_e(sr_t('privacy::ui.search.bda397fc')); ?></label>
+                    <input type="text" name="q" id="privacy_request_search_keyword" value="<?php echo sr_e((string) ($privacyRequestListFilters['q'] ?? '')); ?>" class="form-input filtering-input" placeholder="<?php echo sr_e(sr_t('privacy::ui.id.602ff8c1')); ?>">
                 </div>
-                <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('privacy::ui.search.4b8d541e')); ?></button>
+                <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('privacy::ui.search.4b8d541e')); ?></button>
     </div>
 </form>
 

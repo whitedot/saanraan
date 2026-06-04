@@ -311,7 +311,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-field">
                         <div class="admin-permission-picker-grid">
                             <div class="admin-permission-picker-control">
-                                <label class="table-filtering-label" for="admin-permission-add-group">1차</label>
+                                <label class="filtering-label" for="admin-permission-add-group">1차</label>
                                 <select id="admin-permission-add-group" class="form-select form-control-full" data-admin-permission-group>
                                     <option value="">선택</option>
                                     <option value="__all_groups__">전체</option>
@@ -321,7 +321,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </select>
                             </div>
                             <div class="admin-permission-picker-control">
-                                <label class="table-filtering-label" for="admin-permission-add-item">2차</label>
+                                <label class="filtering-label" for="admin-permission-add-item">2차</label>
                                 <select id="admin-permission-add-item" class="form-select form-control-full" data-admin-permission-item disabled>
                                     <option value="">1차 선택 후 선택</option>
                                 </select>

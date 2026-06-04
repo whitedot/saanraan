@@ -154,11 +154,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url($pointAdminPage === 'transactions' ? '/admin/points/transactions' : '/admin/points/balances')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-asset-member-filter ui-form-theme">
-    <div class="table-filtering-fields admin-asset-member-search-grid">
-        <div class="table-filtering-field">
-            <label for="point-member-search-field" class="table-filtering-label">검색조건</label>
-            <select name="field" id="point-member-search-field" class="form-select table-filtering-input">
+<form method="get" action="<?php echo sr_e(sr_url($pointAdminPage === 'transactions' ? '/admin/points/transactions' : '/admin/points/balances')); ?>" class="filtering-form filtering filtering-plain admin-asset-member-filter ui-form-theme">
+    <div class="filtering-fields admin-asset-member-search-grid">
+        <div class="filtering-field">
+            <label for="point-member-search-field" class="filtering-label">검색조건</label>
+            <select name="field" id="point-member-search-field" class="form-select filtering-input">
                 <?php foreach (['all' => sr_t('point::ui.all.a4b69faf'), 'hash' => sr_t('point::ui.text.93971787'), 'email' => sr_t('point::ui.email.3b7dbc4c'), 'login_id' => sr_t('point::ui.login.0cdb28b5'), 'name' => sr_t('point::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($accountLookupFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                         <?php echo sr_e($fieldLabel); ?>
@@ -166,11 +166,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
         </div>
-        <div class="table-filtering-field admin-asset-member-filter-keyword">
-            <label for="point-member-search-keyword" class="table-filtering-label"><?php echo sr_e(sr_t('point::ui.search.bda397fc')); ?></label>
-            <input type="text" id="point-member-search-keyword" name="q" value="<?php echo sr_e((string) ($accountLookupFilter['keyword'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('point::ui.email.login.name.c26ba637')); ?>">
+        <div class="filtering-field admin-asset-member-filter-keyword">
+            <label for="point-member-search-keyword" class="filtering-label"><?php echo sr_e(sr_t('point::ui.search.bda397fc')); ?></label>
+            <input type="text" id="point-member-search-keyword" name="q" value="<?php echo sr_e((string) ($accountLookupFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('point::ui.email.login.name.c26ba637')); ?>">
         </div>
-        <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('point::ui.search.4b8d541e')); ?></button>
+        <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('point::ui.search.4b8d541e')); ?></button>
     </div>
 </form>
 

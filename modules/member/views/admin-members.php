@@ -257,13 +257,13 @@ foreach ($allowedStatuses as $status) {
     $memberStatusFilterOptions[$status] = sr_admin_code_label($status, 'member_status');
 }
 ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="table-filtering-form admin-member-filter ui-form-theme">
-    <div class="table-filtering-fields admin-member-search-grid">
-        <div class="table-filtering table-filtering-card<?php echo $memberDetailFilterOpen ? ' table-filtering-open' : ''; ?>" data-table-filtering>
-            <div class="table-filtering-fields">
-                <div class="table-filtering-field admin-member-filter-field">
-                    <label for="member-search-field" class="table-filtering-label">검색조건</label>
-                    <select name="field" id="member-search-field" class="form-select table-filtering-input">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="filtering-form admin-member-filter ui-form-theme">
+    <div class="filtering-fields admin-member-search-grid">
+        <div class="filtering filtering-card<?php echo $memberDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+            <div class="filtering-fields">
+                <div class="filtering-field admin-member-filter-field">
+                    <label for="member-search-field" class="filtering-label">검색조건</label>
+                    <select name="field" id="member-search-field" class="form-select filtering-input">
                         <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'hash' => sr_t('member::ui.text.93971787'), 'email' => sr_t('member::ui.email.3b7dbc4c'), 'login_id' => sr_t('member::ui.login.0cdb28b5'), 'name' => sr_t('member::ui.public_name')] as $fieldValue => $fieldLabel) { ?>
                             <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($searchFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                 <?php echo sr_e($fieldLabel); ?>
@@ -271,21 +271,21 @@ foreach ($allowedStatuses as $status) {
                         <?php } ?>
                     </select>
                 </div>
-                <div class="table-filtering-field-fill table-filtering-field admin-member-filter-keyword">
-                    <label for="member-search-keyword" class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                    <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input table-filtering-input" placeholder="<?php echo sr_e(sr_t('member::ui.email.login.name.c26ba637')); ?>">
+                <div class="filtering-field-fill filtering-field admin-member-filter-keyword">
+                    <label for="member-search-keyword" class="filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
+                    <input type="text" id="member-search-keyword" name="q" value="<?php echo sr_e((string) ($searchFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" placeholder="<?php echo sr_e(sr_t('member::ui.email.login.name.c26ba637')); ?>">
                 </div>
             </div>
-            <div id="member_admin_detail_filters" class="table-filtering-body" data-table-filtering-body<?php echo $memberDetailFilterOpen ? '' : ' hidden'; ?>>
-                <div class="table-filtering-field admin-member-filter-status">
-                    <span class="table-filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
+            <div id="member_admin_detail_filters" class="filtering-body" data-filtering-body<?php echo $memberDetailFilterOpen ? '' : ' hidden'; ?>>
+                <div class="filtering-field admin-member-filter-status">
+                    <span class="filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
                     <?php echo sr_admin_filter_toggle_group_html('admin-status-filter', 'status', $memberStatusFilterOptions, $selectedMemberStatuses, sr_t('member::ui.all.a4b69faf')); ?>
                 </div>
             </div>
-            <div class="table-filtering-actions">
-                <button type="button" class="btn btn-solid-light table-filtering-toggle" data-table-filtering-toggle aria-expanded="<?php echo $memberDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="member_admin_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-table-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
-                <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
+            <div class="filtering-actions">
+                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $memberDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="member_admin_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
             </div>
         </div>
     </div>

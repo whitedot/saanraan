@@ -19,13 +19,13 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
     || (string) ($filters['date_from'] ?? '') !== ''
     || (string) ($filters['date_to'] ?? '') !== '';
 ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/content/file-downloads')); ?>" class="table-filtering-form admin-content-file-download-filter ui-form-theme">
-    <div class="table-filtering-fields admin-content-file-download-search-grid admin-content-filter-stack">
-        <div class="table-filtering table-filtering-card<?php echo $downloadLogDetailFilterOpen ? ' table-filtering-open' : ''; ?>" data-table-filtering>
-            <div class="table-filtering-fields">
-                <div class="table-filtering-field">
-                    <label for="content_file_download_filter_type" class="table-filtering-label">구분</label>
-                    <select id="content_file_download_filter_type" name="download_type" class="form-select table-filtering-input">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/content/file-downloads')); ?>" class="filtering-form admin-content-file-download-filter ui-form-theme">
+    <div class="filtering-fields admin-content-file-download-search-grid admin-content-filter-stack">
+        <div class="filtering filtering-card<?php echo $downloadLogDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+            <div class="filtering-fields">
+                <div class="filtering-field">
+                    <label for="content_file_download_filter_type" class="filtering-label">구분</label>
+                    <select id="content_file_download_filter_type" name="download_type" class="form-select filtering-input">
                         <option value="">전체</option>
                         <?php foreach (['free' => '무료', 'paid' => '유료'] as $downloadType => $downloadTypeLabel) { ?>
                             <option value="<?php echo sr_e($downloadType); ?>"<?php echo in_array($downloadType, $selectedDownloadTypes, true) ? ' selected' : ''; ?>>
@@ -34,42 +34,42 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                         <?php } ?>
                     </select>
                 </div>
-                <div class="table-filtering-field">
-                    <span class="table-filtering-label">환불 상태</span>
+                <div class="filtering-field">
+                    <span class="filtering-label">환불 상태</span>
                     <?php $refundStatusOptions = ['none' => '미처리', 'refunded' => '환불 완료', 'access_revoked' => '접근권 회수']; ?>
                     <?php echo sr_admin_filter_toggle_group_html('content_file_download_filter_refund_status', 'refund_status', $refundStatusOptions, $selectedRefundStatuses, '전체'); ?>
                 </div>
-                <label class="table-filtering-field-fill table-filtering-field" for="content_file_download_filter_q">
-                    <span class="table-filtering-label">검색</span>
-                    <input id="content_file_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="콘텐츠, 파일, 회원">
+                <label class="filtering-field-fill filtering-field" for="content_file_download_filter_q">
+                    <span class="filtering-label">검색</span>
+                    <input id="content_file_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="콘텐츠, 파일, 회원">
                 </label>
             </div>
-            <div id="content_file_download_detail_filters" class="table-filtering-body" data-table-filtering-body<?php echo $downloadLogDetailFilterOpen ? '' : ' hidden'; ?>>
-                <label class="table-filtering-field" for="content_file_download_filter_content_id">
-                    <span class="table-filtering-label">콘텐츠 ID</span>
-                    <input id="content_file_download_filter_content_id" type="number" min="1" name="content_id" value="<?php echo (int) ($filters['content_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['content_id']) : ''; ?>" class="form-input table-filtering-input">
+            <div id="content_file_download_detail_filters" class="filtering-body" data-filtering-body<?php echo $downloadLogDetailFilterOpen ? '' : ' hidden'; ?>>
+                <label class="filtering-field" for="content_file_download_filter_content_id">
+                    <span class="filtering-label">콘텐츠 ID</span>
+                    <input id="content_file_download_filter_content_id" type="number" min="1" name="content_id" value="<?php echo (int) ($filters['content_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['content_id']) : ''; ?>" class="form-input filtering-input">
                 </label>
-                <label class="table-filtering-field" for="content_file_download_filter_file_id">
-                    <span class="table-filtering-label">파일 ID</span>
-                    <input id="content_file_download_filter_file_id" type="number" min="1" name="file_id" value="<?php echo (int) ($filters['file_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['file_id']) : ''; ?>" class="form-input table-filtering-input">
+                <label class="filtering-field" for="content_file_download_filter_file_id">
+                    <span class="filtering-label">파일 ID</span>
+                    <input id="content_file_download_filter_file_id" type="number" min="1" name="file_id" value="<?php echo (int) ($filters['file_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['file_id']) : ''; ?>" class="form-input filtering-input">
                 </label>
-                <label class="table-filtering-field" for="content_file_download_filter_account_id">
-                    <span class="table-filtering-label">회원 ID</span>
-                    <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input table-filtering-input">
+                <label class="filtering-field" for="content_file_download_filter_account_id">
+                    <span class="filtering-label">회원 ID</span>
+                    <input id="content_file_download_filter_account_id" type="number" min="1" name="account_id" value="<?php echo (int) ($filters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['account_id']) : ''; ?>" class="form-input filtering-input">
                 </label>
-                <label class="table-filtering-field" for="content_file_download_filter_date_from">
-                    <span class="table-filtering-label">시작일</span>
-                    <input id="content_file_download_filter_date_from" type="date" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>" class="form-input table-filtering-input">
+                <label class="filtering-field" for="content_file_download_filter_date_from">
+                    <span class="filtering-label">시작일</span>
+                    <input id="content_file_download_filter_date_from" type="date" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>" class="form-input filtering-input">
                 </label>
-                <label class="table-filtering-field" for="content_file_download_filter_date_to">
-                    <span class="table-filtering-label">종료일</span>
-                    <input id="content_file_download_filter_date_to" type="date" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>" class="form-input table-filtering-input">
+                <label class="filtering-field" for="content_file_download_filter_date_to">
+                    <span class="filtering-label">종료일</span>
+                    <input id="content_file_download_filter_date_to" type="date" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>" class="form-input filtering-input">
                 </label>
             </div>
-            <div class="table-filtering-actions">
-                <button type="button" class="btn btn-solid-light table-filtering-toggle" data-table-filtering-toggle aria-expanded="<?php echo $downloadLogDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="content_file_download_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-table-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
-                <button type="submit" class="btn btn-solid-primary table-filtering-submit">검색</button>
+            <div class="filtering-actions">
+                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $downloadLogDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="content_file_download_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
             </div>
         </div>
     </div>

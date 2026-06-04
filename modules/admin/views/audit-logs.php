@@ -11,7 +11,7 @@ $auditResultFilters = is_array($filters['result'] ?? null) ? $filters['result'] 
 $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['actor_type'] : [];
 ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-audit-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="filtering-form filtering filtering-plain admin-audit-filter ui-form-theme">
     <?php if (($filters['event_type'] ?? '') !== '') { ?>
         <input type="hidden" name="event_type" value="<?php echo sr_e((string) $filters['event_type']); ?>">
     <?php } ?>
@@ -21,12 +21,12 @@ $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['ac
     <?php if (($filters['target_id'] ?? '') !== '') { ?>
         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $filters['target_id']); ?>">
     <?php } ?>
-    <div class="table-filtering-header">
+    <div class="filtering-header">
         <strong class="type-small"><?php echo sr_e(sr_t('admin::ui.search.3aa5fca0')); ?></strong>
     </div>
-    <div class="table-filtering-fields admin-audit-search-grid">
-        <div class="table-filtering-field admin-audit-filter-field">
-            <label for="modules_admin_audit_logs_field" class="table-filtering-label">검색조건</label>
+    <div class="filtering-fields admin-audit-search-grid">
+        <div class="filtering-field admin-audit-filter-field">
+            <label for="modules_admin_audit_logs_field" class="filtering-label">검색조건</label>
             <select id="modules_admin_audit_logs_field" name="field" class="form-select">
                 <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 식별값', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c')] as $value => $label) { ?>
                     <option value="<?php echo sr_e($value); ?>"<?php echo $filters['field'] === $value ? ' selected' : ''; ?>>
@@ -35,8 +35,8 @@ $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['ac
                 <?php } ?>
             </select>
         </div>
-        <div class="table-filtering-field admin-audit-filter-result">
-            <span class="table-filtering-label"><?php echo sr_e(sr_t('admin::ui.text.109383e3')); ?></span>
+        <div class="filtering-field admin-audit-filter-result">
+            <span class="filtering-label"><?php echo sr_e(sr_t('admin::ui.text.109383e3')); ?></span>
             <div class="admin-check-list admin-audit-check-list">
                 <?php foreach (['success' => sr_t('admin::ui.text.b4f76a33'), 'failure' => sr_t('admin::ui.text.2743911f')] as $value => $label) { ?>
                     <?php $inputId = 'modules_admin_audit_logs_result_' . $value; ?>
@@ -47,8 +47,8 @@ $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['ac
                 <?php } ?>
             </div>
         </div>
-        <div class="table-filtering-field admin-audit-filter-actor-type">
-            <span class="table-filtering-label">처리자 유형</span>
+        <div class="filtering-field admin-audit-filter-actor-type">
+            <span class="filtering-label">처리자 유형</span>
             <div class="admin-check-list admin-audit-check-list">
                 <?php foreach (['admin' => sr_admin_code_label('admin', 'actor_type'), 'member' => sr_admin_code_label('member', 'actor_type'), 'system' => sr_admin_code_label('system', 'actor_type')] as $value => $label) { ?>
                     <?php $inputId = 'modules_admin_audit_logs_actor_type_' . $value; ?>
@@ -59,23 +59,23 @@ $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['ac
                 <?php } ?>
             </div>
         </div>
-        <div class="table-filtering-field admin-audit-filter-ip">
-            <label for="modules_admin_audit_logs_ip_address" class="table-filtering-label">IP</label>
+        <div class="filtering-field admin-audit-filter-ip">
+            <label for="modules_admin_audit_logs_ip_address" class="filtering-label">IP</label>
             <input id="modules_admin_audit_logs_ip_address" type="text" name="ip_address" value="<?php echo sr_e((string) ($filters['ip_address'] ?? '')); ?>" class="form-input" maxlength="45" placeholder="127.0.0.1">
         </div>
-        <div class="table-filtering-field admin-audit-filter-date">
-            <label for="modules_admin_audit_logs_date_from" class="table-filtering-label"><?php echo sr_e(sr_t('admin::ui.text.f86e346d')); ?></label>
+        <div class="filtering-field admin-audit-filter-date">
+            <label for="modules_admin_audit_logs_date_from" class="filtering-label"><?php echo sr_e(sr_t('admin::ui.text.f86e346d')); ?></label>
             <input id="modules_admin_audit_logs_date_from" type="date" name="date_from" value="<?php echo sr_e($filters['date_from']); ?>" class="form-input">
         </div>
-        <div class="table-filtering-field admin-audit-filter-date">
-            <label for="modules_admin_audit_logs_date_to" class="table-filtering-label"><?php echo sr_e(sr_t('admin::ui.text.9e586213')); ?></label>
+        <div class="filtering-field admin-audit-filter-date">
+            <label for="modules_admin_audit_logs_date_to" class="filtering-label"><?php echo sr_e(sr_t('admin::ui.text.9e586213')); ?></label>
             <input id="modules_admin_audit_logs_date_to" type="date" name="date_to" value="<?php echo sr_e($filters['date_to']); ?>" class="form-input">
         </div>
-        <div class="table-filtering-field admin-audit-filter-keyword">
-            <label for="modules_admin_audit_logs_keyword" class="table-filtering-label"><?php echo sr_e(sr_t('admin::ui.search.bda397fc')); ?></label>
+        <div class="filtering-field admin-audit-filter-keyword">
+            <label for="modules_admin_audit_logs_keyword" class="filtering-label"><?php echo sr_e(sr_t('admin::ui.search.bda397fc')); ?></label>
             <input id="modules_admin_audit_logs_keyword" type="text" name="q" value="<?php echo sr_e($filters['q']); ?>" class="form-input" maxlength="80" placeholder="<?php echo sr_e(sr_t('admin::ui.id.f8d506bd')); ?>">
         </div>
-        <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('admin::ui.text.f8d240bf')); ?></button>
+        <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('admin::ui.text.f8d240bf')); ?></button>
     </div>
     <?php if (($filters['event_type'] ?? '') !== '' || ($filters['target_type'] ?? '') !== '' || ($filters['target_id'] ?? '') !== '' || $auditResultFilters !== [] || $auditActorTypeFilters !== [] || ($filters['ip_address'] ?? '') !== '') { ?>
         <div class="admin-summary-stats">

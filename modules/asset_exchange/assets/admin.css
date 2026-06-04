@@ -1,4 +1,4 @@
-.table-filtering-fields.admin-asset-exchange-search-grid {
+.filtering-fields.admin-asset-exchange-search-grid {
     gap: .875rem;
     grid-template-columns: repeat(3, minmax(0, max-content)) max-content;
     justify-content: start;
@@ -6,7 +6,7 @@
     width: fit-content;
 }
 
-.table-filtering-fields.admin-asset-exchange-log-search-grid {
+.filtering-fields.admin-asset-exchange-log-search-grid {
     gap: .875rem;
     grid-template-columns: max-content max-content max-content minmax(16rem, 1fr) max-content;
     justify-content: start;
@@ -24,7 +24,7 @@
     width: 100%;
 }
 
-.admin-asset-exchange-search-grid .table-filtering-field {
+.admin-asset-exchange-search-grid .filtering-field {
     border: 0;
     margin: 0;
     min-width: 0;
@@ -32,7 +32,7 @@
     width: fit-content;
 }
 
-.admin-asset-exchange-log-search-grid .table-filtering-field {
+.admin-asset-exchange-log-search-grid .filtering-field {
     min-width: 0;
     width: fit-content;
 }
@@ -42,37 +42,37 @@
     width: auto;
 }
 
-.admin-asset-exchange-log-filter-keyword .table-filtering-input {
+.admin-asset-exchange-log-filter-keyword .filtering-input {
     width: 100%;
 }
 
-.admin-asset-exchange-search-grid .table-filtering-submit {
+.admin-asset-exchange-search-grid .filtering-submit {
     min-width: 5rem;
     width: fit-content;
 }
 
-.admin-asset-exchange-log-search-grid .table-filtering-submit {
+.admin-asset-exchange-log-search-grid .filtering-submit {
     width: fit-content;
 }
 
 @media (max-width: 1023px) {
     .admin-asset-exchange-filter,
     .admin-asset-exchange-log-filter,
-    .table-filtering-fields.admin-asset-exchange-search-grid,
-    .table-filtering-fields.admin-asset-exchange-log-search-grid,
-    .admin-asset-exchange-search-grid .table-filtering-field,
-    .admin-asset-exchange-log-search-grid .table-filtering-field,
+    .filtering-fields.admin-asset-exchange-search-grid,
+    .filtering-fields.admin-asset-exchange-log-search-grid,
+    .admin-asset-exchange-search-grid .filtering-field,
+    .admin-asset-exchange-log-search-grid .filtering-field,
     .admin-asset-exchange-log-filter-keyword,
-    .admin-asset-exchange-search-grid .table-filtering-submit {
+    .admin-asset-exchange-search-grid .filtering-submit {
         width: 100%;
     }
 
-    .table-filtering-fields.admin-asset-exchange-search-grid,
-    .table-filtering-fields.admin-asset-exchange-log-search-grid {
+    .filtering-fields.admin-asset-exchange-search-grid,
+    .filtering-fields.admin-asset-exchange-log-search-grid {
         grid-template-columns: 1fr;
     }
 
-    .admin-asset-exchange-log-search-grid .table-filtering-submit {
+    .admin-asset-exchange-log-search-grid .filtering-submit {
         width: 100%;
     }
 }

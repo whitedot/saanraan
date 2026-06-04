@@ -1400,12 +1400,12 @@
     select.selectedIndex = defaultIndex >= 0 ? defaultIndex : (options.length > 0 ? 0 : -1);
   }
 
-  function clearTableFiltering(tableFiltering) {
-    if (!tableFiltering) {
+  function clearFiltering(filtering) {
+    if (!filtering) {
       return;
     }
 
-    tableFiltering.querySelectorAll('[data-admin-select-badge-list]').forEach(function (root) {
+    filtering.querySelectorAll('[data-admin-select-badge-list]').forEach(function (root) {
       root.querySelectorAll('[data-admin-select-badge-item]').forEach(function (item) {
         item.remove();
       });
@@ -1415,7 +1415,7 @@
       });
     });
 
-    tableFiltering.querySelectorAll('input, select, textarea').forEach(function (control) {
+    filtering.querySelectorAll('input, select, textarea').forEach(function (control) {
       if (!control || control.disabled || control.type === 'hidden') {
         return;
       }
@@ -1438,12 +1438,12 @@
     });
   }
 
-  function tableFilteringControlIsActive(control) {
+  function filteringControlIsActive(control) {
     if (!control || control.disabled || control.type === 'hidden') {
       return false;
     }
     if (control.matches('[type="checkbox"], [type="radio"]')) {
-      return control.checked && !control.matches('[data-table-filtering-toggle-all]') && control.value !== '' && control.value !== '0';
+      return control.checked && !control.matches('[data-filtering-toggle-all]') && control.value !== '' && control.value !== '0';
     }
     if (control.tagName === 'SELECT') {
       return control.value !== '' && control.value !== '0';
@@ -1451,37 +1451,37 @@
     return String(control.value || '').trim() !== '';
   }
 
-  function tableFilteringFieldHasSelection(field) {
-    return !!(field && field.querySelector('select, [data-table-filtering-toggle-group], .admin-check-list input[type="checkbox"]'));
+  function filteringFieldHasSelection(field) {
+    return !!(field && field.querySelector('select, [data-filtering-toggle-group], .admin-check-list input[type="checkbox"]'));
   }
 
-  function tableFilteringFieldIsPrimary(field) {
+  function filteringFieldIsPrimary(field) {
     return !!(field && (
       field.querySelector('select[name="field"]') ||
       field.querySelector('input[name="q"], textarea[name="q"]')
     ));
   }
 
-  function tableFilteringFieldIsActive(field) {
+  function filteringFieldIsActive(field) {
     if (!field) {
       return false;
     }
-    return Array.prototype.some.call(field.querySelectorAll('input, select, textarea'), tableFilteringControlIsActive);
+    return Array.prototype.some.call(field.querySelectorAll('input, select, textarea'), filteringControlIsActive);
   }
 
-  function enhancePlainTableFiltering() {
+  function enhancePlainFiltering() {
     var autoIndex = 0;
 
-    document.querySelectorAll('form.table-filtering-form.table-filtering-plain:not([data-table-filtering-enhanced])').forEach(function (form) {
-      var grid = form.querySelector(':scope > .table-filtering-fields');
+    document.querySelectorAll('form.filtering-form.filtering-plain:not([data-filtering-enhanced])').forEach(function (form) {
+      var grid = form.querySelector(':scope > .filtering-fields');
       if (!grid) {
         return;
       }
 
       var children = Array.prototype.slice.call(grid.children);
-      var selectableCount = children.filter(tableFilteringFieldHasSelection).length;
+      var selectableCount = children.filter(filteringFieldHasSelection).length;
       if (selectableCount < 3) {
-        form.setAttribute('data-table-filtering-enhanced', 'skipped');
+        form.setAttribute('data-filtering-enhanced', 'skipped');
         return;
       }
 
@@ -1491,51 +1491,51 @@
       var fields = children.filter(function (child) {
         return child !== submit;
       });
-      var primaryFields = fields.filter(tableFilteringFieldIsPrimary);
+      var primaryFields = fields.filter(filteringFieldIsPrimary);
       var detailFields = fields.filter(function (field) {
         return primaryFields.indexOf(field) === -1;
       });
 
       if (primaryFields.length === 0 || detailFields.length === 0) {
-        form.setAttribute('data-table-filtering-enhanced', 'skipped');
+        form.setAttribute('data-filtering-enhanced', 'skipped');
         return;
       }
 
-      var detailOpen = detailFields.some(tableFilteringFieldIsActive);
-      var detailId = (form.id || 'admin_auto_table_filtering') + '_detail_' + String(autoIndex);
+      var detailOpen = detailFields.some(filteringFieldIsActive);
+      var detailId = (form.id || 'admin_auto_filtering') + '_detail_' + String(autoIndex);
       autoIndex += 1;
 
       var card = document.createElement('div');
-      card.className = 'table-filtering table-filtering-card' + (detailOpen ? ' table-filtering-open' : '');
-      card.setAttribute('data-table-filtering', '');
+      card.className = 'filtering filtering-card' + (detailOpen ? ' filtering-open' : '');
+      card.setAttribute('data-filtering', '');
 
       var fieldWrap = document.createElement('div');
-      fieldWrap.className = 'table-filtering-fields';
+      fieldWrap.className = 'filtering-fields';
       primaryFields.forEach(function (field) {
-        field.classList.add('table-filtering-field');
+        field.classList.add('filtering-field');
         if (field.querySelector('input[name="q"], textarea[name="q"]')) {
-          field.classList.add('table-filtering-field-fill');
+          field.classList.add('filtering-field-fill');
         }
         fieldWrap.appendChild(field);
       });
 
       var detailWrap = document.createElement('div');
       detailWrap.id = detailId;
-      detailWrap.className = 'table-filtering-body';
-      detailWrap.setAttribute('data-table-filtering-body', '');
+      detailWrap.className = 'filtering-body';
+      detailWrap.setAttribute('data-filtering-body', '');
       detailWrap.hidden = !detailOpen;
       detailFields.forEach(function (field) {
-        field.classList.add('table-filtering-field');
+        field.classList.add('filtering-field');
         detailWrap.appendChild(field);
       });
 
       var actions = document.createElement('div');
-      actions.className = 'table-filtering-actions';
+      actions.className = 'filtering-actions';
 
       var toggle = document.createElement('button');
       toggle.type = 'button';
-      toggle.className = 'btn btn-solid-light table-filtering-toggle';
-      toggle.setAttribute('data-table-filtering-toggle', '');
+      toggle.className = 'btn btn-solid-light filtering-toggle';
+      toggle.setAttribute('data-filtering-toggle', '');
       toggle.setAttribute('aria-expanded', detailOpen ? 'true' : 'false');
       toggle.setAttribute('aria-controls', detailId);
       toggle.textContent = '상세검색';
@@ -1544,7 +1544,7 @@
       var reset = document.createElement('button');
       reset.type = 'button';
       reset.className = 'btn btn-outline-light';
-      reset.setAttribute('data-table-filtering-reset', '');
+      reset.setAttribute('data-filtering-reset', '');
       reset.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화';
       actions.appendChild(reset);
 
@@ -1556,8 +1556,8 @@
       card.appendChild(detailWrap);
       card.appendChild(actions);
       grid.appendChild(card);
-      form.classList.remove('table-filtering', 'table-filtering-plain');
-      form.setAttribute('data-table-filtering-enhanced', 'card');
+      form.classList.remove('filtering', 'filtering-plain');
+      form.setAttribute('data-filtering-enhanced', 'card');
     });
   }
 
@@ -1569,7 +1569,7 @@
     if (!select || select.multiple || !select.name || select.disabled || select.dataset.adminDetailRadioToggleSource === '1') {
       return false;
     }
-    if (!select.closest('[data-table-filtering-body]')) {
+    if (!select.closest('[data-filtering-body]')) {
       return false;
     }
     return select.options && select.options.length > 0;
@@ -1578,7 +1578,7 @@
   function enhanceDetailSelects() {
     var index = 0;
 
-    document.querySelectorAll('[data-table-filtering-body] select:not([data-admin-detail-radio-toggle-source])').forEach(function (select) {
+    document.querySelectorAll('[data-filtering-body] select:not([data-admin-detail-radio-toggle-source])').forEach(function (select) {
       if (!detailSelectShouldBecomeRadio(select)) {
         return;
       }
@@ -1593,9 +1593,9 @@
         return;
       }
 
-      group.className = 'table-filtering-toggle-group table-filtering-radio-toggle-group';
-      group.setAttribute('data-table-filtering-radio-toggle-group', '');
-      group.setAttribute('data-table-filtering-radio-source', '#' + selectId);
+      group.className = 'filtering-toggle-group filtering-radio-toggle-group';
+      group.setAttribute('data-filtering-radio-toggle-group', '');
+      group.setAttribute('data-filtering-radio-source', '#' + selectId);
 
       options.forEach(function (option, optionIndex) {
         var id = selectId + '_radio_' + String(index) + '_' + String(optionIndex);
@@ -1604,13 +1604,13 @@
         var label = document.createElement('label');
         var groupClass = optionIndex === 0 ? 'btn-group-start' : (optionIndex === options.length - 1 ? 'btn-group-end' : 'btn-group-middle');
 
-        item.className = 'table-filtering-toggle-item';
+        item.className = 'filtering-toggle-item';
         input.id = id;
         input.type = 'radio';
         input.name = select.name;
         input.value = option.value;
         input.className = 'form-choice-toggle-input sr-only';
-        input.setAttribute('data-table-filtering-radio-toggle-choice', '');
+        input.setAttribute('data-filtering-radio-toggle-choice', '');
         if (option.selected || select.value === option.value) {
           input.checked = true;
         }
@@ -1640,8 +1640,8 @@
       return;
     }
 
-    var allControl = group.querySelector('[data-table-filtering-toggle-all]');
-    var choices = Array.prototype.slice.call(group.querySelectorAll('[data-table-filtering-toggle-choice]'));
+    var allControl = group.querySelector('[data-filtering-toggle-all]');
+    var choices = Array.prototype.slice.call(group.querySelectorAll('[data-filtering-toggle-choice]'));
 
     if (!allControl || choices.length === 0) {
       return;
@@ -1687,55 +1687,55 @@
     }
   }
 
-  function initTableFilteringEnhancements() {
-    enhancePlainTableFiltering();
+  function initFilteringEnhancements() {
+    enhancePlainFiltering();
     enhanceDetailSelects();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initTableFilteringEnhancements);
+    document.addEventListener('DOMContentLoaded', initFilteringEnhancements);
   } else {
-    initTableFilteringEnhancements();
+    initFilteringEnhancements();
   }
 
   document.addEventListener('click', function (event) {
     var target = getElementTarget(event.target);
-    var tableFilteringToggle = target && target.closest('[data-table-filtering-toggle]');
+    var filteringToggle = target && target.closest('[data-filtering-toggle]');
 
-    if (tableFilteringToggle) {
-      var tableFiltering = tableFilteringToggle.closest('[data-table-filtering]');
-      var tableFilteringBody = tableFiltering ? tableFiltering.querySelector('[data-table-filtering-body]') : null;
+    if (filteringToggle) {
+      var filtering = filteringToggle.closest('[data-filtering]');
+      var filteringBody = filtering ? filtering.querySelector('[data-filtering-body]') : null;
 
-      if (tableFilteringBody) {
+      if (filteringBody) {
         event.preventDefault();
 
-        var expanded = tableFilteringToggle.getAttribute('aria-expanded') === 'true';
-        tableFilteringToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        tableFiltering.classList.toggle('table-filtering-open', !expanded);
-        tableFilteringBody.hidden = expanded;
+        var expanded = filteringToggle.getAttribute('aria-expanded') === 'true';
+        filteringToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        filtering.classList.toggle('filtering-open', !expanded);
+        filteringBody.hidden = expanded;
       }
       return;
     }
 
-    var tableFilteringReset = target && target.closest('[data-table-filtering-reset]');
+    var filteringReset = target && target.closest('[data-filtering-reset]');
 
-    if (tableFilteringReset) {
+    if (filteringReset) {
       event.preventDefault();
-      clearTableFiltering(tableFilteringReset.closest('[data-table-filtering]'));
+      clearFiltering(filteringReset.closest('[data-filtering]'));
       return;
     }
 
-    var filterToggleAll = target && target.closest('[data-table-filtering-toggle-all]');
+    var filterToggleAll = target && target.closest('[data-filtering-toggle-all]');
 
     if (filterToggleAll) {
-      syncFilterCheckboxToggleGroup(filterToggleAll.closest('[data-table-filtering-toggle-group]'), filterToggleAll);
+      syncFilterCheckboxToggleGroup(filterToggleAll.closest('[data-filtering-toggle-group]'), filterToggleAll);
       return;
     }
 
-    var filterToggleChoice = target && target.closest('[data-table-filtering-toggle-choice]');
+    var filterToggleChoice = target && target.closest('[data-filtering-toggle-choice]');
 
     if (filterToggleChoice) {
-      syncFilterCheckboxToggleGroup(filterToggleChoice.closest('[data-table-filtering-toggle-group]'), filterToggleChoice);
+      syncFilterCheckboxToggleGroup(filterToggleChoice.closest('[data-filtering-toggle-group]'), filterToggleChoice);
       return;
     }
 

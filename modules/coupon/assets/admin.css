@@ -1,4 +1,4 @@
-.admin-coupon-filter .table-filtering-fields {
+.admin-coupon-filter .filtering-fields {
     gap: .875rem;
     justify-content: start;
 }
@@ -21,12 +21,12 @@
     width: 1%;
 }
 
-.admin-coupon-filter .table-filtering-field {
+.admin-coupon-filter .filtering-field {
     min-width: 0;
     width: fit-content;
 }
 
-.admin-coupon-filter .table-filtering-input {
+.admin-coupon-filter .filtering-input {
     width: fit-content;
 }
 
@@ -35,11 +35,11 @@
     width: auto;
 }
 
-.admin-coupon-filter .admin-coupon-filter-keyword .table-filtering-input {
+.admin-coupon-filter .admin-coupon-filter-keyword .filtering-input {
     width: 100%;
 }
 
-.admin-coupon-filter .table-filtering-submit {
+.admin-coupon-filter .filtering-submit {
     width: fit-content;
 }
 
@@ -50,9 +50,9 @@
         grid-template-columns: 1fr;
     }
 
-    .admin-coupon-filter .table-filtering-field,
-    .admin-coupon-filter .table-filtering-input,
-    .admin-coupon-filter .table-filtering-submit {
+    .admin-coupon-filter .filtering-field,
+    .admin-coupon-filter .filtering-input,
+    .admin-coupon-filter .filtering-submit {
         width: 100%;
     }
 }

@@ -36,10 +36,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/series')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-community-series-filter ui-form-theme">
-    <div class="table-filtering-fields admin-community-series-search-grid">
-            <div class="table-filtering-field admin-community-series-filter-status">
-                <span class="table-filtering-label">상태</span>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/series')); ?>" class="filtering-form filtering filtering-plain admin-community-series-filter ui-form-theme">
+    <div class="filtering-fields admin-community-series-search-grid">
+            <div class="filtering-field admin-community-series-filter-status">
+                <span class="filtering-label">상태</span>
                 <?php
                 $communitySeriesStatusOptions = [];
                 foreach (sr_community_series_statuses() as $status) {
@@ -48,9 +48,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 echo sr_admin_filter_toggle_group_html('community_series_filter_status', 'status', $communitySeriesStatusOptions, $selectedSeriesStatuses, '전체');
                 ?>
             </div>
-            <div class="table-filtering-field admin-community-series-filter-visibility">
-                <label for="community_series_filter_visibility" class="table-filtering-label">공개 범위</label>
-                <select id="community_series_filter_visibility" name="visibility" class="form-select table-filtering-input">
+            <div class="filtering-field admin-community-series-filter-visibility">
+                <label for="community_series_filter_visibility" class="filtering-label">공개 범위</label>
+                <select id="community_series_filter_visibility" name="visibility" class="form-select filtering-input">
                     <option value="">전체</option>
                     <?php foreach (sr_community_series_visibility_values() as $visibility) { ?>
                         <option value="<?php echo sr_e($visibility); ?>"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' selected' : ''; ?>>
@@ -59,19 +59,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
             </div>
-            <div class="table-filtering-field admin-community-series-filter-field">
-            <label for="community_series_filter_field" class="table-filtering-label">검색조건</label>
-            <select id="community_series_filter_field" name="field" class="form-select table-filtering-input">
+            <div class="filtering-field admin-community-series-filter-field">
+            <label for="community_series_filter_field" class="filtering-label">검색조건</label>
+            <select id="community_series_filter_field" name="field" class="form-select filtering-input">
                 <?php foreach (['all' => '전체', 'title' => '제목', 'board' => '게시판', 'owner' => '소유자', 'note' => '운영 메모'] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($seriesFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                 <?php } ?>
             </select>
             </div>
-            <div class="table-filtering-field admin-community-series-filter-keyword">
-            <label for="community_series_filter_q" class="table-filtering-label">검색어</label>
-            <input id="community_series_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($seriesFilters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="제목, 게시판, 소유자">
+            <div class="filtering-field admin-community-series-filter-keyword">
+            <label for="community_series_filter_q" class="filtering-label">검색어</label>
+            <input id="community_series_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($seriesFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="제목, 게시판, 소유자">
             </div>
-            <button type="submit" class="btn btn-solid-primary table-filtering-submit">검색</button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
 </form>
 

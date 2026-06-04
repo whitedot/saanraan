@@ -45,33 +45,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="table-filtering-form table-filtering table-filtering-plain admin-community-report-filter ui-form-theme">
-    <div class="table-filtering-fields admin-community-report-search-grid">
-            <div class="table-filtering-field admin-community-report-filter-status">
-                <span class="table-filtering-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></span>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="filtering-form filtering filtering-plain admin-community-report-filter ui-form-theme">
+    <div class="filtering-fields admin-community-report-search-grid">
+            <div class="filtering-field admin-community-report-filter-status">
+                <span class="filtering-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></span>
                 <?php echo sr_admin_filter_toggle_group_html('community_admin_reports_status_filter', 'status', sr_admin_code_label_options($allowedStatuses, 'report_status'), $selectedReportStatuses, sr_t('community::ui.all.a4b69faf')); ?>
             </div>
-            <div class="table-filtering-field admin-community-report-filter-target">
-                <label for="community_admin_reports_target_type_filter" class="table-filtering-label"><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></label>
-                <select id="community_admin_reports_target_type_filter" name="target_type" class="form-select table-filtering-input">
+            <div class="filtering-field admin-community-report-filter-target">
+                <label for="community_admin_reports_target_type_filter" class="filtering-label"><?php echo sr_e(sr_t('community::ui.text.8c609deb')); ?></label>
+                <select id="community_admin_reports_target_type_filter" name="target_type" class="form-select filtering-input">
                     <option value=""><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedTargetTypes as $targetType) { ?>
                         <option value="<?php echo sr_e($targetType); ?>"<?php echo in_array($targetType, $selectedReportTargetTypes, true) ? ' selected' : ''; ?>><?php echo sr_e((string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'))); ?></option>
                     <?php } ?>
                 </select>
             </div>
-            <div class="table-filtering-field admin-community-report-filter-reason">
-                <label for="community_admin_reports_reason_filter" class="table-filtering-label"><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></label>
-                <select id="community_admin_reports_reason_filter" name="reason_key" class="form-select table-filtering-input">
+            <div class="filtering-field admin-community-report-filter-reason">
+                <label for="community_admin_reports_reason_filter" class="filtering-label"><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></label>
+                <select id="community_admin_reports_reason_filter" name="reason_key" class="form-select filtering-input">
                     <option value=""><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
                     <?php foreach ($allowedReasonKeys as $reasonKey) { ?>
                         <option value="<?php echo sr_e($reasonKey); ?>"<?php echo in_array($reasonKey, $selectedReportReasonKeys, true) ? ' selected' : ''; ?>><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
                     <?php } ?>
                 </select>
             </div>
-            <div class="table-filtering-field admin-community-report-filter-field">
-            <label for="community_admin_reports_field" class="table-filtering-label">검색조건</label>
-            <select id="community_admin_reports_field" name="field" class="form-select table-filtering-input">
+            <div class="filtering-field admin-community-report-filter-field">
+            <label for="community_admin_reports_field" class="filtering-label">검색조건</label>
+            <select id="community_admin_reports_field" name="field" class="form-select filtering-input">
                 <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'target' => sr_t('community::ui.text.8c609deb'), 'reporter' => sr_t('community::ui.text.84780e6f'), 'reported' => sr_t('community::ui.member.7a284377'), 'reviewer' => sr_t('community::ui.text.750086e9'), 'memo' => sr_t('community::ui.text.c8a14bcd')] as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($reportListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                         <?php echo sr_e($fieldLabel); ?>
@@ -79,11 +79,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
             </div>
-            <div class="table-filtering-field admin-community-report-filter-keyword">
-            <label for="community_admin_reports_q" class="table-filtering-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
-            <input id="community_admin_reports_q" type="text" name="q" value="<?php echo sr_e((string) ($reportListFilters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.member.fbbe7c33')); ?>">
+            <div class="filtering-field admin-community-report-filter-keyword">
+            <label for="community_admin_reports_q" class="filtering-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
+            <input id="community_admin_reports_q" type="text" name="q" value="<?php echo sr_e((string) ($reportListFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.member.fbbe7c33')); ?>">
             </div>
-            <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
     </div>
 </form>
 

@@ -231,13 +231,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $popupTargetOptions[] = [sr_popup_layer_target_option_value($target), sr_popup_layer_target_option_label($target)];
     }
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="table-filtering-form admin-popup-layer-filter ui-form-theme">
-        <div class="table-filtering-fields admin-popup-layer-search-grid">
-            <div class="table-filtering table-filtering-card<?php echo $popupDetailFilterOpen ? ' table-filtering-open' : ''; ?>" data-table-filtering>
-                <div class="table-filtering-fields">
-                    <div class="table-filtering-field admin-popup-layer-filter-field">
-                        <label for="modules_popup_layer_admin_popup_layers_field" class="table-filtering-label">검색조건</label>
-                        <select id="modules_popup_layer_admin_popup_layers_field" name="field" class="form-select table-filtering-input">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="filtering-form admin-popup-layer-filter ui-form-theme">
+        <div class="filtering-fields admin-popup-layer-search-grid">
+            <div class="filtering filtering-card<?php echo $popupDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+                <div class="filtering-fields">
+                    <div class="filtering-field admin-popup-layer-filter-field">
+                        <label for="modules_popup_layer_admin_popup_layers_field" class="filtering-label">검색조건</label>
+                        <select id="modules_popup_layer_admin_popup_layers_field" name="field" class="form-select filtering-input">
                             <?php foreach (['all' => sr_t('popup_layer::ui.all.a4b69faf'), 'title' => sr_t('popup_layer::ui.text.08b17e43'), 'subject' => 'Subject ID'] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
@@ -245,19 +245,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                     </div>
-                    <div class="table-filtering-field-fill table-filtering-field admin-popup-layer-filter-keyword">
-                        <label for="modules_popup_layer_admin_popup_layers_q" class="table-filtering-label"><?php echo sr_e(sr_t('popup_layer::ui.search.bda397fc')); ?></label>
-                        <input id="modules_popup_layer_admin_popup_layers_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input table-filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('popup_layer::ui.subject.id.b70d79cb')); ?>">
+                    <div class="filtering-field-fill filtering-field admin-popup-layer-filter-keyword">
+                        <label for="modules_popup_layer_admin_popup_layers_q" class="filtering-label"><?php echo sr_e(sr_t('popup_layer::ui.search.bda397fc')); ?></label>
+                        <input id="modules_popup_layer_admin_popup_layers_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('popup_layer::ui.subject.id.b70d79cb')); ?>">
                     </div>
                 </div>
-                <div id="modules_popup_layer_admin_popup_layers_detail_filters" class="table-filtering-body" data-table-filtering-body<?php echo $popupDetailFilterOpen ? '' : ' hidden'; ?>>
-                    <div class="table-filtering-field admin-popup-layer-filter-status">
-                        <span class="table-filtering-label"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></span>
+                <div id="modules_popup_layer_admin_popup_layers_detail_filters" class="filtering-body" data-filtering-body<?php echo $popupDetailFilterOpen ? '' : ' hidden'; ?>>
+                    <div class="filtering-field admin-popup-layer-filter-status">
+                        <span class="filtering-label"><?php echo sr_e(sr_t('popup_layer::ui.status.e10195a1')); ?></span>
                         <?php echo sr_admin_filter_toggle_group_html('modules_popup_layer_admin_popup_layers_status_filter', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedPopupStatuses, sr_t('popup_layer::ui.all.a4b69faf')); ?>
                     </div>
-                    <div class="table-filtering-field admin-popup-layer-filter-target">
-                        <label for="modules_popup_layer_admin_popup_layers_target_filter" class="table-filtering-label"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></label>
-                        <select id="modules_popup_layer_admin_popup_layers_target_filter" name="target" class="form-select table-filtering-input">
+                    <div class="filtering-field admin-popup-layer-filter-target">
+                        <label for="modules_popup_layer_admin_popup_layers_target_filter" class="filtering-label"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></label>
+                        <select id="modules_popup_layer_admin_popup_layers_target_filter" name="target" class="form-select filtering-input">
                             <option value=""><?php echo sr_e(sr_t('popup_layer::ui.all.a4b69faf')); ?></option>
                             <?php foreach ($popupTargetOptions as $targetOption) { ?>
                                 <?php $targetValue = (string) $targetOption[0]; ?>
@@ -266,10 +266,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                 </div>
-                <div class="table-filtering-actions">
-                    <button type="button" class="btn btn-solid-light table-filtering-toggle" data-table-filtering-toggle aria-expanded="<?php echo $popupDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="modules_popup_layer_admin_popup_layers_detail_filters">상세검색</button>
-                    <button type="button" class="btn btn-outline-light" data-table-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary table-filtering-submit"><?php echo sr_e(sr_t('popup_layer::ui.search.4b8d541e')); ?></button>
+                <div class="filtering-actions">
+                    <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $popupDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="modules_popup_layer_admin_popup_layers_detail_filters">상세검색</button>
+                    <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('popup_layer::ui.search.4b8d541e')); ?></button>
                 </div>
             </div>
         </div>
