@@ -1,18 +1,26 @@
-.admin-coupon-filter .filtering-fields {
+.admin-coupon-filter {
+    max-width: 100%;
+    width: 100%;
+}
+
+.admin-coupon-filter.filtering-form > .filtering-fields {
+    align-items: end;
+    display: grid;
     gap: .875rem;
-    justify-content: start;
+    justify-content: stretch;
+    width: 100%;
 }
 
 .admin-coupon-definition-filter-grid {
-    grid-template-columns: max-content max-content minmax(16rem, 1fr) max-content;
+    grid-template-columns: max-content max-content minmax(0, 1fr) auto;
 }
 
 .admin-coupon-history-filter-grid {
-    grid-template-columns: max-content max-content max-content minmax(14rem, 1fr) minmax(14rem, 1fr) max-content;
+    grid-template-columns: max-content max-content max-content minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 
 .admin-coupon-redemption-filter-grid {
-    grid-template-columns: max-content max-content max-content max-content minmax(14rem, 1fr) minmax(14rem, 1fr) max-content;
+    grid-template-columns: max-content max-content max-content max-content minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 
 .admin-coupon-redemption-table .admin-table-actions-cell,
@@ -30,9 +38,9 @@
     width: fit-content;
 }
 
-.admin-coupon-filter .admin-coupon-filter-keyword {
+.admin-coupon-filter.filtering-plain > .filtering-fields > .admin-coupon-filter-keyword.filtering-field {
     min-width: 14rem;
-    width: auto;
+    width: 100%;
 }
 
 .admin-coupon-filter .admin-coupon-filter-keyword .filtering-input {
@@ -44,6 +52,10 @@
 }
 
 @media (max-width: 1023px) {
+    .admin-coupon-filter {
+        width: 100%;
+    }
+
     .admin-coupon-definition-filter-grid,
     .admin-coupon-history-filter-grid,
     .admin-coupon-redemption-filter-grid {

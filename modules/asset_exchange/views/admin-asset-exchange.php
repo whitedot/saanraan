@@ -156,45 +156,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="filtering-form admin-asset-exchange-filter ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/asset-exchange')); ?>" class="filtering-form filtering filtering-plain admin-asset-exchange-filter ui-form-theme">
     <div class="filtering-fields admin-asset-exchange-search-grid">
-        <div class="filtering filtering-card<?php echo $policyFilterActive ? ' filtering-open' : ''; ?>" data-filtering>
-            <div id="asset_exchange_detail_filters" class="filtering-body" data-filtering-body<?php echo $policyFilterActive ? '' : ' hidden'; ?>>
-                <div class="filtering-field admin-asset-exchange-filter-status">
-                    <span class="filtering-label">상태</span>
-                    <?php echo sr_admin_filter_toggle_group_html('asset_exchange_filter_status', 'status', $policyStatusLabels, $policyFilters['status'], '전체'); ?>
-                </div>
-                <div class="filtering-field admin-asset-exchange-filter-from">
-                    <label for="asset_exchange_filter_from" class="filtering-label">출금 항목</label>
-                    <select id="asset_exchange_filter_from" name="from_module_key" class="form-select filtering-input">
-                        <option value="">전체</option>
-                        <?php foreach ($policyFilterOptions as $asset) { ?>
-                            <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
-                            <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $asset['label']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <div class="filtering-field admin-asset-exchange-filter-to">
-                    <label for="asset_exchange_filter_to" class="filtering-label">입금 항목</label>
-                    <select id="asset_exchange_filter_to" name="to_module_key" class="form-select filtering-input">
-                        <option value="">전체</option>
-                        <?php foreach ($policyFilterOptions as $asset) { ?>
-                            <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
-                            <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $asset['label']); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-            </div>
-            <div class="filtering-actions">
-                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $policyFilterActive ? 'true' : 'false'; ?>" aria-controls="asset_exchange_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
-                <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
-            </div>
+        <div class="filtering-field admin-asset-exchange-filter-status">
+            <span class="filtering-label">상태</span>
+            <?php echo sr_admin_filter_toggle_group_html('asset_exchange_filter_status', 'status', $policyStatusLabels, $policyFilters['status'], '전체'); ?>
         </div>
+        <div class="filtering-field admin-asset-exchange-filter-from">
+            <label for="asset_exchange_filter_from" class="filtering-label">출금 항목</label>
+            <select id="asset_exchange_filter_from" name="from_module_key" class="form-select filtering-input">
+                <option value="">전체</option>
+                <?php foreach ($policyFilterOptions as $asset) { ?>
+                    <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
+                    <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['from_module_key'], true) ? ' selected' : ''; ?>>
+                        <?php echo sr_e((string) $asset['label']); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="filtering-field admin-asset-exchange-filter-to">
+            <label for="asset_exchange_filter_to" class="filtering-label">입금 항목</label>
+            <select id="asset_exchange_filter_to" name="to_module_key" class="form-select filtering-input">
+                <option value="">전체</option>
+                <?php foreach ($policyFilterOptions as $asset) { ?>
+                    <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
+                    <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $policyFilters['to_module_key'], true) ? ' selected' : ''; ?>>
+                        <?php echo sr_e((string) $asset['label']); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
     </div>
 </form>
 

@@ -4,11 +4,11 @@
     width: 100%;
 }
 
-.filtering-fields.admin-reward-request-filter-grid {
+.filtering-form > .filtering-fields.admin-reward-request-filter-grid {
     align-items: end;
     display: grid;
     gap: calc(var(--spacing) * 3);
-    grid-template-columns: max-content max-content minmax(16rem, 1fr) max-content;
+    grid-template-columns: max-content max-content minmax(0, 1fr) auto;
     justify-content: stretch;
     width: 100%;
 }
@@ -18,17 +18,7 @@
     width: fit-content;
 }
 
-.admin-reward-request-filter .filtering-label {
-    color: var(--text-muted);
-    display: block;
-    font-size: var(--type-meta-size);
-    font-weight: var(--font-weight-semibold);
-    line-height: var(--type-meta-line-height);
-    margin: 0;
-    padding: 0;
-}
-
-.admin-reward-request-filter-status .admin-sort-button-group {
+.admin-reward-request-filter-status .filtering-toggle-group {
     max-width: 100%;
     overflow-x: auto;
 }
@@ -39,7 +29,7 @@
     width: fit-content;
 }
 
-.admin-reward-request-filter .admin-reward-request-filter-keyword {
+.admin-reward-request-filter.filtering-plain > .filtering-fields > .admin-reward-request-filter-keyword.filtering-field {
     min-width: 0;
     width: 100%;
 }
@@ -58,7 +48,7 @@
         width: 100%;
     }
 
-    .filtering-fields.admin-reward-request-filter-grid {
+    .filtering-form > .filtering-fields.admin-reward-request-filter-grid {
         display: grid;
         grid-template-columns: 1fr;
         width: 100%;

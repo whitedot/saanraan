@@ -17,10 +17,13 @@
 .admin-page-member-list .admin-member-table thead th:nth-child(2),.admin-page-member-list .admin-member-table thead th:nth-child(3),.admin-page-member-list .admin-member-table thead th:nth-child(4),.admin-page-member-list .admin-member-table thead th:nth-child(5),.admin-page-member-list .admin-member-table thead th:nth-child(6),.admin-page-member-list .admin-member-table thead th:nth-child(7),.admin-page-member-list .admin-member-table thead th:nth-child(8){width:1%}
 .admin-page-member-list .admin-member-session-cell,.admin-page-member-list .admin-member-table thead th:nth-child(6){text-align:center}
 .admin-page-member-list .admin-member-table .admin-row-actions{gap:.5rem}
-.admin-page-member-groups .admin-member-group-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
+.admin-page-member-groups .admin-member-group-filter{max-width:100%;width:100%}
+.admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-search-grid{align-items:end;display:grid;gap:calc(var(--spacing) * 3);grid-template-columns:max-content max-content minmax(0,1fr) auto;justify-content:stretch;width:100%}
 .admin-page-member-groups .admin-member-group-filter .filtering-field{min-width:0}
+.admin-page-member-groups .filtering-form.filtering-plain > .filtering-fields > .admin-member-group-filter-keyword.filtering-field{width:100%}
+.admin-page-member-groups .admin-member-group-filter-keyword .filtering-input{width:100%}
 .admin-page-member-groups .admin-member-group-filter .filtering-submit{justify-content:center;width:auto}
-.admin-page-member-groups .admin-member-group-rule-search-grid{grid-template-columns:max-content max-content max-content max-content max-content minmax(14rem,1fr) max-content;align-items:end;justify-content:stretch;width:100%}
+.admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-rule-search-grid{align-items:end;display:grid;gap:calc(var(--spacing) * 3);grid-template-columns:max-content max-content max-content max-content max-content minmax(0,1fr) auto;justify-content:stretch;width:100%}
 .admin-page-member-groups .admin-member-group-rule-filter .filtering-field{min-width:0;width:fit-content}
 .admin-page-member-groups .admin-member-group-rule-filter-keyword{width:100%}
 .admin-page-member-groups .admin-member-group-rule-filter-keyword .filtering-input{width:100%}
@@ -32,14 +35,14 @@
 .admin-page-member-groups .admin-member-group-table thead th:nth-child(1),.admin-page-member-groups .admin-member-group-table thead th:nth-child(3),.admin-page-member-groups .admin-member-group-table thead th:nth-child(4),.admin-page-member-groups .admin-member-group-table thead th:nth-child(5){width:1%}
 .admin-page-member-groups .admin-member-group-number-cell,.admin-page-member-groups .admin-member-group-table thead th:nth-child(4){text-align:center}
 
-@media (max-width:1280px){
+@media (max-width:1023px){
     .admin-page-member-list .admin-member-filter .filtering-submit{width:100%}
-    .admin-page-member-groups .admin-member-group-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-    .admin-page-member-groups .admin-member-group-filter-keyword{grid-column:1 / -1}
-    .admin-page-member-groups .admin-member-group-filter .filtering-submit{grid-column:1 / -1;width:100%}
-    .admin-page-member-groups .admin-member-group-rule-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-    .admin-page-member-groups .admin-member-group-rule-filter-keyword{grid-column:1 / -1}
-    .admin-page-member-groups .admin-member-group-rule-filter .filtering-submit{grid-column:1 / -1;width:100%}
+    .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    .admin-page-member-groups .filtering-form.filtering-plain > .filtering-fields > .admin-member-group-filter-keyword.filtering-field{grid-column:1 / -1}
+    .admin-page-member-groups .admin-member-group-filter .filtering-submit{width:100%}
+    .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-rule-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    .admin-page-member-groups .admin-member-group-rule-filter-keyword{width:100%}
+    .admin-page-member-groups .admin-member-group-rule-filter .filtering-submit{width:100%}
 }
 
 @media (max-width:767px){
@@ -48,9 +51,9 @@
     .admin-page-member-list .admin-member-table :is(th,td):nth-child(5),
     .admin-page-member-list .admin-member-table :is(th,td):nth-child(6),
     .admin-page-member-list .admin-member-table :is(th,td):nth-child(7){display:none}
-    .admin-page-member-groups .admin-member-group-search-grid{grid-template-columns:1fr}
+    .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-search-grid{display:grid;grid-template-columns:1fr}
     .admin-page-member-groups .admin-member-group-filter-keyword{grid-column:auto}
-    .admin-page-member-groups .admin-member-group-rule-search-grid{grid-template-columns:1fr}
+    .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-rule-search-grid{display:grid;grid-template-columns:1fr}
     .admin-page-member-groups .admin-member-group-rule-filter .filtering-field,.admin-page-member-groups .admin-member-group-rule-filter .filtering-input{width:100%;max-width:100%}
     .admin-page-member-groups .admin-member-group-rule-filter-keyword{grid-column:auto}
     .admin-page-member-groups .admin-member-group-table :is(th,td:not(.admin-empty-state)):nth-child(1){display:none}

@@ -1,22 +1,26 @@
-.filtering-fields.admin-asset-exchange-search-grid {
+.filtering-form > .filtering-fields.admin-asset-exchange-search-grid {
+    align-items: end;
+    display: grid;
     gap: .875rem;
-    grid-template-columns: repeat(3, minmax(0, max-content)) max-content;
+    grid-template-columns: max-content max-content max-content auto;
     justify-content: start;
     max-width: 100%;
-    width: fit-content;
+    width: 100%;
 }
 
-.filtering-fields.admin-asset-exchange-log-search-grid {
+.filtering-form > .filtering-fields.admin-asset-exchange-log-search-grid {
+    align-items: end;
+    display: grid;
     gap: .875rem;
-    grid-template-columns: max-content max-content max-content minmax(16rem, 1fr) max-content;
-    justify-content: start;
+    grid-template-columns: max-content max-content max-content minmax(0, 1fr) auto;
+    justify-content: stretch;
     max-width: 100%;
     width: 100%;
 }
 
 .admin-asset-exchange-filter {
     max-width: 100%;
-    width: fit-content;
+    width: 100%;
 }
 
 .admin-asset-exchange-log-filter {
@@ -39,7 +43,7 @@
 
 .admin-asset-exchange-log-filter-keyword {
     min-width: 16rem;
-    width: auto;
+    width: 100%;
 }
 
 .admin-asset-exchange-log-filter-keyword .filtering-input {
@@ -67,8 +71,9 @@
         width: 100%;
     }
 
-    .filtering-fields.admin-asset-exchange-search-grid,
-    .filtering-fields.admin-asset-exchange-log-search-grid {
+    .filtering-form > .filtering-fields.admin-asset-exchange-search-grid,
+    .filtering-form > .filtering-fields.admin-asset-exchange-log-search-grid {
+        display: grid;
         grid-template-columns: 1fr;
     }
 
