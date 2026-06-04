@@ -26,25 +26,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/deposits/refund-requests')); ?>" class="filtering-form filtering filtering-plain admin-deposit-request-filter ui-form-theme">
-    <div class="filtering-fields admin-deposit-request-filter-grid">
+<?php $depositRefundDetailFilterOpen = $statusFilter !== []; ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/deposits/refund-requests')); ?>" class="filtering-form admin-deposit-request-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $depositRefundDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-deposit-request-filter-grid">
+            <div class="filtering-field admin-deposit-request-filter-field">
+                <label for="deposit-refund-search-field" class="filtering-label">검색조건</label>
+                <select id="deposit-refund-search-field" name="field" class="form-select filtering-input">
+                    <?php foreach ($searchFieldOptions as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo $searchField === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="filtering-field filtering-field-fill admin-deposit-request-filter-keyword">
+                <label for="deposit-refund-search-keyword" class="filtering-label">검색어</label>
+                <input id="deposit-refund-search-keyword" type="text" name="q" value="<?php echo sr_e($searchKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="회원, 계좌, 메모, 신청 번호">
+            </div>
+        </div>
+        <div id="deposit_refund_detail_filters" class="filtering-body" data-filtering-body<?php echo $depositRefundDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-deposit-request-filter-status">
                 <span class="filtering-label">상태</span>
                 <?php echo sr_admin_filter_toggle_group_html('deposit-refund-status', 'status', $requestStatusOptions, $statusFilter, '전체'); ?>
             </div>
-            <div class="filtering-field admin-deposit-request-filter-field">
-            <label for="deposit-refund-search-field" class="filtering-label">검색조건</label>
-            <select id="deposit-refund-search-field" name="field" class="form-select filtering-input">
-                <?php foreach ($searchFieldOptions as $fieldValue => $fieldLabel) { ?>
-                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo $searchField === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
-                <?php } ?>
-            </select>
-            </div>
-            <div class="filtering-field admin-deposit-request-filter-keyword">
-            <label for="deposit-refund-search-keyword" class="filtering-label">검색어</label>
-            <input id="deposit-refund-search-keyword" type="text" name="q" value="<?php echo sr_e($searchKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="회원, 계좌, 메모, 신청 번호">
-            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $depositRefundDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="deposit_refund_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
             <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
     </div>
 </form>
 

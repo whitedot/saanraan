@@ -34,8 +34,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="filtering-form filtering filtering-plain admin-privacy-request-filter ui-form-theme">
-    <div class="filtering-fields admin-privacy-request-search-grid">
+<?php $privacyRequestDetailFilterOpen = $selectedPrivacyRequestStatuses !== [] || $selectedPrivacyRequestTypes !== []; ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="filtering-form admin-privacy-request-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $privacyRequestDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-privacy-request-search-grid">
+                <div class="filtering-field">
+                    <label for="privacy_request_search_field" class="filtering-label">검색조건</label>
+                    <select name="field" id="privacy_request_search_field" class="form-select filtering-input">
+                        <?php foreach (['all' => sr_t('privacy::ui.all.a4b69faf'), 'id' => sr_t('privacy::ui.id.ea1d060e'), 'account' => sr_t('privacy::ui.id.e2088e89'), 'requester' => sr_t('privacy::ui.text.16bf0f07'), 'message' => sr_t('privacy::ui.text.c165c36d'), 'note' => sr_t('privacy::ui.admin.35568056')] as $fieldValue => $fieldLabel) { ?>
+                            <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($privacyRequestListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                                <?php echo sr_e($fieldLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="filtering-field filtering-field-fill">
+                    <label for="privacy_request_search_keyword" class="filtering-label"><?php echo sr_e(sr_t('privacy::ui.search.bda397fc')); ?></label>
+                    <input type="text" name="q" id="privacy_request_search_keyword" value="<?php echo sr_e((string) ($privacyRequestListFilters['q'] ?? '')); ?>" class="form-input filtering-input" placeholder="<?php echo sr_e(sr_t('privacy::ui.id.602ff8c1')); ?>">
+                </div>
+        </div>
+        <div id="privacy_request_detail_filters" class="filtering-body" data-filtering-body<?php echo $privacyRequestDetailFilterOpen ? '' : ' hidden'; ?>>
                 <div class="filtering-field">
                     <span class="filtering-label"><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?></span>
                     <?php echo sr_admin_filter_toggle_group_html('privacy_request_status', 'status', sr_admin_code_label_options($allowedStatuses, 'privacy_request_status'), $selectedPrivacyRequestStatuses, sr_t('privacy::ui.all.a4b69faf')); ?>
@@ -49,21 +67,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                 </div>
-                <div class="filtering-field">
-                    <label for="privacy_request_search_field" class="filtering-label">검색조건</label>
-                    <select name="field" id="privacy_request_search_field" class="form-select filtering-input">
-                        <?php foreach (['all' => sr_t('privacy::ui.all.a4b69faf'), 'id' => sr_t('privacy::ui.id.ea1d060e'), 'account' => sr_t('privacy::ui.id.e2088e89'), 'requester' => sr_t('privacy::ui.text.16bf0f07'), 'message' => sr_t('privacy::ui.text.c165c36d'), 'note' => sr_t('privacy::ui.admin.35568056')] as $fieldValue => $fieldLabel) { ?>
-                            <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($privacyRequestListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                                <?php echo sr_e($fieldLabel); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <div class="filtering-field">
-                    <label for="privacy_request_search_keyword" class="filtering-label"><?php echo sr_e(sr_t('privacy::ui.search.bda397fc')); ?></label>
-                    <input type="text" name="q" id="privacy_request_search_keyword" value="<?php echo sr_e((string) ($privacyRequestListFilters['q'] ?? '')); ?>" class="form-input filtering-input" placeholder="<?php echo sr_e(sr_t('privacy::ui.id.602ff8c1')); ?>">
-                </div>
+        </div>
+        <div class="filtering-actions">
+                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $privacyRequestDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="privacy_request_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
                 <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('privacy::ui.search.4b8d541e')); ?></button>
+        </div>
     </div>
 </form>
 

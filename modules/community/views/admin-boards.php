@@ -237,15 +237,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_filter_toggle_group_html('community_admin_boards_status_filter', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedBoardStatuses, sr_t('community::ui.all.a4b69faf')); ?>
                     </div>
                     <div class="filtering-field admin-community-board-filter-group">
-                        <label for="community_admin_boards_group_filter" class="filtering-label"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></label>
-                        <select id="community_admin_boards_group_filter" name="group_id" class="form-select filtering-input">
-                            <option value="0"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.all.a4b69faf')); ?></option>
-                            <?php foreach ($boardGroups as $boardGroup) { ?>
-                                <option value="<?php echo sr_e((string) $boardGroup['id']); ?>"<?php echo (int) ($boardListFilters['group_id'] ?? 0) === (int) $boardGroup['id'] ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) $boardGroup['title']); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
+                        <span class="filtering-label"><?php echo sr_e(sr_t('community::ui.text.ec060706')); ?></span>
+                        <?php
+                        $boardGroupFilterOptions = [];
+                        foreach ($boardGroups as $boardGroup) {
+                            $boardGroupId = (string) (int) ($boardGroup['id'] ?? 0);
+                            if ($boardGroupId !== '0') {
+                                $boardGroupFilterOptions[$boardGroupId] = (string) ($boardGroup['title'] ?? '');
+                            }
+                        }
+                        $selectedBoardGroupFilterIds = (int) ($boardListFilters['group_id'] ?? 0) > 0 ? [(string) (int) $boardListFilters['group_id']] : [];
+                        echo sr_admin_filter_radio_toggle_group_html('community_admin_boards_group_filter', 'group_id', $boardGroupFilterOptions, $selectedBoardGroupFilterIds, sr_t('community::ui.all.a4b69faf'));
+                        ?>
                     </div>
                 </div>
                 <div class="filtering-actions">

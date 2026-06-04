@@ -690,15 +690,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_filter_toggle_group_html('modules_content_admin_contents_status', 'status', sr_admin_code_label_options(sr_content_allowed_statuses(), 'content_status'), $selectedContentStatuses, sr_t('content::ui.all.a4b69faf')); ?>
                     </div>
                     <div class="filtering-field admin-content-filter-group">
-                        <label for="modules_content_admin_contents_content_group_id" class="filtering-label"><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></label>
-                        <select id="modules_content_admin_contents_content_group_id" name="content_group_id" class="form-select filtering-input">
-                            <option value="0"<?php echo (int) ($filters['content_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.all.a4b69faf')); ?></option>
-                            <?php foreach ($pageGroups as $pageGroup) { ?>
-                                <option value="<?php echo sr_e((string) $pageGroup['id']); ?>"<?php echo (int) ($filters['content_group_id'] ?? 0) === (int) $pageGroup['id'] ? ' selected' : ''; ?>>
-                                    <?php echo sr_e((string) ($pageGroup['title'] ?? $pageGroup['group_key'])); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
+                        <span class="filtering-label"><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></span>
+                        <?php
+                        $contentGroupFilterOptions = [];
+                        foreach ($pageGroups as $pageGroup) {
+                            $pageGroupId = (string) (int) ($pageGroup['id'] ?? 0);
+                            if ($pageGroupId !== '0') {
+                                $contentGroupFilterOptions[$pageGroupId] = (string) ($pageGroup['title'] ?? $pageGroup['group_key']);
+                            }
+                        }
+                        $selectedContentGroupIds = (int) ($filters['content_group_id'] ?? 0) > 0 ? [(string) (int) $filters['content_group_id']] : [];
+                        echo sr_admin_filter_radio_toggle_group_html('modules_content_admin_contents_content_group_id', 'content_group_id', $contentGroupFilterOptions, $selectedContentGroupIds, sr_t('content::ui.all.a4b69faf'));
+                        ?>
                     </div>
                 </div>
                 <div class="filtering-actions">

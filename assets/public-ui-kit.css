@@ -397,9 +397,11 @@
 .btn-choice-warning { --btn-choice-color: var(--color-warning); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
 .btn-choice-info { --btn-choice-color: var(--color-info); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
 .btn-choice-dark { --btn-choice-color: var(--color-dark); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
-.btn-choice-light { --btn-choice-color: var(--color-default-600); --btn-choice-hover-bg: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); background-color: transparent; --btn-focus-color: var(--color-default-500); }
+.btn-choice-light { --btn-choice-color: var(--color-default-600); --btn-choice-hover-bg: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); background-color: var(--color-white); --btn-focus-color: var(--color-default-500); }
+.btn-choice-light:where([data-theme=dark], [data-theme=dark] *) { --btn-choice-hover-bg: var(--color-default-200); background-color: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); }
 .btn-group { align-items: stretch; display: inline-flex; gap: 0; max-width: 100%; vertical-align: middle; }
-[class*=btn-choice-]:is(.btn-group-middle, .btn-group-end) { border-inline-start-color: transparent; }
+[class*=btn-choice-]:is(.btn-group-middle, .btn-group-end) { border-inline-start-color: var(--btn-choice-border-color, var(--btn-choice-color, currentColor)); }
+.btn-choice-light:is(.btn-group-middle, .btn-group-end) { --btn-choice-border-color: var(--color-default-300); }
 @media (hover: hover) {
     [class*=btn-choice-]:hover { background-color: var(--btn-choice-hover-bg); color: var(--btn-choice-color); }
 }
@@ -993,11 +995,6 @@ input:focus-visible + [class*=btn-choice-],
 .filtering-plain > .filtering-fields { flex: 1 1 auto; min-width: 0; width: 100%; }
 .filtering-plain > .filtering-header, .filtering-plain > .admin-summary-stats { flex: 1 0 100%; margin: 0; }
 .filtering-card { align-items: stretch; display: block; padding: 0; }
-.filtering-form[data-filtering-enhanced=card] > .filtering-fields { display: block; grid-template-columns: minmax(0, 1fr); width: 100%; }
-.filtering-form[data-filtering-enhanced=card] .filtering-card > .filtering-fields > .filtering-field-fill { flex: 1 1 18rem; width: auto; }
-.filtering-form[data-filtering-enhanced=card] .filtering-card > .filtering-fields > .filtering-field-fill > :is(.form-input, .form-textarea, .filtering-input) { width: 100%; }
-.filtering-form[data-filtering-enhanced=card] .filtering-body > .filtering-field { width: 100%; }
-.filtering-form[data-filtering-enhanced=card] .filtering-body > .filtering-field > :is(.form-input, .form-select, .form-textarea, .filtering-input, .btn-group, .filtering-toggle-group, .admin-select-badge-list) { min-width: 0; width: 100%; }
 .filtering-card > .filtering-fields { padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4) 0; }
 .filtering-body { border-top: 1px solid var(--color-default-200); display: grid; gap: calc(var(--spacing) * 3); margin-top: calc(var(--spacing) * 3); padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4) 0; }
 .filtering-body[hidden] { display: none; }

@@ -312,28 +312,39 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
 
-    <?php $selectedMemberGroupStatuses = is_array($groupListFilter['status'] ?? null) ? $groupListFilter['status'] : []; ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="filtering-form filtering filtering-plain admin-member-group-filter ui-form-theme">
-        <div class="filtering-fields admin-member-group-search-grid">
-                    <div class="filtering-field">
-                        <span class="filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
-                        <?php echo sr_admin_filter_toggle_group_html('member-group-status-filter', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedMemberGroupStatuses, sr_t('member::ui.all.a4b69faf')); ?>
-                    </div>
-                    <div class="filtering-field">
-                        <label for="member-group-search-field" class="filtering-label">검색조건</label>
-                        <select name="field" id="member-group-search-field" class="form-select filtering-input">
-                            <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'key' => sr_t('member::ui.key.1057ecca'), 'title' => sr_t('member::ui.text.97e73d18'), 'description' => sr_t('member::ui.text.8c3f651d')] as $fieldValue => $fieldLabel) { ?>
-                                <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupListFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                                    <?php echo sr_e($fieldLabel); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </div>
-                    <div class="filtering-field admin-member-group-filter-keyword">
-                        <label for="member-group-search-keyword" class="filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                        <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" placeholder="<?php echo sr_e(sr_t('member::ui.key.60df9e41')); ?>">
-                    </div>
-                    <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
+    <?php
+    $selectedMemberGroupStatuses = is_array($groupListFilter['status'] ?? null) ? $groupListFilter['status'] : [];
+    $memberGroupDetailFilterOpen = $selectedMemberGroupStatuses !== [];
+    ?>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="filtering-form admin-member-group-filter ui-form-theme">
+        <div class="filtering filtering-card<?php echo $memberGroupDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+            <div class="filtering-fields admin-member-group-search-grid">
+                <div class="filtering-field">
+                    <label for="member-group-search-field" class="filtering-label">검색조건</label>
+                    <select name="field" id="member-group-search-field" class="form-select filtering-input">
+                        <?php foreach (['all' => sr_t('member::ui.all.a4b69faf'), 'key' => sr_t('member::ui.key.1057ecca'), 'title' => sr_t('member::ui.text.97e73d18'), 'description' => sr_t('member::ui.text.8c3f651d')] as $fieldValue => $fieldLabel) { ?>
+                            <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupListFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                                <?php echo sr_e($fieldLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="filtering-field filtering-field-fill admin-member-group-filter-keyword">
+                    <label for="member-group-search-keyword" class="filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
+                    <input type="text" id="member-group-search-keyword" name="q" value="<?php echo sr_e((string) ($groupListFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" placeholder="<?php echo sr_e(sr_t('member::ui.key.60df9e41')); ?>">
+                </div>
+            </div>
+            <div id="member_group_detail_filters" class="filtering-body" data-filtering-body<?php echo $memberGroupDetailFilterOpen ? '' : ' hidden'; ?>>
+                <div class="filtering-field">
+                    <span class="filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
+                    <?php echo sr_admin_filter_toggle_group_html('member-group-status-filter', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedMemberGroupStatuses, sr_t('member::ui.all.a4b69faf')); ?>
+                </div>
+            </div>
+            <div class="filtering-actions">
+                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $memberGroupDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="member_group_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
+            </div>
         </div>
     </form>
 
@@ -637,55 +648,58 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     $selectedGroupRuleGroupIds = is_array($groupRuleFilter['group_id'] ?? null) ? $groupRuleFilter['group_id'] : [];
     $selectedGroupRuleSourceModuleKeys = is_array($groupRuleFilter['source_module_key'] ?? null) ? $groupRuleFilter['source_module_key'] : [];
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="filtering-form filtering filtering-plain admin-member-group-rule-filter ui-form-theme">
-        <div class="filtering-fields admin-member-group-rule-search-grid">
-            <div class="filtering-field">
-                <span class="filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
-                <?php echo sr_admin_filter_toggle_group_html('member-group-rule-status-filter', 'status', sr_admin_code_label_options($allowedRuleStatuses, 'content_status'), $selectedGroupRuleStatuses, '전체'); ?>
+    <?php $memberGroupRuleDetailFilterOpen = $selectedGroupRuleStatuses !== [] || $selectedGroupRuleEvaluationPolicies !== [] || $selectedGroupRuleGroupIds !== [] || $selectedGroupRuleSourceModuleKeys !== []; ?>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/member-group-rules')); ?>" class="filtering-form admin-member-group-rule-filter ui-form-theme">
+        <div class="filtering filtering-card<?php echo $memberGroupRuleDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+            <div class="filtering-fields admin-member-group-rule-search-grid">
+                <div class="filtering-field">
+                    <label for="member_group_rule_filter_field" class="filtering-label">검색조건</label>
+                    <select id="member_group_rule_filter_field" name="field" class="form-select filtering-input">
+                        <?php foreach (['all' => '전체', 'group' => '대상 그룹', 'source' => sr_t('member::ui.text.291ac971'), 'rule' => '규칙 key'] as $fieldValue => $fieldLabel) { ?>
+                            <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupRuleFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="filtering-field filtering-field-fill admin-member-group-rule-filter-keyword">
+                    <label for="member_group_rule_filter_q" class="filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
+                    <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="대상 그룹, 모듈, 규칙 key">
+                </div>
             </div>
-            <div class="filtering-field">
-                <label for="member-group-rule-policy-filter" class="filtering-label"><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></label>
-                <select id="member-group-rule-policy-filter" name="evaluation_policy" class="form-select filtering-input">
-                    <option value="">전체</option>
-                    <?php foreach ($allowedEvaluationPolicies as $policy) { ?>
-                        <option value="<?php echo sr_e($policy); ?>"<?php echo in_array($policy, $selectedGroupRuleEvaluationPolicies, true) ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($policy, 'evaluation_policy')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+            <div id="member_group_rule_detail_filters" class="filtering-body" data-filtering-body<?php echo $memberGroupRuleDetailFilterOpen ? '' : ' hidden'; ?>>
+                <div class="filtering-field">
+                    <span class="filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('member-group-rule-status-filter', 'status', sr_admin_code_label_options($allowedRuleStatuses, 'content_status'), $selectedGroupRuleStatuses, '전체'); ?>
+                </div>
+                <div class="filtering-field">
+                    <span class="filtering-label"><?php echo sr_e(sr_t('member::ui.text.ff41d4a4')); ?></span>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('member-group-rule-policy-filter', 'evaluation_policy', sr_admin_code_label_options($allowedEvaluationPolicies, 'evaluation_policy'), $selectedGroupRuleEvaluationPolicies, '전체'); ?>
+                </div>
+                <div class="filtering-field">
+                    <label for="member_group_rule_filter_group" class="filtering-label">대상 그룹</label>
+                    <select id="member_group_rule_filter_group" name="group_id" class="form-select filtering-input">
+                        <option value="">전체</option>
+                        <?php foreach ($groups as $group) { ?>
+                            <?php $groupId = (string) (int) ($group['id'] ?? 0); ?>
+                            <option value="<?php echo sr_e($groupId); ?>"<?php echo in_array($groupId, $selectedGroupRuleGroupIds, true) ? ' selected' : ''; ?>><?php echo sr_e((string) ($group['title'] ?? '')); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="filtering-field">
+                    <span class="filtering-label">조건</span>
+                    <?php
+                    $memberGroupRuleConditionOptions = [];
+                    foreach ($memberRuleSourceOptions as $sourceModuleKey => $sourceOption) {
+                        $memberGroupRuleConditionOptions[(string) $sourceModuleKey] = (string) ($sourceOption['label'] ?? $sourceModuleKey);
+                    }
+                    echo sr_admin_filter_radio_toggle_group_html('member_group_rule_filter_source', 'source_module_key', $memberGroupRuleConditionOptions, $selectedGroupRuleSourceModuleKeys, '전체');
+                    ?>
+                </div>
             </div>
-            <div class="filtering-field">
-                <label for="member_group_rule_filter_group" class="filtering-label"><?php echo sr_e(sr_t('member::ui.text.5d908ddd')); ?></label>
-                <select id="member_group_rule_filter_group" name="group_id" class="form-select filtering-input">
-                    <option value="">전체</option>
-                    <?php foreach ($groups as $group) { ?>
-                        <?php $groupId = (string) (int) ($group['id'] ?? 0); ?>
-                        <option value="<?php echo sr_e($groupId); ?>"<?php echo in_array($groupId, $selectedGroupRuleGroupIds, true) ? ' selected' : ''; ?>><?php echo sr_e((string) ($group['title'] ?? '')); ?></option>
-                    <?php } ?>
-                </select>
+            <div class="filtering-actions">
+                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $memberGroupRuleDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="member_group_rule_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
+                <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
             </div>
-            <div class="filtering-field">
-                <label for="member_group_rule_filter_source" class="filtering-label"><?php echo sr_e(sr_t('member::ui.text.291ac971')); ?></label>
-                <select id="member_group_rule_filter_source" name="source_module_key" class="form-select filtering-input">
-                    <option value="">전체</option>
-                    <?php foreach ($memberRuleSourceOptions as $sourceModuleKey => $sourceOption) { ?>
-                        <option value="<?php echo sr_e((string) $sourceModuleKey); ?>"<?php echo in_array((string) $sourceModuleKey, $selectedGroupRuleSourceModuleKeys, true) ? ' selected' : ''; ?>><?php echo sr_e((string) ($sourceOption['label'] ?? $sourceModuleKey)); ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="filtering-field">
-                <label for="member_group_rule_filter_field" class="filtering-label">검색조건</label>
-                <select id="member_group_rule_filter_field" name="field" class="form-select filtering-input">
-                    <?php foreach (['all' => '전체', 'group' => sr_t('member::ui.text.5d908ddd'), 'source' => sr_t('member::ui.text.291ac971'), 'rule' => '규칙 key'] as $fieldValue => $fieldLabel) { ?>
-                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupRuleFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="filtering-field admin-member-group-rule-filter-keyword">
-                <label for="member_group_rule_filter_q" class="filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="그룹, 모듈, 규칙 key">
-            </div>
-            <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('member::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
@@ -709,7 +723,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         <table class="table">
             <thead class="ui-table-head">
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('group_title', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.5d908ddd'), 'group_title', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('group_title', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html('대상 그룹', 'group_title', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('source_module_key', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.291ac971'), 'source_module_key', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('evaluation_policy', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.ff41d4a4'), 'evaluation_policy', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $groupRuleSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $groupRuleSort, sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort()); ?></th>

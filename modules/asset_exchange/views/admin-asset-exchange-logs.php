@@ -29,19 +29,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div id="asset_exchange_log_detail_filters" class="filtering-body" data-filtering-body<?php echo $logDetailFilterOpen ? '' : ' hidden'; ?>>
                 <div class="filtering-field admin-asset-exchange-log-filter-status">
                     <span class="filtering-label">상태</span>
-                    <?php echo sr_admin_filter_toggle_group_html('asset_exchange_log_filter_status', 'status', $logStatusLabels, $selectedLogStatuses, '전체'); ?>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('asset_exchange_log_filter_status', 'status', $logStatusLabels, $selectedLogStatuses, '전체'); ?>
                 </div>
                 <div class="filtering-field admin-asset-exchange-log-filter-asset">
-                    <label for="asset_exchange_log_filter_asset" class="filtering-label">항목</label>
-                    <select id="asset_exchange_log_filter_asset" name="asset" class="form-select filtering-input">
-                        <option value="">전체</option>
-                        <?php foreach ($assets as $asset) { ?>
-                            <?php $moduleKey = (string) ($asset['module_key'] ?? ''); ?>
-                            <option value="<?php echo sr_e($moduleKey); ?>"<?php echo in_array($moduleKey, $selectedLogAssets, true) ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) ($asset['label'] ?? $moduleKey)); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
+                    <span class="filtering-label">항목</span>
+                    <?php
+                    $assetExchangeLogAssetOptions = [];
+                    foreach ($assets as $asset) {
+                        $moduleKey = (string) ($asset['module_key'] ?? '');
+                        if ($moduleKey !== '') {
+                            $assetExchangeLogAssetOptions[$moduleKey] = (string) ($asset['label'] ?? $moduleKey);
+                        }
+                    }
+                    echo sr_admin_filter_radio_toggle_group_html('asset_exchange_log_filter_asset', 'asset', $assetExchangeLogAssetOptions, $selectedLogAssets, '전체');
+                    ?>
                 </div>
             </div>
             <div class="filtering-actions">

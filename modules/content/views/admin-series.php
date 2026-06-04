@@ -81,15 +81,14 @@ $seriesVisibilities = sr_content_series_visibility_values();
                     <?php echo sr_admin_filter_toggle_group_html('content_series_filter_status', 'status', $seriesStatusOptions, $selectedSeriesStatuses, '전체'); ?>
                 </div>
                 <div class="filtering-field admin-content-series-filter-visibility">
-                    <label for="content_series_filter_visibility" class="filtering-label">공개 범위</label>
-                    <select id="content_series_filter_visibility" name="visibility" class="form-select filtering-input">
-                        <option value="">전체</option>
-                        <?php foreach ($seriesVisibilities as $visibility) { ?>
-                            <option value="<?php echo sr_e($visibility); ?>"<?php echo in_array($visibility, $selectedSeriesVisibilities, true) ? ' selected' : ''; ?>>
-                                <?php echo sr_e(sr_content_series_visibility_label($visibility)); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
+                    <span class="filtering-label">공개 범위</span>
+                    <?php
+                    $contentSeriesVisibilityOptions = [];
+                    foreach ($seriesVisibilities as $visibility) {
+                        $contentSeriesVisibilityOptions[(string) $visibility] = sr_content_series_visibility_label((string) $visibility);
+                    }
+                    echo sr_admin_filter_radio_toggle_group_html('content_series_filter_visibility', 'visibility', $contentSeriesVisibilityOptions, $selectedSeriesVisibilities, '전체');
+                    ?>
                 </div>
             </div>
             <div class="filtering-actions">

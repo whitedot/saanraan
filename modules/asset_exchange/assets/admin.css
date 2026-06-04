@@ -2,8 +2,8 @@
     align-items: end;
     display: grid;
     gap: .875rem;
-    grid-template-columns: max-content max-content max-content auto;
-    justify-content: start;
+    grid-template-columns: max-content max-content max-content minmax(0, 1fr);
+    justify-content: stretch;
     max-width: 100%;
     width: 100%;
 }
@@ -51,6 +51,7 @@
 }
 
 .admin-asset-exchange-search-grid .filtering-submit {
+    justify-self: end;
     min-width: 5rem;
     width: fit-content;
 }

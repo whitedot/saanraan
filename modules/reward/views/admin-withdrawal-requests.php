@@ -26,25 +26,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/rewards/withdrawal-requests')); ?>" class="filtering-form filtering filtering-plain admin-reward-request-filter ui-form-theme">
-    <div class="filtering-fields admin-reward-request-filter-grid">
+<?php $rewardWithdrawalDetailFilterOpen = $statusFilter !== []; ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/rewards/withdrawal-requests')); ?>" class="filtering-form admin-reward-request-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $rewardWithdrawalDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-reward-request-filter-grid">
+            <div class="filtering-field admin-reward-request-filter-field">
+                <label for="reward-withdrawal-search-field" class="filtering-label">검색조건</label>
+                <select id="reward-withdrawal-search-field" name="field" class="form-select filtering-input">
+                    <?php foreach ($searchFieldOptions as $fieldValue => $fieldLabel) { ?>
+                        <option value="<?php echo sr_e($fieldValue); ?>"<?php echo $searchField === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="filtering-field filtering-field-fill admin-reward-request-filter-keyword">
+                <label for="reward-withdrawal-search-keyword" class="filtering-label">검색어</label>
+                <input id="reward-withdrawal-search-keyword" type="text" name="q" value="<?php echo sr_e($searchKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="회원, 계좌, 메모, 신청 번호">
+            </div>
+        </div>
+        <div id="reward_withdrawal_detail_filters" class="filtering-body" data-filtering-body<?php echo $rewardWithdrawalDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-reward-request-filter-status">
                 <span class="filtering-label">상태</span>
                 <?php echo sr_admin_filter_toggle_group_html('reward-withdrawal-status', 'status', $requestStatusOptions, $statusFilter, '전체'); ?>
             </div>
-            <div class="filtering-field admin-reward-request-filter-field">
-            <label for="reward-withdrawal-search-field" class="filtering-label">검색조건</label>
-            <select id="reward-withdrawal-search-field" name="field" class="form-select filtering-input">
-                <?php foreach ($searchFieldOptions as $fieldValue => $fieldLabel) { ?>
-                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo $searchField === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
-                <?php } ?>
-            </select>
-            </div>
-            <div class="filtering-field admin-reward-request-filter-keyword">
-            <label for="reward-withdrawal-search-keyword" class="filtering-label">검색어</label>
-            <input id="reward-withdrawal-search-keyword" type="text" name="q" value="<?php echo sr_e($searchKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="회원, 계좌, 메모, 신청 번호">
-            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $rewardWithdrawalDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="reward_withdrawal_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
             <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
     </div>
 </form>
 

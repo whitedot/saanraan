@@ -72,14 +72,10 @@ $uiKitTableRows = [
                     </label>
                 </div>
                 <div id="admin_ui_filtering_card_detail" class="filtering-body" data-filtering-body hidden>
-                    <label class="filtering-field" for="admin_ui_filtering_card_category">
+                    <div class="filtering-field">
                         <span class="form-label">분류</span>
-                        <select id="admin_ui_filtering_card_category" class="form-select" name="category">
-                            <option value="">전체</option>
-                            <option>공지</option>
-                            <option>가이드</option>
-                        </select>
-                    </label>
+                        <?php echo sr_admin_filter_radio_toggle_group_html('admin_ui_filtering_card_category', 'category', ['공지' => '공지', '가이드' => '가이드'], [], '전체'); ?>
+                    </div>
                     <label class="filtering-field" for="admin_ui_filtering_card_author">
                         <span class="form-label">작성자</span>
                         <input id="admin_ui_filtering_card_author" type="text" class="form-input" name="author">
