@@ -46,7 +46,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div id="reward_withdrawal_detail_filters" class="filtering-body" data-filtering-body<?php echo $rewardWithdrawalDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-reward-request-filter-status">
                 <span class="filtering-label">상태</span>
-                <?php echo sr_admin_filter_toggle_group_html('reward-withdrawal-status', 'status', $requestStatusOptions, $statusFilter, '전체'); ?>
+                <?php echo sr_admin_filter_radio_toggle_group_html('reward-withdrawal-status', 'status', $requestStatusOptions, $statusFilter, '전체'); ?>
             </div>
         </div>
         <div class="filtering-actions">

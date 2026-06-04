@@ -46,7 +46,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div id="deposit_refund_detail_filters" class="filtering-body" data-filtering-body<?php echo $depositRefundDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-deposit-request-filter-status">
                 <span class="filtering-label">상태</span>
-                <?php echo sr_admin_filter_toggle_group_html('deposit-refund-status', 'status', $requestStatusOptions, $statusFilter, '전체'); ?>
+                <?php echo sr_admin_filter_radio_toggle_group_html('deposit-refund-status', 'status', $requestStatusOptions, $statusFilter, '전체'); ?>
             </div>
         </div>
         <div class="filtering-actions">

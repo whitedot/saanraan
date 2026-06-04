@@ -117,6 +117,7 @@ function sr_admin_pagination_url(int $page, string $pageParam = 'page'): string
 {
     $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
     $path = (string) (parse_url($uri, PHP_URL_PATH) ?: '/');
+    $contextPath = function_exists('sr_request_path') ? sr_request_path() : $path;
     $queryString = (string) (parse_url($uri, PHP_URL_QUERY) ?: '');
     $params = [];
     if ($queryString !== '') {
@@ -124,7 +125,7 @@ function sr_admin_pagination_url(int $page, string $pageParam = 'page'): string
         if (!is_array($params)) {
             $params = [];
         }
-        $params = sr_admin_normalize_query_params($params);
+        $params = sr_admin_normalize_query_params($params, $contextPath);
     }
 
     unset($params[$pageParam]);

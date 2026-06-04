@@ -35,7 +35,7 @@ foreach ($availableTargets as $availableTarget) {
 }
 $filters = [
     'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
-    'target' => sr_admin_get_allowed_array('target', $allowedTargetOptions, 300),
+    'target' => sr_admin_get_allowed_single_array('target', $allowedTargetOptions, 300),
     'field' => sr_get_string('field', 20),
     'q' => sr_banner_clean_single_line(sr_get_string('q', 120), 120),
 ];

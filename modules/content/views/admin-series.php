@@ -85,7 +85,11 @@ $seriesVisibilities = sr_content_series_visibility_values();
                     <?php
                     $contentSeriesVisibilityOptions = [];
                     foreach ($seriesVisibilities as $visibility) {
-                        $contentSeriesVisibilityOptions[(string) $visibility] = sr_content_series_visibility_label((string) $visibility);
+                        $visibilityLabel = sr_content_series_visibility_label((string) $visibility);
+                        if ($visibilityLabel === '전체 공개') {
+                            continue;
+                        }
+                        $contentSeriesVisibilityOptions[(string) $visibility] = $visibilityLabel;
                     }
                     echo sr_admin_filter_radio_toggle_group_html('content_series_filter_visibility', 'visibility', $contentSeriesVisibilityOptions, $selectedSeriesVisibilities, '전체');
                     ?>

@@ -1378,28 +1378,6 @@
     control.dispatchEvent(new Event(type, { bubbles: true }));
   }
 
-  function resetSelectToDefault(select) {
-    var options;
-    var defaultIndex;
-
-    if (!select) {
-      return;
-    }
-
-    options = Array.prototype.slice.call(select.options || []);
-    if (select.multiple) {
-      options.forEach(function (option) {
-        option.selected = option.defaultSelected;
-      });
-      return;
-    }
-
-    defaultIndex = options.findIndex(function (option) {
-      return option.defaultSelected;
-    });
-    select.selectedIndex = defaultIndex >= 0 ? defaultIndex : (options.length > 0 ? 0 : -1);
-  }
-
   function clearFiltering(filtering) {
     if (!filtering) {
       return;
@@ -1420,19 +1398,31 @@
         return;
       }
 
-      if (control.matches('[type="checkbox"], [type="radio"]')) {
-        control.checked = control.defaultChecked;
+      if (control.matches('[type="checkbox"]')) {
+        control.checked = control.hasAttribute('data-filtering-toggle-all');
+        dispatchFormEvent(control, 'change');
+        return;
+      }
+
+      if (control.matches('[type="radio"]')) {
+        control.checked = control.value === '';
         dispatchFormEvent(control, 'change');
         return;
       }
 
       if (control.tagName === 'SELECT') {
-        resetSelectToDefault(control);
+        if (control.multiple) {
+          Array.prototype.slice.call(control.options || []).forEach(function (option) {
+            option.selected = false;
+          });
+        } else {
+          control.selectedIndex = control.options && control.options.length > 0 ? 0 : -1;
+        }
         dispatchFormEvent(control, 'change');
         return;
       }
 
-      control.value = control.defaultValue;
+      control.value = '';
       dispatchFormEvent(control, 'input');
       dispatchFormEvent(control, 'change');
     });

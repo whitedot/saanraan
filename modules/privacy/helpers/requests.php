@@ -152,7 +152,7 @@ function sr_admin_privacy_request_filters(array $allowedStatuses, array $allowed
 {
     $filters = [
         'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
-        'request_type' => sr_admin_get_allowed_array('request_type', $allowedTypes, 40),
+        'request_type' => sr_admin_get_allowed_single_array('request_type', $allowedTypes, 40),
         'field' => sr_get_string('field', 20),
         'q' => trim(sr_get_string('q', 120)),
     ];

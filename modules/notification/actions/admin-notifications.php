@@ -66,7 +66,7 @@ $notificationListFilters = [
     'q' => trim(sr_get_string('q', 120)),
 ];
 $deliveryListFilters = [
-    'delivery_channel' => sr_admin_get_allowed_array('delivery_channel', $allowedDeliveryChannels, 30),
+    'delivery_channel' => sr_admin_get_allowed_single_array('delivery_channel', $allowedDeliveryChannels, 30),
     'delivery_status' => sr_admin_get_allowed_array('delivery_status', $allowedDeliveryStatuses, 30),
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),

@@ -97,13 +97,65 @@ function sr_admin_single_value_query_keys(): array
     ];
 }
 
-function sr_admin_normalize_query_params(array $params): array
+function sr_admin_context_single_value_query_keys(string $path): array
+{
+    $singleValueKeysByPath = [
+        '/admin/asset-exchange' => ['status', 'from_module_key', 'to_module_key'],
+        '/admin/asset-exchange/logs' => ['status', 'asset'],
+        '/admin/banners' => ['target'],
+        '/admin/community/boards' => ['group_id'],
+        '/admin/community/series' => ['visibility'],
+        '/admin/content' => ['content_group_id'],
+        '/admin/content/file-downloads' => ['download_type'],
+        '/admin/content/files' => ['status'],
+        '/admin/content/series' => ['visibility'],
+        '/admin/coupons' => ['status', 'target_type'],
+        '/admin/coupons/issues' => ['target_type'],
+        '/admin/coupons/redemptions' => ['status', 'refundable_policy', 'target_type'],
+        '/admin/deposits/refund-requests' => ['status'],
+        '/admin/member-group-rules' => ['status', 'evaluation_policy', 'group_id', 'source_module_key'],
+        '/admin/notification-deliveries' => ['delivery_channel'],
+        '/admin/notifications' => ['audience', 'status'],
+        '/admin/popup-layers' => ['target'],
+        '/admin/privacy-requests' => ['request_type'],
+        '/admin/rewards/withdrawal-requests' => ['status'],
+    ];
+
+    return $singleValueKeysByPath[$path] ?? [];
+}
+
+function sr_admin_first_scalar_query_value(array $values): ?string
+{
+    foreach ($values as $value) {
+        if (is_array($value)) {
+            continue;
+        }
+
+        $value = trim((string) $value);
+        if ($value !== '') {
+            return $value;
+        }
+    }
+
+    return null;
+}
+
+function sr_admin_normalize_query_params(array $params, string $path = ''): array
 {
     $normalized = [];
     $singleValueKeys = array_fill_keys(sr_admin_single_value_query_keys(), true);
+    $contextSingleValueKeys = array_fill_keys(sr_admin_context_single_value_query_keys($path), true);
 
     foreach ($params as $key => $value) {
         if (is_array($value)) {
+            if (isset($contextSingleValueKeys[(string) $key])) {
+                $scalarValue = sr_admin_first_scalar_query_value($value);
+                if ($scalarValue !== null) {
+                    $normalized[$key] = $scalarValue;
+                }
+                continue;
+            }
+
             if (isset($singleValueKeys[(string) $key]) && array_is_list($value) && count($value) === 1 && !is_array($value[0])) {
                 $normalized[$key] = (string) $value[0];
                 continue;
