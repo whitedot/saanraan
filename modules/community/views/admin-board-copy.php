@@ -4,6 +4,7 @@ $adminPageTitle = '게시판 복사';
 $adminPageSubtitle = '게시판 설정 또는 운영 데이터를 새 disabled 게시판으로 복사합니다.';
 $adminContainerClass = 'admin-community-board-form admin-ui-scope';
 $communityBoardCopySeriesSuggestions = sr_community_board_copy_series_suggestions($pdo, (int) $sourceBoard['id']);
+$communityBoardCopyStorageWarnings = sr_community_board_copy_storage_warnings($copyCounts);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -36,6 +37,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </div>
         <?php } ?>
+        <?php if ($communityBoardCopyStorageWarnings !== []) { ?>
+            <div class="alert alert-warning">
+                <div>
+                    <?php foreach ($communityBoardCopyStorageWarnings as $storageWarning) { ?>
+                        <p><?php echo sr_e($storageWarning); ?></p>
+                    <?php } ?>
+                </div>
+            </div>
+        <?php } ?>
         <div class="admin-form-row">
             <label class="form-label" for="community_board_copy_key"><?php echo sr_e('board_key'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
             <div class="admin-form-field">
@@ -57,7 +67,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html($modeLabel); ?>
                     </label>
                 <?php } ?>
-                <p class="admin-form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 동기 상한 안에서만 실행됩니다. 상한을 넘으면 복사를 시작하지 않습니다.'); ?></p>
+                <p class="admin-form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 동기 상한 안에서만 실행됩니다. 상한을 넘으면 복사를 시작하지 않습니다. 첨부파일이 있으면 위 용량 안내를 확인하세요.'); ?></p>
             </div>
         </div>
         <?php if ((int) ($copyCounts['series'] ?? 0) > 0) { ?>
