@@ -24,15 +24,8 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
         <div class="filtering filtering-card<?php echo $downloadLogDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
             <div class="filtering-fields">
                 <div class="filtering-field">
-                    <label for="content_file_download_filter_type" class="filtering-label">구분</label>
-                    <select id="content_file_download_filter_type" name="download_type" class="form-select filtering-input">
-                        <option value="">전체</option>
-                        <?php foreach (['free' => '무료', 'paid' => '유료'] as $downloadType => $downloadTypeLabel) { ?>
-                            <option value="<?php echo sr_e($downloadType); ?>"<?php echo in_array($downloadType, $selectedDownloadTypes, true) ? ' selected' : ''; ?>>
-                                <?php echo sr_e($downloadTypeLabel); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
+                    <span class="filtering-label">구분</span>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('content_file_download_filter_type', 'download_type', ['free' => '무료', 'paid' => '유료'], $selectedDownloadTypes, '전체'); ?>
                 </div>
                 <div class="filtering-field">
                     <span class="filtering-label">환불 상태</span>

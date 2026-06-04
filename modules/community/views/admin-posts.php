@@ -34,8 +34,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="filtering-form filtering filtering-plain admin-community-post-filter ui-form-theme">
-    <div class="filtering-fields admin-community-post-search-grid">
+<?php $postDetailFilterOpen = $selectedPostStatuses !== [] || (int) ($postListFilters['board_id'] ?? 0) !== 0 || (int) ($postListFilters['category_id'] ?? 0) !== 0; ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="filtering-form admin-community-post-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $postDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-community-post-search-grid">
+            <div class="filtering-field admin-community-post-filter-field">
+            <label for="community_admin_posts_field" class="filtering-label">검색조건</label>
+            <select id="community_admin_posts_field" name="field" class="form-select filtering-input">
+                <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'title' => sr_t('community::ui.text.08b17e43'), 'author' => sr_t('community::ui.text.f2ee20a7'), 'board' => sr_t('community::ui.text.4732a58f')] as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($postListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                        <?php echo sr_e($fieldLabel); ?>
+                    </option>
+                <?php } ?>
+            </select>
+            </div>
+            <div class="filtering-field filtering-field-fill admin-community-post-filter-keyword">
+            <label for="community_admin_posts_q" class="filtering-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
+            <input id="community_admin_posts_q" type="text" name="q" value="<?php echo sr_e((string) ($postListFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.text.f2044028')); ?>">
+            </div>
+        </div>
+        <div id="community_post_detail_filters" class="filtering-body" data-filtering-body<?php echo $postDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-community-post-filter-status">
                 <span class="filtering-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></span>
                 <?php echo sr_admin_filter_toggle_group_html('community_admin_posts_status_filter', 'status', sr_admin_code_label_options($allowedPostStatuses, 'content_status'), $selectedPostStatuses, sr_t('community::ui.all.a4b69faf')); ?>
@@ -62,21 +80,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
             </div>
-            <div class="filtering-field admin-community-post-filter-field">
-            <label for="community_admin_posts_field" class="filtering-label">검색조건</label>
-            <select id="community_admin_posts_field" name="field" class="form-select filtering-input">
-                <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'title' => sr_t('community::ui.text.08b17e43'), 'author' => sr_t('community::ui.text.f2ee20a7'), 'board' => sr_t('community::ui.text.4732a58f')] as $fieldValue => $fieldLabel) { ?>
-                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($postListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                        <?php echo sr_e($fieldLabel); ?>
-                    </option>
-                <?php } ?>
-            </select>
-            </div>
-            <div class="filtering-field admin-community-post-filter-keyword">
-            <label for="community_admin_posts_q" class="filtering-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
-            <input id="community_admin_posts_q" type="text" name="q" value="<?php echo sr_e((string) ($postListFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.text.f2044028')); ?>">
-            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $postDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="community_post_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
             <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
+        </div>
     </div>
 </form>
 
@@ -181,8 +190,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="filtering-form filtering filtering-plain admin-community-comment-filter ui-form-theme">
-    <div class="filtering-fields admin-community-comment-search-grid">
+<?php $commentDetailFilterOpen = $selectedCommentStatuses !== [] || (int) ($commentListFilters['board_id'] ?? 0) !== 0; ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="filtering-form admin-community-comment-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $commentDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields admin-community-comment-search-grid">
+            <div class="filtering-field admin-community-comment-filter-field">
+            <label for="community_admin_comments_field" class="filtering-label">검색조건</label>
+            <select id="community_admin_comments_field" name="field" class="form-select filtering-input">
+                <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'body' => sr_t('community::ui.text.9118bb57'), 'author' => sr_t('community::ui.text.f2ee20a7'), 'post' => sr_t('community::ui.text.0b138cfe'), 'board' => sr_t('community::ui.text.4732a58f')] as $fieldValue => $fieldLabel) { ?>
+                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($commentListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
+                        <?php echo sr_e($fieldLabel); ?>
+                    </option>
+                <?php } ?>
+            </select>
+            </div>
+            <div class="filtering-field filtering-field-fill admin-community-comment-filter-keyword">
+            <label for="community_admin_comments_q" class="filtering-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
+            <input id="community_admin_comments_q" type="text" name="q" value="<?php echo sr_e((string) ($commentListFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.text.92b4a17e')); ?>">
+            </div>
+        </div>
+        <div id="community_comment_detail_filters" class="filtering-body" data-filtering-body<?php echo $commentDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-community-comment-filter-status">
                 <span class="filtering-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></span>
                 <?php echo sr_admin_filter_toggle_group_html('community_admin_comments_status_filter', 'status', sr_admin_code_label_options($allowedCommentStatuses, 'content_status'), $selectedCommentStatuses, sr_t('community::ui.all.a4b69faf')); ?>
@@ -198,21 +225,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </select>
             </div>
-            <div class="filtering-field admin-community-comment-filter-field">
-            <label for="community_admin_comments_field" class="filtering-label">검색조건</label>
-            <select id="community_admin_comments_field" name="field" class="form-select filtering-input">
-                <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'body' => sr_t('community::ui.text.9118bb57'), 'author' => sr_t('community::ui.text.f2ee20a7'), 'post' => sr_t('community::ui.text.0b138cfe'), 'board' => sr_t('community::ui.text.4732a58f')] as $fieldValue => $fieldLabel) { ?>
-                    <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($commentListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
-                        <?php echo sr_e($fieldLabel); ?>
-                    </option>
-                <?php } ?>
-            </select>
-            </div>
-            <div class="filtering-field admin-community-comment-filter-keyword">
-            <label for="community_admin_comments_q" class="filtering-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
-            <input id="community_admin_comments_q" type="text" name="q" value="<?php echo sr_e((string) ($commentListFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.text.92b4a17e')); ?>">
-            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $commentDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="community_comment_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
             <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
+        </div>
     </div>
 </form>
 
