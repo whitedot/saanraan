@@ -323,6 +323,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <?php echo sr_admin_pagination_html($boardPagination, '게시판 목록 페이지'); ?>
+    <?php $communityStorageCleanupFailures = is_array($communityStorageCleanupFailures ?? null) ? $communityStorageCleanupFailures : []; ?>
+    <?php if ($communityStorageCleanupFailures !== []) { ?>
+        <section class="admin-card admin-list-card card admin-list-form">
+            <div class="card-header">
+                <h2 class="card-title">저장소 정리 실패</h2>
+                <p class="admin-dashboard-meta">게시판 삭제 후 남은 첨부 파일 정리 대상입니다.</p>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <caption class="sr-only">커뮤니티 저장소 정리 실패 목록</caption>
+                    <thead class="ui-table-head">
+                        <tr>
+                            <th>대상</th>
+                            <th>저장소</th>
+                            <th>시도</th>
+                            <th>오류</th>
+                            <th class="text-end">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($communityStorageCleanupFailures as $cleanupFailure) { ?>
+                            <tr>
+                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($cleanupFailure['source_type'] ?? '')); ?> #<?php echo sr_e((string) (int) ($cleanupFailure['source_id'] ?? 0)); ?></td>
+                                <td class="admin-table-break"><code><?php echo sr_e((string) ($cleanupFailure['storage_driver'] ?? 'local')); ?>:<?php echo sr_e((string) ($cleanupFailure['storage_key'] ?? '')); ?></code></td>
+                                <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($cleanupFailure['attempt_count'] ?? 0)); ?>회</td>
+                                <td class="admin-table-break"><?php echo sr_e((string) ($cleanupFailure['last_error'] ?? '')); ?></td>
+                                <td class="admin-table-actions-cell">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-inline-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="retry_storage_cleanup_failure">
+                                        <input type="hidden" name="failure_id" value="<?php echo sr_e((string) (int) ($cleanupFailure['id'] ?? 0)); ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">재시도</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    <?php } ?>
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">

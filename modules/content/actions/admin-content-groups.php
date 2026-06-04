@@ -91,14 +91,27 @@ if (sr_request_method() === 'POST') {
                     'deleted_revisions' => (int) ($deleteResult['deleted_revisions'] ?? 0),
                     'deleted_files' => (int) ($deleteResult['deleted_files'] ?? 0),
                     'failed_files' => (int) ($deleteResult['failed_files'] ?? 0),
+                    'failed_file_refs' => array_slice(array_map('strval', is_array($deleteResult['failed_file_refs'] ?? null) ? $deleteResult['failed_file_refs'] : []), 0, 20),
                 ],
             ]);
-            $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹을 삭제했습니다.';
             if ((int) ($deleteResult['failed_files'] ?? 0) > 0) {
-                $_SESSION['sr_content_group_admin_notice'] .= ' 단, 일부 파일 저장소 삭제가 실패했습니다. 감사 로그의 실패 개수를 확인해 주세요.';
+                $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹 데이터는 삭제됐지만 일부 파일 저장소 정리가 실패했습니다. 저장소 정리 실패 기록을 확인해 주세요.';
+            } else {
+                $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹을 삭제했습니다.';
             }
         } else {
             $_SESSION['sr_content_group_admin_errors'] = $errors;
+        }
+        sr_redirect('/admin/content-groups');
+    }
+
+    if ($intent === 'retry_storage_cleanup_failure') {
+        $failureId = (int) sr_post_string('failure_id', 20);
+        $retryResult = sr_content_retry_storage_cleanup_failure($pdo, $failureId);
+        if (empty($retryResult['ok'])) {
+            $_SESSION['sr_content_group_admin_errors'] = [(string) ($retryResult['message'] ?? '저장소 파일 정리 재시도에 실패했습니다.')];
+        } else {
+            $_SESSION['sr_content_group_admin_notice'] = (string) ($retryResult['message'] ?? '저장소 파일 정리를 완료했습니다.');
         }
         sr_redirect('/admin/content-groups');
     }
@@ -305,6 +318,7 @@ $pageGroupPagination = sr_admin_pagination_from_total($pdo, $pageGroupsPage === 
 $pageGroups = $pageGroupsPage === 'list'
     ? sr_content_admin_group_list($pdo, $pageGroupFilters, (int) $pageGroupPagination['per_page'], sr_admin_pagination_offset($pageGroupPagination), $pageGroupSort)
     : [];
+$contentStorageCleanupFailures = $pageGroupsPage === 'list' ? sr_content_storage_cleanup_failures($pdo) : [];
 $values = is_array($sessionValues) ? $sessionValues : [];
 $pageGroupSettings = [];
 if ($pageGroupsPage === 'edit' && is_array($editPageGroup)) {

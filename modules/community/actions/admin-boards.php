@@ -120,15 +120,28 @@ if (sr_request_method() === 'POST') {
                     'deleted_attachments' => (int) ($deleteResult['deleted_attachments'] ?? 0),
                     'deleted_attachment_files' => (int) ($deleteResult['deleted_attachment_files'] ?? 0),
                     'failed_attachment_files' => (int) ($deleteResult['failed_attachment_files'] ?? 0),
+                    'failed_attachment_file_refs' => array_slice(array_map('strval', is_array($deleteResult['failed_attachment_file_refs'] ?? null) ? $deleteResult['failed_attachment_file_refs'] : []), 0, 20),
                     'deleted_series' => (int) ($deleteResult['deleted_series'] ?? 0),
                 ],
             ]);
-            $notice = '게시판을 삭제했습니다.';
             if ((int) ($deleteResult['failed_attachment_files'] ?? 0) > 0) {
-                $notice .= ' 단, 일부 첨부 파일 저장소 삭제가 실패했습니다. 감사 로그의 실패 개수를 확인해 주세요.';
+                $notice = '게시판 데이터는 삭제됐지만 일부 첨부 파일 저장소 정리가 실패했습니다. 저장소 정리 실패 기록을 확인해 주세요.';
+            } else {
+                $notice = '게시판을 삭제했습니다.';
             }
         }
 
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect('/admin/community/boards');
+    } elseif ($intent === 'retry_storage_cleanup_failure') {
+        $failureIdValue = sr_post_string('failure_id', 20);
+        $failureId = preg_match('/\A[1-9][0-9]*\z/', $failureIdValue) === 1 ? (int) $failureIdValue : 0;
+        $retryResult = sr_community_retry_storage_cleanup_failure($pdo, $failureId);
+        if (empty($retryResult['ok'])) {
+            $errors[] = (string) ($retryResult['message'] ?? '저장소 파일 정리 재시도에 실패했습니다.');
+        } else {
+            $notice = (string) ($retryResult['message'] ?? '저장소 파일 정리를 완료했습니다.');
+        }
         sr_admin_flash_result(sr_admin_action_result($errors, $notice));
         sr_redirect('/admin/community/boards');
     } elseif (in_array($intent, ['category_create', 'category_update', 'category_delete'], true)) {
@@ -923,6 +936,7 @@ if ($communityBoardsPage === 'list') {
         $boards[] = $communityAdminPrepareBoard($board);
     }
 }
+$communityStorageCleanupFailures = $communityBoardsPage === 'list' ? sr_community_storage_cleanup_failures($pdo) : [];
 
 $editBoard = null;
 if ($communityBoardsPage === 'edit') {

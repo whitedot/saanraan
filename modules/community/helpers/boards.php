@@ -1515,9 +1515,14 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     }
 
     $failedAttachmentFiles = 0;
+    $failedAttachmentFileRefs = [];
     foreach ($attachmentFiles as $attachmentFile) {
-        if (!sr_storage_delete((string) $attachmentFile['driver'], (string) $attachmentFile['key'])) {
+        $driver = (string) $attachmentFile['driver'];
+        $key = (string) $attachmentFile['key'];
+        if (!sr_storage_delete($driver, $key)) {
             $failedAttachmentFiles++;
+            $failedAttachmentFileRefs[] = $driver . ':' . $key;
+            sr_community_record_storage_cleanup_failure($pdo, 'board_delete_attachment', $boardId, $driver, $key, '게시판 삭제 후 첨부 파일 저장소 정리에 실패했습니다.');
         }
     }
 
@@ -1529,8 +1534,122 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     $check['deleted_attachments'] = $deletedAttachments;
     $check['deleted_attachment_files'] = count($attachmentFiles) - $failedAttachmentFiles;
     $check['failed_attachment_files'] = $failedAttachmentFiles;
+    $check['failed_attachment_file_refs'] = $failedAttachmentFileRefs;
     $check['deleted_series'] = $deletedSeries;
     return $check;
+}
+
+function sr_community_record_storage_cleanup_failure(PDO $pdo, string $sourceType, int $sourceId, string $driver, string $key, string $errorMessage): void
+{
+    if (!sr_community_optional_table_exists($pdo, 'sr_community_storage_cleanup_failures') || !sr_storage_key_is_safe($key)) {
+        return;
+    }
+
+    $driver = in_array($driver, ['local', 's3'], true) ? $driver : 'local';
+    $now = sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_community_storage_cleanup_failures
+                (source_type, source_id, storage_driver, storage_key, status, attempt_count, last_error, created_at, updated_at)
+             VALUES
+                (:source_type, :source_id, :storage_driver, :storage_key, \'pending\', 1, :last_error, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'source_type' => sr_community_clean_key($sourceType),
+            'source_id' => $sourceId,
+            'storage_driver' => $driver,
+            'storage_key' => $key,
+            'last_error' => sr_community_clean_cleanup_error($errorMessage),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'community_storage_cleanup_failure_record_failed');
+    }
+}
+
+function sr_community_storage_cleanup_failures(PDO $pdo, int $limit = 50): array
+{
+    if (!sr_community_optional_table_exists($pdo, 'sr_community_storage_cleanup_failures')) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT *
+         FROM sr_community_storage_cleanup_failures
+         WHERE status = 'pending'
+         ORDER BY updated_at DESC, id DESC
+         LIMIT :limit_value"
+    );
+    $stmt->bindValue('limit_value', max(1, min(200, $limit)), PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_retry_storage_cleanup_failure(PDO $pdo, int $failureId): array
+{
+    if ($failureId < 1 || !sr_community_optional_table_exists($pdo, 'sr_community_storage_cleanup_failures')) {
+        return ['ok' => false, 'message' => '저장소 정리 실패 기록을 찾을 수 없습니다.'];
+    }
+
+    $stmt = $pdo->prepare("SELECT * FROM sr_community_storage_cleanup_failures WHERE id = :id AND status = 'pending' LIMIT 1");
+    $stmt->execute(['id' => $failureId]);
+    $failure = $stmt->fetch();
+    if (!is_array($failure)) {
+        return ['ok' => false, 'message' => '재시도할 저장소 정리 실패 기록을 찾을 수 없습니다.'];
+    }
+
+    $driver = (string) ($failure['storage_driver'] ?? 'local');
+    $key = (string) ($failure['storage_key'] ?? '');
+    $now = sr_now();
+    if ($key !== '' && sr_storage_delete($driver, $key)) {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_community_storage_cleanup_failures
+             SET status = 'cleaned',
+                 attempt_count = attempt_count + 1,
+                 last_error = '',
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute(['updated_at' => $now, 'id' => $failureId]);
+
+        return ['ok' => true, 'message' => '저장소 파일 정리를 완료했습니다.'];
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_storage_cleanup_failures
+         SET attempt_count = attempt_count + 1,
+             last_error = :last_error,
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'last_error' => '저장소 파일 정리 재시도에 실패했습니다.',
+        'updated_at' => $now,
+        'id' => $failureId,
+    ]);
+
+    return ['ok' => false, 'message' => '저장소 파일 정리 재시도에 실패했습니다. 저장소 권한 또는 S3 설정을 확인해 주세요.'];
+}
+
+function sr_community_clean_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[^a-z0-9_]+/', '_', $value) ?? '';
+    $value = trim($value, '_');
+
+    return $value !== '' ? substr($value, 0, 60) : 'unknown';
+}
+
+function sr_community_clean_cleanup_error(string $value): string
+{
+    $value = trim(str_replace(["\r\n", "\r"], "\n", $value));
+    if (function_exists('mb_substr')) {
+        return mb_substr($value, 0, 1000);
+    }
+
+    return substr($value, 0, 1000);
 }
 
 function sr_community_board_attachment_storage_refs(PDO $pdo, int $boardId): array

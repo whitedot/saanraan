@@ -1629,11 +1629,14 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     }
 
     $failedFiles = 0;
+    $failedFileRefs = [];
     foreach ($files as $file) {
         $driver = function_exists('sr_content_file_storage_driver') ? sr_content_file_storage_driver($file) : (string) ($file['storage_driver'] ?? 'local');
         $key = function_exists('sr_content_file_storage_key') ? sr_content_file_storage_key($file) : (string) ($file['storage_key'] ?? '');
         if ($key !== '' && !sr_storage_delete($driver, $key)) {
             $failedFiles++;
+            $failedFileRefs[] = $driver . ':' . $key;
+            sr_content_record_storage_cleanup_failure($pdo, 'group_delete_file', $groupId, $driver, $key, '콘텐츠 그룹 삭제 후 파일 저장소 정리에 실패했습니다.');
         }
     }
 
@@ -1643,7 +1646,111 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     $check['deleted_revisions'] = $deletedRevisions;
     $check['deleted_files'] = $deletedFiles - $failedFiles;
     $check['failed_files'] = $failedFiles;
+    $check['failed_file_refs'] = $failedFileRefs;
     return $check;
+}
+
+function sr_content_record_storage_cleanup_failure(PDO $pdo, string $sourceType, int $sourceId, string $driver, string $key, string $errorMessage): void
+{
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_storage_cleanup_failures') || !sr_storage_key_is_safe($key)) {
+        return;
+    }
+
+    $driver = in_array($driver, ['local', 's3'], true) ? $driver : 'local';
+    $now = sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_content_storage_cleanup_failures
+                (source_type, source_id, storage_driver, storage_key, status, attempt_count, last_error, created_at, updated_at)
+             VALUES
+                (:source_type, :source_id, :storage_driver, :storage_key, \'pending\', 1, :last_error, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'source_type' => sr_content_clean_key($sourceType),
+            'source_id' => $sourceId,
+            'storage_driver' => $driver,
+            'storage_key' => $key,
+            'last_error' => sr_content_clean_text($errorMessage, 1000),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'content_storage_cleanup_failure_record_failed');
+    }
+}
+
+function sr_content_storage_cleanup_failures(PDO $pdo, int $limit = 50): array
+{
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_storage_cleanup_failures')) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT *
+         FROM sr_content_storage_cleanup_failures
+         WHERE status = 'pending'
+         ORDER BY updated_at DESC, id DESC
+         LIMIT :limit_value"
+    );
+    $stmt->bindValue('limit_value', max(1, min(200, $limit)), PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_retry_storage_cleanup_failure(PDO $pdo, int $failureId): array
+{
+    if ($failureId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_storage_cleanup_failures')) {
+        return ['ok' => false, 'message' => '저장소 정리 실패 기록을 찾을 수 없습니다.'];
+    }
+
+    $stmt = $pdo->prepare("SELECT * FROM sr_content_storage_cleanup_failures WHERE id = :id AND status = 'pending' LIMIT 1");
+    $stmt->execute(['id' => $failureId]);
+    $failure = $stmt->fetch();
+    if (!is_array($failure)) {
+        return ['ok' => false, 'message' => '재시도할 저장소 정리 실패 기록을 찾을 수 없습니다.'];
+    }
+
+    $driver = (string) ($failure['storage_driver'] ?? 'local');
+    $key = (string) ($failure['storage_key'] ?? '');
+    $now = sr_now();
+    if ($key !== '' && sr_storage_delete($driver, $key)) {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_storage_cleanup_failures
+             SET status = 'cleaned',
+                 attempt_count = attempt_count + 1,
+                 last_error = '',
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute(['updated_at' => $now, 'id' => $failureId]);
+
+        return ['ok' => true, 'message' => '저장소 파일 정리를 완료했습니다.'];
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_content_storage_cleanup_failures
+         SET attempt_count = attempt_count + 1,
+             last_error = :last_error,
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'last_error' => '저장소 파일 정리 재시도에 실패했습니다.',
+        'updated_at' => $now,
+        'id' => $failureId,
+    ]);
+
+    return ['ok' => false, 'message' => '저장소 파일 정리 재시도에 실패했습니다. 저장소 권한 또는 S3 설정을 확인해 주세요.'];
+}
+
+function sr_content_clean_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[^a-z0-9_]+/', '_', $value) ?? '';
+    $value = trim($value, '_');
+
+    return $value !== '' ? substr($value, 0, 60) : 'unknown';
 }
 
 function sr_content_group_content_ids(PDO $pdo, int $groupId): array
