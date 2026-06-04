@@ -25,8 +25,22 @@ if ($editing && (string) ($editBanner['module_key'] ?? '') !== '') {
 } elseif ($editing) {
     $selectedTargetOption = sr_banner_public_target_option_value();
 }
-$currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : (isset($bannerDefaultMatchType) ? (string) $bannerDefaultMatchType : 'all');
-$subjectRequired = !sr_banner_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
+$currentMatchType = $editing ? (string) ($editBanner['match_type'] ?? 'all') : 'all';
+if (!in_array($currentMatchType, ['all', 'exact'], true)) {
+    $currentMatchType = 'all';
+}
+$bannerSubjectTargetTypeMap = sr_banner_subject_target_type_map($pdo, $availableTargets);
+$bannerSubjectSearchTypes = sr_banner_subject_search_types($pdo, $availableTargets);
+$currentSubjectTargetType = (string) ($bannerSubjectTargetTypeMap[$selectedTargetOption] ?? '');
+$bannerSubjectSearchEnabled = $currentSubjectTargetType !== '';
+$bannerUseImage = $editing && sr_banner_clean_image_url((string) ($editBanner['image_url'] ?? '')) !== '';
+if (sr_banner_is_public_target_option($selectedTargetOption) || $currentSubjectTargetType === '') {
+    $currentMatchType = 'all';
+}
+$subjectScopeVisible = $currentSubjectTargetType !== '' && !sr_banner_is_public_target_option($selectedTargetOption);
+$subjectRequired = $subjectScopeVisible && $currentMatchType === 'exact';
+$bannerSubjectLookupModalId = 'banner-subject-lookup-modal';
+$bannerSubjectLookupResultsId = 'banner-subject-lookup-results';
 $bannerHelpOpenLabel = sr_t('banner::help.open');
 $bannerHelpButtonHtml = static function (string $label, string $modalId) use ($bannerHelpOpenLabel): string {
     return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $bannerHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
@@ -62,15 +76,10 @@ $bannerHelp = [
         'title' => sr_t('banner::help.target_option.title'),
         'body' => $bannerHelpBodyHtml(['banner::help.target_option.body.1', 'banner::help.target_option.body.2']),
     ],
-    'match_type' => [
-        'id' => 'banner_admin_help_match_type',
-        'title' => sr_t('banner::help.match_type.title'),
-        'body' => $bannerHelpBodyHtml(['banner::help.match_type.body.1', 'banner::help.match_type.body.2']),
-    ],
-    'subject_id' => [
-        'id' => 'banner_admin_help_subject_id',
-        'title' => sr_t('banner::help.subject_id.title'),
-        'body' => $bannerHelpBodyHtml(['banner::help.subject_id.body.1', 'banner::help.subject_id.body.2']),
+    'subject_target' => [
+        'id' => 'banner_admin_help_subject_target',
+        'title' => sr_t('banner::help.subject_target.title'),
+        'body' => $bannerHelpBodyHtml(['banner::help.subject_target.body.1', 'banner::help.subject_target.body.2']),
     ],
     'status' => [
         'id' => 'banner_admin_help_status',
@@ -106,7 +115,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($bannerAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme" data-admin-subject-form data-public-target-value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>">
         <section class="admin-card card">
-            <h2><?php echo $editing ? sr_t('banner::ui.banner.edit.52756afa') : sr_t('banner::ui.banner.b0dbbde9'); ?></h2>
+            <h2><?php echo sr_e(sr_t('banner::ui.section.basic')); ?></h2>
             <p><?php echo sr_e(sr_t('banner::ui.banner.banner.select.banner.active.40c015cc')); ?></p>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="banner_id" value="<?php echo $editing ? sr_e((string) $editBanner['id']) : '0'; ?>">
@@ -117,33 +126,49 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="banner_admin_banners_body_text"><?php echo sr_e(sr_t('banner::ui.text.cb0f2404')); ?></label>
-                <div class="admin-form-field">
-                    <textarea id="banner_admin_banners_body_text" name="body_text" maxlength="3000" class="form-textarea"><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
-                </div>
-            </div>
-            <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_link_url', sr_t('banner::ui.url.http.https.81cff7be'), $bannerHelp['link_url']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <input id="banner_admin_banners_link_url" type="text" name="link_url" value="<?php echo $editing ? sr_e((string) $editBanner['link_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
                     <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.url.help.6f5481db')); ?></p>
                 </div>
             </div>
+        </section>
+        <section class="admin-card card">
+            <h2><?php echo sr_e(sr_t('banner::ui.section.image_text')); ?></h2>
             <div class="admin-form-row">
+                <label class="form-label" for="banner_admin_banners_use_image"><?php echo sr_e(sr_t('banner::ui.use_image')); ?></label>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label">
+                        <input id="banner_admin_banners_use_image" type="checkbox" name="use_image" value="1" class="form-switch" data-admin-banner-use-image<?php echo $bannerUseImage ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html(sr_t('banner::ui.use_image.choice')); ?>
+                    </label>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.use_image.help')); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row" data-admin-banner-image-row<?php echo $bannerUseImage ? '' : ' hidden'; ?>>
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_image_url', sr_t('banner::ui.url.http.https.url.264bd3d3'), $bannerHelp['image_url']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input form-control-full" maxlength="255">
+                    <input id="banner_admin_banners_image_url" type="text" name="image_url" value="<?php echo $editing ? sr_e((string) $editBanner['image_url']) : ''; ?>" class="form-input form-control-full" maxlength="255" data-admin-banner-image-input<?php echo $bannerUseImage ? '' : ' disabled'; ?>>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.url.help.e0a0162e')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row">
+            <div class="admin-form-row" data-admin-banner-image-row<?php echo $bannerUseImage ? '' : ' hidden'; ?>>
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_image_upload', sr_t('banner::ui.text.cead00a8'), $bannerHelp['image_upload']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_image_upload" type="file" name="image_upload" accept="image/jpeg,image/png,image/webp" class="form-input">
-                    <br>
-                                    <small><?php echo sr_e(sr_t('banner::ui.jpeg.png.webp.6252010a')); ?> <?php echo sr_e(sr_banner_format_bytes(sr_banner_image_upload_max_bytes())); ?><?php echo sr_e(sr_t('banner::ui.text.58609b0c')); ?></small>
+                    <input id="banner_admin_banners_image_upload" type="file" name="image_upload" accept="image/jpeg,image/png,image/webp" class="form-input" data-admin-banner-image-input<?php echo $bannerUseImage ? '' : ' disabled'; ?>>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.image_upload.help.inline')); ?> <?php echo sr_e(sr_banner_format_bytes(sr_banner_image_upload_max_bytes())); ?></p>
                 </div>
             </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="banner_admin_banners_body_text"><span data-admin-banner-text-label><?php echo sr_e($bannerUseImage ? sr_t('banner::ui.alt_text') : sr_t('banner::ui.display_text')); ?></span> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+                <div class="admin-form-field">
+                    <textarea id="banner_admin_banners_body_text" name="body_text" maxlength="3000" class="form-textarea" required data-admin-banner-text-input><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
+                    <p class="admin-form-help" data-admin-banner-text-help><?php echo sr_e($bannerUseImage ? sr_t('banner::ui.alt_text.help') : sr_t('banner::ui.display_text.help')); ?></p>
+                </div>
+            </div>
+        </section>
+        <section class="admin-card card">
+            <h2><?php echo sr_e(sr_t('banner::ui.section.exposure')); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_target_option', sr_t('banner::ui.text.76389a62'), $bannerHelp['target_option']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
@@ -158,28 +183,37 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </option>
                                             <?php } ?>
                                         </select>
-                    <br>
-                                    <small><?php echo sr_e(sr_t('banner::ui.banner.settings.select.active.88d78049')); ?></small>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.banner.settings.select.active.88d78049')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('banner_admin_banners_match_type', sr_t('banner::ui.text.175f56ba'), $bannerHelp['match_type']['id'], $bannerHelpOpenLabel, true); ?>
+            <div class="admin-form-row" data-admin-subject-scope-row<?php echo $subjectScopeVisible ? '' : ' hidden'; ?>>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_match_type_all', sr_t('banner::ui.subject_target.scope'), $bannerHelp['subject_target']['id'], $bannerHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <select id="banner_admin_banners_match_type" name="match_type" class="form-select">
-                                            <?php foreach ($allowedMatchTypes as $matchType) { ?>
-                                                <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
-                                                </option>
-                                            <?php } ?>
-                                        </select>
+                    <label class="admin-form-check form-label">
+                        <input id="banner_admin_banners_match_type_all" type="radio" name="match_type" value="all" class="form-radio" data-admin-subject-scope<?php echo $currentMatchType === 'exact' ? '' : ' checked'; ?>>
+                        <?php echo sr_admin_choice_label_html(sr_t('banner::ui.subject_target.all')); ?>
+                    </label>
+                    <label class="admin-form-check form-label">
+                        <input id="banner_admin_banners_match_type_exact" type="radio" name="match_type" value="exact" class="form-radio" data-admin-subject-scope<?php echo $currentMatchType === 'exact' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html(sr_t('banner::ui.subject_target.exact')); ?>
+                    </label>
+                    <p class="admin-form-help" data-admin-subject-public-help<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('banner::ui.subject_target.public_help')); ?></p>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <div class="form-label admin-form-label-help"><?php echo $bannerHelpButtonHtml(sr_t('banner::ui.subject.id.14852174'), $bannerHelp['subject_id']['id']); ?><label for="banner_admin_banners_subject_id"><?php echo sr_e(sr_t('banner::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label></div>
+            <div class="admin-form-row" data-admin-subject-row<?php echo $subjectRequired ? '' : ' hidden'; ?>>
+                <div class="form-label admin-form-label-help"><label for="banner_admin_banners_subject_id"><?php echo sr_e(sr_t('banner::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label></div>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ''; ?>>
+                    <div class="admin-lookup-control">
+                        <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ' disabled'; ?>>
+                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-banner-subject-search-button data-type-target="#banner_admin_banners_subject_reference_type" data-id-target="#banner_admin_banners_subject_id"<?php echo $bannerSubjectSearchEnabled ? '' : ' disabled hidden'; ?>><?php echo sr_e(sr_t('banner::ui.subject_target.search')); ?></button>
+                    </div>
+                    <input id="banner_admin_banners_subject_reference_type" type="hidden" name="subject_reference_type" value="<?php echo sr_e($currentSubjectTargetType); ?>" data-admin-subject-reference-type>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.subject_target.subject_help')); ?></p>
                 </div>
             </div>
+        </section>
+        <section class="admin-card card">
+            <h2><?php echo sr_e(sr_t('banner::ui.section.settings')); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_status', sr_t('banner::ui.status.e10195a1'), $bannerHelp['status']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
@@ -191,8 +225,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </option>
                                             <?php } ?>
                                         </select>
-                    <br>
-                                    <small><?php echo sr_e(sr_t('banner::ui.active.status.active.6c539bd1')); ?></small>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.active.status.active.6c539bd1')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -207,8 +240,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </option>
                                             <?php } ?>
                                         </select>
-                    <br>
-                                    <small><?php echo sr_e(sr_t('banner::ui.save.97360101')); ?></small>
+                    <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.save.97360101')); ?></p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -395,6 +427,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php foreach ($bannerHelp as $bannerHelpModal) { ?>
         <?php echo sr_admin_help_modal_html((string) $bannerHelpModal['id'], (string) $bannerHelpModal['title'], (string) $bannerHelpModal['body']); ?>
     <?php } ?>
+    <div id="<?php echo sr_e($bannerSubjectLookupModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($bannerSubjectLookupModalId); ?>_title" aria-hidden="true" inert data-overlay-stack="true">
+        <div class="modal-dialog admin-lookup-dialog">
+            <div class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($bannerSubjectLookupModalId); ?>_title" class="modal-title"><?php echo sr_e(sr_t('banner::ui.subject_target.search_title')); ?></h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>">
+                        <?php echo sr_material_icon_html('close'); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="admin-lookup-search-form" data-admin-reference-search-form data-endpoint="<?php echo sr_e(sr_url('/admin/banners/subject-search')); ?>" data-type-target="#banner_admin_banners_subject_reference_type" data-id-target="#banner_admin_banners_subject_id" data-results="#<?php echo sr_e($bannerSubjectLookupResultsId); ?>">
+                        <select name="reference_type" class="form-select" aria-label="<?php echo sr_e(sr_t('banner::ui.subject_target.search_type')); ?>">
+                            <?php foreach ($bannerSubjectSearchTypes as $targetType => $targetLabel) { ?>
+                                <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                        <input type="text" name="q" maxlength="120" class="form-input" placeholder="<?php echo sr_e(sr_t('banner::ui.subject_target.search_placeholder')); ?>" data-overlay-focus>
+                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('banner::ui.search.4b8d541e')); ?></button>
+                    </form>
+                    <div id="<?php echo sr_e($bannerSubjectLookupResultsId); ?>" class="admin-lookup-results">
+                        <p class="admin-empty-state admin-lookup-empty"><?php echo sr_e(sr_t('banner::ui.subject_target.search_empty')); ?></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
 <?php } ?>
 
 <?php if ($bannerAdminPage === 'form') { ?>
@@ -406,27 +467,103 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
 
         var target = form.querySelector('select[name="target_option"]');
-        var match = form.querySelector('select[name="match_type"]');
+        var scopes = form.querySelectorAll('[data-admin-subject-scope]');
+        var exact = form.querySelector('input[name="match_type"][value="exact"]');
+        var all = form.querySelector('input[name="match_type"][value="all"]');
+        var scopeRow = form.querySelector('[data-admin-subject-scope-row]');
         var subject = form.querySelector('[data-admin-subject-id]');
+        var subjectRow = form.querySelector('[data-admin-subject-row]');
+        var subjectReferenceType = form.querySelector('[data-admin-subject-reference-type]');
+        var subjectSearchButton = form.querySelector('[data-banner-subject-search-button]');
+        var subjectSearchModal = document.getElementById('<?php echo sr_e($bannerSubjectLookupModalId); ?>');
         var label = form.querySelector('[data-admin-subject-required]');
+        var publicHelp = form.querySelector('[data-admin-subject-public-help]');
         var publicTarget = form.getAttribute('data-public-target-value') || '';
+        var searchableTargetTypes = <?php echo json_encode($bannerSubjectTargetTypeMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        var useImage = form.querySelector('[data-admin-banner-use-image]');
+        var imageRows = form.querySelectorAll('[data-admin-banner-image-row]');
+        var imageInputs = form.querySelectorAll('[data-admin-banner-image-input]');
+        var bannerTextLabel = form.querySelector('[data-admin-banner-text-label]');
+        var bannerTextHelp = form.querySelector('[data-admin-banner-text-help]');
+        var imageTextLabels = <?php echo json_encode([
+            'alt' => sr_t('banner::ui.alt_text'),
+            'display' => sr_t('banner::ui.display_text'),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        var imageTextHelp = <?php echo json_encode([
+            'alt' => sr_t('banner::ui.alt_text.help'),
+            'display' => sr_t('banner::ui.display_text.help'),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
         function syncSubjectRequired() {
-            var needed = !!(target && match && target.value !== publicTarget && match.value === 'exact');
+            var isPublic = !!(target && target.value === publicTarget);
+            var subjectTargetType = target ? (searchableTargetTypes[target.value] || '') : '';
+            var scopeVisible = !!subjectTargetType && !isPublic;
+            if (!scopeVisible && all) {
+                all.checked = true;
+            }
+            if (scopeRow) {
+                scopeRow.hidden = !scopeVisible;
+            }
+            if (exact) {
+                exact.disabled = !scopeVisible;
+            }
+            var needed = !!(target && exact && scopeVisible && exact.checked);
             if (label) {
                 label.hidden = !needed;
             }
+            if (subjectRow) {
+                subjectRow.hidden = !needed;
+            }
             if (subject) {
                 subject.required = needed;
+                subject.disabled = !needed;
+            }
+            if (subjectReferenceType) {
+                subjectReferenceType.value = subjectTargetType;
+            }
+            if (subjectSearchButton) {
+                subjectSearchButton.disabled = !scopeVisible;
+                subjectSearchButton.hidden = !scopeVisible;
+                subjectSearchButton.classList.toggle('hidden', !scopeVisible);
+            }
+            if (subjectSearchModal) {
+                var modalType = subjectSearchModal.querySelector('select[name="reference_type"]');
+                if (modalType && subjectTargetType) {
+                    modalType.value = subjectTargetType;
+                }
+            }
+            if (publicHelp) {
+                publicHelp.hidden = !isPublic;
             }
         }
 
         form.addEventListener('change', function (event) {
-            if (event.target === target || event.target === match) {
+            if (event.target === target || Array.prototype.indexOf.call(scopes, event.target) !== -1) {
                 syncSubjectRequired();
             }
         });
         syncSubjectRequired();
+
+        function syncImageMode() {
+            var enabled = !!(useImage && useImage.checked);
+            imageRows.forEach(function (row) {
+                row.hidden = !enabled;
+            });
+            imageInputs.forEach(function (input) {
+                input.disabled = !enabled;
+            });
+            if (bannerTextLabel) {
+                bannerTextLabel.textContent = enabled ? imageTextLabels.alt : imageTextLabels.display;
+            }
+            if (bannerTextHelp) {
+                bannerTextHelp.textContent = enabled ? imageTextHelp.alt : imageTextHelp.display;
+            }
+        }
+
+        if (useImage) {
+            useImage.addEventListener('change', syncImageMode);
+            syncImageMode();
+        }
     })();
     </script>
 <?php } ?>

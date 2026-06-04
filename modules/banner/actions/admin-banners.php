@@ -27,7 +27,6 @@ $bannerSkinOptions = sr_banner_skin_options();
 $bannerSkinKey = sr_banner_skin_key($bannerSettings);
 $bannerDefaultStatus = sr_banner_default_status($bannerSettings);
 $bannerDefaultTargetOption = sr_banner_default_target_option($bannerSettings, $availableTargets);
-$bannerDefaultMatchType = sr_banner_default_match_type($bannerSettings);
 $bannerDefaultSortOrder = sr_banner_default_sort_order($bannerSettings);
 $allowedTargetOptions = [sr_banner_public_target_option_value()];
 foreach ($availableTargets as $availableTarget) {
@@ -88,6 +87,7 @@ if (sr_request_method() === 'POST') {
         $isCreate = $bannerId <= 0;
         $title = sr_banner_clean_single_line(sr_post_string('title', 120), 120);
         $bodyText = sr_banner_clean_text(sr_post_string('body_text', 3000), 3000);
+        $useImage = sr_post_string('use_image', 10) === '1';
         $rawLinkUrl = sr_post_string('link_url', 255);
         $linkUrl = sr_banner_clean_url($rawLinkUrl);
         $rawImageUrl = sr_post_string('image_url', 255);
@@ -111,10 +111,22 @@ if (sr_request_method() === 'POST') {
         if ($title === '') {
             $errors[] = '제목을 입력하세요.';
         }
+        if ($bodyText === '') {
+            $errors[] = $useImage ? '이미지 대체텍스트를 입력하세요.' : '표시할 텍스트를 입력하세요.';
+        }
         if ($rawLinkUrl !== '' && $linkUrl === '') {
             $errors[] = '링크 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
         }
-        if (!$imageUploadProvided && $rawImageUrl !== '' && $imageUrl === '') {
+        if (!$useImage) {
+            $rawImageUrl = '';
+            $imageUrl = '';
+            $imageUploadProvided = false;
+            $imageUploadFile = null;
+        }
+        if ($useImage && !$imageUploadProvided && $rawImageUrl === '') {
+            $errors[] = '이미지 URL을 입력하거나 이미지 파일을 업로드하세요.';
+        }
+        if ($useImage && !$imageUploadProvided && $rawImageUrl !== '' && $imageUrl === '') {
             $errors[] = '이미지 URL은 /로 시작하는 내부 경로 또는 http/https URL이어야 합니다.';
         }
         if (!in_array($status, $allowedStatuses, true)) {
@@ -155,11 +167,22 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '공용 배너 또는 모듈이 선언한 출력 위치를 선택하세요.';
             }
         }
+        if ($isPublicBanner) {
+            $matchType = 'all';
+            $subjectId = '';
+        }
+        if (!$isPublicBanner) {
+            $subjectTargetTypeMap = sr_banner_subject_target_type_map($pdo, $availableTargets);
+            if (!isset($subjectTargetTypeMap[$targetOption])) {
+                $matchType = 'all';
+                $subjectId = '';
+            }
+        }
         if (!in_array($matchType, $allowedMatchTypes, true)) {
             $errors[] = '매칭 방식이 올바르지 않습니다.';
         }
         if (!$isPublicBanner && $matchType === 'exact' && $subjectId === '') {
-            $errors[] = '특정 subject ID를 입력하세요.';
+            $errors[] = '노출 대상 번호를 입력하세요.';
         }
         if (($isPublicBanner || $target !== null) && !sr_banner_skin_supports($skinKey, sr_banner_target_placement_kind($target, $isPublicBanner))) {
             $errors[] = '선택한 배너 스킨은 출력 위치와 호환되지 않습니다.';

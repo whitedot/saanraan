@@ -33,6 +33,7 @@ return [
         ],
         'consumes' => [
             'extension-points.php',
+            'coupon-targets.php',
         ],
     ],
     'settings' => [

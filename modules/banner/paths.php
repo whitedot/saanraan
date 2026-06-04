@@ -6,6 +6,7 @@ return [
     'GET /admin/banners' => 'actions/admin-banners.php',
     'GET /admin/banners/settings' => 'actions/admin-banner-settings.php',
     'POST /admin/banners/settings' => 'actions/admin-banner-settings.php',
+    'GET /admin/banners/subject-search' => 'actions/admin-banner-subject-search.php',
     'GET /admin/banners/new' => 'actions/admin-banner-new.php',
     'GET /admin/banners/edit' => 'actions/admin-banner-edit.php',
     'POST /admin/banners/save' => 'actions/admin-banner-save.php',

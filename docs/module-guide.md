@@ -1046,6 +1046,7 @@ return [
 | `homepage-candidates.php` | core/admin | `candidates_function`으로 초기화면 후보 표시, `available_function`으로 저장값 사용 가능 여부 확인. `available_function`은 가능 `true`, 소유 경로의 불가 `false`, 미소유 경로 `null`을 반환 | 모듈이 제공하는 공개 초기화면 후보와 경로 검증 |
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
+| `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
 | `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 출력 위치 후보 |
 
 현재 번들 모듈 기준 제공/소비 지도:
@@ -1059,7 +1060,7 @@ return [
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
 | `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php` | `logo-positions.php` |
-| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
+| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `coupon-targets.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |
 | `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
@@ -1192,6 +1193,10 @@ return [
 - `kind`: `content`, `head`, `script` 같은 위치 성격. 배너와 팝업레이어처럼 화면 본문에 붙는 출력 모듈은 `content` slot을 대상으로 한다.
 - `banner_kind`: 선택 항목. 배너 스킨 호환성 판단에 쓰는 위치 성격이며 `inline`, `compact`, `sidebar`, `hero`, `wide` 중 하나를 쓴다. 생략하면 `inline`으로 본다.
 - `subjects`: 선택 대상 정보
+
+배너 관리자 화면은 기본적으로 선택한 `module_key + point_key + slot_key` 전체에 노출한다. 특정 대상 노출이 필요하면 노출 범위 항목에서 특정 대상 노출을 선택하고, 쿠폰 대상 조회와 같은 검색 모달을 사용해 노출 대상 번호를 채운다. 노출 범위와 대상 번호 입력은 특정 대상 선택을 지원하는 출력 위치에서만 표시한다. 현재 번들 기준으로 `content.view`는 콘텐츠, `community.board.list`와 `community.post.form`은 게시판, `community.post.view`는 게시글 검색으로 연결한다. 검색 가능한 대상 계약이 없는 출력 위치는 전체 노출로만 저장한다.
+
+배너 표시 내용은 이미지 배너와 텍스트 배너를 같은 `sr_banners` 행에서 구분한다. 이미지 배너는 `image_url`이 있는 상태이며 관리자 화면에서 이미지 URL이나 업로드 이미지 중 하나를 필수로 받고 `body_text`를 이미지 대체텍스트로 사용한다. 텍스트 배너는 `image_url`을 비운 상태이며 `body_text`를 공개 배너 텍스트로 표시한다.
 
 대상이 많으면 `options` 전체를 반환하지 말고 검색형 selector를 선언한다.
 

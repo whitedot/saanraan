@@ -515,6 +515,7 @@ SEO 관리자 설정
 
 ```text
 popup_layer 모듈 -> 관리자 설정 시점에 활성 모듈의 extension-points.php를 읽어 노출 대상 목록 구성
+banner 모듈 -> 관리자 배너 폼에서 활성 모듈의 extension-points.php로 출력 위치를 고르고 coupon-targets.php 검색 계약으로 특정 subject 후보를 조회
 content 모듈 -> content.view의 before_content/after_content slot에서 sr_render_output_slot() 호출
 member 모듈 -> 로그인/회원가입 화면에서 sr_render_output_slot()를 명시 호출
 ```

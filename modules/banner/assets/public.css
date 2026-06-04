@@ -1,5 +1,6 @@
 .sr-banner {
-    display: block;
+    display: grid;
+    gap: 8px;
     margin: 0 0 20px;
     border: 1px solid var(--sr-border);
     border-radius: 8px;
@@ -23,4 +24,13 @@
 .sr-banner strong,
 .sr-banner span {
     display: block;
+}
+
+.sr-banner strong {
+    color: var(--sr-text);
+    font-weight: 700;
+}
+
+.sr-banner span {
+    color: var(--sr-muted);
 }
