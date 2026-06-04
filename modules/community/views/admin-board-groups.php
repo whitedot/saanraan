@@ -309,6 +309,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/new?group_id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="이 그룹에 게시판 추가" title="이 그룹에 게시판 추가"><?php echo sr_material_icon_html('add'); ?></a>
                                 <a href="<?php echo sr_e(sr_url('/admin/community/board-groups/edit?id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="admin-inline-form">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="delete_group">
+                                    <input type="hidden" name="group_id" value="<?php echo sr_e((string) $boardGroup['id']); ?>">
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 그룹 삭제" title="게시판 그룹 삭제" onclick="return confirm('이 게시판 그룹을 삭제할까요? 게시판 또는 외부 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -654,6 +660,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319'); ?></button>
         </div>
     </form>
+
+    <?php if ($communityBoardGroupsPage === 'edit') { ?>
+        <?php $boardGroupDeleteCheck = sr_community_can_delete_board_group($pdo, (int) ($formBoardGroup['id'] ?? 0)); ?>
+        <section class="admin-card card">
+            <h2>위험 작업</h2>
+            <p class="admin-form-help">
+                게시판 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
+                연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건,
+                외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardGroupDeleteCheck['external_references'] ?? null) ? $boardGroupDeleteCheck['external_references'] : []))); ?>건.
+            </p>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="admin-form-actions">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="delete_group">
+                <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($formBoardGroup['id'] ?? 0)); ?>">
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('이 게시판 그룹을 삭제할까요? 게시판 또는 외부 참조가 있으면 삭제되지 않습니다.');">게시판 그룹 삭제</button>
+            </form>
+        </section>
+    <?php } ?>
 
     <?php echo sr_admin_help_modal_html($memberGroupAccessHelpModalId, sr_t('community::ui.member_group_access_help_title'), $memberGroupAccessHelpBodyHtml); ?>
     <?php foreach ($communityBoardGroupHelp as $communityBoardGroupHelpModal) { ?>

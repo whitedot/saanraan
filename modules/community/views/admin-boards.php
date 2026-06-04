@@ -308,6 +308,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-inline-form">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="delete_board">
+                                    <input type="hidden" name="board_id" value="<?php echo sr_e((string) $board['id']); ?>">
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 삭제" title="게시판 삭제" onclick="return confirm('이 게시판을 삭제할까요? 게시글, 댓글, 첨부파일, 시리즈 연결도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -754,6 +760,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
 
     <?php if ($communityBoardsPage === 'edit') { ?>
+        <?php $boardDeleteCheck = sr_community_can_delete_board($pdo, (int) ($formBoard['id'] ?? 0)); ?>
+        <section class="admin-card card">
+            <h2>위험 작업</h2>
+            <p class="admin-form-help">
+                게시판을 삭제하면 게시판 설정, 설정 소스, 카테고리가 함께 삭제됩니다.
+                게시글 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['posts'] ?? 0)); ?>건,
+                댓글 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['comments'] ?? 0)); ?>건,
+                첨부 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['attachments'] ?? 0)); ?>건,
+                시리즈 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['series'] ?? 0)); ?>건,
+                외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardDeleteCheck['external_references'] ?? null) ? $boardDeleteCheck['external_references'] : []))); ?>건.
+            </p>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-form-actions">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="delete_board">
+                <input type="hidden" name="board_id" value="<?php echo sr_e((string) ($formBoard['id'] ?? 0)); ?>">
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('이 게시판을 삭제할까요? 게시글, 댓글, 첨부파일, 시리즈 연결도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');">게시판 삭제</button>
+            </form>
+        </section>
+
         <section class="admin-card card">
             <h2>게시판 카테고리</h2>
             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-form-inline ui-form-theme">

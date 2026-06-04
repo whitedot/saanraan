@@ -73,11 +73,37 @@ foreach ($memberGroups as $memberGroup) {
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/board-groups', 'edit');
 
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/board-groups', $intent === 'delete_group' ? 'delete' : 'edit');
 
-    if (in_array($intent, ['create_group', 'update_group'], true)) {
+    if ($intent === 'delete_group') {
+        $groupIdValue = sr_post_string('group_id', 20);
+        $groupId = preg_match('/\A[1-9][0-9]*\z/', $groupIdValue) === 1 ? (int) $groupIdValue : 0;
+        $deleteResult = sr_community_delete_board_group($pdo, $groupId);
+        $errors = array_merge($errors, is_array($deleteResult['errors'] ?? null) ? $deleteResult['errors'] : []);
+        $group = is_array($deleteResult['group'] ?? null) ? $deleteResult['group'] : null;
+        if ($errors === [] && is_array($group)) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.board_group.deleted',
+                'target_type' => 'community_board_group',
+                'target_id' => (string) $groupId,
+                'result' => 'success',
+                'message' => 'Community board group deleted.',
+                'metadata' => [
+                    'group_key' => (string) ($group['group_key'] ?? ''),
+                    'title' => (string) ($group['title'] ?? ''),
+                    'deleted_settings' => (int) ($deleteResult['deleted_settings'] ?? 0),
+                ],
+            ]);
+            $notice = '게시판 그룹을 삭제했습니다.';
+        }
+
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect('/admin/community/board-groups');
+    } elseif (in_array($intent, ['create_group', 'update_group'], true)) {
         $groupId = 0;
         if ($intent === 'update_group') {
             $groupIdValue = sr_post_string('group_id', 20);

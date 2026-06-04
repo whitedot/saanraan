@@ -90,11 +90,44 @@ if (!in_array($boardListFilters['field'], ['all', 'key', 'title', 'group'], true
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'edit');
 
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', $intent === 'delete_board' ? 'delete' : 'edit');
 
-    if (in_array($intent, ['category_create', 'category_update', 'category_delete'], true)) {
+    if ($intent === 'delete_board') {
+        $boardIdValue = sr_post_string('board_id', 20);
+        $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
+        $deleteResult = sr_community_delete_board($pdo, $boardId);
+        $errors = array_merge($errors, is_array($deleteResult['errors'] ?? null) ? $deleteResult['errors'] : []);
+        $board = is_array($deleteResult['board'] ?? null) ? $deleteResult['board'] : null;
+        if ($errors === [] && is_array($board)) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.board.deleted',
+                'target_type' => 'community_board',
+                'target_id' => (string) $boardId,
+                'result' => 'success',
+                'message' => 'Community board deleted.',
+                'metadata' => [
+                    'board_key' => (string) ($board['board_key'] ?? ''),
+                    'title' => (string) ($board['title'] ?? ''),
+                    'deleted_settings' => (int) ($deleteResult['deleted_settings'] ?? 0),
+                    'deleted_setting_sources' => (int) ($deleteResult['deleted_setting_sources'] ?? 0),
+                    'deleted_categories' => (int) ($deleteResult['deleted_categories'] ?? 0),
+                    'deleted_posts' => (int) ($deleteResult['deleted_posts'] ?? 0),
+                    'deleted_comments' => (int) ($deleteResult['deleted_comments'] ?? 0),
+                    'deleted_attachments' => (int) ($deleteResult['deleted_attachments'] ?? 0),
+                    'deleted_attachment_files' => (int) ($deleteResult['deleted_attachment_files'] ?? 0),
+                    'deleted_series' => (int) ($deleteResult['deleted_series'] ?? 0),
+                ],
+            ]);
+            $notice = '게시판을 삭제했습니다.';
+        }
+
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect('/admin/community/boards');
+    } elseif (in_array($intent, ['category_create', 'category_update', 'category_delete'], true)) {
         $boardIdValue = sr_post_string('board_id', 20);
         $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
         $board = sr_community_board_by_id($pdo, $boardId);

@@ -671,3 +671,74 @@ function sr_content_remove_series_items(PDO $pdo, int $seriesId): void
     );
     $stmt->execute(['updated_at' => sr_now(), 'series_id' => $seriesId]);
 }
+
+function sr_content_series_reference_counts(PDO $pdo, int $seriesId): array
+{
+    return [
+        'items' => $seriesId > 0 && sr_content_series_supported($pdo)
+            ? sr_content_optional_count($pdo, 'sr_content_series_items', 'series_id = :series_id', ['series_id' => $seriesId])
+            : 0,
+    ];
+}
+
+function sr_content_series_external_reference_counts(PDO $pdo, int $seriesId): array
+{
+    if ($seriesId < 1 || !sr_content_series_supported($pdo)) {
+        return ['link_cards' => 0];
+    }
+
+    return [
+        'link_cards' => sr_content_optional_count(
+            $pdo,
+            'sr_community_link_refs',
+            "target_module = 'content' AND target_entity_type = 'content_series' AND target_entity_id = :target_id",
+            ['target_id' => (string) $seriesId]
+        ) + sr_content_optional_count(
+            $pdo,
+            'sr_content_link_refs',
+            "target_module = 'content' AND target_entity_type = 'content_series' AND target_entity_id = :target_id",
+            ['target_id' => (string) $seriesId]
+        ),
+    ];
+}
+
+function sr_content_can_delete_series(PDO $pdo, int $seriesId): array
+{
+    $series = sr_content_series_by_id($pdo, $seriesId);
+    if (!is_array($series)) {
+        return ['can_delete' => false, 'errors' => ['콘텐츠 시리즈를 찾을 수 없습니다.'], 'references' => [], 'external_references' => []];
+    }
+
+    $references = sr_content_series_reference_counts($pdo, $seriesId);
+    $externalReferences = sr_content_series_external_reference_counts($pdo, $seriesId);
+    $errors = [];
+    if (array_sum(array_map('intval', $externalReferences)) > 0) {
+        $errors[] = '외부 운영 참조가 있어 콘텐츠 시리즈를 삭제할 수 없습니다.';
+    }
+
+    return ['can_delete' => $errors === [], 'errors' => $errors, 'references' => $references, 'external_references' => $externalReferences, 'series' => $series];
+}
+
+function sr_content_delete_series(PDO $pdo, int $seriesId): array
+{
+    $check = sr_content_can_delete_series($pdo, $seriesId);
+    if (empty($check['can_delete']) || !is_array($check['series'] ?? null)) {
+        return $check;
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $deletedItems = sr_content_optional_count($pdo, 'sr_content_series_items', 'series_id = :series_id', ['series_id' => $seriesId]);
+        $pdo->prepare('DELETE FROM sr_content_series_items WHERE series_id = :series_id')->execute(['series_id' => $seriesId]);
+        $pdo->prepare('DELETE FROM sr_content_series WHERE id = :id')->execute(['id' => $seriesId]);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    $check['deleted_items'] = $deletedItems;
+    return $check;
+}

@@ -63,10 +63,41 @@ if ($pageGroupsPage === 'edit') {
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content-groups', 'edit');
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content-groups', $intent === 'delete_group' ? 'delete' : 'edit');
     $groupId = (int) sr_post_string('group_id', 20);
     $isUpdate = $intent === 'update_group';
+
+    if ($intent === 'delete_group') {
+        $deleteResult = sr_content_delete_group($pdo, $groupId);
+        $errors = array_merge($errors, is_array($deleteResult['errors'] ?? null) ? $deleteResult['errors'] : []);
+        $group = is_array($deleteResult['group'] ?? null) ? $deleteResult['group'] : null;
+        if ($errors === [] && is_array($group)) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'content_group.deleted',
+                'target_type' => 'content_group',
+                'target_id' => (string) $groupId,
+                'result' => 'success',
+                'message' => 'Content group deleted.',
+                'metadata' => [
+                    'group_key' => (string) ($group['group_key'] ?? ''),
+                    'title' => (string) ($group['title'] ?? ''),
+                    'deleted_settings' => (int) ($deleteResult['deleted_settings'] ?? 0),
+                    'revision_references' => (int) ($deleteResult['references']['revision_references'] ?? 0),
+                    'deleted_contents' => (int) ($deleteResult['deleted_contents'] ?? 0),
+                    'deleted_comments' => (int) ($deleteResult['deleted_comments'] ?? 0),
+                    'deleted_revisions' => (int) ($deleteResult['deleted_revisions'] ?? 0),
+                    'deleted_files' => (int) ($deleteResult['deleted_files'] ?? 0),
+                ],
+            ]);
+            $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹을 삭제했습니다.';
+        } else {
+            $_SESSION['sr_content_group_admin_errors'] = $errors;
+        }
+        sr_redirect('/admin/content-groups');
+    }
 
     if (!in_array($intent, ['create_group', 'update_group'], true)) {
         $errors[] = '요청한 작업이 올바르지 않습니다.';

@@ -26,9 +26,38 @@ $seriesFormValues = [
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/series', 'edit');
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/series', $intent === 'delete' ? 'delete' : 'edit');
     $seriesId = (int) sr_post_string('series_id', 20);
+    if ($intent === 'delete') {
+        if (!$seriesSupported) {
+            $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+        } else {
+            $deleteResult = sr_content_delete_series($pdo, $seriesId);
+            $errors = array_merge($errors, is_array($deleteResult['errors'] ?? null) ? $deleteResult['errors'] : []);
+            $series = is_array($deleteResult['series'] ?? null) ? $deleteResult['series'] : null;
+            if ($errors === [] && is_array($series)) {
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'content.series.deleted',
+                    'target_type' => 'content_series',
+                    'target_id' => (string) $seriesId,
+                    'result' => 'success',
+                    'message' => 'Content series deleted.',
+                    'metadata' => [
+                        'series_key' => (string) ($series['series_key'] ?? ''),
+                        'title' => (string) ($series['title'] ?? ''),
+                        'deleted_items' => (int) ($deleteResult['deleted_items'] ?? 0),
+                    ],
+                ]);
+                $notice = '콘텐츠 시리즈를 삭제했습니다.';
+            }
+        }
+
+        sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/content/series');
+    }
+
     $description = sr_post_string_without_truncation('description', 2000);
     $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
     $values = [

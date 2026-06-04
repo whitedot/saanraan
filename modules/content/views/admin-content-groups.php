@@ -157,6 +157,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <a href="<?php echo sr_e(sr_url(sr_content_group_path((string) $pageGroup['group_key']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>"><?php echo sr_material_icon_html('visibility'); ?></a>
                                         <?php } ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/content-groups/edit?id=' . rawurlencode((string) $pageGroup['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
+                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-inline-form">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="intent" value="delete_group">
+                                            <input type="hidden" name="group_id" value="<?php echo sr_e((string) $pageGroup['id']); ?>">
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 그룹 삭제" title="콘텐츠 그룹 삭제" onclick="return confirm('이 콘텐츠 그룹을 삭제할까요? 연결 콘텐츠, 댓글, 파일도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -434,6 +440,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
         </div>
     </form>
+    <?php if ($editing) { ?>
+        <?php $contentGroupDeleteCheck = sr_content_can_delete_group($pdo, (int) ($editPageGroup['id'] ?? 0)); ?>
+        <section class="admin-card card">
+            <h2>위험 작업</h2>
+            <p class="admin-form-help">
+                콘텐츠 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
+                연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건,
+                댓글 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['comments'] ?? 0)); ?>건,
+                파일 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['files'] ?? 0)); ?>건,
+                revision snapshot 참조 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['revision_references'] ?? 0)); ?>건,
+                외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($contentGroupDeleteCheck['external_references'] ?? null) ? $contentGroupDeleteCheck['external_references'] : []))); ?>건.
+            </p>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form-actions">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="delete_group">
+                <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($editPageGroup['id'] ?? 0)); ?>">
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('이 콘텐츠 그룹을 삭제할까요? 연결 콘텐츠, 댓글, 파일도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');">콘텐츠 그룹 삭제</button>
+            </form>
+        </section>
+    <?php } ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

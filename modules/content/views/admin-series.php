@@ -178,6 +178,12 @@ $seriesVisibilities = sr_content_series_visibility_values();
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="콘텐츠 시리즈 저장" title="저장"><?php echo sr_material_icon_html('save'); ?></button>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="admin-inline-form">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="delete">
+                                    <input type="hidden" name="series_id" value="<?php echo sr_e((string) $series['id']); ?>">
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 시리즈 삭제" title="콘텐츠 시리즈 삭제" onclick="return confirm('이 콘텐츠 시리즈를 삭제할까요? 콘텐츠는 삭제되지 않고 시리즈 연결만 제거됩니다. 외부 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                </form>
                             </div>
                         </td>
                     </tr>

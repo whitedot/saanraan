@@ -1471,6 +1471,223 @@ function sr_content_group_settings(PDO $pdo, int $groupId): array
     return $settings;
 }
 
+function sr_content_optional_table_exists(PDO $pdo, string $tableName): bool
+{
+    static $cache = [];
+    if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName)) {
+        return false;
+    }
+    if (isset($cache[$tableName])) {
+        return $cache[$tableName];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
+        $cache[$tableName] = true;
+    } catch (Throwable) {
+        $cache[$tableName] = false;
+    }
+
+    return $cache[$tableName];
+}
+
+function sr_content_optional_count(PDO $pdo, string $tableName, string $whereSql, array $params = []): int
+{
+    if (!sr_content_optional_table_exists($pdo, $tableName)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM ' . $tableName . ' WHERE ' . $whereSql);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_content_group_reference_counts(PDO $pdo, int $groupId): array
+{
+    return [
+        'contents' => $groupId > 0 ? sr_content_optional_count($pdo, 'sr_content_items', 'content_group_id = :group_id', ['group_id' => $groupId]) : 0,
+        'revision_references' => $groupId > 0 ? sr_content_optional_count($pdo, 'sr_content_revisions', 'content_group_id = :group_id', ['group_id' => $groupId]) : 0,
+        'comments' => $groupId > 0 && sr_content_optional_table_exists($pdo, 'sr_content_comments')
+            ? sr_content_optional_count($pdo, 'sr_content_comments', 'content_id IN (SELECT id FROM sr_content_items WHERE content_group_id = :group_id)', ['group_id' => $groupId])
+            : 0,
+        'files' => $groupId > 0 && sr_content_optional_table_exists($pdo, 'sr_content_files')
+            ? sr_content_optional_count($pdo, 'sr_content_files', 'content_id IN (SELECT id FROM sr_content_items WHERE content_group_id = :group_id)', ['group_id' => $groupId])
+            : 0,
+    ];
+}
+
+function sr_content_group_external_reference_counts(PDO $pdo, int $groupId): array
+{
+    $group = sr_content_group_by_id($pdo, $groupId);
+    if (!is_array($group)) {
+        return ['site_menu' => 0, 'homepage' => 0, 'link_cards' => 0];
+    }
+
+    $groupKey = (string) ($group['group_key'] ?? '');
+    $groupPath = $groupKey !== '' ? sr_content_group_path($groupKey) : '';
+    $siteSettings = sr_site_settings($pdo);
+    return [
+        'site_menu' => $groupPath !== ''
+            ? sr_content_optional_count($pdo, 'sr_site_menu_items', 'url = :url', ['url' => $groupPath])
+            : 0,
+        'homepage' => $groupPath !== '' && (string) ($siteSettings['site.home_path'] ?? '') === $groupPath ? 1 : 0,
+        'link_cards' => sr_content_optional_count(
+            $pdo,
+            'sr_community_link_refs',
+            "target_module = 'content' AND target_entity_type = 'content_group' AND target_entity_id = :target_id",
+            ['target_id' => (string) $groupId]
+        ) + sr_content_optional_count(
+            $pdo,
+            'sr_content_link_refs',
+            "target_module = 'content' AND target_entity_type = 'content_group' AND target_entity_id = :target_id",
+            ['target_id' => (string) $groupId]
+        ),
+    ];
+}
+
+function sr_content_can_delete_group(PDO $pdo, int $groupId): array
+{
+    $group = sr_content_group_by_id($pdo, $groupId);
+    if (!is_array($group)) {
+        return ['can_delete' => false, 'errors' => ['콘텐츠 그룹을 찾을 수 없습니다.'], 'references' => [], 'external_references' => []];
+    }
+
+    $references = sr_content_group_reference_counts($pdo, $groupId);
+    $externalReferences = sr_content_group_external_reference_counts($pdo, $groupId);
+    $errors = [];
+    if (array_sum(array_map('intval', $externalReferences)) > 0) {
+        $errors[] = '사이트 메뉴, 초기화면, 링크 카드 등 외부 운영 참조가 있어 콘텐츠 그룹을 삭제할 수 없습니다.';
+    }
+
+    return ['can_delete' => $errors === [], 'errors' => $errors, 'references' => $references, 'external_references' => $externalReferences, 'group' => $group];
+}
+
+function sr_content_delete_group(PDO $pdo, int $groupId): array
+{
+    $check = sr_content_can_delete_group($pdo, $groupId);
+    if (empty($check['can_delete']) || !is_array($check['group'] ?? null)) {
+        return $check;
+    }
+
+    $contentIds = sr_content_group_content_ids($pdo, $groupId);
+    $files = sr_content_group_file_rows_for_delete($pdo, $contentIds);
+    foreach ($files as $file) {
+        $driver = function_exists('sr_content_file_storage_driver') ? sr_content_file_storage_driver($file) : (string) ($file['storage_driver'] ?? 'local');
+        $key = function_exists('sr_content_file_storage_key') ? sr_content_file_storage_key($file) : (string) ($file['storage_key'] ?? '');
+        if ($key !== '' && !sr_storage_delete($driver, $key)) {
+            $check['can_delete'] = false;
+            $check['errors'] = ['콘텐츠 파일을 삭제하지 못했습니다. 저장소 권한 또는 S3 설정을 확인해 주세요.'];
+            return $check;
+        }
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $deletedSettings = sr_content_optional_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
+        $deletedContents = count($contentIds);
+        $deletedFiles = count($files);
+        $deletedComments = (int) ($check['references']['comments'] ?? 0);
+        $deletedRevisions = (int) ($check['references']['revision_references'] ?? 0);
+        if ($contentIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
+
+            if (sr_content_optional_table_exists($pdo, 'sr_content_comments')) {
+                $pdo->prepare('DELETE FROM sr_content_comments WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
+            }
+            if (sr_content_optional_table_exists($pdo, 'sr_content_link_refs')) {
+                $pdo->prepare('DELETE FROM sr_content_link_refs WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
+            }
+            if (sr_content_optional_table_exists($pdo, 'sr_content_series_items')) {
+                $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id IN (' . $placeholders . ') OR active_content_id IN (' . $placeholders . ')')->execute(array_merge($contentIds, $contentIds));
+            }
+            if (sr_content_optional_table_exists($pdo, 'sr_content_access_entitlements')) {
+                $pdo->prepare('DELETE FROM sr_content_access_entitlements WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
+            }
+            if (sr_content_optional_table_exists($pdo, 'sr_content_setting_sources')) {
+                $pdo->prepare('DELETE FROM sr_content_setting_sources WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
+            }
+            if (sr_content_optional_table_exists($pdo, 'sr_content_revisions')) {
+                $pdo->prepare('DELETE FROM sr_content_revisions WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
+            }
+            if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
+                $pdo->prepare('DELETE FROM sr_content_file_links WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
+            }
+            if ($files !== []) {
+                $fileIds = array_values(array_map(static fn (array $file): int => (int) ($file['id'] ?? 0), $files));
+                $fileIds = array_values(array_filter($fileIds, static fn (int $fileId): bool => $fileId > 0));
+                if ($fileIds !== []) {
+                    $filePlaceholders = implode(',', array_fill(0, count($fileIds), '?'));
+                    if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
+                        $pdo->prepare('DELETE FROM sr_content_file_links WHERE file_id IN (' . $filePlaceholders . ')')->execute($fileIds);
+                    }
+                    $pdo->prepare('DELETE FROM sr_content_files WHERE id IN (' . $filePlaceholders . ')')->execute($fileIds);
+                }
+            }
+            $pdo->prepare('DELETE FROM sr_content_items WHERE id IN (' . $placeholders . ')')->execute($contentIds);
+        }
+        if (sr_content_optional_table_exists($pdo, 'sr_content_group_settings')) {
+            $pdo->prepare('DELETE FROM sr_content_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
+        }
+        $pdo->prepare('DELETE FROM sr_content_groups WHERE id = :id')->execute(['id' => $groupId]);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    $check['deleted_settings'] = $deletedSettings;
+    $check['deleted_contents'] = $deletedContents;
+    $check['deleted_comments'] = $deletedComments;
+    $check['deleted_revisions'] = $deletedRevisions;
+    $check['deleted_files'] = $deletedFiles;
+    return $check;
+}
+
+function sr_content_group_content_ids(PDO $pdo, int $groupId): array
+{
+    if ($groupId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_items')) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare('SELECT id FROM sr_content_items WHERE content_group_id = :group_id ORDER BY id ASC');
+    $stmt->execute(['group_id' => $groupId]);
+
+    return array_values(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
+}
+
+function sr_content_group_file_rows_for_delete(PDO $pdo, array $contentIds): array
+{
+    $contentIds = array_values(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0));
+    if ($contentIds === [] || !sr_content_optional_table_exists($pdo, 'sr_content_files')) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
+    $params = $contentIds;
+    $linkClause = '';
+    if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
+        $linkClause = ' OR (
+            f.content_id = 0
+            AND EXISTS (SELECT 1 FROM sr_content_file_links owned_link WHERE owned_link.file_id = f.id AND owned_link.content_id IN (' . $placeholders . '))
+            AND NOT EXISTS (SELECT 1 FROM sr_content_file_links outside_link WHERE outside_link.file_id = f.id AND outside_link.content_id NOT IN (' . $placeholders . '))
+        )';
+        $params = array_merge($params, $contentIds, $contentIds);
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT f.*
+         FROM sr_content_files f
+         WHERE f.content_id IN (' . $placeholders . ')' . $linkClause . '
+         ORDER BY f.id ASC'
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
 function sr_content_setting_source(PDO $pdo, int $pageId, string $settingKey): string
 {
     if ($pageId < 1 || !in_array($settingKey, sr_content_group_setting_keys(), true) || !sr_content_setting_sources_table_exists($pdo)) {
