@@ -121,29 +121,34 @@ function sr_admin_filter_toggle_group_html(string $id, string $name, array $opti
 
 function sr_admin_filter_radio_toggle_group_html(string $id, string $name, array $options, array $selectedValues, string $allLabel = '전체'): string
 {
-    $selectedMap = [];
-    foreach ($selectedValues as $selectedValue) {
-        $selectedMap[(string) $selectedValue] = true;
-    }
-
     $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
     $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'admin_filter_radio_toggle';
     $name = preg_replace('/\[\]\z/', '', trim($name)) ?? trim($name);
     $name = $name !== '' ? $name : 'filter';
+    $allLabelText = trim($allLabel);
     $toggleOptions = [];
     foreach ($options as $value => $label) {
         $value = (string) $value;
-        if ($value === '') {
+        $labelText = trim((string) $label);
+        if ($value === '' || $labelText === $allLabelText) {
             continue;
         }
 
         $toggleOptions[$value] = $label;
     }
-    $selectedMap = array_intersect_key($selectedMap, $toggleOptions);
+
+    $selectedValue = null;
+    foreach ($selectedValues as $rawSelectedValue) {
+        $candidate = (string) $rawSelectedValue;
+        if (isset($toggleOptions[$candidate])) {
+            $selectedValue = $candidate;
+            break;
+        }
+    }
 
     $html = '<div id="' . sr_e($id) . '" class="filtering-toggle-group filtering-radio-toggle-group" data-filtering-radio-toggle-group>';
     $html .= '<span class="filtering-toggle-item">'
-        . '<input id="' . sr_e($idBase . '_all') . '" type="radio" name="' . sr_e($name) . '" value="" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice' . ($selectedMap === [] || isset($selectedMap['']) ? ' checked' : '') . '>'
+        . '<input id="' . sr_e($idBase . '_all') . '" type="radio" name="' . sr_e($name) . '" value="" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice' . ($selectedValue === null ? ' checked' : '') . '>'
         . '<label for="' . sr_e($idBase . '_all') . '" class="btn btn-choice-light btn-group-start">' . sr_e($allLabel) . '</label>'
         . '</span>';
 
@@ -153,7 +158,7 @@ function sr_admin_filter_radio_toggle_group_html(string $id, string $name, array
         $groupClass = $index === $lastIndex ? 'btn-group-end' : 'btn-group-middle';
         $inputId = $idBase . '_' . (string) $index;
         $html .= '<span class="filtering-toggle-item">'
-            . '<input id="' . sr_e($inputId) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice' . (isset($selectedMap[$value]) ? ' checked' : '') . '>'
+            . '<input id="' . sr_e($inputId) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice' . ($selectedValue === $value ? ' checked' : '') . '>'
             . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light ' . $groupClass . '">' . sr_e((string) $label) . '</label>'
             . '</span>';
         $index++;
