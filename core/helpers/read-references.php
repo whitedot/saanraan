@@ -197,12 +197,35 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
             continue;
         }
         $functionName = trim((string) $entry[$functionKey]);
-        if ($functionName === '' || !function_exists($functionName)) {
+        if (!function_exists($functionName)) {
             $errors[] = $functionKey . ' callable이 없습니다.';
+            continue;
+        }
+        if (!sr_read_reference_callable_signature_is_valid($functionKey, $functionName)) {
+            $errors[] = $functionKey . ' callable 인자 수가 올바르지 않습니다.';
         }
     }
 
     return $errors;
+}
+
+function sr_read_reference_callable_signature_is_valid(string $functionKey, string $functionName): bool
+{
+    $expectedParameterCounts = [
+        'count_function' => 3,
+        'rows_function' => 3,
+        'health_function' => 4,
+        'admin_url_function' => 2,
+    ];
+    if (!isset($expectedParameterCounts[$functionKey]) || !function_exists($functionName)) {
+        return false;
+    }
+
+    $reflection = new ReflectionFunction($functionName);
+    $expected = $expectedParameterCounts[$functionKey];
+
+    return $reflection->getNumberOfRequiredParameters() <= $expected
+        && $reflection->getNumberOfParameters() >= $expected;
 }
 
 function sr_read_reference_helper_path(string $moduleKey, string $helper): string
