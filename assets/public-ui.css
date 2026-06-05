@@ -295,6 +295,8 @@
 }
 
 .public-home {
+    background: var(--sr-bg, var(--color-body-bg));
+    color: var(--sr-text, var(--color-body-color));
     min-height: min(42rem, 100vh);
     display: grid;
     align-items: center;

@@ -259,10 +259,16 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'stylesheet',
+        'label' => 'home skin stylesheet',
         'path' => '/assets/saanraan.css',
         'allowed_statuses' => [200],
         'must_contain' => ['--sr-bg'],
+    ],
+    [
+        'label' => 'public UI stylesheet',
+        'path' => '/assets/public-ui.css',
+        'allowed_statuses' => [200],
+        'must_contain' => ['background: var(--sr-bg'],
     ],
     [
         'label' => 'database SQL protection',
