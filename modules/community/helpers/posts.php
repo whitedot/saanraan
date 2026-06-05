@@ -1096,8 +1096,7 @@ function sr_community_validate_post_input(array $values): array
     } elseif (sr_community_body_text_is_empty($bodyText, (string) ($values['body_format'] ?? 'plain'))) {
         $errors[] = sr_t('community::action.error.post_body_required');
     }
-    $pdo = $GLOBALS['pdo'] ?? null;
-    if ($pdo instanceof PDO && is_string($bodyText)) {
+    if (is_string($bodyText)) {
         $errors = array_merge($errors, sr_link_card_token_rejection_errors($bodyText));
     }
 

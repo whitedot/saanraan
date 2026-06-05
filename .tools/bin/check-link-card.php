@@ -8,6 +8,7 @@ define('SR_ROOT', $root);
 chdir($root);
 
 require_once $root . '/core/helpers.php';
+require_once $root . '/modules/community/helpers.php';
 
 $errors = [];
 
@@ -25,6 +26,16 @@ if (count($tokens) !== 1) {
 
 if (sr_link_card_token_rejection_errors($token) === []) {
     sr_link_card_check_error('New content saves must reject link card tokens in body text.');
+}
+
+unset($GLOBALS['pdo']);
+$communityValidationErrors = sr_community_validate_post_input([
+    'title' => '링크 카드 토큰 검증',
+    'body_text' => $token,
+    'body_format' => 'plain',
+]);
+if ($communityValidationErrors === []) {
+    sr_link_card_check_error('Community post validation must reject legacy link card tokens without requiring a global PDO.');
 }
 
 $plainText = "관련 게시글\n/community/post?id=7\n게시글 요약";
