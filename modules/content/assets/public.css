@@ -18,8 +18,8 @@
 
 .content-header {
     border-bottom: 1px solid #e6e6e6;
-    margin-bottom: 40px;
-    padding-bottom: 28px;
+    margin-bottom: 34px;
+    padding-bottom: 22px;
 }
 
 .content-header h1 {
@@ -28,15 +28,15 @@
     font-size: clamp(2.25rem, 7vw, 4.5rem);
     font-weight: 700;
     letter-spacing: 0;
-    line-height: 1.05;
-    margin: 0 0 18px;
+    line-height: .94;
+    margin: 0 0 12px;
 }
 
 .content-header > p {
     color: #6b6b6b;
     font-size: 1.25rem;
-    line-height: 1.45;
-    margin: 0 0 24px;
+    line-height: 1.34;
+    margin: 0 0 16px;
 }
 
 .content-meta,
@@ -61,7 +61,7 @@
     color: #242424;
     font-family: var(--font-body);
     font-size: 1.25rem;
-    line-height: 1.85;
+    line-height: 1.56;
 }
 
 .content-cover-figure {
@@ -70,7 +70,7 @@
 
 .content-cover-image {
     aspect-ratio: 16 / 10;
-    background: #d1d1cc;
+    background: #d4d9e1;
     display: block;
     height: auto;
     object-fit: cover;
@@ -191,7 +191,7 @@
 
 .content-home-header,
 .content-group-header {
-    padding-bottom: 24px;
+    padding-bottom: 18px;
 }
 
 .content-home-kicker,
@@ -208,15 +208,15 @@
     font-family: var(--font-body);
     font-size: clamp(2rem, 6vw, 3.75rem);
     letter-spacing: 0;
-    line-height: 1.08;
-    margin: 0 0 12px;
+    line-height: .98;
+    margin: 0 0 8px;
 }
 
 .content-home-header p:last-child,
 .content-group-header p:last-child {
     color: #6b6b6b;
     font-size: 1.0625rem;
-    line-height: 1.55;
+    line-height: 1.42;
     margin: 0;
     max-width: 620px;
 }
@@ -301,7 +301,7 @@
 }
 
 .content-group-item-actions > span:first-child {
-    color: #ffc017;
+    color: #6f7d90;
     font-size: 1.1rem;
 }
 
@@ -318,7 +318,7 @@
     aspect-ratio: 4 / 3;
     background:
         linear-gradient(135deg, rgba(255, 255, 255, .1), rgba(0, 0, 0, .08)),
-        linear-gradient(135deg, #d8e6ed, #927c5f);
+        linear-gradient(135deg, #e1e7ee, #6f7d90);
     background-size: cover;
     color: #242424;
     display: flex;
@@ -339,8 +339,8 @@
 
 .content-group-item:nth-child(3n) .content-group-item-thumb {
     background:
-        radial-gradient(circle at 68% 36%, #d9b36a 0 15%, transparent 16%),
-        linear-gradient(135deg, #2a2119, #a16c3f 58%, #16120f);
+        radial-gradient(circle at 68% 36%, #aeb8c6 0 15%, transparent 16%),
+        linear-gradient(135deg, #1f2933, #64748b 58%, #111827);
 }
 
 .content-group-item:nth-child(4n) .content-group-item-thumb {
@@ -472,8 +472,8 @@
 }
 
 .content-home-magazine {
-    background: #e9e9e6;
-    color: #080808;
+    background: #eef1f5;
+    color: #0f1720;
     min-height: 100vh;
     padding: 0;
 }
@@ -597,8 +597,8 @@
     aspect-ratio: 1.32 / 1;
     background:
         linear-gradient(90deg, rgba(255, 255, 255, .18), rgba(0, 0, 0, .1)),
-        radial-gradient(circle at 70% 25%, rgba(237, 237, 224, .95) 0 7%, transparent 8%),
-        linear-gradient(135deg, #7d836f 0 22%, #1b262c 23% 52%, #b9b7a8 53% 66%, #273137 67% 100%);
+        radial-gradient(circle at 70% 25%, rgba(226, 232, 240, .95) 0 7%, transparent 8%),
+        linear-gradient(135deg, #7d8796 0 22%, #1f2933 23% 52%, #b8c0cc 53% 66%, #2f3a46 67% 100%);
     display: block;
     margin: 0 0 28px;
     max-width: 260px;
@@ -866,7 +866,7 @@
 
 .content-home-hero-image {
     aspect-ratio: 524 / 746;
-    background: #ddddda;
+    background: #d8dde5;
     display: block;
     height: auto;
     object-fit: cover;
@@ -876,7 +876,7 @@
 .content-cover-placeholder {
     background:
         linear-gradient(135deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 34%),
-        #d1d1cc;
+        #d4d9e1;
 }
 
 .content-home-hero-copy {
@@ -921,7 +921,7 @@
     font-size: clamp(3.5rem, 5.5vw, 5.65rem);
     font-weight: 800;
     letter-spacing: 0;
-    line-height: .99;
+    line-height: .92;
     margin: 0;
     max-width: 620px;
 }
@@ -1032,7 +1032,7 @@
 
 .content-home-latest-image {
     aspect-ratio: 1.35 / 1;
-    background: #d5d5d1;
+    background: #d8dde5;
     display: block;
     height: auto;
     object-fit: cover;
@@ -1067,7 +1067,7 @@
 }
 
 .content-group-item-thumb {
-    background: #d1d1cc;
+    background: #d4d9e1;
     overflow: hidden;
 }
 

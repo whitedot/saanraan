@@ -54,7 +54,7 @@ $layoutCopyrightYear = date('Y');
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body class="content-layout-body">
-    <header class="content-layout-header">
+    <header class="content-layout-header" data-content-scroll-header>
         <a class="content-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
             <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
                 <?php echo $layoutMobileBrandLogoHtml; ?>
@@ -82,5 +82,6 @@ $layoutCopyrightYear = date('Y');
         <p>Copyright <?php echo sr_e($layoutCopyrightYear); ?> <?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?>.</p>
     </footer>
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
+    <script src="<?php echo sr_e(sr_asset_url('/modules/content/assets/layout.js')); ?>" defer></script>
 </body>
 </html>

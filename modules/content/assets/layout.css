@@ -5,14 +5,24 @@
 
 .content-layout-header {
     align-items: center;
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(12px);
     display: grid;
     grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr);
     height: 60px;
     margin: 0 auto;
     max-width: 1360px;
     padding: 0;
+    position: sticky;
+    top: 0;
+    transform: translateY(0);
+    transition: transform .22s ease;
     width: calc(100% - clamp(32px, 5vw, 96px));
     z-index: 30;
+}
+
+.content-layout-header.is-content-layout-header-hidden {
+    transform: translateY(-100%);
 }
 
 .content-layout-brand-link {
@@ -104,7 +114,7 @@
     box-shadow: none;
     color: #161616;
     display: inline-flex;
-    font-size: .78rem;
+    font-size: .88rem;
     font-weight: 500;
     gap: 0;
     line-height: 1;
@@ -136,7 +146,7 @@
 .content-layout-actions {
     align-items: center;
     display: flex;
-    gap: 19px;
+    gap: 18px;
     justify-self: end;
 }
 
@@ -146,16 +156,16 @@
     border: 0;
     color: #121212;
     display: inline-flex;
-    height: 26px;
+    height: 32px;
     justify-content: center;
     padding: 0;
     text-decoration: none;
-    width: 26px;
+    width: 32px;
 }
 
 .content-layout-icon-button .material-symbols-outlined {
-    font-size: .92rem;
-    font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 20;
+    font-size: 1.28rem;
+    font-variation-settings: "FILL" 0, "wght" 350, "GRAD" 0, "opsz" 24;
 }
 
 .content-layout-main {
