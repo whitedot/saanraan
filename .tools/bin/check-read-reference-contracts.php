@@ -62,19 +62,11 @@ function sr_read_reference_check_entries(array $contract): array
 
 function sr_read_reference_check_callable_signature(string $path, string $functionKey, string $functionName): void
 {
-    $expectedParameterCounts = [
-        'count_function' => 3,
-        'rows_function' => 3,
-        'health_function' => 4,
-        'admin_url_function' => 2,
-    ];
-    if (!isset($expectedParameterCounts[$functionKey]) || !function_exists($functionName)) {
+    if (!function_exists($functionName)) {
         return;
     }
 
-    $reflection = new ReflectionFunction($functionName);
-    $expected = $expectedParameterCounts[$functionKey];
-    if ($reflection->getNumberOfRequiredParameters() > $expected || $reflection->getNumberOfParameters() < $expected) {
+    if (!sr_read_reference_callable_signature_is_valid($functionKey, $functionName)) {
         sr_read_reference_check_error('read reference callable signature mismatch: ' . $path . ' ' . $functionKey . ' ' . $functionName);
     }
 }
