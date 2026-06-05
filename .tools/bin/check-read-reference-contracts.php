@@ -224,6 +224,18 @@ function sr_read_reference_check_normalize_row_target_samples(): void
     if (is_array($mismatched['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $mismatched['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted mismatched target_key');
     }
+
+    $unexpectedTargetKey = $baseRow;
+    $unexpectedTargetKey['target_type'] = 'banner';
+    $unexpectedTargetKey['target_id'] = '10';
+    $unexpected = sr_read_reference_normalize_row('sample_module', $entry, [
+        'target_type' => 'banner',
+        'target_id' => 10,
+        'target_key' => '',
+    ], $unexpectedTargetKey, ['status' => 'ok'], '/admin/sample');
+    if (is_array($unexpected['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $unexpected['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted unexpected target_key');
+    }
 }
 
 function sr_read_reference_check_keyed_contract_row_sources(string $root): void
@@ -235,8 +247,8 @@ function sr_read_reference_check_keyed_contract_row_sources(string $root): void
         return;
     }
 
-    if (strpos($contents, '$targetKey = (string) ($target[\'target_key\'] ?? ($definition[\'coupon_key\'] ?? \'\'));') === false) {
-        sr_read_reference_check_error('read reference coupon rows must normalize target_key from target coupon_key');
+    if (strpos($contents, '$targetKey = (string) ($target[\'target_key\'] ?? \'\');') === false) {
+        sr_read_reference_check_error('read reference coupon rows must normalize target_key from target only');
     }
     if (substr_count($contents, "'target_key' => \$targetKey") < 2) {
         sr_read_reference_check_error('read reference coupon issue and redemption rows must include target_key');

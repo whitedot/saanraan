@@ -287,7 +287,7 @@ function sr_coupon_definition_reference_rows(PDO $pdo, array $target, array $con
     }
 
     $definition = is_array($context['definition'] ?? null) ? $context['definition'] : sr_coupon_definition_by_id($pdo, $definitionId);
-    $targetKey = (string) ($target['target_key'] ?? ($definition['coupon_key'] ?? ''));
+    $targetKey = (string) ($target['target_key'] ?? '');
     $domainTarget = [
         'target_type' => (string) ($definition['target_type'] ?? ''),
         'target_id' => (string) ($definition['target_id'] ?? ''),
