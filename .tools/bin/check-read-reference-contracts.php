@@ -754,12 +754,14 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                     continue;
                 }
                 $functionName = trim((string) $entry[$functionKey]);
-                if ($functionName !== '' && !function_exists($functionName)) {
+                $functionExists = $functionName !== '' && function_exists($functionName);
+                if ($functionName !== '' && !$functionExists) {
                     sr_read_reference_check_error('read reference callable does not exist: ' . $path . ' ' . $functionName);
-                    continue;
                 }
-                sr_read_reference_check_callable_signature($path, $functionKey, $functionName);
-                if ($functionKey === 'count_function') {
+                if ($functionExists) {
+                    sr_read_reference_check_callable_signature($path, $functionKey, $functionName);
+                }
+                if ($functionKey === 'count_function' && $functionExists) {
                     $rowsFunctionName = is_string($entry['rows_function'] ?? null) ? trim((string) $entry['rows_function']) : '';
                     sr_read_reference_check_count_function_source($path, $functionName, $rowsFunctionName);
                 }
