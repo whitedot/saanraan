@@ -284,6 +284,7 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 - 계약을 읽는 소유 모듈이 `contracts.consumes`에 선언했는지 확인
 - 계약 반환값이 배열인지 확인
 - `count_function`, `rows_function`, `health_function`, `admin_url_function` callable 존재와 인자 수 확인
+- `count_function`이 대응 `rows_function($pdo, $target, $context)` row 수를 직접 세는 단일 반환식인지 확인
 - `supports_target_types`가 배열이며 허용 target과 충돌하지 않는지 확인
 - 최종 row 필수 필드, status 허용값, `admin_url` 내부 상대 URL 검증은 런타임 공통 helper `sr_read_reference_collect()`가 참조 현황 표시와 POST 재검증 시 수행한다.
 - 계약 로딩은 활성 모듈만 대상으로 한다는 기준 확인
