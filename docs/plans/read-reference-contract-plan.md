@@ -166,6 +166,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 쿠폰 내부 발급/사용 이력 row는 `coupon` 모듈의 helper가 만든다. `content`와 `community`는 쿠폰 정의 ID를 역조회하지 않는다. 도메인 target 상태 확인이 필요하면 쿠폰 모듈이 현재 정의의 `target_type`/`target_id`를 `context.definition`에 담아 넘기고, 해당 target type을 제공하는 활성 모듈의 읽기 전용 callable이 target 존재 여부, 상태, 관리자 URL만 판단한다. `target_type=all`처럼 특정 도메인 target이 없는 정의는 도메인 target row를 만들지 않고 발급/사용 이력만 표시한다.
 
 현재 마일스톤 13에서도 `coupon` 모듈은 자체 `coupon-references.php`를 제공한다. 이 파일은 `sr_coupon_issues`, `sr_coupon_redemptions`를 표준 참조 row로 만들고, 필요하면 현재 쿠폰 정의의 도메인 target 정보를 row `metadata.domain_target`에 붙인다.
+쿠폰 정의 조회가 `target_key=coupon_key`를 넘긴 경우 발급/사용 이력 row도 같은 `target_key`를 포함한다.
 
 `coupon-targets.php`는 그대로 유지한다. 가능하면 기존 `coupon-targets.php`에 `health_function`과 `admin_url_function` 같은 읽기 전용 항목을 선택 확장해 target 상태 판정에 재사용한다. `content`와 `community`는 현재 구현 기준으로 `coupon-references.php`를 제공하지 않고, `coupon-targets.php` 확장을 통해 자기 도메인 target 존재 여부, 상태, 관리자 URL만 알려준다. 향후 쿠폰 정의 ID를 실제로 자기 정책에 저장하는 모듈이 생기면 그 모듈은 별도로 `coupon-references.php`를 제공한다. 현재 관리자 화면의 쿠폰 정의 변경 표면은 생성, 지급, 상태 전환이며 삭제, 사용 기간 변경, 사용처 변경 액션은 아직 제공하지 않는다. 따라서 현재 POST 재검증은 비활성화 상태 전환에 적용하고, 이후 삭제/기간/사용처 변경 액션을 추가하면 같은 계약 조회를 저장 전 재검증으로 붙인다.
 

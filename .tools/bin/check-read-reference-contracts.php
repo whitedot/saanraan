@@ -226,6 +226,23 @@ function sr_read_reference_check_normalize_row_target_samples(): void
     }
 }
 
+function sr_read_reference_check_keyed_contract_row_sources(string $root): void
+{
+    $couponHelper = $root . '/modules/coupon/helpers.php';
+    $contents = is_file($couponHelper) ? file_get_contents($couponHelper) : false;
+    if (!is_string($contents)) {
+        sr_read_reference_check_error('read reference coupon helper is missing: ' . $couponHelper);
+        return;
+    }
+
+    if (strpos($contents, '$targetKey = (string) ($target[\'target_key\'] ?? ($definition[\'coupon_key\'] ?? \'\'));') === false) {
+        sr_read_reference_check_error('read reference coupon rows must normalize target_key from target coupon_key');
+    }
+    if (substr_count($contents, "'target_key' => \$targetKey") < 2) {
+        sr_read_reference_check_error('read reference coupon issue and redemption rows must include target_key');
+    }
+}
+
 $readReferenceFiles = array_keys(sr_read_reference_contract_files());
 $expectedConsumers = [
     'coupon' => ['coupon-references.php'],
@@ -357,6 +374,7 @@ foreach ($expectedConsumers as $moduleKey => $contractFiles) {
 sr_read_reference_check_forbidden_owner_writes($root);
 sr_read_reference_check_admin_url_safety_samples();
 sr_read_reference_check_normalize_row_target_samples();
+sr_read_reference_check_keyed_contract_row_sources($root);
 
 if ($errors !== []) {
     fwrite(STDERR, "read reference contract checks failed:\n");

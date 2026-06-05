@@ -287,6 +287,7 @@ function sr_coupon_definition_reference_rows(PDO $pdo, array $target, array $con
     }
 
     $definition = is_array($context['definition'] ?? null) ? $context['definition'] : sr_coupon_definition_by_id($pdo, $definitionId);
+    $targetKey = (string) ($target['target_key'] ?? ($definition['coupon_key'] ?? ''));
     $domainTarget = [
         'target_type' => (string) ($definition['target_type'] ?? ''),
         'target_id' => (string) ($definition['target_id'] ?? ''),
@@ -310,6 +311,7 @@ function sr_coupon_definition_reference_rows(PDO $pdo, array $target, array $con
             'title' => '지급 쿠폰 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
             'target_type' => 'coupon_definition',
             'target_id' => (string) $definitionId,
+            'target_key' => $targetKey,
             'policy_status' => $status,
             'updated_at' => (string) ($row['updated_at'] ?? ''),
             'metadata' => ['domain_target' => $domainTarget],
@@ -333,6 +335,7 @@ function sr_coupon_definition_reference_rows(PDO $pdo, array $target, array $con
             'title' => '쿠폰 사용 이력 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
             'target_type' => 'coupon_definition',
             'target_id' => (string) $definitionId,
+            'target_key' => $targetKey,
             'policy_status' => $status,
             'updated_at' => (string) ($row['updated_at'] ?? ''),
             'metadata' => ['domain_target' => $domainTarget],
