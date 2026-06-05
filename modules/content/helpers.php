@@ -1862,6 +1862,23 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
             if (function_exists('sr_log_exception')) {
                 sr_log_exception($exception, 'content_group_cover_image_cleanup_failed');
             }
+            try {
+                $failedCoverStorage = sr_content_cover_image_storage_reference_from_url($coverImageUrl);
+                if (is_array($failedCoverStorage)) {
+                    sr_content_record_storage_cleanup_failure(
+                        $pdo,
+                        'group_delete_cover_image',
+                        $groupId,
+                        (string) ($failedCoverStorage['driver'] ?? 'local'),
+                        (string) ($failedCoverStorage['key'] ?? ''),
+                        '콘텐츠 그룹 삭제 후 커버 이미지 저장소 정리에 실패했습니다: ' . $exception->getMessage()
+                    );
+                }
+            } catch (Throwable $recordException) {
+                if (function_exists('sr_log_exception')) {
+                    sr_log_exception($recordException, 'content_group_cover_image_cleanup_failure_record_failed');
+                }
+            }
             $failedCoverImages++;
             $failedCoverImageRefs[] = sr_content_clean_text($coverImageUrl, 180);
             continue;
