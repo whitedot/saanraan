@@ -401,6 +401,13 @@ function sr_read_reference_check_prepare_entry_samples(): void
         sr_read_reference_check_error('read reference prepare entry sample rejected valid supports_target_types');
     }
 
+    $invalidConsumerModuleKeyEntry = $entry;
+    $invalidConsumerModuleKeyEntry['consumer_module_key'] = ['sample_module'];
+    $invalidConsumerModuleKeyErrors = sr_read_reference_prepare_entry('sample_module', $invalidConsumerModuleKeyEntry, 'banner');
+    if (!in_array('consumer_module_key가 제공 모듈과 맞지 않습니다.', $invalidConsumerModuleKeyErrors, true)) {
+        sr_read_reference_check_error('read reference prepare entry sample accepted invalid consumer_module_key type');
+    }
+
     $spacedEntry = $entry;
     $spacedEntry['supports_target_types'] = [' banner '];
     $spacedErrors = sr_read_reference_prepare_entry('sample_module', $spacedEntry, 'banner');

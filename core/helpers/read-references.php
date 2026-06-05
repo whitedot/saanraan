@@ -160,8 +160,8 @@ function sr_read_reference_contract_entries(array $contract): array
 function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string $targetType): array
 {
     $errors = [];
-    $consumerModuleKey = (string) ($entry['consumer_module_key'] ?? '');
-    if ($consumerModuleKey !== $moduleKey || !sr_is_safe_module_key($consumerModuleKey)) {
+    $consumerModuleKey = $entry['consumer_module_key'] ?? null;
+    if (!is_string($consumerModuleKey) || $consumerModuleKey !== $moduleKey || !sr_is_safe_module_key($consumerModuleKey)) {
         $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
     }
 
