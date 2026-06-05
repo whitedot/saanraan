@@ -237,15 +237,12 @@ try {
     m11_assert($publishedId > 0 && $hiddenId > 0 && $scheduledId > 0, '#145 status fixtures saved');
 
     $linkToken = '{{sr_link_card module="content" entity_type="content" entity_id="' . $publishedId . '" variant="compact" slot="body" label="M11 카드"}}';
-    $linkPageId = sr_content_save($pdo, m11_content_values('m11-link-card', 'M11 링크 카드', '<p>' . $linkToken . '</p>', 'published'), $adminId, (int) m11_value($pdo, "SELECT id FROM sr_content_items WHERE slug = 'm11-link-card' LIMIT 1"));
+    $linkTokenErrors = sr_link_card_token_rejection_errors($linkToken);
+    $linkPageId = sr_content_save($pdo, m11_content_values('m11-link-card', 'M11 링크 카드', '<p>일반 링크</p>', 'published'), $adminId, (int) m11_value($pdo, "SELECT id FROM sr_content_items WHERE slug = 'm11-link-card' LIMIT 1"));
     $linkRefCount = (int) m11_value($pdo, 'SELECT COUNT(*) FROM sr_content_link_refs WHERE content_id = :content_id', ['content_id' => $linkPageId]);
-    $brokenToken = '{{sr_link_card module="content" entity_type="content" entity_id="999999999" variant="compact" slot="body" label="깨진 카드"}}';
-    $brokenErrors = sr_link_card_validate_tokens($pdo, $brokenToken, ['content:content', 'community:post']);
-    $renderedBroken = sr_link_card_render_body($pdo, '<p>broken ' . $brokenToken . '</p>');
     sr_content_save($pdo, m11_content_values('m11-link-card', 'M11 링크 카드', '<p>카드 제거</p>', 'published'), $adminId, $linkPageId);
     $linkRefRemoved = (int) m11_value($pdo, 'SELECT COUNT(*) FROM sr_content_link_refs WHERE content_id = :content_id', ['content_id' => $linkPageId]);
-    m11_assert($linkRefCount > 0 && $linkRefRemoved === 0, '#146 body tokens and link ref ledger reconcile');
-    m11_assert($brokenErrors !== [] && str_contains($renderedBroken, 'sr-link-card'), '#146 broken link cards validate and render without fatal errors');
+    m11_assert($linkTokenErrors !== [] && $linkRefCount === 0 && $linkRefRemoved === 0, '#146 legacy link card tokens are rejected and link refs stay empty');
 
     foreach (['point', 'reward', 'deposit'] as $assetKey) {
         $function = 'sr_' . $assetKey . '_create_transaction';

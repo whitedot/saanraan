@@ -57,7 +57,7 @@
 - #133 회원 token hash 저장, 회원 그룹 membership
 - #134 콘텐츠 CRUD, 댓글, 시리즈 연결
 - #135 커뮤니티 기본 게시판, 카테고리, 시리즈, 시리즈 스크랩 fixture
-- #136 링크 카드 token validation, CKEditor asset option 렌더링
+- #136 legacy 링크 카드 token 거부, CKEditor asset option 렌더링
 - #137 포인트/적립금/예치금 원장, 출금/환불 신청, 환전 실행
 - #138 쿠폰 지급, 사용, 환불
 - #139 사이트 메뉴, 배너, 팝업 fixture
@@ -88,7 +88,7 @@
 | #133 회원 계정·그룹·개인 계정 영역 | 완료 | fixture 계정, 로그인 smoke, token hash, 회원 그룹 membership, 개인정보 cleanup 계약 확인 |
 | #134 콘텐츠 관리·유료 열람·파일·시리즈 | 완료 | 콘텐츠 저장, 댓글, 시리즈 연결, 콘텐츠 route smoke, 댓글 알림 helper 결함 수정 |
 | #135 커뮤니티 게시판·댓글·시리즈·신고·쪽지 | 완료 | 인증 커뮤니티 smoke와 카테고리/시리즈/스크랩 DB assertion 통과 |
-| #136 콘텐츠↔커뮤니티 링크 카드·CKEditor | 완료 | link card 정적 검사, token validation, CKEditor asset option 렌더링 확인 |
+| #136 콘텐츠↔커뮤니티 검색 삽입·CKEditor | 완료 | link card 정적 검사, legacy token 거부, CKEditor asset option 렌더링 확인 |
 | #137 포인트·적립금·예치금·환전 | 완료 | 포인트/적립금/예치금 원장, 출금/환불 신청, 환전 실행 DB assertion 통과 |
 | #138 쿠폰·이용권과 유료 기능 연동 | 완료 | 쿠폰 지급, 사용, 환불 DB assertion 통과 |
 | #139 사이트 운영 모듈 메뉴·로고·배너·팝업·SEO | 완료 | 사이트 메뉴, 배너, 팝업 fixture와 sitemap/protection HTTP smoke 통과 |

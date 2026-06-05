@@ -660,12 +660,14 @@ if (!is_string($bannerHelper)) {
 }
 
 $moduleLifecycleHelper = file_get_contents($root . '/core/helpers/module-lifecycle.php');
+$moduleSourceHelper = file_get_contents($root . '/core/helpers/module-source.php');
+$schemaUpdatesHelper = file_get_contents($root . '/core/helpers/schema-updates.php');
 $adminModuleSourcesHelper = file_get_contents($root . '/modules/admin/helpers/module-sources.php');
 if (!is_string($adminModuleSourcesHelper)) {
     $errors[] = 'Admin module sources helper cannot be read.';
     $adminModuleSourcesHelper = '';
 }
-$moduleSourceSafetyContent = (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : '') . "\n" . $adminModuleSourcesHelper;
+$moduleSourceSafetyContent = (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : '') . "\n" . (is_string($moduleSourceHelper) ? $moduleSourceHelper : '') . "\n" . $adminModuleSourcesHelper;
 if (
     strpos($moduleSourceSafetyContent, 'function sr_module_zip_entry_is_symlink') === false
     || strpos($moduleSourceSafetyContent, 'sr_module_zip_entry_is_symlink($zip, $i)') === false
@@ -734,7 +736,7 @@ if (!is_string($adminUpdatesHelper)) {
     substr_count($adminUpdatesHelper, 'sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))') < 2
     || strpos($adminUpdatesHelper, "'schema.update.failed'") === false
     || strpos($adminUpdatesHelper, '\'message\' => sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))') === false
-    || strpos($adminUpdatesHelper . "\n" . (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : ''), "sr_log_sensitive_text_sanitize(sr_log_line_value((string) (\$decoded['message'] ?? ''), 500))") === false
+    || strpos($adminUpdatesHelper . "\n" . (is_string($moduleLifecycleHelper) ? $moduleLifecycleHelper : '') . "\n" . (is_string($schemaUpdatesHelper) ? $schemaUpdatesHelper : ''), "sr_log_sensitive_text_sanitize(sr_log_line_value((string) (\$decoded['message'] ?? ''), 500))") === false
 ) {
     $errors[] = 'Admin schema update failures must write sanitized audit and marker messages.';
 }

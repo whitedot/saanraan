@@ -21,7 +21,7 @@
 - #143: `sr_` 테이블 namespace, schema updater idempotency, schema version 기록, 주요 컬럼 존재
 - #144: 관리자 권한 경계, 일반 회원의 관리자 권한 차단, 공개 회원 식별자 hash 처리
 - #145: 공개/숨김/예약 콘텐츠의 sitemap 노출 조건
-- #146: 링크 카드 body token과 link ref 원장 reconcile, 깨진 링크 카드 검증/렌더링
+- #146: legacy 링크 카드 token 저장 거부와 link ref 원장 비움 유지
 - #147: point/reward/deposit 원장 합계, 쿠폰 접근권 dedupe
 - #148: 감사 로그 기록, site/email 알림 delivery row, 민감 metadata scan
 - #149: 개인정보 export module contract 포함, cleanup contract 실행
@@ -57,7 +57,7 @@ Milestone 11 consistency checks completed: 28 assertions.
 | #143 | 통과 | 설치 테이블 namespace, schema version, update idempotency, 주요 컬럼을 확인했다. |
 | #144 | 통과 | 관리자 권한 경계와 회원 공개 식별자 hash 처리를 확인했다. |
 | #145 | 통과 | 공개/숨김/예약 상태의 sitemap 노출 조건을 확인했다. |
-| #146 | 통과 | 링크 카드 token/ref reconcile과 깨진 카드 렌더링 안정성을 확인했다. |
+| #146 | 통과 | 링크 카드 token 저장 거부와 link ref 원장 비움 유지를 확인했다. |
 | #147 | 통과 | 자산 원장 합계와 쿠폰 접근권 dedupe를 확인했다. |
 | #148 | 통과 | 감사 로그, 알림 delivery, 민감 metadata 누출 방지를 확인했다. |
 | #149 | 통과 | 개인정보 export와 cleanup contract 실행을 확인했다. |

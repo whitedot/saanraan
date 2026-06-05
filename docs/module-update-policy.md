@@ -6,7 +6,7 @@
 
 산란은 모듈 소스의 출처를 관리하지 않는다. 현재 `modules/{module_key}`에 놓인 폴더를 읽고, DB에는 설치 상태와 SQL 적용 상태만 기록한다.
 
-모듈 설치, 상태 변경, 파일 전용 버전 반영, pending SQL 계산, SQL 적용, 모듈 소스 zip 검증 같은 수명주기 실행 기준은 코어 helper가 제공한다. 기본 `/admin/modules`와 `/admin/updates` 화면은 이 코어 helper를 호출하는 운영 UI이며, 소유자 권한 확인, owner 재인증, 감사 로그, 결과 표시를 맡는다. `/admin/modules`는 설치된 PHP 실행 코드를 바꿀 수 있는 화면이므로 메뉴별 권한으로 위임하지 않고 소유자만 접근한다. 별도 관리자 UI를 만들더라도 같은 코어 helper를 호출해야 DB 상태와 업데이트 판정이 분기되지 않는다.
+모듈 설치, 상태 변경, 파일 전용 버전 반영, pending SQL 계산, SQL 적용, 모듈 소스 zip 검증 같은 수명주기 실행 기준은 코어 helper가 제공한다. helper 책임은 파일 단위로 나눈다. `core/helpers/schema-updates.php`는 update 파일 탐색, checksum, lock, 적용 기록을 맡고, `core/helpers/module-source.php`는 zip 업로드 검증과 파일 배치/백업/복구를 맡고, `core/helpers/module-metadata.php`는 `module.php` 정적 metadata 읽기를 맡고, `core/helpers/module-lifecycle.php`는 설치/상태 변경/version sync와 관리 화면에 필요한 lifecycle 상태 계산을 조율한다. 기본 `/admin/modules`와 `/admin/updates` 화면은 이 코어 helper를 호출하는 운영 UI이며, 소유자 권한 확인, owner 재인증, 감사 로그, 결과 표시를 맡는다. `/admin/modules`는 설치된 PHP 실행 코드를 바꿀 수 있는 화면이므로 메뉴별 권한으로 위임하지 않고 소유자만 접근한다. 별도 관리자 UI를 만들더라도 같은 코어 helper를 호출해야 DB 상태와 업데이트 판정이 분기되지 않는다.
 
 ```text
 파일 기준:

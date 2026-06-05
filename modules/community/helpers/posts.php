@@ -1411,34 +1411,7 @@ function sr_community_link_card_resolve_many(PDO $pdo, array $types): array
 
 function sr_community_admin_link_refs(PDO $pdo, bool $brokenOnly = false): array
 {
-    if (!sr_link_card_table_exists($pdo, 'sr_community_link_refs')) {
-        return [];
-    }
-
-    $stmt = $pdo->query(
-        'SELECT r.id, r.post_id, r.target_module, r.target_entity_type, r.target_entity_id, r.slot_key, r.variant, r.label, r.sort_order, r.created_at, r.updated_at,
-                p.title AS post_title, p.status AS post_status, b.board_key, b.title AS board_title
-         FROM sr_community_link_refs r
-         INNER JOIN sr_community_posts p ON p.id = r.post_id
-         INNER JOIN sr_community_boards b ON b.id = p.board_id
-         ORDER BY p.updated_at DESC, r.post_id DESC, r.sort_order ASC, r.id ASC
-         LIMIT 200'
-    );
-    $rows = $stmt->fetchAll();
-    $resolved = sr_link_card_resolve_many($pdo, $rows);
-    $results = [];
-    foreach ($rows as $row) {
-        $key = sr_link_card_ref_key((string) $row['target_module'], (string) $row['target_entity_type'], (string) $row['target_entity_id']);
-        $target = $resolved[$key] ?? sr_link_card_broken_result((string) $row['target_module'], (string) $row['target_entity_type'], (string) $row['target_entity_id']);
-        $row['target'] = $target;
-        $row['is_broken'] = !empty($target['broken']);
-        if ($brokenOnly && empty($row['is_broken'])) {
-            continue;
-        }
-        $results[] = $row;
-    }
-
-    return $results;
+    return [];
 }
 
 function sr_community_html_post_body_enabled(PDO $pdo, ?array $board = null, ?array $settings = null): bool

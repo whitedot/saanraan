@@ -1,5 +1,7 @@
 # 마일스톤 4 링크 카드 구현 기록
 
+> 2026-06-05 후속 결정: 이 문서는 마일스톤 4 당시의 구현 기록이다. 현재 1.0 방향은 링크 카드 토큰을 신규 저장에서 거부하고, 검색 삽입 결과를 일반 HTML 또는 텍스트 링크로 저장하는 정책이다. `core/helpers/link-card.php`는 legacy token 감지/거부와 제한된 refs 정리 helper만 유지한다.
+
 ## 범위
 
 - 공통 링크 카드 토큰은 `{{sr_link_card module="community" entity_type="post" entity_id="1" variant="compact" label="선택 제목" slot="body"}}` 형식을 사용한다.

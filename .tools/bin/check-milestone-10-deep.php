@@ -329,8 +329,8 @@ try {
     }
     m10_assert($communitySeriesId > 0 && $postId > 0, '#135 community category/series/scrap fixture');
 
-    $linkValidation = sr_link_card_validate_tokens($pdo, '[[content:' . (string) $contentId . ':compact]] [[community_post:' . (string) $postId . ':compact]]', ['content', 'community_post']);
-    m10_assert(($linkValidation['errors'] ?? []) === [], '#136 link card token validation');
+    $linkToken = '{{sr_link_card module="content" entity_type="content" entity_id="' . (string) $contentId . '" variant="compact" slot="body"}}';
+    m10_assert(sr_link_card_token_rejection_errors($linkToken) !== [], '#136 legacy link card token rejection');
     m10_assert(str_contains(sr_editor_assets_html($pdo, 'ckeditor', 'default'), 'ckeditor'), '#136 CKEditor asset option renders');
 
     $pointBefore = sr_point_balance($pdo, $memberId);

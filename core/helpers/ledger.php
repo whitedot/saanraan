@@ -9,7 +9,7 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
     $balanceRowError = (string) ($config['balance_row_error'] ?? 'Ledger balance row was not created.');
     $negativeBalanceError = (string) ($config['negative_balance_error'] ?? 'Ledger balance cannot be negative.');
 
-    if (!sr_ledger_is_safe_table_name($balanceTable) || !sr_ledger_is_safe_table_name($transactionTable)) {
+    if (!sr_ledger_table_pair_is_allowed($balanceTable, $transactionTable)) {
         throw new InvalidArgumentException('Ledger table name is invalid.');
     }
 
@@ -105,6 +105,20 @@ function sr_ledger_create_transaction(PDO $pdo, array $config, array $data): int
 function sr_ledger_is_safe_table_name(string $tableName): bool
 {
     return preg_match('/\Asr_[a-z0-9_]{1,120}\z/', $tableName) === 1;
+}
+
+function sr_ledger_table_pair_is_allowed(string $balanceTable, string $transactionTable): bool
+{
+    if (!sr_ledger_is_safe_table_name($balanceTable) || !sr_ledger_is_safe_table_name($transactionTable)) {
+        return false;
+    }
+
+    $allowedPairs = [
+        'sr_reward_balances' => 'sr_reward_transactions',
+        'sr_deposit_balances' => 'sr_deposit_transactions',
+    ];
+
+    return isset($allowedPairs[$balanceTable]) && $allowedPairs[$balanceTable] === $transactionTable;
 }
 
 function sr_ledger_nullable_positive_int(mixed $value): ?int

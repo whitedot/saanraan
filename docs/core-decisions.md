@@ -103,18 +103,27 @@
 현재 감시 대상:
 
 - `core/helpers/ledger.php`: 포인트, 적립금, 예치금이 공유하는 balance/transaction 패턴을 줄이지만, 금액성 원장이라는 도메인 모델을 전제한다.
+- `core/helpers/link-card.php`: 과거 링크 카드 토큰 저장 정책의 호환 감지 helper다. 현재 신규 저장 정책은 링크 카드 토큰을 거부하고 일반 HTML 또는 텍스트 링크만 저장한다.
 
 회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 거래 insert만 helper로 줄이고, 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
 
 자산 간 환전은 `asset_exchange` 선택 모듈이 정책과 실행 로그를 소유한다. 코어는 통합 자산 테이블을 만들지 않고, 환전 모듈은 활성 자산 모듈의 `asset-exchange.php` 계약에서 잔액 조회 함수와 원장 거래 생성 함수를 읽어 호출한다. 환전 실행은 하나의 DB transaction 안에서 출금 원장, 입금 원장, 선택 수수료 원장을 같은 `reference_type=asset_exchange`와 환전 묶음 ID로 연결한다. 비율, 반올림, 수수료 조건은 실행 로그에 스냅샷으로 남기고 정책 변경은 이후 요청에만 적용한다. 자산 모듈이 비활성화되면 신규 정책 선택 후보에서 제외하고, 이미 저장된 정책은 화면에서 실행 불가 상태로 표시한다.
 
-유지 조건:
+`ledger.php` 유지 조건:
 
-- 테이블명은 호출 모듈이 명시적으로 넘기고 `sr_` allowlist를 통과해야 한다.
+- 테이블명은 호출 모듈이 명시적으로 넘기되, 코어 helper 안의 공식 table pair allowlist를 통과해야 한다. 현재 공통 helper를 직접 쓰는 pair는 `sr_reward_balances`/`sr_reward_transactions`, `sr_deposit_balances`/`sr_deposit_transactions`다.
 - 음수 허용, 거래 유형, 사유, 참조 의미, 관리자 권한, 환불/취소/만료 정책은 호출 모듈이 책임진다.
 - 환전 가능 여부와 환금성 여부는 자산 모듈의 좁은 계약과 환전 모듈 정책으로 판단하고, 코어나 회원 테이블에 자산 도메인 컬럼을 추가하지 않는다.
 - helper는 원자적 balance update와 transaction insert 같은 좁은 DB primitive에 머문다.
 - 원장 조회 UI, 정산, 만료, 지급 정책, 통계, 외부 결제 연동은 코어에 넣지 않는다.
+- `point`는 만료와 소비 매핑 정책 때문에 `ledger.php`의 공통 transaction helper를 쓰지 않는다. `sr_ledger_nullable_positive_int()` 같은 작은 입력 보정만 공유할 수 있다.
+
+`link-card.php` 유지 조건:
+
+- 코어는 legacy token pattern, token 추출, token 저장 거부 오류, 제한된 legacy refs 테이블 비움만 제공한다.
+- 코어는 `content`, `community`, `commerce` 같은 도메인 key의 validation, label, 공개 렌더링, resolver 호출을 소유하지 않는다.
+- `sr_content_link_refs`, `sr_community_link_refs`는 1.0 호환과 삭제/복사 정리 경로 때문에 남기되, 신규 저장 시 참조 원장으로 채우지 않는다.
+- 콘텐츠/커뮤니티 본문 연결 UI는 대상 검색 결과를 일반 링크 또는 허용 HTML로 삽입한다.
 
 퇴출 또는 이동 기준:
 
