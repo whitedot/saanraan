@@ -136,7 +136,7 @@ modules/board/
 공개 화면 디자인 책임은 public layout, 모듈 theme, 모듈 skin을 구분한다.
 
 - public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
-- public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 위치 구분으로 `primary_navigation`, `secondary_navigation`, `tertiary_navigation` output slot을 사용할 수 있다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`, `site_menus.secondary`, `site_menus.tertiary`로 전달한다.
+- public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 위치 구분으로 `primary_navigation` output slot을 사용한다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`로 전달한다. `secondary_navigation`, `tertiary_navigation`은 사이트 메뉴 출력 슬롯 계약에 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링한다.
 - public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 개발자 화면이며 admin 모듈에 의존하지 않는다.
 - 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `content.basic`, `community.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
 - 번들 `content.basic`과 `community.basic`은 공통 레이아웃 파일을 공유하지 않는다. 콘텐츠는 `modules/content/layouts/basic/layout.php`, 커뮤니티는 허용된 theme 경계 안의 `modules/community/themes/basic/layout.php`를 사용한다. 헤더/푸터처럼 같은 시각 언어를 쓰더라도 모듈 전용 레이아웃 CSS를 사용해 모듈 경계를 유지한다.

@@ -128,11 +128,11 @@
     display: none;
 }
 
-.public-layout-nav a:is([aria-current="page"], [href="/"], [href$="/"]) {
+.public-layout-nav a:is([aria-current="page"], [href="/"]) {
     font-weight: 800;
 }
 
-.public-layout-nav a:is([aria-current="page"], [href="/"], [href$="/"])::after,
+.public-layout-nav a:is([aria-current="page"], [href="/"])::after,
 .public-layout-nav a:hover::after {
     background: #151515;
     bottom: 0;
