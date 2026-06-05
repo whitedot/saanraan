@@ -269,18 +269,19 @@ $checks = [
         'path' => '/assets/public-layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
-            '.public-site-header',
-            '.public-site-footer',
-            'background: var(--sr-bg',
+            '.public-layout-header',
+            '.public-layout-main',
+            '.public-layout-footer',
+            'grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr)',
         ],
-        'must_contain_css_rules' => [
-            [
-                'selector' => '.public-home + .public-site-footer',
-                'declarations' => [
-                    'margin-top' => '0',
-                    'padding-top' => '52px',
-                ],
-            ],
+    ],
+    [
+        'label' => 'public layout script',
+        'path' => '/assets/public-layout.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '[data-public-scroll-header]',
+            'is-public-layout-header-hidden',
         ],
     ],
     [
@@ -298,6 +299,15 @@ $checks = [
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-screen',
+        ],
+    ],
+    [
+        'label' => 'community layout script',
+        'path' => '/modules/community/assets/community-layout.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '[data-community-scroll-header]',
+            'is-community-layout-header-hidden',
         ],
     ],
     [

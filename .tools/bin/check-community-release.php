@@ -732,8 +732,13 @@ foreach (sr_community_release_files('modules/community/assets', ['css']) as $ass
         sr_community_release_error('Community CSS asset must use community- prefix: ' . $assetFile);
     }
 }
+$allowedCommunityScriptFiles = [
+    'modules/community/assets/community-layout.js',
+];
 foreach (sr_community_release_files('modules/community', ['js', 'scss']) as $assetFile) {
-    sr_community_release_error('Community module must not ship JS/SCSS assets without a release policy update: ' . $assetFile);
+    if (!in_array($assetFile, $allowedCommunityScriptFiles, true)) {
+        sr_community_release_error('Community module must not ship JS/SCSS assets without a release policy update: ' . $assetFile);
+    }
 }
 foreach (sr_community_release_files('modules/community', ['php']) as $phpFile) {
     $content = file_get_contents($phpFile);

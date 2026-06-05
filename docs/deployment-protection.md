@@ -79,10 +79,12 @@ nginx 적용 후 다음 응답을 확인한다.
 /assets/tokens.css 정적 CSS 응답
 /assets/public-foundation.css 정적 CSS 응답
 /assets/public-layout.css 정적 CSS 응답
+/assets/public-layout.js 정적 JavaScript 응답
 /modules/admin/assets/tokens.css 정적 CSS 응답
 /assets/fonts/material-symbols-outlined.ttf 정적 font/ttf 응답
 /modules/content/assets/public.css 정적 CSS 응답
 /modules/community/assets/community-public.css 정적 CSS 응답
+/modules/community/assets/community-layout.js 정적 JavaScript 응답
 /modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js 정적 JavaScript 응답
 /login 또는 /admin 같은 가상 경로가 index.php를 통해 응답
 /database/core/install.sql 직접 접근 차단

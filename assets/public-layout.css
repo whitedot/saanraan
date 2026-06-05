@@ -1,203 +1,221 @@
-/*
- * Saanraan default public layout shell.
- * Loaded explicitly by layouts/public/basic/layout.php.
- * Keep this file limited to the shared public header/footer shell.
- */
-
-.public-site-header {
-    align-items: center;
-    background: var(--sr-bg, var(--color-body-bg));
-    border-bottom: 1px solid var(--sr-border, var(--color-default-300));
-    display: flex;
-    gap: 1rem;
-    justify-content: space-between;
-    margin: 0;
-    min-height: 58px;
-    padding: 8px 22px;
-    width: 100%;
+.public-layout-body {
+    background: #ffffff;
+    min-height: 100vh;
 }
 
-.public-site-header-main,
-.public-site-header-actions {
+.public-layout-header {
     align-items: center;
-    display: flex;
-    gap: 14px;
-    min-width: 0;
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(12px);
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr);
+    height: 60px;
+    margin: 0 auto;
+    max-width: 1360px;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    transform: translateY(0);
+    transition: transform .22s ease;
+    width: calc(100% - clamp(32px, 5vw, 96px));
+    z-index: 30;
 }
 
-.public-site-brand-link {
+.public-layout-header.is-public-layout-header-hidden {
+    transform: translateY(-100%);
+}
+
+.public-layout-brand-link {
     align-items: center;
+    color: #0a0a0a;
     display: inline-flex;
-    flex: 0 0 auto;
-    max-width: min(18rem, 48vw);
-    min-height: 40px;
-}
-
-.public-site-brand-logo {
-    display: block;
-    max-height: 2.5rem;
-    max-width: min(16rem, 64vw);
-    object-fit: contain;
-}
-
-.public-site-brand-logo-mobile {
-    display: none;
-}
-
-.public-site-brand-text {
-    color: #242424;
-    font-family: var(--font-body);
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-    overflow-wrap: anywhere;
-}
-
-.public-site-header > :not(.public-site-brand-link),
-.public-site-header-main > *,
-.public-site-header-actions > * {
+    gap: 8px;
+    justify-self: start;
     min-width: 0;
-}
-
-.public-site-icon-button,
-.public-site-action-link,
-.public-site-get-app,
-.public-site-avatar-link {
-    align-items: center;
-    border: 0;
-    display: inline-flex;
-    flex: 0 0 auto;
-    justify-content: center;
     text-decoration: none;
 }
 
-.public-site-icon-button {
-    background: transparent;
-    color: #6b6b6b;
-    height: 34px;
-    padding: 0;
-    width: 24px;
+.public-layout-brand-logo {
+    display: block;
+    max-height: 1.65rem;
+    max-width: min(9.8rem, 36vw);
+    object-fit: contain;
 }
 
-.public-site-search {
+.public-layout-brand-logo-mobile {
+    display: none;
+}
+
+.public-layout-brand-mark {
+    color: #050505;
+    font-family: var(--font-body);
+    font-size: 1.95rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+}
+
+.public-layout-brand-text {
+    color: #0c0c0c;
+    font-family: var(--font-body);
+    font-size: 1.18rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+}
+
+.public-layout-nav {
     align-items: center;
-    background: #f7f7f7;
-    border-radius: 999px;
-    color: #6b6b6b;
     display: flex;
-    gap: 10px;
-    height: 40px;
-    min-width: 240px;
-    padding: 0 16px;
-}
-
-.public-site-search .material-symbols-outlined {
-    color: #242424;
-    font-size: 1.25rem;
-}
-
-.public-site-get-app {
-    background: #242424;
-    border-radius: 999px;
-    color: #ffffff;
-    gap: 8px;
-    min-height: 40px;
-    padding: 0 16px;
-}
-
-.public-site-get-app .material-symbols-outlined,
-.public-site-action-link .material-symbols-outlined,
-.public-site-icon-button .material-symbols-outlined {
-    font-size: 1.35rem;
-}
-
-.public-site-action-link {
-    color: #6b6b6b;
-    gap: 8px;
-    min-height: 40px;
-}
-
-.public-site-avatar-link {
-    background: #54b832;
-    border-radius: 999px;
-    color: #ffffff;
-    font-weight: var(--font-weight-bold);
-    height: 34px;
-    width: 34px;
-}
-
-.public-site-primary-navigation {
-    max-width: min(34vw, 28rem);
-    overflow: hidden;
-}
-
-.public-site-footer {
-    background: var(--sr-bg, var(--color-body-bg));
-    border-top: 1px solid var(--sr-border, var(--color-default-300));
-    display: grid;
-    gap: 12px;
-    margin: 32px auto 0;
-    padding: 20px clamp(1rem, 4vw, 2.5rem);
-    width: min(1080px, 100%);
-}
-
-.public-home + .public-site-footer {
-    margin-top: 0;
-    padding-top: 52px;
-}
-
-.public-site-header .sr-site-menu,
-.public-site-footer .sr-site-menu {
-    margin: 0;
-    width: auto;
-}
-
-.public-site-header .sr-site-menu-list {
-    flex-wrap: nowrap;
-    gap: 10px;
-    overflow: hidden;
-}
-
-.public-site-header .sr-site-menu-item > a {
-    border: 0;
-    color: #6b6b6b;
-    padding: 0;
+    gap: 42px;
+    justify-content: center;
+    justify-self: center;
+    min-width: 0;
     white-space: nowrap;
 }
 
-.public-site-footer .sr-site-menu-list {
-    gap: 6px 10px;
+.public-layout-nav:empty {
+    display: block;
 }
 
-.public-site-footer .sr-site-menu-slot-tertiary-navigation {
-    color: var(--sr-muted, var(--color-default-600));
-    font-size: var(--type-small-size);
-    line-height: var(--type-small-line-height);
+.public-layout-nav .sr-site-menu {
+    display: block;
+    margin: 0;
+    min-width: max-content;
+    padding: 0;
+}
+
+.public-layout-nav .sr-site-menu-list {
+    align-items: center;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 42px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: max-content;
+}
+
+.public-layout-nav .sr-site-menu-list-depth-2,
+.public-layout-nav .sr-site-menu-list-depth-3 {
+    display: none;
+}
+
+.public-layout-nav .sr-site-menu-item {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+}
+
+.public-layout-nav a {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: #161616;
+    display: inline-flex;
+    font-size: .88rem;
+    font-weight: 500;
+    gap: 0;
+    line-height: 1;
+    padding: 10px 0 11px;
+    position: relative;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.public-layout-nav .sr-site-menu-link-icon {
+    display: none;
+}
+
+.public-layout-nav a:is([aria-current="page"], [href="/"], [href$="/"]) {
+    font-weight: 800;
+}
+
+.public-layout-nav a:is([aria-current="page"], [href="/"], [href$="/"])::after,
+.public-layout-nav a:hover::after {
+    background: #151515;
+    bottom: 0;
+    content: "";
+    height: 2px;
+    left: 0;
+    position: absolute;
+    right: 0;
+}
+
+.public-layout-actions {
+    align-items: center;
+    display: flex;
+    gap: 18px;
+    justify-self: end;
+}
+
+.public-layout-icon-button {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: #121212;
+    display: inline-flex;
+    height: 32px;
+    justify-content: center;
+    padding: 0;
+    text-decoration: none;
+    width: 32px;
+}
+
+.public-layout-icon-button .material-symbols-outlined {
+    font-size: 1.28rem;
+    font-variation-settings: "FILL" 0, "wght" 350, "GRAD" 0, "opsz" 24;
+}
+
+.public-layout-main {
+    min-height: calc(100vh - 132px);
+    min-width: 0;
+}
+
+.public-layout-footer {
+    color: rgba(0, 0, 0, .48);
+    margin: 0 auto;
+    padding: 28px 0 42px;
+    width: calc(100% - clamp(32px, 5vw, 96px));
+}
+
+.public-layout-footer p {
+    border-top: 1px solid rgba(0, 0, 0, .11);
+    font-size: .75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0 auto;
+    padding-top: 18px;
+    width: min(1360px, 100%);
 }
 
 @media (max-width: 767px) {
-    .public-site-header {
-        gap: 10px;
-        padding: 8px 14px;
+    .public-layout-header {
+        grid-template-columns: 1fr auto;
+        min-height: 58px;
+        padding: 0;
+        width: calc(100% - 40px);
     }
 
-    .public-site-brand-logo-mobile {
+    .public-layout-nav {
+        display: none;
+    }
+
+    .public-layout-brand-logo-mobile {
         display: block;
     }
 
-    .public-site-brand-logo-mobile + .public-site-brand-logo-desktop {
+    .public-layout-brand-logo-mobile + .public-layout-brand-logo-desktop {
         display: none;
     }
 
-    .public-site-search {
-        min-width: 0;
-        width: 40px;
+    .public-layout-actions {
+        gap: 10px;
     }
 
-    .public-site-search span:last-child,
-    .public-site-primary-navigation,
-    .public-site-get-app,
-    .public-site-action-link span:last-child {
-        display: none;
+    .public-layout-footer {
+        padding: 24px 0 34px;
+        width: calc(100% - 40px);
     }
 }
