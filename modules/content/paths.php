@@ -3,6 +3,7 @@
 return [
     'GET /content/download' => 'actions/download.php',
     'POST /content/download' => 'actions/download.php',
+    'GET /content/body-file' => 'actions/body-file.php',
     'GET /content/group' => 'actions/group.php',
     'POST /content/action' => 'actions/action.php',
     'POST /content/comment' => 'actions/comment.php',
@@ -16,6 +17,7 @@ return [
     'GET /admin/content/files' => 'actions/admin-download-files.php',
     'POST /admin/content/files' => 'actions/admin-download-files.php',
     'GET /admin/content/link-card-targets' => 'actions/admin-link-card-targets.php',
+    'POST /admin/content/body-files/upload' => 'actions/admin-body-file-upload.php',
     'GET /admin/content/file-downloads' => 'actions/admin-file-downloads.php',
     'POST /admin/content/file-downloads' => 'actions/admin-file-downloads.php',
     'GET /admin/content/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',

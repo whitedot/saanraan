@@ -59,7 +59,7 @@ function sr_ckeditor_toolbar_presets(): array
         ],
         'content_basic' => [
             'label' => '콘텐츠 본문 기본',
-            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
+            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'uploadImage', 'bulletedList', 'numberedList', 'blockQuote'],
         ],
         'community_post_basic' => [
             'label' => '커뮤니티 게시글 기본',
@@ -125,7 +125,7 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post
     $assetMode = (string) $settings['asset_mode'];
     $cdnVersion = (string) $settings['cdn_version'];
 
-    return [
+    $config = [
         'assetMode' => $assetMode,
         'cdnVersion' => $cdnVersion,
         'licenseKey' => (string) $settings['license_key'],
@@ -136,6 +136,16 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post
         'selfHostedStylesheetUrl' => sr_asset_url('/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'),
         'pluginStylesheetUrl' => sr_asset_url('/modules/ckeditor/assets/saanraan-ckeditor.css'),
     ];
+
+    if ($presetKey === 'content_basic' && function_exists('sr_content_body_file_upload_url')) {
+        $config['upload'] = [
+            'url' => sr_content_body_file_upload_url(),
+            'csrfToken' => sr_csrf_token(),
+            'fieldName' => 'upload',
+        ];
+    }
+
+    return $config;
 }
 
 function sr_ckeditor_public_assets_html(PDO $pdo, string $presetKey = 'community_post_basic'): string

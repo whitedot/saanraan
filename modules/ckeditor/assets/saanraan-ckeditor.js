@@ -66,7 +66,17 @@
       'Strikethrough',
       'Link',
       'List',
-      'BlockQuote'
+      'BlockQuote',
+      'Image',
+      'ImageBlock',
+      'ImageInline',
+      'ImageInsert',
+      'ImageUpload',
+      'ImageToolbar',
+      'ImageCaption',
+      'ImageStyle',
+      'ImageResize',
+      'FileRepository'
     ];
     var plugins = [];
 
@@ -76,7 +86,7 @@
       }
     });
 
-    return {
+    var editorOptions = {
       licenseKey: config.licenseKey || 'GPL',
       plugins: plugins,
       toolbar: toolbar,
@@ -84,6 +94,75 @@
         addTargetToExternalLinks: true,
         defaultProtocol: 'https://'
       }
+    };
+
+    if (config.upload && config.upload.url && ckeditor.FileRepository) {
+      editorOptions.extraPlugins = [saanraanUploadAdapterPlugin];
+      editorOptions.image = {
+        toolbar: ['imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side']
+      };
+    }
+
+    return editorOptions;
+  }
+
+  function SaanraanUploadAdapter(loader) {
+    this.loader = loader;
+    this.xhr = null;
+  }
+
+  SaanraanUploadAdapter.prototype.upload = function () {
+    var adapter = this;
+
+    return this.loader.file.then(function (file) {
+      return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        var data = new FormData();
+        var fieldName = config.upload.fieldName || 'upload';
+
+        adapter.xhr = xhr;
+        xhr.open('POST', config.upload.url, true);
+        xhr.responseType = 'json';
+        xhr.addEventListener('error', function () {
+          reject('본문 이미지 업로드를 처리할 수 없습니다.');
+        });
+        xhr.addEventListener('abort', function () {
+          reject('본문 이미지 업로드가 취소되었습니다.');
+        });
+        xhr.addEventListener('load', function () {
+          var response = xhr.response || {};
+
+          if (xhr.status < 200 || xhr.status >= 300 || response.error) {
+            reject(response.error && response.error.message ? response.error.message : '본문 이미지 업로드를 처리할 수 없습니다.');
+            return;
+          }
+
+          if (!response.url) {
+            reject('본문 이미지 업로드 응답이 올바르지 않습니다.');
+            return;
+          }
+
+          resolve({ default: response.url });
+        });
+
+        data.append(fieldName, file);
+        if (config.upload.csrfToken) {
+          data.append('csrf_token', config.upload.csrfToken);
+        }
+        xhr.send(data);
+      });
+    });
+  };
+
+  SaanraanUploadAdapter.prototype.abort = function () {
+    if (this.xhr) {
+      this.xhr.abort();
+    }
+  };
+
+  function saanraanUploadAdapterPlugin(editor) {
+    editor.plugins.get('FileRepository').createUploadAdapter = function (loader) {
+      return new SaanraanUploadAdapter(loader);
     };
   }
 
