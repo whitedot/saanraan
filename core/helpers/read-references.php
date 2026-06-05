@@ -161,10 +161,13 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
         $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
     }
 
-    foreach (['label', 'reference_type'] as $requiredKey) {
-        if (!is_string($entry[$requiredKey] ?? null) || trim((string) $entry[$requiredKey]) === '') {
-            $errors[] = $requiredKey . ' 필수값이 비어 있습니다.';
-        }
+    if (!is_string($entry['label'] ?? null) || trim((string) $entry['label']) === '') {
+        $errors[] = 'label 필수값이 비어 있습니다.';
+    }
+    if (!is_string($entry['reference_type'] ?? null) || trim((string) $entry['reference_type']) === '') {
+        $errors[] = 'reference_type 필수값이 비어 있습니다.';
+    } elseif (!sr_read_reference_reference_type_is_valid((string) $entry['reference_type'])) {
+        $errors[] = 'reference_type 값이 올바르지 않습니다.';
     }
 
     $supportsTargetTypes = $entry['supports_target_types'] ?? null;
@@ -345,6 +348,13 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
     if (!sr_is_safe_module_key((string) ($row['consumer_module_key'] ?? '')) || (string) ($row['consumer_module_key'] ?? '') !== $moduleKey) {
         $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
     }
+    if (!sr_read_reference_reference_type_is_valid((string) ($row['reference_type'] ?? ''))) {
+        $errors[] = 'reference_type 값이 올바르지 않습니다.';
+    }
+    $expectedReferenceType = is_string($entry['reference_type'] ?? null) ? (string) $entry['reference_type'] : '';
+    if ((string) ($row['reference_type'] ?? '') !== $expectedReferenceType) {
+        $errors[] = 'reference_type이 계약 항목과 맞지 않습니다.';
+    }
     $expectedTargetType = is_string($target['target_type'] ?? null) ? (string) $target['target_type'] : '';
     if ((string) ($row['target_type'] ?? '') !== $expectedTargetType) {
         $errors[] = 'target_type이 조회 대상과 맞지 않습니다.';
@@ -412,6 +422,11 @@ function sr_read_reference_target_id_value(mixed $value): ?string
     }
 
     return null;
+}
+
+function sr_read_reference_reference_type_is_valid(string $referenceType): bool
+{
+    return preg_match('/\A[a-z][a-z0-9_]{0,79}\z/', $referenceType) === 1;
 }
 
 function sr_read_reference_target_key_value(mixed $value): ?string

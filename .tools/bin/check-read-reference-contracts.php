@@ -237,6 +237,13 @@ function sr_read_reference_check_prepare_entry_samples(): void
     if (!in_array('supports_target_types가 대상 type과 맞지 않습니다.', $spacedErrors, true)) {
         sr_read_reference_check_error('read reference prepare entry sample accepted spaced supports_target_types');
     }
+
+    $invalidReferenceTypeEntry = $entry;
+    $invalidReferenceTypeEntry['reference_type'] = ' sample_reference ';
+    $invalidReferenceTypeErrors = sr_read_reference_prepare_entry('sample_module', $invalidReferenceTypeEntry, 'banner');
+    if (!in_array('reference_type 값이 올바르지 않습니다.', $invalidReferenceTypeErrors, true)) {
+        sr_read_reference_check_error('read reference prepare entry sample accepted invalid reference_type');
+    }
 }
 
 function sr_read_reference_check_normalize_row_target_samples(): void
@@ -263,6 +270,20 @@ function sr_read_reference_check_normalize_row_target_samples(): void
     $valid = sr_read_reference_normalize_row('sample_module', $entry, $target, $baseRow, ['status' => 'ok'], '/admin/sample');
     if (!is_array($valid['row'] ?? null) || ($valid['errors'] ?? []) !== []) {
         sr_read_reference_check_error('read reference normalize row target sample rejected valid row');
+    }
+
+    $mismatchedReferenceType = $baseRow;
+    $mismatchedReferenceType['reference_type'] = 'other_reference';
+    $mismatchedReference = sr_read_reference_normalize_row('sample_module', $entry, $target, $mismatchedReferenceType, ['status' => 'ok'], '/admin/sample');
+    if (is_array($mismatchedReference['row'] ?? null) || !in_array('reference_type이 계약 항목과 맞지 않습니다.', $mismatchedReference['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted mismatched reference_type');
+    }
+
+    $invalidReferenceType = $baseRow;
+    $invalidReferenceType['reference_type'] = ' sample_reference ';
+    $invalidReference = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidReferenceType, ['status' => 'ok'], '/admin/sample');
+    if (is_array($invalidReference['row'] ?? null) || !in_array('reference_type 값이 올바르지 않습니다.', $invalidReference['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted invalid reference_type');
     }
 
     $missingTargetKey = $baseRow;
@@ -458,6 +479,9 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 if (!is_string($entry[$requiredKey] ?? null) || trim((string) $entry[$requiredKey]) === '') {
                     sr_read_reference_check_error('read reference entry requires ' . $requiredKey . ': ' . $path);
                 }
+            }
+            if (is_string($entry['reference_type'] ?? null) && !sr_read_reference_reference_type_is_valid((string) $entry['reference_type'])) {
+                sr_read_reference_check_error('read reference entry reference_type is invalid: ' . $path);
             }
 
             foreach (sr_read_reference_check_helper_values($moduleDir, $path, $entry['helpers'] ?? []) as $helper) {
