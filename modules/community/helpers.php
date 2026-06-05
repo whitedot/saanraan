@@ -137,7 +137,7 @@ function sr_community_coupon_target_admin_url(string $targetType, string $target
 
 function sr_community_banner_reference_count(PDO $pdo, array $target, array $context): int
 {
-    return count(sr_community_display_reference_rows($pdo, 'banner', (int) ($target['target_id'] ?? 0)));
+    return count(sr_community_banner_reference_rows($pdo, $target, $context));
 }
 
 function sr_community_banner_reference_rows(PDO $pdo, array $target, array $context): array
@@ -147,7 +147,7 @@ function sr_community_banner_reference_rows(PDO $pdo, array $target, array $cont
 
 function sr_community_popup_layer_reference_count(PDO $pdo, array $target, array $context): int
 {
-    return count(sr_community_display_reference_rows($pdo, 'popup_layer', (int) ($target['target_id'] ?? 0)));
+    return count(sr_community_popup_layer_reference_rows($pdo, $target, $context));
 }
 
 function sr_community_popup_layer_reference_rows(PDO $pdo, array $target, array $context): array

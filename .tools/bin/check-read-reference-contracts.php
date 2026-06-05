@@ -71,9 +71,13 @@ function sr_read_reference_check_callable_signature(string $path, string $functi
     }
 }
 
-function sr_read_reference_check_count_function_source(string $path, string $functionName): void
+function sr_read_reference_check_count_function_source(string $path, string $functionName, string $rowsFunctionName): void
 {
     if (!function_exists($functionName)) {
+        return;
+    }
+    if ($rowsFunctionName === '') {
+        sr_read_reference_check_error('read reference count_function rows_function target is missing: ' . $path . ' ' . $functionName);
         return;
     }
 
@@ -91,7 +95,7 @@ function sr_read_reference_check_count_function_source(string $path, string $fun
     }
 
     $body = implode('', array_slice($lines, $reflection->getStartLine() - 1, $reflection->getEndLine() - $reflection->getStartLine() + 1));
-    if (strpos($body, 'return count(') === false) {
+    if (strpos($body, 'return count(') === false || strpos($body, $rowsFunctionName) === false) {
         sr_read_reference_check_error('read reference count_function must count returned reference rows: ' . $path . ' ' . $functionName);
     }
 }
@@ -615,7 +619,8 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 }
                 sr_read_reference_check_callable_signature($path, $functionKey, $functionName);
                 if ($functionKey === 'count_function') {
-                    sr_read_reference_check_count_function_source($path, $functionName);
+                    $rowsFunctionName = is_string($entry['rows_function'] ?? null) ? trim((string) $entry['rows_function']) : '';
+                    sr_read_reference_check_count_function_source($path, $functionName, $rowsFunctionName);
                 }
             }
         }
