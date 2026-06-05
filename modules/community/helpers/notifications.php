@@ -4,18 +4,35 @@ declare(strict_types=1);
 
 function sr_community_notification_available(PDO $pdo): bool
 {
-    if (!function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'notification')) {
-        return false;
+    return sr_community_notification_create_function($pdo) !== '';
+}
+
+function sr_community_notification_create_function(PDO $pdo): string
+{
+    if (!sr_module_enabled($pdo, 'notification') || !sr_module_contract_is_loadable('notification')) {
+        return '';
     }
 
-    $helperPath = SR_ROOT . '/modules/notification/helpers.php';
+    $contractFile = SR_ROOT . '/modules/notification/notification-events.php';
+    $contract = sr_load_module_contract_file('notification', $contractFile);
+    if (!is_array($contract)) {
+        return '';
+    }
+
+    $helpers = (string) ($contract['helpers'] ?? '');
+    if ($helpers === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+        return '';
+    }
+
+    $helperPath = SR_ROOT . '/modules/notification/' . $helpers;
     if (!is_file($helperPath)) {
-        return false;
+        return '';
     }
 
     require_once $helperPath;
 
-    return function_exists('sr_notification_create');
+    $function = (string) ($contract['create_function'] ?? '');
+    return $function !== '' && function_exists($function) ? $function : '';
 }
 
 function sr_community_create_account_notification(
@@ -26,12 +43,13 @@ function sr_community_create_account_notification(
     string $linkUrl,
     ?int $createdByAccountId = null
 ): bool {
-    if ($accountId < 1 || !sr_community_notification_available($pdo)) {
+    $createNotificationFunction = sr_community_notification_create_function($pdo);
+    if ($accountId < 1 || $createNotificationFunction === '') {
         return false;
     }
 
     try {
-        sr_notification_create($pdo, [
+        $createNotificationFunction($pdo, [
             'audience' => 'account',
             'account_id' => $accountId,
             'title' => $title,
