@@ -602,6 +602,10 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
     $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
         ? (string) $values['body_format']
         : 'plain';
+    $bodyText = trim((string) $values['body_text']);
+    if ($bodyFormat === 'html') {
+        $bodyText = sr_community_finalize_body_files($pdo, $postId, $bodyText, $accountId, false);
+    }
     $categorySupported = sr_community_categories_supported($pdo);
     $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
     $stmt = $pdo->prepare(
@@ -615,7 +619,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
     );
     $params = [
         'title' => trim((string) $values['title']),
-        'body_text' => trim((string) $values['body_text']),
+        'body_text' => $bodyText,
         'body_format' => $bodyFormat,
         'updated_at' => sr_now(),
         'id' => $postId,
@@ -625,14 +629,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
     }
     $stmt->execute($params);
     if ($bodyFormat === 'html') {
-        $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $accountId);
-        if ($finalBodyText !== trim((string) $values['body_text'])) {
-            $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
-                'body_text' => $finalBodyText,
-                'updated_at' => sr_now(),
-                'id' => $postId,
-            ]);
-        }
+        sr_community_cleanup_unreferenced_body_files($pdo, $postId, $bodyText);
     } else {
         sr_community_cleanup_unreferenced_body_files($pdo, $postId, '');
     }
@@ -1121,22 +1118,36 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     if ($authorSnapshotColumnSql !== '') {
         $params['author_public_name_snapshot'] = sr_community_author_public_name_snapshot($pdo, $authorAccountId);
     }
-    $stmt->execute($params);
-
-    $postId = (int) $pdo->lastInsertId();
-    if ($bodyFormat === 'html') {
-        $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $authorAccountId);
-        if ($finalBodyText !== trim((string) $values['body_text'])) {
-            $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
-                'body_text' => $finalBodyText,
-                'updated_at' => $now,
-                'id' => $postId,
-            ]);
-        }
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
     }
-    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $authorAccountId);
 
-    return $postId;
+    try {
+        $stmt->execute($params);
+        $postId = (int) $pdo->lastInsertId();
+        if ($bodyFormat === 'html') {
+            $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $authorAccountId);
+            if ($finalBodyText !== trim((string) $values['body_text'])) {
+                $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                    'body_text' => $finalBodyText,
+                    'updated_at' => $now,
+                    'id' => $postId,
+                ]);
+            }
+        }
+        sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $authorAccountId);
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        return $postId;
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
 }
 
 function sr_community_post_rate_limited(PDO $pdo, int $accountId, array $settings): bool

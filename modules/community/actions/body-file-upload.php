@@ -22,13 +22,25 @@ try {
     if (!is_array($board) || (string) ($board['status'] ?? '') !== 'enabled') {
         throw new RuntimeException('게시판을 찾을 수 없습니다.');
     }
+    $postIdValue = sr_get_string('post_id', 20);
+    $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
+    $post = null;
+    if ($postId > 0) {
+        $post = sr_community_post_for_read($pdo, $postId, $account);
+        if (!is_array($post)) {
+            throw new RuntimeException('게시글을 찾을 수 없습니다.');
+        }
+        if ((int) ($post['board_id'] ?? 0) !== (int) ($board['id'] ?? 0)) {
+            throw new RuntimeException('게시판과 게시글이 일치하지 않습니다.');
+        }
+    }
 
     $upload = $_FILES['upload'] ?? $_FILES['file'] ?? null;
     if (!is_array($upload)) {
         throw new RuntimeException('업로드할 본문 이미지를 선택하세요.');
     }
 
-    $stored = sr_community_upload_body_file($pdo, (int) $account['id'], $board, $upload, sr_post_string('upload_token', 64));
+    $stored = sr_community_upload_body_file($pdo, (int) $account['id'], $board, $upload, sr_post_string('upload_token', 64), $post);
     try {
         sr_community_cleanup_expired_body_files($pdo, 5);
     } catch (Throwable $cleanupException) {

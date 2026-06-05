@@ -476,7 +476,18 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             $params['author_public_name_snapshot'] = (string) ($post['author_public_name_snapshot'] ?? '');
         }
         $insert->execute($params);
-        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied');
+        $newPostId = (int) $pdo->lastInsertId();
+        if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+            $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text']);
+            if ($bodyText !== (string) $post['body_text']) {
+                $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                    'body_text' => $bodyText,
+                    'updated_at' => (string) $post['updated_at'],
+                    'id' => $newPostId,
+                ]);
+            }
+        }
+        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newPostId, 'copied');
         $processed++;
     }
 
@@ -816,6 +827,9 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job): int
 
     $targetBoardId = sr_community_board_copy_job_target_board_id($pdo, $job);
     if ($targetBoardId > 0) {
+        $stmt = $pdo->prepare('SELECT id FROM sr_community_posts WHERE board_id = :board_id');
+        $stmt->execute(['board_id' => $targetBoardId]);
+        $postIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
         foreach ([
             'DELETE a FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id',
             'DELETE si FROM sr_community_series_items si INNER JOIN sr_community_series s ON s.id = si.series_id WHERE s.board_id = :board_id',
@@ -830,6 +844,7 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job): int
         ] as $sql) {
             $pdo->prepare($sql)->execute(['board_id' => $targetBoardId]);
         }
+        sr_community_cleanup_body_files_for_deleted_posts($pdo, $postIds);
     }
 
     return 0;

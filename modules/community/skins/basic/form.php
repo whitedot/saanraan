@@ -12,7 +12,8 @@ $fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) 
 $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
-$communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
+$editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
+$communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,

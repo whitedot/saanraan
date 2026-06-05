@@ -22,9 +22,14 @@ function sr_community_body_file_temporary_ttl_seconds(): int
     return 86400;
 }
 
-function sr_community_body_file_upload_url(array $board): string
+function sr_community_body_file_upload_url(array $board, int $postId = 0): string
 {
-    return sr_url('/community/body-files/upload?board_key=' . rawurlencode((string) ($board['board_key'] ?? '')));
+    $url = '/community/body-files/upload?board_key=' . rawurlencode((string) ($board['board_key'] ?? ''));
+    if ($postId > 0) {
+        $url .= '&post_id=' . rawurlencode((string) $postId);
+    }
+
+    return sr_url($url);
 }
 
 function sr_community_body_file_upload_token(): string
@@ -81,13 +86,19 @@ function sr_community_body_file_post_proxy_url(int $postId, string $fileName): s
     return sr_url('/community/body-file?post_id=' . rawurlencode((string) $postId) . '&file=' . rawurlencode($fileName));
 }
 
-function sr_community_upload_body_file(PDO $pdo, int $accountId, array $board, array $file, string $token): array
+function sr_community_upload_body_file(PDO $pdo, int $accountId, array $board, array $file, string $token, ?array $post = null): array
 {
     if (!sr_community_body_file_token_is_valid($token)) {
         throw new RuntimeException('본문 이미지 업로드 토큰이 올바르지 않습니다.');
     }
     $isAdminWriter = function_exists('sr_admin_has_permission') && sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'edit');
-    if (!sr_community_account_can_write_board($pdo, $board, ['id' => $accountId], $isAdminWriter)) {
+    if (is_array($post)) {
+        if ((int) ($post['board_id'] ?? 0) !== (int) ($board['id'] ?? 0)
+            || (!$isAdminWriter && !sr_community_account_can_edit_post($post, ['id' => $accountId]))
+        ) {
+            throw new RuntimeException('게시글 편집 권한을 확인할 수 없습니다.');
+        }
+    } elseif (!sr_community_account_can_write_board($pdo, $board, ['id' => $accountId], $isAdminWriter)) {
         throw new RuntimeException('게시글 작성 권한을 확인할 수 없습니다.');
     }
 
@@ -184,7 +195,7 @@ function sr_community_body_file_ref_from_url(string $url): ?array
     return $postId > 0 ? ['type' => 'post', 'post_id' => $postId, 'file' => $fileName] : null;
 }
 
-function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, int $accountId): string
+function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, int $accountId, bool $cleanupUnreferenced = true): string
 {
     unset($accountId);
     if ($postId < 1 || $html === '') {
@@ -222,8 +233,42 @@ function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, i
     if ($replacements !== []) {
         $html = strtr($html, $replacements);
     }
-    sr_community_cleanup_unreferenced_body_files($pdo, $postId, $html);
+    if ($cleanupUnreferenced) {
+        sr_community_cleanup_unreferenced_body_files($pdo, $postId, $html);
+    }
     return $html;
+}
+
+function sr_community_clone_body_files(PDO $pdo, int $sourcePostId, int $targetPostId, string $html): string
+{
+    if ($sourcePostId < 1 || $targetPostId < 1 || $sourcePostId === $targetPostId || $html === '') {
+        return $html;
+    }
+
+    $replacements = [];
+    foreach (sr_community_body_file_refs_from_html($html) as $ref) {
+        if ((string) ($ref['type'] ?? '') !== 'post' || (int) ($ref['post_id'] ?? 0) !== $sourcePostId) {
+            continue;
+        }
+        $fileName = (string) ($ref['file'] ?? '');
+        $sourceKey = sr_community_body_file_post_key($sourcePostId, $fileName);
+        $targetKey = sr_community_body_file_post_key($targetPostId, $fileName);
+        if ($sourceKey === '' || $targetKey === '') {
+            continue;
+        }
+        try {
+            sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
+        } catch (Throwable $exception) {
+            sr_community_record_storage_cleanup_failure($pdo, 'body_file_clone', $targetPostId, 'local', $sourceKey, $exception->getMessage());
+            throw new RuntimeException('게시글 본문 이미지 복사를 완료할 수 없습니다.');
+        }
+        $oldUrl = sr_community_body_file_post_proxy_url($sourcePostId, $fileName);
+        $newUrl = sr_community_body_file_post_proxy_url($targetPostId, $fileName);
+        $replacements[$oldUrl] = $newUrl;
+        $replacements[sr_e($oldUrl)] = sr_e($newUrl);
+    }
+
+    return $replacements === [] ? $html : strtr($html, $replacements);
 }
 
 function sr_community_cleanup_unreferenced_body_files(PDO $pdo, int $postId, string $html): void

@@ -1453,6 +1453,9 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     }
 
     $attachmentFiles = sr_community_board_attachment_storage_refs($pdo, $boardId);
+    $stmt = $pdo->prepare('SELECT id FROM sr_community_posts WHERE board_id = :board_id');
+    $stmt->execute(['board_id' => $boardId]);
+    $bodyFilePostIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     $pdo->beginTransaction();
     try {
         $deletedSettingSources = sr_community_optional_count($pdo, 'sr_community_board_setting_sources', 'board_id = :board_id', ['board_id' => $boardId]);
@@ -1525,6 +1528,7 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
             sr_community_record_storage_cleanup_failure($pdo, 'board_delete_attachment', $boardId, $driver, $key, '게시판 삭제 후 첨부 파일 저장소 정리에 실패했습니다.');
         }
     }
+    $deletedBodyFiles = sr_community_cleanup_body_files_for_deleted_posts($pdo, $bodyFilePostIds);
 
     $check['deleted_settings'] = $deletedSettings;
     $check['deleted_setting_sources'] = $deletedSettingSources;
@@ -1533,6 +1537,7 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     $check['deleted_comments'] = $deletedComments;
     $check['deleted_attachments'] = $deletedAttachments;
     $check['deleted_attachment_files'] = count($attachmentFiles) - $failedAttachmentFiles;
+    $check['deleted_body_files'] = $deletedBodyFiles;
     $check['failed_attachment_files'] = $failedAttachmentFiles;
     $check['failed_attachment_file_refs'] = $failedAttachmentFileRefs;
     $check['deleted_series'] = $deletedSeries;

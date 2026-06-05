@@ -183,8 +183,13 @@ function sr_popup_layer_finalize_body_files(int $popupLayerId, string $html): st
         if ($sourceKey === '' || $targetKey === '') {
             continue;
         }
-        sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
-        sr_storage_delete('local', $sourceKey);
+        try {
+            sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
+            sr_storage_delete('local', $sourceKey);
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'popup_layer_body_file_finalize_failed');
+            throw new RuntimeException('팝업레이어 본문 이미지 저장을 완료할 수 없습니다.');
+        }
         $oldUrl = sr_popup_layer_body_file_tmp_proxy_url($token, $fileName);
         $newUrl = sr_popup_layer_body_file_layer_proxy_url($popupLayerId, $fileName);
         $replacements[$oldUrl] = $newUrl;
@@ -249,8 +254,8 @@ function sr_popup_layer_cleanup_unreferenced_body_files(int $popupLayerId, strin
             continue;
         }
         $key = sr_popup_layer_body_file_layer_key($popupLayerId, $entry);
-        if ($key !== '') {
-            sr_storage_delete('local', $key);
+        if ($key !== '' && !sr_storage_delete('local', $key)) {
+            sr_log_exception(new RuntimeException('팝업레이어 본문에서 제거된 이미지 저장소 정리에 실패했습니다: ' . $key), 'popup_layer_body_file_cleanup_failed');
         }
     }
 }
@@ -270,6 +275,8 @@ function sr_popup_layer_cleanup_body_files_for_deleted_layers(array $popupLayerI
             $key = sr_popup_layer_body_file_layer_key($popupLayerId, $entry);
             if ($key !== '' && sr_storage_delete('local', $key)) {
                 $deleted++;
+            } elseif ($key !== '') {
+                sr_log_exception(new RuntimeException('팝업레이어 삭제 후 본문 이미지 저장소 정리에 실패했습니다: ' . $key), 'popup_layer_body_file_delete_failed');
             }
         }
         @rmdir($directory);
