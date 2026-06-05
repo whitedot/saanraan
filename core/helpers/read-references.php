@@ -285,6 +285,12 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         $status = 'unknown';
         $errors[] = 'status 값이 올바르지 않습니다.';
     }
+    if (array_key_exists('status', $rawRow)) {
+        $rawStatus = sr_read_reference_string_value($rawRow['status']);
+        if ($rawStatus === null || !in_array($rawStatus, sr_read_reference_statuses(), true)) {
+            $errors[] = 'status 값이 올바르지 않습니다.';
+        }
+    }
 
     if ($adminUrl !== '' && !sr_read_reference_admin_url_is_safe($adminUrl)) {
         $adminUrl = '';

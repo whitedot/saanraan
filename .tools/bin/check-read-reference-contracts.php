@@ -272,6 +272,27 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         sr_read_reference_check_error('read reference normalize row target sample rejected valid row');
     }
 
+    $validRawStatus = $baseRow;
+    $validRawStatus['status'] = 'stale';
+    $validRawStatusRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $validRawStatus, ['status' => 'ok'], '/admin/sample');
+    if (!is_array($validRawStatusRow['row'] ?? null) || ($validRawStatusRow['row']['status'] ?? '') !== 'ok' || ($validRawStatusRow['errors'] ?? []) !== []) {
+        sr_read_reference_check_error('read reference normalize row target sample rejected valid raw status');
+    }
+
+    $invalidRawStatus = $baseRow;
+    $invalidRawStatus['status'] = 'archived';
+    $invalidRawStatusRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidRawStatus, ['status' => 'ok'], '/admin/sample');
+    if (is_array($invalidRawStatusRow['row'] ?? null) || !in_array('status 값이 올바르지 않습니다.', $invalidRawStatusRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted invalid raw status');
+    }
+
+    $nullRawStatus = $baseRow;
+    $nullRawStatus['status'] = null;
+    $nullRawStatusRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $nullRawStatus, ['status' => 'ok'], '/admin/sample');
+    if (is_array($nullRawStatusRow['row'] ?? null) || !in_array('status 값이 올바르지 않습니다.', $nullRawStatusRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null raw status');
+    }
+
     $validRawAdminUrl = $baseRow;
     $validRawAdminUrl['admin_url'] = '/admin/sample';
     $validRawAdminUrlRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $validRawAdminUrl, ['status' => 'ok'], '/admin/sample');
