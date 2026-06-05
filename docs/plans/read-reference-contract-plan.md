@@ -164,7 +164,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 현재 마일스톤 13에서도 `coupon` 모듈은 자체 `coupon-references.php`를 제공한다. 이 파일은 `sr_coupon_issues`, `sr_coupon_redemptions`를 표준 참조 row로 만들고, 필요하면 현재 쿠폰 정의의 도메인 target 정보를 row `metadata.domain_target`에 붙인다.
 
-`coupon-targets.php`는 그대로 유지한다. 가능하면 기존 `coupon-targets.php`에 `health_function`과 `admin_url_function` 같은 읽기 전용 항목을 선택 확장해 target 상태 판정에 재사용한다. `content`와 `community`는 현재 구현 기준으로 `coupon-references.php`를 제공하지 않고, `coupon-targets.php` 확장을 통해 자기 도메인 target 존재 여부, 상태, 관리자 URL만 알려준다. 향후 쿠폰 정의 ID를 실제로 자기 정책에 저장하는 모듈이 생기면 그 모듈은 별도로 `coupon-references.php`를 제공한다. 새 조회 흐름은 쿠폰 정의 비활성화, 삭제, 사용 기간 변경, 사용처 변경 전 발급/사용 이력과 도메인 target 영향 조회, POST 재검증을 맡는다.
+`coupon-targets.php`는 그대로 유지한다. 가능하면 기존 `coupon-targets.php`에 `health_function`과 `admin_url_function` 같은 읽기 전용 항목을 선택 확장해 target 상태 판정에 재사용한다. `content`와 `community`는 현재 구현 기준으로 `coupon-references.php`를 제공하지 않고, `coupon-targets.php` 확장을 통해 자기 도메인 target 존재 여부, 상태, 관리자 URL만 알려준다. 향후 쿠폰 정의 ID를 실제로 자기 정책에 저장하는 모듈이 생기면 그 모듈은 별도로 `coupon-references.php`를 제공한다. 현재 관리자 화면의 쿠폰 정의 변경 표면은 생성, 지급, 상태 전환이며 삭제, 사용 기간 변경, 사용처 변경 액션은 아직 제공하지 않는다. 따라서 현재 POST 재검증은 비활성화 상태 전환에 적용하고, 이후 삭제/기간/사용처 변경 액션을 추가하면 같은 계약 조회를 저장 전 재검증으로 붙인다.
 
 쿠폰 모듈은 콘텐츠, 커뮤니티, 이후 커머스 같은 도메인 target을 직접 update/delete하거나 쿠폰 정의 target을 자동 치환하지 않는다.
 
@@ -212,7 +212,7 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 - `community`: 모듈 설정 `message_write_group_keys`
 - `member`: 회원 그룹 자동 규칙의 대상 그룹과 제외 그룹
 
-회원 그룹 비활성화, 삭제, key 변경 전에는 화면 경고와 서버 POST 재검증을 모두 수행한다. `member` 모듈은 소비 모듈 정책을 update/delete/자동 치환하지 않고 소비 모듈 관리자 URL로 이동시키는 흐름만 제공한다.
+회원 그룹 비활성화 전에는 화면 경고와 서버 POST 재검증을 모두 수행한다. 현재 관리자 화면은 회원 그룹 삭제나 기존 그룹 key 변경을 제공하지 않으며, 기존 그룹의 key는 편집 폼에서 표시 전용이다. 이후 삭제나 key 변경 액션을 추가하면 같은 계약 조회를 저장 전 재검증으로 붙인다. `member` 모듈은 소비 모듈 정책을 update/delete/자동 치환하지 않고 소비 모듈 관리자 URL로 이동시키는 흐름만 제공한다.
 
 ### 사이트 설정
 
@@ -288,10 +288,10 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 구현 후 수동 또는 HTTP 스모크에 다음 항목을 포함한다.
 
-- 쿠폰 정의를 비활성화/삭제/기간 변경/사용처 변경할 때 발급/사용 이력과 도메인 target 영향 경고가 표시되고 POST에서 최신 참조가 재검증되는지 확인
+- 쿠폰 정의를 비활성화할 때 발급/사용 이력과 도메인 target 영향 경고가 표시되고 POST에서 최신 참조가 재검증되는지 확인. 삭제/기간 변경/사용처 변경은 현재 관리자 화면에 없으므로 해당 액션을 추가할 때 같은 기준을 적용한다.
 - 콘텐츠와 커뮤니티가 직접 선택한 배너를 배너 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
 - 콘텐츠와 커뮤니티가 직접 선택한 팝업레이어를 팝업레이어 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
-- 회원 그룹을 게시판 권한, 쪽지 권한, 자산 정책, 출금/환불 신청 대상에 사용한 뒤 그룹 비활성화/삭제/key 변경 전 경고가 표시되는지 확인
+- 회원 그룹을 게시판 권한, 쪽지 권한, 자산 정책, 출금/환불 신청 대상에 사용한 뒤 그룹 비활성화 전 경고가 표시되는지 확인. 삭제/key 변경은 현재 관리자 화면에 없으므로 해당 액션을 추가할 때 같은 기준을 적용한다.
 - 사이트명을 SEO title suffix, SEO 기본 설명, 로고 alt text에 직접 포함한 뒤 사이트명 변경 화면에서 참조 현황과 관리자 이동 링크가 표시되는지 확인
 - 소비 모듈을 비활성화하면 새 읽기 참조 계약 row로 표시하지 않고, 잔여 데이터 정리는 별도 운영 점검 범위로 남는지 확인
 - 잘못된 `admin_url`을 반환하는 계약 항목은 링크를 출력하지 않고 전체 화면을 500으로 만들지 않는지 확인
