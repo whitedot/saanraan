@@ -94,6 +94,49 @@ function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
     return $comments;
 }
 
+function sr_content_recent_comments(PDO $pdo, int $limit = 8): array
+{
+    if (!sr_content_comments_table_exists($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(50, $limit));
+    $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
+    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname AS author_nickname,' : "'' AS author_nickname,";
+    $snapshotSelect = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? 'c.author_public_name_snapshot,' : "'' AS author_public_name_snapshot,";
+    $stmt = $pdo->prepare(
+        "SELECT c.id, c.content_id, c.author_account_id, c.body_text, c.created_at, c.updated_at,
+                " . $snapshotSelect . "
+                p.slug AS content_slug, p.title AS content_title,
+                a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
+         FROM sr_content_comments c
+         INNER JOIN sr_content_items p ON p.id = c.content_id AND p.status = 'published'
+         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+         " . $join . "
+         WHERE c.status = 'published'
+         ORDER BY c.created_at DESC, c.id DESC
+         LIMIT :limit_value"
+    );
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $settings = sr_member_settings($pdo);
+    $comments = [];
+    foreach ($stmt->fetchAll() as $comment) {
+        $snapshot = trim((string) ($comment['author_public_name_snapshot'] ?? ''));
+        $comment['author_public_name'] = !in_array((string) ($comment['author_account_status'] ?? ''), ['withdrawn', 'anonymized'], true) && $snapshot !== ''
+            ? $snapshot
+            : sr_member_public_name([
+            'display_name' => (string) ($comment['author_display_name'] ?? ''),
+            'nickname' => (string) ($comment['author_nickname'] ?? ''),
+            'status' => (string) ($comment['author_account_status'] ?? ''),
+        ], $settings, '회원');
+        $comments[] = $comment;
+    }
+
+    return $comments;
+}
+
 function sr_content_comment_input_values(): array
 {
     return [

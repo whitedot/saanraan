@@ -141,6 +141,11 @@ function sr_content_default_layout_key(PDO $pdo, ?array $site = null): string
 
 function sr_content_public_layout_context(array $settings, array $context = []): array
 {
+    $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
+    if ($layoutKey !== '') {
+        $context['layout_key'] = $layoutKey;
+    }
+
     $siteMenus = [
         'primary' => sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')),
         'secondary' => sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')),

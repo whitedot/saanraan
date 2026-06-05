@@ -530,6 +530,8 @@ function sr_icon_bootstrap_script(): string
 function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null): string
 {
     $tags = [
+        '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
+        '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
         sr_icon_stylesheet_tags(),
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/tokens.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/icons.css')) . '">',

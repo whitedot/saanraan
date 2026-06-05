@@ -60,7 +60,7 @@
 
 .public-site-brand-text {
     color: #242424;
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--font-body);
     font-size: 2rem;
     font-weight: 700;
     line-height: 1;

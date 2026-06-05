@@ -10,7 +10,7 @@
 - `modules/admin/assets/admin.css`: 관리자 shell, 사이드바, 상단바, 관리자 콘텐츠 폭, 목록/폼 배치 같은 admin 모듈의 실제 화면 구조를 둔다. 공용 UI 원형이나 모듈 도메인 class를 이 파일에 다시 넣지 않는다.
 - `modules/{module_key}/assets/*.css`: 모듈 관리자 본문에서만 쓰는 도메인 고유 스타일을 둔다. 모듈은 `module.php`의 `admin.stylesheets`에 자기 `assets/` 아래 CSS만 선언하고, admin shell은 활성 모듈의 선언을 검증해 공통 관리자 CSS 뒤에 출력한다.
 
-공개 화면 런타임은 `assets/tokens.css`, `assets/icons.css`, `assets/common.css`, `assets/saanraan.css`, `assets/public-ui.css`, 활성 모듈의 `public.stylesheets`, layout context의 `stylesheets` 순서로 호출한다. `assets/icons.css`가 공용 아이콘 폰트를 맡고, `assets/common.css`가 공개 런타임 원형을 맡고, `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡으며, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. 일반 공개 런타임과 `/ui-kit` 공개 UI-KIT 모두 관리자 런타임 CSS인 `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
+공개 화면 런타임은 `Pretendard`, Google Material Symbols CDN, `assets/tokens.css`, `assets/icons.css`, `assets/common.css`, `assets/saanraan.css`, `assets/public-ui.css`, 활성 모듈의 `public.stylesheets`, layout context의 `stylesheets` 순서로 호출한다. `assets/icons.css`가 공용 아이콘 폰트를 맡고, `assets/common.css`가 공개 런타임 원형을 맡고, `assets/saanraan.css`가 공개 화면의 `--sr-*` 토큰과 기본 문서 스타일을 맡으며, `assets/public-ui.css`는 공개/회원 화면의 반복 UI 조합을 맡는다. 일반 공개 런타임과 `/ui-kit` 공개 UI-KIT 모두 관리자 런타임 CSS인 `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css`를 직접 호출하지 않는다.
 
 관리자/공개 런타임 CSS 호출은 PHP helper가 실제 파일의 `filemtime()` 값을 `?v=` query string으로 붙여 캐시를 갱신한다.
 

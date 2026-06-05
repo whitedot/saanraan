@@ -15,117 +15,118 @@ $seo = [
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 $contentPublisherName = trim((string) (($site ?? [])['name'] ?? ($site ?? [])['site_name'] ?? 'Saanraan'));
 $contentPublisherName = $contentPublisherName !== '' ? $contentPublisherName : 'Saanraan';
+$contentHomeContents = isset($contentHomeContents) && is_array($contentHomeContents) ? $contentHomeContents : [];
+$contentHomeGroups = isset($contentHomeGroups) && is_array($contentHomeGroups) ? $contentHomeGroups : [];
+$contentHomeComments = isset($contentHomeComments) && is_array($contentHomeComments) ? $contentHomeComments : [];
+$contentHomeFeatured = $contentHomeContents[0] ?? null;
+$contentHomeLatestList = array_slice($contentHomeContents, is_array($contentHomeFeatured) ? 1 : 0, 8);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => (string) ($contentHomeLayoutKey ?? ''),
 ]));
 ?>
 
-<main class="content-home">
-    <div class="content-home-shell">
-        <section class="content-home-feed" aria-label="<?php echo sr_e('최신 콘텐츠'); ?>">
-            <nav class="content-group-tabs" aria-label="<?php echo sr_e('콘텐츠 보기'); ?>">
-                <span aria-current="page"><?php echo sr_e('For you'); ?></span>
-                <span><?php echo sr_e('Featured'); ?></span>
-            </nav>
+<main class="content-home content-home-magazine">
+    <div class="content-home-magazine-shell">
+        <?php if ($contentHomeGroups !== []) { ?>
+            <section class="content-home-topline" aria-label="<?php echo sr_e('콘텐츠 그룹'); ?>">
+                <div class="content-home-topline-heading">
+                    <p><?php echo sr_e('Latest'); ?></p>
+                    <h1><?php echo sr_e('NEUIGKEITEN'); ?></h1>
+                </div>
+                <div class="content-home-group-grid">
+                    <?php foreach (array_slice($contentHomeGroups, 0, 4) as $contentHomeGroup) { ?>
+                        <?php $contentHomeGroupKey = (string) ($contentHomeGroup['group_key'] ?? ''); ?>
+                        <?php if (!sr_content_group_key_is_valid($contentHomeGroupKey)) { ?>
+                            <?php continue; ?>
+                        <?php } ?>
+                        <article class="content-home-group-card">
+                            <p>
+                                <span><?php echo sr_e((string) ($contentHomeGroup['title'] ?? $contentHomeGroupKey)); ?></span>
+                                <span><?php echo sr_e('View group'); ?></span>
+                            </p>
+                            <h2><a href="<?php echo sr_e(sr_url(sr_content_group_path($contentHomeGroupKey))); ?>"><?php echo sr_e((string) ($contentHomeGroup['description'] ?? '') !== '' ? (string) $contentHomeGroup['description'] : (string) ($contentHomeGroup['title'] ?? $contentHomeGroupKey)); ?></a></h2>
+                        </article>
+                    <?php } ?>
+                </div>
+            </section>
+        <?php } ?>
 
-            <div class="content-group-list">
-                <?php if (($contentHomeContents ?? []) === []) { ?>
-                    <p class="content-group-empty">공개된 콘텐츠가 없습니다.</p>
+        <section class="content-home-feature" aria-label="<?php echo sr_e('최신 콘텐츠'); ?>">
+            <div class="content-home-feature-title">
+                <p><?php echo sr_e('NEWS AUS'); ?></p>
+                <p><?php echo sr_e('UNSER'); ?></p>
+                <p><?php echo sr_e('INDUSTRY'); ?></p>
+            </div>
+            <?php if (is_array($contentHomeFeatured)) { ?>
+                <?php $contentHomeFeaturedSlug = (string) ($contentHomeFeatured['slug'] ?? ''); ?>
+                <article class="content-home-feature-story">
+                    <a class="content-home-feature-media" href="<?php echo sr_e(sr_url(sr_content_path($contentHomeFeaturedSlug))); ?>" aria-label="<?php echo sr_e((string) ($contentHomeFeatured['title'] ?? $contentHomeFeaturedSlug)); ?>">
+                        <span></span>
+                    </a>
+                    <p class="content-home-eyebrow">
+                        <span><?php echo sr_e((string) ($contentHomeFeatured['content_group_title'] ?? '') !== '' ? (string) $contentHomeFeatured['content_group_title'] : $contentPublisherName); ?></span>
+                        <span><?php echo sr_e((string) ($contentHomeFeatured['published_at'] ?? '') !== '' ? substr((string) $contentHomeFeatured['published_at'], 0, 10) : substr((string) ($contentHomeFeatured['updated_at'] ?? ''), 0, 10)); ?></span>
+                    </p>
+                    <h2><a href="<?php echo sr_e(sr_url(sr_content_path($contentHomeFeaturedSlug))); ?>"><?php echo sr_e((string) ($contentHomeFeatured['title'] ?? $contentHomeFeaturedSlug)); ?></a></h2>
+                    <?php if ((string) ($contentHomeFeatured['summary'] ?? '') !== '') { ?>
+                        <p class="content-home-feature-summary"><?php echo sr_e((string) $contentHomeFeatured['summary']); ?></p>
+                    <?php } ?>
+                </article>
+            <?php } else { ?>
+                <article class="content-home-feature-story content-home-feature-empty">
+                    <h2><?php echo sr_e('공개된 콘텐츠가 없습니다.'); ?></h2>
+                </article>
+            <?php } ?>
+        </section>
+
+        <section class="content-home-lower-grid" aria-label="<?php echo sr_e('콘텐츠 최신 흐름'); ?>">
+            <aside class="content-home-comments-panel">
+                <h2><?php echo sr_e('Latest comments'); ?></h2>
+                <?php if ($contentHomeComments === []) { ?>
+                    <p class="content-home-empty"><?php echo sr_e('아직 등록된 댓글이 없습니다.'); ?></p>
                 <?php } else { ?>
-                    <?php foreach ($contentHomeContents as $contentHomeItem) { ?>
+                    <?php foreach (array_slice($contentHomeComments, 0, 4) as $contentHomeComment) { ?>
+                        <?php $commentSlug = (string) ($contentHomeComment['content_slug'] ?? ''); ?>
+                        <article class="content-home-comment">
+                            <p><?php echo sr_e((string) ($contentHomeComment['author_public_name'] ?? '회원')); ?></p>
+                            <a href="<?php echo sr_e(sr_url(sr_content_path($commentSlug)) . '#content-comments'); ?>"><?php echo sr_e((string) ($contentHomeComment['body_text'] ?? '')); ?></a>
+                        </article>
+                    <?php } ?>
+                <?php } ?>
+            </aside>
+
+            <section class="content-home-latest-panel">
+                <h2><?php echo sr_e('Latest stories'); ?></h2>
+                <?php if ($contentHomeLatestList === []) { ?>
+                    <p class="content-home-empty"><?php echo sr_e('더 표시할 콘텐츠가 없습니다.'); ?></p>
+                <?php } else { ?>
+                    <?php foreach ($contentHomeLatestList as $contentHomeItem) { ?>
                         <?php $contentHomeSlug = (string) ($contentHomeItem['slug'] ?? ''); ?>
                         <?php if (!sr_content_slug_is_valid($contentHomeSlug)) { ?>
                             <?php continue; ?>
                         <?php } ?>
-                        <?php
-                        $contentHomeDateText = (string) ($contentHomeItem['published_at'] ?? '') !== ''
-                            ? substr((string) $contentHomeItem['published_at'], 0, 10)
-                            : substr((string) ($contentHomeItem['updated_at'] ?? ''), 0, 10);
-                        $contentHomeGroupTitle = (string) ($contentHomeItem['content_group_title'] ?? '');
-                        $contentHomeThumbText = '';
-                        ?>
-                        <article class="content-group-item">
-                            <div class="content-group-item-main">
-                                <p class="content-group-item-meta">
-                                    <span><?php echo sr_e($contentHomeGroupTitle !== '' ? $contentHomeGroupTitle : $contentPublisherName); ?></span>
-                                    <?php if ($contentHomeDateText !== '') { ?>
-                                        <span><?php echo sr_e($contentHomeDateText); ?></span>
-                                    <?php } ?>
-                                </p>
-                                <h2><a href="<?php echo sr_e(sr_url(sr_content_path($contentHomeSlug))); ?>"><?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?></a></h2>
-                                <?php if ((string) ($contentHomeItem['summary'] ?? '') !== '') { ?>
-                                    <p class="content-group-item-summary"><?php echo sr_e((string) $contentHomeItem['summary']); ?></p>
-                                <?php } ?>
-                                <div class="content-group-item-actions" aria-label="<?php echo sr_e('콘텐츠 반응'); ?>">
-                                    <span aria-hidden="true">✦</span>
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>waving_hand</span>
-                                    <span><?php echo sr_e('17.2K'); ?></span>
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>mode_comment</span>
-                                    <span><?php echo sr_e('800'); ?></span>
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>repeat</span>
-                                    <span><?php echo sr_e('126'); ?></span>
-                                    <span class="content-group-item-action-spacer"></span>
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chat_bubble</span>
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>bookmark_add</span>
-                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>more_horiz</span>
-                                </div>
-                            </div>
-                            <a class="content-group-item-thumb" href="<?php echo sr_e(sr_url(sr_content_path($contentHomeSlug))); ?>" aria-label="<?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>">
-                                <span><?php echo sr_e($contentHomeThumbText); ?></span>
-                            </a>
+                        <article class="content-home-latest-item">
+                            <p class="content-home-eyebrow">
+                                <span><?php echo sr_e((string) ($contentHomeItem['content_group_title'] ?? '') !== '' ? (string) $contentHomeItem['content_group_title'] : $contentPublisherName); ?></span>
+                                <span><?php echo sr_e((string) ($contentHomeItem['published_at'] ?? '') !== '' ? substr((string) $contentHomeItem['published_at'], 0, 10) : substr((string) ($contentHomeItem['updated_at'] ?? ''), 0, 10)); ?></span>
+                            </p>
+                            <h3><a href="<?php echo sr_e(sr_url(sr_content_path($contentHomeSlug))); ?>"><?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?></a></h3>
+                            <?php if ((string) ($contentHomeItem['summary'] ?? '') !== '') { ?>
+                                <p><?php echo sr_e((string) $contentHomeItem['summary']); ?></p>
+                            <?php } ?>
                         </article>
                     <?php } ?>
                 <?php } ?>
-            </div>
+            </section>
+
+            <aside class="content-home-notes-panel">
+                <h2><?php echo sr_e('Briefing'); ?></h2>
+                <article>
+                    <p><?php echo sr_e('We collect signals from design, technology, product work, and the small operational decisions that shape better digital services.'); ?></p>
+                    <p><?php echo sr_e('Expect sharp notes, practical patterns, and a slower look at what changed this week.'); ?></p>
+                </article>
+            </aside>
         </section>
-
-        <aside class="content-home-aside" aria-label="<?php echo sr_e('콘텐츠 탐색'); ?>">
-            <section>
-                <h2><?php echo sr_e('Topics'); ?></h2>
-                <?php if (($contentHomeGroups ?? []) === []) { ?>
-                    <p class="content-group-empty">사용 중인 콘텐츠 그룹이 없습니다.</p>
-                <?php } else { ?>
-                    <div class="content-home-topic-list">
-                        <?php foreach ($contentHomeGroups as $contentHomeGroup) { ?>
-                            <?php $contentHomeGroupKey = (string) ($contentHomeGroup['group_key'] ?? ''); ?>
-                            <?php if (!sr_content_group_key_is_valid($contentHomeGroupKey)) { ?>
-                                <?php continue; ?>
-                            <?php } ?>
-                            <a href="<?php echo sr_e(sr_url(sr_content_group_path($contentHomeGroupKey))); ?>"><?php echo sr_e((string) ($contentHomeGroup['title'] ?? $contentHomeGroupKey)); ?></a>
-                        <?php } ?>
-                    </div>
-                <?php } ?>
-            </section>
-
-            <section>
-                <h2><?php echo sr_e('Staff Picks'); ?></h2>
-                <?php foreach (array_slice($contentHomeContents ?? [], 0, 3) as $pickedContent) { ?>
-                    <?php $pickedSlug = (string) ($pickedContent['slug'] ?? ''); ?>
-                    <?php if (!sr_content_slug_is_valid($pickedSlug)) { ?>
-                        <?php continue; ?>
-                    <?php } ?>
-                    <article class="content-group-pick">
-                        <p><?php echo sr_e('In ' . ((string) ($pickedContent['content_group_title'] ?? '') !== '' ? (string) $pickedContent['content_group_title'] : $contentPublisherName)); ?></p>
-                        <h3><a href="<?php echo sr_e(sr_url(sr_content_path($pickedSlug))); ?>"><?php echo sr_e((string) ($pickedContent['title'] ?? $pickedSlug)); ?></a></h3>
-                    </article>
-                <?php } ?>
-            </section>
-
-            <section>
-                <h2><?php echo sr_e('Who to follow'); ?></h2>
-                <?php foreach (array_slice($contentHomeContents ?? [], 0, 3) as $followContent) { ?>
-                    <?php $followTitle = (string) ($followContent['title'] ?? $contentPublisherName); ?>
-                    <article class="content-home-follow">
-                        <span><?php echo sr_e(function_exists('mb_substr') ? mb_substr($followTitle, 0, 1) : substr($followTitle, 0, 1)); ?></span>
-                        <div>
-                            <h3><?php echo sr_e($followTitle); ?></h3>
-                            <p><?php echo sr_e((string) ($followContent['summary'] ?? '')); ?></p>
-                        </div>
-                        <a href="<?php echo sr_e(sr_url('/content')); ?>"><?php echo sr_e('Follow'); ?></a>
-                    </article>
-                <?php } ?>
-            </section>
-        </aside>
     </div>
 </main>
 <?php sr_public_layout_end(); ?>
