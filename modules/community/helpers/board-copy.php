@@ -44,6 +44,7 @@ function sr_community_board_copy_counts(PDO $pdo, int $boardId): array
     $counts = [
         'posts' => 0,
         'comments' => 0,
+        'legacy_link_card_tokens' => 0,
         'attachments' => 0,
         'bytes' => 0,
         'unsupported_storage' => false,
@@ -67,6 +68,18 @@ function sr_community_board_copy_counts(PDO $pdo, int $boardId): array
     );
     $stmt->execute(['board_id' => $boardId]);
     $counts['comments'] = (int) $stmt->fetchColumn();
+
+    $stmt = $pdo->prepare(
+        'SELECT body_text
+         FROM sr_community_posts
+         WHERE board_id = :board_id'
+    );
+    $stmt->execute(['board_id' => $boardId]);
+    foreach ($stmt->fetchAll() as $row) {
+        if (sr_link_card_token_rejection_errors((string) ($row['body_text'] ?? '')) !== []) {
+            $counts['legacy_link_card_tokens']++;
+        }
+    }
 
     $stmt = $pdo->prepare(
         'SELECT a.*
@@ -213,6 +226,9 @@ function sr_community_board_copy_batch_block_errors(array $counts): array
     }
     if (($counts['missing_files'] ?? []) !== []) {
         $errors[] = '원본 첨부파일을 확인할 수 없어 복사를 시작하지 않았습니다.';
+    }
+    if ((int) ($counts['legacy_link_card_tokens'] ?? 0) > 0) {
+        $errors[] = 'legacy 링크 카드 토큰이 남아 있는 게시글이 있어 게시판 복사를 시작하지 않았습니다. 해당 게시글 본문에서 토큰을 제거한 뒤 다시 시도하세요.';
     }
 
     return $errors;

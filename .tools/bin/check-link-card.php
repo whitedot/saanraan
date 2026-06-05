@@ -54,6 +54,22 @@ if (sr_link_card_extract_tokens($fakeWidgetHtml) !== []) {
     sr_link_card_check_error('Rendered or pasted widget HTML must not be treated as a trusted link card reference.');
 }
 
+$contentHelper = file_get_contents($root . '/modules/content/helpers.php');
+if (!is_string($contentHelper) || strpos($contentHelper, 'legacy 링크 카드 토큰이 남아 있는 콘텐츠는 복사할 수 없습니다.') === false) {
+    sr_link_card_check_error('Content copy must not create new content rows from source bodies that still contain legacy link card tokens.');
+}
+
+$communityBoardCopyHelper = file_get_contents($root . '/modules/community/helpers/board-copy.php');
+$communityBoardCopyJobsHelper = file_get_contents($root . '/modules/community/helpers/board-copy-jobs.php');
+if (!is_string($communityBoardCopyHelper)
+    || strpos($communityBoardCopyHelper, "'legacy_link_card_tokens' => 0") === false
+    || strpos($communityBoardCopyHelper, 'legacy 링크 카드 토큰이 남아 있는 게시글이 있어 게시판 복사를 시작하지 않았습니다.') === false
+    || !is_string($communityBoardCopyJobsHelper)
+    || strpos($communityBoardCopyJobsHelper, 'sr_community_board_copy_batch_block_errors($counts)') === false
+) {
+    sr_link_card_check_error('Community board copy and batch copy must block source posts that still contain legacy link card tokens.');
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "link card checks failed:\n");
     foreach ($errors as $error) {

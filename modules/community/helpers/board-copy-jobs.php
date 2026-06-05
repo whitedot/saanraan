@@ -35,12 +35,13 @@ function sr_community_board_copy_job_create(PDO $pdo, int $sourceBoardId, array 
     if ($title === '') {
         $errors[] = '새 게시판 제목을 입력하세요.';
     }
+    $counts = sr_community_board_copy_counts($pdo, $sourceBoardId);
+    $errors = array_merge($errors, sr_community_board_copy_batch_block_errors($counts));
     $errors = array_merge($errors, sr_community_board_copy_series_validate_options($pdo, $sourceBoardId, $values));
     if ($errors !== []) {
         throw new InvalidArgumentException(implode("\n", $errors));
     }
 
-    $counts = sr_community_board_copy_counts($pdo, $sourceBoardId);
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_board_copy_jobs
