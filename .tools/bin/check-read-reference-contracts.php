@@ -256,6 +256,8 @@ function sr_read_reference_check_collect_target_samples(): void
     $invalidSamples = [
         ['banner-references.php', ['target_type' => 'banner', 'target_id' => 0, 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
         ['banner-references.php', ['target_type' => 'banner', 'target_id' => true, 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
+        ['banner-references.php', ['target_type' => 'banner', 'target_id' => ' 1 ', 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
+        ['banner-references.php', ['target_type' => 'banner', 'target_id' => '01', 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
         ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => ''], '읽기 참조 대상 key가 비어 있습니다.'],
         ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => ' vip_member '], '읽기 참조 대상 key가 올바르지 않습니다.'],
         ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1.5, 'target_key' => 'vip_member'], '읽기 참조 대상 ID가 올바르지 않습니다.'],

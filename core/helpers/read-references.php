@@ -395,6 +395,13 @@ function sr_read_reference_target_id_value(mixed $value): ?string
         return (string) $value;
     }
     if (is_string($value)) {
+        if (trim($value) !== $value) {
+            return null;
+        }
+        if ($value !== '0' && preg_match('/\A0[0-9]+\z/', $value) === 1) {
+            return null;
+        }
+
         return $value;
     }
 
