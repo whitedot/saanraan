@@ -530,9 +530,7 @@ function sr_icon_bootstrap_script(): string
 function sr_public_style_profile_paths(string $profile): array
 {
     $profile = strtolower(trim($profile));
-    if (!in_array($profile, ['minimal', 'kit', 'install'], true)) {
-        $profile = 'kit';
-    }
+    $profile = sr_public_style_profile_key($profile);
 
     $paths = [
         '/assets/tokens.css',
@@ -548,6 +546,13 @@ function sr_public_style_profile_paths(string $profile): array
     return $paths;
 }
 
+function sr_public_style_profile_key(string $profile): string
+{
+    $profile = strtolower(trim($profile));
+
+    return in_array($profile, ['minimal', 'kit', 'install'], true) ? $profile : 'kit';
+}
+
 function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null, array $options = []): string
 {
     $tags = [
@@ -556,7 +561,7 @@ function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null, array $opt
         sr_icon_stylesheet_tags(),
     ];
 
-    $profile = is_string($options['style_profile'] ?? null) ? (string) $options['style_profile'] : 'kit';
+    $profile = is_string($options['style_profile'] ?? null) ? sr_public_style_profile_key((string) $options['style_profile']) : 'kit';
     $stylesheetPaths = [];
 
     foreach (sr_public_style_profile_paths($profile) as $stylesheet) {
@@ -638,6 +643,7 @@ function sr_public_layout_options(?PDO $pdo = null): array
             'provider_module_key' => 'core',
             'provider_label' => sr_t('public_layout.common.provider'),
             'supports' => ['site'],
+            'style_profile' => 'kit',
             'views' => [
                 'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
                 'home' => SR_ROOT . '/layouts/public/basic/home.php',
@@ -797,6 +803,11 @@ function sr_public_layout_end(): void
         $layoutKey = sr_public_layout_normalize_key($layoutKey);
     }
     $layoutFile = sr_public_layout_file($layoutKey, $pdo instanceof PDO ? $pdo : null);
+    if (!isset($layoutContext['style_profile'])) {
+        $layoutOptions = sr_public_layout_options($pdo instanceof PDO ? $pdo : null);
+        $layoutProfile = (string) ($layoutOptions[$layoutKey]['style_profile'] ?? 'kit');
+        $layoutContext['style_profile'] = sr_public_style_profile_key($layoutProfile);
+    }
 
     include $layoutFile;
 }

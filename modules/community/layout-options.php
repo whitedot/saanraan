@@ -6,6 +6,7 @@ return [
         'provider_module_key' => 'community',
         'provider_label' => sr_t('community::ui.community.4a285775'),
         'supports' => ['site', 'community.home', 'content.view'],
+        'style_profile' => 'minimal',
         'views' => [
             'layout' => SR_ROOT . '/modules/community/themes/basic/layout.php',
             'community_home' => SR_ROOT . '/modules/community/themes/basic/home.php',

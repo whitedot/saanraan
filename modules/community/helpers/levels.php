@@ -178,10 +178,6 @@ function sr_community_public_layout_context(array $settings, array $context = []
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
-    if (!isset($context['style_profile'])) {
-        $context['style_profile'] = 'minimal';
-    }
-
     $siteMenus = [
         'primary' => sr_community_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')),
         'secondary' => sr_community_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')),

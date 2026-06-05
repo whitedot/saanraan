@@ -14,7 +14,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
     ],
 ]));
 ?>
-    <main>
+    <main class="community-screen">
         <?php echo sr_render_output_slot($pdo, [
             'module_key' => 'community',
             'point_key' => 'community.home',

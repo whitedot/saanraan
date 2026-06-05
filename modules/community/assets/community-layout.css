@@ -161,17 +161,17 @@
     gap: 6px 10px;
 }
 
-.community-layout-body main {
+.community-screen {
     margin: 0 auto;
     max-width: 1080px;
     padding: 40px clamp(1rem, 4vw, 2.5rem);
 }
 
-.community-layout-body main > * + * {
+.community-screen > * + * {
     margin-top: 18px;
 }
 
-.community-layout-body h1 {
+.community-screen h1 {
     color: #242424;
     font-family: Georgia, "Times New Roman", serif;
     font-size: clamp(2rem, 5vw, 3.5rem);
@@ -180,29 +180,29 @@
     line-height: 1.05;
 }
 
-.community-layout-body :is(form, fieldset) {
+.community-screen :is(form, fieldset) {
     display: grid;
     gap: 14px;
 }
 
-.community-layout-body fieldset {
+.community-screen fieldset {
     border: 1px solid #eeeeee;
     border-radius: 8px;
     padding: 16px;
 }
 
-.community-layout-body legend {
+.community-screen legend {
     color: #242424;
     font-weight: 700;
     padding: 0 6px;
 }
 
-.community-layout-body label {
+.community-screen label {
     display: grid;
     gap: 6px;
 }
 
-.community-layout-body :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea, .form-input) {
+.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea, .form-input) {
     border: 1px solid #d8d8d8;
     border-radius: 8px;
     color: #242424;
@@ -211,7 +211,7 @@
     width: 100%;
 }
 
-.community-layout-body :is(button, .btn) {
+.community-screen :is(button, .btn) {
     align-items: center;
     border: 1px solid transparent;
     border-radius: 999px;
@@ -229,40 +229,40 @@
     width: fit-content;
 }
 
-.community-layout-body :is(button[type="submit"], .btn-solid-primary) {
+.community-screen :is(button[type="submit"], .btn-solid-primary) {
     background: #242424;
     color: #ffffff;
 }
 
-.community-layout-body .btn-solid-light {
+.community-screen .btn-solid-light {
     background: #f2f2f2;
     color: #242424;
 }
 
-.community-layout-body :is(button, .btn, input, select, textarea):focus-visible {
+.community-screen :is(button, .btn, input, select, textarea):focus-visible {
     outline: 2px solid #242424;
     outline-offset: 2px;
 }
 
-.community-layout-body table {
+.community-screen table {
     border-collapse: collapse;
     width: 100%;
 }
 
-.community-layout-body th,
-.community-layout-body td {
+.community-screen th,
+.community-screen td {
     border-bottom: 1px solid #eeeeee;
     padding: 12px 10px;
     text-align: left;
     vertical-align: top;
 }
 
-.community-layout-body th {
+.community-screen th {
     color: #242424;
     font-weight: 700;
 }
 
-.sr-link-card-picker {
+.community-screen .sr-link-card-picker {
     border: 1px solid #eeeeee;
     border-radius: 8px;
     display: grid;
@@ -270,14 +270,14 @@
     padding: 14px;
 }
 
-.sr-link-card-picker-controls {
+.community-screen .sr-link-card-picker-controls {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-.sr-link-card-picker-results {
+.community-screen .sr-link-card-picker-results {
     color: #6b6b6b;
     font-size: .875rem;
     line-height: 1.5;
@@ -309,15 +309,15 @@
         display: none;
     }
 
-    .community-layout-body main {
+    .community-screen {
         padding-block: 28px;
     }
 
-    .community-layout-body :is(button, .btn) {
+    .community-screen :is(button, .btn) {
         width: 100%;
     }
 
-    .sr-link-card-picker-controls {
+    .community-screen .sr-link-card-picker-controls {
         align-items: stretch;
     }
 }

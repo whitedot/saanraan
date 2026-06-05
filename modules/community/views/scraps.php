@@ -9,7 +9,7 @@ $seo = [
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings));
 ?>
-    <main>
+    <main class="community-screen">
         <p><a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a></p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
 
