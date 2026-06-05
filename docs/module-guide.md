@@ -879,6 +879,7 @@ return [
 - `editor-options.php`: textarea 강화 에디터 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
 - `logo-positions.php`: 모듈별 로고 출력 위치 후보
+- `notification-events.php`: 계정 이벤트 알림 생성 후보
 
 계약 파일 규칙:
 
@@ -968,6 +969,14 @@ return [
 - 로고매니저는 이 계약을 로고 배치 생성 화면의 출력 위치 선택지로만 사용한다.
 - 실제 출력은 화면 소유 모듈이나 레이아웃이 `sr_logo_manager_render_logo($pdo, $positionKey, ...)`를 명시적으로 호출해야 한다.
 
+`notification-events.php`:
+
+- 배열을 반환한다.
+- 알림 모듈 폴더 기준 `helpers`, `create_function`, `create_account_event_function`을 제공한다.
+- 소비 모듈은 알림 모듈이 활성화되어 있고 계약 파일이 loadable일 때만 helper를 로드한다.
+- 알림 제목, 본문, 링크, 채널, delivery queue 정책은 알림 모듈의 템플릿과 설정이 소유한다.
+- 자산과 쿠폰처럼 템플릿 기반 알림을 쓰는 모듈은 `module_key`, `event_key`, `metadata`만 넘기고, 댓글 멘션처럼 직접 문구를 만드는 모듈도 계약의 생성 함수만 호출하며 알림 저장 테이블을 직접 쓰지 않는다.
+
 `privacy-export.php`:
 
 - 배열 또는 callable을 반환한다.
@@ -1048,6 +1057,7 @@ return [
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
 | `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 출력 위치 후보 |
+| `notification-events.php` | `point`, `reward`, `deposit`, `coupon`, `content`, `community` 모듈 | 거래/쿠폰 상태 변경 성공 뒤, 댓글 멘션/신고 알림 생성 시 | 선택 알림 모듈의 계정 알림 생성 함수 |
 
 현재 번들 모듈 기준 제공/소비 지도:
 
@@ -1058,16 +1068,16 @@ return [
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php` |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php`, `notification-events.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php` | `logo-positions.php` |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `coupon-targets.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
-| `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php` | 없음 |
-| `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
-| `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
-| `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | 선택적 notification helper |
-| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php` | `coupon-targets.php`, 선택적 notification helper |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `member-assets.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper, 선택적 notification helper |
+| `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `notification-events.php` | 없음 |
+| `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | `notification-events.php` |
+| `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | `notification-events.php` |
+| `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | `notification-events.php` |
+| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php` | `coupon-targets.php`, `notification-events.php` |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:
@@ -1238,7 +1248,7 @@ return [
 
 회원이 로그인 상태에서 보유 자산을 정산 요청하는 흐름은 각 자산 모듈이 소유한다. 적립금은 `/account/rewards`에서 출금 신청을 받고 `sr_reward_withdrawal_requests`에 계좌 정보, 금액, 상태, 처리 메모를 남긴다. `/admin/rewards/settings`는 출금 신청 사용 여부와 신청 대상을 저장한다. 출금 신청을 사용하지 않으면 회원 화면 폼과 직접 POST를 막고, 사용할 때는 전체 회원 또는 허용 회원 그룹 중 하나에 속한 회원만 신청할 수 있다. 지정값이 없으면 회원이 출금 신청을 할 수 없다. 예치금은 `/account/deposits`에서 환불 신청을 받고 `sr_deposit_refund_requests`에 같은 형태로 남긴다. `/admin/deposits/settings`는 환불 신청 사용 여부와 신청 대상을 저장한다. 환불 신청을 사용하지 않으면 회원 화면 폼과 직접 POST를 막고, 사용할 때는 전체 회원 또는 허용 회원 그룹 중 하나에 속한 회원만 신청할 수 있다. 지정값이 없으면 회원이 환불 신청을 할 수 없다. 대기 중 신청 금액은 신청 가능액에서 제외하며, 회원은 대기 상태 신청만 직접 취소할 수 있다. 관리자는 `/admin/rewards/withdrawal-requests`, `/admin/deposits/refund-requests`에서 대기 신청을 완료 또는 거부한다. 개별 거부는 별도 모달에서 거부 사유를 입력해 처리한다. 일괄처리는 현재 필터와 검색 조건에 맞는 대기 신청을 최대 100건까지 서버에서 다시 조회해 처리한다. 완료 처리만 각 원장에 `transaction_type=withdraw` 음수 거래를 만들고, 거부/취소는 신청 상태만 바꾼다. 신청 계좌 정보와 처리 이력은 해당 자산 모듈의 `privacy-export.php`에 포함한다.
 
-포인트/적립금/예치금 원장 helper와 쿠폰·이용권 지급/사용/상태 변경/수동 환불 helper는 거래 또는 권리 상태 변경 성공 후 알림 모듈이 활성화되어 있으면 `sr_notification_create_account_event()`를 통해 회원 사이트 알림을 만든다. 포인트 모듈은 `default_expiration_days` 설정이 1 이상이면 `sr_point_create_transaction()`으로 생성되는 새 `grant` 양수 거래에 유효기간을 붙이고, 이후 사용/차감 거래는 만료 예정 지급분부터 `expires_remaining`을 줄이며 `sr_point_expiration_consumptions`에 소비 거래와 원 지급 거래를 연결한다. 포인트 환불 거래는 환불 건마다 `refund_expiration_policy`를 받아 기본값 `original`이면 환불 참조 원거래의 `expires_at`을 우선 사용하고, 참조가 사용/차감 거래이면 소비 매핑에 남은 원 지급 거래의 유효기간을 사용한다. 이전에 같은 원거래를 일부 환불한 경우 그 수량만큼 소비 매핑을 건너뛰고, 여러 유효기간 지급분을 복원해야 하면 유효기간별 `refund` 거래를 나누어 만든다. 포인트/적립금/예치금 원장 환불은 차감된 원거래를 선택한 경우에만 허용하며, 참조 없는 수동 환불과 양수 원거래 환불은 서버에서 거부한다. 원거래의 남은 환불 가능 수량/금액을 넘는 환불도 트랜잭션 안에서 다시 검증해 거부한다. 포인트 환불에서 `reset`이면 환불 시점부터 기본 유효기간을 계산한다. `original`을 선택했지만 참조 원거래나 소비 매핑에 유효기간이 없으면 무기한 복원을 피하기 위해 기본 유효기간이 켜진 경우 환불 시점 기준으로 계산한다. 기한이 지난 지급분은 다음 포인트 거래 전 또는 운영 스크립트 `.tools/bin/expire-points.php` 실행 시 `transaction_type=expire`, `reference_type=point_expiration`, `reference_id=point_transaction:{id}` 거래로 차감한다. 적립금 지급 내역을 되돌릴 때는 환불이 아니라 `transaction_type=reclaim` 음수 거래를 사용한다. 예치금을 회원에게 내보내는 처리는 원장 환불이 아니라 `withdraw` 음수 거래 또는 예치금 환불 신청 완료 흐름을 사용한다. 적립금 운영자 직접 회수는 별도 회수 알림 템플릿을 사용한다. 회수 거래는 양수 원거래를 `reference_type=reclaim`, `reference_id=reward_transaction:{id}`로 참조해야 하며, 같은 원거래의 누적 회수액은 원거래 금액을 넘을 수 없다. 회수는 거래 내역 화면에서 대상 내역을 선택해 처리하고, 회수 거래는 다시 환불하지 않는다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고 자산 처리를 실패시키지 않는다. 이벤트 템플릿은 `sr_notification_event_templates`가 소유하며 기본 채널은 `site`다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다. 회원에게 노출되는 링크는 각 자산의 `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` 화면을 사용한다.
+포인트/적립금/예치금 원장 helper와 쿠폰·이용권 지급/사용/상태 변경/수동 환불 helper는 거래 또는 권리 상태 변경 성공 후 알림 모듈이 활성화되어 있고 `notification-events.php` 계약을 제공하면 계약의 계정 이벤트 생성 함수를 통해 회원 사이트 알림을 만든다. 콘텐츠/커뮤니티 댓글 멘션과 커뮤니티 신고 알림도 같은 계약의 일반 알림 생성 함수만 호출하고 알림 저장 테이블을 직접 쓰지 않는다. 포인트 모듈은 `default_expiration_days` 설정이 1 이상이면 `sr_point_create_transaction()`으로 생성되는 새 `grant` 양수 거래에 유효기간을 붙이고, 이후 사용/차감 거래는 만료 예정 지급분부터 `expires_remaining`을 줄이며 `sr_point_expiration_consumptions`에 소비 거래와 원 지급 거래를 연결한다. 포인트 환불 거래는 환불 건마다 `refund_expiration_policy`를 받아 기본값 `original`이면 환불 참조 원거래의 `expires_at`을 우선 사용하고, 참조가 사용/차감 거래이면 소비 매핑에 남은 원 지급 거래의 유효기간을 사용한다. 이전에 같은 원거래를 일부 환불한 경우 그 수량만큼 소비 매핑을 건너뛰고, 여러 유효기간 지급분을 복원해야 하면 유효기간별 `refund` 거래를 나누어 만든다. 포인트/적립금/예치금 원장 환불은 차감된 원거래를 선택한 경우에만 허용하며, 참조 없는 수동 환불과 양수 원거래 환불은 서버에서 거부한다. 원거래의 남은 환불 가능 수량/금액을 넘는 환불도 트랜잭션 안에서 다시 검증해 거부한다. 포인트 환불에서 `reset`이면 환불 시점부터 기본 유효기간을 계산한다. `original`을 선택했지만 참조 원거래나 소비 매핑에 유효기간이 없으면 무기한 복원을 피하기 위해 기본 유효기간이 켜진 경우 환불 시점 기준으로 계산한다. 기한이 지난 지급분은 다음 포인트 거래 전 또는 운영 스크립트 `.tools/bin/expire-points.php` 실행 시 `transaction_type=expire`, `reference_type=point_expiration`, `reference_id=point_transaction:{id}` 거래로 차감한다. 적립금 지급 내역을 되돌릴 때는 환불이 아니라 `transaction_type=reclaim` 음수 거래를 사용한다. 예치금을 회원에게 내보내는 처리는 원장 환불이 아니라 `withdraw` 음수 거래 또는 예치금 환불 신청 완료 흐름을 사용한다. 적립금 운영자 직접 회수는 별도 회수 알림 템플릿을 사용한다. 회수 거래는 양수 원거래를 `reference_type=reclaim`, `reference_id=reward_transaction:{id}`로 참조해야 하며, 같은 원거래의 누적 회수액은 원거래 금액을 넘을 수 없다. 회수는 거래 내역 화면에서 대상 내역을 선택해 처리하고, 회수 거래는 다시 환불하지 않는다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고 자산 처리를 실패시키지 않는다. 이벤트 템플릿은 `sr_notification_event_templates`가 소유하며 기본 채널은 `site`다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다. 회원에게 노출되는 링크는 각 자산의 `/account/points`, `/account/rewards`, `/account/deposits`, `/account/coupons` 화면을 사용한다.
 
 커뮤니티의 게시판 읽기/쓰기/댓글과 쪽지 발송에서 회원 그룹과 최소 레벨이 함께 설정된 경우 두 조건을 모두 통과해야 허용한다. 회원 그룹만 설정된 조건은 회원 그룹만, 최소 레벨만 설정된 조건은 최소 레벨만 확인한다. 게시판과 게시판 그룹에서 선택한 회원 그룹에게만 권한을 부여하려면 해당 읽기/쓰기/댓글 정책을 그룹으로 선택해야 한다. 회원 그룹이 비어 있으면 회원 그룹 제한을 적용하지 않고, 최소 레벨이 있으면 레벨 조건만 확인한다. 게시판과 게시판 그룹 저장 시 쓰기/댓글 회원 그룹은 읽기 회원 그룹의 하위 집합으로 저장한다. 쓰기/댓글에서 선택하면 읽기에도 포함하고, 읽기에서 제거하면 쓰기/댓글에서도 제거한다. 커뮤니티 활동 점수는 게시글과 댓글을 게시판별로 집계한 뒤 각 게시판의 유효 게시글 점수와 댓글 점수를 곱해서 합산한다. 커뮤니티 레벨 사용, 자동 재계산, 최대 레벨, 전역 게시글/댓글 점수는 `/admin/community/settings`의 레벨 섹션에서 관리하며, 전역 게시글/댓글 점수 입력은 자동 재계산을 사용할 때만 노출한다. 커뮤니티 최대 레벨은 `level_max_value` 모듈 설정으로 1-100 범위에서 관리하며, 값을 늘리면 부족한 `sr_community_levels` 행을 기본 최소 점수로 자동 추가한다. 값을 줄여도 기존 레벨 행은 삭제하지 않고 레벨 판정과 선택지를 새 최대값까지만 사용한다. 최대 레벨 변경은 모달의 영향 안내 확인 단계와 확인 문구 입력 단계, 서버 확인 플래그/문구 검증을 거쳐 저장한다. 커뮤니티 활동으로 레벨이 바뀔 수 있는 게시글/댓글 생성, 삭제, 상태 변경 흐름은 레벨을 먼저 재계산한 뒤 커뮤니티 자동 회원 그룹 규칙을 평가해야 `community.level_at_least` 규칙이 최신 레벨을 기준으로 동작한다. 레벨 설정 페이지는 레벨 미사용 상태에서 환경설정으로 이동해 레벨을 먼저 켜라는 안내를 제공한다. 레벨 최대값이나 최소 점수 변경 후 기존 회원 레벨을 반영하려면 관리자가 재계산을 실행해야 하며, 재계산은 모달의 부하 가능성 확인 단계와 확인 문구 입력 단계, 서버 확인 플래그/문구 검증을 거쳐 활성/대기 회원을 배치로 처리한다. 레벨 자동 재계산을 사용하지 않을 때 관리자는 멤버 관리 목록에서 활성 멤버를 선택한 뒤 상단 일괄 작업으로 레벨을 직접 변경할 수 있으며, 목록의 레벨 열은 현재 레벨 텍스트만 표시한다.
 

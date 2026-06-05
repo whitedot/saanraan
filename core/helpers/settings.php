@@ -578,6 +578,7 @@ function sr_module_known_contract_files(): array
         'editor-options.php',
         'coupon-targets.php',
         'logo-positions.php',
+        'notification-events.php',
     ];
 }
 

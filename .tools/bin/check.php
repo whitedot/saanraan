@@ -163,6 +163,7 @@ function sr_check_module_lifecycle_metadata(): void
         'editor-options.php' => true,
         'coupon-targets.php' => true,
         'logo-positions.php' => true,
+        'notification-events.php' => true,
     ];
 
     foreach ($requiredModules as $moduleKey) {
@@ -315,6 +316,7 @@ function sr_check_module_contract_files(): void
         'editor-options.php',
         'coupon-targets.php',
         'logo-positions.php',
+        'notification-events.php',
     ];
 
     foreach (sr_check_module_dirs() as $moduleDir) {
