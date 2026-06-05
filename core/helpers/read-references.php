@@ -271,7 +271,11 @@ function sr_read_reference_helper_path(string $moduleKey, string $helper): strin
 function sr_read_reference_normalize_row(string $moduleKey, array $entry, array $target, array $rawRow, array $health, string $adminUrl): array
 {
     $errors = [];
-    $status = (string) ($health['status'] ?? ($rawRow['status'] ?? 'unknown'));
+    $status = sr_read_reference_string_value($health['status'] ?? ($rawRow['status'] ?? 'unknown'));
+    if ($status === null) {
+        $status = 'unknown';
+        $errors[] = 'status 값이 올바르지 않습니다.';
+    }
     if (!in_array($status, sr_read_reference_statuses(), true)) {
         $status = 'unknown';
         $errors[] = 'status 값이 올바르지 않습니다.';
@@ -283,26 +287,48 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
     }
 
     $row = [
-        'consumer_module_key' => (string) ($rawRow['consumer_module_key'] ?? $entry['consumer_module_key'] ?? $moduleKey),
-        'reference_type' => (string) ($rawRow['reference_type'] ?? $entry['reference_type'] ?? ''),
-        'reference_id' => (string) ($rawRow['reference_id'] ?? ''),
-        'title' => (string) ($rawRow['title'] ?? ''),
-        'target_type' => (string) ($rawRow['target_type'] ?? $target['target_type'] ?? ''),
-        'target_id' => (string) ($rawRow['target_id'] ?? $target['target_id'] ?? 0),
+        'consumer_module_key' => sr_read_reference_string_value($rawRow['consumer_module_key'] ?? $entry['consumer_module_key'] ?? $moduleKey) ?? '',
+        'reference_type' => sr_read_reference_string_value($rawRow['reference_type'] ?? $entry['reference_type'] ?? '') ?? '',
+        'reference_id' => sr_read_reference_string_value($rawRow['reference_id'] ?? '') ?? '',
+        'title' => sr_read_reference_string_value($rawRow['title'] ?? '') ?? '',
+        'target_type' => sr_read_reference_string_value($rawRow['target_type'] ?? $target['target_type'] ?? '') ?? '',
+        'target_id' => sr_read_reference_string_value($rawRow['target_id'] ?? $target['target_id'] ?? 0) ?? '',
         'status' => $status,
         'admin_url' => $adminUrl,
     ];
 
-    foreach (['target_key', 'policy_status', 'updated_at', 'message', 'metadata'] as $optionalKey) {
+    foreach (['target_key', 'policy_status', 'updated_at', 'message'] as $optionalKey) {
         if (array_key_exists($optionalKey, $rawRow)) {
-            $row[$optionalKey] = $rawRow[$optionalKey];
+            $optionalValue = sr_read_reference_string_value($rawRow[$optionalKey]);
+            if ($optionalValue === null) {
+                $errors[] = $optionalKey . ' 값이 올바르지 않습니다.';
+                continue;
+            }
+            $row[$optionalKey] = $optionalValue;
+        }
+    }
+    if (array_key_exists('metadata', $rawRow)) {
+        if (!is_array($rawRow['metadata'])) {
+            $errors[] = 'metadata 값이 올바르지 않습니다.';
+        } else {
+            $row['metadata'] = $rawRow['metadata'];
         }
     }
     if (isset($health['message'])) {
-        $row['message'] = (string) $health['message'];
+        $message = sr_read_reference_string_value($health['message']);
+        if ($message === null) {
+            $errors[] = 'message 값이 올바르지 않습니다.';
+        } else {
+            $row['message'] = $message;
+        }
     }
     if (isset($health['policy_status'])) {
-        $row['policy_status'] = (string) $health['policy_status'];
+        $policyStatus = sr_read_reference_string_value($health['policy_status']);
+        if ($policyStatus === null) {
+            $errors[] = 'policy_status 값이 올바르지 않습니다.';
+        } else {
+            $row['policy_status'] = $policyStatus;
+        }
     }
 
     foreach (['consumer_module_key', 'reference_type', 'reference_id', 'title', 'target_type', 'target_id', 'admin_url'] as $requiredKey) {
@@ -315,6 +341,18 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         'row' => $errors === [] ? $row : null,
         'errors' => $errors,
     ];
+}
+
+function sr_read_reference_string_value(mixed $value): ?string
+{
+    if (is_string($value)) {
+        return $value;
+    }
+    if (is_int($value) || is_float($value) || is_bool($value)) {
+        return (string) $value;
+    }
+
+    return null;
 }
 
 function sr_read_reference_admin_url_is_safe(string $adminUrl): bool
