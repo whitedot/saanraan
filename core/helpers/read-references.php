@@ -403,7 +403,14 @@ function sr_read_reference_target_id_value(mixed $value): ?string
 
 function sr_read_reference_target_key_value(mixed $value): ?string
 {
-    return is_string($value) ? $value : null;
+    if (!is_string($value)) {
+        return null;
+    }
+    if (trim($value) !== $value) {
+        return null;
+    }
+
+    return $value;
 }
 
 function sr_read_reference_string_value(mixed $value): ?string
