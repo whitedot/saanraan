@@ -273,6 +273,7 @@ $checks = [
             '.public-site-footer',
             '.public-home',
             'background: var(--sr-bg',
+            'margin: 0 auto',
         ],
     ],
     [

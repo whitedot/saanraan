@@ -151,8 +151,8 @@
     border-top: 1px solid var(--sr-border, var(--color-default-300));
     display: grid;
     gap: 12px;
-    margin: 32px auto 0;
-    padding: 20px clamp(1rem, 4vw, 2.5rem);
+    margin: 0 auto;
+    padding: 52px clamp(1rem, 4vw, 2.5rem) 20px;
     width: min(1080px, 100%);
 }
 
