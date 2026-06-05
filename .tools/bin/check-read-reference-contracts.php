@@ -93,6 +93,10 @@ function sr_read_reference_count_function_counts_rows(string $functionName, stri
 
     $body = implode('', array_slice($lines, $reflection->getStartLine() - 1, $reflection->getEndLine() - $reflection->getStartLine() + 1));
     $pattern = '/return\s+count\s*\(\s*' . preg_quote($rowsFunctionName, '/') . '\s*\(\s*\$pdo\s*,\s*\$target\s*,\s*\$context\s*\)\s*\)\s*;/';
+    preg_match_all('/\breturn\b/', $body, $returnMatches);
+    if (count($returnMatches[0]) !== 1) {
+        return false;
+    }
 
     return preg_match($pattern, $body) === 1;
 }
@@ -269,6 +273,15 @@ function sr_read_reference_check_sample_count_comment_only(PDO $pdo, array $targ
     return count([]);
 }
 
+function sr_read_reference_check_sample_count_unreachable_rows(PDO $pdo, array $target, array $context): int
+{
+    if ($context === []) {
+        return count([]);
+    }
+
+    return count(sr_read_reference_check_sample_rows($pdo, $target, $context));
+}
+
 function sr_read_reference_check_count_function_source_samples(): void
 {
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_rows', 'sr_read_reference_check_sample_rows') !== true) {
@@ -276,6 +289,9 @@ function sr_read_reference_check_count_function_source_samples(): void
     }
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_comment_only', 'sr_read_reference_check_sample_rows') !== false) {
         sr_read_reference_check_error('read reference count_function source sample accepted comment-only rows function');
+    }
+    if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_unreachable_rows', 'sr_read_reference_check_sample_rows') !== false) {
+        sr_read_reference_check_error('read reference count_function source sample accepted multiple return count function');
     }
 }
 
