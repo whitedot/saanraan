@@ -2,15 +2,39 @@
 
 ## 목적
 
-GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, #169, #170, #204를 기준으로 계약 정합성과 계획 완성도를 점검하고, 구현 전에 닫아야 할 스펙을 정리한다.
+GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, #169, #170, #204를 현재 구현 상태에 맞춰 다시 평가하고, 남은 구현 범위와 완료 기준을 정리한다.
 
-이 계획은 현재 구현 문서가 아니라 마일스톤 13 구현 지시서다. 실제 계약 파일과 helper가 추가되는 시점에는 `docs/module-guide.md`, `docs/core-decisions.md`, `docs/admin-ui-guide.md`, `docs/security-checklist.md`, `docs/smoke-test.md`, `.tools/bin/check.php`, `core/helpers/settings.php`의 현재 기준 문서를 함께 갱신한다.
+평가 기준일은 2026-06-05이다.
 
-## 결론
+## 현재 구현 평가
 
-마일스톤 13의 방향은 기존 모듈 계약 체계와 맞다. 소유 모듈이 소비 모듈의 정책 테이블을 직접 수정하지 않고, 활성 모듈의 계약 파일만 읽어 참조 현황을 표시하는 방식은 `sr_enabled_module_contract_files()`와 `contracts.provides`/`contracts.consumes` 구조 위에 자연스럽게 얹을 수 있다.
+마일스톤 13의 핵심 방향은 현재 코드베이스와 여전히 맞다. 코어에는 이미 활성 모듈의 계약 파일을 찾고 읽는 `sr_enabled_module_contract_files()`, `sr_load_module_contract_file()`, `contracts.provides`/`contracts.consumes`, `requires.contracts` 검증 흐름이 있다. 따라서 읽기 참조 계약은 새 라우팅 체계나 중앙 도메인 테이블을 만들지 않고, 기존 모듈 계약 체계에 추가하는 것이 맞다.
 
-#204 사이트명 참조 계약은 #165 공통 스펙에 늦게 붙은 범위이므로, 아래 보강 기준으로 파일명, target 구조, status 표현, UI/POST 기준을 닫고 구현 완료 조건에 포함한다.
+다만 현재 저장소에는 마일스톤 13 전용 계약 파일과 공통 helper가 아직 구현되어 있지 않다.
+
+- `coupon-references.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `site-setting-references.php` 파일이 없다.
+- `core/helpers/settings.php`의 `sr_module_known_contract_files()`와 `.tools/bin/check.php`의 계약 allowlist에 위 파일들이 없다.
+- 읽기 참조 row를 모아 정규화하는 공통 helper가 없다.
+- `.tools/bin/check-read-reference-contracts.php`가 없다.
+- 관련 모듈 `module.php`에 읽기 참조 계약 `provides`/`consumes` 선언이 없다.
+
+이미 구현된 주변 계약과 기능은 다음처럼 계획에 반영해야 한다.
+
+- `coupon-targets.php`는 쿠폰 정의가 적용될 도메인 대상을 검색하거나 접근 회수를 위임하는 기존 소비 계약이다. 마일스톤 13의 `coupon-references.php`는 이 계약을 대체하지 않고, 쿠폰 정의 변경/삭제 전 역방향 영향 조회만 담당한다.
+- 콘텐츠는 `sr_content_items.banner_before_content_id`, `banner_after_content_id`, `popup_layer_id`에 공용 배너/팝업레이어 ID를 직접 저장한다.
+- 커뮤니티는 게시판/게시판 그룹 설정에 `banner_before_list_id`, `banner_after_list_id`, `banner_before_view_id`, `banner_after_view_id`, `banner_before_form_id`, `banner_after_form_id`, `popup_layer_list_id`, `popup_layer_view_id`, `popup_layer_form_id` 값을 저장한다.
+- 커뮤니티 보드 삭제 안전장치에는 `sr_banner_targets`, `sr_popup_layer_targets`, `sr_coupon_definitions`, `sr_site_menu_items` 직접 카운트가 일부 존재한다. 이 코드는 마일스톤 13 구현 후 읽기 참조 계약 기반 조회로 옮기거나, 보드 삭제 전용 직접 참조 검사로 남길지 명시해야 한다.
+- 회원 그룹 참조는 대부분 ID가 아니라 `group_key` 배열로 저장된다. 대표 후보는 reward `withdrawal_allowed_group_keys_json`, deposit `refund_allowed_group_keys_json`, community `message_write_group_keys`, 게시판/게시판 그룹의 `read_group_keys`, `write_group_keys`, `comment_group_keys`, content/community 자산 정책 JSON의 `group_key`이다.
+- `member` 내부 회원 그룹 자동 규칙은 ID 기반 대상/제외 그룹을 갖는다. 소유 모듈이 member 자신이더라도 그룹 삭제/key 변경 전에 같은 읽기 참조 계약으로 보여주는 것이 운영 흐름상 자연스럽다.
+- 사이트명은 코어 사이트 설정 `site.name`이고, 관리자 설정 화면은 `admin` 모듈에 있다. SEO `title_suffix`, `default_description`, logo_manager `alt_text`가 우선 소비 후보이다.
+
+## 결정
+
+마일스톤 13은 아직 완료 상태가 아니다. 이 문서는 구현 완료 문서가 아니라, 현재 구현 위에 남은 작업을 올리는 실행 계획이다.
+
+읽기 참조 계약은 역방향 조회 계약이다. 공유 대상을 소유한 모듈은 소비 모듈의 정책 테이블을 직접 update/delete/자동 치환하지 않는다. 소유 모듈은 활성 소비 모듈의 계약 파일을 읽어 참조 현황과 관리자 이동 링크를 보여주고, destructive/admin-sensitive POST에서 최신 참조 현황과 계약 오류를 다시 확인한다.
+
+비활성 모듈의 잔여 데이터 정리는 이 계약의 책임이 아니다. retention, cleanup, 운영 점검 범위로 분리한다.
 
 ## 공통 계약 스펙
 
@@ -22,7 +46,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `member-group-references.php`
 - `site-setting-references.php`
 
-`site-setting-references.php`는 #204 사이트명 참조 현황을 포함한다. 더 좁은 파일명인 `site-name-references.php`는 쓰지 않고, 이후 사이트 운영 설정 중 같은 패턴이 필요할 때 같은 계약 파일 안에서 `target_key`로 구분한다.
+`site-setting-references.php`는 #204 사이트명 참조 현황을 포함한다. `site-name-references.php`는 만들지 않는다. 이후 사이트 운영 설정 중 같은 패턴이 필요하면 같은 계약 파일 안에서 `target_key`로 구분한다.
 
 계약 파일은 배열을 반환한다. 각 항목은 소비 모듈이 자기 정책 테이블에서 특정 공유 대상을 어떻게 참조하는지 설명한다.
 
@@ -38,7 +62,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 선택 항목:
 
-- `helpers`: 소비 모듈 폴더 기준 helper 파일 목록
+- `helpers`: 소비 모듈 폴더 기준 helper 파일 목록 또는 단일 문자열
 - `supports_target_types`
 - `sort_order`
 
@@ -94,23 +118,25 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `missing_target`: 대상을 찾을 수 없다.
 - `unknown`: 소비 모듈이 health를 판단할 수 없다.
 
-`consumer_inactive`는 쓰지 않는다. 읽기 참조 계약은 활성 모듈의 계약 파일만 읽는다. 비활성 모듈의 잔여 데이터 확인과 정리는 retention, cleanup, 운영 점검 범위로 분리한다.
+`consumer_inactive`는 쓰지 않는다. 읽기 참조 계약은 활성 모듈의 계약 파일만 읽는다.
 
 회원 그룹 key 불일치나 key 변경 위험은 새 status를 늘리지 않고 `stale`에 `message`와 `metadata.reason=key_mismatch`를 붙여 표현한다.
 
 ## 공통 helper 책임
 
-마일스톤 13 구현 시 공통 helper는 다음까지만 맡는다.
+마일스톤 13 구현 시 공통 helper는 새 파일로 분리하는 것을 우선한다. 예: `core/helpers/read-references.php`. `core/helpers/settings.php`에는 known contract allowlist와 기존 계약 로딩 primitive만 유지한다.
 
-- `sr_enabled_module_contract_files()`로 활성 모듈의 대상 계약 파일을 찾는다.
-- `sr_load_module_contract_file()`로 계약을 읽는다.
-- `helpers` 파일 경로가 소비 모듈 폴더 안쪽인지 검증하고 include한다.
-- `supports_target_types`가 있으면 `target_type`을 검증한다.
-- callable 존재 여부와 호출 가능 여부를 검증한다.
-- `count_function`, `rows_function`, `health_function`, `admin_url_function`을 호출한다.
-- 최종 row 필수 필드, status 허용값, 내부 상대 관리자 URL을 검증한다.
-- 목록, 상세, 설정 화면처럼 표시 전용 조회에서는 깨진 계약 항목 하나가 전체 관리자 화면을 500으로 죽이지 않게 해당 항목을 제외하고 오류 로그를 남긴다.
-- 삭제, 비활성화, key 변경, 사이트명 변경 저장처럼 destructive/admin-sensitive POST에서는 계약 로드 실패, callable 실패, row 정규화 실패를 조용히 제외하지 않는다. 공통 helper는 정규화된 row와 함께 로드/검증 오류를 호출자에게 반환하고, 소유 action은 최신 참조 현황을 확정할 수 없는 오류가 있으면 저장을 중단한다.
+공통 helper가 맡는 일:
+
+- 활성 모듈의 대상 계약 파일 탐색
+- 계약 파일 로드
+- `helpers` 파일 경로가 소비 모듈 폴더 안쪽인지 검증하고 include
+- `supports_target_types`가 있으면 `target_type` 검증
+- callable 존재 여부와 호출 가능 여부 검증
+- `count_function`, `rows_function`, `health_function`, `admin_url_function` 호출
+- 최종 row 필수 필드, status 허용값, 내부 상대 관리자 URL 검증
+- 표시 전용 조회에서는 깨진 계약 항목 하나가 전체 관리자 화면을 500으로 죽이지 않게 해당 항목을 제외하고 오류 로그 기록
+- destructive/admin-sensitive POST에서는 계약 로드 실패, helper include 실패, callable 실패, row 정규화 실패를 호출자가 차단 사유로 처리할 수 있게 오류 목록 반환
 
 공통 helper가 하지 않는 일:
 
@@ -118,54 +144,72 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - 참조 대상 자동 치환
 - 비활성 모듈 테이블 임의 스캔
 - 소비 모듈 정책 의미의 최종 판단
-- 정상 로드된 참조 row의 대상별 진행/차단 정책 결정. 단, destructive/admin-sensitive POST에서 계약 로드/검증 오류는 소유 action이 공통 차단 기준으로 처리해야 한다.
+- 정상 로드된 참조 row의 대상별 진행/차단 정책 결정
 
-## 대상별 보강 기준
+## 대상별 구현 범위
 
 ### 쿠폰 정의
 
-`coupon` 모듈은 `coupon-references.php`를 `contracts.consumes`에 기록한다. 쿠폰 정의를 정책으로 저장하는 소비 모듈은 `contracts.provides`에 기록한다.
+`coupon` 모듈은 `coupon-references.php`를 읽는 소유 모듈이다. 쿠폰 정의를 참조하거나 쿠폰 정의 대상 변경의 영향을 받는 모듈은 `coupon-references.php`를 제공한다.
 
-쿠폰 비활성화, 삭제, 사용 기간 변경, 사용처 변경 전에는 최신 참조 현황을 서버 POST에서 다시 조회한다. `ok` 참조가 있으면 운영자 확인 후 진행 가능 여부를 쿠폰 모듈 정책으로 정하고, `stale`은 운영자 확인 또는 차단 상태로 구분한다. `disabled_target`, `missing_target`, `unknown`은 차단 우선 상태로 처리한다. 계약 로드 실패나 health 판단 실패는 destructive/admin-sensitive POST에서 저장 중단으로 처리한다.
+현재 우선 후보:
 
-`coupon` 모듈은 `sr_quiz_*`, 콘텐츠, 커뮤니티, 커머스 같은 소비 모듈 정책 테이블을 직접 update/delete하거나 쿠폰 정의 ID를 자동 치환하지 않는다.
+- `content`: 콘텐츠 유료 열람 쿠폰 대상과 쿠폰 사용/회수 흐름
+- `community`: 게시판/게시글 쿠폰 대상과 쿠폰 사용/회수 흐름
+
+`coupon-targets.php`는 그대로 유지한다. 새 `coupon-references.php`는 쿠폰 정의 비활성화, 삭제, 사용 기간 변경, 사용처 변경 전 참조 현황 조회와 POST 재검증을 맡는다.
+
+쿠폰 모듈은 콘텐츠, 커뮤니티, 이후 커머스 같은 소비 모듈 정책 테이블을 직접 update/delete하거나 쿠폰 정의 ID를 자동 치환하지 않는다.
 
 ### 배너
 
-`banner` 모듈은 `banner-references.php`를 `contracts.consumes`에 기록한다. 직접 선택 배너를 저장하는 소비 모듈은 `contracts.provides`에 기록한다.
+`banner` 모듈은 `banner-references.php`를 읽는 소유 모듈이다. 배너 ID를 직접 저장하는 모듈은 `banner-references.php`를 제공한다.
 
-`sr_banner_targets`는 배너 모듈 내부 target rule이므로 읽기 참조 계약 대상이 아니다. 읽기 참조 계약은 content/community/site_menu 등 외부 소비 정책이 배너 ID를 직접 저장한 경우만 대상으로 삼는다.
+현재 우선 후보:
+
+- `content`: `sr_content_items.banner_before_content_id`, `banner_after_content_id`
+- `content`: `sr_content_group_settings`의 같은 표시 설정 기본값
+- `community`: 게시판/게시판 그룹 설정의 `banner_before_list_id`, `banner_after_list_id`, `banner_before_view_id`, `banner_after_view_id`, `banner_before_form_id`, `banner_after_form_id`
+
+`sr_banner_targets`는 배너 모듈 내부 target rule이다. 마일스톤 13의 배너 읽기 참조 계약 대상은 외부 소비 정책이 배너 ID를 직접 저장한 경우다. 단, 커뮤니티 보드 삭제 안전장치처럼 보드가 `sr_banner_targets`에서 참조되는지 확인하는 기존 직접 검사는 보드 삭제 도메인 안전장치로 남길 수 있다. 이 경우 읽기 참조 계약과 별개라고 문서화한다.
 
 배너 비활성화 또는 삭제 전에는 화면 경고와 서버 POST 재검증을 모두 수행한다. 참조가 있으면 자동 대체나 소비 정책 삭제를 하지 않고 소비 모듈 관리자 URL로 이동시키는 흐름을 제공한다.
 
 ### 팝업레이어
 
-`popup_layer` 모듈은 `popup-layer-references.php`를 `contracts.consumes`에 기록한다. 직접 선택 팝업레이어를 저장하는 소비 모듈은 `contracts.provides`에 기록한다.
+`popup_layer` 모듈은 `popup-layer-references.php`를 읽는 소유 모듈이다. 팝업레이어 ID를 직접 저장하는 모듈은 `popup-layer-references.php`를 제공한다.
 
-`sr_popup_layer_targets`는 팝업레이어 모듈 내부 target rule이므로 읽기 참조 계약 대상이 아니다. 읽기 참조 계약은 외부 소비 정책이 팝업레이어 ID를 직접 저장한 경우만 대상으로 삼는다.
+현재 우선 후보:
+
+- `content`: `sr_content_items.popup_layer_id`
+- `content`: `sr_content_group_settings.popup_layer_id`
+- `community`: 게시판/게시판 그룹 설정의 `popup_layer_list_id`, `popup_layer_view_id`, `popup_layer_form_id`
+
+`sr_popup_layer_targets`는 팝업레이어 모듈 내부 target rule이다. 마일스톤 13의 팝업레이어 읽기 참조 계약 대상은 외부 소비 정책이 팝업레이어 ID를 직접 저장한 경우다. 보드 삭제 안전장치의 `sr_popup_layer_targets` 직접 검사는 별도 도메인 안전장치로 남길 수 있다.
 
 팝업레이어 비활성화 또는 삭제 전에는 화면 경고와 서버 POST 재검증을 모두 수행한다. 참조가 있으면 자동 대체나 소비 정책 삭제를 하지 않고 소비 모듈 관리자 URL로 이동시키는 흐름을 제공한다.
 
 ### 회원 그룹
 
-`member` 모듈은 `member-group-references.php`를 `contracts.consumes`에 기록한다. 회원 그룹을 정책으로 참조하는 모듈은 `contracts.provides`에 기록한다.
+`member` 모듈은 `member-group-references.php`를 읽는 소유 모듈이다. 회원 그룹 ID나 key를 정책으로 저장하는 모듈은 `member-group-references.php`를 제공한다.
 
 target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_key`를 함께 받는다. ID 기반 정책과 key 기반 정책을 구분해 반환한다. key 기반 정책에서 key 변경 위험이 있으면 `status=stale`, `metadata.reason=key_mismatch`로 표현한다.
 
+현재 우선 후보:
+
+- `reward`: `withdrawal_allowed_group_keys_json`
+- `deposit`: `refund_allowed_group_keys_json`
+- `content`: 자산 정책 JSON의 `group_key`
+- `community`: 자산 정책 JSON의 `group_key`
+- `community`: 게시판/게시판 그룹 `read_group_keys`, `write_group_keys`, `comment_group_keys`
+- `community`: 모듈 설정 `message_write_group_keys`
+- `member`: 회원 그룹 자동 규칙의 대상 그룹과 제외 그룹
+
 회원 그룹 비활성화, 삭제, key 변경 전에는 화면 경고와 서버 POST 재검증을 모두 수행한다. `member` 모듈은 소비 모듈 정책을 update/delete/자동 치환하지 않고 소비 모듈 관리자 URL로 이동시키는 흐름만 제공한다.
-
-현재 저장소에서 우선 조사할 key 기반 후보:
-
-- `reward`의 `withdrawal_allowed_group_keys`
-- `deposit`의 `refund_allowed_group_keys`
-- `content`와 `community`의 자산 정책 `group_key`
-- `community` 게시판/게시판 그룹의 `read_group_keys`, `write_group_keys`, `comment_group_keys`
-- `community` 쪽지 작성 정책의 `message_write_group_keys`
-- `member` 내부 회원 그룹 규칙의 대상 그룹과 제외 그룹
 
 ### 사이트 설정
 
-`admin` 모듈의 사이트 설정 화면이 `site-setting-references.php`를 `contracts.consumes`에 기록한다. 사이트 설정 값을 복사 저장하거나 표시 문구에 포함할 수 있는 소비 모듈은 `contracts.provides`에 기록한다.
+`admin` 모듈의 사이트 설정 화면은 `site-setting-references.php`를 읽는 소유 화면이다. 사이트 설정 값을 복사 저장하거나 표시 문구에 포함할 수 있는 소비 모듈은 `site-setting-references.php`를 제공한다.
 
 사이트명 변경 대상은 다음 target을 사용한다.
 
@@ -174,11 +218,12 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 - `target_id=0`
 - `target_key=site.name`
 
-우선 소비 후보:
+현재 우선 후보:
 
-- `seo`: `title_suffix`, `default_description`처럼 사이트명을 직접 포함할 수 있는 설정
-- `logo_manager`: 명시 저장된 `alt_text`가 사이트명을 포함할 수 있는 경우
-- 관리자/공개 layout: 사이트명 fallback은 자동 수정 대상이 아니라 낮은 위험 설명 또는 참조 안내 대상으로만 분류
+- `seo`: `title_suffix`, `default_description`
+- `logo_manager`: `sr_logo_manager_logos.alt_text`
+
+관리자/공개 layout의 사이트명 fallback은 자동으로 새 설정을 읽는 동작이므로 자동 수정 대상이 아니다. 필요하면 낮은 위험 안내 row로만 표시한다.
 
 사이트명 변경 저장 액션은 소비 모듈 설정값을 자동 update/delete/치환하지 않는다. POST에서는 최신 참조 현황을 다시 조회하고, 운영자가 확인한 상태와 현재 상태가 달라졌으면 다시 확인하게 한다.
 
@@ -192,11 +237,11 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 - 단순 안내: fallback처럼 변경 즉시 자연 반영되는 참조
 - 확인 필요: `ok` 또는 `stale` 참조가 있어 운영자가 연결 정책을 확인해야 하는 상태
-- 차단 우선: `disabled_target`, `missing_target`, `unknown` 참조가 있는 상태. 이 분류는 정상 로드된 row에만 적용하며, 계약 로드/검증 오류는 운영자 확인으로 우회하지 않고 저장을 중단한다.
+- 차단 우선: `disabled_target`, `missing_target`, `unknown` 참조가 있는 상태
 
 프론트엔드 확인 플래그는 편의 기능일 뿐이다. 서버 POST는 target과 최신 참조 현황을 다시 조회하고, 필요한 확인 문구나 확인 플래그를 다시 검증한다.
 
-공통 최소 기준은 다음과 같다.
+공통 최소 기준:
 
 - `ok`: 대상별 정책에 따라 확인 후 진행할 수 있다.
 - `stale`: 운영자 확인 또는 대상별 차단 정책이 필요하다.
@@ -209,13 +254,12 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 검사 항목:
 
-- `core/helpers/settings.php`의 `sr_module_known_contract_files()`에 새 계약 파일이 반영됐는지 확인
-- `.tools/bin/check.php`의 known contract allowlist에 새 계약 파일이 반영됐는지 확인
+- `core/helpers/settings.php`의 `sr_module_known_contract_files()`에 새 계약 파일 5종이 반영됐는지 확인
+- `.tools/bin/check.php`의 known contract allowlist에 새 계약 파일 5종이 반영됐는지 확인
 - 실제 계약 파일을 제공하는 모듈이 `contracts.provides`에 선언했는지 확인
 - 계약을 읽는 소유 모듈이 `contracts.consumes`에 선언했는지 확인
 - 계약 반환값이 배열인지 확인
-- `count_function`, `rows_function` callable 존재 확인
-- `health_function`, `admin_url_function` callable 확인
+- `count_function`, `rows_function`, `health_function`, `admin_url_function` callable 확인
 - `supports_target_types`가 배열이며 허용 target과 충돌하지 않는지 확인
 - 최종 row 필수 필드 확인
 - status가 `ok`, `stale`, `disabled_target`, `missing_target`, `unknown` 중 하나인지 확인
@@ -234,11 +278,11 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 구현 후 수동 또는 HTTP 스모크에 다음 항목을 포함한다.
 
-- 쿠폰 정의를 비활성화/삭제/기간 변경할 때 참조 경고가 표시되고 POST에서 최신 참조가 재검증되는지 확인
-- content/community가 직접 선택한 배너를 배너 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
-- content/community가 직접 선택한 팝업레이어를 팝업레이어 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
+- 쿠폰 정의를 비활성화/삭제/기간 변경/사용처 변경할 때 참조 경고가 표시되고 POST에서 최신 참조가 재검증되는지 확인
+- 콘텐츠와 커뮤니티가 직접 선택한 배너를 배너 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
+- 콘텐츠와 커뮤니티가 직접 선택한 팝업레이어를 팝업레이어 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
 - 회원 그룹을 게시판 권한, 쪽지 권한, 자산 정책, 출금/환불 신청 대상에 사용한 뒤 그룹 비활성화/삭제/key 변경 전 경고가 표시되는지 확인
-- 사이트명을 SEO title suffix 또는 로고 alt text에 직접 포함한 뒤 사이트명 변경 화면에서 참조 현황과 관리자 이동 링크가 표시되는지 확인
+- 사이트명을 SEO title suffix, SEO 기본 설명, 로고 alt text에 직접 포함한 뒤 사이트명 변경 화면에서 참조 현황과 관리자 이동 링크가 표시되는지 확인
 - 소비 모듈을 비활성화하면 새 읽기 참조 계약 row로 표시하지 않고, 잔여 데이터 정리는 별도 운영 점검 범위로 남는지 확인
 - 잘못된 `admin_url`을 반환하는 계약 항목은 링크를 출력하지 않고 전체 화면을 500으로 만들지 않는지 확인
 - malformed 계약 파일, 누락 callable, 잘못된 row를 가진 활성 소비 모듈이 있을 때 삭제/비활성화/key 변경/사이트명 변경 POST가 진행되지 않고 계약 오류로 중단되는지 확인
@@ -256,7 +300,7 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 GitHub 이슈 기준도 함께 맞춘다.
 
-- #170의 문서/자동 검사 범위에 `site-setting-references.php`를 추가한다.
+- #170의 문서/자동 검사 범위에 `site-setting-references.php`를 포함한다.
 - #204는 `site-setting-references.php`, `target_type=site_setting`, `target_key=site.name`, `owner_module_key=admin` 기준으로 닫는다.
 - #165 공통 스펙에서 `health_function`과 `admin_url_function`을 필수 callable로 유지한다.
 
