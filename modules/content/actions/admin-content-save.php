@@ -115,6 +115,9 @@ try {
     if (!isset($savedPageId) && is_array($uploadedCoverImage)) {
         sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
     }
+    if (isset($savedPageId) && $savedPageId > 0 && $beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
+        sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced_after_partial_save_failure', $savedPageId);
+    }
 
     $_SESSION['sr_content_admin_errors'] = [isset($savedPageId) && $savedPageId > 0 ? '콘텐츠는 저장했지만 후속 저장에 실패했습니다: ' . $exception->getMessage() : '콘텐츠 저장에 실패했습니다: ' . $exception->getMessage()];
     sr_redirect(isset($savedPageId) && $savedPageId > 0 ? '/admin/content/edit?id=' . (string) $savedPageId : ($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new'));
