@@ -66,6 +66,8 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `helpers`: 소비 모듈 폴더 기준 helper 파일 목록 또는 단일 문자열
 - `sort_order`
 
+`supports_target_types` 값은 계약 파일의 대상 type과 정확히 일치해야 하며 앞뒤 공백을 정규화해 받아들이지 않는다.
+
 `rows_function`은 소비 모듈의 원자료를 반환한다. 공통 helper는 `health_function`과 `admin_url_function`을 적용해 최종 row를 정규화한다. `rows_function`이 이미 `status`나 `admin_url`을 반환해도 공통 helper 검증을 다시 통과해야 한다.
 최종 row의 문자열 필드는 문자열화 가능한 스칼라 값이어야 하며, `metadata`만 배열 값을 허용한다.
 단, 최종 row의 `target_type`, `target_id`, `target_key`는 target 입력과 같은 식별자 형식 기준을 사용한다.

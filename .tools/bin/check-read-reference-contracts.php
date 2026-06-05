@@ -185,6 +185,60 @@ function sr_read_reference_check_admin_url_safety_samples(): void
     }
 }
 
+function sr_read_reference_check_sample_count(PDO $pdo, array $target, array $context): int
+{
+    unset($pdo, $target, $context);
+
+    return 0;
+}
+
+function sr_read_reference_check_sample_rows(PDO $pdo, array $target, array $context): array
+{
+    unset($pdo, $target, $context);
+
+    return [];
+}
+
+function sr_read_reference_check_sample_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    unset($pdo, $target, $row, $context);
+
+    return ['status' => 'ok'];
+}
+
+function sr_read_reference_check_sample_admin_url(array $row, array $context): string
+{
+    unset($row, $context);
+
+    return '/admin/sample';
+}
+
+function sr_read_reference_check_prepare_entry_samples(): void
+{
+    $entry = [
+        'consumer_module_key' => 'sample_module',
+        'label' => 'sample',
+        'reference_type' => 'sample_reference',
+        'supports_target_types' => ['banner'],
+        'count_function' => 'sr_read_reference_check_sample_count',
+        'rows_function' => 'sr_read_reference_check_sample_rows',
+        'health_function' => 'sr_read_reference_check_sample_health',
+        'admin_url_function' => 'sr_read_reference_check_sample_admin_url',
+    ];
+
+    $validErrors = sr_read_reference_prepare_entry('sample_module', $entry, 'banner');
+    if ($validErrors !== []) {
+        sr_read_reference_check_error('read reference prepare entry sample rejected valid supports_target_types');
+    }
+
+    $spacedEntry = $entry;
+    $spacedEntry['supports_target_types'] = [' banner '];
+    $spacedErrors = sr_read_reference_prepare_entry('sample_module', $spacedEntry, 'banner');
+    if (!in_array('supports_target_types가 대상 type과 맞지 않습니다.', $spacedErrors, true)) {
+        sr_read_reference_check_error('read reference prepare entry sample accepted spaced supports_target_types');
+    }
+}
+
 function sr_read_reference_check_normalize_row_target_samples(): void
 {
     $entry = [
@@ -394,7 +448,6 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                         sr_read_reference_check_error('read reference supports_target_types must match contract target type: ' . $path);
                         continue;
                     }
-                    $targetType = trim($targetType);
                     if ($targetType !== $expectedTargetType) {
                         sr_read_reference_check_error('read reference supports_target_types must match contract target type: ' . $path . ' ' . $targetType);
                     }
@@ -473,6 +526,7 @@ foreach ($expectedConsumers as $moduleKey => $contractFiles) {
 
 sr_read_reference_check_forbidden_owner_writes($root);
 sr_read_reference_check_admin_url_safety_samples();
+sr_read_reference_check_prepare_entry_samples();
 sr_read_reference_check_normalize_row_target_samples();
 sr_read_reference_check_collect_target_samples();
 sr_read_reference_check_keyed_contract_row_sources($root);

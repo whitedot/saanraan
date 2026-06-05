@@ -177,8 +177,7 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
                 $errors[] = 'supports_target_types 값이 올바르지 않습니다.';
                 continue;
             }
-            $supportedTargetType = trim($supportedTargetType);
-            if ($supportedTargetType === '') {
+            if (trim($supportedTargetType) === '') {
                 $errors[] = 'supports_target_types 값이 비어 있습니다.';
                 continue;
             }
