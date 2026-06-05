@@ -70,6 +70,7 @@
 - [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md)
 - [회원 마이그레이션 계획](plans/member-migration-plan.md)
 - [결제 플러그인 계획](plans/payment-plugin-plan.md)
+- [마일스톤 13 읽기 참조 계약 계획](plans/read-reference-contract-plan.md)
 
 ## 점검 기록
 
