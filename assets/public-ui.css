@@ -21,6 +21,7 @@
 
 .public-site-header {
     align-items: center;
+    background: var(--sr-bg, var(--color-body-bg));
     border-bottom: 1px solid var(--sr-border, var(--color-default-300));
     display: flex;
     gap: 1rem;
@@ -146,6 +147,7 @@
 }
 
 .public-site-footer {
+    background: var(--sr-bg, var(--color-body-bg));
     border-top: 1px solid var(--sr-border, var(--color-default-300));
     display: grid;
     gap: 12px;

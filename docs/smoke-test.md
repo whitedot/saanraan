@@ -117,7 +117,7 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /admin/community/posts 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /sitemap.xml 응답이 200이면 sitemap XML 루트가 있고 404여도 PHP 오류가 노출되지 않는지 확인
 /assets/saanraan.css 정적 파일 응답과 `--sr-bg` 홈 스킨 토큰 확인
-/assets/public-ui.css 정적 파일 응답과 `.public-home`의 `--sr-bg` 소비 확인
+/assets/public-ui.css 정적 파일 응답과 공개 헤더/푸터/홈의 `--sr-bg` 소비 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/community/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인

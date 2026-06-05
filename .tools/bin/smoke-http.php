@@ -268,7 +268,12 @@ $checks = [
         'label' => 'public UI stylesheet',
         'path' => '/assets/public-ui.css',
         'allowed_statuses' => [200],
-        'must_contain' => ['background: var(--sr-bg'],
+        'must_contain' => [
+            '.public-site-header',
+            '.public-site-footer',
+            '.public-home',
+            'background: var(--sr-bg',
+        ],
     ],
     [
         'label' => 'database SQL protection',
