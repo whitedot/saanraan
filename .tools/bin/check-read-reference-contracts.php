@@ -71,32 +71,45 @@ function sr_read_reference_check_callable_signature(string $path, string $functi
     }
 }
 
-function sr_read_reference_check_count_function_source(string $path, string $functionName, string $rowsFunctionName): void
+function sr_read_reference_count_function_counts_rows(string $functionName, string $rowsFunctionName): ?bool
 {
     if (!function_exists($functionName)) {
-        return;
+        return null;
     }
     if ($rowsFunctionName === '') {
-        sr_read_reference_check_error('read reference count_function rows_function target is missing: ' . $path . ' ' . $functionName);
-        return;
+        return null;
     }
 
     $reflection = new ReflectionFunction($functionName);
     $fileName = $reflection->getFileName();
     if (!is_string($fileName) || !is_file($fileName)) {
-        sr_read_reference_check_error('read reference count function source is not readable: ' . $path . ' ' . $functionName);
-        return;
+        return null;
     }
 
     $lines = file($fileName);
     if (!is_array($lines)) {
-        sr_read_reference_check_error('read reference count function source is not readable: ' . $path . ' ' . $functionName);
-        return;
+        return null;
     }
 
     $body = implode('', array_slice($lines, $reflection->getStartLine() - 1, $reflection->getEndLine() - $reflection->getStartLine() + 1));
     $pattern = '/return\s+count\s*\(\s*' . preg_quote($rowsFunctionName, '/') . '\s*\(\s*\$pdo\s*,\s*\$target\s*,\s*\$context\s*\)\s*\)\s*;/';
-    if (preg_match($pattern, $body) !== 1) {
+
+    return preg_match($pattern, $body) === 1;
+}
+
+function sr_read_reference_check_count_function_source(string $path, string $functionName, string $rowsFunctionName): void
+{
+    if ($rowsFunctionName === '') {
+        sr_read_reference_check_error('read reference count_function rows_function target is missing: ' . $path . ' ' . $functionName);
+        return;
+    }
+
+    $matches = sr_read_reference_count_function_counts_rows($functionName, $rowsFunctionName);
+    if ($matches === null) {
+        sr_read_reference_check_error('read reference count function source is not readable: ' . $path . ' ' . $functionName);
+        return;
+    }
+    if (!$matches) {
         sr_read_reference_check_error('read reference count_function must count returned reference rows: ' . $path . ' ' . $functionName);
     }
 }
@@ -241,6 +254,29 @@ function sr_read_reference_check_sample_admin_url(array $row, array $context): s
     unset($row, $context);
 
     return '/admin/sample';
+}
+
+function sr_read_reference_check_sample_count_rows(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_read_reference_check_sample_rows($pdo, $target, $context));
+}
+
+function sr_read_reference_check_sample_count_comment_only(PDO $pdo, array $target, array $context): int
+{
+    // sr_read_reference_check_sample_rows
+    unset($pdo, $target, $context);
+
+    return count([]);
+}
+
+function sr_read_reference_check_count_function_source_samples(): void
+{
+    if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_rows', 'sr_read_reference_check_sample_rows') !== true) {
+        sr_read_reference_check_error('read reference count_function source sample rejected valid rows count');
+    }
+    if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_comment_only', 'sr_read_reference_check_sample_rows') !== false) {
+        sr_read_reference_check_error('read reference count_function source sample accepted comment-only rows function');
+    }
 }
 
 function sr_read_reference_check_prepare_entry_samples(): void
@@ -675,6 +711,7 @@ foreach ($expectedConsumers as $moduleKey => $contractFiles) {
 
 sr_read_reference_check_forbidden_owner_writes($root);
 sr_read_reference_check_admin_url_safety_samples();
+sr_read_reference_check_count_function_source_samples();
 sr_read_reference_check_prepare_entry_samples();
 sr_read_reference_check_normalize_row_target_samples();
 sr_read_reference_check_collect_target_samples();
