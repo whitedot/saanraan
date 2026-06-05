@@ -157,6 +157,10 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
                 $errors[] = 'supports_target_types 값이 비어 있습니다.';
                 continue;
             }
+            if ($supportedTargetType !== $targetType) {
+                $errors[] = 'supports_target_types가 대상 type과 맞지 않습니다.';
+                continue;
+            }
             $normalizedTargetTypes[] = $supportedTargetType;
         }
         if ($normalizedTargetTypes !== [] && !in_array($targetType, $normalizedTargetTypes, true)) {
