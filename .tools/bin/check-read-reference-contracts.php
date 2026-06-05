@@ -272,6 +272,27 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         sr_read_reference_check_error('read reference normalize row target sample rejected valid row');
     }
 
+    $validRawAdminUrl = $baseRow;
+    $validRawAdminUrl['admin_url'] = '/admin/sample';
+    $validRawAdminUrlRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $validRawAdminUrl, ['status' => 'ok'], '/admin/sample');
+    if (!is_array($validRawAdminUrlRow['row'] ?? null) || ($validRawAdminUrlRow['errors'] ?? []) !== []) {
+        sr_read_reference_check_error('read reference normalize row target sample rejected valid raw admin_url');
+    }
+
+    $invalidRawAdminUrl = $baseRow;
+    $invalidRawAdminUrl['admin_url'] = 'https://example.com/admin';
+    $invalidRawAdminUrlRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidRawAdminUrl, ['status' => 'ok'], '/admin/sample');
+    if (is_array($invalidRawAdminUrlRow['row'] ?? null) || !in_array('admin_url이 내부 상대 URL이 아닙니다.', $invalidRawAdminUrlRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted external raw admin_url');
+    }
+
+    $nullRawAdminUrl = $baseRow;
+    $nullRawAdminUrl['admin_url'] = null;
+    $nullRawAdminUrlRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $nullRawAdminUrl, ['status' => 'ok'], '/admin/sample');
+    if (is_array($nullRawAdminUrlRow['row'] ?? null) || !in_array('admin_url이 내부 상대 URL이 아닙니다.', $nullRawAdminUrlRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null raw admin_url');
+    }
+
     $invalidHealthStatus = sr_read_reference_normalize_row('sample_module', $entry, $target, $baseRow, ['status' => null], '/admin/sample');
     if (is_array($invalidHealthStatus['row'] ?? null) || !in_array('status 값이 올바르지 않습니다.', $invalidHealthStatus['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted null health status');

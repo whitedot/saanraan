@@ -290,6 +290,12 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         $adminUrl = '';
         $errors[] = 'admin_url이 내부 상대 URL이 아닙니다.';
     }
+    if (array_key_exists('admin_url', $rawRow)) {
+        $rawAdminUrl = sr_read_reference_string_value($rawRow['admin_url']);
+        if ($rawAdminUrl === null || !sr_read_reference_admin_url_is_safe($rawAdminUrl)) {
+            $errors[] = 'admin_url이 내부 상대 URL이 아닙니다.';
+        }
+    }
 
     $hasRawTargetType = array_key_exists('target_type', $rawRow);
     $hasRawTargetId = array_key_exists('target_id', $rawRow);

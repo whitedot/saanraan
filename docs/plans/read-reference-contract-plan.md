@@ -70,6 +70,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 `reference_type`은 소문자 영문으로 시작하고 소문자 영문, 숫자, `_`만 사용하는 80자 이하 key여야 한다.
 
 `rows_function`은 소비 모듈의 원자료를 반환한다. 공통 helper는 `health_function`과 `admin_url_function`을 적용해 최종 row를 정규화한다. `rows_function`이 이미 `status`나 `admin_url`을 반환해도 공통 helper 검증을 다시 통과해야 한다.
+`rows_function`이 `admin_url`을 명시하면 해당 값도 내부 상대 URL이어야 하며, 최종 관리자 URL은 `admin_url_function` 반환값으로 정규화한다.
 `health_function`이 `status`, `message`, `policy_status`를 반환하면 각 값은 문자열화 가능한 스칼라여야 하며, 명시된 `null`은 생략으로 보지 않고 계약 오류로 처리한다.
 최종 row의 문자열 필드는 문자열화 가능한 스칼라 값이어야 하며, `metadata`만 배열 값을 허용한다.
 단, 최종 row의 `target_type`, `target_id`, `target_key`는 target 입력과 같은 식별자 형식 기준을 사용한다.
