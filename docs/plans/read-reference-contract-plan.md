@@ -55,6 +55,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `consumer_module_key`
 - `label`
 - `reference_type`
+- `supports_target_types`
 - `count_function`: `function (PDO $pdo, array $target, array $context): int`
 - `rows_function`: `function (PDO $pdo, array $target, array $context): array`
 - `health_function`: `function (PDO $pdo, array $target, array $row, array $context): array`
@@ -63,7 +64,6 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 선택 항목:
 
 - `helpers`: 소비 모듈 폴더 기준 helper 파일 목록 또는 단일 문자열
-- `supports_target_types`
 - `sort_order`
 
 `rows_function`은 소비 모듈의 원자료를 반환한다. 공통 helper는 `health_function`과 `admin_url_function`을 적용해 최종 row를 정규화한다. `rows_function`이 이미 `status`나 `admin_url`을 반환해도 공통 helper 검증을 다시 통과해야 한다.
@@ -133,7 +133,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - 활성 모듈의 대상 계약 파일 탐색
 - 계약 파일 로드
 - `helpers` 파일 경로가 소비 모듈 폴더 안쪽인지 검증하고 include
-- `supports_target_types`가 있으면 `target_type` 검증
+- `supports_target_types` 필수값과 `target_type` 지원 여부 검증
 - callable 존재 여부와 호출 가능 여부 검증
 - `count_function`, `rows_function`, `health_function`, `admin_url_function` 호출
 - `count_function`이 1 이상을 반환했는데 `rows_function`이 빈 배열을 반환하면 계약 오류로 처리

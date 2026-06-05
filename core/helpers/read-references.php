@@ -147,8 +147,21 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
     }
 
     $supportsTargetTypes = $entry['supports_target_types'] ?? null;
-    if (is_array($supportsTargetTypes) && $supportsTargetTypes !== [] && !in_array($targetType, array_map('strval', $supportsTargetTypes), true)) {
-        $errors[] = 'supports_target_types가 대상 type을 지원하지 않습니다.';
+    if (!is_array($supportsTargetTypes) || $supportsTargetTypes === []) {
+        $errors[] = 'supports_target_types가 비어 있습니다.';
+    } else {
+        $normalizedTargetTypes = [];
+        foreach ($supportsTargetTypes as $supportedTargetType) {
+            $supportedTargetType = (string) $supportedTargetType;
+            if ($supportedTargetType === '') {
+                $errors[] = 'supports_target_types 값이 비어 있습니다.';
+                continue;
+            }
+            $normalizedTargetTypes[] = $supportedTargetType;
+        }
+        if ($normalizedTargetTypes !== [] && !in_array($targetType, $normalizedTargetTypes, true)) {
+            $errors[] = 'supports_target_types가 대상 type을 지원하지 않습니다.';
+        }
     }
 
     $helpers = $entry['helpers'] ?? [];
