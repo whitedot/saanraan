@@ -754,7 +754,8 @@ function sr_deposit_transaction_by_id(PDO $pdo, int $transactionId): ?array
 
 function sr_deposit_notify_transaction_created(PDO $pdo, int $transactionId): ?int
 {
-    if (!sr_module_enabled($pdo, 'notification') || !is_file(SR_ROOT . '/modules/notification/helpers.php')) {
+    $createAccountEventFunction = sr_deposit_notification_event_function($pdo);
+    if ($createAccountEventFunction === '') {
         return null;
     }
 
@@ -764,18 +765,13 @@ function sr_deposit_notify_transaction_created(PDO $pdo, int $transactionId): ?i
     }
 
     try {
-        require_once SR_ROOT . '/modules/notification/helpers.php';
-        if (!function_exists('sr_notification_create_account_event')) {
-            return null;
-        }
-
         $amount = (int) $transaction['amount'];
         $transactionType = (string) $transaction['transaction_type'];
         $eventKey = $transactionType === 'adjustment'
             ? 'transaction.adjustment.' . ($amount > 0 ? 'increase' : 'decrease')
             : 'transaction.' . $transactionType;
 
-        return sr_notification_create_account_event($pdo, [
+        return $createAccountEventFunction($pdo, [
             'account_id' => (int) $transaction['account_id'],
             'module_key' => 'deposit',
             'event_key' => $eventKey,
@@ -786,6 +782,34 @@ function sr_deposit_notify_transaction_created(PDO $pdo, int $transactionId): ?i
         sr_log_exception($exception, 'deposit_transaction_notification');
         return null;
     }
+}
+
+function sr_deposit_notification_event_function(PDO $pdo): string
+{
+    if (!sr_module_enabled($pdo, 'notification') || !sr_module_contract_is_loadable('notification')) {
+        return '';
+    }
+
+    $contractFile = SR_ROOT . '/modules/notification/notification-events.php';
+    $contract = sr_load_module_contract_file('notification', $contractFile);
+    if (!is_array($contract)) {
+        return '';
+    }
+
+    $helpers = (string) ($contract['helpers'] ?? '');
+    if ($helpers === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+        return '';
+    }
+
+    $helperPath = SR_ROOT . '/modules/notification/' . $helpers;
+    if (!is_file($helperPath)) {
+        return '';
+    }
+
+    require_once $helperPath;
+
+    $function = (string) ($contract['create_account_event_function'] ?? '');
+    return $function !== '' && function_exists($function) ? $function : '';
 }
 
 function sr_deposit_transaction_notification_metadata(array $transaction): array
