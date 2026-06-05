@@ -45,21 +45,6 @@ foreach ($publicPopupLayers as $publicPopupLayer) {
     $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
 }
 $errors = sr_content_validate_input($pdo, $values, $pageId, $publicBannerIds, $publicPopupLayerIds);
-if ($coverImageUploadProvided) {
-    if (!is_array($coverImageUploadFile)) {
-        $errors[] = '업로드할 커버 이미지를 확인할 수 없습니다.';
-    } else {
-        try {
-            $uploadedCoverImage = sr_content_upload_cover_image($coverImageUploadFile);
-            if (is_array($uploadedCoverImage)) {
-                $values['cover_image_url'] = (string) $uploadedCoverImage['url'];
-                $values['raw_cover_image_url'] = (string) $uploadedCoverImage['url'];
-            }
-        } catch (Throwable $exception) {
-            $errors[] = $exception->getMessage();
-        }
-    }
-}
 if ($pageId > 0 && !is_array($existingContent)) {
     $errors[] = '수정할 콘텐츠를 찾을 수 없습니다.';
 }
@@ -84,26 +69,55 @@ if ($errors !== []) {
     sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new');
 }
 
+$uploadedCoverImage = null;
+if ($coverImageUploadProvided) {
+    if (!is_array($coverImageUploadFile)) {
+        $errors[] = '업로드할 커버 이미지를 확인할 수 없습니다.';
+    } else {
+        try {
+            $uploadedCoverImage = sr_content_upload_cover_image($coverImageUploadFile);
+            if (is_array($uploadedCoverImage)) {
+                $values['cover_image_url'] = (string) $uploadedCoverImage['url'];
+                $values['raw_cover_image_url'] = (string) $uploadedCoverImage['url'];
+            }
+        } catch (Throwable $exception) {
+            $errors[] = $exception->getMessage();
+        }
+    }
+}
+if ($errors !== []) {
+    $values['content_file_link_ids'] = sr_content_file_link_ids_from_post('content_file_link_ids');
+    $values['series_id'] = (int) $seriesValues['series_id'];
+    $values['series_episode_label'] = (string) $seriesValues['episode_label'];
+    $values['series_sort_order'] = (int) $seriesValues['sort_order'];
+    $_SESSION['sr_content_admin_errors'] = $errors;
+    $_SESSION['sr_content_admin_values'] = $values;
+    sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new');
+}
+
 $beforeAssetSettings = $pageId > 0 ? sr_content_asset_settings_from_storage_for_audit($pdo, $pageId) : [];
 $statusScope = sr_content_normalize_setting_source((string) ($values['source_status'] ?? 'content'));
 $statusBeforeTargetIds = sr_content_apply_scope_target_ids($pdo, $pageId, (int) ($values['content_group_id'] ?? 0), $statusScope);
 $statusBeforeRows = sr_content_status_rows_for_ids($pdo, $statusBeforeTargetIds);
-$savedPageId = sr_content_save($pdo, $values, (int) $account['id'], $pageId);
-$afterCoverImageUrl = (string) ($values['cover_image_url'] ?? '');
 $coverImageCleanupResult = ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => ''];
-if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
-    $coverImageCleanupResult = sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced', $savedPageId);
-}
-sr_content_set_content_series($pdo, $savedPageId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
+$afterCoverImageUrl = (string) ($values['cover_image_url'] ?? '');
 try {
+    $savedPageId = sr_content_save($pdo, $values, (int) $account['id'], $pageId);
+    sr_content_set_content_series($pdo, $savedPageId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
     sr_content_save_files_from_request($pdo, $savedPageId, (int) $account['id'], $values);
+    if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
+        $coverImageCleanupResult = sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced', $savedPageId);
+    }
 } catch (Throwable $exception) {
     if (function_exists('sr_log_exception')) {
         sr_log_exception($exception, 'content_file_save_failed');
     }
+    if (!isset($savedPageId) && is_array($uploadedCoverImage)) {
+        sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
+    }
 
-    $_SESSION['sr_content_admin_errors'] = ['콘텐츠는 저장했지만 파일 저장에 실패했습니다: ' . $exception->getMessage()];
-    sr_redirect('/admin/content/edit?id=' . (string) $savedPageId);
+    $_SESSION['sr_content_admin_errors'] = [isset($savedPageId) && $savedPageId > 0 ? '콘텐츠는 저장했지만 후속 저장에 실패했습니다: ' . $exception->getMessage() : '콘텐츠 저장에 실패했습니다: ' . $exception->getMessage()];
+    sr_redirect(isset($savedPageId) && $savedPageId > 0 ? '/admin/content/edit?id=' . (string) $savedPageId : ($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new'));
 }
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],

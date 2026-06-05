@@ -619,7 +619,8 @@ function sr_content_upload_cover_image(array $file): ?array
         'key' => $storageKey,
         'path' => (string) ($stored['path'] ?? ''),
         'storage_key' => $storageKey,
-        'url' => $publicUrl !== '' ? $publicUrl : '/content/cover-image?file=' . rawurlencode($storageReference),
+        'public_url' => $publicUrl,
+        'url' => '/content/cover-image?file=' . rawurlencode($storageReference),
     ];
 }
 
@@ -653,7 +654,19 @@ function sr_content_cover_image_storage_reference_from_url(string $url): ?array
     $path = (string) ($parts['path'] ?? '');
     $proxyPath = (string) (parse_url(sr_url('/content/cover-image'), PHP_URL_PATH) ?: '/content/cover-image');
     if ($path !== '/content/cover-image' && $path !== $proxyPath) {
-        return null;
+        $config = sr_runtime_config();
+        $s3 = sr_storage_s3_config($config);
+        $baseUrl = rtrim((string) ($s3['public_base_url'] ?? ''), '/');
+        if ($baseUrl === '' || !sr_is_http_url($baseUrl) || !str_starts_with($url, $baseUrl . '/')) {
+            return null;
+        }
+
+        $key = rawurldecode(substr($url, strlen($baseUrl) + 1));
+        if (!sr_content_cover_image_storage_key_is_valid($key)) {
+            return null;
+        }
+
+        return ['driver' => 's3', 'key' => $key];
     }
 
     $query = [];
