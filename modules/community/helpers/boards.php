@@ -1457,6 +1457,7 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     try {
         $deletedSettingSources = sr_community_optional_count($pdo, 'sr_community_board_setting_sources', 'board_id = :board_id', ['board_id' => $boardId]);
         $deletedSettings = sr_community_optional_count($pdo, 'sr_community_board_settings', 'board_id = :board_id', ['board_id' => $boardId]);
+        $deletedBoardManagers = sr_community_optional_count($pdo, 'sr_community_board_managers', 'board_id = :board_id', ['board_id' => $boardId]);
         $deletedCategories = sr_community_optional_count($pdo, 'sr_community_categories', 'board_id = :board_id', ['board_id' => $boardId]);
         $deletedPosts = (int) ($check['references']['posts'] ?? 0);
         $deletedComments = (int) ($check['references']['comments'] ?? 0);
@@ -1502,6 +1503,9 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
         $pdo->prepare('DELETE FROM sr_community_posts WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
         $pdo->prepare('DELETE FROM sr_community_board_setting_sources WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
         $pdo->prepare('DELETE FROM sr_community_board_settings WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
+        if (sr_community_optional_table_exists($pdo, 'sr_community_board_managers')) {
+            $pdo->prepare('DELETE FROM sr_community_board_managers WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
+        }
         if (sr_community_optional_table_exists($pdo, 'sr_community_categories')) {
             $pdo->prepare('DELETE FROM sr_community_categories WHERE board_id = :board_id')->execute(['board_id' => $boardId]);
         }
@@ -1529,6 +1533,7 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
 
     $check['deleted_settings'] = $deletedSettings;
     $check['deleted_setting_sources'] = $deletedSettingSources;
+    $check['deleted_board_managers'] = $deletedBoardManagers;
     $check['deleted_categories'] = $deletedCategories;
     $check['deleted_posts'] = $deletedPosts;
     $check['deleted_comments'] = $deletedComments;

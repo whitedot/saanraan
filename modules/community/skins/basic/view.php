@@ -49,7 +49,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
                     <p><a href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></a></p>
                 <?php } ?>
-                <?php if (sr_community_account_can_delete_post($post, $account)) { ?>
+                <?php if (sr_community_account_can_delete_post($post, $account, $pdo)) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">

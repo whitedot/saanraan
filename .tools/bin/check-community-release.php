@@ -556,10 +556,11 @@ sr_community_release_file_contains('modules/community/actions/edit.php', [
     "'event_type' => 'community.post.updated_by_author'",
 ], 'Community edit action policy');
 sr_community_release_file_contains('modules/community/actions/delete.php', [
-    'sr_community_account_can_delete_post($post, $account)',
+    'sr_community_account_can_delete_post($post, $account, $pdo)',
     'sr_community_update_post_status($pdo, $postId, \'deleted\')',
     'sr_community_update_post_attachments_status($pdo, $postId, \'deleted\')',
-    "'event_type' => 'community.post.deleted_by_author'",
+    "'community.post.deleted_by_author'",
+    "'community.post.deleted_by_board_manager'",
 ], 'Community delete action policy');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
     'sr_community_account_can_comment_post($pdo, $post, $account)',

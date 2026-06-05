@@ -193,6 +193,8 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : array_merge($new
 $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     ? sr_admin_asset_settings_audit_url('community.board.asset_settings.updated', 'community_board', (string) (int) ($formBoard['id'] ?? 0))
     : '';
+$communityBoardManagerPermissions = sr_community_board_manager_permission_options();
+$communityBoardManagers = $communityBoardsPage === 'edit' ? sr_community_board_managers($pdo, (int) ($formBoard['id'] ?? 0)) : [];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -860,6 +862,93 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) ($formBoard['id'] ?? 0)); ?>">
                 <button type="submit" class="btn btn-outline-danger" onclick="return confirm('이 게시판을 삭제할까요? 게시글, 댓글, 첨부파일, 시리즈 연결도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');">게시판 삭제</button>
             </form>
+        </section>
+
+        <section class="admin-card card">
+            <h2>위임 관리권한</h2>
+            <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업을 위임합니다. 위임 권한은 게시글 본문 수정 권한으로 확대되지 않습니다.</p>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-form-inline ui-form-theme">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="board_manager_grant">
+                <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_board_manager_account_identifier">회원 식별자 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <div class="input-group">
+                            <select name="account_identifier_field" class="form-select" aria-label="회원 검색 조건">
+                                <option value="all">전체</option>
+                                <option value="id">ID</option>
+                                <option value="login_id">로그인 ID</option>
+                                <option value="email">이메일</option>
+                                <option value="display_name">표시 이름</option>
+                                <option value="nickname">닉네임</option>
+                            </select>
+                            <input id="community_board_manager_account_identifier" type="text" name="account_identifier" maxlength="120" required class="form-input" placeholder="회원 ID, 로그인 ID, 이메일, 표시 이름">
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <span class="form-label">권한 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                    <div class="admin-form-field">
+                        <?php foreach ($communityBoardManagerPermissions as $permissionKey => $permissionLabel) { ?>
+                            <label class="admin-form-check form-label" for="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>">
+                                <input id="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e((string) $permissionKey); ?>" class="form-checkbox">
+                                <?php echo sr_admin_choice_label_html((string) $permissionLabel); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
+                </div>
+                <div class="admin-form-actions">
+                    <button type="submit" class="btn btn-solid-primary">권한 부여</button>
+                </div>
+            </form>
+            <div class="table-wrapper">
+                <table class="table">
+                    <caption class="sr-only">게시판 위임 관리권한 목록</caption>
+                    <thead class="ui-table-head">
+                        <tr>
+                            <th>회원</th>
+                            <th>권한</th>
+                            <th>부여일</th>
+                            <th class="text-end">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($communityBoardManagers === []) { ?>
+                            <tr>
+                                <td colspan="4" class="admin-empty-state">위임된 관리권한이 없습니다.</td>
+                            </tr>
+                        <?php } ?>
+                        <?php foreach ($communityBoardManagers as $manager) { ?>
+                            <tr>
+                                <td class="admin-table-break">
+                                    <?php echo sr_e(sr_community_report_account_label(
+                                        sr_community_author_display_name_from_row([
+                                            'author_public_name_snapshot' => '',
+                                            'author_display_name' => (string) ($manager['display_name'] ?? ''),
+                                            'author_nickname' => (string) ($manager['nickname'] ?? ''),
+                                            'author_account_status' => (string) ($manager['account_status'] ?? ''),
+                                        ], $memberSettings ?? null),
+                                        (int) ($manager['account_id'] ?? 0),
+                                        (string) ($manager['account_status'] ?? '')
+                                    )); ?>
+                                </td>
+                                <td><?php echo sr_e((string) ($communityBoardManagerPermissions[(string) ($manager['permission_key'] ?? '')] ?? (string) ($manager['permission_key'] ?? ''))); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($manager['created_at'] ?? '')); ?></td>
+                                <td class="admin-table-actions-cell">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="board_manager_revoke">
+                                        <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                                        <input type="hidden" name="manager_id" value="<?php echo sr_e((string) (int) ($manager['id'] ?? 0)); ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">회수</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <section class="admin-card card">

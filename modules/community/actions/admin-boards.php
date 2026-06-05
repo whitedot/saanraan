@@ -94,7 +94,85 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', in_array($intent, ['delete_board', 'retry_storage_cleanup_failure'], true) ? 'delete' : 'edit');
 
-    if ($intent === 'delete_board') {
+    if (in_array($intent, ['board_manager_grant', 'board_manager_revoke'], true)) {
+        $boardIdValue = sr_post_string('board_id', 20);
+        $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
+        $board = sr_community_board_by_id($pdo, $boardId);
+        if (!is_array($board)) {
+            $errors[] = sr_t('community::action.error.board_not_found');
+        }
+
+        if ($intent === 'board_manager_grant') {
+            $accountIdentifier = sr_post_string('account_identifier', 120);
+            $accountField = sr_post_string('account_identifier_field', 20);
+            if (!in_array($accountField, ['all', 'id', 'email', 'login_id', 'display_name', 'nickname'], true)) {
+                $accountField = 'all';
+            }
+            $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, sr_runtime_config(), $accountField, $accountIdentifier);
+            $permissionKeys = [];
+            $permissionInput = $_POST['permission_keys'] ?? [];
+            if (is_array($permissionInput)) {
+                foreach ($permissionInput as $permissionKey) {
+                    $permissionKey = (string) $permissionKey;
+                    if (sr_community_board_manager_permission_is_valid($permissionKey)) {
+                        $permissionKeys[] = $permissionKey;
+                    }
+                }
+            }
+            $permissionKeys = array_values(array_unique($permissionKeys));
+            if ($targetAccountId < 1) {
+                $errors[] = '권한을 부여할 회원을 찾을 수 없습니다.';
+            }
+            if ($permissionKeys === []) {
+                $errors[] = '부여할 게시판 관리권한을 선택해 주세요.';
+            }
+            if ($errors === [] && is_array($board)) {
+                $granted = sr_community_grant_board_management_permissions($pdo, $boardId, $targetAccountId, $permissionKeys, (int) $account['id']);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.board_manager.granted',
+                    'target_type' => 'community_board',
+                    'target_id' => (string) $boardId,
+                    'result' => 'success',
+                    'message' => 'Community board manager permissions granted.',
+                    'metadata' => [
+                        'board_key' => (string) ($board['board_key'] ?? ''),
+                        'account_id' => $targetAccountId,
+                        'permission_keys' => $granted,
+                    ],
+                ]);
+                $notice = '게시판 관리권한을 부여했습니다.';
+            }
+        } else {
+            $managerIdValue = sr_post_string('manager_id', 20);
+            $managerId = preg_match('/\A[1-9][0-9]*\z/', $managerIdValue) === 1 ? (int) $managerIdValue : 0;
+            $revoked = $errors === [] ? sr_community_revoke_board_management_permission($pdo, $managerId, $boardId, (int) $account['id']) : null;
+            if (!is_array($revoked)) {
+                $errors[] = '회수할 게시판 관리권한을 찾을 수 없습니다.';
+            }
+            if ($errors === [] && is_array($board) && is_array($revoked)) {
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.board_manager.revoked',
+                    'target_type' => 'community_board',
+                    'target_id' => (string) $boardId,
+                    'result' => 'success',
+                    'message' => 'Community board manager permission revoked.',
+                    'metadata' => [
+                        'board_key' => (string) ($board['board_key'] ?? ''),
+                        'account_id' => (int) ($revoked['account_id'] ?? 0),
+                        'permission_key' => (string) ($revoked['permission_key'] ?? ''),
+                    ],
+                ]);
+                $notice = '게시판 관리권한을 회수했습니다.';
+            }
+        }
+
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect('/admin/community/boards/edit?id=' . (string) $boardId);
+    } elseif ($intent === 'delete_board') {
         $boardIdValue = sr_post_string('board_id', 20);
         $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
         $deleteResult = sr_community_delete_board($pdo, $boardId);
@@ -114,6 +192,7 @@ if (sr_request_method() === 'POST') {
                     'title' => (string) ($board['title'] ?? ''),
                     'deleted_settings' => (int) ($deleteResult['deleted_settings'] ?? 0),
                     'deleted_setting_sources' => (int) ($deleteResult['deleted_setting_sources'] ?? 0),
+                    'deleted_board_managers' => (int) ($deleteResult['deleted_board_managers'] ?? 0),
                     'deleted_categories' => (int) ($deleteResult['deleted_categories'] ?? 0),
                     'deleted_posts' => (int) ($deleteResult['deleted_posts'] ?? 0),
                     'deleted_comments' => (int) ($deleteResult['deleted_comments'] ?? 0),

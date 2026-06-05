@@ -15,7 +15,7 @@ if (!is_array($post)) {
     sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
-if (!sr_community_account_can_delete_post($post, $account)) {
+if (!sr_community_account_can_delete_post($post, $account, $pdo)) {
     sr_render_error(403, sr_t('community::action.error.post_delete_forbidden'));
 }
 
@@ -34,8 +34,8 @@ $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['au
 $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, 'deleted');
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
-    'actor_type' => 'member',
-    'event_type' => 'community.post.deleted_by_author',
+    'actor_type' => (int) $post['author_account_id'] === (int) $account['id'] ? 'member' : 'community_board_manager',
+    'event_type' => (int) $post['author_account_id'] === (int) $account['id'] ? 'community.post.deleted_by_author' : 'community.post.deleted_by_board_manager',
     'target_type' => 'community_post',
     'target_id' => (string) $postId,
     'result' => 'success',

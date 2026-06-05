@@ -196,5 +196,6 @@ function sr_community_account_can_remove_post_og_image(PDO $pdo, array $post, ?a
     }
 
     return sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'edit')
-        || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete');
+        || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete')
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'remove_post_og_image');
 }

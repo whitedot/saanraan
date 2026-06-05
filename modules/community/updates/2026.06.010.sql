@@ -5,3 +5,8 @@ ALTER TABLE sr_community_posts
     ADD COLUMN og_description VARCHAR(255) NOT NULL DEFAULT '' AFTER og_title,
     ADD COLUMN og_image_attachment_id BIGINT UNSIGNED NULL AFTER og_description,
     ADD KEY idx_sr_community_posts_og_image_attachment (og_image_attachment_id);
+
+UPDATE sr_modules
+SET version = '2026.06.010',
+    updated_at = NOW()
+WHERE module_key = 'community';

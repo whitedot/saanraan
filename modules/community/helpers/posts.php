@@ -693,11 +693,19 @@ function sr_community_account_can_edit_post(array $post, array $account): bool
         && (string) $post['status'] === 'published';
 }
 
-function sr_community_account_can_delete_post(array $post, array $account): bool
+function sr_community_account_can_delete_post(array $post, array $account, ?PDO $pdo = null): bool
 {
-    return (int) ($account['id'] ?? 0) > 0
-        && (int) $post['author_account_id'] === (int) $account['id']
-        && (string) $post['status'] === 'published';
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1 || (string) ($post['status'] ?? '') !== 'published') {
+        return false;
+    }
+
+    if ((int) ($post['author_account_id'] ?? 0) === $accountId) {
+        return true;
+    }
+
+    return $pdo instanceof PDO
+        && sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
 }
 
 function sr_community_comment_statuses(): array
