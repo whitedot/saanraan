@@ -381,6 +381,9 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
             (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     foreach ($stmt->fetchAll() as $post) {
+        if (sr_link_card_token_rejection_errors((string) ($post['body_text'] ?? '')) !== []) {
+            throw new InvalidArgumentException('legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다. 해당 게시글 본문에서 토큰을 제거한 뒤 다시 시도하세요.');
+        }
         $sourceCategoryId = (int) ($post['category_id'] ?? 0);
         $params = [
             'board_id' => $newBoardId,

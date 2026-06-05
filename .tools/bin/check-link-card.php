@@ -64,8 +64,10 @@ $communityBoardCopyJobsHelper = file_get_contents($root . '/modules/community/he
 if (!is_string($communityBoardCopyHelper)
     || strpos($communityBoardCopyHelper, "'legacy_link_card_tokens' => 0") === false
     || strpos($communityBoardCopyHelper, 'legacy 링크 카드 토큰이 남아 있는 게시글이 있어 게시판 복사를 시작하지 않았습니다.') === false
+    || strpos($communityBoardCopyHelper, 'legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다.') === false
     || !is_string($communityBoardCopyJobsHelper)
     || strpos($communityBoardCopyJobsHelper, 'sr_community_board_copy_batch_block_errors($counts)') === false
+    || strpos($communityBoardCopyJobsHelper, 'legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다.') === false
 ) {
     sr_link_card_check_error('Community board copy and batch copy must block source posts that still contain legacy link card tokens.');
 }

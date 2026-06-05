@@ -475,6 +475,10 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped');
             continue;
         }
+        if (sr_link_card_token_rejection_errors((string) ($post['body_text'] ?? '')) !== []) {
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', 'legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다.');
+            continue;
+        }
         $params = [
             'board_id' => $targetBoardId,
             'author_account_id' => (int) $post['author_account_id'],
