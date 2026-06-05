@@ -146,28 +146,46 @@ function sr_content_create_comment(PDO $pdo, int $contentId, int $authorAccountI
 
 function sr_content_notification_available(PDO $pdo): bool
 {
-    if (!function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'notification')) {
-        return false;
+    return sr_content_notification_create_function($pdo) !== '';
+}
+
+function sr_content_notification_create_function(PDO $pdo): string
+{
+    if (!sr_module_enabled($pdo, 'notification') || !sr_module_contract_is_loadable('notification')) {
+        return '';
     }
 
-    $helperPath = SR_ROOT . '/modules/notification/helpers.php';
+    $contractFile = SR_ROOT . '/modules/notification/notification-events.php';
+    $contract = sr_load_module_contract_file('notification', $contractFile);
+    if (!is_array($contract)) {
+        return '';
+    }
+
+    $helpers = (string) ($contract['helpers'] ?? '');
+    if ($helpers === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+        return '';
+    }
+
+    $helperPath = SR_ROOT . '/modules/notification/' . $helpers;
     if (!is_file($helperPath)) {
-        return false;
+        return '';
     }
 
     require_once $helperPath;
 
-    return function_exists('sr_notification_create');
+    $function = (string) ($contract['create_function'] ?? '');
+    return $function !== '' && function_exists($function) ? $function : '';
 }
 
 function sr_content_create_account_notification(PDO $pdo, int $accountId, string $title, string $bodyText, string $linkUrl, ?int $createdByAccountId = null): bool
 {
-    if ($accountId < 1 || !sr_content_notification_available($pdo)) {
+    $createNotificationFunction = sr_content_notification_create_function($pdo);
+    if ($accountId < 1 || $createNotificationFunction === '') {
         return false;
     }
 
     try {
-        sr_notification_create($pdo, [
+        $createNotificationFunction($pdo, [
             'audience' => 'account',
             'account_id' => $accountId,
             'title' => $title,

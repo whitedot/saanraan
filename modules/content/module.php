@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.06.008',
+    'version' => '2026.06.009',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -48,6 +48,7 @@ return [
         ],
         'consumes' => [
             'member-assets.php',
+            'notification-events.php',
         ],
     ],
 ];
