@@ -71,6 +71,31 @@ function sr_read_reference_check_callable_signature(string $path, string $functi
     }
 }
 
+function sr_read_reference_check_count_function_source(string $path, string $functionName): void
+{
+    if (!function_exists($functionName)) {
+        return;
+    }
+
+    $reflection = new ReflectionFunction($functionName);
+    $fileName = $reflection->getFileName();
+    if (!is_string($fileName) || !is_file($fileName)) {
+        sr_read_reference_check_error('read reference count function source is not readable: ' . $path . ' ' . $functionName);
+        return;
+    }
+
+    $lines = file($fileName);
+    if (!is_array($lines)) {
+        sr_read_reference_check_error('read reference count function source is not readable: ' . $path . ' ' . $functionName);
+        return;
+    }
+
+    $body = implode('', array_slice($lines, $reflection->getStartLine() - 1, $reflection->getEndLine() - $reflection->getStartLine() + 1));
+    if (strpos($body, 'return count(') === false) {
+        sr_read_reference_check_error('read reference count_function must count returned reference rows: ' . $path . ' ' . $functionName);
+    }
+}
+
 function sr_read_reference_check_helper_values(string $moduleDir, string $path, $helpers): array
 {
     if (is_string($helpers) && $helpers !== '') {
@@ -507,10 +532,6 @@ function sr_read_reference_check_keyed_contract_row_sources(string $root): void
     if (substr_count($contents, "'target_key' => \$targetKey") < 2) {
         sr_read_reference_check_error('read reference coupon issue and redemption rows must include target_key');
     }
-    if (strpos($contents, 'function sr_coupon_definition_reference_count(PDO $pdo, array $target, array $context): int') === false
-        || strpos($contents, 'return count(sr_coupon_definition_reference_rows($pdo, $target, $context));') === false) {
-        sr_read_reference_check_error('read reference coupon count must match coupon reference row count');
-    }
 }
 
 $readReferenceFiles = array_keys(sr_read_reference_contract_files());
@@ -593,6 +614,9 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                     continue;
                 }
                 sr_read_reference_check_callable_signature($path, $functionKey, $functionName);
+                if ($functionKey === 'count_function') {
+                    sr_read_reference_check_count_function_source($path, $functionName);
+                }
             }
         }
     }
