@@ -185,6 +185,47 @@ function sr_read_reference_check_admin_url_safety_samples(): void
     }
 }
 
+function sr_read_reference_check_normalize_row_target_samples(): void
+{
+    $entry = [
+        'consumer_module_key' => 'sample_module',
+        'reference_type' => 'sample_reference',
+    ];
+    $target = [
+        'target_type' => 'site_setting',
+        'target_id' => 0,
+        'target_key' => 'site.name',
+    ];
+    $baseRow = [
+        'consumer_module_key' => 'sample_module',
+        'reference_type' => 'sample_reference',
+        'reference_id' => 'sample:1',
+        'title' => 'sample',
+        'target_type' => 'site_setting',
+        'target_id' => '0',
+        'target_key' => 'site.name',
+    ];
+
+    $valid = sr_read_reference_normalize_row('sample_module', $entry, $target, $baseRow, ['status' => 'ok'], '/admin/sample');
+    if (!is_array($valid['row'] ?? null) || ($valid['errors'] ?? []) !== []) {
+        sr_read_reference_check_error('read reference normalize row target sample rejected valid row');
+    }
+
+    $missingTargetKey = $baseRow;
+    unset($missingTargetKey['target_key']);
+    $missing = sr_read_reference_normalize_row('sample_module', $entry, $target, $missingTargetKey, ['status' => 'ok'], '/admin/sample');
+    if (is_array($missing['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $missing['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted missing target_key');
+    }
+
+    $mismatchedTargetKey = $baseRow;
+    $mismatchedTargetKey['target_key'] = 'site.description';
+    $mismatched = sr_read_reference_normalize_row('sample_module', $entry, $target, $mismatchedTargetKey, ['status' => 'ok'], '/admin/sample');
+    if (is_array($mismatched['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $mismatched['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted mismatched target_key');
+    }
+}
+
 $readReferenceFiles = array_keys(sr_read_reference_contract_files());
 $expectedConsumers = [
     'coupon' => ['coupon-references.php'],
@@ -315,6 +356,7 @@ foreach ($expectedConsumers as $moduleKey => $contractFiles) {
 
 sr_read_reference_check_forbidden_owner_writes($root);
 sr_read_reference_check_admin_url_safety_samples();
+sr_read_reference_check_normalize_row_target_samples();
 
 if ($errors !== []) {
     fwrite(STDERR, "read reference contract checks failed:\n");

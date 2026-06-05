@@ -348,7 +348,7 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         $errors[] = 'target_id가 조회 대상과 맞지 않습니다.';
     }
     $expectedTargetKey = sr_read_reference_string_value($target['target_key'] ?? '') ?? '';
-    if ($expectedTargetKey !== '' && isset($row['target_key']) && (string) $row['target_key'] !== $expectedTargetKey) {
+    if ($expectedTargetKey !== '' && (string) ($row['target_key'] ?? '') !== $expectedTargetKey) {
         $errors[] = 'target_key가 조회 대상과 맞지 않습니다.';
     }
 
