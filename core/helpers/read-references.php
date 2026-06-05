@@ -158,7 +158,11 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
     } else {
         $normalizedTargetTypes = [];
         foreach ($supportsTargetTypes as $supportedTargetType) {
-            $supportedTargetType = (string) $supportedTargetType;
+            if (!is_string($supportedTargetType)) {
+                $errors[] = 'supports_target_types 값이 올바르지 않습니다.';
+                continue;
+            }
+            $supportedTargetType = trim($supportedTargetType);
             if ($supportedTargetType === '') {
                 $errors[] = 'supports_target_types 값이 비어 있습니다.';
                 continue;
@@ -182,7 +186,11 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
         $errors[] = 'helpers 형식이 올바르지 않습니다.';
     } else {
         foreach ($helpers as $helper) {
-            $helperPath = sr_read_reference_helper_path($moduleKey, (string) $helper);
+            if (!is_string($helper)) {
+                $errors[] = 'helper 경로가 올바르지 않습니다.';
+                continue;
+            }
+            $helperPath = sr_read_reference_helper_path($moduleKey, trim($helper));
             if ($helperPath === '') {
                 $errors[] = 'helper 경로가 올바르지 않습니다.';
                 continue;

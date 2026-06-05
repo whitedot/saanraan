@@ -86,7 +86,11 @@ function sr_read_reference_check_helper_values(string $moduleDir, string $path, 
 
     $validHelpers = [];
     foreach ($helpers as $helper) {
-        $helper = (string) $helper;
+        if (!is_string($helper)) {
+            sr_read_reference_check_error('read reference helper is invalid or missing: ' . $path);
+            continue;
+        }
+        $helper = trim($helper);
         if (preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helper) !== 1 || !is_file($moduleDir . '/' . $helper)) {
             sr_read_reference_check_error('read reference helper is invalid or missing: ' . $path . ' ' . $helper);
             continue;
@@ -228,7 +232,11 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 sr_read_reference_check_error('read reference entry requires supports_target_types: ' . $path);
             } else {
                 foreach ($supportsTargetTypes as $targetType) {
-                    $targetType = (string) $targetType;
+                    if (!is_string($targetType)) {
+                        sr_read_reference_check_error('read reference supports_target_types must match contract target type: ' . $path);
+                        continue;
+                    }
+                    $targetType = trim($targetType);
                     if ($targetType !== $expectedTargetType) {
                         sr_read_reference_check_error('read reference supports_target_types must match contract target type: ' . $path . ' ' . $targetType);
                     }
