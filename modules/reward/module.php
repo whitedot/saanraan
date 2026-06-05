@@ -2,7 +2,7 @@
 
 return [
     'name' => '적립금',
-    'version' => '2026.06.001',
+    'version' => '2026.06.002',
     'type' => 'module',
     'description' => '회원 적립금 잔액과 거래 장부 모듈입니다.',
     'admin' => [
@@ -30,6 +30,9 @@ return [
             'asset-exchange.php',
             'member-assets.php',
             'member-withdrawal-assets.php',
+        ],
+        'consumes' => [
+            'notification-events.php',
         ],
     ],
 ];
