@@ -248,7 +248,7 @@ function sr_content_link_card_resolve_many(PDO $pdo, array $types): array
         $contentId = (string) (int) ($row['id'] ?? 0);
         $status = (string) ($row['status'] ?? '');
         $isPublished = $status === 'published';
-        $resolved[sr_link_card_ref_key('content', 'content', $contentId)] = [
+        $resolved[sr_content_link_card_ref_key($contentId)] = [
             'module' => 'content',
             'entity_type' => 'content',
             'entity_id' => $contentId,
@@ -261,13 +261,32 @@ function sr_content_link_card_resolve_many(PDO $pdo, array $types): array
     }
 
     foreach (array_keys($ids) as $id) {
-        $key = sr_link_card_ref_key('content', 'content', (string) $id);
+        $key = sr_content_link_card_ref_key((string) $id);
         if (!isset($resolved[$key])) {
-            $resolved[$key] = sr_link_card_broken_result('content', 'content', (string) $id);
+            $resolved[$key] = sr_content_link_card_broken_result((string) $id);
         }
     }
 
     return $resolved;
+}
+
+function sr_content_link_card_broken_result(string $contentId): array
+{
+    return [
+        'module' => 'content',
+        'entity_type' => 'content',
+        'entity_id' => $contentId,
+        'title' => '연결할 수 없는 콘텐츠',
+        'summary' => '',
+        'url' => '',
+        'status' => 'broken',
+        'broken' => true,
+    ];
+}
+
+function sr_content_link_card_ref_key(string $contentId): string
+{
+    return 'content:content:' . $contentId;
 }
 
 function sr_content_admin_link_refs(PDO $pdo, bool $brokenOnly = false): array
@@ -2687,7 +2706,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             sr_content_cleanup_unreferenced_body_files($pdo, $pageId, '');
         }
-        sr_link_card_reconcile_table($pdo, 'sr_content_link_refs', 'content_id', $pageId, [], $accountId);
+        sr_link_card_clear_legacy_refs($pdo, 'sr_content_link_refs', 'content_id', $pageId);
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
         $pdo->commit();
     } catch (Throwable $exception) {

@@ -641,7 +641,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
         }
         $stmt->execute($params);
-        sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $accountId);
+        sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {
@@ -1166,7 +1166,7 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
                 ]);
             }
         }
-        sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $authorAccountId);
+        sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
         sr_community_cleanup_storage_file_refs($pdo, $finalizedTmpFiles, 'body_file_tmp_finalized', $postId, '게시글 작성 후 임시 본문 이미지 정리에 실패했습니다.');
 
@@ -1395,7 +1395,7 @@ function sr_community_link_card_resolve_many(PDO $pdo, array $types): array
         $summary = trim(strip_tags((string) ($row['body_text'] ?? '')));
         $summary = preg_replace('/\s+/', ' ', $summary) ?? '';
         $summary = function_exists('mb_substr') ? mb_substr($summary, 0, 160) : substr($summary, 0, 160);
-        $resolved[sr_link_card_ref_key('community', 'post', $postId)] = [
+        $resolved[sr_community_link_card_ref_key($postId)] = [
             'module' => 'community',
             'entity_type' => 'post',
             'entity_id' => $postId,
@@ -1408,13 +1408,32 @@ function sr_community_link_card_resolve_many(PDO $pdo, array $types): array
     }
 
     foreach (array_keys($ids) as $id) {
-        $key = sr_link_card_ref_key('community', 'post', (string) $id);
+        $key = sr_community_link_card_ref_key((string) $id);
         if (!isset($resolved[$key])) {
-            $resolved[$key] = sr_link_card_broken_result('community', 'post', (string) $id);
+            $resolved[$key] = sr_community_link_card_broken_result((string) $id);
         }
     }
 
     return $resolved;
+}
+
+function sr_community_link_card_broken_result(string $postId): array
+{
+    return [
+        'module' => 'community',
+        'entity_type' => 'post',
+        'entity_id' => $postId,
+        'title' => '연결할 수 없는 게시글',
+        'summary' => '',
+        'url' => '',
+        'status' => 'broken',
+        'broken' => true,
+    ];
+}
+
+function sr_community_link_card_ref_key(string $postId): string
+{
+    return 'community:post:' . $postId;
 }
 
 function sr_community_admin_link_refs(PDO $pdo, bool $brokenOnly = false): array

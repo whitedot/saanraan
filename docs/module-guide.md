@@ -139,6 +139,7 @@ modules/board/
 - public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 위치 구분으로 `primary_navigation`, `secondary_navigation`, `tertiary_navigation` output slot을 사용할 수 있다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`, `site_menus.secondary`, `site_menus.tertiary`로 전달한다.
 - public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 개발자 화면이며 admin 모듈에 의존하지 않는다.
 - 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `content.basic`, `community.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
+- 번들 `content.basic`과 `community.basic`은 공통 레이아웃 파일을 공유하지 않는다. 콘텐츠는 `modules/content/layouts/basic/layout.php`, 커뮤니티는 허용된 theme 경계 안의 `modules/community/themes/basic/layout.php`를 사용한다. 헤더/푸터처럼 같은 시각 언어를 쓰더라도 모듈 전용 레이아웃 CSS를 사용해 모듈 경계를 유지한다.
 - 모듈 theme는 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
 - 모듈 skin은 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시를 담당한다.
 - 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다. 관리자 shell은 화면 구성 편의를 위해 렌더 후 DOM을 다시 해석해 class나 레이블을 주입하지 않으므로, 폼 행과 선택 항목의 접근성 텍스트는 view가 최종 마크업으로 직접 출력한다. 보안 정화나 외부 HTML 변환처럼 렌더 후 DOM 처리가 정말 필요한 경우는 별도 helper나 모듈 책임으로 명확히 분리하고 테스트한다.

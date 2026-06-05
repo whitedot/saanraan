@@ -613,6 +613,7 @@ modules/community/skins/basic/list.php
 DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `layout_key`, `theme_key`, `skin_key` 같은 key만 저장합니다. 공개 레이아웃 key는 `common.basic`, `content.basic`, `community.basic`처럼 provider namespace를 포함하며, 실제 파일 경로는 코드의 allowlist helper와 `layout-options.php` 계약이 결정합니다. 기존 `basic` 값은 `common.basic`으로 정규화합니다. 알 수 없는 사이트 공통 레이아웃 key는 `common.basic`으로 fallback하고, 커뮤니티 홈이나 콘텐츠처럼 화면별 레이아웃을 저장하는 모듈은 저장값이 없거나 무효이면 사이트 공통 레이아웃을 먼저 사용한 뒤 기본 공통 레이아웃으로 fallback합니다.
 
 사이트 공통 레이아웃, 커뮤니티 홈 레이아웃, 콘텐츠별 공개 레이아웃은 같은 레이아웃 option registry에서 고릅니다. 콘텐츠별 `layout_key`는 `sr_content_items`와 `sr_content_revisions`에 함께 저장해 공개 표시와 revision 기록을 맞추고, 저장값이 없거나 무효이면 사이트 공통 레이아웃으로 fallback합니다. 모듈별 세부 목록/상세/작성 화면은 계속 해당 모듈의 theme/skin 책임으로 둡니다.
+번들 `content.basic`과 `community.basic`은 공통 레이아웃과 같은 시각 언어를 사용할 수 있지만 실제 파일은 각 모듈 경계 안에서 소유합니다. 콘텐츠는 `modules/content/layouts/basic/layout.php`, 커뮤니티는 허용된 theme 경계 안의 `modules/community/themes/basic/layout.php`를 사용합니다. 모듈 전용 header/footer 스타일도 해당 모듈 CSS에 두어 공통 스타일시트가 도메인별 레이아웃 표현을 소유하지 않게 합니다.
 
 디자인 책임은 다음 경계를 유지합니다.
 

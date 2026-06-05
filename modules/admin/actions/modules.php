@@ -40,7 +40,7 @@ if (sr_request_method() === 'POST') {
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/modules');
 }
 
-$viewData = sr_load_module_management_view_data($pdo);
+$viewData = sr_admin_load_module_management_view_data($pdo);
 $modules = $viewData['modules'];
 $installableModules = $viewData['installable_modules'];
 $installableModulePagination = sr_admin_paginate_array($pdo, $installableModules, 'installable_page');

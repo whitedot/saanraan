@@ -6,6 +6,7 @@ $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
+$layoutStylesheets[] = '/modules/community/assets/community-layout.css';
 $layoutSiteMenus = is_array($layoutContext['site_menus'] ?? null) ? $layoutContext['site_menus'] : [];
 $layoutCleanMenuKey = static function (string $value): string {
     $value = strtolower(trim($value));
@@ -17,19 +18,19 @@ $layoutTertiaryMenuKey = array_key_exists('tertiary', $layoutSiteMenus) ? $layou
 $layoutSiteName = trim((string) ($layoutSite['name'] ?? $layoutSite['site_name'] ?? 'Saanraan'));
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
-$layoutBrandLinkUrl = sr_url('/');
+$layoutBrandLinkUrl = sr_url('/community');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
-        'class' => 'public-site-brand-logo public-site-brand-logo-desktop',
+        'class' => 'community-layout-brand-logo community-layout-brand-logo-desktop',
     ]);
     $layoutMobileBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.mobile', $layoutSite, [
         'class' => $layoutBrandLogoHtml !== ''
-            ? 'public-site-brand-logo public-site-brand-logo-mobile'
-            : 'public-site-brand-logo',
+            ? 'community-layout-brand-logo community-layout-brand-logo-mobile'
+            : 'community-layout-brand-logo',
     ]);
     $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop');
     if (is_array($layoutBrandLogo)) {
@@ -46,6 +47,8 @@ if ($layoutPdo instanceof PDO) {
     $layoutFooterHtml .= sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'tertiary_navigation', 'menu_key' => $layoutTertiaryMenuKey]);
     $layoutFooterHtml .= sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'content']);
 }
+$layoutBrandInitialSource = $layoutSiteName !== '' ? $layoutSiteName : 'S';
+$layoutBrandInitial = function_exists('mb_substr') ? mb_substr($layoutBrandInitialSource, 0, 1) : substr($layoutBrandInitialSource, 0, 1);
 ?>
 <!doctype html>
 <html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="light">
@@ -58,49 +61,49 @@ if ($layoutPdo instanceof PDO) {
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body>
-    <header class="public-site-header">
-        <div class="public-site-header-main">
-            <button type="button" class="public-site-icon-button" aria-label="<?php echo sr_e('메뉴'); ?>">
+    <header class="community-layout-header">
+        <div class="community-layout-header-main">
+            <button type="button" class="community-layout-icon-button" aria-label="<?php echo sr_e('메뉴'); ?>">
                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>menu</span>
             </button>
-            <a class="public-site-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+            <a class="community-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
                 <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
                     <?php echo $layoutMobileBrandLogoHtml; ?>
                     <?php echo $layoutBrandLogoHtml; ?>
                 <?php } else { ?>
-                    <span class="public-site-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
+                    <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
                 <?php } ?>
             </a>
-            <div class="public-site-search" role="search" aria-label="<?php echo sr_e('검색'); ?>">
+            <div class="community-layout-search" role="search" aria-label="<?php echo sr_e('검색'); ?>">
                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>search</span>
                 <span><?php echo sr_e('Search'); ?></span>
             </div>
         </div>
-        <div class="public-site-header-actions">
+        <div class="community-layout-header-actions">
             <?php if ($layoutPrimaryNavigationHtml !== '') { ?>
-                <div class="public-site-primary-navigation">
+                <div class="community-layout-primary-navigation">
                     <?php echo $layoutPrimaryNavigationHtml; ?>
                 </div>
             <?php } ?>
-            <a class="public-site-get-app" href="<?php echo sr_e(sr_url('/')); ?>">
+            <a class="community-layout-get-app" href="<?php echo sr_e(sr_url('/community')); ?>">
                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>apps</span>
                 <?php echo sr_e('Get app'); ?>
             </a>
-            <a class="public-site-action-link" href="<?php echo sr_e(sr_url('/admin')); ?>">
+            <a class="community-layout-action-link" href="<?php echo sr_e(sr_url('/community/message/write')); ?>">
                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>edit_square</span>
                 <span><?php echo sr_e('Write'); ?></span>
             </a>
-            <a class="public-site-icon-button" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e('알림'); ?>">
+            <a class="community-layout-icon-button" href="<?php echo sr_e(sr_url('/account/notifications')); ?>" aria-label="<?php echo sr_e('알림'); ?>">
                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>notifications</span>
             </a>
-            <a class="public-site-avatar-link" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e('내 계정'); ?>">
-                <span><?php echo sr_e(function_exists('mb_substr') ? mb_substr($layoutSiteName !== '' ? $layoutSiteName : 'S', 0, 1) : substr($layoutSiteName !== '' ? $layoutSiteName : 'S', 0, 1)); ?></span>
+            <a class="community-layout-avatar-link" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e('내 계정'); ?>">
+                <span><?php echo sr_e($layoutBrandInitial); ?></span>
             </a>
         </div>
     </header>
     <?php echo $layoutContent; ?>
     <?php if ($layoutFooterHtml !== '') { ?>
-        <footer class="public-site-footer">
+        <footer class="community-layout-footer">
             <?php echo $layoutFooterHtml; ?>
         </footer>
     <?php } ?>

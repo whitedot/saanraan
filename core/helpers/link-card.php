@@ -88,26 +88,7 @@ function sr_link_card_token_rejection_errors(string $bodyText): array
     return ['본문에는 링크 카드 토큰을 저장할 수 없습니다. 검색 삽입은 일반 HTML 또는 텍스트 링크로 저장해 주세요.'];
 }
 
-function sr_link_card_ref_key(string $module, string $entityType, string $entityId): string
-{
-    return $module . ':' . $entityType . ':' . $entityId;
-}
-
-function sr_link_card_broken_result(string $module, string $entityType, string $entityId): array
-{
-    return [
-        'module' => $module,
-        'entity_type' => $entityType,
-        'entity_id' => $entityId,
-        'title' => '연결할 수 없는 항목',
-        'summary' => '',
-        'url' => '',
-        'status' => 'broken',
-        'broken' => true,
-    ];
-}
-
-function sr_link_card_reconcile_table(PDO $pdo, string $table, string $subjectColumn, int $subjectId, array $refs, int $accountId): void
+function sr_link_card_clear_legacy_refs(PDO $pdo, string $table, string $subjectColumn, int $subjectId): void
 {
     if ($subjectId < 1 || !sr_link_card_table_is_allowed($table, $subjectColumn) || !sr_link_card_table_exists($pdo, $table)) {
         return;
@@ -115,33 +96,6 @@ function sr_link_card_reconcile_table(PDO $pdo, string $table, string $subjectCo
 
     $delete = $pdo->prepare('DELETE FROM ' . $table . ' WHERE ' . $subjectColumn . ' = :subject_id');
     $delete->execute(['subject_id' => $subjectId]);
-
-    if ($refs === []) {
-        return;
-    }
-
-    $now = sr_now();
-    $insert = $pdo->prepare(
-        'INSERT INTO ' . $table . '
-            (' . $subjectColumn . ', target_module, target_entity_type, target_entity_id, slot_key, variant, label, sort_order, created_by, created_at, updated_at)
-         VALUES
-            (:subject_id, :target_module, :target_entity_type, :target_entity_id, :slot_key, :variant, :label, :sort_order, :created_by, :created_at, :updated_at)'
-    );
-    foreach ($refs as $ref) {
-        $insert->execute([
-            'subject_id' => $subjectId,
-            'target_module' => (string) ($ref['target_module'] ?? ''),
-            'target_entity_type' => (string) ($ref['target_entity_type'] ?? ''),
-            'target_entity_id' => (string) ($ref['target_entity_id'] ?? ''),
-            'slot_key' => (string) ($ref['slot_key'] ?? 'body'),
-            'variant' => (string) ($ref['variant'] ?? 'compact'),
-            'label' => (string) ($ref['label'] ?? ''),
-            'sort_order' => (int) ($ref['sort_order'] ?? 0),
-            'created_by' => $accountId > 0 ? $accountId : null,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-    }
 }
 
 function sr_link_card_table_exists(PDO $pdo, string $table): bool
