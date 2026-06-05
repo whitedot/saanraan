@@ -116,7 +116,14 @@ try {
         sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
     }
     if (isset($savedPageId) && $savedPageId > 0 && $beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
-        $coverImageCleanupResult = sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced_after_partial_save_failure', $savedPageId);
+        try {
+            $coverImageCleanupResult = sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced_after_partial_save_failure', $savedPageId);
+        } catch (Throwable $cleanupException) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($cleanupException, 'content_cover_image_cleanup_after_partial_save_failed');
+            }
+            $coverImageCleanupResult = ['attempted' => true, 'deleted' => false, 'failed' => true, 'reference' => ''];
+        }
     }
     if (isset($savedPageId) && $savedPageId > 0) {
         sr_audit_log($pdo, [
