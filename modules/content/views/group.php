@@ -63,7 +63,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <?php } ?>
                             </div>
                             <a class="content-group-item-thumb" href="<?php echo sr_e(sr_url(sr_content_path($groupContentSlug))); ?>" aria-label="<?php echo sr_e((string) ($groupContent['title'] ?? $groupContentSlug)); ?>">
-                                <span><?php echo sr_e(function_exists('mb_substr') ? mb_substr((string) ($groupContent['title'] ?? $groupContentSlug), 0, 1) : substr((string) ($groupContent['title'] ?? $groupContentSlug), 0, 1)); ?></span>
+                                <?php echo sr_content_cover_image_html($groupContent, 'content-group-item-image', (string) ($groupContent['title'] ?? $groupContentSlug)); ?>
                             </a>
                         </article>
                     <?php } ?>

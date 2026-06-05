@@ -472,6 +472,7 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
         'content_group_id' => 0,
         'slug' => '',
         'summary' => '',
+        'cover_image_url' => '',
         'body_text' => '',
         'status' => (string) ($defaults['status'] ?? 'draft'),
         'layout_key' => (string) ($defaults['layout_key'] ?? ($pdo instanceof PDO ? sr_content_default_layout_key($pdo, $site) : '')),
@@ -527,6 +528,126 @@ function sr_content_clean_text(string $value, int $maxLength): string
     }
 
     return trim(substr($value, 0, $maxLength));
+}
+
+function sr_content_clean_cover_image_url(string $value): string
+{
+    $value = trim($value);
+    if ($value === '' || sr_is_safe_relative_url($value) || sr_is_http_url($value)) {
+        return $value;
+    }
+
+    return '';
+}
+
+function sr_content_cover_image_upload_max_bytes(): int
+{
+    return 5242880;
+}
+
+function sr_content_cover_image_upload_was_provided(mixed $file): bool
+{
+    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+}
+
+function sr_content_cover_image_format_for_mime(string $mimeType): string
+{
+    return match (strtolower(trim($mimeType))) {
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        default => '',
+    };
+}
+
+function sr_content_cover_image_mime_is_allowed(string $mimeType): bool
+{
+    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp'], true);
+}
+
+function sr_content_upload_cover_image(array $file): ?array
+{
+    if (!sr_content_cover_image_upload_was_provided($file)) {
+        return null;
+    }
+
+    $validated = sr_upload_validate_file($file, [
+        'max_bytes' => sr_content_cover_image_upload_max_bytes(),
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+    ]);
+
+    $targetFormat = sr_content_cover_image_format_for_mime((string) $validated['mime_type']);
+    if ($targetFormat === '') {
+        throw new RuntimeException('허용되지 않은 커버 이미지 형식입니다.');
+    }
+
+    $datePath = date('Y/m');
+    $directory = SR_ROOT . '/storage/tmp/content-cover-images/' . $datePath;
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('커버 이미지 저장 디렉터리를 만들 수 없습니다.');
+    }
+
+    $storedName = sr_upload_random_filename($targetFormat);
+    $targetPath = sr_upload_safe_target_path($directory, $storedName);
+    sr_upload_assert_target_path_writable($targetPath);
+
+    if (!sr_upload_reencode_image((string) $validated['tmp_name'], $targetPath, $targetFormat, [
+        'max_pixels' => 25000000,
+        'quality' => 86,
+    ])) {
+        throw new RuntimeException('커버 이미지 재인코딩에 실패했습니다.');
+    }
+
+    $storedMimeType = sr_upload_detect_mime($targetPath);
+    if (!sr_content_cover_image_mime_is_allowed($storedMimeType)) {
+        @unlink($targetPath);
+        throw new RuntimeException('저장된 커버 이미지 MIME을 확인할 수 없습니다.');
+    }
+
+    $storageKey = 'content/cover-images/' . $datePath . '/' . $storedName;
+    $stored = sr_storage_put_file($targetPath, $storageKey, [
+        'content_type' => $storedMimeType,
+    ]);
+    @unlink($targetPath);
+
+    $storageReference = sr_storage_reference((string) $stored['driver'], $storageKey);
+    $publicUrl = (string) ($stored['url'] ?? '');
+
+    return [
+        'driver' => (string) $stored['driver'],
+        'key' => $storageKey,
+        'path' => (string) ($stored['path'] ?? ''),
+        'storage_key' => $storageKey,
+        'url' => $publicUrl !== '' ? $publicUrl : '/content/cover-image?file=' . rawurlencode($storageReference),
+    ];
+}
+
+function sr_content_cover_image_storage_key_is_valid(string $key): bool
+{
+    return preg_match('#\Acontent/cover-images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) === 1;
+}
+
+function sr_content_cover_image_storage_reference(string $reference): ?array
+{
+    $storage = sr_storage_parse_reference($reference);
+    if (!is_array($storage) || !sr_content_cover_image_storage_key_is_valid((string) $storage['key'])) {
+        return null;
+    }
+
+    return $storage;
+}
+
+function sr_content_cover_image_html(array $content, string $className, string $alt = ''): string
+{
+    $imageUrl = sr_content_clean_cover_image_url((string) ($content['cover_image_url'] ?? ''));
+    $label = $alt !== '' ? $alt : (string) ($content['title'] ?? '');
+    if ($imageUrl !== '') {
+        $src = sr_is_http_url($imageUrl) ? $imageUrl : sr_url($imageUrl);
+        return '<img class="' . sr_e($className) . '" src="' . sr_e($src) . '" alt="' . sr_e($label) . '" loading="lazy">';
+    }
+
+    return '<span class="' . sr_e($className . ' content-cover-placeholder') . '" aria-hidden="true"></span>';
 }
 
 function sr_content_clean_slug(string $value): string
@@ -1343,7 +1464,7 @@ function sr_content_published_contents_for_group(PDO $pdo, int $groupId): array
     sr_content_publish_due_scheduled($pdo);
 
     $stmt = $pdo->prepare(
-        "SELECT id, slug, title, summary, updated_at, published_at
+        "SELECT id, slug, title, summary, cover_image_url, updated_at, published_at
          FROM sr_content_items
          WHERE content_group_id = :group_id
            AND status = 'published'
@@ -1361,7 +1482,7 @@ function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
     sr_content_publish_due_scheduled($pdo);
 
     $stmt = $pdo->query(
-        "SELECT p.id, p.slug, p.title, p.summary, p.updated_at, p.published_at,
+        "SELECT p.id, p.slug, p.title, p.summary, p.cover_image_url, p.updated_at, p.published_at,
                 g.group_key AS content_group_key, g.title AS content_group_title
          FROM sr_content_items p
          LEFT JOIN sr_content_groups g ON g.id = p.content_group_id AND g.status = 'enabled'
@@ -2332,6 +2453,8 @@ function sr_content_input_values(?PDO $pdo = null): array
         'title' => sr_content_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_content_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_content_clean_text(sr_post_string('summary', 1000), 1000),
+        'cover_image_url' => sr_content_clean_cover_image_url(sr_post_string('cover_image_url', 255)),
+        'raw_cover_image_url' => sr_post_string('cover_image_url', 255),
         'body_text' => $bodyText,
         'body_format' => $bodyFormat,
         'status' => sr_post_string('status', 30),
@@ -2462,6 +2585,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         }
     }
 
+    if ((int) ($values['cover_image_upload_provided'] ?? 0) !== 1 && (string) ($values['raw_cover_image_url'] ?? '') !== '' && (string) ($values['cover_image_url'] ?? '') === '') {
+        $errors[] = '커버 이미지 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
+    }
+
     $layoutKey = (string) ($values['layout_key'] ?? '');
     if ($layoutKey !== '' && !isset(sr_public_layout_options($pdo)[$layoutKey])) {
         $errors[] = '콘텐츠 레이아웃 값이 올바르지 않습니다.';
@@ -2576,7 +2703,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
             $stmt = $pdo->prepare(
                 'UPDATE sr_content_items
                  SET content_group_id = :content_group_id,
-                     slug = :slug, title = :title, summary = :summary, body_text = :body_text,
+                     slug = :slug, title = :title, summary = :summary, cover_image_url = :cover_image_url, body_text = :body_text,
                      body_format = :body_format, status = :status,
                      layout_key = :layout_key,
                      asset_access_enabled = :asset_access_enabled,
@@ -2607,6 +2734,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'slug' => (string) $values['slug'],
                 'title' => (string) $values['title'],
                 'summary' => (string) $values['summary'],
+                'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
                 'body_text' => (string) $values['body_text'],
                 'body_format' => (string) ($values['body_format'] ?? 'plain'),
                 'status' => (string) $values['status'],
@@ -2639,15 +2767,16 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_content_items
-                    (content_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:content_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
                 'slug' => (string) $values['slug'],
                 'title' => (string) $values['title'],
                 'summary' => (string) $values['summary'],
+                'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
                 'body_text' => (string) $values['body_text'],
                 'body_format' => (string) ($values['body_format'] ?? 'plain'),
                 'status' => (string) $values['status'],
@@ -2729,15 +2858,16 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_revisions
-            (content_id, content_group_id, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
+            (content_id, content_group_id, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:content_id, :content_group_id, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
+            (:content_id, :content_group_id, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
         'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
         'title' => (string) $values['title'],
         'summary' => (string) $values['summary'],
+        'cover_image_url' => (string) ($values['cover_image_url'] ?? ''),
         'body_text' => (string) $values['body_text'],
         'body_format' => (string) ($values['body_format'] ?? 'plain'),
         'status' => (string) $values['status'],
@@ -2863,15 +2993,16 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
 
         $stmt = $pdo->prepare(
             'INSERT INTO sr_content_items
-                (content_group_id, slug, title, summary, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
              VALUES
-                (:content_group_id, :slug, :title, :summary, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
         );
         $stmt->execute([
             'content_group_id' => (int) ($copy['content_group_id'] ?? 0) > 0 ? (int) $copy['content_group_id'] : null,
             'slug' => $newSlug,
             'title' => $newTitle,
             'summary' => (string) ($copy['summary'] ?? ''),
+            'cover_image_url' => (string) ($copy['cover_image_url'] ?? ''),
             'body_text' => (string) ($copy['body_text'] ?? ''),
             'body_format' => (string) ($copy['body_format'] ?? 'plain'),
             'status' => 'draft',

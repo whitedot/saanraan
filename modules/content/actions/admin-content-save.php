@@ -18,6 +18,9 @@ sr_require_csrf();
 
 $pageId = (int) sr_post_string('content_id', 20);
 $values = sr_content_input_values($pdo);
+$coverImageUploadFile = $_FILES['cover_image_upload'] ?? null;
+$coverImageUploadProvided = sr_content_cover_image_upload_was_provided($coverImageUploadFile);
+$values['cover_image_upload_provided'] = $coverImageUploadProvided ? 1 : 0;
 $values['scheduled_publish_at'] = sr_content_scheduled_publish_at_from_post();
 $seriesSortOrder = sr_admin_post_int_in_range('series_sort_order', 0, 1000000);
 $seriesValues = [
@@ -40,6 +43,21 @@ foreach ($publicPopupLayers as $publicPopupLayer) {
     $publicPopupLayerIds[(int) $publicPopupLayer['id']] = true;
 }
 $errors = sr_content_validate_input($pdo, $values, $pageId, $publicBannerIds, $publicPopupLayerIds);
+if ($coverImageUploadProvided) {
+    if (!is_array($coverImageUploadFile)) {
+        $errors[] = '업로드할 커버 이미지를 확인할 수 없습니다.';
+    } else {
+        try {
+            $uploadedCoverImage = sr_content_upload_cover_image($coverImageUploadFile);
+            if (is_array($uploadedCoverImage)) {
+                $values['cover_image_url'] = (string) $uploadedCoverImage['url'];
+                $values['raw_cover_image_url'] = (string) $uploadedCoverImage['url'];
+            }
+        } catch (Throwable $exception) {
+            $errors[] = $exception->getMessage();
+        }
+    }
+}
 if ($pageId > 0 && !is_array(sr_content_by_id($pdo, $pageId))) {
     $errors[] = '수정할 콘텐츠를 찾을 수 없습니다.';
 }

@@ -14,6 +14,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 - `/content` 기반 콘텐츠 메인 공개 목록
 - `/content/group?key={group_key}` 기반 콘텐츠 그룹 공개 목록
 - 제목, 요약, plain text 본문, SEO 제목/설명
+- 콘텐츠 커버 이미지 URL과 업로드 이미지
 - plain text 본문 저장과 escape 출력
 - `menu-links.php` 기반 사이트 메뉴 후보
 - `sitemap.php` 기반 sitemap 후보
@@ -31,6 +32,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 - slug 중복과 예약어 차단
 - `draft`, `hidden` 공개 접근 차단. 단, `/admin/content` 조회 권한이 있는 관리자는 `draft` 콘텐츠를 공개 URL로 미리보기할 수 있음
 - `published` 공개 접근과 SEO title/description 출력
+- 커버 이미지가 있으면 콘텐츠 홈, 그룹 목록, 상세, OG 이미지에 반영하고 없으면 공개 목록에서 회색 플레이스홀더를 표시
 - 사이트 메뉴 후보와 sitemap 후보 포함
 - 콘텐츠 그룹이 사이트 메뉴 연결 대상과 sitemap 후보에 포함
 - 관리자 POST action의 로그인, 권한, CSRF 검증

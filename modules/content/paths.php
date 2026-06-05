@@ -4,6 +4,7 @@ return [
     'GET /content' => 'actions/home.php',
     'GET /content/download' => 'actions/download.php',
     'POST /content/download' => 'actions/download.php',
+    'GET /content/cover-image' => 'actions/cover-image.php',
     'GET /content/body-file' => 'actions/body-file.php',
     'GET /content/group' => 'actions/group.php',
     'POST /content/action' => 'actions/action.php',

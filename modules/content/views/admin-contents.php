@@ -434,6 +434,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
+                <label class="form-label" for="content_admin_contents_cover_image_url">커버 이미지</label>
+                <div class="admin-form-field">
+                    <input id="content_admin_contents_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e((string) ($values['cover_image_url'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                    <input id="content_admin_contents_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
+                    <p class="admin-form-help">홈과 목록에서 쓰는 대표 이미지입니다. 파일 업로드가 있으면 URL 입력값보다 업로드 이미지가 우선됩니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_body_text', sr_t('content::ui.text.9118bb57'), $contentHelp['body_text']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <textarea id="content_admin_contents_body_text" name="body_text" rows="14" class="form-textarea"<?php echo $contentEditorAttributes; ?>><?php echo sr_e((string) ($values['body_text'] ?? '')); ?></textarea>

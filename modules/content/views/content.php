@@ -12,6 +12,9 @@ $seo = [
         'type' => 'article',
     ],
 ];
+if (sr_content_clean_cover_image_url((string) ($page['cover_image_url'] ?? '')) !== '') {
+    $seo['og']['image'] = (string) $page['cover_image_url'];
+}
 $pageLayoutKey = sr_public_layout_normalize_key((string) ($page['layout_key'] ?? ''));
 if ($pageLayoutKey === '' || !isset(sr_public_layout_options($pdo ?? null)[$pageLayoutKey])) {
     $pageLayoutKey = sr_public_layout_key($site ?? null, $pdo ?? null);
@@ -57,6 +60,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <span><?php echo sr_e((string) $contentReadMinutes); ?><?php echo sr_e('분 읽기'); ?></span>
             </div>
         </header>
+        <?php if ((string) ($page['cover_image_url'] ?? '') !== '') { ?>
+            <figure class="content-cover-figure">
+                <?php echo sr_content_cover_image_html($page, 'content-cover-image', (string) $page['title']); ?>
+            </figure>
+        <?php } ?>
         <?php if (empty($pageAccess['allowed'])) { ?>
             <div class="content-body">
                 <p><?php echo sr_e((string) ($pageAccess['message'] ?? sr_t('content::ui.content.7d2dd480'))); ?></p>
