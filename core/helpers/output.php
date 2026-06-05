@@ -536,16 +536,10 @@ function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null): string
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/tokens.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/icons.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/common.css')) . '">',
-        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/saanraan.css')) . '">',
         '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/public-ui.css')) . '">',
     ];
 
     $stylesheetPaths = [];
-    if ($pdo instanceof PDO) {
-        foreach (sr_public_module_stylesheet_paths($pdo) as $stylesheet) {
-            $stylesheetPaths[$stylesheet] = $stylesheet;
-        }
-    }
 
     foreach ($stylesheets as $stylesheet) {
         if (!is_string($stylesheet) || !sr_is_safe_relative_url($stylesheet)) {
@@ -560,53 +554,6 @@ function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null): string
     }
 
     return implode(PHP_EOL, $tags);
-}
-
-function sr_public_module_stylesheet_paths(PDO $pdo): array
-{
-    $stylesheets = [];
-    foreach (sr_enabled_module_keys($pdo) as $moduleKey) {
-        $metadata = sr_module_metadata($moduleKey);
-        $public = is_array($metadata['public'] ?? null) ? $metadata['public'] : [];
-        $declared = $public['stylesheets'] ?? [];
-        if (!is_array($declared)) {
-            continue;
-        }
-
-        foreach ($declared as $stylesheet) {
-            $path = sr_public_module_stylesheet_path($moduleKey, $stylesheet);
-            if ($path !== '') {
-                $stylesheets[$path] = $path;
-            }
-        }
-    }
-
-    return array_values($stylesheets);
-}
-
-function sr_public_module_stylesheet_path(string $moduleKey, mixed $stylesheet): string
-{
-    if (!sr_is_safe_module_key($moduleKey) || !is_string($stylesheet)) {
-        return '';
-    }
-
-    $path = str_replace('\\', '/', trim($stylesheet));
-    if (preg_match('/\Aassets\/[a-zA-Z0-9_\/.-]+\.css\z/', $path) !== 1 || strpos($path, '..') !== false) {
-        return '';
-    }
-
-    $assetDir = realpath(SR_ROOT . '/modules/' . $moduleKey . '/assets');
-    $file = realpath(SR_ROOT . '/modules/' . $moduleKey . '/' . $path);
-    if ($assetDir === false || $file === false || !is_file($file)) {
-        return '';
-    }
-
-    $assetPrefix = rtrim($assetDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-    if (!str_starts_with($file, $assetPrefix)) {
-        return '';
-    }
-
-    return '/modules/' . $moduleKey . '/' . $path;
 }
 
 function sr_asset_url(string $path): string

@@ -10,10 +10,10 @@
 }
 
 .sr-popup-layer {
-    border: 1px solid var(--sr-popup-border);
+    border: 1px solid var(--sr-popup-border, var(--color-default-400));
     border-radius: 6px;
-    background: var(--sr-surface);
-    box-shadow: 0 8px 20px var(--sr-shadow-floating);
+    background: var(--sr-surface, var(--color-card));
+    box-shadow: 0 8px 20px var(--sr-shadow-floating, rgba(32, 36, 42, 0.12));
     padding: 16px;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .sr-popup-layer-body {
-    color: var(--sr-muted-strong);
+    color: var(--sr-muted-strong, var(--color-default-700));
 }
 
 .sr-popup-layer-actions {
@@ -41,9 +41,9 @@
 }
 
 .sr-popup-layer-dismiss {
-    border-color: var(--sr-primary);
-    background: var(--sr-primary);
-    color: var(--sr-on-primary);
+    border-color: var(--sr-primary, var(--color-primary));
+    background: var(--sr-primary, var(--color-primary));
+    color: var(--sr-on-primary, var(--color-white));
 }
 
 @media (max-width: 720px) {

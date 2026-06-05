@@ -20,6 +20,7 @@ $layoutMobileBrandLogoHtml = '';
 $layoutBrandLinkUrl = sr_url('/');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
+$layoutFooterNavigationHtml = '';
 $layoutFooterHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
@@ -42,9 +43,13 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
 }
 if ($layoutPdo instanceof PDO) {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
-    $layoutFooterHtml .= sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'secondary_navigation', 'menu_key' => $layoutSecondaryMenuKey]);
-    $layoutFooterHtml .= sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'tertiary_navigation', 'menu_key' => $layoutTertiaryMenuKey]);
+    $layoutFooterNavigationHtml .= sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'secondary_navigation', 'menu_key' => $layoutSecondaryMenuKey]);
+    $layoutFooterNavigationHtml .= sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'tertiary_navigation', 'menu_key' => $layoutTertiaryMenuKey]);
+    $layoutFooterHtml .= $layoutFooterNavigationHtml;
     $layoutFooterHtml .= sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => 'content']);
+}
+if ($layoutPrimaryNavigationHtml !== '' || $layoutFooterNavigationHtml !== '') {
+    $layoutStylesheets[] = '/modules/site_menu/assets/public.css';
 }
 ?>
 <!doctype html>

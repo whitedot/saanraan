@@ -146,6 +146,10 @@ function sr_content_public_layout_context(array $settings, array $context = []):
         $context['layout_key'] = $layoutKey;
     }
 
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/content/assets/public.css';
+    $context['stylesheets'] = $stylesheets;
+
     $siteMenus = [
         'primary' => sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')),
         'secondary' => sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')),

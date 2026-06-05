@@ -144,7 +144,7 @@
 }
 
 .community-layout-footer {
-    border-top: 1px solid var(--sr-border);
+    border-top: 1px solid var(--sr-border, var(--color-default-300));
     display: grid;
     gap: 12px;
     margin: 32px auto 0;

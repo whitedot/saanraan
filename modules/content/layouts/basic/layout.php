@@ -41,6 +41,9 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
 if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
 }
+if ($layoutPrimaryNavigationHtml !== '') {
+    $layoutStylesheets[] = '/modules/site_menu/assets/public.css';
+}
 $layoutCopyrightYear = date('Y');
 ?>
 <!doctype html>

@@ -13,7 +13,12 @@ $seo = [
     'canonical' => sr_canonical_url($site, '/'),
 ];
 
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'stylesheets' => [
+        '/assets/saanraan.css',
+        '/modules/banner/assets/public.css',
+    ],
+]);
 ?>
     <main>
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>

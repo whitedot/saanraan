@@ -24,8 +24,13 @@ $contentPublisherName = trim((string) (($site ?? [])['name'] ?? ($site ?? [])['s
 $contentPublisherName = $contentPublisherName !== '' ? $contentPublisherName : 'Saanraan';
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? substr($contentPublishedAt, 0, 10) : substr((string) ($page['updated_at'] ?? ''), 0, 10);
+$contentStylesheets = [
+    '/modules/banner/assets/public.css',
+    '/modules/popup_layer/assets/public.css',
+];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => $pageLayoutKey,
+    'stylesheets' => $contentStylesheets,
 ]));
 ?>
 <main class="content-public content-public-basic">

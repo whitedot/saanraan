@@ -2,9 +2,9 @@
     display: grid;
     gap: 8px;
     margin: 0 0 20px;
-    border: 1px solid var(--sr-border);
+    border: 1px solid var(--sr-border, var(--color-default-300));
     border-radius: 8px;
-    background: var(--sr-surface);
+    background: var(--sr-surface, var(--color-card));
     padding: 16px;
 }
 
@@ -27,10 +27,10 @@
 }
 
 .sr-banner strong {
-    color: var(--sr-text);
+    color: var(--sr-text, var(--color-default-900));
     font-weight: 700;
 }
 
 .sr-banner span {
-    color: var(--sr-muted);
+    color: var(--sr-muted, var(--color-default-600));
 }

@@ -9,7 +9,12 @@ $seo = [
     'canonical' => sr_canonical_url($homeSite, '/'),
 ];
 
-sr_public_layout_begin($homePdo, $homeSite, $seo);
+sr_public_layout_begin($homePdo, $homeSite, $seo, [
+    'stylesheets' => [
+        '/assets/saanraan.css',
+        '/modules/banner/assets/public.css',
+    ],
+]);
 ?>
     <main class="public-ui-scope public-home">
         <?php if ($homePdo instanceof PDO) { ?>
