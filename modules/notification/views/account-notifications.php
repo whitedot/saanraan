@@ -6,7 +6,9 @@ $seo = [
     'canonical' => sr_canonical_url($site, '/account/notifications'),
     'robots' => 'noindex, nofollow',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'style_profile' => 'kit',
+]);
 ?>
     <main>
         <h1><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></h1>

@@ -11,12 +11,15 @@ $seo = [
     'title' => $assetConfirmationTitle,
     'robots' => 'noindex, nofollow',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+$contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings));
 ?>
-<main>
-    <article>
-        <h1><?php echo sr_e($assetConfirmationTitle); ?></h1>
-        <p><?php echo sr_e($assetConfirmationMessage); ?></p>
+<main class="content-public content-public-basic">
+    <article class="content-article">
+        <header class="content-header">
+            <h1><?php echo sr_e($assetConfirmationTitle); ?></h1>
+            <p><?php echo sr_e($assetConfirmationMessage); ?></p>
+        </header>
         <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">

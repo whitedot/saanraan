@@ -20,6 +20,7 @@ $seo = [
 ];
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'style_profile' => 'kit',
     'stylesheets' => [
         '/assets/public-ui-kit.css',
     ],

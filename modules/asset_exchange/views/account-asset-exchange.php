@@ -7,6 +7,7 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'style_profile' => 'kit',
     'stylesheets' => ['/modules/asset_exchange/assets/public.css'],
 ]);
 ?>

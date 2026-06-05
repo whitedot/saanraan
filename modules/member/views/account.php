@@ -5,7 +5,9 @@ $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'style_profile' => 'kit',
+]);
 ?>
     <main>
         <h1><?php echo sr_e($pageTitle); ?></h1>

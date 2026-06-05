@@ -262,7 +262,7 @@ $checks = [
         'label' => 'stylesheet',
         'path' => '/assets/saanraan.css',
         'allowed_statuses' => [200],
-        'must_contain' => ['body'],
+        'must_contain' => ['--sr-bg'],
     ],
     [
         'label' => 'database SQL protection',

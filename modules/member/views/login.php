@@ -6,7 +6,9 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $identifierLabel = sr_t('member::ui.email.95b727cb');
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'style_profile' => 'kit',
+]);
 ?>
     <main class="public-ui-scope member-login-public">
         <section class="public-ui-form-panel">

@@ -14,13 +14,14 @@ $seo = [
 ];
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'style_profile' => 'kit',
     'stylesheets' => [
         '/assets/saanraan.css',
         '/modules/banner/assets/public.css',
     ],
 ]);
 ?>
-    <main>
+    <main class="public-ui-scope public-home">
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
         <h1><?php echo sr_e($pageTitle); ?></h1>
         <p><?php echo sr_e(sr_t('ui.saanraan.d60361f1')); ?></p>
