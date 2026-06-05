@@ -353,6 +353,14 @@ function sr_read_reference_check_sample_count_statement_before_rows(PDO $pdo, ar
     return count(sr_read_reference_check_sample_rows($pdo, $target, $context));
 }
 
+function sr_read_reference_check_sample_count_statement_after_rows(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_read_reference_check_sample_rows($pdo, $target, $context));
+
+    $unused = $target;
+    unset($unused);
+}
+
 function sr_read_reference_check_count_function_source_samples(): void
 {
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_rows', 'sr_read_reference_check_sample_rows') !== true) {
@@ -369,6 +377,9 @@ function sr_read_reference_check_count_function_source_samples(): void
     }
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_statement_before_rows', 'sr_read_reference_check_sample_rows') !== false) {
         sr_read_reference_check_error('read reference count_function source sample accepted statement before rows count expression');
+    }
+    if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_statement_after_rows', 'sr_read_reference_check_sample_rows') !== false) {
+        sr_read_reference_check_error('read reference count_function source sample accepted statement after rows count expression');
     }
 }
 
