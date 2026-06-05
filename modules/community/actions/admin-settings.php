@@ -122,7 +122,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.layout_invalid');
             $layoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
         }
-        foreach ([$layoutPrimaryMenuKey, $layoutSecondaryMenuKey, $layoutTertiaryMenuKey] as $layoutMenuKey) {
+        foreach ([$layoutPrimaryMenuKey] as $layoutMenuKey) {
             if ($layoutMenuKey !== '' && !isset($siteMenuOptions[$layoutMenuKey])) {
                 $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
                 break;
