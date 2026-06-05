@@ -1856,7 +1856,16 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     $failedCoverImages = 0;
     $failedCoverImageRefs = [];
     foreach ($coverImageUrls as $coverImageUrl) {
-        $coverImageCleanup = sr_content_delete_cover_image_storage($pdo, $coverImageUrl, $groupId, 'group_delete_cover_image');
+        try {
+            $coverImageCleanup = sr_content_delete_cover_image_storage($pdo, $coverImageUrl, $groupId, 'group_delete_cover_image');
+        } catch (Throwable $exception) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'content_group_cover_image_cleanup_failed');
+            }
+            $failedCoverImages++;
+            $failedCoverImageRefs[] = sr_content_clean_text($coverImageUrl, 180);
+            continue;
+        }
         if (!empty($coverImageCleanup['deleted'])) {
             $deletedCoverImages++;
         }
