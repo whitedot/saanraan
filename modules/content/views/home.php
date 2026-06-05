@@ -27,6 +27,18 @@ $contentHomeGroupText = static function (array $content) use ($contentPublisherN
     $groupTitle = trim((string) ($content['content_group_title'] ?? ''));
     return $groupTitle !== '' ? $groupTitle : $contentPublisherName;
 };
+$contentHomeExcerptText = static function (array $content): string {
+    $summary = trim(preg_replace('/\s+/u', ' ', (string) ($content['summary'] ?? '')) ?? '');
+    if ($summary === '') {
+        return '';
+    }
+
+    if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+        return mb_strlen($summary, 'UTF-8') > 128 ? mb_substr($summary, 0, 128, 'UTF-8') . '...' : $summary;
+    }
+
+    return strlen($summary) > 180 ? substr($summary, 0, 180) . '...' : $summary;
+};
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => (string) ($contentHomeLayoutKey ?? ''),
 ]));
@@ -54,21 +66,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php } ?>
                 </div>
             </article>
-            <section class="content-home-hero-after" aria-label="<?php echo sr_e('대표 콘텐츠 소개'); ?>">
-                <div class="content-home-share">
-                    <p><?php echo sr_e('Share this article'); ?></p>
-                    <div>
-                        <span aria-hidden="true">f</span>
-                        <span aria-hidden="true">in</span>
-                        <span aria-hidden="true">◎</span>
-                        <span aria-hidden="true">t</span>
-                        <span aria-hidden="true">g+</span>
-                    </div>
-                </div>
-                <p class="content-home-hero-note">
-                    <?php echo sr_e((string) ($contentHomeFeatured['summary'] ?? '') !== '' ? (string) $contentHomeFeatured['summary'] : 'A focused editorial view on the latest content, shaped for slow reading and clear browsing.'); ?>
-                </p>
-            </section>
         <?php } else { ?>
             <section class="content-home-empty-hero">
                 <h1><?php echo sr_e('공개된 콘텐츠가 없습니다.'); ?></h1>
@@ -85,21 +82,30 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php if (!sr_content_slug_is_valid($contentHomeSlug)) { ?>
                         <?php continue; ?>
                     <?php } ?>
+                    <?php $contentHomeUrl = sr_url(sr_content_path($contentHomeSlug)); ?>
+                    <?php $contentHomeExcerpt = $contentHomeExcerptText($contentHomeItem); ?>
                     <article class="content-home-latest-item">
-                        <a class="content-home-latest-media" href="<?php echo sr_e(sr_url(sr_content_path($contentHomeSlug))); ?>" aria-label="<?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>">
+                        <a class="content-home-latest-media" href="<?php echo sr_e($contentHomeUrl); ?>" aria-label="<?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>">
                             <?php echo sr_content_cover_image_html($contentHomeItem, 'content-home-latest-image', (string) ($contentHomeItem['title'] ?? '')); ?>
                         </a>
                         <div class="content-home-latest-copy">
                             <p class="content-home-latest-meta">
+                                <span><?php echo sr_e($contentPublisherName); ?></span>
+                            </p>
+                            <h2>
+                                <a href="<?php echo sr_e($contentHomeUrl); ?>">
+                                    <span><?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?></span>
+                                </a>
+                            </h2>
+                            <?php if ($contentHomeExcerpt !== '') { ?>
+                                <p class="content-home-latest-excerpt"><?php echo sr_e($contentHomeExcerpt); ?></p>
+                            <?php } ?>
+                            <div class="content-home-latest-footer">
                                 <span><?php echo sr_e($contentHomeGroupText($contentHomeItem)); ?></span>
                                 <?php if ($contentHomeDateText($contentHomeItem) !== '') { ?>
-                                    <span><?php echo sr_e($contentHomeDateText($contentHomeItem)); ?></span>
+                                    <time datetime="<?php echo sr_e($contentHomeDateText($contentHomeItem)); ?>"><?php echo sr_e($contentHomeDateText($contentHomeItem)); ?></time>
                                 <?php } ?>
-                            </p>
-                            <h2><a href="<?php echo sr_e(sr_url(sr_content_path($contentHomeSlug))); ?>"><?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?></a></h2>
-                            <?php if ((string) ($contentHomeItem['summary'] ?? '') !== '') { ?>
-                                <p><?php echo sr_e((string) $contentHomeItem['summary']); ?></p>
-                            <?php } ?>
+                            </div>
                         </div>
                     </article>
                 <?php } ?>

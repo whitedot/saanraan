@@ -938,59 +938,6 @@
     font-size: .95rem;
     line-height: 1.56;
     margin: 0 0 26px;
-    max-width: 520px;
-}
-
-.content-home-hero-after {
-    align-items: start;
-    display: grid;
-    gap: 44px;
-    grid-template-columns: 330px minmax(0, 1fr);
-    padding: 34px 0 78px;
-}
-
-.content-home-share {
-    border-right: 1px solid rgba(0, 0, 0, .18);
-    min-height: 112px;
-    padding: 0 36px 0 38px;
-    text-align: center;
-}
-
-.content-home-share p {
-    color: #1f1f1f;
-    font-size: .95rem;
-    line-height: 1.3;
-    margin: 0 0 20px;
-}
-
-.content-home-share div {
-    align-items: center;
-    display: flex;
-    gap: 18px;
-    justify-content: center;
-}
-
-.content-home-share span {
-    align-items: center;
-    background: #1f1f1f;
-    border-radius: 3px;
-    color: #ffffff;
-    display: inline-flex;
-    font-size: .74rem;
-    font-weight: 800;
-    height: 28px;
-    justify-content: center;
-    line-height: 1;
-    min-width: 28px;
-    padding: 0 5px;
-}
-
-.content-home-hero-note {
-    color: #222222;
-    font-size: 1rem;
-    line-height: 1.55;
-    margin: 0;
-    max-width: 700px;
 }
 
 .content-home-empty-hero {
@@ -1014,14 +961,24 @@
 
 .content-home-latest {
     display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 10px 0 72px;
 }
 
 .content-home-latest-item {
-    border-bottom: 1px solid rgba(0, 0, 0, .14);
-    display: grid;
-    gap: clamp(26px, 5vw, 54px);
-    grid-template-columns: minmax(180px, 300px) minmax(0, 1fr);
-    padding: 46px 0;
+    background: #ffffff;
+    border: 0;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    overflow: hidden;
+    padding: 0;
+}
+
+.content-home-studio .content-home-latest-item + .content-home-latest-item {
+    padding-top: 0;
 }
 
 .content-home-latest-media {
@@ -1031,7 +988,7 @@
 }
 
 .content-home-latest-image {
-    aspect-ratio: 1.35 / 1;
+    aspect-ratio: 1.72 / 1;
     background: #d8dde5;
     display: block;
     height: auto;
@@ -1040,30 +997,68 @@
 }
 
 .content-home-latest-copy {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
     min-width: 0;
-    padding-top: 2px;
+    padding: 16px 16px 14px;
 }
 
 .content-home-latest-copy h2 {
-    color: #090909;
-    font-size: clamp(1.75rem, 3.8vw, 3.1rem);
-    font-weight: 800;
+    color: #080b10;
+    font-size: 1rem;
+    font-weight: 750;
     letter-spacing: 0;
-    line-height: 1.04;
-    margin: 0 0 20px;
-    max-width: 760px;
+    line-height: 1.28;
+    margin: 0;
 }
 
-.content-home-latest-copy > p:not(.content-home-latest-meta) {
-    color: #2f2f2f;
-    font-size: .98rem;
-    line-height: 1.64;
-    margin: 0;
-    max-width: 620px;
+.content-home-latest-copy h2 a {
+    display: inline;
+}
+
+.content-home-latest-excerpt {
+    color: #3b424d;
+    font-size: .86rem;
+    line-height: 1.5;
+    margin: 14px 0 0;
 }
 
 .content-home-latest-meta {
-    margin-bottom: 16px;
+    color: #697386;
+    font-size: .72rem;
+    line-height: 1.3;
+    margin: 0 0 10px;
+}
+
+.content-home-latest-footer {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 18px;
+}
+
+.content-home-latest-footer span {
+    background: #f4f6f9;
+    border-radius: 999px;
+    color: #384253;
+    display: inline-flex;
+    font-size: .72rem;
+    line-height: 1;
+    max-width: 65%;
+    overflow: hidden;
+    padding: 8px 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.content-home-latest-footer time {
+    color: #687386;
+    flex: 0 0 auto;
+    font-size: .72rem;
+    line-height: 1;
 }
 
 .content-group-item-thumb {
@@ -1085,20 +1080,8 @@
         min-height: 0;
     }
 
-    .content-home-hero-after {
-        grid-template-columns: 1fr;
-        padding-bottom: 48px;
-    }
-
-    .content-home-share {
-        border-right: 0;
-        border-bottom: 1px solid rgba(0, 0, 0, .16);
-        padding: 0 0 28px;
-        text-align: left;
-    }
-
-    .content-home-share div {
-        justify-content: flex-start;
+    .content-home-latest {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .content-home-hero-copy {
@@ -1128,8 +1111,11 @@
         font-size: 3rem;
     }
 
-    .content-home-latest-item {
+    .content-home-latest {
         grid-template-columns: 1fr;
-        padding: 34px 0;
+    }
+
+    .content-home-latest-item {
+        padding: 0;
     }
 }

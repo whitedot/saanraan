@@ -24,9 +24,6 @@ $contentPublisherName = trim((string) (($site ?? [])['name'] ?? ($site ?? [])['s
 $contentPublisherName = $contentPublisherName !== '' ? $contentPublisherName : 'Saanraan';
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? substr($contentPublishedAt, 0, 10) : substr((string) ($page['updated_at'] ?? ''), 0, 10);
-$contentPlainText = trim(strip_tags(sr_content_body_html($page)));
-$contentTextLength = function_exists('mb_strlen') ? mb_strlen($contentPlainText) : strlen($contentPlainText);
-$contentReadMinutes = max(1, (int) ceil($contentTextLength / 500));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => $pageLayoutKey,
 ]));
@@ -57,7 +54,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <?php if ($contentDateText !== '') { ?>
                     <span><?php echo sr_e($contentDateText); ?></span>
                 <?php } ?>
-                <span><?php echo sr_e((string) $contentReadMinutes); ?><?php echo sr_e('분 읽기'); ?></span>
             </div>
         </header>
         <?php if ((string) ($page['cover_image_url'] ?? '') !== '') { ?>
