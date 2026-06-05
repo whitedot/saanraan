@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS sr_logo_manager_logos (
     title VARCHAR(120) NOT NULL,
     alt_text VARCHAR(160) NOT NULL DEFAULT '',
     link_url VARCHAR(255) NOT NULL DEFAULT '',
+    use_as_public_symbol TINYINT(1) NOT NULL DEFAULT 0,
     original_name VARCHAR(180) NOT NULL DEFAULT '',
     storage_driver VARCHAR(20) NOT NULL DEFAULT 'local',
     storage_key VARCHAR(255) NOT NULL,

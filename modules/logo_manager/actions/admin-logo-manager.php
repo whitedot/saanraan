@@ -34,6 +34,7 @@ if (sr_request_method() === 'POST') {
         $altText = sr_logo_manager_clean_single_line(sr_post_string('alt_text', 160), 160);
         $linkUrlRaw = sr_post_string('link_url', 255);
         $linkUrl = sr_logo_manager_clean_url($linkUrlRaw);
+        $useAsPublicSymbol = sr_logo_manager_use_as_public_symbol_value($positionKey, sr_post_string('use_as_public_symbol', 1));
         $status = sr_post_string('status_enabled', 10) === '1' ? 'active' : 'disabled';
         $startsAtInput = sr_post_string('starts_at', 30);
         $endsAtInput = sr_post_string('ends_at', 30);
@@ -44,7 +45,7 @@ if (sr_request_method() === 'POST') {
         $uploadedImage = null;
 
         if ($positionKey === '' || !isset($positionOptions[$positionKey])) {
-            $errors[] = '출력 위치 값이 올바르지 않습니다.';
+            $errors[] = '로고 용도 값이 올바르지 않습니다.';
         }
         if ($title === '') {
             $errors[] = '로고 이름을 입력하세요.';
@@ -77,10 +78,10 @@ if (sr_request_method() === 'POST') {
             try {
                 $stmt = $pdo->prepare(
                     'INSERT INTO sr_logo_manager_logos
-                        (position_key, title, alt_text, link_url, original_name, storage_driver, storage_key, public_url, mime_type,
+                        (position_key, title, alt_text, link_url, use_as_public_symbol, original_name, storage_driver, storage_key, public_url, mime_type,
                          size_bytes, width, height, checksum_sha256, status, starts_at, ends_at, sort_order, created_by_account_id, created_at, updated_at)
                      VALUES
-                        (:position_key, :title, :alt_text, :link_url, :original_name, :storage_driver, :storage_key, :public_url, :mime_type,
+                        (:position_key, :title, :alt_text, :link_url, :use_as_public_symbol, :original_name, :storage_driver, :storage_key, :public_url, :mime_type,
                          :size_bytes, :width, :height, :checksum_sha256, :status, :starts_at, :ends_at, :sort_order, :created_by_account_id, :created_at, :updated_at)'
                 );
                 $stmt->execute([
@@ -88,6 +89,7 @@ if (sr_request_method() === 'POST') {
                     'title' => $title,
                     'alt_text' => $altText,
                     'link_url' => $linkUrl,
+                    'use_as_public_symbol' => $useAsPublicSymbol,
                     'original_name' => (string) ($uploadedImage['original_name'] ?? ''),
                     'storage_driver' => (string) $uploadedImage['driver'],
                     'storage_key' => (string) $uploadedImage['storage_key'],
@@ -117,6 +119,7 @@ if (sr_request_method() === 'POST') {
                     'message' => 'Logo placement created.',
                     'metadata' => [
                         'position_key' => $positionKey,
+                        'use_as_public_symbol' => $useAsPublicSymbol,
                         'starts_at' => $startsAt,
                         'ends_at' => $endsAt,
                         'reencoded' => !empty($uploadedImage['reencoded']),
@@ -174,7 +177,7 @@ if ($logoTableExists) {
     $logoCountRow = $stmt->fetch();
     $logoPagination = sr_admin_pagination_from_total($pdo, is_array($logoCountRow) ? (int) ($logoCountRow['count_value'] ?? 0) : 0, 'logo_page');
     $stmt = $pdo->query(
-        'SELECT id, position_key, title, alt_text, link_url, status, starts_at, ends_at,
+        'SELECT id, position_key, title, alt_text, link_url, use_as_public_symbol, status, starts_at, ends_at,
                 CASE WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN TIMESTAMPDIFF(SECOND, starts_at, ends_at) ELSE NULL END AS duration_seconds,
                 sort_order,
                 storage_driver, storage_key, public_url, mime_type, width, height, size_bytes, created_at

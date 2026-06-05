@@ -2,9 +2,9 @@
 
 return [
     'name' => '로고 매니저',
-    'version' => '2026.06.001',
+    'version' => '2026.06.002',
     'type' => 'module',
-    'description' => '출력 위치별 로고와 적용 기간을 관리합니다.',
+    'description' => '용도별 로고와 적용 기간을 관리합니다.',
     'admin' => [
         'category' => 'site',
         'category_label' => '사이트',

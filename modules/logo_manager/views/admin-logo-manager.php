@@ -27,6 +27,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php if ($active !== null) { ?>
                     <img src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($active))); ?>" alt="" loading="lazy" decoding="async">
                     <span><?php echo sr_e((string) ($active['title'] ?? '')); ?></span>
+                    <?php if ((string) $positionKey === sr_logo_manager_public_symbol_position_key() && !empty($active['use_as_public_symbol'])) { ?>
+                        <small><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.yes')); ?></small>
+                    <?php } ?>
                     <small><?php echo sr_e((string) ($active['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?> - <?php echo sr_e((string) ($active['ends_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></small>
                 <?php } else { ?>
                     <span class="logo-manager-empty"><?php echo sr_e(sr_t('logo_manager::ui.text.8789bbce')); ?></span>
@@ -53,12 +56,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="logo_manager_position_key"><?php echo sr_e(sr_t('logo_manager::ui.position.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
-                        <select id="logo_manager_position_key" name="position_key" class="form-select" data-overlay-focus required>
+                        <select id="logo_manager_position_key" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
                             <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
                                 <option value="<?php echo sr_e((string) $positionKey); ?>"><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
                             <?php } ?>
                         </select>
                         <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
+                    </div>
+                </div>
+                <div class="admin-form-row" data-logo-manager-public-symbol-row>
+                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
+                    <div class="admin-form-field">
+                        <label class="admin-form-check form-label" for="logo_manager_use_as_public_symbol">
+                            <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch" data-logo-manager-public-symbol-switch>
+                            <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.public_symbol.label')); ?>
+                        </label>
+                        <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -146,6 +159,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th<?php echo sr_admin_sort_aria('position_key', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.position.label'), 'position_key', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.ac97396d'), 'title', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
+                    <th><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.status.e10195a1'), 'status', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('starts_at', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.65bdaefd'), 'starts_at', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('ends_at', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.26c25fca'), 'ends_at', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
@@ -156,7 +170,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($logos === []) { ?>
-                    <tr><td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
+                    <tr><td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($logos as $logo) { ?>
                         <tr>
@@ -164,6 +178,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-break">
                                 <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
                                 <?php echo sr_e((string) $logo['title']); ?>
+                            </td>
+                            <td>
+                                <?php echo (string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key() && !empty($logo['use_as_public_symbol'])
+                                    ? sr_e(sr_t('logo_manager::ui.public_symbol.yes'))
+                                    : sr_e(sr_t('logo_manager::ui.public_symbol.no')); ?>
                             </td>
                             <td><span class="admin-status <?php echo (string) $logo['status'] === 'active' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_logo_manager_status_label((string) $logo['status'])); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) ($logo['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></td>
@@ -189,5 +208,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 <?php echo sr_admin_pagination_html($logoPagination, '로고 배치 목록 페이지'); ?>
+
+<script>
+(function () {
+    var positionSelect = document.querySelector('[data-logo-manager-position-select]');
+    var symbolSwitch = document.querySelector('[data-logo-manager-public-symbol-switch]');
+    if (!positionSelect || !symbolSwitch) {
+        return;
+    }
+    var sync = function () {
+        var enabled = positionSelect.value === <?php echo json_encode(sr_logo_manager_public_symbol_position_key(), JSON_UNESCAPED_SLASHES); ?>;
+        symbolSwitch.disabled = !enabled;
+        if (!enabled) {
+            symbolSwitch.checked = false;
+        }
+    };
+    positionSelect.addEventListener('change', sync);
+    sync();
+})();
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

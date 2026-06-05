@@ -879,7 +879,7 @@ return [
 - `homepage-candidates.php`: 관리자 초기화면 후보와 저장 경로 사용 가능 여부
 - `editor-options.php`: textarea 강화 에디터 후보
 - `coupon-targets.php`: 쿠폰 사용처 후보
-- `logo-positions.php`: 모듈별 로고 출력 위치 후보
+- `logo-positions.php`: 모듈별 로고 용도 후보. 계약 파일명은 호환을 위해 position을 유지하지만 관리자 UI에서는 `로고 용도`로 표시한다.
 - `notification-events.php`: 계정 이벤트 알림 생성 후보
 
 계약 파일 규칙:
@@ -968,7 +968,8 @@ return [
 - 배열 또는 callable을 반환한다.
 - 각 항목은 `position_key`, `label`, 선택 `hint`, 선택 `surface`, 선택 `max_bytes`를 제공한다.
 - `position_key`는 `module.area.name`처럼 점으로 구분한 소문자/숫자/underscore key를 사용한다.
-- 로고매니저는 이 계약을 로고 배치 생성 화면의 출력 위치 선택지로만 사용한다.
+- 로고매니저는 이 계약을 로고 배치 생성 화면의 로고 용도 선택지로만 사용한다.
+- 앱아이콘 기본 용도 `public.favicon`은 `사용자 화면 심볼로 사용` 옵션을 저장할 수 있다. 이 값은 `sr_logo_manager_public_symbol_logo()` 또는 `sr_logo_manager_public_symbol_url()`을 호출하는 레이아웃/테마에서만 반영되며, 모든 공개 화면에 자동 출력되지 않는다.
 - 실제 출력은 화면 소유 모듈이나 레이아웃이 `sr_logo_manager_render_logo($pdo, $positionKey, ...)`를 명시적으로 호출해야 한다.
 
 `notification-events.php`:
@@ -1063,7 +1064,7 @@ return [
 | `popup-layer-references.php` | `popup_layer` 모듈 | 팝업레이어 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 팝업레이어 ID 역방향 참조 조회 |
 | `member-group-references.php` | `member` 모듈 | 회원 그룹 비활성/보관/key 변경 전 | 회원 그룹 ID/key를 저장한 모듈 정책 역방향 참조 조회 |
 | `site-setting-references.php` | `admin` 모듈 | 사이트명 변경 전 | 사이트명을 복사 저장한 모듈 설정 역방향 참조 조회 |
-| `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 출력 위치 후보 |
+| `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 용도 후보 |
 | `notification-events.php` | `point`, `reward`, `deposit`, `coupon`, `content`, `community` 모듈 | 거래/쿠폰 상태 변경 성공 뒤, 댓글 멘션/신고 알림 생성 시 | 선택 알림 모듈의 계정 알림 생성 함수 |
 
 읽기 참조 계약의 `count_function`은 `rows_function`이 반환할 row 수와 같은 기준이어야 한다. 번들 계약 검사는 `count_function` 함수 본문 전체가 대응 `rows_function($pdo, $target, $context)` 결과를 직접 세는 단일 반환문인지 확인한다.

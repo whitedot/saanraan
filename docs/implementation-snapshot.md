@@ -27,7 +27,7 @@
 | 회원 | `asset_exchange` | 포인트/금액 항목 간 환전 정책과 실행 로그 |
 | 회원 | `coupon` | 쿠폰·이용권 종류, 지급, 사용 이력 |
 | 사이트 | `site_menu` | 사이트 공통 메뉴 |
-| 사이트 | `logo_manager` | 출력 위치별 로고 배치 |
+| 사이트 | `logo_manager` | 용도별 로고 배치 |
 | 사이트 | `banner` | 출력 슬롯용 배너 |
 | 사이트 | `popup_layer` | 팝업레이어 |
 | 사이트 | `seo` | robots, sitemap, SEO 보조 |

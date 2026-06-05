@@ -98,6 +98,20 @@ function sr_logo_manager_position_label(string $positionKey, ?PDO $pdo = null): 
     return (string) ($options[$positionKey]['label'] ?? $positionKey);
 }
 
+function sr_logo_manager_public_symbol_position_key(): string
+{
+    return 'public.favicon';
+}
+
+function sr_logo_manager_use_as_public_symbol_value(string $positionKey, mixed $value): int
+{
+    if ($positionKey !== sr_logo_manager_public_symbol_position_key()) {
+        return 0;
+    }
+
+    return (string) $value === '1' ? 1 : 0;
+}
+
 function sr_logo_manager_status_label(string $status): string
 {
     return match ($status) {
@@ -679,7 +693,7 @@ function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now
     $now = $now !== null ? $now : sr_now();
     try {
         $stmt = $pdo->prepare(
-            "SELECT id, position_key, title, alt_text, link_url, starts_at, ends_at, sort_order,
+            "SELECT id, position_key, title, alt_text, link_url, use_as_public_symbol, starts_at, ends_at, sort_order,
                     storage_driver, storage_key, public_url, mime_type, width, height
              FROM sr_logo_manager_logos
              WHERE position_key = :position_key
@@ -720,7 +734,7 @@ function sr_logo_manager_default_logo(PDO $pdo, string $positionKey): ?array
 
     try {
         $stmt = $pdo->prepare(
-            "SELECT id, position_key, title, alt_text, link_url, starts_at, ends_at, sort_order,
+            "SELECT id, position_key, title, alt_text, link_url, use_as_public_symbol, starts_at, ends_at, sort_order,
                     storage_driver, storage_key, public_url, mime_type, width, height
              FROM sr_logo_manager_logos
              WHERE position_key = :position_key
@@ -781,6 +795,54 @@ function sr_logo_manager_render_logo(PDO $pdo, string $positionKey, ?array $site
 function sr_logo_manager_active_url(PDO $pdo, string $positionKey): string
 {
     $logo = sr_logo_manager_active_logo($pdo, $positionKey);
+    return is_array($logo) ? sr_logo_manager_logo_url($logo) : '';
+}
+
+function sr_logo_manager_public_symbol_logo(PDO $pdo, ?string $now = null): ?array
+{
+    if (!sr_logo_manager_table_exists($pdo)) {
+        return null;
+    }
+
+    $now = $now !== null ? $now : sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT id, position_key, title, alt_text, link_url, use_as_public_symbol, starts_at, ends_at, sort_order,
+                    storage_driver, storage_key, public_url, mime_type, width, height
+             FROM sr_logo_manager_logos
+             WHERE position_key = :position_key
+               AND use_as_public_symbol = 1
+               AND status = 'active'
+               AND (starts_at IS NULL OR starts_at <= :now_start)
+               AND (ends_at IS NULL OR ends_at >= :now_end)
+             ORDER BY CASE WHEN starts_at IS NULL AND ends_at IS NULL THEN 1 ELSE 0 END ASC,
+                      CASE WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN 0 ELSE 1 END ASC,
+                      CASE
+                          WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN TIMESTAMPDIFF(SECOND, starts_at, ends_at)
+                          ELSE 2147483647
+                      END ASC,
+                      sort_order ASC,
+                      starts_at DESC,
+                      id DESC
+             LIMIT 1"
+        );
+        $stmt->execute([
+            'position_key' => sr_logo_manager_public_symbol_position_key(),
+            'now_start' => $now,
+            'now_end' => $now,
+        ]);
+
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'logo_manager_public_symbol_logo_failed');
+        return null;
+    }
+}
+
+function sr_logo_manager_public_symbol_url(PDO $pdo): string
+{
+    $logo = sr_logo_manager_public_symbol_logo($pdo);
     return is_array($logo) ? sr_logo_manager_logo_url($logo) : '';
 }
 
