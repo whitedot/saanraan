@@ -56,7 +56,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `label`
 - `reference_type`
 - `supports_target_types`
-- `count_function`: `function (PDO $pdo, array $target, array $context): int`
+- `count_function`: `function (PDO $pdo, array $target, array $context): int`이며 0 이상의 정수
 - `rows_function`: `function (PDO $pdo, array $target, array $context): array`
 - `health_function`: `function (PDO $pdo, array $target, array $row, array $context): array`
 - `admin_url_function`: `function (array $row, array $context): string`

@@ -80,6 +80,10 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
                     $errors[] = $moduleKey . ': count_function 반환값이 정수가 아닙니다.';
                     continue;
                 }
+                if ($rawCount < 0) {
+                    $errors[] = $moduleKey . ': count_function 반환값이 음수입니다.';
+                    continue;
+                }
                 $count = $rawCount;
                 if ($count < 1) {
                     continue;
