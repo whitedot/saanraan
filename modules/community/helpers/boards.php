@@ -809,6 +809,41 @@ function sr_community_enabled_board_groups(PDO $pdo): array
     return $stmt->fetchAll();
 }
 
+function sr_community_primary_menu_fallback_links(PDO $pdo): array
+{
+    $groupLinks = [];
+    $boardLinks = [];
+    foreach (sr_community_enabled_boards($pdo) as $board) {
+        if ((string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? '') !== 'public') {
+            continue;
+        }
+
+        $groupKey = (string) ($board['board_group_key'] ?? '');
+        if (sr_community_board_group_key_is_valid($groupKey) && (string) ($board['board_group_status'] ?? '') === 'enabled') {
+            $groupLabel = trim((string) ($board['board_group_title'] ?? ''));
+            if (!isset($groupLinks[$groupKey])) {
+                $groupLinks[$groupKey] = [
+                    'label' => $groupLabel !== '' ? $groupLabel : $groupKey,
+                    'url' => '/community#group-' . rawurlencode($groupKey),
+                ];
+            }
+            continue;
+        }
+
+        $boardKey = (string) ($board['board_key'] ?? '');
+        if (!sr_community_board_key_is_valid($boardKey)) {
+            continue;
+        }
+        $boardLabel = trim((string) ($board['title'] ?? ''));
+        $boardLinks[] = [
+            'label' => $boardLabel !== '' ? $boardLabel : $boardKey,
+            'url' => '/community/board?key=' . rawurlencode($boardKey),
+        ];
+    }
+
+    return array_merge(array_values($groupLinks), $boardLinks);
+}
+
 function sr_community_board_group_by_id(PDO $pdo, int $groupId): ?array
 {
     if ($groupId < 1) {

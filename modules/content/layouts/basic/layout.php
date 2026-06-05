@@ -42,6 +42,21 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
 if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
 }
+if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_content_primary_menu_fallback_links')) {
+    $layoutFallbackLinks = sr_content_primary_menu_fallback_links($layoutPdo);
+    if ($layoutFallbackLinks !== []) {
+        $layoutPrimaryNavigationHtml = '<div class="sr-site-menu sr-site-menu-fallback" data-site-menu-fallback="primary"><ul class="sr-site-menu-list sr-site-menu-list-depth-1">';
+        foreach ($layoutFallbackLinks as $layoutFallbackLink) {
+            $layoutFallbackLabel = (string) ($layoutFallbackLink['label'] ?? '');
+            $layoutFallbackUrl = (string) ($layoutFallbackLink['url'] ?? '');
+            if ($layoutFallbackLabel === '' || $layoutFallbackUrl === '') {
+                continue;
+            }
+            $layoutPrimaryNavigationHtml .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($layoutFallbackUrl)) . '">' . sr_e($layoutFallbackLabel) . '</a></li>';
+        }
+        $layoutPrimaryNavigationHtml .= '</ul></div>';
+    }
+}
 if ($layoutPrimaryNavigationHtml !== '') {
     $layoutStylesheets[] = '/modules/site_menu/assets/public.css';
 }

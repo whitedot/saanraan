@@ -604,7 +604,9 @@ popup_layer -> /admin/popup-layers
 
 ## 16. 공개 레이아웃은 전역 껍데기만 담당한다
 
-공개 화면의 기본 레이아웃 파일은 `layouts/public/{layout_key}/` 아래에 둡니다. 레이아웃 파일은 `<html>`, `<head>`, 공통 header/footer, 공통 메뉴, 전역 output slot처럼 사이트 전체 껍데기만 담당합니다. 사이트 메뉴 output slot은 메뉴 계층이 아니라 레이아웃 위치 구분으로 `primary_navigation`을 사용하고, 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 layout context의 `site_menus.primary`로 전달합니다. `secondary_navigation`, `tertiary_navigation`은 사이트 메뉴 출력 슬롯 계약에 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링합니다.
+공개 화면의 기본 레이아웃 파일은 `layouts/public/{layout_key}/` 아래에 둡니다. 레이아웃 파일은 `<html>`, `<head>`, 공통 header/footer, 공통 메뉴, 전역 output slot처럼 사이트 전체 껍데기만 담당합니다. 사이트 메뉴 output slot은 메뉴 계층이 아니라 레이아웃 슬롯 구분으로 `primary_navigation`을 사용하고, 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 layout context의 `site_menus.primary`로 전달합니다. 관리자 화면에서는 고정 위치명 대신 `주 메뉴 슬롯`처럼 슬롯명으로 표시하고, 실제 위치는 레이아웃 구현이 결정합니다. `secondary_navigation`, `tertiary_navigation`은 사이트 메뉴 출력 슬롯 계약에 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링합니다.
+
+번들 콘텐츠/커뮤니티 레이아웃에서 주 메뉴 슬롯을 사용 안 함으로 설정하면 사이트 메뉴 output slot은 호출하지 않습니다. 이때 콘텐츠는 공개 가능한 콘텐츠 그룹, 커뮤니티는 공개 읽기가 가능한 게시판 그룹 또는 그룹 없는 게시판을 주 메뉴 후보로 fallback 렌더링할 수 있습니다. 명시적인 사이트 메뉴 key가 있으면 사이트 메뉴 출력이 fallback보다 우선합니다.
 
 모듈별 화면 구조와 도메인 표시 방식은 각 모듈 안에 둡니다.
 

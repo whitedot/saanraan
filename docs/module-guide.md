@@ -136,7 +136,7 @@ modules/board/
 공개 화면 디자인 책임은 public layout, 모듈 theme, 모듈 skin을 구분한다.
 
 - public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
-- public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 위치 구분으로 `primary_navigation` output slot을 사용한다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`로 전달한다. `secondary_navigation`, `tertiary_navigation`은 사이트 메뉴 출력 슬롯 계약에 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링한다.
+- public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 슬롯 구분으로 `primary_navigation` output slot을 사용한다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`로 전달한다. 관리자 화면에서는 고정 위치명 대신 `주 메뉴 슬롯`처럼 표시하고, 실제 위치는 레이아웃 구현이 결정한다. `secondary_navigation`, `tertiary_navigation`은 사이트 메뉴 출력 슬롯 계약에 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링한다.
 - public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 개발자 화면이며 admin 모듈에 의존하지 않는다.
 - 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `content.basic`, `community.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
 - 번들 `content.basic`과 `community.basic`은 공통 레이아웃 파일을 공유하지 않는다. 콘텐츠는 `modules/content/layouts/basic/layout.php`, 커뮤니티는 허용된 theme 경계 안의 `modules/community/themes/basic/layout.php`를 사용한다. 헤더/푸터처럼 같은 시각 언어를 쓰더라도 모듈 전용 레이아웃 CSS를 사용해 모듈 경계를 유지한다.
@@ -1284,7 +1284,8 @@ return [
 
 - 링크 자산 제공은 메뉴 항목 자동 생성을 의미하지 않는다.
 - 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정한다.
-- 콘텐츠와 커뮤니티 환경설정에서 번들 공개 레이아웃의 상단 사이트 메뉴를 선택할 수 있다. 하단/보조 메뉴 슬롯 계약은 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링한다.
+- 콘텐츠와 커뮤니티 환경설정에서 번들 공개 레이아웃의 주 메뉴 슬롯에 연결할 사이트 메뉴를 선택할 수 있다. 하단/보조 메뉴 슬롯 계약은 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링한다.
+- 주 메뉴 슬롯을 사용 안 함으로 설정하면 명시적인 사이트 메뉴 대신 모듈이 공개 가능한 fallback 링크를 렌더링할 수 있다. 번들 콘텐츠 레이아웃은 공개 가능한 콘텐츠 그룹, 번들 커뮤니티 레이아웃은 공개 읽기가 가능한 게시판 그룹과 그룹 없는 게시판을 후보로 사용한다.
 - 사이트 메뉴 항목은 `parent_id` 기반으로 최대 3단계까지 구성할 수 있으며, 관리자 화면은 메뉴 묶음과 항목을 단일 계층 테이블에서 관리한다.
 - 사이트 메뉴 항목은 선택적으로 `icon_name`을 저장해 공개 메뉴 라벨 앞에 아이콘을 표시할 수 있다. 선택지는 관리자 메뉴 아이콘 helper의 허용 심볼과 공개 출력 가능한 Material 공용 아이콘 키를 사용한다.
 - `asset_type`과 `asset_type_label`을 제공하면 항목 모달에서 서비스 안의 대상 종류를 나눠서 선택할 수 있다. 예를 들어 커뮤니티는 `게시판 그룹`, `게시판`, 콘텐츠는 `콘텐츠 그룹`, `콘텐츠`로 표시한다.

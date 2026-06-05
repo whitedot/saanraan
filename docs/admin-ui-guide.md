@@ -4,6 +4,8 @@
 
 환경설정 화면은 운영자가 결정을 내리는 단위로 `section.admin-card.card`를 나눈다. 새 레코드에 복사되는 기본값은 `작성 기본값` 또는 `레벨 기본값`, 공개 레이아웃과 메뉴 연결은 `공개 화면 구성`, 접근 조건은 `접근 정책`, 포인트/금액/유료 열람/재결제 기준은 `자산/과금` 또는 `이용/과금 기준`, 대량 재계산과 삭제처럼 되돌리기 어려운 작업은 `위험 작업`으로 분리한다. 한 카드에 표시 구조, 접근 정책, 과금 기준을 섞지 않고, 저장 key는 호환을 위해 유지한다.
 
+공개 레이아웃의 사이트 메뉴 연결은 고정 위치명이 아니라 슬롯명으로 표시한다. 예를 들어 `layout_primary_menu_key`와 `site_menus.primary`는 호환을 위해 유지하되 label은 `주 메뉴 슬롯`으로 두고, 실제 출력 위치가 레이아웃마다 달라질 수 있음을 도움말에 적는다. 사용 안 함 선택 시 모듈 fallback이 표시되는 화면은 fallback 기준도 같은 도움말에 적는다.
+
 - `assets/tokens.css`: 공개 런타임에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
 - `modules/admin/assets/tokens.css`: 관리자 런타임에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다. 공개 토큰 파일과 공유하지 않는다.
 - `assets/icons.css`: 프로젝트 기본 아이콘셋인 Google Material Symbols Outlined와 `.sr-icon` 표시 규칙을 둔다. 폰트 CSS는 PHP stylesheet helper가 Google Fonts CDN에서 호출하고, CDN이 막히는 환경을 위해 번들 폰트 `assets/fonts/material-symbols-outlined.ttf`를 fallback으로 둔다.

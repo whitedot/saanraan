@@ -329,11 +329,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_layout_primary_menu_key">상단 사이트 메뉴</label>
+            <label class="form-label" for="community_admin_settings_layout_primary_menu_key">주 메뉴 슬롯</label>
             <div class="admin-form-field">
                 <select id="community_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
                     <?php $communitySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
                 </select>
+                <p class="admin-form-help">선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 접근 가능한 게시판 그룹이 주 메뉴 후보로 표시됩니다.</p>
             </div>
         </div>
         <div class="admin-form-row">

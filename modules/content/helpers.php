@@ -154,6 +154,25 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     return $context;
 }
 
+function sr_content_primary_menu_fallback_links(PDO $pdo): array
+{
+    $links = [];
+    foreach (sr_content_enabled_groups($pdo) as $group) {
+        $groupKey = (string) ($group['group_key'] ?? '');
+        if (!sr_content_group_key_is_valid($groupKey)) {
+            continue;
+        }
+
+        $label = trim((string) ($group['title'] ?? ''));
+        $links[] = [
+            'label' => $label !== '' ? $label : $groupKey,
+            'url' => sr_content_group_path($groupKey),
+        ];
+    }
+
+    return $links;
+}
+
 function sr_content_save_settings(PDO $pdo, array $settings): void
 {
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'content' LIMIT 1");
