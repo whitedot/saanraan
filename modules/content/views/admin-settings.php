@@ -64,22 +64,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="content_admin_settings_layout_secondary_menu_key">하단 사이트 메뉴</label>
-            <div class="admin-form-field">
-                <select id="content_admin_settings_layout_secondary_menu_key" name="layout_secondary_menu_key" class="form-select">
-                    <?php $contentSiteMenuSelectOptions((string) ($settings['layout_secondary_menu_key'] ?? '')); ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <label class="form-label" for="content_admin_settings_layout_tertiary_menu_key">보조 사이트 메뉴</label>
-            <div class="admin-form-field">
-                <select id="content_admin_settings_layout_tertiary_menu_key" name="layout_tertiary_menu_key" class="form-select">
-                    <?php $contentSiteMenuSelectOptions((string) ($settings['layout_tertiary_menu_key'] ?? '')); ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('content_admin_settings_once_history_policy', '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpId, '설명 보기', true); ?>
             <div class="admin-form-field">
                 <select id="content_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>

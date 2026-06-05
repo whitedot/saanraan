@@ -39,8 +39,6 @@ function sr_community_default_settings(): array
         'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
         'layout_primary_menu_key' => is_string($settings['layout_primary_menu_key'] ?? null) ? (string) $settings['layout_primary_menu_key'] : 'header',
-        'layout_secondary_menu_key' => is_string($settings['layout_secondary_menu_key'] ?? null) ? (string) $settings['layout_secondary_menu_key'] : '',
-        'layout_tertiary_menu_key' => is_string($settings['layout_tertiary_menu_key'] ?? null) ? (string) $settings['layout_tertiary_menu_key'] : '',
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
         'post_reward_asset_module' => is_string($settings['post_reward_asset_module'] ?? null) ? (string) $settings['post_reward_asset_module'] : '',
@@ -137,8 +135,6 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['theme_key'] = sr_community_theme_key($settings);
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
     $settings['layout_primary_menu_key'] = sr_community_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'));
-    $settings['layout_secondary_menu_key'] = sr_community_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? ''));
-    $settings['layout_tertiary_menu_key'] = sr_community_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? ''));
     $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
@@ -184,8 +180,6 @@ function sr_community_public_layout_context(array $settings, array $context = []
 
     $siteMenus = [
         'primary' => sr_community_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')),
-        'secondary' => sr_community_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')),
-        'tertiary' => sr_community_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')),
     ];
 
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);

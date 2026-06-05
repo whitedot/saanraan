@@ -102,8 +102,6 @@ function sr_content_default_settings(): array
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
         'layout_primary_menu_key' => 'header',
-        'layout_secondary_menu_key' => '',
-        'layout_tertiary_menu_key' => '',
     ];
 }
 
@@ -123,8 +121,6 @@ function sr_content_settings(PDO $pdo): array
         $settings['layout_key'] = sr_public_layout_key(null, $pdo);
     }
     $settings['layout_primary_menu_key'] = sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'));
-    $settings['layout_secondary_menu_key'] = sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? ''));
-    $settings['layout_tertiary_menu_key'] = sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? ''));
 
     return $settings;
 }
@@ -151,8 +147,6 @@ function sr_content_public_layout_context(array $settings, array $context = []):
 
     $siteMenus = [
         'primary' => sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')),
-        'secondary' => sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')),
-        'tertiary' => sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')),
     ];
 
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
@@ -174,8 +168,6 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
         ['layout_key', sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic')), 'string'],
         ['layout_primary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')), 'string'],
-        ['layout_secondary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')), 'string'],
-        ['layout_tertiary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')), 'string'],
     ];
     $now = sr_now();
     $stmt = $pdo->prepare(

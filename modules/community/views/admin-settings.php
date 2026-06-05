@@ -337,22 +337,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_layout_secondary_menu_key">하단 사이트 메뉴</label>
-            <div class="admin-form-field">
-                <select id="community_admin_settings_layout_secondary_menu_key" name="layout_secondary_menu_key" class="form-select">
-                    <?php $communitySiteMenuSelectOptions((string) ($settings['layout_secondary_menu_key'] ?? '')); ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_layout_tertiary_menu_key">보조 사이트 메뉴</label>
-            <div class="admin-form-field">
-                <select id="community_admin_settings_layout_tertiary_menu_key" name="layout_tertiary_menu_key" class="form-select">
-                    <?php $communitySiteMenuSelectOptions((string) ($settings['layout_tertiary_menu_key'] ?? '')); ?>
-                </select>
-            </div>
-        </div>
-        <div class="admin-form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
                 <select id="community_admin_settings_post_editor" name="post_editor" class="form-select" required>
