@@ -151,9 +151,14 @@
     border-top: 1px solid var(--sr-border, var(--color-default-300));
     display: grid;
     gap: 12px;
-    margin: 0 auto;
-    padding: 52px clamp(1rem, 4vw, 2.5rem) 20px;
+    margin: 32px auto 0;
+    padding: 20px clamp(1rem, 4vw, 2.5rem);
     width: min(1080px, 100%);
+}
+
+.public-home + .public-site-footer {
+    margin-top: 0;
+    padding-top: 52px;
 }
 
 .public-site-header .sr-site-menu,

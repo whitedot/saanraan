@@ -272,8 +272,9 @@ $checks = [
             '.public-site-header',
             '.public-site-footer',
             '.public-home',
+            '.public-home + .public-site-footer',
             'background: var(--sr-bg',
-            'margin: 0 auto',
+            'margin-top: 0',
         ],
     ],
     [
