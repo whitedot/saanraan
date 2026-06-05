@@ -116,7 +116,31 @@ try {
         sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
     }
     if (isset($savedPageId) && $savedPageId > 0 && $beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
-        sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced_after_partial_save_failure', $savedPageId);
+        $coverImageCleanupResult = sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced_after_partial_save_failure', $savedPageId);
+    }
+    if (isset($savedPageId) && $savedPageId > 0) {
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => $pageId > 0 ? 'content.updated.partial_failure' : 'content.created.partial_failure',
+            'target_type' => 'content',
+            'target_id' => (string) $savedPageId,
+            'result' => 'failure',
+            'message' => $pageId > 0 ? 'Content updated but follow-up save failed.' : 'Content created but follow-up save failed.',
+            'metadata' => [
+                'slug' => (string) $values['slug'],
+                'status' => (string) $values['status'],
+                'content_group_id' => (int) ($values['content_group_id'] ?? 0),
+                'layout_key' => (string) ($values['layout_key'] ?? ''),
+                'failure_message' => $exception->getMessage(),
+                'cover_image_changed' => $beforeCoverImageUrl !== $afterCoverImageUrl,
+                'cover_image_deleted' => $beforeCoverImageUrl !== '' && $afterCoverImageUrl === '',
+                'cover_image_uploaded' => $coverImageUploadProvided,
+                'cover_image_cleanup_attempted' => !empty($coverImageCleanupResult['attempted']),
+                'cover_image_cleanup_deleted' => !empty($coverImageCleanupResult['deleted']),
+                'cover_image_cleanup_failed' => !empty($coverImageCleanupResult['failed']),
+            ],
+        ]);
     }
 
     $_SESSION['sr_content_admin_errors'] = [isset($savedPageId) && $savedPageId > 0 ? '콘텐츠는 저장했지만 후속 저장에 실패했습니다: ' . $exception->getMessage() : '콘텐츠 저장에 실패했습니다: ' . $exception->getMessage()];
