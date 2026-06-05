@@ -30,6 +30,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="post" action="<?php echo sr_e(sr_url('/admin/content/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <section class="admin-card card">
+        <h2>작성 기본값</h2>
         <div class="admin-form-row">
             <label class="form-label" for="content_admin_settings_editor">에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
@@ -42,6 +43,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
+    </section>
+
+    <section class="admin-card card">
+        <h2>공개 화면 구성</h2>
         <div class="admin-form-row">
             <label class="form-label" for="content_admin_settings_layout_key">기본 콘텐츠 레이아웃 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
@@ -63,6 +68,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
+    </section>
+
+    <section class="admin-card card">
+        <h2>이용/과금 기준</h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('content_admin_settings_once_history_policy', '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpId, '설명 보기', true); ?>
             <div class="admin-form-field">

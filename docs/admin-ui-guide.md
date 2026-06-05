@@ -2,6 +2,8 @@
 
 관리자 화면은 G5 Codex 계열의 관리자 UI 톤을 기준으로 맞춘다. public/admin 양쪽에서 쓰는 이름이 같은 기본 UI class라도 런타임 CSS 파일은 분리한다. 관리자 반복 UI 원형은 admin 모듈의 `modules/admin/assets/common.css`, 공개 반복 UI 원형은 `assets/common.css`가 각각 소유하고, 관리자 shell과 관리자 전용 배치는 `modules/admin/assets/admin.css`로 제한한다. `ui-kit.css` 파일명은 UI-KIT 조회 화면의 보조 스타일처럼 UI-KIT 자체에 남긴다. 모듈 도메인 고유 보정은 각 모듈의 `admin.stylesheets`로 분리한다.
 
+환경설정 화면은 운영자가 결정을 내리는 단위로 `section.admin-card.card`를 나눈다. 새 레코드에 복사되는 기본값은 `작성 기본값` 또는 `레벨 기본값`, 공개 레이아웃과 메뉴 연결은 `공개 화면 구성`, 접근 조건은 `접근 정책`, 포인트/금액/유료 열람/재결제 기준은 `자산/과금` 또는 `이용/과금 기준`, 대량 재계산과 삭제처럼 되돌리기 어려운 작업은 `위험 작업`으로 분리한다. 한 카드에 표시 구조, 접근 정책, 과금 기준을 섞지 않고, 저장 key는 호환을 위해 유지한다.
+
 - `assets/tokens.css`: 공개 런타임에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
 - `modules/admin/assets/tokens.css`: 관리자 런타임에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다. 공개 토큰 파일과 공유하지 않는다.
 - `assets/icons.css`: 프로젝트 기본 아이콘셋인 Google Material Symbols Outlined와 `.sr-icon` 표시 규칙을 둔다. 폰트 CSS는 PHP stylesheet helper가 Google Fonts CDN에서 호출하고, CDN이 막히는 환경을 위해 번들 폰트 `assets/fonts/material-symbols-outlined.ttf`를 fallback으로 둔다.

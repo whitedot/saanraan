@@ -126,7 +126,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <input type="hidden" name="level_max_change_confirm_text" value="" data-community-settings-level-max-confirm-text>
 
     <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></h2>
+        <h2>레벨 기본값</h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
                 <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
@@ -169,7 +169,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('community::ui.text.919bd592')); ?></h2>
+        <h2>쪽지 정책</h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_policy', sr_t('community::ui.text.31edcf4a'), $communitySettingsHelp['message_policy']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="admin-form-field">
@@ -203,7 +203,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <section class="admin-card card">
         <h2>
-            <span><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></span>
+            <span>자산/과금</span>
             <span class="admin-form-actions">
                 <a href="<?php echo sr_e($communityAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 설정 변경 이력'); ?></a>
             </span>
@@ -315,7 +315,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('community::ui.text.b5361f64')); ?></h2>
+        <h2>공개 화면 구성</h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
