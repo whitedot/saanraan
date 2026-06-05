@@ -1,19 +1,15 @@
 <?php
 
-$pageTitle = (string) $board['title'];
 $baseListPath = '/community/board?key=' . rawurlencode((string) $board['board_key'])
     . (isset($selectedCategory) && is_array($selectedCategory) ? '&category=' . rawurlencode((string) $selectedCategory['category_key']) : '')
     . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : '');
-$seo = [
-    'title' => $pageTitle,
-    'description' => (string) ($board['description'] ?? ''),
-    'canonical' => $baseListPath . ($page > 1 ? '&page=' . (string) $page : ''),
-    'robots' => !empty($categoryInvalid)
-        ? 'noindex, follow'
-        : ((string) ($board['effective_read_policy'] ?? $board['read_policy']) !== 'public'
-        ? 'noindex, nofollow'
-        : ($keyword === '' ? 'index, follow' : 'noindex, follow')),
-];
+$seo = sr_community_board_seo_meta($pdo, $board, [
+    'category' => isset($selectedCategory) && is_array($selectedCategory) ? $selectedCategory : null,
+    'keyword' => $keyword,
+    'page' => $page,
+    'category_invalid' => !empty($categoryInvalid),
+]);
+$pageTitle = (string) $seo['title'];
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }

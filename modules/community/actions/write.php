@@ -47,6 +47,10 @@ $values = [
     'category_id' => 0,
     'body_text' => '',
     'body_format' => 'plain',
+    'seo_title' => '',
+    'seo_description' => '',
+    'og_title' => '',
+    'og_description' => '',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -139,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $attachmentId = sr_community_upload_post_image($pdo, $postId, (int) $account['id'], $_FILES['image_attachment'], $settings);
                 if (is_int($attachmentId) && $attachmentId > 0) {
+                    sr_community_update_post_og_image($pdo, $postId, $attachmentId);
                     $attachmentIds[] = $attachmentId;
                     $attachmentResults[] = 'image_attached';
                     $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.image_attached');

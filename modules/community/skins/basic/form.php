@@ -109,6 +109,39 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 </div>
             <?php } ?>
             <fieldset>
+                <legend><?php echo sr_e('SEO/OG 메타'); ?></legend>
+                <p>
+                    <label for="modules_community_form_seo_title">
+                        <span><?php echo sr_e('SEO 제목'); ?></span>
+                        <input id="modules_community_form_seo_title" type="text" name="seo_title" maxlength="160" value="<?php echo sr_e(is_string($values['seo_title'] ?? null) ? (string) $values['seo_title'] : ''); ?>">
+                    </label>
+                    <br>
+                    <small><?php echo sr_e('비워 두면 게시글 제목을 사용합니다.'); ?></small>
+                </p>
+                <p>
+                    <label for="modules_community_form_seo_description">
+                        <span><?php echo sr_e('SEO 설명'); ?></span>
+                        <textarea id="modules_community_form_seo_description" name="seo_description" rows="3" cols="80" maxlength="255"><?php echo sr_e(is_string($values['seo_description'] ?? null) ? (string) $values['seo_description'] : ''); ?></textarea>
+                    </label>
+                    <br>
+                    <small><?php echo sr_e('비워 두면 공개 열람 가능한 글에서 본문 앞부분을 요약합니다.'); ?></small>
+                </p>
+                <p>
+                    <label for="modules_community_form_og_title">
+                        <span><?php echo sr_e('OG 제목'); ?></span>
+                        <input id="modules_community_form_og_title" type="text" name="og_title" maxlength="160" value="<?php echo sr_e(is_string($values['og_title'] ?? null) ? (string) $values['og_title'] : ''); ?>">
+                    </label>
+                </p>
+                <p>
+                    <label for="modules_community_form_og_description">
+                        <span><?php echo sr_e('OG 설명'); ?></span>
+                        <textarea id="modules_community_form_og_description" name="og_description" rows="3" cols="80" maxlength="255"><?php echo sr_e(is_string($values['og_description'] ?? null) ? (string) $values['og_description'] : ''); ?></textarea>
+                    </label>
+                    <br>
+                    <small><?php echo sr_e('OG 이미지는 게시글 이미지 첨부를 우선 사용하고, 없으면 SEO 모듈 기본값으로 이어집니다.'); ?></small>
+                </p>
+            </fieldset>
+            <fieldset>
                 <legend><?php echo sr_e('시리즈'); ?></legend>
                 <p>
                     <label>

@@ -1,17 +1,7 @@
 <?php
 
 $pageTitle = (string) $post['title'];
-$seoDescription = preg_replace('/\s+/', ' ', trim((string) $post['body_text']));
-if (!is_string($seoDescription)) {
-    $seoDescription = '';
-}
-$seoDescription = function_exists('mb_substr') ? mb_substr($seoDescription, 0, 160) : substr($seoDescription, 0, 160);
-$seo = [
-    'title' => $pageTitle,
-    'description' => $seoDescription,
-    'canonical' => '/community/post?id=' . (string) $post['id'],
-    'robots' => (string) $post['read_policy'] === 'public' ? 'index, follow' : 'noindex, nofollow',
-];
+$seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired));
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }
@@ -64,6 +54,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                         <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                    </form>
+                <?php } ?>
+                <?php if (sr_community_account_can_remove_post_og_image($pdo, $post, $account)) { ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/community/post')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
+                        <input type="hidden" name="intent" value="remove_og_image">
+                        <button type="submit"><?php echo sr_e('OG 이미지 제거'); ?></button>
                     </form>
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">

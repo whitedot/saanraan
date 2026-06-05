@@ -5,7 +5,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 
 return static function (PDO $pdo, ?array $site): array {
-    $entries = [];
+    $entries = [
+        [
+            'loc' => '/community',
+            'lastmod' => date('Y-m-d'),
+        ],
+    ];
 
     $stmt = $pdo->query(
         "SELECT id, board_group_id, board_key, status, read_policy, updated_at

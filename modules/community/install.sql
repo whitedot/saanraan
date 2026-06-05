@@ -127,6 +127,11 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     title VARCHAR(160) NOT NULL,
     body_text MEDIUMTEXT NOT NULL,
     body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
+    seo_title VARCHAR(160) NOT NULL DEFAULT '',
+    seo_description VARCHAR(255) NOT NULL DEFAULT '',
+    og_title VARCHAR(160) NOT NULL DEFAULT '',
+    og_description VARCHAR(255) NOT NULL DEFAULT '',
+    og_image_attachment_id BIGINT UNSIGNED NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'published',
     view_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
     last_commented_at DATETIME NULL,
@@ -136,6 +141,7 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     KEY idx_sr_community_posts_board_status_id (board_id, status, id),
     KEY idx_sr_community_posts_board_category_status_id (board_id, category_id, status, id),
     KEY idx_sr_community_posts_author_id (author_account_id, id),
+    KEY idx_sr_community_posts_og_image_attachment (og_image_attachment_id),
     KEY idx_sr_community_posts_status_updated (status, updated_at)
 );
 

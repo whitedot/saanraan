@@ -72,6 +72,45 @@ function sr_community_post_attachments(PDO $pdo, int $postId): array
     return $stmt->fetchAll();
 }
 
+function sr_community_attachment_by_id(PDO $pdo, int $attachmentId): ?array
+{
+    if ($attachmentId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, post_id, uploader_account_id, original_name, stored_name, storage_driver, storage_key, mime_type, size_bytes, width, height, status, created_at
+         FROM sr_community_attachments
+         WHERE id = :id
+         LIMIT 1"
+    );
+    $stmt->execute(['id' => $attachmentId]);
+    $attachment = $stmt->fetch();
+
+    return is_array($attachment) ? $attachment : null;
+}
+
+function sr_community_first_public_image_attachment_id(PDO $pdo, int $postId): int
+{
+    if ($postId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, mime_type, status
+         FROM sr_community_attachments
+         WHERE post_id = :post_id
+           AND status = 'active'
+           AND mime_type IN ('image/jpeg', 'image/png', 'image/webp')
+         ORDER BY id ASC
+         LIMIT 1"
+    );
+    $stmt->execute(['post_id' => $postId]);
+    $attachment = $stmt->fetch();
+
+    return is_array($attachment) ? (int) ($attachment['id'] ?? 0) : 0;
+}
+
 function sr_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): ?int
 {
     if ($postId < 1 || $uploaderAccountId < 1 || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {

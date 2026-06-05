@@ -307,6 +307,13 @@ if (sr_request_method() === 'POST') {
         $writeMinLevel = sr_admin_post_int_in_range('write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('comment_min_level', 0, $maxLevel);
         $categoryRequired = ($_POST['category_required'] ?? '') === '1';
+        $boardSeoValues = [
+            'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
+            'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
+            'og_title' => sr_community_seo_text(sr_post_string('og_title', 160), 160),
+            'og_description' => sr_community_seo_text(sr_post_string('og_description', 255), 255),
+            'og_image_url' => trim(sr_post_string('og_image_url', 255)),
+        ];
         $levelPostScore = sr_admin_post_int_in_range('level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('level_comment_score', 0, 10000);
         $boardGroupId = sr_admin_post_int_in_range('board_group_id', 0, 999999999);
@@ -502,6 +509,10 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        if ($boardSeoValues['og_image_url'] !== '' && !sr_is_http_url($boardSeoValues['og_image_url']) && !sr_is_safe_relative_url($boardSeoValues['og_image_url'])) {
+            $errors[] = '게시판 OG 이미지 URL은 http(s) URL 또는 /로 시작하는 내부 경로만 입력해 주세요.';
+        }
+
         if ($boardGroupId > 0 && !isset($boardGroupIds[$boardGroupId])) {
             $errors[] = sr_t('community::action.admin.board_group_invalid');
         }
@@ -616,6 +627,9 @@ if (sr_request_method() === 'POST') {
             ];
             foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
                 $boardSettingValues[(string) $displaySettingKey] = (string) $displaySettingValue;
+            }
+            foreach ($boardSeoValues as $seoSettingKey => $seoSettingValue) {
+                $boardSettingValues[(string) $seoSettingKey] = (string) $seoSettingValue;
             }
         }
 

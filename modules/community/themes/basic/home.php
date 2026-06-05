@@ -1,10 +1,7 @@
 <?php
 
 $pageTitle = '커뮤니티';
-$seo = [
-    'title' => $pageTitle,
-    'canonical' => '/community',
-];
+$seo = sr_community_home_seo_meta();
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'layout_key' => (string) ($communityLayoutKey ?? ''),

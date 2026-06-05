@@ -35,6 +35,31 @@ if (!is_array($post)) {
 if (!is_array($post)) {
     sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
+if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'remove_og_image') {
+    if (!is_array($account)) {
+        $account = sr_member_require_login($pdo);
+    }
+    if (!sr_community_account_can_remove_post_og_image($pdo, $post, $account)) {
+        sr_render_error(403, '게시글 OG 이미지를 제거할 권한이 없습니다.');
+    }
+
+    sr_community_update_post_og_image($pdo, (int) $post['id'], null);
+    sr_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit') || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete') ? 'admin' : 'member',
+        'event_type' => 'community.post.og_image_removed',
+        'target_type' => 'community_post',
+        'target_id' => (string) (int) $post['id'],
+        'result' => 'success',
+        'message' => 'Community post OG image removed.',
+        'metadata' => [
+            'board_key' => (string) ($post['board_key'] ?? ''),
+            'removed_attachment_id' => (int) ($post['og_image_attachment_id'] ?? 0),
+        ],
+    ]);
+    $_SESSION['sr_community_post_notice'] = '게시글 OG 이미지를 제거했습니다.';
+    sr_redirect('/community/post?id=' . rawurlencode((string) $post['id']));
+}
 $postBoard = sr_community_board_by_id($pdo, (int) $post['board_id']);
 if (is_array($postBoard)) {
     foreach ([

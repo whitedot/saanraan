@@ -70,6 +70,10 @@ $values = [
     'category_id' => (int) ($post['category_id'] ?? 0),
     'body_text' => (string) $post['body_text'],
     'body_format' => (string) ($post['body_format'] ?? 'plain'),
+    'seo_title' => (string) ($post['seo_title'] ?? ''),
+    'seo_description' => (string) ($post['seo_description'] ?? ''),
+    'og_title' => (string) ($post['og_title'] ?? ''),
+    'og_description' => (string) ($post['og_description'] ?? ''),
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

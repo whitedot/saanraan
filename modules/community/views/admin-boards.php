@@ -456,6 +456,48 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
+            <h2>SEO/OG 메타</h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_seo_title">SEO 제목</label>
+                <div class="admin-form-field">
+                    <input id="community_admin_boards_seo_title" type="text" name="seo_title" maxlength="160" value="<?php echo sr_e($boardField($formBoard, 'seo_title')); ?>" class="form-input form-control-full">
+                    <?php echo $settingSourceRadioHtml('source_seo_title', $boardSettingSource($formBoard, 'seo_title')); ?>
+                    <p class="admin-form-help">비워 두면 게시판 이름을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_seo_description">SEO 설명</label>
+                <div class="admin-form-field">
+                    <textarea id="community_admin_boards_seo_description" name="seo_description" rows="3" cols="60" maxlength="255" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'seo_description')); ?></textarea>
+                    <?php echo $settingSourceRadioHtml('source_seo_description', $boardSettingSource($formBoard, 'seo_description')); ?>
+                    <p class="admin-form-help">비워 두면 게시판 설명을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_og_title">OG 제목</label>
+                <div class="admin-form-field">
+                    <input id="community_admin_boards_og_title" type="text" name="og_title" maxlength="160" value="<?php echo sr_e($boardField($formBoard, 'og_title')); ?>" class="form-input form-control-full">
+                    <?php echo $settingSourceRadioHtml('source_og_title', $boardSettingSource($formBoard, 'og_title')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_og_description">OG 설명</label>
+                <div class="admin-form-field">
+                    <textarea id="community_admin_boards_og_description" name="og_description" rows="3" cols="60" maxlength="255" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'og_description')); ?></textarea>
+                    <?php echo $settingSourceRadioHtml('source_og_description', $boardSettingSource($formBoard, 'og_description')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_og_image_url">OG 이미지 URL</label>
+                <div class="admin-form-field">
+                    <input id="community_admin_boards_og_image_url" type="url" name="og_image_url" maxlength="255" value="<?php echo sr_e($boardField($formBoard, 'og_image_url')); ?>" class="form-input form-control-full" placeholder="/storage/seo/example.webp">
+                    <?php echo $settingSourceRadioHtml('source_og_image_url', $boardSettingSource($formBoard, 'og_image_url')); ?>
+                    <p class="admin-form-help">http(s) URL 또는 /로 시작하는 내부 경로만 사용할 수 있습니다. 게시글 지정 이미지가 없을 때 게시판 기본값으로 사용됩니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('community::ui.text.533748da')); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_boards_read_policy', sr_t('community::ui.text.0b6c5dfd'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true); ?>

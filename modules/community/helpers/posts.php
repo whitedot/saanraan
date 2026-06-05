@@ -237,7 +237,7 @@ function sr_community_public_post(PDO $pdo, int $postId): ?array
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -283,7 +283,7 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -597,6 +597,25 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status):
     }
 }
 
+function sr_community_update_post_og_image(PDO $pdo, int $postId, ?int $attachmentId): void
+{
+    if ($postId < 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_posts
+         SET og_image_attachment_id = :og_image_attachment_id,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'og_image_attachment_id' => is_int($attachmentId) && $attachmentId > 0 ? $attachmentId : 0,
+        'updated_at' => sr_now(),
+        'id' => $postId,
+    ]);
+}
+
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
 {
     if ($pdo->inTransaction()) {
@@ -627,6 +646,10 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
                  title = :title,
                  body_text = :body_text,
                  body_format = :body_format,
+                 seo_title = :seo_title,
+                 seo_description = :seo_description,
+                 og_title = :og_title,
+                 og_description = :og_description,
                  updated_at = :updated_at
              WHERE id = :id'
         );
@@ -634,6 +657,10 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             'title' => trim((string) $values['title']),
             'body_text' => $bodyText,
             'body_format' => $bodyFormat,
+            'seo_title' => sr_community_seo_text((string) ($values['seo_title'] ?? ''), 160),
+            'seo_description' => sr_community_seo_text((string) ($values['seo_description'] ?? ''), 255),
+            'og_title' => sr_community_seo_text((string) ($values['og_title'] ?? ''), 160),
+            'og_description' => sr_community_seo_text((string) ($values['og_description'] ?? ''), 255),
             'updated_at' => sr_now(),
             'id' => $postId,
         ];
@@ -1080,6 +1107,10 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         'category_id' => preg_match('/\A[1-9][0-9]*\z/', sr_post_string('category_id', 20)) === 1 ? (int) sr_post_string('category_id', 20) : 0,
         'body_text' => $bodyText,
         'body_format' => $bodyFormat,
+        'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
+        'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
+        'og_title' => sr_community_seo_text(sr_post_string('og_title', 160), 160),
+        'og_description' => sr_community_seo_text(sr_post_string('og_description', 255), 255),
     ];
 }
 
@@ -1129,9 +1160,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, seo_title, seo_description, og_title, og_description, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :seo_title, :seo_description, :og_title, :og_description, :status, 0, NULL, :created_at, :updated_at)'
     );
     $params = [
         'board_id' => $boardId,
@@ -1139,6 +1170,10 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'title' => trim((string) $values['title']),
         'body_text' => $bodyText,
         'body_format' => $bodyFormat,
+        'seo_title' => sr_community_seo_text((string) ($values['seo_title'] ?? ''), 160),
+        'seo_description' => sr_community_seo_text((string) ($values['seo_description'] ?? ''), 255),
+        'og_title' => sr_community_seo_text((string) ($values['og_title'] ?? ''), 160),
+        'og_description' => sr_community_seo_text((string) ($values['og_description'] ?? ''), 255),
         'status' => 'published',
         'created_at' => $now,
         'updated_at' => $now,

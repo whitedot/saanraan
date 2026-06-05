@@ -73,6 +73,11 @@ function sr_community_board_group_setting_keys(): array
         'popup_layer_list_id',
         'popup_layer_view_id',
         'popup_layer_form_id',
+        'seo_title',
+        'seo_description',
+        'og_title',
+        'og_description',
+        'og_image_url',
     ];
 }
 
@@ -595,6 +600,9 @@ function sr_community_board_with_effective_settings(PDO $pdo, array $board): arr
     $board['effective_image_uploads_enabled'] = sr_community_effective_board_image_uploads_enabled($pdo, $board) ? 1 : 0;
     foreach (sr_community_public_display_setting_labels() as $settingKey => $settingLabel) {
         $board[$settingKey] = (int) sr_community_effective_board_setting($pdo, $board, (string) $settingKey, '0');
+    }
+    foreach (sr_community_seo_setting_keys() as $settingKey) {
+        $board[$settingKey] = sr_community_effective_board_setting($pdo, $board, (string) $settingKey, '');
     }
     $board['effective_file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
 
