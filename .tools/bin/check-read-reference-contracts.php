@@ -225,6 +225,13 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         sr_read_reference_check_error('read reference normalize row target sample accepted mismatched target_key');
     }
 
+    $invalidRowTargetKey = $baseRow;
+    $invalidRowTargetKey['target_key'] = ' site.name ';
+    $invalidKeyRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidRowTargetKey, ['status' => 'ok'], '/admin/sample');
+    if (is_array($invalidKeyRow['row'] ?? null) || !in_array('target_key 값이 올바르지 않습니다.', $invalidKeyRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted invalid row target_key');
+    }
+
     $unexpectedTargetKey = $baseRow;
     $unexpectedTargetKey['target_type'] = 'banner';
     $unexpectedTargetKey['target_id'] = '10';
@@ -235,6 +242,19 @@ function sr_read_reference_check_normalize_row_target_samples(): void
     ], $unexpectedTargetKey, ['status' => 'ok'], '/admin/sample');
     if (is_array($unexpected['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $unexpected['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted unexpected target_key');
+    }
+
+    $invalidRowTargetId = $baseRow;
+    $invalidRowTargetId['target_type'] = 'banner';
+    $invalidRowTargetId['target_id'] = true;
+    unset($invalidRowTargetId['target_key']);
+    $invalidIdRow = sr_read_reference_normalize_row('sample_module', $entry, [
+        'target_type' => 'banner',
+        'target_id' => 1,
+        'target_key' => '',
+    ], $invalidRowTargetId, ['status' => 'ok'], '/admin/sample');
+    if (is_array($invalidIdRow['row'] ?? null) || !in_array('target_id 필수값이 비어 있습니다.', $invalidIdRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted invalid row target_id');
     }
 
     $invalidTargetTypeRow = $baseRow;

@@ -291,15 +291,19 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         'reference_type' => sr_read_reference_string_value($rawRow['reference_type'] ?? $entry['reference_type'] ?? '') ?? '',
         'reference_id' => sr_read_reference_string_value($rawRow['reference_id'] ?? '') ?? '',
         'title' => sr_read_reference_string_value($rawRow['title'] ?? '') ?? '',
-        'target_type' => sr_read_reference_string_value($rawRow['target_type'] ?? $target['target_type'] ?? '') ?? '',
-        'target_id' => sr_read_reference_string_value($rawRow['target_id'] ?? $target['target_id'] ?? 0) ?? '',
+        'target_type' => is_string($rawRow['target_type'] ?? null)
+            ? (string) $rawRow['target_type']
+            : (is_string($target['target_type'] ?? null) ? (string) $target['target_type'] : ''),
+        'target_id' => sr_read_reference_target_id_value($rawRow['target_id'] ?? ($target['target_id'] ?? null)) ?? '',
         'status' => $status,
         'admin_url' => $adminUrl,
     ];
 
     foreach (['target_key', 'policy_status', 'updated_at', 'message'] as $optionalKey) {
         if (array_key_exists($optionalKey, $rawRow)) {
-            $optionalValue = sr_read_reference_string_value($rawRow[$optionalKey]);
+            $optionalValue = $optionalKey === 'target_key'
+                ? sr_read_reference_target_key_value($rawRow[$optionalKey])
+                : sr_read_reference_string_value($rawRow[$optionalKey]);
             if ($optionalValue === null) {
                 $errors[] = $optionalKey . ' 값이 올바르지 않습니다.';
                 continue;
