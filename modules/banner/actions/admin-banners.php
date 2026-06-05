@@ -202,11 +202,27 @@ if (sr_request_method() === 'POST') {
             $errors[] = '선택한 배너 스킨은 출력 위치와 호환되지 않습니다.';
         }
 
+        $existingBanner = null;
         if ($errors === [] && $bannerId > 0) {
-            $stmt = $pdo->prepare('SELECT id FROM sr_banners WHERE id = :id LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id, status FROM sr_banners WHERE id = :id LIMIT 1');
             $stmt->execute(['id' => $bannerId]);
-            if (!is_array($stmt->fetch())) {
+            $existingBanner = $stmt->fetch();
+            if (!is_array($existingBanner)) {
                 $errors[] = '수정할 배너를 찾을 수 없습니다.';
+            }
+        }
+
+        if ($errors === [] && is_array($existingBanner) && (string) ($existingBanner['status'] ?? '') === 'enabled' && $status !== 'enabled') {
+            $referenceResult = sr_read_reference_collect($pdo, 'banner-references.php', [
+                'owner_module_key' => 'banner',
+                'target_type' => 'banner',
+                'target_id' => $bannerId,
+                'target_key' => '',
+            ]);
+            if (($referenceResult['errors'] ?? []) !== []) {
+                $errors[] = '배너 참조 계약 오류가 있어 상태를 변경할 수 없습니다.';
+            } elseif (($referenceResult['rows'] ?? []) !== []) {
+                $errors[] = '다른 모듈에서 이 배너를 참조하고 있어 비활성화할 수 없습니다. 참조 현황을 먼저 확인하세요.';
             }
         }
 
