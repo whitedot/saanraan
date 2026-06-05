@@ -238,6 +238,35 @@ function sr_read_reference_check_normalize_row_target_samples(): void
     }
 }
 
+function sr_read_reference_check_collect_target_samples(): void
+{
+    $validSamples = [
+        ['coupon-references.php', ['target_type' => 'coupon_definition', 'target_id' => 1, 'target_key' => 'welcome_coupon']],
+        ['banner-references.php', ['target_type' => 'banner', 'target_id' => 1, 'target_key' => '']],
+        ['popup-layer-references.php', ['target_type' => 'popup_layer', 'target_id' => 1, 'target_key' => '']],
+        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => 'vip_member']],
+        ['site-setting-references.php', ['target_type' => 'site_setting', 'target_id' => 0, 'target_key' => 'site.name']],
+    ];
+    foreach ($validSamples as [$contractFile, $target]) {
+        if (sr_read_reference_target_errors($contractFile, $target) !== []) {
+            sr_read_reference_check_error('read reference target sample rejected valid target: ' . $contractFile);
+        }
+    }
+
+    $invalidSamples = [
+        ['banner-references.php', ['target_type' => 'banner', 'target_id' => 0, 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
+        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => ''], '읽기 참조 대상 key가 비어 있습니다.'],
+        ['site-setting-references.php', ['target_type' => 'site_setting', 'target_id' => 1, 'target_key' => 'site.name'], '읽기 참조 대상 ID가 올바르지 않습니다.'],
+        ['site-setting-references.php', ['target_type' => 'site_setting', 'target_id' => 0, 'target_key' => ['site.name']], '읽기 참조 대상 key가 올바르지 않습니다.'],
+    ];
+    foreach ($invalidSamples as [$contractFile, $target, $expectedError]) {
+        $errors = sr_read_reference_target_errors($contractFile, $target);
+        if (!in_array($expectedError, $errors, true)) {
+            sr_read_reference_check_error('read reference target sample accepted invalid target: ' . $contractFile);
+        }
+    }
+}
+
 function sr_read_reference_check_keyed_contract_row_sources(string $root): void
 {
     $couponHelper = $root . '/modules/coupon/helpers.php';
@@ -386,6 +415,7 @@ foreach ($expectedConsumers as $moduleKey => $contractFiles) {
 sr_read_reference_check_forbidden_owner_writes($root);
 sr_read_reference_check_admin_url_safety_samples();
 sr_read_reference_check_normalize_row_target_samples();
+sr_read_reference_check_collect_target_samples();
 sr_read_reference_check_keyed_contract_row_sources($root);
 
 if ($errors !== []) {

@@ -33,14 +33,14 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
 {
     $rows = [];
     $errors = [];
-    $targetType = (string) ($target['target_type'] ?? '');
-    $expectedTargetType = (string) (sr_read_reference_contract_files()[$contractFile] ?? '');
-    if ($expectedTargetType === '' || $targetType !== $expectedTargetType) {
+    $targetErrors = sr_read_reference_target_errors($contractFile, $target);
+    if ($targetErrors !== []) {
         return [
             'rows' => [],
-            'errors' => ['읽기 참조 계약 대상이 올바르지 않습니다.'],
+            'errors' => $targetErrors,
         ];
     }
+    $targetType = (string) ($target['target_type'] ?? '');
 
     foreach (sr_enabled_module_contract_files($pdo, $contractFile) as $moduleKey => $file) {
         $contract = sr_load_module_contract_file($moduleKey, $file);
@@ -357,6 +357,36 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         'row' => $errors === [] ? $row : null,
         'errors' => $errors,
     ];
+}
+
+function sr_read_reference_target_errors(string $contractFile, array $target): array
+{
+    $errors = [];
+    $expectedTargetType = (string) (sr_read_reference_contract_files()[$contractFile] ?? '');
+    $targetType = sr_read_reference_string_value($target['target_type'] ?? '');
+    if ($expectedTargetType === '' || $targetType !== $expectedTargetType) {
+        $errors[] = '읽기 참조 계약 대상이 올바르지 않습니다.';
+    }
+
+    $targetId = sr_read_reference_string_value($target['target_id'] ?? null);
+    if ($targetId === null || $targetId === '') {
+        $errors[] = '읽기 참조 대상 ID가 올바르지 않습니다.';
+    } elseif ($expectedTargetType === 'site_setting') {
+        if ($targetId !== '0') {
+            $errors[] = '읽기 참조 대상 ID가 올바르지 않습니다.';
+        }
+    } elseif (preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+        $errors[] = '읽기 참조 대상 ID가 올바르지 않습니다.';
+    }
+
+    $targetKey = sr_read_reference_string_value($target['target_key'] ?? '');
+    if ($targetKey === null) {
+        $errors[] = '읽기 참조 대상 key가 올바르지 않습니다.';
+    } elseif (in_array($expectedTargetType, ['member_group', 'site_setting'], true) && $targetKey === '') {
+        $errors[] = '읽기 참조 대상 key가 비어 있습니다.';
+    }
+
+    return $errors;
 }
 
 function sr_read_reference_string_value(mixed $value): ?string

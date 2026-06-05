@@ -98,6 +98,8 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `target_id`: 숫자 ID가 있는 대상의 ID. 사이트 설정처럼 숫자 ID가 없으면 `0`
 - `target_key`: key 기반 참조가 필요한 대상의 안정 key
 
+공통 helper는 계약 파일별 target 구조를 먼저 검증한다. `coupon_definition`, `banner`, `popup_layer`, `member_group`은 1 이상의 숫자형 `target_id`가 필요하고, `site_setting`은 `target_id=0`만 허용한다. `member_group`과 `site_setting`은 빈 `target_key`를 허용하지 않는다.
+
 대상별 필수값:
 
 | 계약 파일 | `target_type` | `target_id` | `target_key` |
@@ -136,6 +138,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - 계약 파일 로드
 - `helpers` 파일 경로가 소비 모듈 폴더 안쪽인지 검증하고 include
 - `supports_target_types` 필수값과 `target_type` 지원 여부 검증
+- 계약 파일별 target 구조 검증
 - callable 존재 여부, 호출 가능 여부, 인자 수 검증
 - `count_function`, `rows_function`, `health_function`, `admin_url_function` 호출과 반환값 타입 검증
 - `count_function`이 1 이상을 반환했는데 `rows_function`이 빈 배열을 반환하면 계약 오류로 처리
