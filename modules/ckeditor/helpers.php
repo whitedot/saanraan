@@ -137,14 +137,6 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post
         'pluginStylesheetUrl' => sr_asset_url('/modules/ckeditor/assets/saanraan-ckeditor.css'),
     ];
 
-    if ($presetKey === 'content_basic' && function_exists('sr_content_body_file_upload_url')) {
-        $config['upload'] = [
-            'url' => sr_content_body_file_upload_url(),
-            'csrfToken' => sr_csrf_token(),
-            'fieldName' => 'upload',
-        ];
-    }
-
     return $config;
 }
 

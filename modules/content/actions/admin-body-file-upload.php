@@ -24,7 +24,8 @@ try {
         throw new RuntimeException('업로드할 본문 이미지를 선택하세요.');
     }
 
-    $stored = sr_content_upload_body_file($pdo, (int) $account['id'], $upload);
+    $uploadToken = sr_post_string('upload_token', 64);
+    $stored = sr_content_upload_body_file($pdo, (int) $account['id'], $upload, $uploadToken);
     try {
         sr_content_cleanup_expired_body_files($pdo, 5);
     } catch (Throwable $cleanupException) {
@@ -32,9 +33,6 @@ try {
     }
     echo json_encode([
         'url' => (string) $stored['url'],
-        'file_id' => (int) $stored['id'],
-        'storage_driver' => (string) $stored['storage_driver'],
-        'storage_key' => (string) $stored['storage_key'],
         'width' => (int) ($stored['width'] ?? 0),
         'height' => (int) ($stored['height'] ?? 0),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

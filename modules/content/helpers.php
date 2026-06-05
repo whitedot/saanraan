@@ -1573,13 +1573,11 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
 
     $contentIds = sr_content_group_content_ids($pdo, $groupId);
     $files = sr_content_group_file_rows_for_delete($pdo, $contentIds);
-    $bodyFiles = sr_content_body_file_rows_for_content_delete($pdo, $contentIds);
     $pdo->beginTransaction();
     try {
         $deletedSettings = sr_content_optional_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
         $deletedContents = count($contentIds);
         $deletedFiles = count($files);
-        $deletedBodyFiles = count($bodyFiles);
         $deletedComments = (int) ($check['references']['comments'] ?? 0);
         $deletedRevisions = (int) ($check['references']['revision_references'] ?? 0);
         if ($contentIds !== []) {
@@ -1605,20 +1603,6 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
             }
             if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
                 $pdo->prepare('DELETE FROM sr_content_file_links WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if (sr_content_optional_table_exists($pdo, 'sr_content_body_file_refs')) {
-                $pdo->prepare('DELETE FROM sr_content_body_file_refs WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if ($bodyFiles !== []) {
-                $bodyFileIds = array_values(array_map(static fn (array $file): int => (int) ($file['id'] ?? 0), $bodyFiles));
-                $bodyFileIds = array_values(array_filter($bodyFileIds, static fn (int $fileId): bool => $fileId > 0));
-                if ($bodyFileIds !== []) {
-                    $bodyFilePlaceholders = implode(',', array_fill(0, count($bodyFileIds), '?'));
-                    if (sr_content_optional_table_exists($pdo, 'sr_content_body_file_refs')) {
-                        $pdo->prepare('DELETE FROM sr_content_body_file_refs WHERE file_id IN (' . $bodyFilePlaceholders . ')')->execute($bodyFileIds);
-                    }
-                    $pdo->prepare('DELETE FROM sr_content_body_files WHERE id IN (' . $bodyFilePlaceholders . ')')->execute($bodyFileIds);
-                }
             }
             if ($files !== []) {
                 $fileIds = array_values(array_map(static fn (array $file): int => (int) ($file['id'] ?? 0), $files));
@@ -1646,7 +1630,6 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     }
 
     $failedFiles = 0;
-    $failedBodyFiles = 0;
     $failedFileRefs = [];
     foreach ($files as $file) {
         $driver = function_exists('sr_content_file_storage_driver') ? sr_content_file_storage_driver($file) : (string) ($file['storage_driver'] ?? 'local');
@@ -1657,24 +1640,15 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
             sr_content_record_storage_cleanup_failure($pdo, 'group_delete_file', $groupId, $driver, $key, '콘텐츠 그룹 삭제 후 파일 저장소 정리에 실패했습니다.');
         }
     }
-    foreach ($bodyFiles as $file) {
-        $driver = strtolower((string) ($file['storage_driver'] ?? 'local'));
-        $driver = in_array($driver, ['local', 's3'], true) ? $driver : 'local';
-        $key = (string) ($file['storage_key'] ?? '');
-        if ($key !== '' && !sr_storage_delete($driver, $key)) {
-            $failedBodyFiles++;
-            $failedFileRefs[] = $driver . ':' . $key;
-            sr_content_record_storage_cleanup_failure($pdo, 'group_delete_body_file', $groupId, $driver, $key, '콘텐츠 그룹 삭제 후 본문 이미지 저장소 정리에 실패했습니다.');
-        }
-    }
+    $deletedBodyFiles = sr_content_cleanup_body_files_for_deleted_content($pdo, $contentIds);
 
     $check['deleted_settings'] = $deletedSettings;
     $check['deleted_contents'] = $deletedContents;
     $check['deleted_comments'] = $deletedComments;
     $check['deleted_revisions'] = $deletedRevisions;
     $check['deleted_files'] = $deletedFiles - $failedFiles;
-    $check['deleted_body_files'] = $deletedBodyFiles - $failedBodyFiles;
-    $check['failed_files'] = $failedFiles + $failedBodyFiles;
+    $check['deleted_body_files'] = $deletedBodyFiles;
+    $check['failed_files'] = $failedFiles;
     $check['failed_file_refs'] = $failedFileRefs;
     return $check;
 }
@@ -2482,12 +2456,21 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
             sr_content_set_setting_source($pdo, $pageId, (string) $settingKey, (string) ($values['source_' . $settingKey] ?? 'content'));
         }
 
-        sr_link_card_reconcile_table($pdo, 'sr_content_link_refs', 'content_id', $pageId, [], $accountId);
         if ((string) ($values['body_format'] ?? 'plain') === 'html') {
-            sr_content_reconcile_body_files($pdo, $pageId, (string) ($values['body_text'] ?? ''), $accountId, $now);
+            $finalBodyText = sr_content_finalize_body_files($pdo, $pageId, (string) ($values['body_text'] ?? ''), $accountId);
+            if ($finalBodyText !== (string) ($values['body_text'] ?? '')) {
+                $values['body_text'] = $finalBodyText;
+                $stmt = $pdo->prepare('UPDATE sr_content_items SET body_text = :body_text, updated_at = :updated_at WHERE id = :id');
+                $stmt->execute([
+                    'body_text' => $finalBodyText,
+                    'updated_at' => $now,
+                    'id' => $pageId,
+                ]);
+            }
         } else {
-            sr_content_reconcile_body_files($pdo, $pageId, '', $accountId, $now);
+            sr_content_cleanup_unreferenced_body_files($pdo, $pageId, '');
         }
+        sr_link_card_reconcile_table($pdo, 'sr_content_link_refs', 'content_id', $pageId, [], $accountId);
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
         $pdo->commit();
     } catch (Throwable $exception) {

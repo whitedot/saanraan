@@ -54,8 +54,23 @@
     });
   }
 
-  function editorConfig(ckeditor) {
+  function uploadConfig(textarea) {
+    var url = textarea.dataset.srEditorUploadUrl || '';
+    if (!url) {
+      return null;
+    }
+
+    return {
+      url: url,
+      fieldName: textarea.dataset.srEditorUploadField || 'upload',
+      csrfToken: textarea.dataset.srEditorUploadCsrf || '',
+      uploadToken: textarea.dataset.srEditorUploadToken || ''
+    };
+  }
+
+  function editorConfig(ckeditor, textarea) {
     var toolbar = Array.isArray(config.toolbar) ? config.toolbar : ['undo', 'redo', '|', 'bold', 'italic'];
+    var upload = uploadConfig(textarea);
     var pluginNames = [
       'Essentials',
       'Paragraph',
@@ -96,8 +111,8 @@
       }
     };
 
-    if (config.upload && config.upload.url && ckeditor.FileRepository) {
-      editorOptions.extraPlugins = [saanraanUploadAdapterPlugin];
+    if (upload && upload.url && ckeditor.FileRepository) {
+      editorOptions.extraPlugins = [saanraanUploadAdapterPlugin(upload)];
       editorOptions.image = {
         toolbar: ['imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side']
       };
@@ -106,8 +121,9 @@
     return editorOptions;
   }
 
-  function SaanraanUploadAdapter(loader) {
+  function SaanraanUploadAdapter(loader, upload) {
     this.loader = loader;
+    this.uploadConfig = upload;
     this.xhr = null;
   }
 
@@ -118,10 +134,11 @@
       return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
         var data = new FormData();
-        var fieldName = config.upload.fieldName || 'upload';
+        var upload = adapter.uploadConfig || {};
+        var fieldName = upload.fieldName || 'upload';
 
         adapter.xhr = xhr;
-        xhr.open('POST', config.upload.url, true);
+        xhr.open('POST', upload.url, true);
         xhr.responseType = 'json';
         xhr.addEventListener('error', function () {
           reject('본문 이미지 업로드를 처리할 수 없습니다.');
@@ -146,8 +163,11 @@
         });
 
         data.append(fieldName, file);
-        if (config.upload.csrfToken) {
-          data.append('csrf_token', config.upload.csrfToken);
+        if (upload.csrfToken) {
+          data.append('csrf_token', upload.csrfToken);
+        }
+        if (upload.uploadToken) {
+          data.append('upload_token', upload.uploadToken);
         }
         xhr.send(data);
       });
@@ -160,9 +180,11 @@
     }
   };
 
-  function saanraanUploadAdapterPlugin(editor) {
-    editor.plugins.get('FileRepository').createUploadAdapter = function (loader) {
-      return new SaanraanUploadAdapter(loader);
+  function saanraanUploadAdapterPlugin(upload) {
+    return function (editor) {
+      editor.plugins.get('FileRepository').createUploadAdapter = function (loader) {
+        return new SaanraanUploadAdapter(loader, upload);
+      };
     };
   }
 
@@ -191,7 +213,7 @@
         return;
       }
 
-      ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor)).then(function (editor) {
+      ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor, textarea)).then(function (editor) {
         if (editor.ui && editor.ui.view && editor.ui.view.element) {
           editor.ui.view.element.classList.add('sr-ckeditor');
         }

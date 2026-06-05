@@ -48,6 +48,9 @@ $newContentFileAssetSettings = [
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $contentEditorKey = $pdo instanceof PDO ? sr_content_editor_key($pdo) : 'textarea';
 $contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, 'content_basic') : '';
+if ($contentEditorAttributes !== '' && $contentEditorKey === 'ckeditor') {
+    $contentEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_content_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_content_body_file_upload_token()) . '"';
+}
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);

@@ -27,56 +27,61 @@ function sr_content_body_file_upload_url(): string
     return sr_url('/admin/content/body-files/upload');
 }
 
-function sr_content_body_file_proxy_path(int $fileId): string
+function sr_content_body_file_upload_token(): string
 {
-    return '/content/body-file?id=' . rawurlencode((string) $fileId);
-}
-
-function sr_content_body_file_proxy_url(int $fileId): string
-{
-    return sr_url(sr_content_body_file_proxy_path($fileId));
-}
-
-function sr_content_body_file_by_id(PDO $pdo, int $fileId): ?array
-{
-    if ($fileId < 1) {
-        return null;
+    if (empty($_SESSION['sr_content_body_upload_token']) || !is_string($_SESSION['sr_content_body_upload_token'])) {
+        $_SESSION['sr_content_body_upload_token'] = bin2hex(random_bytes(16));
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM sr_content_body_files WHERE id = :id LIMIT 1');
-    $stmt->execute(['id' => $fileId]);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? $row : null;
+    return (string) $_SESSION['sr_content_body_upload_token'];
 }
 
-function sr_content_body_file_public_by_id(PDO $pdo, int $fileId): ?array
+function sr_content_body_file_token_is_valid(string $token): bool
 {
-    if ($fileId < 1) {
-        return null;
+    return preg_match('/\A[a-f0-9]{32}\z/', $token) === 1
+        && is_string($_SESSION['sr_content_body_upload_token'] ?? null)
+        && hash_equals((string) $_SESSION['sr_content_body_upload_token'], $token);
+}
+
+function sr_content_body_file_clean_name(string $name): string
+{
+    $name = basename($name);
+    return preg_match('/\A[A-Za-z0-9._=-]{1,160}\z/', $name) === 1 ? $name : '';
+}
+
+function sr_content_body_file_tmp_key(string $token, string $fileName): string
+{
+    if (!sr_content_body_file_token_is_valid($token)) {
+        return '';
     }
 
-    $stmt = $pdo->prepare(
-        "SELECT f.*, c.slug, c.title AS content_title, c.status AS content_status,
-                c.asset_access_enabled, c.asset_module, c.asset_access_amount,
-                c.asset_access_amounts_json, c.asset_access_group_policies_json,
-                c.asset_access_policy_set_id, c.asset_charge_policy
-         FROM sr_content_body_files f
-         INNER JOIN sr_content_body_file_refs r ON r.file_id = f.id AND r.status = 'active'
-         INNER JOIN sr_content_items c ON c.id = r.content_id
-         WHERE f.id = :id
-           AND f.status = 'attached'
-         ORDER BY c.status = 'published' DESC, c.id ASC
-         LIMIT 1"
-    );
-    $stmt->execute(['id' => $fileId]);
-    $row = $stmt->fetch();
-
-    return is_array($row) ? $row : null;
+    $fileName = sr_content_body_file_clean_name($fileName);
+    return $fileName !== '' ? 'content/body/tmp/' . $token . '/' . $fileName : '';
 }
 
-function sr_content_upload_body_file(PDO $pdo, int $accountId, array $file): array
+function sr_content_body_file_content_key(int $contentId, string $fileName): string
 {
+    $fileName = sr_content_body_file_clean_name($fileName);
+    return $contentId > 0 && $fileName !== '' ? 'content/body/' . $contentId . '/' . $fileName : '';
+}
+
+function sr_content_body_file_tmp_proxy_url(string $token, string $fileName): string
+{
+    return sr_url('/content/body-file?tmp=' . rawurlencode($token) . '&file=' . rawurlencode($fileName));
+}
+
+function sr_content_body_file_content_proxy_url(int $contentId, string $fileName): string
+{
+    return sr_url('/content/body-file?content_id=' . rawurlencode((string) $contentId) . '&file=' . rawurlencode($fileName));
+}
+
+function sr_content_upload_body_file(PDO $pdo, int $accountId, array $file, string $token): array
+{
+    unset($pdo, $accountId);
+    if (!sr_content_body_file_token_is_valid($token)) {
+        throw new RuntimeException('본문 이미지 업로드 토큰이 올바르지 않습니다.');
+    }
+
     $validated = sr_upload_validate_file($file, [
         'max_bytes' => sr_content_body_file_upload_max_bytes(),
         'allowed_extensions' => sr_content_body_file_allowed_extensions(),
@@ -90,66 +95,30 @@ function sr_content_upload_body_file(PDO $pdo, int $accountId, array $file): arr
 
     $storedName = sr_upload_random_filename((string) $validated['extension']);
     $storedMimeType = sr_upload_detect_mime((string) $validated['tmp_name']);
-    $sizeBytes = filesize((string) $validated['tmp_name']);
-    if (!in_array($storedMimeType, sr_content_body_file_allowed_mime_types(), true) || !is_int($sizeBytes)) {
+    if (!in_array($storedMimeType, sr_content_body_file_allowed_mime_types(), true)) {
         throw new RuntimeException('저장된 본문 이미지 metadata를 확인할 수 없습니다.');
     }
 
-    $storageKey = 'content/body/' . date('Y/m') . '/' . $storedName;
+    $storageKey = sr_content_body_file_tmp_key($token, $storedName);
+    if ($storageKey === '') {
+        throw new RuntimeException('본문 이미지 저장 key가 올바르지 않습니다.');
+    }
+
     $stored = sr_storage_put_file((string) $validated['tmp_name'], $storageKey, [
+        'driver' => 'local',
         'content_type' => $storedMimeType,
     ]);
 
-    try {
-        $now = sr_now();
-        $expiresAt = date('Y-m-d H:i:s', time() + sr_content_body_file_temporary_ttl_seconds());
-        $stmt = $pdo->prepare(
-            "INSERT INTO sr_content_body_files
-                (content_id, uploader_account_id, original_name, stored_name, storage_path, storage_driver, storage_key, public_url, mime_type, size_bytes, checksum_sha256, width, height, status, expires_at, created_at, updated_at)
-             VALUES
-                (0, :uploader_account_id, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, '', :mime_type, :size_bytes, :checksum_sha256, :width, :height, 'temporary', :expires_at, :created_at, :updated_at)"
-        );
-        $stmt->execute([
-            'uploader_account_id' => $accountId,
-            'original_name' => (string) $validated['original_name'],
-            'stored_name' => $storedName,
-            'storage_path' => (string) ($stored['path'] ?? ''),
-            'storage_driver' => (string) $stored['driver'],
-            'storage_key' => $storageKey,
-            'mime_type' => $storedMimeType,
-            'size_bytes' => $sizeBytes,
-            'checksum_sha256' => (string) $validated['checksum'],
-            'width' => (int) ($imageSize[0] ?? 0),
-            'height' => (int) ($imageSize[1] ?? 0),
-            'expires_at' => $expiresAt,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-
-        $fileId = (int) $pdo->lastInsertId();
-        $publicUrl = sr_content_body_file_proxy_url($fileId);
-        $pdo->prepare('UPDATE sr_content_body_files SET public_url = :public_url WHERE id = :id')->execute([
-            'public_url' => $publicUrl,
-            'id' => $fileId,
-        ]);
-
-        return [
-            'id' => $fileId,
-            'url' => $publicUrl,
-            'storage_driver' => (string) $stored['driver'],
-            'storage_key' => $storageKey,
-            'width' => (int) ($imageSize[0] ?? 0),
-            'height' => (int) ($imageSize[1] ?? 0),
-        ];
-    } catch (Throwable $exception) {
-        if (!sr_storage_delete((string) $stored['driver'], $storageKey)) {
-            sr_content_record_storage_cleanup_failure($pdo, 'body_file_upload_rollback', 0, (string) $stored['driver'], $storageKey, '본문 이미지 DB 기록 실패 후 저장소 정리에 실패했습니다.');
-        }
-        throw $exception;
-    }
+    return [
+        'url' => sr_content_body_file_tmp_proxy_url($token, $storedName),
+        'storage_driver' => (string) $stored['driver'],
+        'storage_key' => $storageKey,
+        'width' => (int) ($imageSize[0] ?? 0),
+        'height' => (int) ($imageSize[1] ?? 0),
+    ];
 }
 
-function sr_content_body_file_ids_from_html(string $html): array
+function sr_content_body_file_refs_from_html(string $html): array
 {
     if ($html === '' || !class_exists('DOMDocument')) {
         return [];
@@ -164,25 +133,25 @@ function sr_content_body_file_ids_from_html(string $html): array
         return [];
     }
 
-    $ids = [];
+    $refs = [];
     foreach ($document->getElementsByTagName('img') as $image) {
         if (!$image instanceof DOMElement) {
             continue;
         }
-        $id = sr_content_body_file_id_from_url($image->getAttribute('src'));
-        if ($id > 0) {
-            $ids[$id] = $id;
+        $ref = sr_content_body_file_ref_from_url($image->getAttribute('src'));
+        if ($ref !== null) {
+            $refs[] = $ref;
         }
     }
 
-    return array_values($ids);
+    return $refs;
 }
 
-function sr_content_body_file_id_from_url(string $url): int
+function sr_content_body_file_ref_from_url(string $url): ?array
 {
     $url = trim(html_entity_decode($url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
     if ($url === '') {
-        return 0;
+        return null;
     }
 
     $path = (string) (parse_url($url, PHP_URL_PATH) ?? '');
@@ -198,175 +167,202 @@ function sr_content_body_file_id_from_url(string $url): int
         $path = substr($path, strlen($basePath));
     }
     if ($path !== '/content/body-file') {
-        return 0;
+        return null;
     }
 
     parse_str($query, $params);
-    $id = (int) ($params['id'] ?? 0);
+    $fileName = sr_content_body_file_clean_name((string) ($params['file'] ?? ''));
+    if ($fileName === '') {
+        return null;
+    }
 
-    return $id > 0 ? $id : 0;
+    $tmpToken = (string) ($params['tmp'] ?? '');
+    if ($tmpToken !== '') {
+        return preg_match('/\A[a-f0-9]{32}\z/', $tmpToken) === 1
+            ? ['type' => 'tmp', 'token' => $tmpToken, 'file' => $fileName]
+            : null;
+    }
+
+    $contentId = (int) ($params['content_id'] ?? 0);
+    return $contentId > 0 ? ['type' => 'content', 'content_id' => $contentId, 'file' => $fileName] : null;
 }
 
-function sr_content_reconcile_body_files(PDO $pdo, int $contentId, string $html, int $accountId, string $now): void
+function sr_content_finalize_body_files(PDO $pdo, int $contentId, string $html, int $accountId): string
+{
+    unset($accountId);
+    if ($contentId < 1 || $html === '') {
+        return $html;
+    }
+
+    $refs = sr_content_body_file_refs_from_html($html);
+    $replacements = [];
+    foreach ($refs as $ref) {
+        if ((string) ($ref['type'] ?? '') !== 'tmp') {
+            continue;
+        }
+
+        $token = (string) ($ref['token'] ?? '');
+        $fileName = (string) ($ref['file'] ?? '');
+        if (!sr_content_body_file_token_is_valid($token)) {
+            continue;
+        }
+
+        $sourceKey = sr_content_body_file_tmp_key($token, $fileName);
+        $targetKey = sr_content_body_file_content_key($contentId, $fileName);
+        if ($sourceKey === '' || $targetKey === '') {
+            continue;
+        }
+
+        try {
+            sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
+            sr_storage_delete('local', $sourceKey);
+        } catch (Throwable $exception) {
+            sr_content_record_storage_cleanup_failure($pdo, 'body_file_finalize', $contentId, 'local', $sourceKey, $exception->getMessage());
+            throw new RuntimeException('본문 이미지 저장을 완료할 수 없습니다.');
+        }
+
+        $oldUrl = sr_content_body_file_tmp_proxy_url($token, $fileName);
+        $newUrl = sr_content_body_file_content_proxy_url($contentId, $fileName);
+        $replacements[$oldUrl] = $newUrl;
+        $replacements[sr_e($oldUrl)] = sr_e($newUrl);
+    }
+
+    if ($replacements !== []) {
+        $html = strtr($html, $replacements);
+    }
+
+    sr_content_cleanup_unreferenced_body_files($pdo, $contentId, $html);
+    return $html;
+}
+
+function sr_content_cleanup_unreferenced_body_files(PDO $pdo, int $contentId, string $html): void
 {
     if ($contentId < 1) {
         return;
     }
 
-    $fileIds = sr_content_body_file_ids_from_html($html);
-    $active = [];
-    if ($fileIds !== []) {
-        $placeholders = implode(',', array_fill(0, count($fileIds), '?'));
-        $stmt = $pdo->prepare(
-            "SELECT id
-             FROM sr_content_body_files
-             WHERE id IN (" . $placeholders . ")
-               AND status IN ('temporary', 'attached', 'orphan_candidate')"
-        );
-        $stmt->execute($fileIds);
-        foreach ($stmt->fetchAll() as $row) {
-            $active[(int) ($row['id'] ?? 0)] = true;
+    $kept = [];
+    foreach (sr_content_body_file_refs_from_html($html) as $ref) {
+        if ((string) ($ref['type'] ?? '') === 'content' && (int) ($ref['content_id'] ?? 0) === $contentId) {
+            $fileName = sr_content_body_file_clean_name((string) ($ref['file'] ?? ''));
+            if ($fileName !== '') {
+                $kept[$fileName] = true;
+            }
         }
     }
 
-    $stmt = $pdo->prepare(
-        "UPDATE sr_content_body_file_refs
-         SET status = 'inactive', updated_at = :updated_at
-         WHERE content_id = :content_id
-           AND slot_key = 'body'"
-    );
-    $stmt->execute([
-        'updated_at' => $now,
-        'content_id' => $contentId,
-    ]);
+    $directory = SR_ROOT . '/storage/content/body/' . (string) $contentId;
+    if (!is_dir($directory)) {
+        return;
+    }
 
-    if ($active !== []) {
-        $stmt = $pdo->prepare(
-            "INSERT INTO sr_content_body_file_refs
-                (content_id, file_id, slot_key, status, created_at, updated_at)
-             VALUES
-                (:content_id, :file_id, 'body', 'active', :created_at, :updated_at)
-             ON DUPLICATE KEY UPDATE
-                status = 'active',
-                updated_at = VALUES(updated_at)"
-        );
-        foreach (array_keys($active) as $fileId) {
-            $stmt->execute([
-                'content_id' => $contentId,
-                'file_id' => (int) $fileId,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
+    foreach (scandir($directory) ?: [] as $entry) {
+        if (!is_string($entry) || $entry === '.' || $entry === '..' || isset($kept[$entry])) {
+            continue;
         }
-
-        $placeholders = implode(',', array_fill(0, count($active), '?'));
-        $params = array_merge([$contentId, $accountId, $now, $now], array_keys($active));
-        $pdo->prepare(
-            "UPDATE sr_content_body_files
-             SET content_id = CASE WHEN content_id = 0 THEN ? ELSE content_id END,
-                 uploader_account_id = CASE WHEN uploader_account_id = 0 THEN ? ELSE uploader_account_id END,
-                 status = 'attached',
-                 attached_at = COALESCE(attached_at, ?),
-                 expires_at = NULL,
-                 updated_at = ?
-             WHERE id IN (" . $placeholders . ")"
-        )->execute($params);
+        $key = sr_content_body_file_content_key($contentId, $entry);
+        if ($key !== '' && !sr_storage_delete('local', $key)) {
+            sr_content_record_storage_cleanup_failure($pdo, 'body_file_unreferenced', $contentId, 'local', $key, '본문에서 제거된 이미지 저장소 정리에 실패했습니다.');
+        }
     }
-
-    sr_content_mark_unreferenced_body_files($pdo, $contentId, $now);
 }
 
-function sr_content_mark_unreferenced_body_files(PDO $pdo, int $contentId, string $now): void
+function sr_content_cleanup_body_files_for_deleted_content(PDO $pdo, array $contentIds): int
 {
-    $stmt = $pdo->prepare(
-        "UPDATE sr_content_body_files f
-         SET f.status = 'orphan_candidate',
-             f.expires_at = COALESCE(f.expires_at, :expires_at),
-             f.updated_at = :updated_at
-         WHERE f.content_id = :content_id
-           AND f.status = 'attached'
-           AND NOT EXISTS (
-               SELECT 1
-               FROM sr_content_body_file_refs r
-               WHERE r.file_id = f.id
-                 AND r.status = 'active'
-           )"
-    );
-    $stmt->execute([
-        'expires_at' => date('Y-m-d H:i:s', time() + sr_content_body_file_temporary_ttl_seconds()),
-        'updated_at' => $now,
-        'content_id' => $contentId,
-    ]);
+    $deleted = 0;
+    foreach (array_values(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0)) as $contentId) {
+        $directory = SR_ROOT . '/storage/content/body/' . (string) $contentId;
+        if (!is_dir($directory)) {
+            continue;
+        }
+        foreach (scandir($directory) ?: [] as $entry) {
+            if (!is_string($entry) || $entry === '.' || $entry === '..') {
+                continue;
+            }
+            $key = sr_content_body_file_content_key($contentId, $entry);
+            if ($key !== '' && sr_storage_delete('local', $key)) {
+                $deleted++;
+            } elseif ($key !== '') {
+                sr_content_record_storage_cleanup_failure($pdo, 'body_file_content_delete', $contentId, 'local', $key, '콘텐츠 삭제 후 본문 이미지 저장소 정리에 실패했습니다.');
+            }
+        }
+        @rmdir($directory);
+    }
+
+    return $deleted;
 }
 
-function sr_content_can_access_body_file(PDO $pdo, array $file, ?array $account): bool
+function sr_content_cleanup_expired_body_files(PDO $pdo, int $limit = 10): array
 {
-    if ((string) ($file['content_status'] ?? '') !== 'published') {
-        return is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'view');
+    $limit = max(1, min(50, $limit));
+    $root = SR_ROOT . '/storage/content/body/tmp';
+    if (!is_dir($root)) {
+        return ['deleted' => 0, 'failed' => 0];
     }
 
-    if (!sr_content_asset_access_required($file)) {
-        return true;
+    $deleted = 0;
+    $failed = 0;
+    $expiresBefore = time() - sr_content_body_file_temporary_ttl_seconds();
+    foreach (scandir($root) ?: [] as $token) {
+        if ($deleted + $failed >= $limit || !is_string($token) || preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+            continue;
+        }
+        $directory = $root . '/' . $token;
+        if (!is_dir($directory) || filemtime($directory) > $expiresBefore) {
+            continue;
+        }
+        foreach (scandir($directory) ?: [] as $entry) {
+            if ($deleted + $failed >= $limit || !is_string($entry) || $entry === '.' || $entry === '..') {
+                continue;
+            }
+            $cleanEntry = sr_content_body_file_clean_name($entry);
+            if ($cleanEntry === '') {
+                continue;
+            }
+            $path = $directory . '/' . $cleanEntry;
+            if (is_file($path) && filemtime($path) > $expiresBefore) {
+                continue;
+            }
+            $key = 'content/body/tmp/' . $token . '/' . $cleanEntry;
+            if (sr_storage_delete('local', $key)) {
+                $deleted++;
+            } else {
+                $failed++;
+                sr_content_record_storage_cleanup_failure($pdo, 'body_file_tmp_cleanup', 0, 'local', $key, '만료된 임시 본문 이미지 정리에 실패했습니다.');
+            }
+        }
+        @rmdir($directory);
     }
 
-    if (!is_array($account)) {
-        return false;
-    }
-
-    $access = sr_content_charge_view_access($pdo, $file, (int) $account['id'], false);
-    return !empty($access['allowed']);
+    return ['deleted' => $deleted, 'failed' => $failed];
 }
 
-function sr_content_send_body_file(PDO $pdo, int $fileId): void
+function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, string $tmpToken = ''): void
 {
-    $file = sr_content_body_file_public_by_id($pdo, $fileId);
-    $account = function_exists('sr_member_current_account') ? sr_member_current_account($pdo) : null;
-    if (!is_array($file)) {
-        $temporaryFile = sr_content_body_file_by_id($pdo, $fileId);
-        if (
-            is_array($temporaryFile)
-            && in_array((string) ($temporaryFile['status'] ?? ''), ['temporary', 'orphan_candidate'], true)
-            && is_array($account)
-            && (int) ($temporaryFile['uploader_account_id'] ?? 0) === (int) ($account['id'] ?? 0)
-            && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'edit')
-        ) {
-            $file = $temporaryFile;
-        } else {
+    $key = '';
+    if ($tmpToken !== '') {
+        $account = sr_member_current_account($pdo);
+        if (!is_array($account) || !sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'edit') || !sr_content_body_file_token_is_valid($tmpToken)) {
             sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
         }
-    }
-
-    if (isset($file['content_status']) && !sr_content_can_access_body_file($pdo, $file, is_array($account) ? $account : null)) {
-        sr_render_error(403, '본문 이미지에 접근할 수 없습니다.');
-    }
-
-    $driver = strtolower((string) ($file['storage_driver'] ?? 'local'));
-    $key = (string) ($file['storage_key'] ?? '');
-    $mimeType = (string) ($file['mime_type'] ?? '');
-    $recordedSize = (int) ($file['size_bytes'] ?? 0);
-    $recordedChecksum = (string) ($file['checksum_sha256'] ?? '');
-    if (!in_array($mimeType, sr_content_body_file_allowed_mime_types(), true) || !sr_storage_key_is_safe($key)) {
-        sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
-    }
-
-    $head = sr_storage_head($driver, $key);
-    if (!is_array($head) || $recordedSize < 1 || (int) ($head['content_length'] ?? 0) !== $recordedSize) {
-        sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
-    }
-    $actualChecksum = (string) (($head['metadata']['sha256'] ?? '') ?: '');
-    if (preg_match('/\A[a-f0-9]{64}\z/', $recordedChecksum) !== 1 || $actualChecksum === '' || !hash_equals($recordedChecksum, $actualChecksum)) {
-        sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
-    }
-
-    if ($driver === 's3') {
-        $url = sr_storage_signed_url('s3', $key, 300, [
-            'response-content-type' => $mimeType,
-        ]);
-        if ($url === '') {
+        $key = sr_content_body_file_tmp_key($tmpToken, $fileName);
+    } else {
+        $page = sr_content_by_id($pdo, $contentId);
+        $account = sr_member_current_account($pdo);
+        if (!is_array($page) || !sr_content_can_access_body_file($pdo, $page, is_array($account) ? $account : null)) {
             sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
         }
-        header('Cache-Control: private, max-age=300');
-        sr_redirect_external($url);
+        $key = sr_content_body_file_content_key($contentId, $fileName);
+    }
+
+    if ($key === '' || !sr_storage_key_is_safe($key)) {
+        sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
+    }
+
+    $head = sr_storage_head('local', $key);
+    $mimeType = (string) ($head['content_type'] ?? '');
+    if (!is_array($head) || !in_array($mimeType, sr_content_body_file_allowed_mime_types(), true)) {
+        sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
     }
 
     $path = sr_storage_local_path($key);
@@ -375,122 +371,27 @@ function sr_content_send_body_file(PDO $pdo, int $fileId): void
     }
 
     header('Content-Type: ' . $mimeType);
-    header('Content-Length: ' . (string) $recordedSize);
+    header('Content-Length: ' . (string) (int) ($head['content_length'] ?? 0));
     header('X-Content-Type-Options: nosniff');
     header('Cache-Control: private, max-age=300');
     readfile($path);
     sr_finish_response();
 }
 
-function sr_content_body_file_rows_for_content_delete(PDO $pdo, array $contentIds): array
+function sr_content_can_access_body_file(PDO $pdo, array $page, ?array $account): bool
 {
-    $contentIds = array_values(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0));
-    if ($contentIds === [] || !sr_content_optional_table_exists($pdo, 'sr_content_body_files')) {
-        return [];
+    if ((string) ($page['status'] ?? '') !== 'published') {
+        return is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'view');
     }
 
-    $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
-    $stmt = $pdo->prepare(
-        "SELECT DISTINCT f.*
-         FROM sr_content_body_files f
-         WHERE (
-                f.content_id IN (" . $placeholders . ")
-                OR EXISTS (
-                    SELECT 1
-                    FROM sr_content_body_file_refs r
-                    WHERE r.file_id = f.id
-                      AND r.content_id IN (" . $placeholders . ")
-                )
-           )
-           AND NOT EXISTS (
-                SELECT 1
-                FROM sr_content_body_file_refs outside_ref
-                WHERE outside_ref.file_id = f.id
-                  AND outside_ref.status = 'active'
-                  AND outside_ref.content_id NOT IN (" . $placeholders . ")
-           )"
-    );
-    $stmt->execute(array_merge($contentIds, $contentIds, $contentIds));
-
-    return $stmt->fetchAll();
-}
-
-function sr_content_cleanup_expired_body_files(PDO $pdo, int $limit = 10): array
-{
-    $limit = max(1, min(50, $limit));
-    $now = sr_now();
-    $stmt = $pdo->prepare(
-        "SELECT *
-         FROM sr_content_body_files
-         WHERE status IN ('temporary', 'orphan_candidate', 'delete_pending', 'delete_failed')
-           AND (expires_at IS NULL OR expires_at <= :now_value)
-         ORDER BY updated_at ASC, id ASC
-         LIMIT :limit_value"
-    );
-    $stmt->bindValue('now_value', $now);
-    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
-    $stmt->execute();
-
-    $deleted = 0;
-    $failed = 0;
-    foreach ($stmt->fetchAll() as $file) {
-        $fileId = (int) ($file['id'] ?? 0);
-        $driver = strtolower((string) ($file['storage_driver'] ?? 'local'));
-        $driver = in_array($driver, ['local', 's3'], true) ? $driver : 'local';
-        $key = (string) ($file['storage_key'] ?? '');
-        if ($fileId < 1 || !sr_storage_key_is_safe($key)) {
-            continue;
-        }
-
-        $pdo->prepare(
-            "UPDATE sr_content_body_files
-             SET status = 'delete_pending',
-                 attempt_count = attempt_count + 1,
-                 last_attempted_at = :last_attempted_at,
-                 updated_at = :updated_at
-             WHERE id = :id
-               AND status IN ('temporary', 'orphan_candidate', 'delete_pending', 'delete_failed')"
-        )->execute([
-            'last_attempted_at' => $now,
-            'updated_at' => $now,
-            'id' => $fileId,
-        ]);
-
-        if (sr_storage_delete($driver, $key)) {
-            $pdo->prepare(
-                "UPDATE sr_content_body_files
-                 SET status = 'deleted',
-                     last_error = NULL,
-                     updated_at = :updated_at
-                 WHERE id = :id"
-            )->execute([
-                'updated_at' => $now,
-                'id' => $fileId,
-            ]);
-            $deleted++;
-            continue;
-        }
-
-        $failed++;
-        $error = '본문 이미지 저장소 정리에 실패했습니다.';
-        $pdo->prepare(
-            "UPDATE sr_content_body_files
-             SET status = 'delete_failed',
-                 last_error = :last_error,
-                 last_attempted_at = :last_attempted_at,
-                 updated_at = :updated_at
-             WHERE id = :id"
-        )->execute([
-            'last_error' => $error,
-            'last_attempted_at' => $now,
-            'updated_at' => $now,
-            'id' => $fileId,
-        ]);
-        sr_content_record_storage_cleanup_failure($pdo, 'body_file_cleanup', $fileId, $driver, $key, $error);
+    if (!sr_content_asset_access_required($page)) {
+        return true;
     }
 
-    return [
-        'deleted' => $deleted,
-        'failed' => $failed,
-    ];
+    if (!is_array($account)) {
+        return false;
+    }
+
+    $access = sr_content_charge_view_access($pdo, $page, (int) $account['id'], false);
+    return !empty($access['allowed']);
 }
