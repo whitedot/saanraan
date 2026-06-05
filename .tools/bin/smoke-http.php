@@ -278,8 +278,8 @@ $checks = [
             [
                 'selector' => '.public-home + .public-site-footer',
                 'declarations' => [
-                    'margin-top: 0',
-                    'padding-top: 52px',
+                    'margin-top' => '0',
+                    'padding-top' => '52px',
                 ],
             ],
         ],
@@ -461,6 +461,26 @@ function sr_smoke_css_rule_body(string $css, string $selector): string
     return (string) $matches[2];
 }
 
+function sr_smoke_css_declarations(string $ruleBody): array
+{
+    $declarations = [];
+    foreach (explode(';', $ruleBody) as $declaration) {
+        $parts = explode(':', $declaration, 2);
+        if (count($parts) !== 2) {
+            continue;
+        }
+
+        $property = strtolower(trim($parts[0]));
+        if ($property === '') {
+            continue;
+        }
+
+        $declarations[$property] = trim($parts[1]);
+    }
+
+    return $declarations;
+}
+
 $errors = [];
 $isInstallMode = false;
 foreach ($checks as $check) {
@@ -515,9 +535,13 @@ foreach ($checks as $check) {
             continue;
         }
 
-        foreach ($rule['declarations'] ?? [] as $declaration) {
-            if (!str_contains($ruleBody, (string) $declaration)) {
-                $checkErrors[] = $label . ' CSS rule "' . $selector . '" did not contain expected declaration "' . (string) $declaration . '" for ' . $url;
+        $actualDeclarations = sr_smoke_css_declarations($ruleBody);
+        foreach ($rule['declarations'] ?? [] as $property => $expectedValue) {
+            $property = strtolower(trim((string) $property));
+            $expectedValue = trim((string) $expectedValue);
+            $actualValue = $actualDeclarations[$property] ?? null;
+            if ($actualValue !== $expectedValue) {
+                $checkErrors[] = $label . ' CSS rule "' . $selector . '" expected "' . $property . ': ' . $expectedValue . '" but found "' . ($actualValue ?? 'missing') . '" for ' . $url;
             }
         }
     }
