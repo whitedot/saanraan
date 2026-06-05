@@ -104,8 +104,32 @@ function sr_read_reference_count_function_counts_rows(string $functionName, stri
         $tokens[] = [null, $token];
     }
 
-    $returnIndexes = [];
+    $openIndex = null;
+    $closeIndex = null;
+    $depth = 0;
     foreach ($tokens as $index => $token) {
+        if ($token === [null, '{']) {
+            if ($openIndex === null) {
+                $openIndex = $index;
+            }
+            $depth++;
+            continue;
+        }
+        if ($token === [null, '}']) {
+            $depth--;
+            if ($openIndex !== null && $depth === 0) {
+                $closeIndex = $index;
+                break;
+            }
+        }
+    }
+    if ($openIndex === null || $closeIndex === null || $closeIndex <= $openIndex) {
+        return false;
+    }
+
+    $bodyTokens = array_slice($tokens, $openIndex + 1, $closeIndex - $openIndex - 1);
+    $returnIndexes = [];
+    foreach ($bodyTokens as $index => $token) {
         if ($token[0] === T_RETURN) {
             $returnIndexes[] = $index;
         }
@@ -114,7 +138,6 @@ function sr_read_reference_count_function_counts_rows(string $functionName, stri
         return false;
     }
 
-    $actual = array_slice($tokens, (int) $returnIndexes[0], 12);
     $expected = [
         [T_RETURN, 'return'],
         [T_STRING, 'count'],
@@ -128,12 +151,9 @@ function sr_read_reference_count_function_counts_rows(string $functionName, stri
         [T_VARIABLE, '$context'],
         [null, ')'],
         [null, ')'],
+        [null, ';'],
     ];
-    if ($actual !== $expected) {
-        return false;
-    }
-
-    return isset($tokens[(int) $returnIndexes[0] + 12]) && $tokens[(int) $returnIndexes[0] + 12] === [null, ';'];
+    return $bodyTokens === $expected;
 }
 
 function sr_read_reference_check_count_function_source(string $path, string $functionName, string $rowsFunctionName): void
@@ -325,6 +345,14 @@ function sr_read_reference_check_sample_count_string_only(PDO $pdo, array $targe
     return count([]);
 }
 
+function sr_read_reference_check_sample_count_statement_before_rows(PDO $pdo, array $target, array $context): int
+{
+    $rows = sr_read_reference_check_sample_rows($pdo, $target, $context);
+    unset($rows);
+
+    return count(sr_read_reference_check_sample_rows($pdo, $target, $context));
+}
+
 function sr_read_reference_check_count_function_source_samples(): void
 {
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_rows', 'sr_read_reference_check_sample_rows') !== true) {
@@ -338,6 +366,9 @@ function sr_read_reference_check_count_function_source_samples(): void
     }
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_string_only', 'sr_read_reference_check_sample_rows') !== false) {
         sr_read_reference_check_error('read reference count_function source sample accepted string-only rows count expression');
+    }
+    if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_statement_before_rows', 'sr_read_reference_check_sample_rows') !== false) {
+        sr_read_reference_check_error('read reference count_function source sample accepted statement before rows count expression');
     }
 }
 

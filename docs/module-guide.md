@@ -1065,7 +1065,7 @@ return [
 | `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 출력 위치 후보 |
 | `notification-events.php` | `point`, `reward`, `deposit`, `coupon`, `content`, `community` 모듈 | 거래/쿠폰 상태 변경 성공 뒤, 댓글 멘션/신고 알림 생성 시 | 선택 알림 모듈의 계정 알림 생성 함수 |
 
-읽기 참조 계약의 `count_function`은 `rows_function`이 반환할 row 수와 같은 기준이어야 한다. 번들 계약 검사는 `count_function`이 대응 `rows_function($pdo, $target, $context)` 결과를 직접 세는 단일 반환식인지 확인한다.
+읽기 참조 계약의 `count_function`은 `rows_function`이 반환할 row 수와 같은 기준이어야 한다. 번들 계약 검사는 `count_function` 함수 본문 전체가 대응 `rows_function($pdo, $target, $context)` 결과를 직접 세는 단일 반환문인지 확인한다.
 
 현재 번들 모듈 기준 제공/소비 지도:
 
