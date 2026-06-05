@@ -75,7 +75,12 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
             $adminUrlFunction = (string) $entry['admin_url_function'];
 
             try {
-                $count = (int) $countFunction($pdo, $target, $context);
+                $rawCount = $countFunction($pdo, $target, $context);
+                if (!is_int($rawCount)) {
+                    $errors[] = $moduleKey . ': count_function 반환값이 정수가 아닙니다.';
+                    continue;
+                }
+                $count = $rawCount;
                 if ($count < 1) {
                     continue;
                 }
@@ -98,10 +103,16 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
 
                     $health = $healthFunction($pdo, $target, $rawRow, $context);
                     if (!is_array($health)) {
+                        $errors[] = $moduleKey . ': health_function 반환값이 배열이 아닙니다.';
                         $health = ['status' => 'unknown', 'message' => '상태를 확인할 수 없습니다.'];
                     }
 
-                    $adminUrl = (string) $adminUrlFunction($rawRow, $context);
+                    $rawAdminUrl = $adminUrlFunction($rawRow, $context);
+                    if (!is_string($rawAdminUrl)) {
+                        $errors[] = $moduleKey . ': admin_url_function 반환값이 문자열이 아닙니다.';
+                        continue;
+                    }
+                    $adminUrl = $rawAdminUrl;
                     $normalized = sr_read_reference_normalize_row($moduleKey, $entry, $target, $rawRow, $health, $adminUrl);
                     if (is_array($normalized['row'] ?? null)) {
                         $rows[] = $normalized['row'];

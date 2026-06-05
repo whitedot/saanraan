@@ -135,7 +135,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `helpers` 파일 경로가 소비 모듈 폴더 안쪽인지 검증하고 include
 - `supports_target_types` 필수값과 `target_type` 지원 여부 검증
 - callable 존재 여부, 호출 가능 여부, 인자 수 검증
-- `count_function`, `rows_function`, `health_function`, `admin_url_function` 호출
+- `count_function`, `rows_function`, `health_function`, `admin_url_function` 호출과 반환값 타입 검증
 - `count_function`이 1 이상을 반환했는데 `rows_function`이 빈 배열을 반환하면 계약 오류로 처리
 - 최종 row 필수 필드, status 허용값, 내부 상대 관리자 URL 검증
 - 표시 전용 조회에서는 깨진 계약 항목 하나가 전체 관리자 화면을 500으로 죽이지 않게 해당 항목을 제외하고 오류 로그 기록
