@@ -1,7 +1,7 @@
 /*
  * Saanraan common UI kit layer.
- * Loaded after assets/tokens.css by public and admin runtimes.
- * Owns shared reset/base and reusable primitives such as buttons, cards,
+ * Loaded after assets/tokens.css by public runtimes.
+ * Owns public reset/base and reusable primitives such as buttons, cards,
  * tables, badges, forms, dropdowns, modals, tabs, and icon sizing.
  * Do not add admin shell chrome or module-specific screen layout here.
  */
