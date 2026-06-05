@@ -200,7 +200,7 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         $errors[] = 'status 값이 올바르지 않습니다.';
     }
 
-    if ($adminUrl !== '' && !sr_is_safe_relative_url($adminUrl)) {
+    if ($adminUrl !== '' && !sr_read_reference_admin_url_is_safe($adminUrl)) {
         $adminUrl = '';
         $errors[] = 'admin_url이 내부 상대 URL이 아닙니다.';
     }
@@ -238,6 +238,26 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         'row' => $errors === [] ? $row : null,
         'errors' => $errors,
     ];
+}
+
+function sr_read_reference_admin_url_is_safe(string $adminUrl): bool
+{
+    if (!sr_is_safe_relative_url($adminUrl)) {
+        return false;
+    }
+
+    $path = parse_url($adminUrl, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return false;
+    }
+
+    foreach (explode('/', $path) as $segment) {
+        if ($segment === '..' || rawurldecode($segment) === '..') {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function sr_read_reference_count(PDO $pdo, string $targetType, int $targetId, string $targetKey = '', array $context = []): int

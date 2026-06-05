@@ -79,6 +79,32 @@ function sr_read_reference_check_callable_signature(string $path, string $functi
     }
 }
 
+function sr_read_reference_check_helper_values(string $moduleDir, string $path, $helpers): array
+{
+    if (is_string($helpers) && $helpers !== '') {
+        $helpers = [$helpers];
+    }
+    if ($helpers === null || $helpers === '') {
+        $helpers = [];
+    }
+    if (!is_array($helpers)) {
+        sr_read_reference_check_error('read reference helpers must be string or array: ' . $path);
+        return [];
+    }
+
+    $validHelpers = [];
+    foreach ($helpers as $helper) {
+        $helper = (string) $helper;
+        if (preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helper) !== 1 || !is_file($moduleDir . '/' . $helper)) {
+            sr_read_reference_check_error('read reference helper is invalid or missing: ' . $path . ' ' . $helper);
+            continue;
+        }
+        $validHelpers[] = $helper;
+    }
+
+    return $validHelpers;
+}
+
 function sr_read_reference_check_forbidden_owner_writes(string $root): void
 {
     $rules = [
@@ -131,6 +157,33 @@ function sr_read_reference_check_forbidden_owner_writes(string $root): void
                     sr_read_reference_check_error('read reference owner must not write consumer policy table directly: ' . $file->getPathname() . ' ' . $prefix);
                 }
             }
+        }
+    }
+}
+
+function sr_read_reference_check_admin_url_safety_samples(): void
+{
+    $validUrls = [
+        '/admin/content',
+        '/admin/content/edit?id=1',
+    ];
+    foreach ($validUrls as $url) {
+        if (!sr_read_reference_admin_url_is_safe($url)) {
+            sr_read_reference_check_error('read reference admin URL safety rejected valid sample: ' . $url);
+        }
+    }
+
+    $invalidUrls = [
+        '',
+        'https://example.com/admin',
+        '//example.com/admin',
+        '/admin/../settings',
+        '/admin/%2e%2e/settings',
+        "/admin/settings\n",
+    ];
+    foreach ($invalidUrls as $url) {
+        if (sr_read_reference_admin_url_is_safe($url)) {
+            sr_read_reference_check_error('read reference admin URL safety accepted invalid sample: ' . str_replace("\n", '\\n', $url));
         }
     }
 }
@@ -195,20 +248,7 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 }
             }
 
-            $helpers = $entry['helpers'] ?? [];
-            if (is_string($helpers) && $helpers !== '') {
-                $helpers = [$helpers];
-            }
-            if (!is_array($helpers)) {
-                sr_read_reference_check_error('read reference helpers must be string or array: ' . $path);
-                continue;
-            }
-            foreach ($helpers as $helper) {
-                $helper = (string) $helper;
-                if (preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helper) !== 1 || !is_file($moduleDir . '/' . $helper)) {
-                    sr_read_reference_check_error('read reference helper is invalid or missing: ' . $path . ' ' . $helper);
-                    continue;
-                }
+            foreach (sr_read_reference_check_helper_values($moduleDir, $path, $entry['helpers'] ?? []) as $helper) {
                 require_once $moduleDir . '/' . $helper;
             }
 
@@ -238,9 +278,8 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                     continue;
                 }
                 $functionName = (string) $entry[$optionalKey];
-                $helpers = (string) ($entry['helpers'] ?? '');
-                if ($helpers !== '' && preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) === 1 && is_file($moduleDir . '/' . $helpers)) {
-                    require_once $moduleDir . '/' . $helpers;
+                foreach (sr_read_reference_check_helper_values($moduleDir, $moduleDir . '/coupon-targets.php', $entry['helpers'] ?? []) as $helper) {
+                    require_once $moduleDir . '/' . $helper;
                 }
                 if (!function_exists($functionName)) {
                     sr_read_reference_check_error('coupon-targets optional callable does not exist: ' . $moduleDir . ' ' . $functionName);
@@ -267,6 +306,7 @@ foreach ($expectedConsumers as $moduleKey => $contractFiles) {
 }
 
 sr_read_reference_check_forbidden_owner_writes($root);
+sr_read_reference_check_admin_url_safety_samples();
 
 if ($errors !== []) {
     fwrite(STDERR, "read reference contract checks failed:\n");
