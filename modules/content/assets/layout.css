@@ -1,0 +1,333 @@
+.content-layout-header {
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin: 0;
+    min-height: 54px;
+    padding: 7px 64px 7px 24px;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 30;
+}
+
+.content-layout-header-main,
+.content-layout-header-actions {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    min-width: 0;
+}
+
+.content-layout-brand-link {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 auto;
+    max-width: min(18rem, 48vw);
+    min-height: 38px;
+    text-decoration: none;
+}
+
+.content-layout-brand-logo {
+    display: block;
+    max-height: 2.5rem;
+    max-width: min(16rem, 48vw);
+    object-fit: contain;
+}
+
+.content-layout-brand-logo-mobile {
+    display: none;
+}
+
+.content-layout-brand-text {
+    color: #242424;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.125rem;
+    font-weight: 700;
+    line-height: 1;
+    overflow-wrap: anywhere;
+}
+
+.content-layout-header-main > *,
+.content-layout-header-actions > * {
+    min-width: 0;
+}
+
+.content-layout-icon-button,
+.content-layout-action-link,
+.content-layout-get-app,
+.content-layout-avatar-link {
+    align-items: center;
+    border: 0;
+    display: inline-flex;
+    flex: 0 0 auto;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.content-layout-icon-button {
+    background: transparent;
+    color: #6b6b6b;
+    height: 32px;
+    padding: 0;
+    width: 24px;
+}
+
+.content-layout-search {
+    align-items: center;
+    background: #f7f7f7;
+    border-radius: 999px;
+    color: #6b6b6b;
+    display: flex;
+    gap: 10px;
+    height: 40px;
+    min-width: 240px;
+    padding: 0 17px;
+}
+
+.content-layout-search .material-symbols-outlined {
+    color: #242424;
+    font-size: 1.25rem;
+}
+
+.content-layout-get-app {
+    background: #242424;
+    border-radius: 999px;
+    color: #ffffff;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 16px;
+}
+
+.content-layout-get-app .material-symbols-outlined,
+.content-layout-action-link .material-symbols-outlined,
+.content-layout-icon-button .material-symbols-outlined {
+    font-size: 1.35rem;
+}
+
+.content-layout-action-link {
+    color: #6b6b6b;
+    gap: 8px;
+    min-height: 40px;
+}
+
+.content-layout-avatar-link {
+    background: #54b832;
+    border-radius: 999px;
+    color: #ffffff;
+    font-weight: var(--font-weight-bold);
+    height: 34px;
+    width: 34px;
+}
+
+.content-layout-app {
+    background: #ffffff;
+    display: grid;
+    grid-template-columns: 272px minmax(0, 1fr);
+    min-height: calc(100vh - 54px);
+}
+
+.content-layout-sidebar {
+    border-right: 1px solid #eeeeee;
+    color: #6b6b6b;
+    min-width: 0;
+    padding: 44px 24px 0 64px;
+}
+
+.content-layout-sidebar-nav {
+    border-bottom: 1px solid #eeeeee;
+    display: grid;
+    gap: 22px;
+    padding-bottom: 36px;
+}
+
+.content-layout-sidebar-nav a,
+.content-layout-following a,
+.content-layout-suggestion {
+    align-items: center;
+    color: inherit;
+    display: flex;
+    gap: 16px;
+    line-height: 1.35;
+    text-decoration: none;
+}
+
+.content-layout-sidebar-nav a[aria-current="page"] {
+    color: #242424;
+    font-weight: 500;
+}
+
+.content-layout-sidebar-nav .material-symbols-outlined {
+    font-size: 1.45rem;
+}
+
+.content-layout-following {
+    display: grid;
+    gap: 18px;
+    padding-top: 34px;
+}
+
+.content-layout-sidebar-heading {
+    color: #242424;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.content-layout-mini-mark {
+    align-items: center;
+    color: #242424;
+    display: inline-flex;
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    height: 22px;
+    justify-content: center;
+    width: 22px;
+}
+
+.content-layout-suggestion {
+    align-items: flex-start;
+    margin: 0;
+}
+
+.content-layout-suggestion .material-symbols-outlined {
+    font-size: 1.25rem;
+    margin-top: 2px;
+}
+
+.content-layout-suggestion-link {
+    color: #6b6b6b;
+    display: inline-flex;
+    margin-left: 38px;
+    text-decoration: underline;
+}
+
+.content-layout-main {
+    min-width: 0;
+}
+
+.content-layout-membership {
+    align-items: center;
+    background: #fafafa;
+    border-bottom: 1px solid #eeeeee;
+    display: flex;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 28px;
+    position: relative;
+}
+
+.content-layout-membership p {
+    color: #242424;
+    font-size: .875rem;
+    line-height: 1.45;
+    margin: 0;
+    text-align: center;
+}
+
+.content-layout-membership p span {
+    color: #ffc017;
+}
+
+.content-layout-membership a {
+    color: #242424;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.content-layout-membership button {
+    align-items: center;
+    background: transparent;
+    color: #6b6b6b;
+    display: inline-flex;
+    height: 34px;
+    justify-content: center;
+    padding: 0;
+    position: absolute;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+}
+
+.content-layout-primary-navigation {
+    max-width: min(34vw, 28rem);
+    overflow: hidden;
+}
+
+.content-layout-header .sr-site-menu {
+    margin: 0;
+    width: auto;
+}
+
+.content-layout-header .sr-site-menu-list {
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.content-layout-header .sr-site-menu-item > a {
+    border: 0;
+    color: #6b6b6b;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.content-layout-footer {
+    border-top: 1px solid var(--sr-border);
+    display: grid;
+    gap: 12px;
+    margin: 32px auto 0;
+    padding: 20px clamp(1rem, 4vw, 2.5rem);
+    width: min(1080px, 100%);
+}
+
+.content-layout-footer .sr-site-menu {
+    margin: 0;
+    width: auto;
+}
+
+.content-layout-footer .sr-site-menu-list {
+    gap: 6px 10px;
+}
+
+@media (max-width: 767px) {
+    .content-layout-header {
+        gap: 10px;
+        padding: 8px 14px;
+    }
+
+    .content-layout-brand-logo-mobile {
+        display: block;
+    }
+
+    .content-layout-brand-logo-mobile + .content-layout-brand-logo-desktop {
+        display: none;
+    }
+
+    .content-layout-search {
+        min-width: 0;
+        width: 40px;
+    }
+
+    .content-layout-search span:last-child,
+    .content-layout-primary-navigation,
+    .content-layout-get-app,
+    .content-layout-action-link span:last-child {
+        display: none;
+    }
+
+    .content-layout-app {
+        display: block;
+    }
+
+    .content-layout-sidebar {
+        display: none;
+    }
+
+    .content-layout-membership {
+        padding: 10px 48px 10px 16px;
+    }
+}

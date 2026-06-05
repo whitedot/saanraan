@@ -5,7 +5,14 @@ declare(strict_types=1);
 return static function (PDO $pdo): array {
     require_once __DIR__ . '/helpers.php';
 
-    $links = [];
+    $links = [
+        [
+            'asset_type' => 'content_home',
+            'asset_type_label' => sr_t('content::ui.content.6c84a1b3'),
+            'label' => sr_t('content::ui.content.6c84a1b3'),
+            'url' => '/content',
+        ],
+    ];
 
     foreach (sr_content_enabled_groups($pdo) as $group) {
         $groupKey = (string) ($group['group_key'] ?? '');

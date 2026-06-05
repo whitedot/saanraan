@@ -1330,6 +1330,25 @@ function sr_content_published_contents_for_group(PDO $pdo, int $groupId): array
     return $stmt->fetchAll();
 }
 
+function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
+{
+    $limit = max(1, min(100, $limit));
+
+    sr_content_publish_due_scheduled($pdo);
+
+    $stmt = $pdo->query(
+        "SELECT p.id, p.slug, p.title, p.summary, p.updated_at, p.published_at,
+                g.group_key AS content_group_key, g.title AS content_group_title
+         FROM sr_content_items p
+         LEFT JOIN sr_content_groups g ON g.id = p.content_group_id AND g.status = 'enabled'
+         WHERE p.status = 'published'
+         ORDER BY p.published_at DESC, p.updated_at DESC, p.id DESC
+         LIMIT " . $limit
+    );
+
+    return $stmt->fetchAll();
+}
+
 function sr_content_create_group(PDO $pdo, array $data): int
 {
     $now = sr_now();
@@ -1853,7 +1872,15 @@ function sr_content_with_effective_settings(PDO $pdo, array $page): array
 
 function sr_content_homepage_candidates(PDO $pdo): array
 {
-    $candidates = [];
+    $candidates = [
+        [
+            'module_key' => 'content',
+            'label' => sr_t('content::ui.content.6c84a1b3'),
+            'path' => '/content',
+            'detail' => '/content',
+            'available' => true,
+        ],
+    ];
 
     foreach (sr_content_enabled_groups($pdo) as $group) {
         $groupKey = (string) ($group['group_key'] ?? '');
@@ -1900,6 +1927,10 @@ function sr_content_homepage_candidates(PDO $pdo): array
 
 function sr_content_homepage_path_is_available(PDO $pdo, string $homePath): ?bool
 {
+    if ($homePath === '/content') {
+        return true;
+    }
+
     if (str_starts_with($homePath, '/content/group?key=')) {
         $query = parse_url($homePath, PHP_URL_QUERY);
         if (!is_string($query)) {

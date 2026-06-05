@@ -1,6 +1,6 @@
 # Content Module
 
-`content`는 단일 콘텐츠를 작성하고 `/content/{slug}` 공개 URL로 노출하는 선택 모듈이다.
+`content`는 콘텐츠 메인, 콘텐츠 그룹 목록, 단일 콘텐츠를 공개 URL로 노출하는 선택 모듈이다.
 
 ## 범위
 
@@ -11,6 +11,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 - 관리자 콘텐츠 목록의 상태/검색 조건/검색어 필터와 상태 요약
 - `draft`, `published`, `hidden` 상태
 - `/content/{slug}` 기반 공개 URL
+- `/content` 기반 콘텐츠 메인 공개 목록
 - `/content/group?key={group_key}` 기반 콘텐츠 그룹 공개 목록
 - 제목, 요약, plain text 본문, SEO 제목/설명
 - plain text 본문 저장과 escape 출력
@@ -56,7 +57,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 
 ## URL
 
-공개 URL은 `/content/{slug}` 형식이다. slug는 3-120자의 소문자 영문, 숫자, 하이픈만 허용하며 예약어는 사용할 수 없다.
+콘텐츠 메인은 `/content`, 그룹 목록은 `/content/group?key={group_key}`, 단일 콘텐츠 공개 URL은 `/content/{slug}` 형식이다. slug는 3-120자의 소문자 영문, 숫자, 하이픈만 허용하며 예약어는 사용할 수 없다.
 
 ## 출력 위치
 

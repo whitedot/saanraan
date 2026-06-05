@@ -5,7 +5,14 @@ declare(strict_types=1);
 return static function (PDO $pdo, ?array $site): array {
     require_once __DIR__ . '/helpers.php';
 
-    $entries = [];
+    $entries = [
+        [
+            'loc' => '/content',
+            'lastmod' => substr(sr_now(), 0, 10),
+            'changefreq' => 'daily',
+            'priority' => '0.7',
+        ],
+    ];
     foreach (sr_content_enabled_groups($pdo) as $group) {
         $groupKey = (string) ($group['group_key'] ?? '');
         if (!sr_content_group_key_is_valid($groupKey)) {

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'GET /content' => 'actions/home.php',
     'GET /content/download' => 'actions/download.php',
     'POST /content/download' => 'actions/download.php',
     'GET /content/body-file' => 'actions/body-file.php',
