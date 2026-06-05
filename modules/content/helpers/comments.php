@@ -151,30 +151,7 @@ function sr_content_notification_available(PDO $pdo): bool
 
 function sr_content_notification_create_function(PDO $pdo): string
 {
-    if (!sr_module_enabled($pdo, 'notification') || !sr_module_contract_is_loadable('notification')) {
-        return '';
-    }
-
-    $contractFile = SR_ROOT . '/modules/notification/notification-events.php';
-    $contract = sr_load_module_contract_file('notification', $contractFile);
-    if (!is_array($contract)) {
-        return '';
-    }
-
-    $helpers = (string) ($contract['helpers'] ?? '');
-    if ($helpers === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
-        return '';
-    }
-
-    $helperPath = SR_ROOT . '/modules/notification/' . $helpers;
-    if (!is_file($helperPath)) {
-        return '';
-    }
-
-    require_once $helperPath;
-
-    $function = (string) ($contract['create_function'] ?? '');
-    return $function !== '' && function_exists($function) ? $function : '';
+    return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_function');
 }
 
 function sr_content_create_account_notification(PDO $pdo, int $accountId, string $title, string $bodyText, string $linkUrl, ?int $createdByAccountId = null): bool

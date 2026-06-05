@@ -303,6 +303,40 @@ function sr_load_module_contract_file(string $moduleKey, string $file): mixed
     }
 }
 
+function sr_module_contract_function(PDO $pdo, string $moduleKey, string $contractFile, string $functionKey): string
+{
+    if (
+        !sr_module_enabled($pdo, $moduleKey)
+        || !sr_module_contract_is_loadable($moduleKey)
+        || preg_match('/\A[a-z0-9][a-z0-9_.-]{0,80}\.php\z/', $contractFile) !== 1
+        || preg_match('/\A[a-z][a-z0-9_]{0,80}\z/', $functionKey) !== 1
+    ) {
+        return '';
+    }
+
+    $contract = sr_load_module_contract_file($moduleKey, SR_ROOT . '/modules/' . $moduleKey . '/' . $contractFile);
+    if (!is_array($contract)) {
+        return '';
+    }
+
+    $helpers = (string) ($contract['helpers'] ?? '');
+    if ($helpers !== '') {
+        if (preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helpers) !== 1) {
+            return '';
+        }
+
+        $helperPath = SR_ROOT . '/modules/' . $moduleKey . '/' . $helpers;
+        if (!is_file($helperPath)) {
+            return '';
+        }
+
+        require_once $helperPath;
+    }
+
+    $function = (string) ($contract[$functionKey] ?? '');
+    return $function !== '' && function_exists($function) ? $function : '';
+}
+
 function sr_site_settings(PDO $pdo): array
 {
     static $cache = [];

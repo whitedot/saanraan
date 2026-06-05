@@ -792,9 +792,7 @@ if (
 ) {
     $errors[] = 'Community notification integration files cannot be read.';
 } elseif (
-    strpos($communityNotificationsHelper, "sr_module_enabled(\$pdo, 'notification')") === false
-    || strpos($communityNotificationsHelper, "require_once \$helperPath;") === false
-    || strpos($communityNotificationsHelper, "\$contract['create_function']") === false
+    strpos($communityNotificationsHelper, "sr_module_contract_function(\$pdo, 'notification', 'notification-events.php', 'create_function')") === false
     || strpos($communityNotificationsHelper, 'catch (Throwable $exception)') === false
     || strpos($communityNotificationsHelper, 'function sr_community_create_admin_report_notifications') === false
     || strpos($communityNotificationsHelper, "p.menu_path = '/admin/community/reports'") === false

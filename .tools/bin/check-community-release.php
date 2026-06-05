@@ -583,9 +583,7 @@ sr_community_release_file_contains('modules/community/actions/report.php', [
 ], 'Community report action policy');
 
 sr_community_release_file_contains('modules/community/helpers/notifications.php', [
-    "sr_module_enabled(\$pdo, 'notification')",
-    "require_once \$helperPath;",
-    "\$contract['create_function']",
+    "sr_module_contract_function(\$pdo, 'notification', 'notification-events.php', 'create_function')",
     'catch (Throwable $exception)',
     'function sr_community_create_admin_report_notifications',
     "p.menu_path = '/admin/community/reports'",
