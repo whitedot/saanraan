@@ -98,7 +98,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - `target_id`: 숫자 ID가 있는 대상의 ID. 사이트 설정처럼 숫자 ID가 없으면 `0`
 - `target_key`: key 기반 참조가 필요한 대상의 안정 key
 
-공통 helper는 계약 파일별 target 구조를 먼저 검증한다. `coupon_definition`, `banner`, `popup_layer`, `member_group`은 1 이상의 숫자형 `target_id`가 필요하고, `site_setting`은 `target_id=0`만 허용한다. `member_group`과 `site_setting`은 빈 `target_key`를 허용하지 않는다.
+공통 helper는 계약 파일별 target 구조를 먼저 검증한다. `target_type`과 `target_key`는 문자열이어야 하고, `target_id`는 정수 또는 숫자 문자열이어야 한다. `coupon_definition`, `banner`, `popup_layer`, `member_group`은 1 이상의 숫자형 `target_id`가 필요하고, `site_setting`은 `target_id=0`만 허용한다. `member_group`과 `site_setting`은 빈 `target_key`를 허용하지 않는다.
 
 대상별 필수값:
 

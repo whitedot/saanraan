@@ -363,12 +363,12 @@ function sr_read_reference_target_errors(string $contractFile, array $target): a
 {
     $errors = [];
     $expectedTargetType = (string) (sr_read_reference_contract_files()[$contractFile] ?? '');
-    $targetType = sr_read_reference_string_value($target['target_type'] ?? '');
+    $targetType = is_string($target['target_type'] ?? null) ? (string) $target['target_type'] : null;
     if ($expectedTargetType === '' || $targetType !== $expectedTargetType) {
         $errors[] = '읽기 참조 계약 대상이 올바르지 않습니다.';
     }
 
-    $targetId = sr_read_reference_string_value($target['target_id'] ?? null);
+    $targetId = sr_read_reference_target_id_value($target['target_id'] ?? null);
     if ($targetId === null || $targetId === '') {
         $errors[] = '읽기 참조 대상 ID가 올바르지 않습니다.';
     } elseif ($expectedTargetType === 'site_setting') {
@@ -379,7 +379,7 @@ function sr_read_reference_target_errors(string $contractFile, array $target): a
         $errors[] = '읽기 참조 대상 ID가 올바르지 않습니다.';
     }
 
-    $targetKey = sr_read_reference_string_value($target['target_key'] ?? '');
+    $targetKey = sr_read_reference_target_key_value($target['target_key'] ?? '');
     if ($targetKey === null) {
         $errors[] = '읽기 참조 대상 key가 올바르지 않습니다.';
     } elseif (in_array($expectedTargetType, ['member_group', 'site_setting'], true) && $targetKey === '') {
@@ -387,6 +387,23 @@ function sr_read_reference_target_errors(string $contractFile, array $target): a
     }
 
     return $errors;
+}
+
+function sr_read_reference_target_id_value(mixed $value): ?string
+{
+    if (is_int($value)) {
+        return (string) $value;
+    }
+    if (is_string($value)) {
+        return $value;
+    }
+
+    return null;
+}
+
+function sr_read_reference_target_key_value(mixed $value): ?string
+{
+    return is_string($value) ? $value : null;
 }
 
 function sr_read_reference_string_value(mixed $value): ?string
