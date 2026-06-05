@@ -612,6 +612,10 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             ? (string) $values['body_format']
             : 'plain';
         $bodyText = trim((string) $values['body_text']);
+        if (sr_link_card_token_rejection_errors($bodyText) !== []) {
+            throw new InvalidArgumentException('링크 카드 토큰은 게시글 본문에 저장할 수 없습니다.');
+        }
+
         if ($bodyFormat === 'html') {
             $bodyText = sr_community_finalize_body_files($pdo, $postId, $bodyText, $accountId, false, $createdBodyFiles, $finalizedTmpFiles);
         }
@@ -1112,6 +1116,11 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
         ? (string) $values['body_format']
         : 'plain';
+    $bodyText = trim((string) ($values['body_text'] ?? ''));
+    if (sr_link_card_token_rejection_errors($bodyText) !== []) {
+        throw new InvalidArgumentException('링크 카드 토큰은 게시글 본문에 저장할 수 없습니다.');
+    }
+
     $now = sr_now();
     $categorySupported = sr_community_categories_supported($pdo);
     $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
@@ -1128,7 +1137,7 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'board_id' => $boardId,
         'author_account_id' => $authorAccountId,
         'title' => trim((string) $values['title']),
-        'body_text' => trim((string) $values['body_text']),
+        'body_text' => $bodyText,
         'body_format' => $bodyFormat,
         'status' => 'published',
         'created_at' => $now,
@@ -1148,8 +1157,8 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         $stmt->execute($params);
         $postId = (int) $pdo->lastInsertId();
         if ($bodyFormat === 'html') {
-            $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $authorAccountId, true, $createdBodyFiles, $finalizedTmpFiles);
-            if ($finalBodyText !== trim((string) $values['body_text'])) {
+            $finalBodyText = sr_community_finalize_body_files($pdo, $postId, $bodyText, $authorAccountId, true, $createdBodyFiles, $finalizedTmpFiles);
+            if ($finalBodyText !== $bodyText) {
                 $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                     'body_text' => $finalBodyText,
                     'updated_at' => $now,
