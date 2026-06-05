@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/module-metadata.php';
+
 function sr_parse_upload_size(string $value): int
 {
     $value = trim($value);
@@ -586,4 +588,3 @@ function sr_install_module_source_files(string $moduleKey, string $sourceDir): a
         'backup_dir' => $backupDir,
     ];
 }
-

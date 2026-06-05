@@ -146,6 +146,10 @@ function sr_link_card_reconcile_table(PDO $pdo, string $table, string $subjectCo
 
 function sr_link_card_table_exists(PDO $pdo, string $table): bool
 {
+    if (!sr_link_card_table_is_allowed($table, sr_link_card_subject_column_for_table($table))) {
+        return false;
+    }
+
     static $cache = [];
     if (isset($cache[$table])) {
         return $cache[$table];
@@ -165,4 +169,16 @@ function sr_link_card_table_is_allowed(string $table, string $subjectColumn): bo
 {
     return ($table === 'sr_content_link_refs' && $subjectColumn === 'content_id')
         || ($table === 'sr_community_link_refs' && $subjectColumn === 'post_id');
+}
+
+function sr_link_card_subject_column_for_table(string $table): string
+{
+    if ($table === 'sr_content_link_refs') {
+        return 'content_id';
+    }
+    if ($table === 'sr_community_link_refs') {
+        return 'post_id';
+    }
+
+    return '';
 }
