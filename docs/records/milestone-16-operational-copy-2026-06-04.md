@@ -13,9 +13,9 @@
 
 ## 복사 대상
 
-- 콘텐츠는 본문, 요약, 그룹, 레이아웃, 유료 열람/완료 버튼 정책, 배너/팝업 연결, SEO 입력값, 설정 source, 링크 참조, 다운로드 파일 연결을 복사한다.
+- 콘텐츠는 본문, 요약, 그룹, 레이아웃, 유료 열람/완료 버튼 정책, 배너/팝업 연결, SEO 입력값, 설정 source, 다운로드 파일 연결을 복사한다.
 - 게시판 설정 복사는 게시판 row, board settings, setting sources, 카테고리를 복사한다.
-- 게시판 전체 복사는 동기 상한 안에서 게시글, 댓글, 링크 참조, 첨부 row와 local storage 파일을 함께 복사한다.
+- 게시판 전체 복사는 동기 상한 안에서 게시글, 댓글, 첨부 row와 local storage 파일을 함께 복사한다.
 - 배너는 본문, 링크, 이미지 URL, 스킨, 노출 기간, 정렬 순서, 대상 조건 전체를 복사한다. 운영자가 선택하면 클릭 수와 클릭 로그도 함께 복사한다.
 - 팝업레이어는 본문, 스킨, 노출 기간, 닫기 쿠키 기간, 대상 조건 전체를 복사한다.
 
@@ -53,10 +53,10 @@
 - 게시판 전체 복사가 동기 상한을 넘으면 복사 확인 화면에서 `배치 복사 작업 만들기`로 job을 생성할 수 있다.
 - `/admin/community/board-copy-jobs` 화면에서 작업 상태, 단계, 원본/대상 게시판, 복사 수, 마지막 오류를 확인하고 상태별로 `다음 묶음 처리`, `재시도 준비`, `취소 및 정리`, `정리 다시 시도`를 실행한다.
 - `running` 상태의 작업은 다른 요청이 lock을 들고 있을 수 있으므로 `취소 및 정리`를 노출하지 않는다. 취소 정리는 `pending`, `failed`, `paused` 상태에서만 실행한다.
-- runner는 `prepare`, `board`, `posts`, `comments`, `link_refs`, `attachments`, 선택적 `series`, `verify`, `complete`, `cleanup` 단계를 순서대로 처리한다.
+- runner는 `prepare`, `board`, `posts`, `comments`, `attachments`, 선택적 `series`, `verify`, `complete`, `cleanup` 단계를 순서대로 처리한다.
 - prepare 단계가 실제 복사 map을 만든 뒤 job의 count 기준을 map 기준으로 다시 저장하므로, job 생성과 prepare 사이의 원본 변경이 verify 기준을 어긋나게 하지 않는다.
 - 대상 게시판은 완료 후에도 `disabled` 상태로 유지하며 운영자가 검토 후 직접 활성화한다.
 - cron 없는 shared hosting에서도 버튼 반복으로 진행할 수 있고, helper는 같은 처리 단위를 CLI/cron에서 재사용할 수 있게 분리했다.
 - stage 처리 중 실패 map이 생기면 job을 `failed`로 멈추고, 재시도 시 실패 map을 `pending`으로 되돌린 뒤 같은 stage부터 이어간다.
-- verify 단계는 대상 게시판 disabled 상태, 게시글/댓글/링크 참조/첨부 count, 복사된 첨부파일 storage head와 checksum을 확인한다.
+- verify 단계는 대상 게시판 disabled 상태, 게시글/댓글/첨부 count, 복사된 첨부파일 storage head와 checksum을 확인한다.
 - cleanup 단계는 복사된 파일 삭제가 실패하면 target DB 삭제로 넘어가지 않고 job을 `cleanup_required`에 남긴다. 실패 map은 `cleanup_failed`로 남아 재시도할 수 있다.

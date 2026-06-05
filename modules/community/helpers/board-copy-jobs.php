@@ -9,7 +9,7 @@ function sr_community_board_copy_job_statuses(): array
 
 function sr_community_board_copy_job_stages(): array
 {
-    return ['prepare', 'board', 'posts', 'comments', 'link_refs', 'attachments', 'series', 'verify', 'complete', 'cleanup'];
+    return ['prepare', 'board', 'posts', 'comments', 'attachments', 'series', 'verify', 'complete', 'cleanup'];
 }
 
 function sr_community_board_copy_map_statuses(): array
@@ -198,7 +198,7 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
         return sr_community_board_copy_job_copy_comments($pdo, $job, (int) ($limits['comments'] ?? 300));
     }
     if ($stage === 'link_refs') {
-        return sr_community_board_copy_job_copy_link_refs($pdo, $job, (int) ($limits['link_refs'] ?? 300));
+        return sr_community_board_copy_job_skip_link_refs($pdo, $job);
     }
     if ($stage === 'attachments') {
         return sr_community_board_copy_job_copy_attachments($pdo, $job, (int) ($limits['attachments'] ?? 50));
@@ -243,7 +243,6 @@ function sr_community_board_copy_job_prepare(PDO $pdo, array $job): void
         'category' => 'SELECT id FROM sr_community_categories WHERE board_id = :board_id ORDER BY id ASC',
         'post' => 'SELECT id FROM sr_community_posts WHERE board_id = :board_id ORDER BY id ASC',
         'comment' => 'SELECT c.id FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id ORDER BY c.id ASC',
-        'link_ref' => 'SELECT r.id FROM sr_community_link_refs r INNER JOIN sr_community_posts p ON p.id = r.post_id WHERE p.board_id = :board_id ORDER BY r.id ASC',
         'attachment' => 'SELECT a.id FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id ORDER BY a.id ASC',
     ];
     $options = sr_community_board_copy_job_json($job, 'options_json');
@@ -274,7 +273,6 @@ function sr_community_board_copy_job_refresh_counts(PDO $pdo, array $job): void
     foreach ([
         'post' => 'posts',
         'comment' => 'comments',
-        'link_ref' => 'link_refs',
         'attachment' => 'attachments',
         'series' => 'series',
         'series_item' => 'series_items',
@@ -427,6 +425,28 @@ function sr_community_board_copy_job_stage_for_map_type(string $type): string
     ][$type] ?? $type;
 }
 
+function sr_community_board_copy_job_skip_link_refs(PDO $pdo, array $job): array
+{
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_board_copy_job_maps
+         SET status = 'skipped', updated_at = :updated_at
+         WHERE job_id = :job_id
+           AND entity_type = 'link_ref'
+           AND status = 'pending'"
+    );
+    $stmt->execute([
+        'updated_at' => sr_now(),
+        'job_id' => (int) $job['id'],
+    ]);
+
+    return [
+        'done' => false,
+        'stage' => 'attachments',
+        'status' => 'running',
+        'message' => 'legacy 링크 참조 복사 단계를 건너뛰었습니다.',
+    ];
+}
+
 function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit): array
 {
     $targetBoardId = sr_community_board_copy_job_target_board_id($pdo, $job);
@@ -547,51 +567,7 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
         $processed++;
     }
 
-    return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'comment', 'link_refs', $processed);
-}
-
-function sr_community_board_copy_job_copy_link_refs(PDO $pdo, array $job, int $limit): array
-{
-    $maps = sr_community_board_copy_job_pending_maps($pdo, (int) $job['id'], 'link_ref', $limit);
-    $insert = $pdo->prepare(
-        'INSERT IGNORE INTO sr_community_link_refs
-            (post_id, target_module, target_entity_type, target_entity_id, slot_key, variant, label, sort_order, created_by, created_at, updated_at)
-         VALUES
-            (:post_id, :target_module, :target_entity_type, :target_entity_id, :slot_key, :variant, :label, :sort_order, :created_by, :created_at, :updated_at)'
-    );
-    $processed = 0;
-    $now = sr_now();
-    foreach ($maps as $map) {
-        $stmt = $pdo->prepare('SELECT * FROM sr_community_link_refs WHERE id = :id LIMIT 1');
-        $stmt->execute(['id' => (int) $map['source_id']]);
-        $ref = $stmt->fetch();
-        if (!is_array($ref)) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped');
-            continue;
-        }
-        $newPostId = sr_community_board_copy_job_map_target($pdo, (int) $job['id'], 'post', (int) $ref['post_id']);
-        if ($newPostId < 1) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', '게시글 매핑을 찾을 수 없습니다.');
-            continue;
-        }
-        $insert->execute([
-            'post_id' => $newPostId,
-            'target_module' => (string) $ref['target_module'],
-            'target_entity_type' => (string) $ref['target_entity_type'],
-            'target_entity_id' => (string) $ref['target_entity_id'],
-            'slot_key' => (string) $ref['slot_key'],
-            'variant' => (string) $ref['variant'],
-            'label' => (string) ($ref['label'] ?? ''),
-            'sort_order' => (int) $ref['sort_order'],
-            'created_by' => $ref['created_by'] !== null ? (int) $ref['created_by'] : null,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied');
-        $processed++;
-    }
-
-    return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'link_ref', 'attachments', $processed);
+    return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'comment', 'attachments', $processed);
 }
 
 function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int $limit): array
@@ -783,7 +759,6 @@ function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
     foreach ([
         'post' => ['expected' => 'posts', 'sql' => 'SELECT COUNT(*) FROM sr_community_posts WHERE board_id = :board_id'],
         'comment' => ['expected' => 'comments', 'sql' => 'SELECT COUNT(*) FROM sr_community_comments c INNER JOIN sr_community_posts p ON p.id = c.post_id WHERE p.board_id = :board_id'],
-        'link_ref' => ['expected' => 'link_refs', 'sql' => 'SELECT COUNT(*) FROM sr_community_link_refs r INNER JOIN sr_community_posts p ON p.id = r.post_id WHERE p.board_id = :board_id'],
         'attachment' => ['expected' => 'attachments', 'sql' => 'SELECT COUNT(*) FROM sr_community_attachments a INNER JOIN sr_community_posts p ON p.id = a.post_id WHERE p.board_id = :board_id'],
     ] as $type => $rule) {
         $expected = (int) ($counts[(string) $rule['expected']] ?? 0);

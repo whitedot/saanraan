@@ -15,7 +15,6 @@ function sr_community_board_copy_limits(): array
     return [
         'posts' => 500,
         'comments' => 5000,
-        'link_refs' => 5000,
         'attachments' => 500,
         'bytes' => 314572800,
     ];
@@ -45,7 +44,6 @@ function sr_community_board_copy_counts(PDO $pdo, int $boardId): array
     $counts = [
         'posts' => 0,
         'comments' => 0,
-        'link_refs' => 0,
         'attachments' => 0,
         'bytes' => 0,
         'unsupported_storage' => false,
@@ -69,15 +67,6 @@ function sr_community_board_copy_counts(PDO $pdo, int $boardId): array
     );
     $stmt->execute(['board_id' => $boardId]);
     $counts['comments'] = (int) $stmt->fetchColumn();
-
-    $stmt = $pdo->prepare(
-        'SELECT COUNT(*)
-         FROM sr_community_link_refs r
-         INNER JOIN sr_community_posts p ON p.id = r.post_id
-         WHERE p.board_id = :board_id'
-    );
-    $stmt->execute(['board_id' => $boardId]);
-    $counts['link_refs'] = (int) $stmt->fetchColumn();
 
     $stmt = $pdo->prepare(
         'SELECT a.*
@@ -204,7 +193,7 @@ function sr_community_board_copy_batch_threshold_errors(array $counts): array
 {
     $limits = sr_community_board_copy_limits();
     $errors = [];
-    foreach (['posts', 'comments', 'link_refs', 'attachments'] as $key) {
+    foreach (['posts', 'comments', 'attachments'] as $key) {
         if ((int) ($counts[$key] ?? 0) > (int) $limits[$key]) {
             $errors[] = '동기 복사 상한을 초과했습니다: ' . $key;
         }
@@ -410,7 +399,6 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
     }
 
     sr_community_copy_board_comments($pdo, $postMap);
-    sr_community_copy_board_link_refs($pdo, $postMap, $now);
     sr_community_copy_board_attachments($pdo, $postMap, $createdFiles);
 
     return $postMap;
@@ -524,35 +512,6 @@ function sr_community_copy_board_series(PDO $pdo, int $sourceBoardId, int $newBo
     }
 
     return $result;
-}
-
-function sr_community_copy_board_link_refs(PDO $pdo, array $postMap, string $now): void
-{
-    $insert = $pdo->prepare(
-        'INSERT IGNORE INTO sr_community_link_refs
-            (post_id, target_module, target_entity_type, target_entity_id, slot_key, variant, label, sort_order, created_by, created_at, updated_at)
-         VALUES
-            (:post_id, :target_module, :target_entity_type, :target_entity_id, :slot_key, :variant, :label, :sort_order, :created_by, :created_at, :updated_at)'
-    );
-    foreach ($postMap as $sourcePostId => $newPostId) {
-        $stmt = $pdo->prepare('SELECT * FROM sr_community_link_refs WHERE post_id = :post_id ORDER BY sort_order ASC, id ASC');
-        $stmt->execute(['post_id' => (int) $sourcePostId]);
-        foreach ($stmt->fetchAll() as $ref) {
-            $insert->execute([
-                'post_id' => (int) $newPostId,
-                'target_module' => (string) $ref['target_module'],
-                'target_entity_type' => (string) $ref['target_entity_type'],
-                'target_entity_id' => (string) $ref['target_entity_id'],
-                'slot_key' => (string) $ref['slot_key'],
-                'variant' => (string) $ref['variant'],
-                'label' => (string) ($ref['label'] ?? ''),
-                'sort_order' => (int) $ref['sort_order'],
-                'created_by' => $ref['created_by'] !== null ? (int) $ref['created_by'] : null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        }
-    }
 }
 
 function sr_community_copy_board_attachments(PDO $pdo, array $postMap, array &$createdFiles): void

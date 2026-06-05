@@ -1496,7 +1496,7 @@ function sr_content_group_external_reference_counts(PDO $pdo, int $groupId): arr
 {
     $group = sr_content_group_by_id($pdo, $groupId);
     if (!is_array($group)) {
-        return ['site_menu' => 0, 'homepage' => 0, 'link_cards' => 0];
+        return ['site_menu' => 0, 'homepage' => 0];
     }
 
     $groupKey = (string) ($group['group_key'] ?? '');
@@ -1507,17 +1507,6 @@ function sr_content_group_external_reference_counts(PDO $pdo, int $groupId): arr
             ? sr_content_optional_count($pdo, 'sr_site_menu_items', 'url = :url', ['url' => $groupPath])
             : 0,
         'homepage' => $groupPath !== '' && (string) ($siteSettings['site.home_path'] ?? '') === $groupPath ? 1 : 0,
-        'link_cards' => sr_content_optional_count(
-            $pdo,
-            'sr_community_link_refs',
-            "target_module = 'content' AND target_entity_type = 'content_group' AND target_entity_id = :target_id",
-            ['target_id' => (string) $groupId]
-        ) + sr_content_optional_count(
-            $pdo,
-            'sr_content_link_refs',
-            "target_module = 'content' AND target_entity_type = 'content_group' AND target_entity_id = :target_id",
-            ['target_id' => (string) $groupId]
-        ),
     ];
 }
 
@@ -1532,7 +1521,7 @@ function sr_content_can_delete_group(PDO $pdo, int $groupId): array
     $externalReferences = sr_content_group_external_reference_counts($pdo, $groupId);
     $errors = [];
     if (array_sum(array_map('intval', $externalReferences)) > 0) {
-        $errors[] = '사이트 메뉴, 초기화면, 링크 카드 등 외부 운영 참조가 있어 콘텐츠 그룹을 삭제할 수 없습니다.';
+        $errors[] = '사이트 메뉴, 초기화면 등 외부 운영 참조가 있어 콘텐츠 그룹을 삭제할 수 없습니다.';
     }
 
     return ['can_delete' => $errors === [], 'errors' => $errors, 'references' => $references, 'external_references' => $externalReferences, 'group' => $group];
@@ -2642,21 +2631,6 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
         );
         $stmt->execute([
             'new_content_id' => $newContentId,
-            'created_at' => $now,
-            'updated_at' => $now,
-            'source_content_id' => $sourceContentId,
-        ]);
-
-        $stmt = $pdo->prepare(
-            'INSERT IGNORE INTO sr_content_link_refs
-                (content_id, target_module, target_entity_type, target_entity_id, slot_key, variant, label, sort_order, created_by, created_at, updated_at)
-             SELECT :new_content_id, target_module, target_entity_type, target_entity_id, slot_key, variant, label, sort_order, :created_by, :created_at, :updated_at
-             FROM sr_content_link_refs
-             WHERE content_id = :source_content_id'
-        );
-        $stmt->execute([
-            'new_content_id' => $newContentId,
-            'created_by' => $accountId,
             'created_at' => $now,
             'updated_at' => $now,
             'source_content_id' => $sourceContentId,

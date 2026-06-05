@@ -20,7 +20,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <dd><?php echo sr_e((string) $sourceBoard['title']); ?> / <code><?php echo sr_e((string) $sourceBoard['board_key']); ?></code></dd>
             <dt><?php echo sr_e('복사 수'); ?></dt>
             <dd>
-                <?php echo sr_e('게시글 ' . number_format((int) $copyCounts['posts']) . ', 댓글 ' . number_format((int) $copyCounts['comments']) . ', 링크 참조 ' . number_format((int) $copyCounts['link_refs']) . ', 첨부 ' . number_format((int) $copyCounts['attachments']) . ', 시리즈 ' . number_format((int) ($copyCounts['series'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) $copyCounts['bytes'])); ?>
+                <?php echo sr_e('게시글 ' . number_format((int) $copyCounts['posts']) . ', 댓글 ' . number_format((int) $copyCounts['comments']) . ', 첨부 ' . number_format((int) $copyCounts['attachments']) . ', 시리즈 ' . number_format((int) ($copyCounts['series'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) $copyCounts['bytes'])); ?>
             </dd>
             <dt><?php echo sr_e('복사 상태'); ?></dt>
             <dd><?php echo sr_e('복사본 게시판은 disabled로 저장됩니다. 신고, 스크랩, 자산 로그, 알림은 복사하지 않습니다. 시리즈는 아래 선택지를 켠 경우에만 새 사본으로 복사합니다.'); ?></dd>

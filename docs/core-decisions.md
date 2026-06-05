@@ -122,7 +122,7 @@
 
 - 코어는 legacy token pattern, token 추출, token 저장 거부 오류, 제한된 legacy refs 테이블 비움만 제공한다.
 - 코어는 `content`, `community`, `commerce` 같은 도메인 key의 validation, label, 공개 렌더링, resolver 호출을 소유하지 않는다.
-- `sr_content_link_refs`, `sr_community_link_refs`는 1.0 호환과 삭제/복사 정리 경로 때문에 남기되, 신규 저장 시 참조 원장으로 채우지 않는다.
+- `sr_content_link_refs`, `sr_community_link_refs`는 1.0 호환을 위해 테이블은 남기되, 신규 저장과 운영 복사/삭제 차단에서는 참조 원장으로 쓰지 않는다. 업데이트는 기존 legacy refs 행을 비워 보이지 않는 참조가 운영 삭제를 막지 않게 한다.
 - 콘텐츠/커뮤니티 본문 연결 UI는 대상 검색 결과를 일반 링크 또는 허용 HTML로 삽입한다.
 
 퇴출 또는 이동 기준:

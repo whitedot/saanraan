@@ -684,22 +684,10 @@ function sr_content_series_reference_counts(PDO $pdo, int $seriesId): array
 function sr_content_series_external_reference_counts(PDO $pdo, int $seriesId): array
 {
     if ($seriesId < 1 || !sr_content_series_supported($pdo)) {
-        return ['link_cards' => 0];
+        return [];
     }
 
-    return [
-        'link_cards' => sr_content_optional_count(
-            $pdo,
-            'sr_community_link_refs',
-            "target_module = 'content' AND target_entity_type = 'content_series' AND target_entity_id = :target_id",
-            ['target_id' => (string) $seriesId]
-        ) + sr_content_optional_count(
-            $pdo,
-            'sr_content_link_refs',
-            "target_module = 'content' AND target_entity_type = 'content_series' AND target_entity_id = :target_id",
-            ['target_id' => (string) $seriesId]
-        ),
-    ];
+    return [];
 }
 
 function sr_content_can_delete_series(PDO $pdo, int $seriesId): array

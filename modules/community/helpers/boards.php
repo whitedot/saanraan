@@ -1375,7 +1375,7 @@ function sr_community_board_external_reference_counts(PDO $pdo, int $boardId): a
 {
     $board = sr_community_board_by_id($pdo, $boardId);
     if (!is_array($board)) {
-        return ['site_menu' => 0, 'banner_targets' => 0, 'popup_layer_targets' => 0, 'coupon_targets' => 0, 'link_cards' => 0];
+        return ['site_menu' => 0, 'banner_targets' => 0, 'popup_layer_targets' => 0, 'coupon_targets' => 0];
     }
 
     $boardKey = (string) ($board['board_key'] ?? '');
@@ -1401,17 +1401,6 @@ function sr_community_board_external_reference_counts(PDO $pdo, int $boardId): a
             "target_type = 'community_board' AND target_id = :target_id",
             ['target_id' => (string) $boardId]
         ),
-        'link_cards' => sr_community_optional_count(
-            $pdo,
-            'sr_community_link_refs',
-            "target_module = 'community' AND target_entity_type = 'board' AND target_entity_id = :target_id",
-            ['target_id' => (string) $boardId]
-        ) + sr_community_optional_count(
-            $pdo,
-            'sr_content_link_refs',
-            "target_module = 'community' AND target_entity_type = 'board' AND target_entity_id = :target_id",
-            ['target_id' => (string) $boardId]
-        ),
     ];
 }
 
@@ -1419,7 +1408,7 @@ function sr_community_board_delete_block_messages(array $references, array $exte
 {
     $messages = [];
     if (array_sum(array_map('intval', $externalReferences)) > 0) {
-        $messages[] = '사이트 메뉴, 배너/팝업, 쿠폰, 링크 카드 등 외부 운영 참조가 있어 삭제할 수 없습니다.';
+        $messages[] = '사이트 메뉴, 배너/팝업, 쿠폰 등 외부 운영 참조가 있어 삭제할 수 없습니다.';
     }
 
     return $messages;
@@ -1696,7 +1685,7 @@ function sr_community_board_group_external_reference_counts(PDO $pdo, int $group
 {
     $group = sr_community_board_group_by_id($pdo, $groupId);
     if (!is_array($group)) {
-        return ['site_menu' => 0, 'link_cards' => 0];
+        return ['site_menu' => 0];
     }
 
     $groupKey = (string) ($group['group_key'] ?? '');
@@ -1704,17 +1693,6 @@ function sr_community_board_group_external_reference_counts(PDO $pdo, int $group
         'site_menu' => $groupKey !== ''
             ? sr_community_optional_count($pdo, 'sr_site_menu_items', 'url = :url', ['url' => '/community#group-' . $groupKey])
             : 0,
-        'link_cards' => sr_community_optional_count(
-            $pdo,
-            'sr_community_link_refs',
-            "target_module = 'community' AND target_entity_type = 'board_group' AND target_entity_id = :target_id",
-            ['target_id' => (string) $groupId]
-        ) + sr_community_optional_count(
-            $pdo,
-            'sr_content_link_refs',
-            "target_module = 'community' AND target_entity_type = 'board_group' AND target_entity_id = :target_id",
-            ['target_id' => (string) $groupId]
-        ),
     ];
 }
 
