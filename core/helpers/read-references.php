@@ -69,10 +69,10 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
                 continue;
             }
 
-            $countFunction = (string) $entry['count_function'];
-            $rowsFunction = (string) $entry['rows_function'];
-            $healthFunction = (string) $entry['health_function'];
-            $adminUrlFunction = (string) $entry['admin_url_function'];
+            $countFunction = trim((string) $entry['count_function']);
+            $rowsFunction = trim((string) $entry['rows_function']);
+            $healthFunction = trim((string) $entry['health_function']);
+            $adminUrlFunction = trim((string) $entry['admin_url_function']);
 
             try {
                 $rawCount = $countFunction($pdo, $target, $context);
