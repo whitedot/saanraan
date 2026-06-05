@@ -2564,6 +2564,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
     } elseif (sr_content_slug_exists($pdo, $newSlug, 0)) {
         $errors[] = '이미 사용 중인 slug입니다.';
     }
+    if (sr_link_card_token_rejection_errors((string) ($source['body_text'] ?? '')) !== []) {
+        $errors[] = 'legacy 링크 카드 토큰이 남아 있는 콘텐츠는 복사할 수 없습니다. 본문에서 토큰을 제거한 뒤 다시 시도하세요.';
+    }
     if ($errors !== []) {
         throw new InvalidArgumentException(implode("\n", $errors));
     }
