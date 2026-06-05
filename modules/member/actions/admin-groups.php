@@ -134,7 +134,7 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        if ($errors === [] && $groupId > 0 && is_array($existingGroup) && $status !== 'enabled') {
+        if ($errors === [] && $groupId > 0 && is_array($existingGroup) && (string) ($existingGroup['status'] ?? '') === 'enabled' && $status !== 'enabled') {
             $referenceResult = sr_read_reference_collect($pdo, 'member-group-references.php', [
                 'owner_module_key' => 'member',
                 'target_type' => 'member_group',
