@@ -272,6 +272,27 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         sr_read_reference_check_error('read reference normalize row target sample rejected valid row');
     }
 
+    $invalidHealthStatus = sr_read_reference_normalize_row('sample_module', $entry, $target, $baseRow, ['status' => null], '/admin/sample');
+    if (is_array($invalidHealthStatus['row'] ?? null) || !in_array('status 값이 올바르지 않습니다.', $invalidHealthStatus['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null health status');
+    }
+
+    $invalidHealthMessage = sr_read_reference_normalize_row('sample_module', $entry, $target, $baseRow, [
+        'status' => 'ok',
+        'message' => null,
+    ], '/admin/sample');
+    if (is_array($invalidHealthMessage['row'] ?? null) || !in_array('message 값이 올바르지 않습니다.', $invalidHealthMessage['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null health message');
+    }
+
+    $invalidHealthPolicyStatus = sr_read_reference_normalize_row('sample_module', $entry, $target, $baseRow, [
+        'status' => 'ok',
+        'policy_status' => null,
+    ], '/admin/sample');
+    if (is_array($invalidHealthPolicyStatus['row'] ?? null) || !in_array('policy_status 값이 올바르지 않습니다.', $invalidHealthPolicyStatus['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null health policy_status');
+    }
+
     $mismatchedReferenceType = $baseRow;
     $mismatchedReferenceType['reference_type'] = 'other_reference';
     $mismatchedReference = sr_read_reference_normalize_row('sample_module', $entry, $target, $mismatchedReferenceType, ['status' => 'ok'], '/admin/sample');

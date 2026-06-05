@@ -273,7 +273,10 @@ function sr_read_reference_helper_path(string $moduleKey, string $helper): strin
 function sr_read_reference_normalize_row(string $moduleKey, array $entry, array $target, array $rawRow, array $health, string $adminUrl): array
 {
     $errors = [];
-    $status = sr_read_reference_string_value($health['status'] ?? ($rawRow['status'] ?? 'unknown'));
+    $statusSource = array_key_exists('status', $health)
+        ? $health['status']
+        : (array_key_exists('status', $rawRow) ? $rawRow['status'] : 'unknown');
+    $status = sr_read_reference_string_value($statusSource);
     if ($status === null) {
         $status = 'unknown';
         $errors[] = 'status 값이 올바르지 않습니다.';
@@ -323,7 +326,7 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
             $row['metadata'] = $rawRow['metadata'];
         }
     }
-    if (isset($health['message'])) {
+    if (array_key_exists('message', $health)) {
         $message = sr_read_reference_string_value($health['message']);
         if ($message === null) {
             $errors[] = 'message 값이 올바르지 않습니다.';
@@ -331,7 +334,7 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
             $row['message'] = $message;
         }
     }
-    if (isset($health['policy_status'])) {
+    if (array_key_exists('policy_status', $health)) {
         $policyStatus = sr_read_reference_string_value($health['policy_status']);
         if ($policyStatus === null) {
             $errors[] = 'policy_status 값이 올바르지 않습니다.';
