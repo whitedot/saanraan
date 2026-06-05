@@ -90,11 +90,14 @@ if (sr_request_method() === 'POST') {
                     'deleted_comments' => (int) ($deleteResult['deleted_comments'] ?? 0),
                     'deleted_revisions' => (int) ($deleteResult['deleted_revisions'] ?? 0),
                     'deleted_files' => (int) ($deleteResult['deleted_files'] ?? 0),
+                    'deleted_cover_images' => (int) ($deleteResult['deleted_cover_images'] ?? 0),
+                    'failed_cover_images' => (int) ($deleteResult['failed_cover_images'] ?? 0),
+                    'failed_cover_image_refs' => array_slice(array_map('strval', is_array($deleteResult['failed_cover_image_refs'] ?? null) ? $deleteResult['failed_cover_image_refs'] : []), 0, 20),
                     'failed_files' => (int) ($deleteResult['failed_files'] ?? 0),
                     'failed_file_refs' => array_slice(array_map('strval', is_array($deleteResult['failed_file_refs'] ?? null) ? $deleteResult['failed_file_refs'] : []), 0, 20),
                 ],
             ]);
-            if ((int) ($deleteResult['failed_files'] ?? 0) > 0) {
+            if ((int) ($deleteResult['failed_files'] ?? 0) > 0 || (int) ($deleteResult['failed_cover_images'] ?? 0) > 0) {
                 $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹 데이터는 삭제됐지만 일부 파일 저장소 정리가 실패했습니다. 저장소 정리 실패 기록을 확인해 주세요.';
             } else {
                 $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹을 삭제했습니다.';

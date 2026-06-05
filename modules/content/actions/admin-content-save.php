@@ -17,6 +17,8 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content', 'edit'
 sr_require_csrf();
 
 $pageId = (int) sr_post_string('content_id', 20);
+$existingContent = $pageId > 0 ? sr_content_by_id($pdo, $pageId) : null;
+$beforeCoverImageUrl = is_array($existingContent) ? (string) ($existingContent['cover_image_url'] ?? '') : '';
 $values = sr_content_input_values($pdo);
 $coverImageUploadFile = $_FILES['cover_image_upload'] ?? null;
 $coverImageUploadProvided = sr_content_cover_image_upload_was_provided($coverImageUploadFile);
@@ -58,7 +60,7 @@ if ($coverImageUploadProvided) {
         }
     }
 }
-if ($pageId > 0 && !is_array(sr_content_by_id($pdo, $pageId))) {
+if ($pageId > 0 && !is_array($existingContent)) {
     $errors[] = '수정할 콘텐츠를 찾을 수 없습니다.';
 }
 if ((int) $seriesValues['series_id'] > 0) {
@@ -87,6 +89,11 @@ $statusScope = sr_content_normalize_setting_source((string) ($values['source_sta
 $statusBeforeTargetIds = sr_content_apply_scope_target_ids($pdo, $pageId, (int) ($values['content_group_id'] ?? 0), $statusScope);
 $statusBeforeRows = sr_content_status_rows_for_ids($pdo, $statusBeforeTargetIds);
 $savedPageId = sr_content_save($pdo, $values, (int) $account['id'], $pageId);
+$afterCoverImageUrl = (string) ($values['cover_image_url'] ?? '');
+$coverImageCleanupResult = ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => ''];
+if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
+    $coverImageCleanupResult = sr_content_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedPageId, 'cover_image_replaced', $savedPageId);
+}
 sr_content_set_content_series($pdo, $savedPageId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
 try {
     sr_content_save_files_from_request($pdo, $savedPageId, (int) $account['id'], $values);
@@ -111,6 +118,12 @@ sr_audit_log($pdo, [
         'status' => (string) $values['status'],
         'content_group_id' => (int) ($values['content_group_id'] ?? 0),
         'layout_key' => (string) ($values['layout_key'] ?? ''),
+        'cover_image_changed' => $beforeCoverImageUrl !== $afterCoverImageUrl,
+        'cover_image_deleted' => $beforeCoverImageUrl !== '' && $afterCoverImageUrl === '',
+        'cover_image_uploaded' => $coverImageUploadProvided,
+        'cover_image_cleanup_attempted' => !empty($coverImageCleanupResult['attempted']),
+        'cover_image_cleanup_deleted' => !empty($coverImageCleanupResult['deleted']),
+        'cover_image_cleanup_failed' => !empty($coverImageCleanupResult['failed']),
     ],
 ]);
 $statusAfterTargetIds = sr_content_apply_scope_target_ids($pdo, $savedPageId, (int) ($values['content_group_id'] ?? 0), $statusScope);

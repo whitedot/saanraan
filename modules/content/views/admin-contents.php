@@ -21,6 +21,7 @@ $contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.as
 if ($values === []) {
     $values = $editing ? $editPage : sr_content_default_values($pdo, $site ?? null);
 }
+$contentCoverImageUrl = sr_content_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''));
 $contentSeriesOptions = isset($contentSeriesOptions) && is_array($contentSeriesOptions) ? $contentSeriesOptions : [];
 $currentContentSeriesItem = isset($currentContentSeriesItem) && is_array($currentContentSeriesItem) ? $currentContentSeriesItem : null;
 $contentSeriesValues = [
@@ -436,8 +437,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="content_admin_contents_cover_image_url">커버 이미지</label>
                 <div class="admin-form-field">
-                    <input id="content_admin_contents_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e((string) ($values['cover_image_url'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                    <?php if ($contentCoverImageUrl !== '') { ?>
+                        <div class="admin-content-cover-preview">
+                            <?php echo sr_content_cover_image_html(['cover_image_url' => $contentCoverImageUrl, 'title' => (string) ($values['title'] ?? '')], 'admin-content-cover-preview-image', '커버 이미지'); ?>
+                        </div>
+                    <?php } ?>
+                    <input id="content_admin_contents_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e($contentCoverImageUrl); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
                     <input id="content_admin_contents_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
+                    <?php if ($contentCoverImageUrl !== '') { ?>
+                        <label class="admin-form-check form-label admin-content-cover-delete" for="content_admin_contents_cover_image_delete">
+                            <input id="content_admin_contents_cover_image_delete" type="checkbox" name="cover_image_delete" value="1" class="form-checkbox"<?php echo (int) ($values['cover_image_delete'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                            <span>현재 커버 이미지 삭제</span>
+                        </label>
+                    <?php } ?>
                     <p class="admin-form-help">홈과 목록에서 쓰는 대표 이미지입니다. 파일 업로드가 있으면 URL 입력값보다 업로드 이미지가 우선됩니다.</p>
                 </div>
             </div>

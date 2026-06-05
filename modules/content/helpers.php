@@ -638,6 +638,76 @@ function sr_content_cover_image_storage_reference(string $reference): ?array
     return $storage;
 }
 
+function sr_content_cover_image_storage_reference_from_url(string $url): ?array
+{
+    $url = sr_content_clean_cover_image_url($url);
+    if ($url === '') {
+        return null;
+    }
+
+    $parts = parse_url($url);
+    if (!is_array($parts)) {
+        return null;
+    }
+
+    $path = (string) ($parts['path'] ?? '');
+    $proxyPath = (string) (parse_url(sr_url('/content/cover-image'), PHP_URL_PATH) ?: '/content/cover-image');
+    if ($path !== '/content/cover-image' && $path !== $proxyPath) {
+        return null;
+    }
+
+    $query = [];
+    parse_str((string) ($parts['query'] ?? ''), $query);
+    $reference = is_string($query['file'] ?? null) ? (string) $query['file'] : '';
+    if ($reference === '') {
+        return null;
+    }
+
+    return sr_content_cover_image_storage_reference($reference);
+}
+
+function sr_content_cover_image_reference_count(PDO $pdo, string $url, int $exceptContentId = 0): int
+{
+    $url = sr_content_clean_cover_image_url($url);
+    if ($url === '' || !sr_content_optional_table_exists($pdo, 'sr_content_items')) {
+        return 0;
+    }
+
+    $sql = 'SELECT COUNT(*) FROM sr_content_items WHERE cover_image_url = :cover_image_url';
+    $params = ['cover_image_url' => $url];
+    if ($exceptContentId > 0) {
+        $sql .= ' AND id <> :content_id';
+        $params['content_id'] = $exceptContentId;
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_content_delete_cover_image_storage(PDO $pdo, string $url, int $sourceId, string $sourceType, int $exceptContentId = 0): array
+{
+    $storage = sr_content_cover_image_storage_reference_from_url($url);
+    if (!is_array($storage)) {
+        return ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => ''];
+    }
+
+    $driver = (string) ($storage['driver'] ?? 'local');
+    $key = (string) ($storage['key'] ?? '');
+    $reference = $driver . ':' . $key;
+    if ($key === '' || sr_content_cover_image_reference_count($pdo, $url, $exceptContentId) > 0) {
+        return ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => $reference];
+    }
+
+    if (sr_storage_delete($driver, $key)) {
+        return ['attempted' => true, 'deleted' => true, 'failed' => false, 'reference' => $reference];
+    }
+
+    sr_content_record_storage_cleanup_failure($pdo, $sourceType, $sourceId, $driver, $key, '콘텐츠 커버 이미지 저장소 정리에 실패했습니다.');
+    return ['attempted' => true, 'deleted' => false, 'failed' => true, 'reference' => $reference];
+}
+
 function sr_content_cover_image_html(array $content, string $className, string $alt = ''): string
 {
     $imageUrl = sr_content_clean_cover_image_url((string) ($content['cover_image_url'] ?? ''));
@@ -1699,6 +1769,7 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     }
 
     $contentIds = sr_content_group_content_ids($pdo, $groupId);
+    $coverImageUrls = sr_content_group_cover_image_urls_for_delete($pdo, $contentIds);
     $files = sr_content_group_file_rows_for_delete($pdo, $contentIds);
     $pdo->beginTransaction();
     try {
@@ -1768,6 +1839,19 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
         }
     }
     $deletedBodyFiles = sr_content_cleanup_body_files_for_deleted_content($pdo, $contentIds);
+    $deletedCoverImages = 0;
+    $failedCoverImages = 0;
+    $failedCoverImageRefs = [];
+    foreach ($coverImageUrls as $coverImageUrl) {
+        $coverImageCleanup = sr_content_delete_cover_image_storage($pdo, $coverImageUrl, $groupId, 'group_delete_cover_image');
+        if (!empty($coverImageCleanup['deleted'])) {
+            $deletedCoverImages++;
+        }
+        if (!empty($coverImageCleanup['failed'])) {
+            $failedCoverImages++;
+            $failedCoverImageRefs[] = (string) ($coverImageCleanup['reference'] ?? '');
+        }
+    }
 
     $check['deleted_settings'] = $deletedSettings;
     $check['deleted_contents'] = $deletedContents;
@@ -1775,6 +1859,9 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     $check['deleted_revisions'] = $deletedRevisions;
     $check['deleted_files'] = $deletedFiles - $failedFiles;
     $check['deleted_body_files'] = $deletedBodyFiles;
+    $check['deleted_cover_images'] = $deletedCoverImages;
+    $check['failed_cover_images'] = $failedCoverImages;
+    $check['failed_cover_image_refs'] = $failedCoverImageRefs;
     $check['failed_files'] = $failedFiles;
     $check['failed_file_refs'] = $failedFileRefs;
     return $check;
@@ -1893,6 +1980,26 @@ function sr_content_group_content_ids(PDO $pdo, int $groupId): array
     $stmt->execute(['group_id' => $groupId]);
 
     return array_values(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
+}
+
+function sr_content_group_cover_image_urls_for_delete(PDO $pdo, array $contentIds): array
+{
+    $contentIds = array_values(array_filter(array_map('intval', $contentIds), static fn (int $contentId): bool => $contentId > 0));
+    if ($contentIds === [] || !sr_content_optional_table_exists($pdo, 'sr_content_items')) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
+    $stmt = $pdo->prepare(
+        'SELECT DISTINCT cover_image_url
+         FROM sr_content_items
+         WHERE id IN (' . $placeholders . ')
+           AND cover_image_url <> \'\'
+         ORDER BY cover_image_url ASC'
+    );
+    $stmt->execute($contentIds);
+
+    return array_values(array_filter(array_map('strval', $stmt->fetchAll(PDO::FETCH_COLUMN))));
 }
 
 function sr_content_group_file_rows_for_delete(PDO $pdo, array $contentIds): array
@@ -2443,6 +2550,8 @@ function sr_content_input_values(?PDO $pdo = null): array
         ? sr_sanitize_rich_text_html($bodyText)
         : sr_content_clean_text($bodyText, 100000);
 
+    $coverImageDelete = sr_post_string('cover_image_delete', 1) === '1';
+    $rawCoverImageUrl = sr_post_string('cover_image_url', 255);
     $assetAccessPolicySetIds = sr_content_asset_policy_set_ids_from_value($_POST['asset_access_policy_set_ids'] ?? []);
     $assetActionPolicySetIds = sr_content_asset_policy_set_ids_from_value($_POST['asset_action_policy_set_ids'] ?? []);
     $values = [
@@ -2453,8 +2562,9 @@ function sr_content_input_values(?PDO $pdo = null): array
         'title' => sr_content_clean_single_line(sr_post_string('title', 160), 160),
         'slug' => sr_content_clean_slug(sr_post_string('slug', 120)),
         'summary' => sr_content_clean_text(sr_post_string('summary', 1000), 1000),
-        'cover_image_url' => sr_content_clean_cover_image_url(sr_post_string('cover_image_url', 255)),
-        'raw_cover_image_url' => sr_post_string('cover_image_url', 255),
+        'cover_image_url' => $coverImageDelete ? '' : sr_content_clean_cover_image_url($rawCoverImageUrl),
+        'raw_cover_image_url' => $coverImageDelete ? '' : $rawCoverImageUrl,
+        'cover_image_delete' => $coverImageDelete ? 1 : 0,
         'body_text' => $bodyText,
         'body_format' => $bodyFormat,
         'status' => sr_post_string('status', 30),
