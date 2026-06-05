@@ -85,6 +85,10 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
                     $errors[] = $moduleKey . ': rows_function 반환값이 배열이 아닙니다.';
                     continue;
                 }
+                if ($rawRows === []) {
+                    $errors[] = $moduleKey . ': count_function은 참조가 있다고 반환했지만 rows_function 반환값이 비어 있습니다.';
+                    continue;
+                }
 
                 foreach ($rawRows as $rawRow) {
                     if (!is_array($rawRow)) {
@@ -252,7 +256,8 @@ function sr_read_reference_admin_url_is_safe(string $adminUrl): bool
     }
 
     foreach (explode('/', $path) as $segment) {
-        if ($segment === '..' || rawurldecode($segment) === '..') {
+        $decodedSegment = rawurldecode($segment);
+        if ($segment === '..' || $decodedSegment === '..' || str_contains($decodedSegment, '/') || str_contains($decodedSegment, '\\')) {
             return false;
         }
     }

@@ -179,6 +179,7 @@ function sr_read_reference_check_admin_url_safety_samples(): void
         '//example.com/admin',
         '/admin/../settings',
         '/admin/%2e%2e/settings',
+        '/admin/%2f../settings',
         "/admin/settings\n",
     ];
     foreach ($invalidUrls as $url) {
