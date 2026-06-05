@@ -342,7 +342,9 @@ GitHub 이슈 기준도 함께 맞춘다.
 - 관련 저장소 문서와 Wiki 반영 필요성이 함께 정리되어 있다.
 - `php .tools/bin/check.php`와 가능한 HTTP 스모크 결과가 완료 보고에 포함되어 있다.
 
-현재 제한:
+현재 확인 상태:
 
 - 참조 row의 관리자 화면 표시는 `sr_admin_read_reference_button_html()`과 `sr_admin_read_reference_modal_html()` 공통 헬퍼를 통해 배너, 팝업레이어, 쿠폰 정의, 회원 그룹, 사이트명 설정 화면에서 표/모달로 제공한다.
-- HTTP 스모크는 로컬 `config/config.php` 권한 문제로 공통 500이 발생해 환경 이슈로 기록한다.
+- PHP 내장 서버를 `lab` 사용자로 실행하면 로컬 `config/config.php` 권한 때문에 동적 라우트가 500을 낼 수 있다. 서버 운영자 사용자로 동작하는 Apache HTTPS 경로 `https://lab.gnuboard.net/saanraan`에서는 `SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php`가 통과한다.
+- 쿠폰 정의 삭제/기간 변경/사용처 변경, 회원 그룹 삭제/key 변경은 현재 관리자 액션이 없으므로 현 마일스톤 완료 범위에서 제외한다. 이후 해당 액션을 추가하면 현재 비활성화/상태 변경 POST와 같은 읽기 참조 재검증을 붙인다.
+- 커뮤니티 보드 삭제의 `sr_banner_targets`, `sr_popup_layer_targets`, `sr_coupon_definitions`, `sr_site_menu_items` 직접 검사는 읽기 참조 계약이 아니라 보드 삭제 도메인 안전장치로 유지한다.
