@@ -254,7 +254,10 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
             }
 
             foreach (['count_function', 'rows_function', 'health_function', 'admin_url_function'] as $functionKey) {
-                $functionName = (string) ($entry[$functionKey] ?? '');
+                if (!is_string($entry[$functionKey] ?? null)) {
+                    continue;
+                }
+                $functionName = trim((string) $entry[$functionKey]);
                 if ($functionName !== '' && !function_exists($functionName)) {
                     sr_read_reference_check_error('read reference callable does not exist: ' . $path . ' ' . $functionName);
                     continue;
@@ -275,10 +278,14 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 continue;
             }
             foreach (['health_function', 'admin_url_function'] as $optionalKey) {
-                if (!isset($entry[$optionalKey]) || (string) $entry[$optionalKey] === '') {
+                if (!isset($entry[$optionalKey])) {
                     continue;
                 }
-                $functionName = (string) $entry[$optionalKey];
+                if (!is_string($entry[$optionalKey]) || trim((string) $entry[$optionalKey]) === '') {
+                    sr_read_reference_check_error('coupon-targets optional callable must be string: ' . $moduleDir . ' ' . $optionalKey);
+                    continue;
+                }
+                $functionName = trim((string) $entry[$optionalKey]);
                 foreach (sr_read_reference_check_helper_values($moduleDir, $moduleDir . '/coupon-targets.php', $entry['helpers'] ?? []) as $helper) {
                     require_once $moduleDir . '/' . $helper;
                 }
