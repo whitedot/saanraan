@@ -35,7 +35,7 @@
 - 코어는 업로드 검증, 안전한 파일명, storage put/delete/head, storage key 검증까지만 제공한다.
 - CKEditor 모듈은 upload adapter 연결과 클라이언트 설정 전달만 맡는다.
 - 파일 권한, 보존/삭제 정책, 관리자 조회/재시도 화면은 소유 모듈이 맡는다.
-- 콘텐츠 1차 구현에서 검증한 계약을 커뮤니티 후속 구현에 적용한다.
+- 콘텐츠에서 검증한 계약을 커뮤니티와 팝업레이어에도 같은 경계로 적용한다.
 
 ### 저장 구조
 
@@ -43,7 +43,9 @@
 - 1차 구현은 본문 이미지 전용 DB 테이블을 만들지 않는다.
 - `sr_content_files`와 `sr_content_file_links`는 다운로드 과금, 다운로드 로그, 파일 제목/숨김 상태를 소유하므로 본문 렌더링 이미지와 합치지 않는다.
 - 콘텐츠 모듈은 저장 전 이미지를 `storage/content/body/tmp/{upload_token}/{file}`에 두고, 저장된 콘텐츠 이미지는 `storage/content/body/{content_id}/{file}`에 둔다.
-- 커뮤니티 후속 구현은 같은 원칙으로 `storage/community/body/tmp/{upload_token}`와 `storage/community/body/{post_id}` 같은 모듈 소유 경로를 사용한다. 기존 `sr_community_attachments`는 게시글 첨부/다운로드 의미가 있으므로 본문 임베드와 기본 분리한다.
+- 커뮤니티는 같은 원칙으로 `storage/community/body/tmp/{upload_token}`와 shard가 포함된 `storage/community/body/{shard1}/{shard2}/{post_id}` 모듈 소유 경로를 사용한다. 기존 `sr_community_attachments`는 게시글 첨부/다운로드 의미가 있으므로 본문 임베드와 기본 분리한다.
+- 팝업레이어는 `storage/popup_layer/body/tmp/{upload_token}`와 `storage/popup_layer/body/{popup_layer_id}` 모듈 소유 경로를 사용한다.
+- 관리자 설정형 rich textarea는 레코드 ID가 없으므로 공통 저장소를 자동 적용하지 않는다. 실제 설정 필드가 생길 때 소유 모듈이 안정적인 setting subject key와 삭제 정책을 먼저 정의한다.
 - 본문 이미지의 1차 구현은 로컬 저장소를 기준으로 한다. S3 같은 외부 저장소 지원은 DB 없는 삭제 보장 방식을 별도로 설계한 뒤 확장한다.
 
 ### 참조 식별
@@ -105,7 +107,7 @@ DB 상태 컬럼 대신 저장 경로와 정리 시점으로 상태를 구분한
 5. DB 없는 경로 기반 정책 문서화
 6. CKEditor textarea별 upload adapter 설정 연결
 7. 콘텐츠 smoke/failure 테스트와 문서 업데이트
-8. 커뮤니티 후속 구현 이슈로 확장
+8. 커뮤니티, 팝업레이어, 관리자 설정형 textarea 적용 범위를 구현 상태에 맞춰 대조
 
 ## 구현 전 체크
 

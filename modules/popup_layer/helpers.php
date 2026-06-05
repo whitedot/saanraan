@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/popup_layer/helpers/body-files.php';
+
 function sr_popup_layer_available_targets(PDO $pdo): array
 {
     $targets = [];
@@ -315,7 +317,9 @@ function sr_popup_layer_render_basic_stack(array $popups): string
         $cookieDays = max(0, min(365, (int) $popup['dismiss_cookie_days']));
         $html[] = '<section class="sr-popup-layer" data-sr-popup-layer data-popup-id="' . sr_e((string) $popup['id']) . '" data-cookie-days="' . sr_e((string) $cookieDays) . '">';
         $html[] = '<h2>' . sr_e((string) $popup['title']) . '</h2>';
-        $html[] = '<div class="sr-popup-layer-body">' . nl2br(sr_e((string) $popup['body_text'])) . '</div>';
+        $bodyText = (string) ($popup['body_text'] ?? '');
+        $bodyHtml = (string) ($popup['body_format'] ?? 'plain') === 'html' ? sr_sanitize_rich_text_html($bodyText) : nl2br(sr_e($bodyText), false);
+        $html[] = '<div class="sr-popup-layer-body">' . $bodyHtml . '</div>';
         $html[] = '<div class="sr-popup-layer-actions">';
         $html[] = '<button class="sr-popup-layer-close" type="button" data-sr-popup-layer-close>닫기</button>';
         if ($cookieDays > 0) {
@@ -337,7 +341,7 @@ function sr_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
 
     $now = sr_now();
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.title, p.body_text, p.skin_key, p.dismiss_cookie_days
+        "SELECT p.id, p.title, p.body_text, p.body_format, p.skin_key, p.dismiss_cookie_days
          FROM sr_popup_layers p
          WHERE p.id = :id
            AND p.status = 'enabled'
@@ -372,6 +376,7 @@ function sr_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
             'id' => $id,
             'title' => (string) ($row['title'] ?? ''),
             'body_text' => (string) ($row['body_text'] ?? ''),
+            'body_format' => (string) ($row['body_format'] ?? 'plain'),
             'skin_key' => $skinKey,
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
         ],
@@ -395,7 +400,7 @@ function sr_popup_layer_render(PDO $pdo, array $context): string
 
     $now = sr_now();
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.title, p.body_text, p.skin_key, p.dismiss_cookie_days
+        "SELECT p.id, p.title, p.body_text, p.body_format, p.skin_key, p.dismiss_cookie_days
          FROM sr_popup_layers p
          INNER JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id
          WHERE p.status = 'enabled'
@@ -435,6 +440,7 @@ function sr_popup_layer_render(PDO $pdo, array $context): string
             'id' => $id,
             'title' => (string) ($row['title'] ?? ''),
             'body_text' => (string) ($row['body_text'] ?? ''),
+            'body_format' => (string) ($row['body_format'] ?? 'plain'),
             'skin_key' => sr_popup_layer_skin_key(['popup_layer_skin_key' => (string) ($row['skin_key'] ?? 'basic')]),
             'dismiss_cookie_days' => (int) ($row['dismiss_cookie_days'] ?? 1),
         ];

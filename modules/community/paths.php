@@ -5,6 +5,8 @@ return [
     'GET /community/board' => 'actions/list.php',
     'GET /community/post' => 'actions/view.php',
     'POST /community/post' => 'actions/view.php',
+    'GET /community/body-file' => 'actions/body-file.php',
+    'POST /community/body-files/upload' => 'actions/body-file-upload.php',
     'GET /community/attachment' => 'actions/attachment.php',
     'POST /community/attachment' => 'actions/attachment.php',
     'GET /community/write' => 'actions/write.php',

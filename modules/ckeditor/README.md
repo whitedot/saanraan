@@ -27,4 +27,4 @@ CDN 모드는 관리자 사이드바의 `플러그인 > CKEditor > 설정`에서
 
 CKEditor 초기화가 성공한 경우에만 form에 `body_format=html`이 추가된다. 에셋 로딩에 실패하거나 플러그인이 비활성화되면 기존 textarea가 그대로 제출되고 화면 소유 모듈은 `plain` 형식으로 저장한다.
 
-콘텐츠 모듈은 `content_basic` 프리셋에서 본문 이미지 upload endpoint를 CKEditor 설정에 넘긴다. CKEditor 플러그인은 adapter 연결만 담당하고, 업로드 권한, CSRF, 저장소 key, 파일 상태, 프록시 접근 정책은 콘텐츠 모듈이 소유한다. 커뮤니티 모듈의 본문 이미지 업로드는 아직 별도 구현하지 않았으며, 추가 시 커뮤니티 모듈이 파일 권한, 저장, 공개 URL, 보존 정책을 소유해야 한다.
+콘텐츠, 커뮤니티, 팝업레이어 모듈은 각자 필요한 textarea에서 본문 이미지 upload endpoint를 `data-sr-editor-upload-*` 속성으로 넘긴다. CKEditor 플러그인은 adapter 연결만 담당하고, 업로드 권한, CSRF, 저장소 key, 파일 상태, 프록시 접근 정책은 화면 소유 모듈이 소유한다. 관리자 공통 에디터 설정은 upload endpoint를 자동으로 붙이지 않으며, 설정형 rich textarea가 필요하면 해당 설정을 소유한 모듈이 안정적인 subject key와 삭제 정책을 먼저 정의해야 한다.

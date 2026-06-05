@@ -592,6 +592,9 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status):
         'updated_at' => sr_now(),
         'id' => $postId,
     ]);
+    if ($status === 'deleted') {
+        sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
+    }
 }
 
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
@@ -621,6 +624,18 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
     }
     $stmt->execute($params);
+    if ($bodyFormat === 'html') {
+        $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $accountId);
+        if ($finalBodyText !== trim((string) $values['body_text'])) {
+            $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                'body_text' => $finalBodyText,
+                'updated_at' => sr_now(),
+                'id' => $postId,
+            ]);
+        }
+    } else {
+        sr_community_cleanup_unreferenced_body_files($pdo, $postId, '');
+    }
     sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $accountId);
 }
 
@@ -1109,6 +1124,16 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $stmt->execute($params);
 
     $postId = (int) $pdo->lastInsertId();
+    if ($bodyFormat === 'html') {
+        $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $authorAccountId);
+        if ($finalBodyText !== trim((string) $values['body_text'])) {
+            $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                'body_text' => $finalBodyText,
+                'updated_at' => $now,
+                'id' => $postId,
+            ]);
+        }
+    }
     sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $authorAccountId);
 
     return $postId;

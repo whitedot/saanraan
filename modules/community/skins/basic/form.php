@@ -12,6 +12,7 @@ $fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) 
 $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
+$communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,
@@ -90,7 +91,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <p>
                 <label for="modules_community_form_body_text">
                     <span><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required<?php echo $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic"' : ''; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php if (sr_module_enabled($pdo, 'content')) { ?>

@@ -2,7 +2,7 @@
 
 return [
     'name' => '팝업레이어',
-    'version' => '2026.05.003',
+    'version' => '2026.06.001',
     'type' => 'module',
     'description' => '팝업레이어 관리와 출력 모듈입니다.',
     'admin' => [

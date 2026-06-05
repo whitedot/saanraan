@@ -29,6 +29,11 @@ $popupLayerDefaultStatus = sr_popup_layer_default_status($popupLayerSettings);
 $popupLayerDefaultTargetOption = sr_popup_layer_default_target_option($popupLayerSettings, $availableTargets);
 $popupLayerDefaultMatchType = sr_popup_layer_default_match_type($popupLayerSettings);
 $popupLayerDefaultDismissCookieDays = sr_popup_layer_default_dismiss_cookie_days($popupLayerSettings);
+$popupLayerEditorKey = sr_admin_editor_key($pdo);
+$popupLayerEditorAttributes = sr_editor_textarea_attributes($pdo, $popupLayerEditorKey, 'admin_basic');
+if ($popupLayerEditorAttributes !== '' && $popupLayerEditorKey === 'ckeditor') {
+    $popupLayerEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_popup_layer_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_popup_layer_body_file_upload_token()) . '"';
+}
 $allowedTargetOptions = [sr_popup_layer_public_target_option_value()];
 foreach ($availableTargets as $availableTarget) {
     $allowedTargetOptions[] = sr_popup_layer_target_option_value($availableTarget);
@@ -68,6 +73,7 @@ if (sr_request_method() === 'POST') {
                 $stmt->execute(['id' => $popupId]);
 
                 $pdo->commit();
+                sr_popup_layer_cleanup_body_files_for_deleted_layers([$popupId]);
 
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
@@ -91,7 +97,11 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'save') {
         $isCreate = $popupId <= 0;
         $title = sr_popup_layer_clean_single_line(sr_post_string('title', 120), 120);
-        $bodyText = sr_popup_layer_clean_text(sr_post_string('body_text', 5000), 5000);
+        $bodyFormat = $popupLayerEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html' ? 'html' : 'plain';
+        $rawBodyText = sr_post_string('body_text', 5000);
+        $bodyText = $bodyFormat === 'html'
+            ? sr_sanitize_rich_text_html(sr_popup_layer_clean_text($rawBodyText, 5000))
+            : sr_popup_layer_clean_text($rawBodyText, 5000);
         $status = sr_post_string('status', 30);
         $skinKey = sr_post_string('skin_key', 40);
         $startsAtInput = sr_post_string('starts_at', 30);
@@ -158,12 +168,13 @@ if (sr_request_method() === 'POST') {
                 if ($popupId > 0) {
                     $stmt = $pdo->prepare(
                         'UPDATE sr_popup_layers
-                         SET title = :title, body_text = :body_text, status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
+                         SET title = :title, body_text = :body_text, body_format = :body_format, status = :status, skin_key = :skin_key, starts_at = :starts_at, ends_at = :ends_at, dismiss_cookie_days = :dismiss_cookie_days, updated_at = :updated_at
                          WHERE id = :id'
                     );
                     $stmt->execute([
                         'title' => $title,
                         'body_text' => $bodyText,
+                        'body_format' => $bodyFormat,
                         'status' => $status,
                         'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
@@ -175,13 +186,14 @@ if (sr_request_method() === 'POST') {
                 } else {
                     $stmt = $pdo->prepare(
                         'INSERT INTO sr_popup_layers
-                            (title, body_text, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
+                            (title, body_text, body_format, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
                          VALUES
-                            (:title, :body_text, :status, :skin_key, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
+                            (:title, :body_text, :body_format, :status, :skin_key, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
                     );
                     $stmt->execute([
                         'title' => $title,
                         'body_text' => $bodyText,
+                        'body_format' => $bodyFormat,
                         'status' => $status,
                         'skin_key' => $skinKey,
                         'starts_at' => $startsAt,
@@ -191,6 +203,20 @@ if (sr_request_method() === 'POST') {
                         'updated_at' => $now,
                     ]);
                     $popupId = (int) $pdo->lastInsertId();
+                }
+
+                if ($bodyFormat === 'html') {
+                    $finalBodyText = sr_popup_layer_finalize_body_files($popupId, $bodyText);
+                    if ($finalBodyText !== $bodyText) {
+                        $bodyText = $finalBodyText;
+                        $pdo->prepare('UPDATE sr_popup_layers SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                            'body_text' => $bodyText,
+                            'updated_at' => $now,
+                            'id' => $popupId,
+                        ]);
+                    }
+                } else {
+                    sr_popup_layer_cleanup_unreferenced_body_files($popupId, '');
                 }
 
                 $stmt = $pdo->prepare('DELETE FROM sr_popup_layer_targets WHERE popup_layer_id = :popup_layer_id');
@@ -256,7 +282,7 @@ $editPopup = null;
 $editId = (int) sr_get_string('edit_id', 20);
 if ($editId > 0) {
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.body_text, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days,
+        'SELECT p.id, p.title, p.body_text, p.body_format, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days,
                 t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
          FROM sr_popup_layers p
          LEFT JOIN sr_popup_layer_targets t ON t.popup_layer_id = p.id

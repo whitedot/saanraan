@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'GET /popup-layer/body-file' => 'actions/body-file.php',
     'GET /admin/popup-layers' => 'actions/admin-popup-layers.php',
     'GET /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
     'POST /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
@@ -9,4 +10,5 @@ return [
     'POST /admin/popup-layers/copy' => 'actions/admin-popup-layer-copy.php',
     'POST /admin/popup-layers/save' => 'actions/admin-popup-layer-save.php',
     'POST /admin/popup-layers/delete' => 'actions/admin-popup-layer-delete.php',
+    'POST /admin/popup-layers/body-files/upload' => 'actions/admin-body-file-upload.php',
 ];

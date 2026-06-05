@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS sr_popup_layers (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     title VARCHAR(120) NOT NULL,
     body_text TEXT NULL,
+    body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
     status VARCHAR(30) NOT NULL DEFAULT 'draft',
     skin_key VARCHAR(60) NOT NULL DEFAULT 'basic',
     starts_at DATETIME NULL,

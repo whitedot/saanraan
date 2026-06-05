@@ -152,7 +152,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="popup_layer_admin_popup_layers_body_text"><?php echo sr_e(sr_t('popup_layer::ui.text.cb0f2404')); ?></label>
                     <div class="admin-form-field">
-                        <textarea id="popup_layer_admin_popup_layers_body_text" name="body_text" maxlength="5000" class="form-textarea"><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
+                        <textarea id="popup_layer_admin_popup_layers_body_text" name="body_text" maxlength="5000" class="form-textarea"<?php echo $popupLayerEditorAttributes; ?>><?php echo $editing ? sr_e((string) $editPopup['body_text']) : ''; ?></textarea>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -413,6 +413,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
+    <?php echo sr_editor_assets_html($pdo, $popupLayerEditorKey, 'admin_basic'); ?>
     <script>
     (function () {
         var form = document.querySelector('[data-admin-subject-form]');

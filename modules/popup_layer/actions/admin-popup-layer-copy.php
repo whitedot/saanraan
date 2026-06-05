@@ -17,7 +17,7 @@ if ($returnTo === '' || !sr_is_safe_relative_url($returnTo)) {
 }
 
 $stmt = $pdo->prepare(
-    'SELECT p.id, p.title, p.body_text, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days
+    'SELECT p.id, p.title, p.body_text, p.body_format, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days
      FROM sr_popup_layers p
      WHERE p.id = :id
      LIMIT 1'
@@ -44,13 +44,14 @@ if ($errors === []) {
         $pdo->beginTransaction();
         $stmt = $pdo->prepare(
             'INSERT INTO sr_popup_layers
-                (title, body_text, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
+                (title, body_text, body_format, status, skin_key, starts_at, ends_at, dismiss_cookie_days, created_at, updated_at)
              VALUES
-                (:title, :body_text, :status, :skin_key, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
+                (:title, :body_text, :body_format, :status, :skin_key, :starts_at, :ends_at, :dismiss_cookie_days, :created_at, :updated_at)'
         );
         $stmt->execute([
             'title' => $title,
             'body_text' => (string) ($sourcePopup['body_text'] ?? ''),
+            'body_format' => (string) ($sourcePopup['body_format'] ?? 'plain') === 'html' ? 'html' : 'plain',
             'status' => 'draft',
             'skin_key' => (string) ($sourcePopup['skin_key'] ?? 'basic'),
             'starts_at' => $sourcePopup['starts_at'] ?? null,
@@ -60,6 +61,16 @@ if ($errors === []) {
             'updated_at' => $now,
         ]);
         $newPopupId = (int) $pdo->lastInsertId();
+        if ((string) ($sourcePopup['body_format'] ?? 'plain') === 'html') {
+            $bodyText = sr_popup_layer_clone_body_files($popupId, $newPopupId, (string) ($sourcePopup['body_text'] ?? ''));
+            if ($bodyText !== (string) ($sourcePopup['body_text'] ?? '')) {
+                $pdo->prepare('UPDATE sr_popup_layers SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                    'body_text' => $bodyText,
+                    'updated_at' => $now,
+                    'id' => $newPopupId,
+                ]);
+            }
+        }
         $stmt = $pdo->prepare(
             'INSERT INTO sr_popup_layer_targets
                 (popup_layer_id, module_key, point_key, slot_key, subject_id, match_type, created_at)
