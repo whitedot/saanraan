@@ -95,7 +95,8 @@ function sr_read_reference_check_count_function_source(string $path, string $fun
     }
 
     $body = implode('', array_slice($lines, $reflection->getStartLine() - 1, $reflection->getEndLine() - $reflection->getStartLine() + 1));
-    if (strpos($body, 'return count(') === false || strpos($body, $rowsFunctionName) === false) {
+    $pattern = '/return\s+count\s*\(\s*' . preg_quote($rowsFunctionName, '/') . '\s*\(\s*\$pdo\s*,\s*\$target\s*,\s*\$context\s*\)\s*\)\s*;/';
+    if (preg_match($pattern, $body) !== 1) {
         sr_read_reference_check_error('read reference count_function must count returned reference rows: ' . $path . ' ' . $functionName);
     }
 }
