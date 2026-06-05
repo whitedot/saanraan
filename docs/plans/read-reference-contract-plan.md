@@ -20,7 +20,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 이미 구현된 주변 계약과 기능은 다음처럼 계획에 반영해야 한다.
 
-- `coupon-targets.php`는 쿠폰 정의가 적용될 도메인 대상을 검색하거나 접근 회수를 위임하는 기존 소비 계약이다. 마일스톤 13의 `coupon-references.php`는 이 계약을 대체하지 않고, 쿠폰 정의 변경/삭제 전 역방향 영향 조회만 담당한다.
+- `coupon-targets.php`는 쿠폰 정의가 적용될 도메인 대상을 검색하거나 접근 회수를 위임하는 기존 소비 계약이다. 마일스톤 13에서 `coupon` 모듈은 자체 `coupon-references.php`로 발급/사용 이력을 표준 row로 제공하고, 콘텐츠/커뮤니티는 `coupon-targets.php` 선택 확장으로 도메인 target 상태와 관리자 URL만 제공한다.
 - 콘텐츠는 `sr_content_items.banner_before_content_id`, `banner_after_content_id`, `popup_layer_id`에 공용 배너/팝업레이어 ID를 직접 저장한다.
 - 커뮤니티는 게시판/게시판 그룹 설정에 `banner_before_list_id`, `banner_after_list_id`, `banner_before_view_id`, `banner_after_view_id`, `banner_before_form_id`, `banner_after_form_id`, `popup_layer_list_id`, `popup_layer_view_id`, `popup_layer_form_id` 값을 저장한다.
 - 커뮤니티 보드 삭제 안전장치에는 `sr_banner_targets`, `sr_popup_layer_targets`, `sr_coupon_definitions`, `sr_site_menu_items` 직접 카운트가 일부 존재한다. 이 코드는 마일스톤 13 구현 후 읽기 참조 계약 기반 조회로 옮기거나, 보드 삭제 전용 직접 참조 검사로 남길지 명시해야 한다.
@@ -106,6 +106,8 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 | `member-group-references.php` | `member_group` | 회원 그룹 ID 필수 | 회원 그룹 key 필수 |
 | `site-setting-references.php` | `site_setting` | `0` | 예: `site.name` |
 
+`coupon-references.php`의 primary target은 항상 `coupon_definition`이다. 쿠폰 정의가 가리키는 `content`, `community_board`, `community_post` 같은 도메인 target은 primary target으로 바꾸지 않고 `context.definition.target_type`, `context.definition.target_id` 또는 최종 row의 `metadata.domain_target`에 담는다.
+
 사이트명 변경 화면은 `context.old_value`와 `context.new_value`를 넘길 수 있다. 소비 모듈은 저장값이 이전 사이트명을 직접 포함하는지, 새 값으로 자동 반영되는 fallback인지, 운영자 확인이 필요한지 자기 기준으로 판단한다.
 
 ## status 기준
@@ -150,16 +152,21 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 ### 쿠폰 정의
 
-`coupon` 모듈은 `coupon-references.php`를 읽는 소유 모듈이다. 쿠폰 정의를 참조하거나 쿠폰 정의 대상 변경의 영향을 받는 모듈은 `coupon-references.php`를 제공한다.
+`coupon` 모듈은 `coupon-references.php`를 읽는 소유 모듈이다. 현재 번들 모듈에서 쿠폰 정의 ID는 쿠폰 모듈 내부의 발급/사용 이력에 저장되고, 콘텐츠/커뮤니티는 쿠폰 정의 ID를 직접 정책으로 저장하지 않는다. 따라서 마일스톤 13의 쿠폰 정의 경고는 외부 모듈이 저장한 쿠폰 정의 ID보다, 쿠폰 정의가 가리키는 도메인 target과 이미 발급/사용된 쿠폰 이력의 영향을 우선 확인한다.
 
 현재 우선 후보:
 
-- `content`: 콘텐츠 유료 열람 쿠폰 대상과 쿠폰 사용/회수 흐름
-- `community`: 게시판/게시글 쿠폰 대상과 쿠폰 사용/회수 흐름
+- `coupon`: `sr_coupon_issues`, `sr_coupon_redemptions`의 발급/사용 이력
+- `content`: 쿠폰 정의 `target_type=content` 대상의 존재와 관리자 이동 URL
+- `community`: 쿠폰 정의 `target_type=community_board`/`community_post` 대상의 존재와 관리자 이동 URL
 
-`coupon-targets.php`는 그대로 유지한다. 새 `coupon-references.php`는 쿠폰 정의 비활성화, 삭제, 사용 기간 변경, 사용처 변경 전 참조 현황 조회와 POST 재검증을 맡는다.
+쿠폰 내부 발급/사용 이력 row는 `coupon` 모듈의 helper가 만든다. `content`와 `community`는 쿠폰 정의 ID를 역조회하지 않는다. 도메인 target 상태 확인이 필요하면 쿠폰 모듈이 현재 정의의 `target_type`/`target_id`를 `context.definition`에 담아 넘기고, 해당 target type을 제공하는 활성 모듈의 읽기 전용 callable이 target 존재 여부, 상태, 관리자 URL만 판단한다. `target_type=all`처럼 특정 도메인 target이 없는 정의는 도메인 target row를 만들지 않고 발급/사용 이력만 표시한다.
 
-쿠폰 모듈은 콘텐츠, 커뮤니티, 이후 커머스 같은 소비 모듈 정책 테이블을 직접 update/delete하거나 쿠폰 정의 ID를 자동 치환하지 않는다.
+현재 마일스톤 13에서도 `coupon` 모듈은 자체 `coupon-references.php`를 제공한다. 이 파일은 `sr_coupon_issues`, `sr_coupon_redemptions`를 표준 참조 row로 만들고, 필요하면 현재 쿠폰 정의의 도메인 target 정보를 row `metadata.domain_target`에 붙인다.
+
+`coupon-targets.php`는 그대로 유지한다. 가능하면 기존 `coupon-targets.php`에 `health_function`과 `admin_url_function` 같은 읽기 전용 항목을 선택 확장해 target 상태 판정에 재사용한다. `content`와 `community`는 현재 구현 기준으로 `coupon-references.php`를 제공하지 않고, `coupon-targets.php` 확장을 통해 자기 도메인 target 존재 여부, 상태, 관리자 URL만 알려준다. 향후 쿠폰 정의 ID를 실제로 자기 정책에 저장하는 모듈이 생기면 그 모듈은 별도로 `coupon-references.php`를 제공한다. 새 조회 흐름은 쿠폰 정의 비활성화, 삭제, 사용 기간 변경, 사용처 변경 전 발급/사용 이력과 도메인 target 영향 조회, POST 재검증을 맡는다.
+
+쿠폰 모듈은 콘텐츠, 커뮤니티, 이후 커머스 같은 도메인 target을 직접 update/delete하거나 쿠폰 정의 target을 자동 치환하지 않는다.
 
 ### 배너
 
@@ -265,6 +272,9 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 - status가 `ok`, `stale`, `disabled_target`, `missing_target`, `unknown` 중 하나인지 확인
 - `admin_url`이 내부 상대 URL인지 확인
 - 계약 로딩은 활성 모듈만 대상으로 한다는 기준 확인
+- 새 5종 읽기 참조 계약 파일 검사는 `coupon-references.php` 등 대상별 계약 파일에 적용하고, 기존 `coupon-targets.php` 선택 확장 검사는 별도 호환성 검사로 분리
+- 쿠폰 target 상태 판정 callable을 `coupon-targets.php`에 선택 확장하면 해당 파일의 기존 `search_function`, `revoke_access_function` 호환성을 깨지 않는지 확인
+- `coupon-targets.php`의 `health_function`, `admin_url_function`은 선택 필드로 검사하고, 존재할 때만 callable 형식과 내부 상대 관리자 URL 기준을 확인
 
 정적 검사 후보:
 
@@ -278,7 +288,7 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 구현 후 수동 또는 HTTP 스모크에 다음 항목을 포함한다.
 
-- 쿠폰 정의를 비활성화/삭제/기간 변경/사용처 변경할 때 참조 경고가 표시되고 POST에서 최신 참조가 재검증되는지 확인
+- 쿠폰 정의를 비활성화/삭제/기간 변경/사용처 변경할 때 발급/사용 이력과 도메인 target 영향 경고가 표시되고 POST에서 최신 참조가 재검증되는지 확인
 - 콘텐츠와 커뮤니티가 직접 선택한 배너를 배너 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
 - 콘텐츠와 커뮤니티가 직접 선택한 팝업레이어를 팝업레이어 관리자 화면에서 참조 현황으로 볼 수 있는지 확인
 - 회원 그룹을 게시판 권한, 쪽지 권한, 자산 정책, 출금/환불 신청 대상에 사용한 뒤 그룹 비활성화/삭제/key 변경 전 경고가 표시되는지 확인
@@ -302,14 +312,14 @@ GitHub 이슈 기준도 함께 맞춘다.
 
 - #170의 문서/자동 검사 범위에 `site-setting-references.php`를 포함한다.
 - #204는 `site-setting-references.php`, `target_type=site_setting`, `target_key=site.name`, `owner_module_key=admin` 기준으로 닫는다.
-- #165 공통 스펙에서 `health_function`과 `admin_url_function`을 필수 callable로 유지한다.
+- #165의 새 5종 읽기 참조 계약 공통 스펙에서 `health_function`과 `admin_url_function`을 필수 callable로 유지한다.
 
 ## 완료 판정
 
 마일스톤 13은 다음 조건을 모두 만족해야 완료로 본다.
 
-- 공통 helper와 대상별 계약 파일이 구현되어 있다.
-- 제공 모듈과 소비 모듈의 `module.php` 계약 선언이 맞다.
+- 공통 helper, 새 5종 읽기 참조 계약 파일, 쿠폰 target 상태 판정을 위한 `coupon-targets.php` 선택 확장이 구현되어 있다.
+- 새 5종 읽기 참조 계약의 `module.php` 제공/소비 선언과 기존 `coupon-targets.php` 제공 선언 및 선택 필드가 맞다.
 - `core/helpers/settings.php`와 `.tools/bin/check.php`의 계약 allowlist가 맞다.
 - `.tools/bin/check-read-reference-contracts.php`가 통합 점검에 포함되어 통과한다.
 - 관련 관리자 화면은 참조 현황과 내부 관리자 이동 링크를 표시한다.
