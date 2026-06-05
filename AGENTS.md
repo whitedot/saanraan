@@ -72,6 +72,8 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Do not push unless the user explicitly asks to push.
 - Do not open, reopen, close, or otherwise change GitHub issue state unless the user explicitly asks for that issue operation.
 - Do not add GitHub issue comments unless the user explicitly asks to comment or to update the issue.
+- When creating GitHub issues or issue comments, format the body with clear Markdown line breaks and blank lines between paragraphs, lists, and sections. Do not submit a dense single-line body when multiple ideas are included.
+- For GitHub issue comments especially, preserve newlines by using a body file or another multiline-safe method instead of inline shell strings whenever the comment has more than one short sentence.
 - When the user asks to implement or modify code, treat that as a request for working tree changes and verification only. Ask or wait for a separate explicit request before committing, pushing, or changing issue state.
 
 ## Admin Form Validation
