@@ -716,7 +716,8 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 continue;
             }
 
-            if ((string) ($entry['consumer_module_key'] ?? '') !== $moduleKey) {
+            $consumerModuleKey = $entry['consumer_module_key'] ?? null;
+            if (!is_string($consumerModuleKey) || $consumerModuleKey !== $moduleKey || !sr_is_safe_module_key($consumerModuleKey)) {
                 sr_read_reference_check_error('read reference consumer_module_key must match module: ' . $path);
             }
 
