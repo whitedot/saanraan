@@ -146,6 +146,12 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
         $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
     }
 
+    foreach (['label', 'reference_type'] as $requiredKey) {
+        if (!is_string($entry[$requiredKey] ?? null) || trim((string) $entry[$requiredKey]) === '') {
+            $errors[] = $requiredKey . ' 필수값이 비어 있습니다.';
+        }
+    }
+
     $supportsTargetTypes = $entry['supports_target_types'] ?? null;
     if (!is_array($supportsTargetTypes) || $supportsTargetTypes === []) {
         $errors[] = 'supports_target_types가 비어 있습니다.';
@@ -186,7 +192,11 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
     }
 
     foreach (['count_function', 'rows_function', 'health_function', 'admin_url_function'] as $functionKey) {
-        $functionName = (string) ($entry[$functionKey] ?? '');
+        if (!is_string($entry[$functionKey] ?? null) || trim((string) $entry[$functionKey]) === '') {
+            $errors[] = $functionKey . ' callable이 없습니다.';
+            continue;
+        }
+        $functionName = trim((string) $entry[$functionKey]);
         if ($functionName === '' || !function_exists($functionName)) {
             $errors[] = $functionKey . ' callable이 없습니다.';
         }
