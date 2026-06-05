@@ -264,19 +264,7 @@ function sr_coupon_issue_by_id(PDO $pdo, int $issueId): ?array
 
 function sr_coupon_definition_reference_count(PDO $pdo, array $target, array $context): int
 {
-    $definitionId = (int) ($target['target_id'] ?? 0);
-    if ($definitionId <= 0) {
-        return 0;
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT
-            (SELECT COUNT(*) FROM sr_coupon_issues WHERE coupon_definition_id = :definition_id) +
-            (SELECT COUNT(*) FROM sr_coupon_redemptions WHERE coupon_definition_id = :definition_id) AS reference_count'
-    );
-    $stmt->execute(['definition_id' => $definitionId]);
-
-    return (int) $stmt->fetchColumn();
+    return count(sr_coupon_definition_reference_rows($pdo, $target, $context));
 }
 
 function sr_coupon_definition_reference_rows(PDO $pdo, array $target, array $context): array

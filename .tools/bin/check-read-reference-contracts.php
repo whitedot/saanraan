@@ -507,6 +507,10 @@ function sr_read_reference_check_keyed_contract_row_sources(string $root): void
     if (substr_count($contents, "'target_key' => \$targetKey") < 2) {
         sr_read_reference_check_error('read reference coupon issue and redemption rows must include target_key');
     }
+    if (strpos($contents, 'function sr_coupon_definition_reference_count(PDO $pdo, array $target, array $context): int') === false
+        || strpos($contents, 'return count(sr_coupon_definition_reference_rows($pdo, $target, $context));') === false) {
+        sr_read_reference_check_error('read reference coupon count must match coupon reference row count');
+    }
 }
 
 $readReferenceFiles = array_keys(sr_read_reference_contract_files());
