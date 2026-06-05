@@ -478,6 +478,20 @@ function sr_read_reference_check_collect_target_samples(): void
     }
 }
 
+function sr_read_reference_check_collect_count_guard_source(string $root): void
+{
+    $path = $root . '/core/helpers/read-references.php';
+    $contents = file_get_contents($path);
+    if (!is_string($contents)) {
+        sr_read_reference_check_error('read reference helper is not readable: ' . $path);
+        return;
+    }
+
+    if (strpos($contents, 'count($rawRows) !== $count') === false) {
+        sr_read_reference_check_error('read reference collect must reject count_function and rows_function count mismatch');
+    }
+}
+
 function sr_read_reference_check_keyed_contract_row_sources(string $root): void
 {
     $couponHelper = $root . '/modules/coupon/helpers.php';
@@ -630,6 +644,7 @@ sr_read_reference_check_admin_url_safety_samples();
 sr_read_reference_check_prepare_entry_samples();
 sr_read_reference_check_normalize_row_target_samples();
 sr_read_reference_check_collect_target_samples();
+sr_read_reference_check_collect_count_guard_source($root);
 sr_read_reference_check_keyed_contract_row_sources($root);
 
 if ($errors !== []) {

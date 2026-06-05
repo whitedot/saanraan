@@ -98,6 +98,10 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
                     $errors[] = $moduleKey . ': count_function은 참조가 있다고 반환했지만 rows_function 반환값이 비어 있습니다.';
                     continue;
                 }
+                if (count($rawRows) !== $count) {
+                    $errors[] = $moduleKey . ': count_function 반환값과 rows_function row 수가 맞지 않습니다.';
+                    continue;
+                }
 
                 foreach ($rawRows as $rawRow) {
                     if (!is_array($rawRow)) {

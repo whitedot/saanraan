@@ -68,6 +68,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 `supports_target_types` 값은 계약 파일의 대상 type과 정확히 일치해야 하며 앞뒤 공백을 정규화해 받아들이지 않는다.
 `reference_type`은 소문자 영문으로 시작하고 소문자 영문, 숫자, `_`만 사용하는 80자 이하 key여야 한다.
+`count_function`이 1 이상을 반환하면 `rows_function`이 반환한 row 수는 `count_function` 반환값과 정확히 일치해야 한다.
 
 `rows_function`은 소비 모듈의 원자료를 반환한다. 공통 helper는 `health_function`과 `admin_url_function`을 적용해 최종 row를 정규화한다. `rows_function`이 이미 `status`나 `admin_url`을 반환해도 공통 helper 검증을 다시 통과해야 한다.
 `rows_function`이 `status`를 명시하면 해당 값도 허용 status여야 하며, 최종 status는 `health_function` 반환값으로 정규화한다.
@@ -150,7 +151,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 - 계약 파일별 target 구조 검증
 - callable 존재 여부, 호출 가능 여부, 인자 수 검증
 - `count_function`, `rows_function`, `health_function`, `admin_url_function` 호출과 반환값 타입 검증
-- `count_function`이 1 이상을 반환했는데 `rows_function`이 빈 배열을 반환하면 계약 오류로 처리
+- `count_function`이 1 이상을 반환했는데 `rows_function`의 row 수가 일치하지 않으면 계약 오류로 처리
 - 최종 row 필수 필드, status 허용값, 내부 상대 관리자 URL 검증
 - 표시 전용 조회에서는 깨진 계약 항목 하나가 전체 관리자 화면을 500으로 죽이지 않게 해당 항목을 제외하고 오류 로그 기록
 - destructive/admin-sensitive POST에서는 계약 로드 실패, helper include 실패, callable 실패, row 정규화 실패를 호출자가 차단 사유로 처리할 수 있게 오류 목록 반환
