@@ -126,6 +126,58 @@ function sr_logo_manager_table_exists(PDO $pdo): bool
     return $cache[$cacheKey];
 }
 
+function sr_logo_manager_site_setting_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_logo_manager_site_setting_reference_rows($pdo, $target, $context));
+}
+
+function sr_logo_manager_site_setting_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    if ((string) ($target['target_key'] ?? '') !== 'site.name' || !sr_logo_manager_table_exists($pdo)) {
+        return [];
+    }
+
+    $oldValue = trim((string) ($context['old_value'] ?? ''));
+    if ($oldValue === '') {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, position_key, alt_text, status, updated_at
+         FROM sr_logo_manager_logos
+         WHERE alt_text LIKE :old_value ESCAPE \'\\\\\'
+         ORDER BY id DESC'
+    );
+    $stmt->execute([
+        'old_value' => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $oldValue) . '%',
+    ]);
+
+    return array_map(static function (array $row): array {
+        return [
+            'consumer_module_key' => 'logo_manager',
+            'reference_type' => 'logo_manager_site_setting_text',
+            'reference_id' => 'logo:' . (string) (int) ($row['id'] ?? 0),
+            'title' => '로고 대체 텍스트 / ' . (string) ($row['position_key'] ?? ''),
+            'target_type' => 'site_setting',
+            'target_id' => '0',
+            'target_key' => 'site.name',
+            'policy_status' => (string) ($row['status'] ?? ''),
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'message' => '이전 사이트명이 대체 텍스트에 직접 포함되어 있습니다.',
+        ];
+    }, $stmt->fetchAll());
+}
+
+function sr_logo_manager_site_setting_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    return ['status' => 'stale', 'policy_status' => (string) ($row['policy_status'] ?? '')];
+}
+
+function sr_logo_manager_site_setting_reference_admin_url(array $row, array $context): string
+{
+    return '/admin/logo-manager';
+}
+
 function sr_logo_manager_clean_single_line(string $value, int $maxLength): string
 {
     $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');

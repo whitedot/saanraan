@@ -2012,6 +2012,225 @@ function sr_content_coupon_revoke_access(PDO $pdo, int $accountId, string $dedup
     return sr_content_revoke_coupon_access_entitlements($pdo, $accountId, $dedupeKey);
 }
 
+function sr_content_coupon_target_health(PDO $pdo, string $targetType, string $targetId): array
+{
+    if ($targetType !== 'content' || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+        return ['status' => 'unknown', 'message' => '콘텐츠 대상 형식이 올바르지 않습니다.'];
+    }
+
+    $stmt = $pdo->prepare('SELECT id, status FROM sr_content_items WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => (int) $targetId]);
+    $row = $stmt->fetch();
+    if (!is_array($row)) {
+        return ['status' => 'missing_target', 'message' => '콘텐츠를 찾을 수 없습니다.'];
+    }
+
+    $status = (string) ($row['status'] ?? '');
+    return in_array($status, ['published', 'scheduled'], true)
+        ? ['status' => 'ok', 'policy_status' => $status]
+        : ['status' => 'disabled_target', 'policy_status' => $status, 'message' => '콘텐츠가 공개 사용 상태가 아닙니다.'];
+}
+
+function sr_content_coupon_target_admin_url(string $targetType, string $targetId): string
+{
+    if ($targetType !== 'content' || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+        return '';
+    }
+
+    return '/admin/content/edit?id=' . rawurlencode($targetId);
+}
+
+function sr_content_banner_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_content_banner_reference_rows($pdo, $target, $context));
+}
+
+function sr_content_banner_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $bannerId = (int) ($target['target_id'] ?? 0);
+    if ($bannerId <= 0) {
+        return [];
+    }
+
+    return array_merge(
+        sr_content_display_reference_item_rows($pdo, 'banner', $bannerId, sr_content_public_banner_setting_labels()),
+        sr_content_display_reference_group_setting_rows($pdo, 'banner', $bannerId, sr_content_public_banner_setting_labels())
+    );
+}
+
+function sr_content_popup_layer_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_content_popup_layer_reference_rows($pdo, $target, $context));
+}
+
+function sr_content_popup_layer_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $popupLayerId = (int) ($target['target_id'] ?? 0);
+    if ($popupLayerId <= 0) {
+        return [];
+    }
+
+    return array_merge(
+        sr_content_display_reference_item_rows($pdo, 'popup_layer', $popupLayerId, sr_content_public_popup_layer_setting_labels()),
+        sr_content_display_reference_group_setting_rows($pdo, 'popup_layer', $popupLayerId, sr_content_public_popup_layer_setting_labels())
+    );
+}
+
+function sr_content_display_reference_item_rows(PDO $pdo, string $kind, int $targetId, array $labels): array
+{
+    $columns = $kind === 'banner' ? array_keys(sr_content_public_banner_setting_labels()) : array_keys(sr_content_public_popup_layer_setting_labels());
+    $conditions = [];
+    $params = ['target_id' => $targetId];
+    foreach ($columns as $column) {
+        $conditions[] = $column . ' = :target_id';
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, title, status, updated_at, ' . implode(', ', $columns) . '
+         FROM sr_content_items
+         WHERE ' . implode(' OR ', $conditions) . '
+         ORDER BY id DESC'
+    );
+    $stmt->execute($params);
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $item) {
+        foreach ($columns as $column) {
+            if ((int) ($item[$column] ?? 0) !== $targetId) {
+                continue;
+            }
+            $rows[] = [
+                'consumer_module_key' => 'content',
+                'reference_type' => $kind === 'banner' ? 'content_banner' : 'content_popup_layer',
+                'reference_id' => 'content:' . (string) (int) ($item['id'] ?? 0) . ':' . $column,
+                'title' => (string) ($item['title'] ?? '') . ' / ' . (string) ($labels[$column] ?? $column),
+                'target_type' => $kind,
+                'target_id' => (string) $targetId,
+                'policy_status' => (string) ($item['status'] ?? ''),
+                'updated_at' => (string) ($item['updated_at'] ?? ''),
+                'metadata' => ['content_id' => (int) ($item['id'] ?? 0), 'setting_key' => $column],
+            ];
+        }
+    }
+
+    return $rows;
+}
+
+function sr_content_display_reference_group_setting_rows(PDO $pdo, string $kind, int $targetId, array $labels): array
+{
+    if (!sr_content_group_settings_table_exists($pdo)) {
+        return [];
+    }
+
+    $settingKeys = $kind === 'banner' ? array_keys(sr_content_public_banner_setting_labels()) : array_keys(sr_content_public_popup_layer_setting_labels());
+    $placeholders = [];
+    $params = ['target_id' => (string) $targetId];
+    foreach ($settingKeys as $index => $settingKey) {
+        $paramKey = 'setting_key_' . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = $settingKey;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT s.group_id, s.setting_key, s.setting_value, s.updated_at, g.title, g.status
+         FROM sr_content_group_settings s
+         INNER JOIN sr_content_groups g ON g.id = s.group_id
+         WHERE s.setting_key IN (' . implode(', ', $placeholders) . ')
+           AND s.setting_value = :target_id
+         ORDER BY s.group_id DESC'
+    );
+    $stmt->execute($params);
+
+    return array_map(static function (array $row) use ($kind, $targetId, $labels): array {
+        $settingKey = (string) ($row['setting_key'] ?? '');
+        return [
+            'consumer_module_key' => 'content',
+            'reference_type' => $kind === 'banner' ? 'content_group_banner' : 'content_group_popup_layer',
+            'reference_id' => 'content_group:' . (string) (int) ($row['group_id'] ?? 0) . ':' . $settingKey,
+            'title' => (string) ($row['title'] ?? '') . ' / ' . (string) ($labels[$settingKey] ?? $settingKey),
+            'target_type' => $kind,
+            'target_id' => (string) $targetId,
+            'policy_status' => (string) ($row['status'] ?? ''),
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'metadata' => ['content_group_id' => (int) ($row['group_id'] ?? 0), 'setting_key' => $settingKey],
+        ];
+    }, $stmt->fetchAll());
+}
+
+function sr_content_display_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    $status = (string) ($row['policy_status'] ?? '');
+    if (in_array($status, ['published', 'scheduled', 'enabled'], true)) {
+        return ['status' => 'ok', 'policy_status' => $status];
+    }
+    if ($status !== '') {
+        return ['status' => 'disabled_target', 'policy_status' => $status];
+    }
+
+    return ['status' => 'unknown'];
+}
+
+function sr_content_display_reference_admin_url(array $row, array $context): string
+{
+    $metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
+    $contentId = (int) ($metadata['content_id'] ?? 0);
+    if ($contentId > 0) {
+        return '/admin/content/edit?id=' . rawurlencode((string) $contentId);
+    }
+
+    $groupId = (int) ($metadata['content_group_id'] ?? 0);
+    if ($groupId > 0) {
+        return '/admin/content-groups/edit?id=' . rawurlencode((string) $groupId);
+    }
+
+    return '/admin/content';
+}
+
+function sr_content_member_group_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_content_member_group_reference_rows($pdo, $target, $context));
+}
+
+function sr_content_member_group_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $groupKey = (string) ($target['target_key'] ?? '');
+    if ($groupKey === '') {
+        return [];
+    }
+
+    $like = '%"group_key":"' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $groupKey) . '"%';
+    $rows = [];
+    $stmt = $pdo->prepare(
+        'SELECT id, title, status, updated_at
+         FROM sr_content_items
+         WHERE asset_access_group_policies_json LIKE :group_key ESCAPE \'\\\\\'
+            OR asset_action_group_policies_json LIKE :group_key ESCAPE \'\\\\\'
+         ORDER BY id DESC'
+    );
+    $stmt->execute(['group_key' => $like]);
+    foreach ($stmt->fetchAll() as $item) {
+        $rows[] = [
+            'consumer_module_key' => 'content',
+            'reference_type' => 'content_member_group_policy',
+            'reference_id' => 'content:' . (string) (int) ($item['id'] ?? 0),
+            'title' => (string) ($item['title'] ?? ''),
+            'target_type' => 'member_group',
+            'target_id' => (string) (int) ($target['target_id'] ?? 0),
+            'target_key' => $groupKey,
+            'policy_status' => (string) ($item['status'] ?? ''),
+            'updated_at' => (string) ($item['updated_at'] ?? ''),
+            'metadata' => ['content_id' => (int) ($item['id'] ?? 0)],
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_content_member_group_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    return sr_content_display_reference_health($pdo, $target, $row, $context);
+}
+
 function sr_content_public_banner_setting_labels(): array
 {
     return [

@@ -553,6 +553,8 @@ module -> point -> slot -> subject
 
 쿠폰 사용처 후보는 쿠폰 모듈이 고정 목록으로 소유하지 않고, 실제 소비 모듈이 `coupon-targets.php` 계약으로 제공합니다. 쿠폰 모듈은 활성 모듈의 계약만 읽어 관리자 선택지와 저장 검증에 사용하며, 해당 모듈이 비활성화되면 새 쿠폰 종류 생성 후보에서도 빠집니다. 사용처 검색과 쿠폰 환불 시 소비 모듈 접근권 회수도 소비 모듈이 계약에 선언한 함수로 위임해, 쿠폰 모듈이 콘텐츠/커뮤니티 같은 소비 도메인 테이블을 직접 조회하거나 회수 함수를 하드코딩하지 않도록 합니다.
 
+읽기 참조 계약은 공유 대상을 소유한 모듈이 소비 모듈의 정책 테이블을 직접 수정하지 않고 영향 범위를 확인하기 위한 역방향 조회 계약입니다. 대상별 계약 파일은 `coupon-references.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `site-setting-references.php`이며, 공통 helper는 활성 모듈의 계약만 읽어 row를 정규화하고 destructive/admin-sensitive POST에서 계약 오류를 차단 사유로 돌려줍니다. 소유 모듈은 참조 대상 자동 치환, 소비 정책 삭제, 비활성 모듈 잔여 데이터 스캔을 하지 않습니다.
+
 회원 공개 닉네임은 member 모듈이 소유합니다. `sr_member_nicknames`가 표시용 닉네임과 lowercase lookup 값을 저장하고, member 설정의 `nickname_enabled`가 가입, 계정 수정, 관리자 저장, 공개 이름 표시, 멘션 lookup 기준을 결정합니다. 닉네임 사용이 켜져 있으면 닉네임 입력은 필수입니다. community/content 같은 서비스 모듈은 닉네임 테이블을 직접 조회하지 않고 `sr_member_public_name*`와 공개 이름 lookup helper를 사용합니다. 기존 커뮤니티 닉네임 데이터와 설정은 community 업데이트 경로에서 member 소유 테이블/설정으로 이관합니다.
 
 커뮤니티 게시글/댓글과 콘텐츠 댓글은 작성자 연결을 `author_account_id`로 유지하되, 작성 당시 공개 이름은 `author_public_name_snapshot`에 함께 저장합니다. 새 행의 snapshot은 작성 시점의 member 공개 이름 정책에 따라 닉네임 또는 이름으로 채우며, 화면 표시는 탈퇴/익명화 계정이면 탈퇴 회원 라벨을 우선하고 그 외에는 snapshot을 우선 사용합니다. snapshot은 개인정보로 취급해 privacy export에 포함하고 탈퇴/익명화 cleanup에서 비웁니다.

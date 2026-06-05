@@ -10,13 +10,13 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 마일스톤 13의 핵심 방향은 현재 코드베이스와 여전히 맞다. 코어에는 이미 활성 모듈의 계약 파일을 찾고 읽는 `sr_enabled_module_contract_files()`, `sr_load_module_contract_file()`, `contracts.provides`/`contracts.consumes`, `requires.contracts` 검증 흐름이 있다. 따라서 읽기 참조 계약은 새 라우팅 체계나 중앙 도메인 테이블을 만들지 않고, 기존 모듈 계약 체계에 추가하는 것이 맞다.
 
-다만 현재 저장소에는 마일스톤 13 전용 계약 파일과 공통 helper가 아직 구현되어 있지 않다.
+마일스톤 13 전용 계약 파일과 공통 helper는 2026-06-05 구현 기준으로 저장소에 반영되어 있다.
 
-- `coupon-references.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `site-setting-references.php` 파일이 없다.
-- `core/helpers/settings.php`의 `sr_module_known_contract_files()`와 `.tools/bin/check.php`의 계약 allowlist에 위 파일들이 없다.
-- 읽기 참조 row를 모아 정규화하는 공통 helper가 없다.
-- `.tools/bin/check-read-reference-contracts.php`가 없다.
-- 관련 모듈 `module.php`에 읽기 참조 계약 `provides`/`consumes` 선언이 없다.
+- `core/helpers/read-references.php`가 활성 모듈의 읽기 참조 계약을 로드하고 row를 정규화한다.
+- `coupon-references.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `site-setting-references.php` 계약 파일이 번들 모듈에 추가되어 있다.
+- `core/helpers/settings.php`의 `sr_module_known_contract_files()`와 `.tools/bin/check.php`의 계약 allowlist에 새 5종 계약이 포함되어 있다.
+- `.tools/bin/check-read-reference-contracts.php`가 추가되어 `.tools/bin/check.php`에서 실행된다.
+- 관련 모듈 `module.php`에 읽기 참조 계약 `provides`/`consumes` 선언이 반영되어 있다.
 
 이미 구현된 주변 계약과 기능은 다음처럼 계획에 반영해야 한다.
 
@@ -30,7 +30,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 ## 결정
 
-마일스톤 13은 아직 완료 상태가 아니다. 이 문서는 구현 완료 문서가 아니라, 현재 구현 위에 남은 작업을 올리는 실행 계획이다.
+마일스톤 13의 핵심 구현은 저장소에 반영되어 있다. 이 문서는 구현된 계약과 남은 운영 확인 범위를 함께 기록한다.
 
 읽기 참조 계약은 역방향 조회 계약이다. 공유 대상을 소유한 모듈은 소비 모듈의 정책 테이블을 직접 update/delete/자동 치환하지 않는다. 소유 모듈은 활성 소비 모듈의 계약 파일을 읽어 참조 현황과 관리자 이동 링크를 보여주고, destructive/admin-sensitive POST에서 최신 참조 현황과 계약 오류를 다시 확인한다.
 
@@ -126,7 +126,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 ## 공통 helper 책임
 
-마일스톤 13 구현 시 공통 helper는 새 파일로 분리하는 것을 우선한다. 예: `core/helpers/read-references.php`. `core/helpers/settings.php`에는 known contract allowlist와 기존 계약 로딩 primitive만 유지한다.
+공통 helper는 `core/helpers/read-references.php`에 둔다. `core/helpers/settings.php`에는 known contract allowlist와 기존 계약 로딩 primitive만 유지한다.
 
 공통 helper가 맡는 일:
 
@@ -257,7 +257,7 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 
 ## 자동 검사 기준
 
-마일스톤 13 구현 시 `.tools/bin/check-read-reference-contracts.php`를 추가하고 `.tools/bin/check.php`에서 실행한다.
+`.tools/bin/check-read-reference-contracts.php`를 `.tools/bin/check.php`에서 실행한다.
 
 검사 항목:
 
@@ -297,9 +297,9 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 - 잘못된 `admin_url`을 반환하는 계약 항목은 링크를 출력하지 않고 전체 화면을 500으로 만들지 않는지 확인
 - malformed 계약 파일, 누락 callable, 잘못된 row를 가진 활성 소비 모듈이 있을 때 삭제/비활성화/key 변경/사이트명 변경 POST가 진행되지 않고 계약 오류로 중단되는지 확인
 
-## 구현 후 문서 반영 위치
+## 문서 반영 위치
 
-구현 완료 시 다음 문서를 현재 구현 기준으로 갱신한다.
+구현 기준은 저장소 문서에 반영한다.
 
 - `docs/module-guide.md`: 대표 계약 파일, 반환 구조, 계약 파일별 소비 주체, 번들 모듈 제공/소비 지도
 - `docs/core-decisions.md`: 역방향 읽기 참조 계약 원칙과 소비 모듈 직접 수정 금지
@@ -316,14 +316,18 @@ GitHub 이슈 기준도 함께 맞춘다.
 
 ## 완료 판정
 
-마일스톤 13은 다음 조건을 모두 만족해야 완료로 본다.
+마일스톤 13 구현은 다음 조건을 만족한다.
 
 - 공통 helper, 새 5종 읽기 참조 계약 파일, 쿠폰 target 상태 판정을 위한 `coupon-targets.php` 선택 확장이 구현되어 있다.
 - 새 5종 읽기 참조 계약의 `module.php` 제공/소비 선언과 기존 `coupon-targets.php` 제공 선언 및 선택 필드가 맞다.
 - `core/helpers/settings.php`와 `.tools/bin/check.php`의 계약 allowlist가 맞다.
 - `.tools/bin/check-read-reference-contracts.php`가 통합 점검에 포함되어 통과한다.
-- 관련 관리자 화면은 참조 현황과 내부 관리자 이동 링크를 표시한다.
 - destructive/admin-sensitive POST는 최신 참조 현황을 서버에서 다시 확인하고, 계약 로드/검증 오류가 있으면 저장을 중단한다.
 - 소유 모듈이 소비 모듈 정책을 직접 update/delete/자동 치환하지 않는다.
 - 관련 저장소 문서와 Wiki 반영 필요성이 함께 정리되어 있다.
 - `php .tools/bin/check.php`와 가능한 HTTP 스모크 결과가 완료 보고에 포함되어 있다.
+
+현재 제한:
+
+- 참조 row의 관리자 화면 표시는 삭제/상태 변경 POST 차단 메시지 중심으로 시작한다. 참조 현황 전용 표/모달 UI는 후속 개선으로 넓힌다.
+- HTTP 스모크는 로컬 `config/config.php` 권한 문제로 공통 500이 발생해 환경 이슈로 기록한다.

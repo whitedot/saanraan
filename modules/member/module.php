@@ -25,12 +25,14 @@ return [
             'extension-points.php',
             'menu-links.php',
             'privacy-export.php',
+            'member-group-references.php',
         ],
         'consumes' => [
             'member-group-rules.php',
             'member-registration.php',
             'privacy-cleanup.php',
             'member-withdrawal-assets.php',
+            'member-group-references.php',
         ],
     ],
     'settings' => [

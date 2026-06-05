@@ -25,6 +25,7 @@ return [
         ],
         'consumes' => [
             'homepage-candidates.php',
+            'site-setting-references.php',
         ],
     ],
     'settings' => [

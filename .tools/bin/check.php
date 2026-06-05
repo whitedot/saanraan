@@ -162,6 +162,11 @@ function sr_check_module_lifecycle_metadata(): void
         'homepage-candidates.php' => true,
         'editor-options.php' => true,
         'coupon-targets.php' => true,
+        'coupon-references.php' => true,
+        'banner-references.php' => true,
+        'popup-layer-references.php' => true,
+        'member-group-references.php' => true,
+        'site-setting-references.php' => true,
         'logo-positions.php' => true,
         'notification-events.php' => true,
     ];
@@ -315,6 +320,11 @@ function sr_check_module_contract_files(): void
         'homepage-candidates.php',
         'editor-options.php',
         'coupon-targets.php',
+        'coupon-references.php',
+        'banner-references.php',
+        'popup-layer-references.php',
+        'member-group-references.php',
+        'site-setting-references.php',
         'logo-positions.php',
         'notification-events.php',
     ];
@@ -572,6 +582,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-popup-layer-targets.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-content-scheduled-scope.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-link-card.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-read-reference-contracts.php'));
 sr_check_sql_files();
 sr_check_sql_runtime_table_prefix_placeholders();
 sr_check_module_lifecycle_metadata();

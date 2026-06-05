@@ -33,6 +33,7 @@ return [
         ],
         'consumes' => [
             'extension-points.php',
+            'popup-layer-references.php',
         ],
     ],
     'settings' => [

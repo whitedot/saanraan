@@ -746,6 +746,27 @@ function sr_admin_handle_settings_post(
         if ($errors === []) {
             $previousValues = sr_admin_previous_site_setting_values($site, $pdo);
 
+            if ((string) ($previousValues['name'] ?? '') !== (string) $values['name']) {
+                $referenceResult = sr_read_reference_collect($pdo, 'site-setting-references.php', [
+                    'owner_module_key' => 'admin',
+                    'target_type' => 'site_setting',
+                    'target_id' => 0,
+                    'target_key' => 'site.name',
+                ], [
+                    'old_value' => (string) ($previousValues['name'] ?? ''),
+                    'new_value' => (string) $values['name'],
+                ]);
+                if (($referenceResult['errors'] ?? []) !== []) {
+                    $errors[] = '사이트명 참조 계약 오류가 있어 저장할 수 없습니다.';
+                } elseif (($referenceResult['rows'] ?? []) !== []) {
+                    $errors[] = '이전 사이트명이 다른 모듈 설정에 직접 포함되어 있어 저장할 수 없습니다. 참조 현황을 먼저 확인하세요.';
+                }
+            }
+        }
+
+        if ($errors === []) {
+            $previousValues = sr_admin_previous_site_setting_values($site, $pdo);
+
             sr_save_site_settings($pdo, [
                 'site.name' => ['value' => $values['name'], 'type' => 'string'],
                 'site.base_url' => ['value' => $values['base_url'], 'type' => 'string'],

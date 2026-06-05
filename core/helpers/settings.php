@@ -611,6 +611,11 @@ function sr_module_known_contract_files(): array
         'homepage-candidates.php',
         'editor-options.php',
         'coupon-targets.php',
+        'coupon-references.php',
+        'banner-references.php',
+        'popup-layer-references.php',
+        'member-group-references.php',
+        'site-setting-references.php',
         'logo-positions.php',
         'notification-events.php',
     ];

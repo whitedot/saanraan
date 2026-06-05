@@ -25,6 +25,7 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+            'site-setting-references.php',
         ],
         'consumes' => [
             'logo-positions.php',

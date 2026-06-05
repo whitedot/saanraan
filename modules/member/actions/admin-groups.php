@@ -134,6 +134,20 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        if ($errors === [] && $groupId > 0 && is_array($existingGroup) && $status !== 'enabled') {
+            $referenceResult = sr_read_reference_collect($pdo, 'member-group-references.php', [
+                'owner_module_key' => 'member',
+                'target_type' => 'member_group',
+                'target_id' => $groupId,
+                'target_key' => (string) ($existingGroup['group_key'] ?? ''),
+            ]);
+            if (($referenceResult['errors'] ?? []) !== []) {
+                $errors[] = '회원 그룹 참조 계약 오류가 있어 상태를 변경할 수 없습니다.';
+            } elseif (($referenceResult['rows'] ?? []) !== []) {
+                $errors[] = '다른 모듈에서 이 회원 그룹을 참조하고 있어 비활성/보관 상태로 변경할 수 없습니다. 참조 현황을 먼저 확인하세요.';
+            }
+        }
+
         if ($errors === [] && $groupId < 1 && sr_member_group_by_key($pdo, $groupKey) !== null) {
             $errors[] = sr_t('member::action.admin_groups.group_key_duplicate');
         }

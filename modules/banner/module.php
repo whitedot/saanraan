@@ -34,6 +34,7 @@ return [
         'consumes' => [
             'extension-points.php',
             'coupon-targets.php',
+            'banner-references.php',
         ],
     ],
     'settings' => [

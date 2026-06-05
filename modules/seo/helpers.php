@@ -75,6 +75,61 @@ function sr_seo_settings(PDO $pdo): array
     return $settings;
 }
 
+function sr_seo_site_setting_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_seo_site_setting_reference_rows($pdo, $target, $context));
+}
+
+function sr_seo_site_setting_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    if ((string) ($target['target_key'] ?? '') !== 'site.name') {
+        return [];
+    }
+
+    $oldValue = trim((string) ($context['old_value'] ?? ''));
+    if ($oldValue === '') {
+        return [];
+    }
+
+    $settings = sr_seo_settings($pdo);
+    $labels = [
+        'title_suffix' => 'SEO 제목 접미사',
+        'default_description' => 'SEO 기본 설명',
+    ];
+
+    $rows = [];
+    foreach ($labels as $settingKey => $label) {
+        $value = (string) ($settings[$settingKey] ?? '');
+        if ($value === '' || strpos($value, $oldValue) === false) {
+            continue;
+        }
+
+        $rows[] = [
+            'consumer_module_key' => 'seo',
+            'reference_type' => 'seo_site_setting_text',
+            'reference_id' => 'seo_settings:' . $settingKey,
+            'title' => $label,
+            'target_type' => 'site_setting',
+            'target_id' => '0',
+            'target_key' => 'site.name',
+            'policy_status' => 'manual_text',
+            'message' => '이전 사이트명이 설정값에 직접 포함되어 있습니다.',
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_seo_site_setting_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    return ['status' => 'stale', 'policy_status' => (string) ($row['policy_status'] ?? 'manual_text')];
+}
+
+function sr_seo_site_setting_reference_admin_url(array $row, array $context): string
+{
+    return '/admin/seo';
+}
+
 function sr_seo_apply_public_defaults(PDO $pdo, array $seo): array
 {
     try {

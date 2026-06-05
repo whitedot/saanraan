@@ -63,6 +63,20 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
+            $referenceResult = sr_read_reference_collect($pdo, 'popup-layer-references.php', [
+                'owner_module_key' => 'popup_layer',
+                'target_type' => 'popup_layer',
+                'target_id' => $popupId,
+                'target_key' => '',
+            ]);
+            if (($referenceResult['errors'] ?? []) !== []) {
+                $errors[] = '팝업레이어 참조 계약 오류가 있어 삭제할 수 없습니다.';
+            } elseif (($referenceResult['rows'] ?? []) !== []) {
+                $errors[] = '다른 모듈에서 이 팝업레이어를 참조하고 있어 삭제할 수 없습니다. 참조 현황을 먼저 확인하세요.';
+            }
+        }
+
+        if ($errors === []) {
             try {
                 $pdo->beginTransaction();
 

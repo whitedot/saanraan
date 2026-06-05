@@ -7,6 +7,8 @@ return [
         'helpers' => 'helpers.php',
         'search_function' => 'sr_community_coupon_target_search',
         'revoke_access_function' => 'sr_community_coupon_revoke_access',
+        'health_function' => 'sr_community_coupon_target_health',
+        'admin_url_function' => 'sr_community_coupon_target_admin_url',
     ],
     [
         'target_type' => 'community_post',
@@ -14,5 +16,7 @@ return [
         'helpers' => 'helpers.php',
         'search_function' => 'sr_community_coupon_target_search',
         'revoke_access_function' => 'sr_community_coupon_revoke_access',
+        'health_function' => 'sr_community_coupon_target_health',
+        'admin_url_function' => 'sr_community_coupon_target_admin_url',
     ],
 ];

@@ -164,6 +164,49 @@ function sr_reward_withdrawal_allowed_group_keys(PDO $pdo): array
         : [];
 }
 
+function sr_reward_member_group_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_reward_member_group_reference_rows($pdo, $target, $context));
+}
+
+function sr_reward_member_group_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $groupKey = (string) ($target['target_key'] ?? '');
+    if ($groupKey === '') {
+        return [];
+    }
+
+    $settings = sr_reward_settings($pdo);
+    $allowedGroupKeys = is_array($settings['withdrawal_allowed_group_keys'] ?? null) ? array_map('strval', $settings['withdrawal_allowed_group_keys']) : [];
+    if (!in_array($groupKey, $allowedGroupKeys, true)) {
+        return [];
+    }
+
+    return [[
+        'consumer_module_key' => 'reward',
+        'reference_type' => 'reward_withdrawal_group_policy',
+        'reference_id' => 'reward_settings:withdrawal_allowed_group_keys',
+        'title' => '적립금 출금 신청 허용 대상',
+        'target_type' => 'member_group',
+        'target_id' => (string) (int) ($target['target_id'] ?? 0),
+        'target_key' => $groupKey,
+        'policy_status' => !empty($settings['withdrawal_requests_enabled']) ? 'enabled' : 'disabled',
+        'updated_at' => '',
+    ]];
+}
+
+function sr_reward_member_group_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    return (string) ($row['policy_status'] ?? '') === 'enabled'
+        ? ['status' => 'ok', 'policy_status' => 'enabled']
+        : ['status' => 'disabled_target', 'policy_status' => 'disabled'];
+}
+
+function sr_reward_member_group_reference_admin_url(array $row, array $context): string
+{
+    return '/admin/rewards/settings';
+}
+
 function sr_reward_withdrawal_requests_enabled(PDO $pdo): bool
 {
     $settings = sr_reward_settings($pdo);

@@ -28,8 +28,10 @@ return [
             'menu-links.php',
             'privacy-export.php',
             'member-withdrawal-assets.php',
+            'coupon-references.php',
         ],
         'consumes' => [
+            'coupon-references.php',
             'coupon-targets.php',
             'notification-events.php',
         ],

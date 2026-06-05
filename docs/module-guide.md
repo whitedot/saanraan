@@ -1057,6 +1057,11 @@ return [
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
+| `coupon-references.php` | `coupon` 모듈 | 쿠폰 정의 상태 변경 전 | 발급/사용 이력 기준 쿠폰 정의 역방향 참조 조회 |
+| `banner-references.php` | `banner` 모듈 | 배너 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 배너 ID 역방향 참조 조회 |
+| `popup-layer-references.php` | `popup_layer` 모듈 | 팝업레이어 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 팝업레이어 ID 역방향 참조 조회 |
+| `member-group-references.php` | `member` 모듈 | 회원 그룹 비활성/보관/key 변경 전 | 회원 그룹 ID/key를 저장한 모듈 정책 역방향 참조 조회 |
+| `site-setting-references.php` | `admin` 모듈 | 사이트명 변경 전 | 사이트명을 복사 저장한 모듈 설정 역방향 참조 조회 |
 | `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 출력 위치 후보 |
 | `notification-events.php` | `point`, `reward`, `deposit`, `coupon`, `content`, `community` 모듈 | 거래/쿠폰 상태 변경 성공 뒤, 댓글 멘션/신고 알림 생성 시 | 선택 알림 모듈의 계정 알림 생성 함수 |
 
@@ -1064,21 +1069,21 @@ return [
 
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
-| `admin` | `paths.php` | `admin-menu.php`, `paths.php`, `homepage-candidates.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php` |
+| `admin` | `paths.php` | `admin-menu.php`, `paths.php`, `homepage-candidates.php`, `site-setting-references.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `member-group-references.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php` |
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
-| `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `layout-options.php` | `member-assets.php`, `notification-events.php` |
-| `logo_manager` | `paths.php`, `admin-menu.php` | `logo-positions.php` |
-| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `coupon-targets.php` |
-| `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php` |
+| `seo` | `paths.php`, `admin-menu.php`, `site-setting-references.php` | `sitemap.php` |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `layout-options.php` | `member-assets.php`, `notification-events.php` |
+| `logo_manager` | `paths.php`, `admin-menu.php`, `site-setting-references.php` | `logo-positions.php` |
+| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `coupon-targets.php`, `banner-references.php` |
+| `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `popup-layer-references.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `notification-events.php` | 없음 |
 | `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | `notification-events.php` |
-| `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | `notification-events.php` |
-| `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | `notification-events.php` |
-| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php` | `coupon-targets.php`, `notification-events.php` |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
+| `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
+| `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
+| `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `coupon-references.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:

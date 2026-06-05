@@ -105,6 +105,24 @@ if (sr_request_method() === 'POST') {
         } elseif ($intent === 'set_definition_status' && $couponAdminPage === 'definitions') {
             $definitionId = (int) sr_post_string('definition_id', 20);
             $status = sr_post_string('status', 30);
+            if ($status !== 'active') {
+                $definition = sr_coupon_definition_by_id($pdo, $definitionId);
+                $referenceResult = sr_read_reference_collect($pdo, 'coupon-references.php', [
+                    'owner_module_key' => 'coupon',
+                    'target_type' => 'coupon_definition',
+                    'target_id' => $definitionId,
+                    'target_key' => is_array($definition) ? (string) ($definition['coupon_key'] ?? '') : '',
+                ], [
+                    'definition' => is_array($definition) ? $definition : [],
+                    'coupon_key' => is_array($definition) ? (string) ($definition['coupon_key'] ?? '') : '',
+                ]);
+                if (($referenceResult['errors'] ?? []) !== []) {
+                    throw new RuntimeException('쿠폰 정의 참조 계약 오류가 있어 상태를 변경할 수 없습니다.');
+                }
+                if (($referenceResult['rows'] ?? []) !== []) {
+                    throw new RuntimeException('발급/사용 이력이 있는 쿠폰 정의는 비활성화할 수 없습니다. 참조 현황을 먼저 확인하세요.');
+                }
+            }
             sr_coupon_update_definition_status($pdo, $definitionId, $status);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -159,7 +177,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '요청한 작업을 처리할 수 없습니다.';
         }
     } catch (Throwable $exception) {
-        $errors[] = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '쿠폰 작업을 처리하지 못했습니다.';
+        $errors[] = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException ? $exception->getMessage() : '쿠폰 작업을 처리하지 못했습니다.';
         $couponCreateModalOpen = $intent === 'create_definition';
         $couponIssueModalOpenDefinitionId = $intent === 'issue_coupon' ? (int) sr_post_string('coupon_definition_id', 20) : 0;
     }

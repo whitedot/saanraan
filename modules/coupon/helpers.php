@@ -262,6 +262,106 @@ function sr_coupon_issue_by_id(PDO $pdo, int $issueId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_coupon_definition_reference_count(PDO $pdo, array $target, array $context): int
+{
+    $definitionId = (int) ($target['target_id'] ?? 0);
+    if ($definitionId <= 0) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT
+            (SELECT COUNT(*) FROM sr_coupon_issues WHERE coupon_definition_id = :definition_id) +
+            (SELECT COUNT(*) FROM sr_coupon_redemptions WHERE coupon_definition_id = :definition_id) AS reference_count'
+    );
+    $stmt->execute(['definition_id' => $definitionId]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_coupon_definition_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $definitionId = (int) ($target['target_id'] ?? 0);
+    if ($definitionId <= 0) {
+        return [];
+    }
+
+    $definition = is_array($context['definition'] ?? null) ? $context['definition'] : sr_coupon_definition_by_id($pdo, $definitionId);
+    $domainTarget = [
+        'target_type' => (string) ($definition['target_type'] ?? ''),
+        'target_id' => (string) ($definition['target_id'] ?? ''),
+    ];
+
+    $rows = [];
+    $stmt = $pdo->prepare(
+        'SELECT status, COUNT(*) AS reference_count, MAX(updated_at) AS updated_at
+         FROM sr_coupon_issues
+         WHERE coupon_definition_id = :definition_id
+         GROUP BY status
+         ORDER BY status ASC'
+    );
+    $stmt->execute(['definition_id' => $definitionId]);
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $rows[] = [
+            'consumer_module_key' => 'coupon',
+            'reference_type' => 'coupon_issue',
+            'reference_id' => 'definition:' . (string) $definitionId . ':issue_status:' . $status,
+            'title' => '지급 쿠폰 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
+            'target_type' => 'coupon_definition',
+            'target_id' => (string) $definitionId,
+            'policy_status' => $status,
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'metadata' => ['domain_target' => $domainTarget],
+        ];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT status, COUNT(*) AS reference_count, MAX(COALESCE(refunded_at, redeemed_at)) AS updated_at
+         FROM sr_coupon_redemptions
+         WHERE coupon_definition_id = :definition_id
+         GROUP BY status
+         ORDER BY status ASC'
+    );
+    $stmt->execute(['definition_id' => $definitionId]);
+    foreach ($stmt->fetchAll() as $row) {
+        $status = (string) ($row['status'] ?? '');
+        $rows[] = [
+            'consumer_module_key' => 'coupon',
+            'reference_type' => 'coupon_redemption',
+            'reference_id' => 'definition:' . (string) $definitionId . ':redemption_status:' . $status,
+            'title' => '쿠폰 사용 이력 ' . (string) (int) ($row['reference_count'] ?? 0) . '건',
+            'target_type' => 'coupon_definition',
+            'target_id' => (string) $definitionId,
+            'policy_status' => $status,
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'metadata' => ['domain_target' => $domainTarget],
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_coupon_definition_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    $definitionId = (int) ($target['target_id'] ?? 0);
+    $definition = $definitionId > 0 ? sr_coupon_definition_by_id($pdo, $definitionId) : null;
+    if (!is_array($definition)) {
+        return ['status' => 'missing_target', 'message' => '쿠폰 정의를 찾을 수 없습니다.'];
+    }
+
+    if ((string) ($definition['status'] ?? '') !== 'active') {
+        return ['status' => 'disabled_target', 'message' => '쿠폰 정의가 비활성 상태입니다.'];
+    }
+
+    return ['status' => 'ok'];
+}
+
+function sr_coupon_definition_reference_admin_url(array $row, array $context): string
+{
+    return '/admin/coupons?coupon_q=' . rawurlencode((string) ($context['coupon_key'] ?? ''));
+}
+
 function sr_coupon_definitions(PDO $pdo, int $limit = 100): array
 {
     $limit = max(1, min(300, $limit));

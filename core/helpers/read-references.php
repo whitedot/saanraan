@@ -1,0 +1,258 @@
+<?php
+
+declare(strict_types=1);
+
+function sr_read_reference_contract_files(): array
+{
+    return [
+        'coupon-references.php' => 'coupon_definition',
+        'banner-references.php' => 'banner',
+        'popup-layer-references.php' => 'popup_layer',
+        'member-group-references.php' => 'member_group',
+        'site-setting-references.php' => 'site_setting',
+    ];
+}
+
+function sr_read_reference_statuses(): array
+{
+    return ['ok', 'stale', 'disabled_target', 'missing_target', 'unknown'];
+}
+
+function sr_read_reference_contract_file_for_target_type(string $targetType): string
+{
+    foreach (sr_read_reference_contract_files() as $contractFile => $knownTargetType) {
+        if ($knownTargetType === $targetType) {
+            return (string) $contractFile;
+        }
+    }
+
+    return '';
+}
+
+function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target, array $context = []): array
+{
+    $rows = [];
+    $errors = [];
+    $targetType = (string) ($target['target_type'] ?? '');
+    $expectedTargetType = (string) (sr_read_reference_contract_files()[$contractFile] ?? '');
+    if ($expectedTargetType === '' || $targetType !== $expectedTargetType) {
+        return [
+            'rows' => [],
+            'errors' => ['읽기 참조 계약 대상이 올바르지 않습니다.'],
+        ];
+    }
+
+    foreach (sr_enabled_module_contract_files($pdo, $contractFile) as $moduleKey => $file) {
+        $contract = sr_load_module_contract_file($moduleKey, $file);
+        if (!is_array($contract)) {
+            $errors[] = $moduleKey . ' 계약 파일을 읽을 수 없습니다.';
+            continue;
+        }
+
+        $entries = sr_read_reference_contract_entries($contract);
+        if ($entries === []) {
+            $errors[] = $moduleKey . ' 계약 항목이 비어 있습니다.';
+            continue;
+        }
+
+        foreach ($entries as $entry) {
+            if (!is_array($entry)) {
+                $errors[] = $moduleKey . ' 계약 항목 형식이 올바르지 않습니다.';
+                continue;
+            }
+
+            $entryErrors = sr_read_reference_prepare_entry($moduleKey, $entry, $targetType);
+            if ($entryErrors !== []) {
+                foreach ($entryErrors as $entryError) {
+                    $errors[] = $moduleKey . ': ' . $entryError;
+                }
+                continue;
+            }
+
+            $countFunction = (string) $entry['count_function'];
+            $rowsFunction = (string) $entry['rows_function'];
+            $healthFunction = (string) $entry['health_function'];
+            $adminUrlFunction = (string) $entry['admin_url_function'];
+
+            try {
+                $count = (int) $countFunction($pdo, $target, $context);
+                if ($count < 1) {
+                    continue;
+                }
+
+                $rawRows = $rowsFunction($pdo, $target, $context);
+                if (!is_array($rawRows)) {
+                    $errors[] = $moduleKey . ': rows_function 반환값이 배열이 아닙니다.';
+                    continue;
+                }
+
+                foreach ($rawRows as $rawRow) {
+                    if (!is_array($rawRow)) {
+                        $errors[] = $moduleKey . ': 참조 row 형식이 올바르지 않습니다.';
+                        continue;
+                    }
+
+                    $health = $healthFunction($pdo, $target, $rawRow, $context);
+                    if (!is_array($health)) {
+                        $health = ['status' => 'unknown', 'message' => '상태를 확인할 수 없습니다.'];
+                    }
+
+                    $adminUrl = (string) $adminUrlFunction($rawRow, $context);
+                    $normalized = sr_read_reference_normalize_row($moduleKey, $entry, $target, $rawRow, $health, $adminUrl);
+                    if (is_array($normalized['row'] ?? null)) {
+                        $rows[] = $normalized['row'];
+                    }
+                    foreach (($normalized['errors'] ?? []) as $rowError) {
+                        $errors[] = $moduleKey . ': ' . (string) $rowError;
+                    }
+                }
+            } catch (Throwable $exception) {
+                if (function_exists('sr_log_exception')) {
+                    sr_log_exception($exception, 'read_reference_contract_' . $moduleKey . '_' . str_replace(['.', '-'], '_', $contractFile));
+                }
+                $errors[] = $moduleKey . ': 계약 callable 실행 중 오류가 발생했습니다.';
+            }
+        }
+    }
+
+    return [
+        'rows' => $rows,
+        'errors' => $errors,
+    ];
+}
+
+function sr_read_reference_contract_entries(array $contract): array
+{
+    if ($contract === []) {
+        return [];
+    }
+
+    if (isset($contract['count_function']) || isset($contract['rows_function'])) {
+        return [$contract];
+    }
+
+    return $contract;
+}
+
+function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string $targetType): array
+{
+    $errors = [];
+    $consumerModuleKey = (string) ($entry['consumer_module_key'] ?? '');
+    if ($consumerModuleKey !== $moduleKey || !sr_is_safe_module_key($consumerModuleKey)) {
+        $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
+    }
+
+    $supportsTargetTypes = $entry['supports_target_types'] ?? null;
+    if (is_array($supportsTargetTypes) && $supportsTargetTypes !== [] && !in_array($targetType, array_map('strval', $supportsTargetTypes), true)) {
+        $errors[] = 'supports_target_types가 대상 type을 지원하지 않습니다.';
+    }
+
+    $helpers = $entry['helpers'] ?? [];
+    if (is_string($helpers) && $helpers !== '') {
+        $helpers = [$helpers];
+    }
+    if (!is_array($helpers)) {
+        $errors[] = 'helpers 형식이 올바르지 않습니다.';
+    } else {
+        foreach ($helpers as $helper) {
+            $helperPath = sr_read_reference_helper_path($moduleKey, (string) $helper);
+            if ($helperPath === '') {
+                $errors[] = 'helper 경로가 올바르지 않습니다.';
+                continue;
+            }
+            require_once $helperPath;
+        }
+    }
+
+    foreach (['count_function', 'rows_function', 'health_function', 'admin_url_function'] as $functionKey) {
+        $functionName = (string) ($entry[$functionKey] ?? '');
+        if ($functionName === '' || !function_exists($functionName)) {
+            $errors[] = $functionKey . ' callable이 없습니다.';
+        }
+    }
+
+    return $errors;
+}
+
+function sr_read_reference_helper_path(string $moduleKey, string $helper): string
+{
+    if ($helper === '' || preg_match('/\Ahelpers(?:\/[a-z0-9_\-]+)?\.php\z/', $helper) !== 1) {
+        return '';
+    }
+
+    $moduleDir = SR_ROOT . '/modules/' . $moduleKey;
+    $path = $moduleDir . '/' . $helper;
+    $realModuleDir = realpath($moduleDir);
+    $realPath = realpath($path);
+    if ($realModuleDir === false || $realPath === false || strpos($realPath, $realModuleDir . DIRECTORY_SEPARATOR) !== 0) {
+        return '';
+    }
+
+    return $realPath;
+}
+
+function sr_read_reference_normalize_row(string $moduleKey, array $entry, array $target, array $rawRow, array $health, string $adminUrl): array
+{
+    $errors = [];
+    $status = (string) ($health['status'] ?? ($rawRow['status'] ?? 'unknown'));
+    if (!in_array($status, sr_read_reference_statuses(), true)) {
+        $status = 'unknown';
+        $errors[] = 'status 값이 올바르지 않습니다.';
+    }
+
+    if ($adminUrl !== '' && !sr_is_safe_relative_url($adminUrl)) {
+        $adminUrl = '';
+        $errors[] = 'admin_url이 내부 상대 URL이 아닙니다.';
+    }
+
+    $row = [
+        'consumer_module_key' => (string) ($rawRow['consumer_module_key'] ?? $entry['consumer_module_key'] ?? $moduleKey),
+        'reference_type' => (string) ($rawRow['reference_type'] ?? $entry['reference_type'] ?? ''),
+        'reference_id' => (string) ($rawRow['reference_id'] ?? ''),
+        'title' => (string) ($rawRow['title'] ?? ''),
+        'target_type' => (string) ($rawRow['target_type'] ?? $target['target_type'] ?? ''),
+        'target_id' => (string) ($rawRow['target_id'] ?? $target['target_id'] ?? 0),
+        'status' => $status,
+        'admin_url' => $adminUrl,
+    ];
+
+    foreach (['target_key', 'policy_status', 'updated_at', 'message', 'metadata'] as $optionalKey) {
+        if (array_key_exists($optionalKey, $rawRow)) {
+            $row[$optionalKey] = $rawRow[$optionalKey];
+        }
+    }
+    if (isset($health['message'])) {
+        $row['message'] = (string) $health['message'];
+    }
+    if (isset($health['policy_status'])) {
+        $row['policy_status'] = (string) $health['policy_status'];
+    }
+
+    foreach (['consumer_module_key', 'reference_type', 'reference_id', 'title', 'target_type', 'target_id', 'admin_url'] as $requiredKey) {
+        if ((string) ($row[$requiredKey] ?? '') === '') {
+            $errors[] = $requiredKey . ' 필수값이 비어 있습니다.';
+        }
+    }
+
+    return [
+        'row' => $errors === [] ? $row : null,
+        'errors' => $errors,
+    ];
+}
+
+function sr_read_reference_count(PDO $pdo, string $targetType, int $targetId, string $targetKey = '', array $context = []): int
+{
+    $contractFile = sr_read_reference_contract_file_for_target_type($targetType);
+    if ($contractFile === '') {
+        return 0;
+    }
+
+    $result = sr_read_reference_collect($pdo, $contractFile, [
+        'owner_module_key' => (string) ($context['owner_module_key'] ?? ''),
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'target_key' => $targetKey,
+    ], $context);
+
+    return count($result['rows']);
+}

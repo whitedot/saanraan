@@ -44,6 +44,9 @@ return [
             'homepage-candidates.php',
             'member-group-rules.php',
             'coupon-targets.php',
+            'banner-references.php',
+            'popup-layer-references.php',
+            'member-group-references.php',
             'layout-options.php',
         ],
         'consumes' => [

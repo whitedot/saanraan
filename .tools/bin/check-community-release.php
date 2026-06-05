@@ -177,6 +177,7 @@ $requiredPackageEntries = [
     'actions',
     'admin-menu.php',
     'assets',
+    'banner-references.php',
     'dashboard.php',
     'extension-points.php',
     'helpers',
@@ -187,6 +188,7 @@ $requiredPackageEntries = [
     'menu-links.php',
     'module.php',
     'paths.php',
+    'popup-layer-references.php',
     'privacy-cleanup.php',
     'privacy-export.php',
     'sitemap.php',
@@ -194,6 +196,7 @@ $requiredPackageEntries = [
     'themes',
     'views',
     'coupon-targets.php',
+    'member-group-references.php',
 ];
 $allowedPackageEntries = array_merge($requiredPackageEntries, [
     'lang',
@@ -222,6 +225,9 @@ $requiredContracts = [
     'member-group-rules.php',
     'dashboard.php',
     'layout-options.php',
+    'banner-references.php',
+    'popup-layer-references.php',
+    'member-group-references.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))

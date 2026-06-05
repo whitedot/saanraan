@@ -30,6 +30,7 @@ return [
             'asset-exchange.php',
             'member-assets.php',
             'member-withdrawal-assets.php',
+            'member-group-references.php',
         ],
         'consumes' => [
             'notification-events.php',

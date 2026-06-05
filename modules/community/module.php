@@ -34,6 +34,9 @@ return [
             'dashboard.php',
             'layout-options.php',
             'coupon-targets.php',
+            'banner-references.php',
+            'popup-layer-references.php',
+            'member-group-references.php',
         ],
         'consumes' => [
             'member-assets.php',

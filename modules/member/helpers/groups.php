@@ -12,6 +12,61 @@ function sr_member_group_statuses(): array
     return ['enabled', 'disabled', 'archived'];
 }
 
+function sr_member_group_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_member_group_reference_rows($pdo, $target, $context));
+}
+
+function sr_member_group_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $groupId = (int) ($target['target_id'] ?? 0);
+    if ($groupId <= 0 || !sr_member_groups_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, group_id, source_module_key, rule_key, status, updated_at
+         FROM sr_member_group_rules
+         WHERE group_id = :group_id
+         ORDER BY id DESC'
+    );
+    $stmt->execute(['group_id' => $groupId]);
+
+    return array_map(static function (array $row) use ($groupId, $target): array {
+        return [
+            'consumer_module_key' => 'member',
+            'reference_type' => 'member_group_rule',
+            'reference_id' => 'member_group_rule:' . (string) (int) ($row['id'] ?? 0),
+            'title' => '자동 규칙 / ' . (string) ($row['source_module_key'] ?? '') . ' / ' . (string) ($row['rule_key'] ?? ''),
+            'target_type' => 'member_group',
+            'target_id' => (string) $groupId,
+            'target_key' => (string) ($target['target_key'] ?? ''),
+            'policy_status' => (string) ($row['status'] ?? ''),
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+            'metadata' => ['rule_id' => (int) ($row['id'] ?? 0)],
+        ];
+    }, $stmt->fetchAll());
+}
+
+function sr_member_group_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    $status = (string) ($row['policy_status'] ?? '');
+    return $status === 'enabled'
+        ? ['status' => 'ok', 'policy_status' => $status]
+        : ['status' => 'disabled_target', 'policy_status' => $status];
+}
+
+function sr_member_group_reference_admin_url(array $row, array $context): string
+{
+    $metadata = is_array($row['metadata'] ?? null) ? $row['metadata'] : [];
+    $ruleId = (int) ($metadata['rule_id'] ?? 0);
+    if ($ruleId > 0) {
+        return '/admin/member-group-rules/edit?id=' . rawurlencode((string) $ruleId);
+    }
+
+    return '/admin/member-group-rules';
+}
+
 function sr_member_groups_table_exists(PDO $pdo): bool
 {
     static $exists = null;
