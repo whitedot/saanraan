@@ -272,9 +272,16 @@ $checks = [
             '.public-site-header',
             '.public-site-footer',
             '.public-home',
-            '.public-home + .public-site-footer',
             'background: var(--sr-bg',
-            'margin-top: 0',
+        ],
+        'must_contain_css_rules' => [
+            [
+                'selector' => '.public-home + .public-site-footer',
+                'declarations' => [
+                    'margin-top: 0',
+                    'padding-top: 52px',
+                ],
+            ],
         ],
     ],
     [
@@ -444,6 +451,16 @@ function sr_smoke_is_install_csrf_error(int $status, string $body): bool
         && str_contains($body, '요청 보안 토큰이 올바르지 않습니다.');
 }
 
+function sr_smoke_css_rule_body(string $css, string $selector): string
+{
+    $pattern = '/(^|})\s*' . preg_quote($selector, '/') . '\s*\{([^}]*)\}/s';
+    if (preg_match($pattern, $css, $matches) !== 1) {
+        return '';
+    }
+
+    return (string) $matches[2];
+}
+
 $errors = [];
 $isInstallMode = false;
 foreach ($checks as $check) {
@@ -479,6 +496,29 @@ foreach ($checks as $check) {
     foreach ($check['must_contain'] ?? [] as $needle) {
         if (!str_contains($body, (string) $needle)) {
             $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for ' . $url;
+        }
+    }
+
+    foreach ($check['must_contain_css_rules'] ?? [] as $rule) {
+        if (!is_array($rule)) {
+            continue;
+        }
+
+        $selector = is_string($rule['selector'] ?? null) ? (string) $rule['selector'] : '';
+        if ($selector === '') {
+            continue;
+        }
+
+        $ruleBody = sr_smoke_css_rule_body($body, $selector);
+        if ($ruleBody === '') {
+            $checkErrors[] = $label . ' did not contain expected CSS rule "' . $selector . '" for ' . $url;
+            continue;
+        }
+
+        foreach ($rule['declarations'] ?? [] as $declaration) {
+            if (!str_contains($ruleBody, (string) $declaration)) {
+                $checkErrors[] = $label . ' CSS rule "' . $selector . '" did not contain expected declaration "' . (string) $declaration . '" for ' . $url;
+            }
         }
     }
 
