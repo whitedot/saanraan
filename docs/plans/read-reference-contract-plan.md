@@ -68,6 +68,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 `rows_function`은 소비 모듈의 원자료를 반환한다. 공통 helper는 `health_function`과 `admin_url_function`을 적용해 최종 row를 정규화한다. `rows_function`이 이미 `status`나 `admin_url`을 반환해도 공통 helper 검증을 다시 통과해야 한다.
 최종 row의 문자열 필드는 문자열화 가능한 스칼라 값이어야 하며, `metadata`만 배열 값을 허용한다.
+`consumer_module_key`, `target_type`, `target_id`, 필요한 경우 `target_key`는 조회 중인 계약 모듈과 target 값에 맞아야 한다.
 
 최종 row 필수 항목:
 
