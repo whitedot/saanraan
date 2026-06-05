@@ -328,6 +328,20 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         sr_read_reference_check_error('read reference normalize row target sample accepted invalid reference_type');
     }
 
+    $nullConsumerModuleKey = $baseRow;
+    $nullConsumerModuleKey['consumer_module_key'] = null;
+    $nullConsumer = sr_read_reference_normalize_row('sample_module', $entry, $target, $nullConsumerModuleKey, ['status' => 'ok'], '/admin/sample');
+    if (is_array($nullConsumer['row'] ?? null) || !in_array('consumer_module_key 필수값이 비어 있습니다.', $nullConsumer['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null consumer_module_key');
+    }
+
+    $nullReferenceType = $baseRow;
+    $nullReferenceType['reference_type'] = null;
+    $nullReference = sr_read_reference_normalize_row('sample_module', $entry, $target, $nullReferenceType, ['status' => 'ok'], '/admin/sample');
+    if (is_array($nullReference['row'] ?? null) || !in_array('reference_type 필수값이 비어 있습니다.', $nullReference['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null reference_type');
+    }
+
     $missingTargetKey = $baseRow;
     unset($missingTargetKey['target_key']);
     $missing = sr_read_reference_normalize_row('sample_module', $entry, $target, $missingTargetKey, ['status' => 'ok'], '/admin/sample');

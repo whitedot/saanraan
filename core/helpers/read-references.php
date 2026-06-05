@@ -297,12 +297,14 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         }
     }
 
+    $hasRawConsumerModuleKey = array_key_exists('consumer_module_key', $rawRow);
+    $hasRawReferenceType = array_key_exists('reference_type', $rawRow);
     $hasRawTargetType = array_key_exists('target_type', $rawRow);
     $hasRawTargetId = array_key_exists('target_id', $rawRow);
 
     $row = [
-        'consumer_module_key' => sr_read_reference_string_value($rawRow['consumer_module_key'] ?? $entry['consumer_module_key'] ?? $moduleKey) ?? '',
-        'reference_type' => sr_read_reference_string_value($rawRow['reference_type'] ?? $entry['reference_type'] ?? '') ?? '',
+        'consumer_module_key' => sr_read_reference_string_value($hasRawConsumerModuleKey ? $rawRow['consumer_module_key'] : ($entry['consumer_module_key'] ?? $moduleKey)) ?? '',
+        'reference_type' => sr_read_reference_string_value($hasRawReferenceType ? $rawRow['reference_type'] : ($entry['reference_type'] ?? '')) ?? '',
         'reference_id' => sr_read_reference_string_value($rawRow['reference_id'] ?? '') ?? '',
         'title' => sr_read_reference_string_value($rawRow['title'] ?? '') ?? '',
         'target_type' => $hasRawTargetType && is_string($rawRow['target_type'])

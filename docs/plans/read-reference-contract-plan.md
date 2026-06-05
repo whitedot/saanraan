@@ -74,6 +74,7 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 `health_function`이 `status`, `message`, `policy_status`를 반환하면 각 값은 문자열화 가능한 스칼라여야 하며, 명시된 `null`은 생략으로 보지 않고 계약 오류로 처리한다.
 최종 row의 문자열 필드는 문자열화 가능한 스칼라 값이어야 하며, `metadata`만 배열 값을 허용한다.
 단, 최종 row의 `target_type`, `target_id`, `target_key`는 target 입력과 같은 식별자 형식 기준을 사용한다.
+최종 row가 `consumer_module_key` 또는 `reference_type`을 생략하면 계약 항목 값으로 보완하지만, 명시된 값의 타입이나 형식이 올바르지 않으면 보완하지 않고 계약 오류로 처리한다.
 최종 row가 `target_type` 또는 `target_id`를 생략하면 조회 target 값으로 보완하지만, 명시된 값의 타입이나 형식이 올바르지 않으면 보완하지 않고 계약 오류로 처리한다.
 `consumer_module_key`, `reference_type`, `target_type`, `target_id`는 조회 중인 계약 모듈, 계약 항목, target 값에 맞아야 한다. 최종 row의 `target_key`도 조회 target의 `target_key`와 같아야 하며, 조회 target에 key가 없으면 row `target_key`도 비어 있어야 한다.
 
