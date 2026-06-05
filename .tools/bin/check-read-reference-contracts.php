@@ -257,6 +257,26 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         sr_read_reference_check_error('read reference normalize row target sample accepted invalid row target_id');
     }
 
+    $nullRowTargetId = $baseRow;
+    $nullRowTargetId['target_type'] = 'banner';
+    $nullRowTargetId['target_id'] = null;
+    unset($nullRowTargetId['target_key']);
+    $nullIdRow = sr_read_reference_normalize_row('sample_module', $entry, [
+        'target_type' => 'banner',
+        'target_id' => 1,
+        'target_key' => '',
+    ], $nullRowTargetId, ['status' => 'ok'], '/admin/sample');
+    if (is_array($nullIdRow['row'] ?? null) || !in_array('target_id 필수값이 비어 있습니다.', $nullIdRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted null row target_id');
+    }
+
+    $invalidRowTargetType = $baseRow;
+    $invalidRowTargetType['target_type'] = true;
+    $invalidTypeRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidRowTargetType, ['status' => 'ok'], '/admin/sample');
+    if (is_array($invalidTypeRow['row'] ?? null) || !in_array('target_type 필수값이 비어 있습니다.', $invalidTypeRow['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted invalid row target_type');
+    }
+
     $invalidTargetTypeRow = $baseRow;
     $invalidTargetTypeRow['target_type'] = 'banner';
     $invalidTargetTypeRow['target_id'] = '1';

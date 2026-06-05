@@ -286,15 +286,18 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         $errors[] = 'admin_url이 내부 상대 URL이 아닙니다.';
     }
 
+    $hasRawTargetType = array_key_exists('target_type', $rawRow);
+    $hasRawTargetId = array_key_exists('target_id', $rawRow);
+
     $row = [
         'consumer_module_key' => sr_read_reference_string_value($rawRow['consumer_module_key'] ?? $entry['consumer_module_key'] ?? $moduleKey) ?? '',
         'reference_type' => sr_read_reference_string_value($rawRow['reference_type'] ?? $entry['reference_type'] ?? '') ?? '',
         'reference_id' => sr_read_reference_string_value($rawRow['reference_id'] ?? '') ?? '',
         'title' => sr_read_reference_string_value($rawRow['title'] ?? '') ?? '',
-        'target_type' => is_string($rawRow['target_type'] ?? null)
+        'target_type' => $hasRawTargetType && is_string($rawRow['target_type'])
             ? (string) $rawRow['target_type']
-            : (is_string($target['target_type'] ?? null) ? (string) $target['target_type'] : ''),
-        'target_id' => sr_read_reference_target_id_value($rawRow['target_id'] ?? ($target['target_id'] ?? null)) ?? '',
+            : (!$hasRawTargetType && is_string($target['target_type'] ?? null) ? (string) $target['target_type'] : ''),
+        'target_id' => sr_read_reference_target_id_value($hasRawTargetId ? $rawRow['target_id'] : ($target['target_id'] ?? null)) ?? '',
         'status' => $status,
         'admin_url' => $adminUrl,
     ];
