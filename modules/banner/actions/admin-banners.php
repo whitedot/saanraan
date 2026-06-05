@@ -374,6 +374,7 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $banners = [];
+$bannerReadReferencesById = [];
 $bannerSql = 'SELECT b.id, b.title, b.link_url, b.status, b.skin_key, b.starts_at, b.ends_at, b.sort_order, b.click_count, b.updated_at,
                      t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
               FROM sr_banners b
@@ -453,6 +454,18 @@ if ($bannerAdminPage === 'list') {
     $stmt->execute();
     foreach ($stmt->fetchAll() as $row) {
         $banners[] = $row;
+    }
+    foreach ($banners as $banner) {
+        $bannerId = (int) ($banner['id'] ?? 0);
+        if ($bannerId < 1) {
+            continue;
+        }
+        $bannerReadReferencesById[$bannerId] = sr_read_reference_collect($pdo, 'banner-references.php', [
+            'owner_module_key' => 'banner',
+            'target_type' => 'banner',
+            'target_id' => $bannerId,
+            'target_key' => '',
+        ]);
     }
 }
 

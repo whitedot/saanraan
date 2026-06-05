@@ -146,9 +146,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_name"><?php echo sr_e(sr_t('admin::ui.name.51f4c6af')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
+                <?php
+                $siteNameReferenceModalId = 'site-name-reference-modal';
+                $siteNameReferenceResult = isset($siteNameReadReferences) && is_array($siteNameReadReferences) ? $siteNameReadReferences : ['rows' => [], 'errors' => []];
+                ?>
                 <input id="admin_settings_name" type="text" name="name" value="<?php echo sr_e($values['name']); ?>" class="form-input" maxlength="120" required>
+                <?php echo sr_admin_read_reference_button_html($siteNameReferenceModalId, $siteNameReferenceResult); ?>
+                <p class="admin-form-help"><?php echo sr_e('사이트명을 읽는 모듈 참조를 확인한 뒤 변경하세요.'); ?></p>
             </div>
         </div>
+        <?php echo sr_admin_read_reference_modal_html($siteNameReferenceModalId, '사이트명 참조 현황', $siteNameReferenceResult); ?>
         <div class="admin-form-row">
             <span class="form-label admin-form-label-help">
                 <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('admin::ui.url.09f44187') . ' ' . $siteSettingsHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($siteSettingsHelp['base_url']['id']); ?>" data-overlay="#<?php echo sr_e($siteSettingsHelp['base_url']['id']); ?>">

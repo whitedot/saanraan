@@ -494,10 +494,26 @@ $editRule = $editRuleId > 0 ? sr_member_group_rule_by_id($pdo, $editRuleId) : nu
 $groupListFilter = sr_admin_member_group_list_filter($allowedStatuses);
 $groupSort = sr_admin_sort_from_request(sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort());
 $groups = in_array($memberGroupsPage, ['rules', 'rule_form'], true) ? sr_member_groups($pdo) : [];
+$memberGroupReadReferencesById = [];
 $groupStatusCounts = sr_admin_member_group_status_counts($pdo);
 $groupPagination = sr_admin_pagination_from_total($pdo, $memberGroupsPage === 'groups' ? sr_admin_member_group_count($pdo, $groupListFilter) : 0);
 if ($memberGroupsPage === 'groups') {
     $groups = sr_admin_member_group_list($pdo, $groupListFilter, (int) $groupPagination['per_page'], sr_admin_pagination_offset($groupPagination), $groupSort);
+    foreach ($groups as $group) {
+        $groupId = (int) ($group['id'] ?? 0);
+        if ($groupId < 1) {
+            continue;
+        }
+        $memberGroupReadReferencesById[$groupId] = sr_read_reference_collect($pdo, 'member-group-references.php', [
+            'owner_module_key' => 'member',
+            'target_type' => 'member_group',
+            'target_id' => $groupId,
+            'target_key' => (string) ($group['group_key'] ?? ''),
+        ], [
+            'group' => $group,
+            'group_key' => (string) ($group['group_key'] ?? ''),
+        ]);
+    }
 }
 $groupRules = [];
 $groupRuleSort = sr_admin_sort_from_request(sr_member_group_rule_sort_options(), sr_member_group_rule_default_sort());

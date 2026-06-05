@@ -47,6 +47,7 @@ $popupLayerHelpBodyHtml = static function (array $keys): string {
     return $html;
 };
 $popupLayerCopyModals = '';
+$popupLayerReferenceModals = '';
 $popupLayerCopyModalHtml = static function (array $popup, string $returnTo): string {
     $popupId = (int) ($popup['id'] ?? 0);
     if ($popupId < 1) {
@@ -385,7 +386,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php
                                     $popupLayerCopyModalId = 'popup-layer-copy-modal-' . (string) (int) $popup['id'];
                                     $popupLayerCopyModals .= $popupLayerCopyModalHtml($popup, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/popup-layers'));
+                                    $popupLayerReferenceModalId = 'popup-layer-reference-modal-' . (string) (int) $popup['id'];
+                                    $popupLayerReferenceResult = $popupLayerReadReferencesById[(int) $popup['id']] ?? ['rows' => [], 'errors' => []];
+                                    $popupLayerReferenceModals .= sr_admin_read_reference_modal_html($popupLayerReferenceModalId, '팝업레이어 참조 현황', $popupLayerReferenceResult);
                                     ?>
+                                    <?php echo sr_admin_read_reference_button_html($popupLayerReferenceModalId, $popupLayerReferenceResult); ?>
                                     <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($popupLayerCopyModalId); ?>" data-overlay="#<?php echo sr_e($popupLayerCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                     <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
@@ -403,6 +408,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <?php echo $popupLayerCopyModals; ?>
+    <?php echo $popupLayerReferenceModals; ?>
     <?php echo sr_admin_pagination_html($popupPagination, '팝업레이어 목록 페이지'); ?>
 <?php } ?>
 

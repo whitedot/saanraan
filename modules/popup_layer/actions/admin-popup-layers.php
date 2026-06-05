@@ -327,6 +327,7 @@ foreach ($stmt->fetchAll() as $row) {
 }
 
 $popups = [];
+$popupLayerReadReferencesById = [];
 $popupSql = 'SELECT p.id, p.title, p.status, p.skin_key, p.starts_at, p.ends_at, p.dismiss_cookie_days, p.updated_at,
                     t.module_key, t.point_key, t.slot_key, t.subject_id, t.match_type
              FROM sr_popup_layers p
@@ -406,6 +407,18 @@ if ($popupLayerAdminPage === 'list') {
     $stmt->execute();
     foreach ($stmt->fetchAll() as $row) {
         $popups[] = $row;
+    }
+    foreach ($popups as $popup) {
+        $popupId = (int) ($popup['id'] ?? 0);
+        if ($popupId < 1) {
+            continue;
+        }
+        $popupLayerReadReferencesById[$popupId] = sr_read_reference_collect($pdo, 'popup-layer-references.php', [
+            'owner_module_key' => 'popup_layer',
+            'target_type' => 'popup_layer',
+            'target_id' => $popupId,
+            'target_key' => '',
+        ]);
     }
 }
 

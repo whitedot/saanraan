@@ -329,5 +329,5 @@ GitHub 이슈 기준도 함께 맞춘다.
 
 현재 제한:
 
-- 참조 row의 관리자 화면 표시는 삭제/상태 변경 POST 차단 메시지 중심으로 시작한다. 참조 현황 전용 표/모달 UI는 후속 개선으로 넓힌다.
+- 참조 row의 관리자 화면 표시는 `sr_admin_read_reference_button_html()`과 `sr_admin_read_reference_modal_html()` 공통 헬퍼를 통해 배너, 팝업레이어, 쿠폰 정의, 회원 그룹, 사이트명 설정 화면에서 표/모달로 제공한다.
 - HTTP 스모크는 로컬 `config/config.php` 권한 문제로 공통 500이 발생해 환경 이슈로 기록한다.

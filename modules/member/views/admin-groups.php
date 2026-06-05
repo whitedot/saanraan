@@ -315,6 +315,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     <?php
     $selectedMemberGroupStatuses = is_array($groupListFilter['status'] ?? null) ? $groupListFilter['status'] : [];
     $memberGroupDetailFilterOpen = $selectedMemberGroupStatuses !== [];
+    $memberGroupReferenceModals = '';
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="filtering-form admin-member-group-filter ui-form-theme">
         <div class="filtering filtering-card<?php echo $memberGroupDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
@@ -393,6 +394,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     $editGroupModalId = 'member-group-edit-modal-' . $groupId;
                     $manualAssignModalId = 'member-group-manual-assign-modal-' . $groupId;
                     $assignmentHistoryModalId = 'member-group-assignment-history-modal-' . $groupId;
+                    $memberGroupReferenceModalId = 'member-group-reference-modal-' . $groupId;
+                    $memberGroupReferenceResult = $memberGroupReadReferencesById[$groupId] ?? ['rows' => [], 'errors' => []];
+                    $memberGroupReferenceModals .= sr_admin_read_reference_modal_html($memberGroupReferenceModalId, '회원 그룹 참조 현황', $memberGroupReferenceResult);
                     ?>
                     <tr>
                         <td class="admin-table-nowrap admin-member-group-key-cell"><?php echo sr_e((string) $group['group_key']); ?></td>
@@ -401,6 +405,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['active_member_count']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
+                                <?php echo sr_admin_read_reference_button_html($memberGroupReferenceModalId, $memberGroupReferenceResult); ?>
                                 <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($manualAssignModalId); ?>" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>"><?php echo sr_e(sr_t('member::ui.text.94e3ebac')); ?></button>
                                 <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($assignmentHistoryModalId); ?>" data-overlay="#<?php echo sr_e($assignmentHistoryModalId); ?>"><?php echo sr_e(sr_t('member::ui.text.fb4e329c')); ?></button>
                                 <?php if ($canEditMemberGroups) { ?>
@@ -415,6 +420,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </section>
 
+    <?php echo $memberGroupReferenceModals; ?>
     <?php echo sr_admin_pagination_html($groupPagination, '회원 그룹 목록 페이지'); ?>
 
     <?php if ($canEditMemberGroups) { ?>

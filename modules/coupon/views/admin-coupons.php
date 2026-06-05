@@ -75,6 +75,7 @@ $couponCreateModalOpen = isset($couponCreateModalOpen) && $couponCreateModalOpen
 $couponCreateModalClass = $couponCreateModalOpen
     ? 'modal-overlay modal-overlay-fade overlay overlay-open'
     : 'modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0';
+$couponDefinitionReferenceModals = '';
 $couponIssueModalOpenDefinitionId = isset($couponIssueModalOpenDefinitionId) ? (int) $couponIssueModalOpenDefinitionId : 0;
 $couponTargetLookupModalId = 'coupon-target-lookup-modal';
 $couponTargetLookupResultsId = 'coupon-target-lookup-results';
@@ -159,8 +160,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php
                             $definitionId = (int) ($definition['id'] ?? 0);
                             $issueModalId = 'coupon-issue-modal-' . $definitionId;
+                            $definitionReferenceModalId = 'coupon-definition-reference-modal-' . $definitionId;
+                            $definitionReferenceResult = $couponDefinitionReadReferencesById[$definitionId] ?? ['rows' => [], 'errors' => []];
+                            $couponDefinitionReferenceModals .= sr_admin_read_reference_modal_html($definitionReferenceModalId, '쿠폰 정의 참조 현황', $definitionReferenceResult);
                             ?>
                             <div class="admin-row-actions">
+                                <?php echo sr_admin_read_reference_button_html($definitionReferenceModalId, $definitionReferenceResult); ?>
                                 <?php if ((string) $definition['status'] === 'active') { ?>
                                     <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($issueModalId); ?>" data-overlay="#<?php echo sr_e($issueModalId); ?>">지급하기</button>
                                 <?php } ?>
@@ -180,6 +185,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+
+<?php echo $couponDefinitionReferenceModals; ?>
 
 <?php foreach ($definitions as $definition) { ?>
     <?php

@@ -190,6 +190,22 @@ $definitionSort = $couponAdminPage === 'definitions' ? sr_admin_sort_from_reques
 $issueSort = $couponAdminPage === 'issues' ? sr_admin_sort_from_request(sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()) : sr_coupon_admin_issue_default_sort();
 $redemptionSort = $couponAdminPage === 'redemptions' ? sr_admin_sort_from_request(sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()) : sr_coupon_admin_redemption_default_sort();
 $definitions = $couponAdminPage === 'definitions' ? sr_coupon_admin_definitions($pdo, $definitionFilters, 100, $definitionSort) : [];
+$couponDefinitionReadReferencesById = [];
+foreach ($definitions as $definition) {
+    $definitionId = (int) ($definition['id'] ?? 0);
+    if ($definitionId < 1) {
+        continue;
+    }
+    $couponDefinitionReadReferencesById[$definitionId] = sr_read_reference_collect($pdo, 'coupon-references.php', [
+        'owner_module_key' => 'coupon',
+        'target_type' => 'coupon_definition',
+        'target_id' => $definitionId,
+        'target_key' => (string) ($definition['coupon_key'] ?? ''),
+    ], [
+        'definition' => $definition,
+        'coupon_key' => (string) ($definition['coupon_key'] ?? ''),
+    ]);
+}
 $memberGroups = $couponAdminPage === 'definitions' ? sr_coupon_issue_member_groups($pdo) : [];
 $issues = [];
 $redemptions = [];

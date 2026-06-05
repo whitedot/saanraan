@@ -39,6 +39,134 @@ function sr_admin_help_modal_html(string $modalId, string $title, string $bodyHt
         . '</div>';
 }
 
+function sr_admin_read_reference_count(array $referenceResult): int
+{
+    $rows = $referenceResult['rows'] ?? [];
+
+    return is_array($rows) ? count($rows) : 0;
+}
+
+function sr_admin_read_reference_error_count(array $referenceResult): int
+{
+    $errors = $referenceResult['errors'] ?? [];
+
+    return is_array($errors) ? count($errors) : 0;
+}
+
+function sr_admin_read_reference_button_html(string $modalId, array $referenceResult, string $label = '참조 현황'): string
+{
+    $modalId = trim($modalId);
+    $rowCount = sr_admin_read_reference_count($referenceResult);
+    $errorCount = sr_admin_read_reference_error_count($referenceResult);
+    $buttonClass = $errorCount > 0 ? 'btn-outline-danger' : ($rowCount > 0 ? 'btn-solid-light' : 'btn-outline-secondary');
+    $ariaLabel = $label . ' 참조 ' . (string) $rowCount . '건';
+    if ($errorCount > 0) {
+        $ariaLabel .= ', 오류 ' . (string) $errorCount . '건';
+    }
+
+    return '<button type="button" class="btn btn-sm btn-icon ' . sr_e($buttonClass) . '" aria-label="' . sr_e($ariaLabel) . '" title="' . sr_e($ariaLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html($errorCount > 0 ? 'warning' : 'travel_explore')
+        . '</button>';
+}
+
+function sr_admin_read_reference_modal_html(string $modalId, string $title, array $referenceResult): string
+{
+    $modalId = trim($modalId);
+    $rows = $referenceResult['rows'] ?? [];
+    $errors = $referenceResult['errors'] ?? [];
+    $rows = is_array($rows) ? $rows : [];
+    $errors = is_array($errors) ? $errors : ['참조 현황을 읽을 수 없습니다.'];
+
+    ob_start();
+    ?>
+    <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>_title" aria-hidden="true" inert data-overlay-stack="true">
+        <div class="modal-dialog modal-dialog-lg">
+            <div class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($modalId); ?>_title" class="modal-title"><?php echo sr_e($title); ?></h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                </div>
+                <div class="modal-body">
+                    <?php if ($errors !== []) { ?>
+                        <div class="alert alert-danger" role="alert">
+                            <strong><?php echo sr_e('계약 오류'); ?></strong>
+                            <?php foreach ($errors as $error) { ?>
+                                <p><?php echo sr_e((string) $error); ?></p>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+                    <section class="admin-card admin-list-card card admin-list-form">
+                        <div class="card-header">
+                            <h4 class="card-title"><?php echo sr_e('참조 목록'); ?></h4>
+                            <span class="admin-summary-meta"><?php echo sr_e(number_format(count($rows)) . '건'); ?></span>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="table">
+                                <thead class="ui-table-head">
+                                    <tr>
+                                        <th><?php echo sr_e('모듈'); ?></th>
+                                        <th><?php echo sr_e('참조'); ?></th>
+                                        <th><?php echo sr_e('상태'); ?></th>
+                                        <th><?php echo sr_e('메시지'); ?></th>
+                                        <th><?php echo sr_e('갱신'); ?></th>
+                                        <th class="text-end"><?php echo sr_e('관리'); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($rows === []) { ?>
+                                        <tr>
+                                            <td colspan="6" class="admin-empty-state"><?php echo sr_e('현재 읽기 참조가 없습니다.'); ?></td>
+                                        </tr>
+                                    <?php } ?>
+                                    <?php foreach ($rows as $row) { ?>
+                                        <?php
+                                        $status = (string) ($row['status'] ?? 'unknown');
+                                        $statusClass = match ($status) {
+                                            'ok' => 'is-normal',
+                                            'stale', 'disabled_target' => 'is-blocked',
+                                            default => 'is-left',
+                                        };
+                                        $statusLabel = match ($status) {
+                                            'ok' => '정상',
+                                            'stale' => '낡은 참조',
+                                            'disabled_target' => '비활성 대상',
+                                            'missing_target' => '대상 없음',
+                                            default => '확인 필요',
+                                        };
+                                        $adminUrl = (string) ($row['admin_url'] ?? '');
+                                        ?>
+                                        <tr>
+                                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($row['consumer_module_key'] ?? '')); ?></td>
+                                            <td class="admin-table-break">
+                                                <?php echo sr_e((string) ($row['title'] ?? '')); ?><br>
+                                                <span class="admin-summary-meta"><?php echo sr_e((string) ($row['reference_type'] ?? '') . ' #' . (string) ($row['reference_id'] ?? '')); ?></span>
+                                            </td>
+                                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($statusLabel); ?></span></td>
+                                            <td class="admin-table-break"><?php echo sr_e((string) ($row['message'] ?? ($row['policy_status'] ?? ''))); ?></td>
+                                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($row['updated_at'] ?? '')); ?></td>
+                                            <td class="admin-table-actions-cell">
+                                                <?php if ($adminUrl !== '') { ?>
+                                                    <a href="<?php echo sr_e(sr_url($adminUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e('관리 화면 열기'); ?>" title="<?php echo sr_e('관리 화면 열기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                                                <?php } ?>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e('닫기'); ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
+
+    return (string) ob_get_clean();
+}
+
 function sr_admin_checkbox_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음'): string
 {
     $selectedMap = [];

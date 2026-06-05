@@ -57,6 +57,7 @@ $bannerHelpBodyHtml = static function (array $keys): string {
     return $html;
 };
 $bannerCopyModals = '';
+$bannerReferenceModals = '';
 $bannerCopyModalHtml = static function (array $banner, string $returnTo): string {
     $bannerId = (int) ($banner['id'] ?? 0);
     if ($bannerId < 1) {
@@ -464,7 +465,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php
                                     $bannerCopyModalId = 'banner-copy-modal-' . (string) (int) $banner['id'];
                                     $bannerCopyModals .= $bannerCopyModalHtml($banner, (string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners'));
+                                    $bannerReferenceModalId = 'banner-reference-modal-' . (string) (int) $banner['id'];
+                                    $bannerReferenceResult = $bannerReadReferencesById[(int) $banner['id']] ?? ['rows' => [], 'errors' => []];
+                                    $bannerReferenceModals .= sr_admin_read_reference_modal_html($bannerReferenceModalId, '배너 참조 현황', $bannerReferenceResult);
                                     ?>
+                                    <?php echo sr_admin_read_reference_button_html($bannerReferenceModalId, $bannerReferenceResult); ?>
                                     <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($bannerCopyModalId); ?>" data-overlay="#<?php echo sr_e($bannerCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                     <a href="<?php echo sr_e(sr_url('/admin/banners/edit?id=' . rawurlencode((string) $banner['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/delete')); ?>">
@@ -482,6 +487,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <?php echo $bannerCopyModals; ?>
+    <?php echo $bannerReferenceModals; ?>
     <?php echo sr_admin_pagination_html($bannerPagination, '배너 목록 페이지'); ?>
 <?php } ?>
 
