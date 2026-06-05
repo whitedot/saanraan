@@ -36,6 +36,16 @@ $copyCounts = sr_community_board_copy_counts($pdo, $boardId);
 $limitErrors = sr_community_board_copy_limit_errors($copyCounts);
 $batchErrors = sr_community_board_copy_batch_errors($copyCounts);
 $batchAvailable = $batchErrors === [];
+$copyModeIncludesData = (string) ($values['mode'] ?? 'settings') === 'full' || sr_post_string('intent', 30) === 'start_batch';
+$copyLoadTargetRecords = $copyModeIncludesData
+    ? (int) $copyCounts['posts'] + (int) $copyCounts['comments'] + (int) $copyCounts['attachments'] + (int) ($copyCounts['series'] ?? 0)
+    : 1;
+$loadAssessment = sr_admin_high_load_assessment([
+    'target_records' => $copyLoadTargetRecords,
+    'file_operations' => $copyModeIncludesData ? (int) $copyCounts['attachments'] : 0,
+    'table_count' => $copyModeIncludesData ? 5 : 2,
+    'batch_available' => $batchAvailable,
+]);
 $errors = [];
 
 if (sr_request_method() === 'POST') {
@@ -46,6 +56,23 @@ if (sr_request_method() === 'POST') {
             }
             $values['mode'] = 'full';
             $newJobId = sr_community_board_copy_job_create($pdo, $boardId, $values, (int) $account['id']);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community_board.copy_job_created',
+                'target_type' => 'community_board_copy_job',
+                'target_id' => (string) $newJobId,
+                'result' => 'success',
+                'message' => 'Community board copy job created.',
+                'metadata' => [
+                    'source_board_id' => $boardId,
+                    'counts' => $copyCounts,
+                    'batch' => true,
+                    'failed_count' => 0,
+                    'load_grade' => (string) $loadAssessment['grade'],
+                    'confirmation_checked' => true,
+                ],
+            ]);
             sr_redirect('/admin/community/board-copy-jobs?id=' . (string) $newJobId);
         }
         $newBoardId = sr_community_copy_board($pdo, $boardId, $values, (int) $account['id']);
@@ -60,6 +87,11 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'source_board_id' => $boardId,
                 'mode' => (string) $values['mode'],
+                'counts' => $copyCounts,
+                'batch' => false,
+                'failed_count' => 0,
+                'load_grade' => (string) $loadAssessment['grade'],
+                'confirmation_checked' => true,
             ],
         ]);
         $_SESSION['sr_community_admin_notice'] = '게시판 복사본을 만들었습니다.';

@@ -543,6 +543,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($communitySettingsPage === 'levels') { ?>
 <?php $communityLevelEnabled = !empty($settings['level_enabled']); ?>
 <?php $communityLevelRecalculateModalId = 'community-level-recalculate-confirm-modal'; ?>
+<?php $communityLevelRecalculateTargetCount = sr_community_recalculate_target_account_count($pdo); ?>
+<?php $communityLevelRecalculateLoad = sr_admin_high_load_assessment([
+    'target_records' => $communityLevelRecalculateTargetCount,
+    'table_count' => 4,
+    'batch_available' => true,
+]); ?>
 <?php if (!$communityLevelEnabled) { ?>
     <div class="admin-notice">
         <span class="admin-notice-icon" aria-hidden="true">i</span>
@@ -639,6 +645,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div data-community-level-recalculate-step="notice">
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_1')); ?></p>
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_2')); ?></p>
+                    <dl class="admin-meta-list">
+                        <dt><?php echo sr_e('부하 등급'); ?></dt>
+                        <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['label']); ?></dd>
+                        <dt><?php echo sr_e('처리 대상'); ?></dt>
+                        <dd><?php echo sr_e('활성/대기 회원 ' . number_format($communityLevelRecalculateTargetCount) . '명'); ?></dd>
+                        <dt><?php echo sr_e('중단/실패 시 상태'); ?></dt>
+                        <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['failure_state']); ?></dd>
+                        <dt><?php echo sr_e('권장 실행 시점'); ?></dt>
+                        <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['recommended_time']); ?></dd>
+                        <dt><?php echo sr_e('기록 위치'); ?></dt>
+                        <dd><?php echo sr_e('완료 결과는 감사 로그 community.levels.recalculated metadata에 대상 수와 배치 정보를 남깁니다.'); ?></dd>
+                    </dl>
                 </div>
                 <div data-community-level-recalculate-step="text" hidden>
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_text_help', ['text' => sr_t('community::ui.level_recalculate_confirmation_text')])); ?></p>

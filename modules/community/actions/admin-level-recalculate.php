@@ -25,6 +25,23 @@ if (empty($settings['level_enabled'])) {
 
 $confirmationText = sr_post_string('recalculate_confirm_text', 40);
 if (sr_post_string('recalculate_confirmed', 1) !== '1' || $confirmationText !== sr_t('community::ui.level_recalculate_confirmation_text')) {
+    sr_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'admin',
+        'event_type' => 'community.levels.recalculate_confirmation_failed',
+        'target_type' => 'module',
+        'target_id' => 'community',
+        'result' => 'failure',
+        'message' => 'Community level recalculation confirmation failed.',
+        'metadata' => [
+            'confirmation_checked' => false,
+            'load_grade' => sr_admin_high_load_assessment([
+                'target_records' => sr_community_recalculate_target_account_count($pdo),
+                'table_count' => 4,
+                'batch_available' => true,
+            ])['grade'],
+        ],
+    ]);
     http_response_code(422);
     echo json_encode([
         'ok' => false,
@@ -43,6 +60,11 @@ $batchSize = max(1, min(100, $batchSize));
 $processedTotal = max(0, min(1000000000, $processedTotal));
 
 $total = sr_community_recalculate_target_account_count($pdo);
+$loadAssessment = sr_admin_high_load_assessment([
+    'target_records' => $total,
+    'table_count' => 4,
+    'batch_available' => true,
+]);
 $summary = sr_community_recalculate_account_levels_batch($pdo, $cursor, $batchSize, $settings);
 $processed = (int) ($summary['accounts'] ?? 0);
 $processedTotal += $processed;
@@ -62,6 +84,10 @@ if ($done) {
             'total' => $total,
             'batch_size' => $batchSize,
             'next_cursor' => (int) ($summary['next_cursor'] ?? $cursor),
+            'failed_count' => 0,
+            'batch' => true,
+            'load_grade' => (string) $loadAssessment['grade'],
+            'confirmation_checked' => true,
         ],
     ]);
 }

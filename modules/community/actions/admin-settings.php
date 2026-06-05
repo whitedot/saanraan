@@ -557,9 +557,32 @@ if (sr_request_method() === 'POST') {
         if (empty($settings['level_enabled'])) {
             $errors[] = sr_t('community::action.admin.level_recalculate_disabled');
         } elseif (sr_post_string('recalculate_confirmed', 1) !== '1' || sr_post_string('recalculate_confirm_text', 40) !== sr_t('community::ui.level_recalculate_confirmation_text')) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.levels.recalculate_confirmation_failed',
+                'target_type' => 'module',
+                'target_id' => 'community',
+                'result' => 'failure',
+                'message' => 'Community level recalculation confirmation failed.',
+                'metadata' => [
+                    'confirmation_checked' => false,
+                    'load_grade' => sr_admin_high_load_assessment([
+                        'target_records' => sr_community_recalculate_target_account_count($pdo),
+                        'table_count' => 4,
+                        'batch_available' => true,
+                    ])['grade'],
+                ],
+            ]);
             $errors[] = sr_t('community::action.admin.level_recalculate_confirmation_required');
         } else {
             $summary = sr_community_recalculate_recent_account_levels($pdo, 200);
+            $total = sr_community_recalculate_target_account_count($pdo);
+            $loadAssessment = sr_admin_high_load_assessment([
+                'target_records' => $total,
+                'table_count' => 4,
+                'batch_available' => true,
+            ]);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
@@ -568,7 +591,13 @@ if (sr_request_method() === 'POST') {
                 'target_id' => 'community',
                 'result' => 'success',
                 'message' => 'Community levels recalculated.',
-                'metadata' => $summary,
+                'metadata' => array_merge($summary, [
+                    'total' => $total,
+                    'failed_count' => 0,
+                    'batch' => false,
+                    'load_grade' => (string) $loadAssessment['grade'],
+                    'confirmation_checked' => true,
+                ]),
             ]);
             $notice = sr_t('community::action.admin.levels_recalculated', ['accounts' => (string) ($summary['accounts'] ?? 0)]);
         }

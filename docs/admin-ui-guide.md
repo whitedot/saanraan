@@ -6,6 +6,8 @@
 
 공개 레이아웃의 사이트 메뉴 연결은 고정 위치명이 아니라 슬롯명으로 표시한다. 예를 들어 `layout_primary_menu_key`와 `site_menus.primary`는 호환을 위해 유지하되 label은 `주 메뉴 슬롯`으로 두고, 실제 출력 위치가 레이아웃마다 달라질 수 있음을 도움말에 적는다. 사용 안 함 선택 시 모듈 fallback이 표시되는 화면은 fallback 기준도 같은 도움말에 적는다.
 
+데이터량에 따라 부하가 달라지는 작업은 `주의`, `높음`, `매우 높음` 등급으로 안내한다. 등급 판단에는 대상 레코드 수, 관련 테이블 수, 파일 저장소 작업 수, 외부 저장소 호출, 긴 트랜잭션 가능성, 실패 시 롤백/재시도 가능성을 함께 반영한다. 실행 전 화면 또는 모달에는 처리 대상 수, 영향을 받는 데이터, DB/파일/외부 저장소 부하 성격, 권장 실행 시점, 중단/실패 시 상태, 취소/되돌리기 가능 여부, 감사 로그나 작업 목록 기록 위치를 표시한다. `높음` 이상 작업은 확인 문구 입력, dry-run/사전 계산, 배치 실행, 진행률 표시 중 하나 이상을 적용하고, 확인 문구나 hidden 확인값은 서버 POST에서 다시 검증한다. 작업 완료/실패/부분 완료는 화면 피드백과 감사 로그 metadata에 대상 수, 성공/실패 수, 배치 여부, 부하 등급, 확인 검증 결과를 남긴다.
+
 - `assets/tokens.css`: 공개 런타임에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다.
 - `modules/admin/assets/tokens.css`: 관리자 런타임에서 재사용할 `--color-*`, `--spacing`, 타이포그래피, 반경, 그림자 토큰을 둔다. 공개 토큰 파일과 공유하지 않는다.
 - `assets/icons.css`: 프로젝트 기본 아이콘셋인 Google Material Symbols Outlined와 `.sr-icon` 표시 규칙을 둔다. 폰트 CSS는 PHP stylesheet helper가 Google Fonts CDN에서 호출하고, CDN이 막히는 환경을 위해 번들 폰트 `assets/fonts/material-symbols-outlined.ttf`를 fallback으로 둔다.

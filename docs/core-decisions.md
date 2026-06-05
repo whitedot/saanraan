@@ -616,6 +616,12 @@ modules/community/themes/basic/home.php
 modules/community/skins/basic/list.php
 ```
 
+## 17. 고부하 관리자 작업은 사전 영향 안내와 서버 재검증을 갖춘다
+
+대량 재계산, 복사, 삭제, 저장소 정리, 전체/그룹 적용처럼 데이터량에 따라 실행 시간이 길어질 수 있는 관리자 작업은 실행 전 대상 수와 영향 범위를 보여줍니다. 공통 등급은 `주의`, `높음`, `매우 높음`으로 나누고, 판단에는 대상 레코드 수, 관련 테이블 수, 파일 저장소 작업 수, 외부 저장소 호출, 긴 트랜잭션 가능성, 실패 시 롤백/재시도 가능성을 함께 사용합니다.
+
+`높음` 이상 작업은 HTML confirm이나 disabled 버튼만으로 보호하지 않고 확인 문구 입력, dry-run/사전 계산, 배치 실행, 진행률 표시 중 하나 이상을 적용합니다. 서버 POST는 CSRF/권한과 함께 확인 문구 또는 확인값을 다시 검증하고, 실행 직전 대상 수를 다시 계산합니다. 완료/실패/부분 완료 결과는 화면 피드백과 감사 로그 metadata 또는 배치 작업 테이블에 대상 수, 성공/실패 수, 배치 여부, 부하 등급, 확인 검증 결과를 남깁니다.
+
 DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `layout_key`, `theme_key`, `skin_key` 같은 key만 저장합니다. 공개 레이아웃 key는 `common.basic`, `content.basic`, `community.basic`처럼 provider namespace를 포함하며, 실제 파일 경로는 코드의 allowlist helper와 `layout-options.php` 계약이 결정합니다. 기존 `basic` 값은 `common.basic`으로 정규화합니다. 알 수 없는 사이트 공통 레이아웃 key는 `common.basic`으로 fallback하고, 커뮤니티 홈이나 콘텐츠처럼 화면별 레이아웃을 저장하는 모듈은 저장값이 없거나 무효이면 사이트 공통 레이아웃을 먼저 사용한 뒤 기본 공통 레이아웃으로 fallback합니다.
 
 사이트 공통 레이아웃, 커뮤니티 홈 레이아웃, 콘텐츠 공개 레이아웃은 같은 레이아웃 option registry에서 고릅니다. 콘텐츠와 커뮤니티 공개 화면은 각 모듈 환경설정의 레이아웃 key를 메인, 그룹/게시판, 상세 같은 하위 화면 전체에 적용합니다. 과거 콘텐츠별/그룹별 `layout_key` 저장값은 입력 기본값과 revision 호환 기록으로 남길 수 있지만, 공개 렌더링의 header/footer 레이아웃 선택은 모듈 환경설정이 우선합니다. 모듈별 세부 목록/상세/작성 화면의 본문 구성은 계속 해당 모듈의 theme/skin 책임으로 둡니다.

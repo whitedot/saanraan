@@ -5,6 +5,16 @@ $adminPageSubtitle = '게시판 설정 또는 운영 데이터를 새 disabled �
 $adminContainerClass = 'admin-community-board-form admin-ui-scope';
 $communityBoardCopySeriesSuggestions = sr_community_board_copy_series_suggestions($pdo, (int) $sourceBoard['id']);
 $communityBoardCopyStorageWarnings = sr_community_board_copy_storage_warnings($copyCounts);
+$communityBoardCopyModeIncludesData = (string) ($values['mode'] ?? 'settings') === 'full';
+$communityBoardCopyTargetRecords = $communityBoardCopyModeIncludesData
+    ? (int) $copyCounts['posts'] + (int) $copyCounts['comments'] + (int) $copyCounts['attachments'] + (int) ($copyCounts['series'] ?? 0)
+    : 1;
+$communityBoardCopyLoad = sr_admin_high_load_assessment([
+    'target_records' => $communityBoardCopyTargetRecords,
+    'file_operations' => $communityBoardCopyModeIncludesData ? (int) $copyCounts['attachments'] : 0,
+    'table_count' => $communityBoardCopyModeIncludesData ? 5 : 2,
+    'batch_available' => $batchAvailable,
+]);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -24,6 +34,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </dd>
             <dt><?php echo sr_e('복사 상태'); ?></dt>
             <dd><?php echo sr_e('복사본 게시판은 disabled로 저장됩니다. 신고, 스크랩, 자산 로그, 알림은 복사하지 않습니다. 시리즈는 아래 선택지를 켠 경우에만 새 사본으로 복사합니다.'); ?></dd>
+            <dt><?php echo sr_e('부하 등급'); ?></dt>
+            <dd><?php echo sr_e((string) $communityBoardCopyLoad['label']); ?></dd>
+            <dt><?php echo sr_e('중단/실패 시 상태'); ?></dt>
+            <dd><?php echo sr_e((string) $communityBoardCopyLoad['failure_state']); ?></dd>
+            <dt><?php echo sr_e('권장 실행 시점'); ?></dt>
+            <dd><?php echo sr_e((string) $communityBoardCopyLoad['recommended_time']); ?></dd>
+            <dt><?php echo sr_e('기록 위치'); ?></dt>
+            <dd><?php echo sr_e('동기 복사는 감사 로그 community_board.copied metadata에 대상 수와 부하 등급을 남기고, 배치 복사는 작업 목록에 진행/실패/정리 상태를 남깁니다.'); ?></dd>
         </dl>
         <?php if ($limitErrors !== []) { ?>
             <div class="alert alert-warning">
