@@ -33,7 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php if ($batchAvailable) { ?>
                     <p><?php echo sr_e('상한 초과 게시판은 배치 복사 작업으로 나누어 처리할 수 있습니다.'); ?></p>
                 <?php } else { ?>
-                    <p><?php echo sr_e('첨부파일 저장소 또는 원본 파일 상태를 먼저 정리한 뒤 다시 시도하세요.'); ?></p>
+                    <p><?php echo sr_e('위 차단 사유를 먼저 정리한 뒤 다시 시도하세요.'); ?></p>
                 <?php } ?>
             </div>
         <?php } ?>
