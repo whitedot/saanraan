@@ -2282,6 +2282,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
 function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 0): int
 {
     $values = sr_content_normalize_asset_values($values);
+    if (sr_link_card_token_rejection_errors((string) ($values['body_text'] ?? '')) !== []) {
+        throw new InvalidArgumentException('링크 카드 토큰은 콘텐츠 본문에 저장할 수 없습니다.');
+    }
+
     $now = sr_now();
     $pdo->beginTransaction();
 
