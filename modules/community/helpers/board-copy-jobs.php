@@ -475,20 +475,32 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
         if ($authorSnapshotColumnSql !== '') {
             $params['author_public_name_snapshot'] = (string) ($post['author_public_name_snapshot'] ?? '');
         }
-        $insert->execute($params);
-        $newPostId = (int) $pdo->lastInsertId();
-        if ((string) ($post['body_format'] ?? 'plain') === 'html') {
-            $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text']);
-            if ($bodyText !== (string) $post['body_text']) {
-                $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
-                    'body_text' => $bodyText,
-                    'updated_at' => (string) $post['updated_at'],
-                    'id' => $newPostId,
-                ]);
+        $createdBodyFiles = [];
+        $newPostId = 0;
+        $pdo->beginTransaction();
+        try {
+            $insert->execute($params);
+            $newPostId = (int) $pdo->lastInsertId();
+            if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+                $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text'], $createdBodyFiles);
+                if ($bodyText !== (string) $post['body_text']) {
+                    $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                        'body_text' => $bodyText,
+                        'updated_at' => (string) $post['updated_at'],
+                        'id' => $newPostId,
+                    ]);
+                }
             }
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newPostId, 'copied');
+            $pdo->commit();
+            $processed++;
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            sr_community_cleanup_storage_file_refs($pdo, $createdBodyFiles, 'body_file_clone_rollback', isset($newPostId) ? (int) $newPostId : 0, '게시판 복사 실패 후 본문 이미지 저장소 정리에 실패했습니다.');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', $exception->getMessage());
         }
-        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newPostId, 'copied');
-        $processed++;
     }
 
     return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'post', 'comments', $processed);

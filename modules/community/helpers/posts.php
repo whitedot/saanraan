@@ -599,41 +599,60 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status):
 
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
 {
-    $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
-        ? (string) $values['body_format']
-        : 'plain';
-    $bodyText = trim((string) $values['body_text']);
-    if ($bodyFormat === 'html') {
-        $bodyText = sr_community_finalize_body_files($pdo, $postId, $bodyText, $accountId, false);
+    if ($pdo->inTransaction()) {
+        throw new RuntimeException('게시글 본문 이미지를 포함한 수정은 외부 트랜잭션에서 처리할 수 없습니다.');
     }
-    $categorySupported = sr_community_categories_supported($pdo);
-    $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
-    $stmt = $pdo->prepare(
-        'UPDATE sr_community_posts
-         SET ' . $categorySetSql . '
-             title = :title,
-             body_text = :body_text,
-             body_format = :body_format,
-             updated_at = :updated_at
-         WHERE id = :id'
-    );
-    $params = [
-        'title' => trim((string) $values['title']),
-        'body_text' => $bodyText,
-        'body_format' => $bodyFormat,
-        'updated_at' => sr_now(),
-        'id' => $postId,
-    ];
-    if ($categorySupported) {
-        $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
+
+    $createdBodyFiles = [];
+    $finalizedTmpFiles = [];
+    $pdo->beginTransaction();
+
+    try {
+        $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
+            ? (string) $values['body_format']
+            : 'plain';
+        $bodyText = trim((string) $values['body_text']);
+        if ($bodyFormat === 'html') {
+            $bodyText = sr_community_finalize_body_files($pdo, $postId, $bodyText, $accountId, false, $createdBodyFiles, $finalizedTmpFiles);
+        }
+        $categorySupported = sr_community_categories_supported($pdo);
+        $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_posts
+             SET ' . $categorySetSql . '
+                 title = :title,
+                 body_text = :body_text,
+                 body_format = :body_format,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $params = [
+            'title' => trim((string) $values['title']),
+            'body_text' => $bodyText,
+            'body_format' => $bodyFormat,
+            'updated_at' => sr_now(),
+            'id' => $postId,
+        ];
+        if ($categorySupported) {
+            $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
+        }
+        $stmt->execute($params);
+        sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $accountId);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        sr_community_cleanup_storage_file_refs($pdo, $createdBodyFiles, 'body_file_update_rollback', $postId, '게시글 수정 실패 후 본문 이미지 저장소 정리에 실패했습니다.');
+        throw $exception;
     }
-    $stmt->execute($params);
+
     if ($bodyFormat === 'html') {
+        sr_community_cleanup_storage_file_refs($pdo, $finalizedTmpFiles, 'body_file_tmp_finalized', $postId, '게시글 수정 후 임시 본문 이미지 정리에 실패했습니다.');
         sr_community_cleanup_unreferenced_body_files($pdo, $postId, $bodyText);
     } else {
         sr_community_cleanup_unreferenced_body_files($pdo, $postId, '');
     }
-    sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $accountId);
 }
 
 function sr_community_account_can_edit_post(array $post, array $account): bool
@@ -1087,6 +1106,10 @@ function sr_community_validate_post_input(array $values): array
 
 function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, array $values): int
 {
+    if ($pdo->inTransaction()) {
+        throw new RuntimeException('게시글 본문 이미지를 포함한 작성은 외부 트랜잭션에서 처리할 수 없습니다.');
+    }
+
     $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html'], true)
         ? (string) $values['body_format']
         : 'plain';
@@ -1118,16 +1141,15 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     if ($authorSnapshotColumnSql !== '') {
         $params['author_public_name_snapshot'] = sr_community_author_public_name_snapshot($pdo, $authorAccountId);
     }
-    $startedTransaction = !$pdo->inTransaction();
-    if ($startedTransaction) {
-        $pdo->beginTransaction();
-    }
+    $pdo->beginTransaction();
 
+    $createdBodyFiles = [];
+    $finalizedTmpFiles = [];
     try {
         $stmt->execute($params);
         $postId = (int) $pdo->lastInsertId();
         if ($bodyFormat === 'html') {
-            $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $authorAccountId);
+            $finalBodyText = sr_community_finalize_body_files($pdo, $postId, trim((string) $values['body_text']), $authorAccountId, true, $createdBodyFiles, $finalizedTmpFiles);
             if ($finalBodyText !== trim((string) $values['body_text'])) {
                 $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                     'body_text' => $finalBodyText,
@@ -1137,15 +1159,15 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
             }
         }
         sr_link_card_reconcile_table($pdo, 'sr_community_link_refs', 'post_id', $postId, [], $authorAccountId);
-        if ($startedTransaction) {
-            $pdo->commit();
-        }
+        $pdo->commit();
+        sr_community_cleanup_storage_file_refs($pdo, $finalizedTmpFiles, 'body_file_tmp_finalized', $postId, '게시글 작성 후 임시 본문 이미지 정리에 실패했습니다.');
 
         return $postId;
     } catch (Throwable $exception) {
-        if ($startedTransaction && $pdo->inTransaction()) {
+        if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
+        sr_community_cleanup_storage_file_refs($pdo, $createdBodyFiles, 'body_file_create_rollback', isset($postId) ? (int) $postId : 0, '게시글 작성 실패 후 본문 이미지 저장소 정리에 실패했습니다.');
         throw $exception;
     }
 }

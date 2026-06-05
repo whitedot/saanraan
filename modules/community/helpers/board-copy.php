@@ -397,7 +397,7 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
         $insertPost->execute($params);
         $newPostId = (int) $pdo->lastInsertId();
         if ((string) ($post['body_format'] ?? 'plain') === 'html') {
-            $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text']);
+            $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text'], $createdFiles);
             if ($bodyText !== (string) $post['body_text']) {
                 $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                     'body_text' => $bodyText,

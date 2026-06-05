@@ -195,7 +195,7 @@ function sr_community_body_file_ref_from_url(string $url): ?array
     return $postId > 0 ? ['type' => 'post', 'post_id' => $postId, 'file' => $fileName] : null;
 }
 
-function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, int $accountId, bool $cleanupUnreferenced = true): string
+function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, int $accountId, bool $cleanupUnreferenced = true, ?array &$createdFiles = null, ?array &$finalizedTmpFiles = null): string
 {
     unset($accountId);
     if ($postId < 1 || $html === '') {
@@ -219,10 +219,15 @@ function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, i
         }
         try {
             sr_storage_copy('local', $sourceKey, $targetKey, ['overwrite' => true]);
-            sr_storage_delete('local', $sourceKey);
         } catch (Throwable $exception) {
             sr_community_record_storage_cleanup_failure($pdo, 'body_file_finalize', $postId, 'local', $sourceKey, $exception->getMessage());
             throw new RuntimeException('본문 이미지 저장을 완료할 수 없습니다.');
+        }
+        if (is_array($createdFiles)) {
+            $createdFiles[] = ['driver' => 'local', 'key' => $targetKey];
+        }
+        if (is_array($finalizedTmpFiles)) {
+            $finalizedTmpFiles[] = ['driver' => 'local', 'key' => $sourceKey];
         }
         $oldUrl = sr_community_body_file_tmp_proxy_url($token, $fileName);
         $newUrl = sr_community_body_file_post_proxy_url($postId, $fileName);
@@ -239,7 +244,7 @@ function sr_community_finalize_body_files(PDO $pdo, int $postId, string $html, i
     return $html;
 }
 
-function sr_community_clone_body_files(PDO $pdo, int $sourcePostId, int $targetPostId, string $html): string
+function sr_community_clone_body_files(PDO $pdo, int $sourcePostId, int $targetPostId, string $html, ?array &$createdFiles = null): string
 {
     if ($sourcePostId < 1 || $targetPostId < 1 || $sourcePostId === $targetPostId || $html === '') {
         return $html;
@@ -262,6 +267,9 @@ function sr_community_clone_body_files(PDO $pdo, int $sourcePostId, int $targetP
             sr_community_record_storage_cleanup_failure($pdo, 'body_file_clone', $targetPostId, 'local', $sourceKey, $exception->getMessage());
             throw new RuntimeException('게시글 본문 이미지 복사를 완료할 수 없습니다.');
         }
+        if (is_array($createdFiles)) {
+            $createdFiles[] = ['driver' => 'local', 'key' => $targetKey];
+        }
         $oldUrl = sr_community_body_file_post_proxy_url($sourcePostId, $fileName);
         $newUrl = sr_community_body_file_post_proxy_url($targetPostId, $fileName);
         $replacements[$oldUrl] = $newUrl;
@@ -269,6 +277,29 @@ function sr_community_clone_body_files(PDO $pdo, int $sourcePostId, int $targetP
     }
 
     return $replacements === [] ? $html : strtr($html, $replacements);
+}
+
+function sr_community_cleanup_storage_file_refs(PDO $pdo, array $files, string $sourceType, int $sourceId, string $errorMessage): void
+{
+    $seen = [];
+    foreach ($files as $file) {
+        if (!is_array($file)) {
+            continue;
+        }
+        $driver = (string) ($file['driver'] ?? '');
+        $key = (string) ($file['key'] ?? '');
+        if ($driver === '' || $key === '') {
+            continue;
+        }
+        $dedupeKey = $driver . ':' . $key;
+        if (isset($seen[$dedupeKey])) {
+            continue;
+        }
+        $seen[$dedupeKey] = true;
+        if (!sr_storage_delete($driver, $key)) {
+            sr_community_record_storage_cleanup_failure($pdo, $sourceType, $sourceId, $driver, $key, $errorMessage);
+        }
+    }
 }
 
 function sr_community_cleanup_unreferenced_body_files(PDO $pdo, int $postId, string $html): void
