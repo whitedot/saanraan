@@ -153,7 +153,7 @@ php .tools/bin/smoke-community-auth.php
 
 - 발급/사용 이력이 있는 쿠폰 정의를 비활성화할 때 서버가 최신 `coupon-references.php` 결과로 차단한다.
 - 콘텐츠나 커뮤니티 설정에서 직접 선택한 배너/팝업레이어가 있으면 해당 배너/팝업레이어 삭제 POST가 차단된다.
-- 적립금/예치금/콘텐츠/커뮤니티/회원 자동 규칙에서 쓰는 회원 그룹은 비활성 또는 보관 상태로 바꾸는 POST가 차단된다.
+- 적립금/예치금/콘텐츠/커뮤니티/회원 자동 규칙에서 쓰는 enabled 회원 그룹은 비활성 또는 보관 상태로 바꾸는 POST가 차단된다.
 - SEO 설정이나 로고 alt text에 기존 사이트명이 직접 들어 있으면 사이트명 변경 POST가 차단된다.
 - `php .tools/bin/check-read-reference-contracts.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
 

@@ -60,6 +60,81 @@ function sr_read_reference_check_entries(array $contract): array
     return $contract;
 }
 
+function sr_read_reference_check_callable_signature(string $path, string $functionKey, string $functionName): void
+{
+    $expectedParameterCounts = [
+        'count_function' => 3,
+        'rows_function' => 3,
+        'health_function' => 4,
+        'admin_url_function' => 2,
+    ];
+    if (!isset($expectedParameterCounts[$functionKey]) || !function_exists($functionName)) {
+        return;
+    }
+
+    $reflection = new ReflectionFunction($functionName);
+    $expected = $expectedParameterCounts[$functionKey];
+    if ($reflection->getNumberOfRequiredParameters() > $expected || $reflection->getNumberOfParameters() < $expected) {
+        sr_read_reference_check_error('read reference callable signature mismatch: ' . $path . ' ' . $functionKey . ' ' . $functionName);
+    }
+}
+
+function sr_read_reference_check_forbidden_owner_writes(string $root): void
+{
+    $rules = [
+        'coupon' => [
+            'sr_quiz_',
+            'sr_content_',
+            'sr_community_',
+            'sr_commerce_',
+        ],
+        'banner' => [
+            'sr_content_',
+            'sr_community_',
+            'sr_site_menu_',
+        ],
+        'popup_layer' => [
+            'sr_content_',
+            'sr_community_',
+            'sr_site_menu_',
+        ],
+        'member' => [
+            'sr_reward_',
+            'sr_deposit_',
+            'sr_content_',
+            'sr_community_',
+            'sr_asset_exchange_',
+        ],
+        'admin' => [
+            'sr_seo_',
+            'sr_logo_manager_',
+        ],
+    ];
+
+    foreach ($rules as $moduleKey => $forbiddenPrefixes) {
+        $moduleDir = $root . '/modules/' . $moduleKey;
+        if (!is_dir($moduleDir)) {
+            continue;
+        }
+
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($moduleDir, FilesystemIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            if (!$file instanceof SplFileInfo || $file->getExtension() !== 'php') {
+                continue;
+            }
+            $contents = file_get_contents($file->getPathname());
+            if (!is_string($contents)) {
+                continue;
+            }
+            foreach ($forbiddenPrefixes as $prefix) {
+                if (preg_match('/\b(?:UPDATE|DELETE\s+FROM)\s+`?' . preg_quote($prefix, '/') . '[a-z0-9_]*`?/i', $contents) === 1) {
+                    sr_read_reference_check_error('read reference owner must not write consumer policy table directly: ' . $file->getPathname() . ' ' . $prefix);
+                }
+            }
+        }
+    }
+}
+
 $readReferenceFiles = array_keys(sr_read_reference_contract_files());
 $expectedConsumers = [
     'coupon' => ['coupon-references.php'],
@@ -101,6 +176,19 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 sr_read_reference_check_error('read reference consumer_module_key must match module: ' . $path);
             }
 
+            $expectedTargetType = (string) (sr_read_reference_contract_files()[$contractFile] ?? '');
+            $supportsTargetTypes = $entry['supports_target_types'] ?? null;
+            if (!is_array($supportsTargetTypes) || $supportsTargetTypes === []) {
+                sr_read_reference_check_error('read reference entry requires supports_target_types: ' . $path);
+            } else {
+                foreach ($supportsTargetTypes as $targetType) {
+                    $targetType = (string) $targetType;
+                    if ($targetType !== $expectedTargetType) {
+                        sr_read_reference_check_error('read reference supports_target_types must match contract target type: ' . $path . ' ' . $targetType);
+                    }
+                }
+            }
+
             foreach (['label', 'reference_type', 'count_function', 'rows_function', 'health_function', 'admin_url_function'] as $requiredKey) {
                 if (!is_string($entry[$requiredKey] ?? null) || trim((string) $entry[$requiredKey]) === '') {
                     sr_read_reference_check_error('read reference entry requires ' . $requiredKey . ': ' . $path);
@@ -128,7 +216,9 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 $functionName = (string) ($entry[$functionKey] ?? '');
                 if ($functionName !== '' && !function_exists($functionName)) {
                     sr_read_reference_check_error('read reference callable does not exist: ' . $path . ' ' . $functionName);
+                    continue;
                 }
+                sr_read_reference_check_callable_signature($path, $functionKey, $functionName);
             }
         }
     }
@@ -154,6 +244,12 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 }
                 if (!function_exists($functionName)) {
                     sr_read_reference_check_error('coupon-targets optional callable does not exist: ' . $moduleDir . ' ' . $functionName);
+                    continue;
+                }
+                $reflection = new ReflectionFunction($functionName);
+                $expectedParameterCount = $optionalKey === 'health_function' ? 3 : 2;
+                if ($reflection->getNumberOfRequiredParameters() > $expectedParameterCount || $reflection->getNumberOfParameters() < $expectedParameterCount) {
+                    sr_read_reference_check_error('coupon-targets optional callable signature mismatch: ' . $moduleDir . ' ' . $functionName);
                 }
             }
         }
@@ -169,6 +265,8 @@ foreach ($expectedConsumers as $moduleKey => $contractFiles) {
         }
     }
 }
+
+sr_read_reference_check_forbidden_owner_writes($root);
 
 if ($errors !== []) {
     fwrite(STDERR, "read reference contract checks failed:\n");

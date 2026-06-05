@@ -266,23 +266,20 @@ target은 `target_type=member_group`, `target_id=group_id`, `target_key=group_ke
 - 실제 계약 파일을 제공하는 모듈이 `contracts.provides`에 선언했는지 확인
 - 계약을 읽는 소유 모듈이 `contracts.consumes`에 선언했는지 확인
 - 계약 반환값이 배열인지 확인
-- `count_function`, `rows_function`, `health_function`, `admin_url_function` callable 확인
+- `count_function`, `rows_function`, `health_function`, `admin_url_function` callable 존재와 인자 수 확인
 - `supports_target_types`가 배열이며 허용 target과 충돌하지 않는지 확인
-- 최종 row 필수 필드 확인
-- status가 `ok`, `stale`, `disabled_target`, `missing_target`, `unknown` 중 하나인지 확인
-- `admin_url`이 내부 상대 URL인지 확인
+- 최종 row 필수 필드, status 허용값, `admin_url` 내부 상대 URL 검증은 런타임 공통 helper `sr_read_reference_collect()`가 참조 현황 표시와 POST 재검증 시 수행한다.
 - 계약 로딩은 활성 모듈만 대상으로 한다는 기준 확인
 - 새 5종 읽기 참조 계약 파일 검사는 `coupon-references.php` 등 대상별 계약 파일에 적용하고, 기존 `coupon-targets.php` 선택 확장 검사는 별도 호환성 검사로 분리
 - 쿠폰 target 상태 판정 callable을 `coupon-targets.php`에 선택 확장하면 해당 파일의 기존 `search_function`, `revoke_access_function` 호환성을 깨지 않는지 확인
-- `coupon-targets.php`의 `health_function`, `admin_url_function`은 선택 필드로 검사하고, 존재할 때만 callable 형식과 내부 상대 관리자 URL 기준을 확인
+- `coupon-targets.php`의 `health_function`, `admin_url_function`은 선택 필드로 검사하고, 존재할 때만 callable 존재와 인자 수를 확인한다.
 
-정적 검사 후보:
+정적 검사:
 
 - 소유 모듈 action/helper에서 소비 모듈 정책 테이블을 직접 update/delete하는 패턴
 - 사이트명 변경 action에서 소비 모듈 설정값을 자동 치환하는 패턴
-- 비활성 모듈 테이블을 읽기 참조 계약으로 임의 스캔하는 패턴
 
-정적 검사 후보는 SQL 문자열 오탐 가능성이 있으므로 처음에는 경고성 검사로 시작한다. 검사 결과를 차단으로 승격할 때는 허용 예외와 실제 오탐 사례를 먼저 정리한다.
+정적 검사는 읽기 참조 계약 소유 모듈별로 금지된 소비 테이블 prefix의 `UPDATE`/`DELETE FROM` SQL을 차단한다. 비활성 모듈 테이블을 읽기 참조 계약으로 임의 스캔하는 패턴은 계약 로딩 helper의 활성 모듈 필터와 수동 리뷰로 함께 확인한다.
 
 ## 스모크 기준
 
