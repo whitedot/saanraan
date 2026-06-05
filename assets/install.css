@@ -464,7 +464,48 @@
 
 .sr-install-field-grid input,
 .sr-install-field-grid select {
+    border: 1px solid var(--sr-control-border);
+    border-radius: 6px;
+    background: var(--sr-surface);
+    color: var(--sr-text);
+    line-height: 1.5;
+    min-height: 42px;
+    padding: 9px 11px;
     width: 100%;
+}
+
+.sr-install-field-grid input:focus-visible,
+.sr-install-field-grid select:focus-visible,
+.sr-install-actions button:focus-visible,
+.sr-install-step-actions button:focus-visible {
+    outline: 2px solid var(--sr-primary);
+    outline-offset: 2px;
+}
+
+.sr-install-page .form-checkbox {
+    appearance: none;
+    border: 1px solid var(--sr-control-border);
+    border-radius: 4px;
+    background: var(--sr-surface);
+    display: inline-grid;
+    height: 1rem;
+    margin: 0;
+    place-content: center;
+    vertical-align: middle;
+    width: 1rem;
+}
+
+.sr-install-page .form-checkbox:checked {
+    background: var(--sr-primary);
+    border-color: var(--sr-primary);
+}
+
+.sr-install-page .form-checkbox:checked::before {
+    background: var(--sr-on-primary);
+    content: "";
+    height: .625rem;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 5l3 3 7-7'/%3E%3C/svg%3E") center / contain no-repeat;
+    width: .625rem;
 }
 
 .sr-install-help {
@@ -562,11 +603,15 @@
 
 .sr-install-actions button,
 .sr-install-step-actions button {
-    min-width: 140px;
     border-color: var(--sr-primary);
+    border-radius: 999px;
     background: var(--sr-primary);
     color: var(--sr-on-primary);
     font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+    min-height: 42px;
+    min-width: 140px;
+    padding: 10px 18px;
 }
 
 .sr-install-actions button:disabled,

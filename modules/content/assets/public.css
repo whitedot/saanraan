@@ -167,6 +167,50 @@
     width: 100%;
 }
 
+.content-public :is(.btn, button[type="submit"]),
+.content-downloads .btn,
+.content-action-form .btn,
+.content-comments .btn {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: .9375rem;
+    font-weight: 700;
+    gap: 8px;
+    justify-content: center;
+    line-height: 1.2;
+    min-height: 42px;
+    padding: 10px 18px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.content-public :is(.btn-solid-primary, .btn-solid-success) {
+    background: #242424;
+    color: #ffffff;
+}
+
+.content-public .btn-solid-light {
+    background: #f2f2f2;
+    color: #242424;
+}
+
+.content-public :is(.btn, button[type="submit"]):focus-visible,
+.content-public :is(input, select, textarea):focus-visible {
+    outline: 2px solid #242424;
+    outline-offset: 2px;
+}
+
+.content-comments textarea {
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    color: #242424;
+    line-height: 1.5;
+    padding: 12px;
+}
+
 .content-home,
 .content-group {
     background: #ffffff;

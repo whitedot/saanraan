@@ -148,9 +148,9 @@ modules/board/
 
 CSS class는 범위를 드러내는 이름을 사용한다. 모듈 전용 class는 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용 class는 `{module_key}-skin-{skin_key}-*` 형식을 우선한다. 모듈 skin은 전역 `body`, `a`, `.container`, `.btn`처럼 넓은 선택자를 직접 재정의하지 않고, 필요한 경우 자기 wrapper 아래에서만 스타일을 제한한다.
 
-모듈 CSS에서 제목, 본문, 도움말, 메타, 캡션, 코드 텍스트를 새로 정의해야 할 때는 먼저 공통 역할 class인 `.type-page-title`, `.type-section-title`, `.type-card-title`, `.type-body`, `.type-small`, `.type-meta`, `.type-caption`, `.type-code` 또는 현재 런타임 토큰의 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 값을 사용한다. 공개 런타임은 `assets/tokens.css`, 관리자 런타임은 `modules/admin/assets/tokens.css`를 기준으로 한다. 모듈 고유 CSS에 `.8125rem` 같은 임의 크기나 새 회색값을 반복하기 전에 `/admin/ui-kit`와 `/ui-kit`의 Typography 섹션에서 기존 역할이 맞는지 확인한다.
+모듈 CSS에서 제목, 본문, 도움말, 메타, 캡션, 코드 텍스트를 새로 정의해야 할 때는 먼저 공통 역할 class인 `.type-page-title`, `.type-section-title`, `.type-card-title`, `.type-body`, `.type-small`, `.type-meta`, `.type-caption`, `.type-code` 또는 현재 런타임 토큰의 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 값을 사용한다. 공개 런타임은 `assets/tokens.css`와 `assets/public-foundation.css`, 관리자 런타임은 `modules/admin/assets/tokens.css`와 `modules/admin/assets/common.css`를 기준으로 한다. 모듈 고유 CSS에 `.8125rem` 같은 임의 크기나 새 회색값을 반복하기 전에 `/admin/ui-kit`와 `/ui-kit`의 Typography 섹션에서 기존 역할이 맞는지 확인한다.
 
-모듈 theme나 skin처럼 특정 view 조합에만 전용 CSS가 필요하면 view에서 `sr_public_layout_begin()`의 네 번째 인자로 stylesheet를 요청한다. public layout은 `<head>` 출력만 담당한다. 출력 슬롯처럼 head 렌더링보다 뒤에서 HTML이 만들어지는 공개 모듈 출력도 해당 슬롯을 호출하는 view, skin, theme, public layout이 필요한 stylesheet를 layout context에 명시한다. 공개 CSS는 활성화된 모든 모듈 기준으로 자동 호출하지 않는다.
+모듈 theme나 skin처럼 특정 view 조합에만 전용 CSS가 필요하면 view에서 `sr_public_layout_begin()`의 네 번째 인자로 stylesheet를 요청한다. 공개 layout context의 `style_profile`은 `kit`, `minimal`, `install` 중 하나이며, 콘텐츠/커뮤니티처럼 서비스 표현이 독립적이어야 하는 화면은 `minimal`을 기본으로 사용한다. minimal profile은 `assets/common.css`와 `assets/public-ui.css`를 호출하지 않으므로, 버튼/입력/목록처럼 필요한 컨트롤 표현은 모듈 CSS가 자기 wrapper 아래에서 직접 소유해야 한다. public layout은 `<head>` 출력만 담당한다. 출력 슬롯처럼 head 렌더링보다 뒤에서 HTML이 만들어지는 공개 모듈 출력도 해당 슬롯을 호출하는 view, skin, theme, public layout이 필요한 stylesheet를 layout context에 명시한다. 공개 CSS는 활성화된 모든 모듈 기준으로 자동 호출하지 않는다.
 
 ```php
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [

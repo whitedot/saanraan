@@ -145,6 +145,9 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
+    if (!isset($context['style_profile'])) {
+        $context['style_profile'] = 'minimal';
+    }
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/content/assets/public.css';

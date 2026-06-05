@@ -620,15 +620,16 @@ DB에는 파일 경로를 저장하지 않고 `public_layout_key`, `layout_key`,
 | 범위 | 책임 | 피할 것 |
 | --- | --- | --- |
 | public layout | 문서 골격, 공통 head, 사이트 header/footer, 공통 메뉴, output slot, 전체 폭과 기본 여백 | 게시판 목록, 회원 폼, 상품 카드처럼 모듈 도메인 표시를 직접 소유 |
-| public UI kit | 버튼, 폼, 카드, 테이블, 알림, 페이지네이션 같은 반복 가능한 기본 class | 특정 모듈의 정책이나 화면 흐름을 전제로 한 class |
+| public foundation | 공개 화면의 reset/base, 접근성 helper, 역할 기반 타이포그래피 | 버튼, 폼, 카드, 탭, 테이블처럼 서비스 표현을 바꿀 수 있는 UI primitive |
+| public UI kit | kit profile에서 쓰는 버튼, 폼, 카드, 테이블, 알림, 페이지네이션 같은 반복 가능한 기본 class | 특정 모듈의 정책이나 화면 흐름을 전제로 한 class, 콘텐츠/커뮤니티 minimal profile에 기본 주입 |
 | module theme | 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치 | 특정 게시판/항목의 세부 표시를 모두 흡수 |
 | module skin | 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시 | 사이트 전체 header/footer나 다른 모듈 화면을 변경 |
 | admin skin | 관리자 shell, 사이드바, 상단바, 관리자 공통 asset, 관리자 콘텐츠 컨테이너 | 모듈별 관리자 도메인 정책이나 저장 흐름 |
 | admin view | 각 모듈의 관리자 본문 마크업과 도메인 출력 | 관리자 shell, 전역 navigation, 공통 관리자 asset 선택 |
 
-CSS class는 충돌을 줄이기 위해 책임 범위별 이름을 사용합니다. 공통 아이콘 원형은 `assets/icons.css`가 `.sr-icon`과 Material Symbols 폰트 로딩 상태를 소유하고, 반복 가능한 UI 원형은 관리자에서는 `modules/admin/assets/common.css`, 공개에서는 `assets/common.css`가 각각 `btn`, `card`, `table`, `badge`, `form-*`, `dropdown-*`, `modal-*`, `tab-*` 같은 의미 class로 소유합니다. 관리자 전용은 `admin-*`, 모듈 전용은 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용은 `{module_key}-skin-{skin_key}-*` 형식을 우선합니다. 공통 layout이나 UI kit이 모듈 전용 class를 덮어쓰지 않고, 모듈 skin도 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않습니다.
+CSS class는 충돌을 줄이기 위해 책임 범위별 이름을 사용합니다. 공통 아이콘 원형은 `assets/icons.css`가 `.sr-icon`과 Material Symbols 폰트 로딩 상태를 소유하고, 공개 foundation은 `assets/public-foundation.css`가 reset/base와 `type-*` 역할 class만 소유합니다. 반복 가능한 UI 원형은 관리자에서는 `modules/admin/assets/common.css`, 공개 kit profile에서는 `assets/common.css`가 각각 `btn`, `card`, `table`, `badge`, `form-*`, `dropdown-*`, `modal-*`, `tab-*` 같은 의미 class로 소유합니다. 콘텐츠/커뮤니티처럼 minimal profile을 쓰는 공개 화면은 `assets/common.css`에 의존하지 않고 자기 모듈 CSS가 필요한 컨트롤 표현을 화면 범위 안에서 소유합니다. 관리자 전용은 `admin-*`, 모듈 전용은 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용은 `{module_key}-skin-{skin_key}-*` 형식을 우선합니다. 공통 layout이나 UI kit이 모듈 전용 class를 덮어쓰지 않고, 모듈 skin도 전역 `body`, `a`, `.container`, `.btn` 같은 넓은 선택자를 직접 재정의하지 않습니다.
 
-모듈 theme나 skin에 전용 CSS가 필요하면 `sr_public_layout_begin()`의 layout context에 `stylesheets`를 전달합니다. public layout은 전달받은 stylesheet를 `<head>`에 출력하는 통로만 제공합니다. 출력 슬롯처럼 head 렌더링보다 뒤에서 HTML이 만들어지는 공개 모듈 출력도 해당 슬롯을 호출하는 view, skin, theme, public layout이 필요한 stylesheet를 layout context에 명시합니다. 공개 CSS는 활성화된 모든 모듈 기준으로 자동 호출하지 않습니다.
+모듈 theme나 skin에 전용 CSS가 필요하면 `sr_public_layout_begin()`의 layout context에 `stylesheets`를 전달합니다. 공개 화면은 layout context의 `style_profile`로 `kit`, `minimal`, `install` 중 하나를 선택합니다. 기본 공통/회원 화면은 kit profile을 사용하고, 콘텐츠/커뮤니티 화면은 minimal profile을 기본값으로 삼아 공개 UI kit primitive가 자동으로 섞이지 않게 합니다. public layout은 전달받은 stylesheet를 `<head>`에 출력하는 통로만 제공합니다. 출력 슬롯처럼 head 렌더링보다 뒤에서 HTML이 만들어지는 공개 모듈 출력도 해당 슬롯을 호출하는 view, skin, theme, public layout이 필요한 stylesheet를 layout context에 명시합니다. 공개 CSS는 활성화된 모든 모듈 기준으로 자동 호출하지 않습니다.
 
 모듈 관리자 본문에 전용 CSS가 필요하면 `module.php`의 `admin.stylesheets`에 자기 모듈 `assets/` 아래 CSS를 선언합니다. admin skin은 `assets/icons.css`, `modules/admin/assets/common.css`, `assets/admin-ui.css`, `modules/admin/assets/admin.css` 뒤에 활성 모듈의 선언만 검증해 출력하며, admin 공통 CSS는 모듈 도메인 class를 직접 소유하지 않습니다.
 

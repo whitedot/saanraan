@@ -1,6 +1,6 @@
 /*
  * Saanraan public UI layer.
- * Loaded by public layouts after assets/common.css.
+ * Loaded only by public runtimes that opt into the kit profile, after assets/common.css.
  * Owns reusable public/member-facing combinations inside .public-ui-scope.
  * It may consume --sr-* page tokens when a page provides them and falls back to common --color-* tokens.
  * Do not add admin UI or module-specific screen layout here.

@@ -38,7 +38,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, null); ?>
-    <?php echo sr_stylesheet_tag(['/assets/install.css']); ?>
+    <?php echo sr_stylesheet_tag(['/assets/install.css'], null, ['style_profile' => 'install']); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body class="sr-install-page">

@@ -69,7 +69,7 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 ## 서버별 처리
 
-Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/tokens.css`, `/modules/admin/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다.
+Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/tokens.css`, `/assets/public-foundation.css`, `/modules/admin/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다.
 
 nginx는 PHP-FPM과 front controller 구성을 사용한다. 저장소의 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 운영 서버 설정에 복사한 뒤 `server_name`, `root`, `fastcgi_pass`를 환경에 맞게 바꾼다. `location` 순서는 보안 규칙의 일부이므로 유지한다. 특히 `/modules/{module_key}/assets/`와 CKEditor 공개 파일은 허용하되, 그 밖의 `modules/` 내부 파일은 직접 열리지 않아야 한다.
 
@@ -77,6 +77,7 @@ nginx 적용 후 다음 응답을 확인한다.
 
 ```text
 /assets/tokens.css 정적 CSS 응답
+/assets/public-foundation.css 정적 CSS 응답
 /modules/admin/assets/tokens.css 정적 CSS 응답
 /assets/fonts/material-symbols-outlined.ttf 정적 font/ttf 응답
 /modules/content/assets/public.css 정적 CSS 응답

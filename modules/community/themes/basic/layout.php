@@ -6,6 +6,7 @@ $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
+$layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
 $layoutStylesheets[] = '/modules/community/assets/community-layout.css';
 $layoutSiteMenus = is_array($layoutContext['site_menus'] ?? null) ? $layoutContext['site_menus'] : [];
 $layoutCleanMenuKey = static function (string $value): string {
@@ -62,10 +63,10 @@ $layoutBrandInitial = function_exists('mb_substr') ? mb_substr($layoutBrandIniti
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($layoutSeo, $layoutSite); ?>
     <?php echo $layoutFaviconHtml; ?>
-    <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo); ?>
+    <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
-<body>
+<body class="community-layout-body">
     <header class="community-layout-header">
         <div class="community-layout-header-main">
             <button type="button" class="community-layout-icon-button" aria-label="<?php echo sr_e('메뉴'); ?>">

@@ -527,19 +527,41 @@ function sr_icon_bootstrap_script(): string
     return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"","check").then(y,function(){r.classList.add("sr-material-icons-unavailable")})}else{y()}})();</script>';
 }
 
-function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null): string
+function sr_public_style_profile_paths(string $profile): array
+{
+    $profile = strtolower(trim($profile));
+    if (!in_array($profile, ['minimal', 'kit', 'install'], true)) {
+        $profile = 'kit';
+    }
+
+    $paths = [
+        '/assets/tokens.css',
+        '/assets/icons.css',
+        '/assets/public-foundation.css',
+    ];
+
+    if ($profile === 'kit') {
+        $paths[] = '/assets/common.css';
+        $paths[] = '/assets/public-ui.css';
+    }
+
+    return $paths;
+}
+
+function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null, array $options = []): string
 {
     $tags = [
         '<link rel="preload" as="style" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
         '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>',
         sr_icon_stylesheet_tags(),
-        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/tokens.css')) . '">',
-        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/icons.css')) . '">',
-        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/common.css')) . '">',
-        '<link rel="stylesheet" href="' . sr_e(sr_asset_url('/assets/public-ui.css')) . '">',
     ];
 
+    $profile = is_string($options['style_profile'] ?? null) ? (string) $options['style_profile'] : 'kit';
     $stylesheetPaths = [];
+
+    foreach (sr_public_style_profile_paths($profile) as $stylesheet) {
+        $stylesheetPaths[$stylesheet] = $stylesheet;
+    }
 
     foreach ($stylesheets as $stylesheet) {
         if (!is_string($stylesheet) || !sr_is_safe_relative_url($stylesheet)) {
