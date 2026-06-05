@@ -749,21 +749,32 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
                 require_once $moduleDir . '/' . $helper;
             }
 
+            $functionNamesByKey = [];
+            $functionExistsByKey = [];
+            foreach (['count_function', 'rows_function', 'health_function', 'admin_url_function'] as $functionKey) {
+                $functionName = is_string($entry[$functionKey] ?? null) ? trim((string) $entry[$functionKey]) : '';
+                $functionNamesByKey[$functionKey] = $functionName;
+                $functionExistsByKey[$functionKey] = $functionName !== '' && function_exists($functionName);
+            }
+
             foreach (['count_function', 'rows_function', 'health_function', 'admin_url_function'] as $functionKey) {
                 if (!is_string($entry[$functionKey] ?? null)) {
                     continue;
                 }
-                $functionName = trim((string) $entry[$functionKey]);
-                $functionExists = $functionName !== '' && function_exists($functionName);
+                $functionName = $functionNamesByKey[$functionKey];
+                $functionExists = $functionExistsByKey[$functionKey];
                 if ($functionName !== '' && !$functionExists) {
                     sr_read_reference_check_error('read reference callable does not exist: ' . $path . ' ' . $functionName);
                 }
                 if ($functionExists) {
                     sr_read_reference_check_callable_signature($path, $functionKey, $functionName);
                 }
-                if ($functionKey === 'count_function' && $functionExists) {
-                    $rowsFunctionName = is_string($entry['rows_function'] ?? null) ? trim((string) $entry['rows_function']) : '';
-                    sr_read_reference_check_count_function_source($path, $functionName, $rowsFunctionName);
+                if (
+                    $functionKey === 'count_function'
+                    && $functionExists
+                    && ($functionExistsByKey['rows_function'] ?? false)
+                ) {
+                    sr_read_reference_check_count_function_source($path, $functionName, $functionNamesByKey['rows_function'] ?? '');
                 }
             }
         }
