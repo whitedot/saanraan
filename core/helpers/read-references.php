@@ -339,15 +339,15 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
     if (!sr_is_safe_module_key((string) ($row['consumer_module_key'] ?? '')) || (string) ($row['consumer_module_key'] ?? '') !== $moduleKey) {
         $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
     }
-    $expectedTargetType = sr_read_reference_string_value($target['target_type'] ?? '') ?? '';
+    $expectedTargetType = is_string($target['target_type'] ?? null) ? (string) $target['target_type'] : '';
     if ((string) ($row['target_type'] ?? '') !== $expectedTargetType) {
         $errors[] = 'target_type이 조회 대상과 맞지 않습니다.';
     }
-    $expectedTargetId = sr_read_reference_string_value($target['target_id'] ?? 0) ?? '';
+    $expectedTargetId = sr_read_reference_target_id_value($target['target_id'] ?? null) ?? '';
     if ((string) ($row['target_id'] ?? '') !== $expectedTargetId) {
         $errors[] = 'target_id가 조회 대상과 맞지 않습니다.';
     }
-    $expectedTargetKey = sr_read_reference_string_value($target['target_key'] ?? '') ?? '';
+    $expectedTargetKey = sr_read_reference_target_key_value($target['target_key'] ?? '') ?? '';
     $rowTargetKey = (string) ($row['target_key'] ?? '');
     if (($expectedTargetKey !== '' && $rowTargetKey !== $expectedTargetKey) || ($expectedTargetKey === '' && $rowTargetKey !== '')) {
         $errors[] = 'target_key가 조회 대상과 맞지 않습니다.';

@@ -236,6 +236,19 @@ function sr_read_reference_check_normalize_row_target_samples(): void
     if (is_array($unexpected['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $unexpected['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted unexpected target_key');
     }
+
+    $invalidTargetTypeRow = $baseRow;
+    $invalidTargetTypeRow['target_type'] = 'banner';
+    $invalidTargetTypeRow['target_id'] = '1';
+    unset($invalidTargetTypeRow['target_key']);
+    $invalidTarget = sr_read_reference_normalize_row('sample_module', $entry, [
+        'target_type' => 'banner',
+        'target_id' => true,
+        'target_key' => '',
+    ], $invalidTargetTypeRow, ['status' => 'ok'], '/admin/sample');
+    if (is_array($invalidTarget['row'] ?? null) || !in_array('target_id가 조회 대상과 맞지 않습니다.', $invalidTarget['errors'] ?? [], true)) {
+        sr_read_reference_check_error('read reference normalize row target sample accepted invalid typed target_id');
+    }
 }
 
 function sr_read_reference_check_collect_target_samples(): void
