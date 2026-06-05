@@ -265,13 +265,12 @@ $checks = [
         'must_contain' => ['--sr-bg'],
     ],
     [
-        'label' => 'public UI stylesheet',
-        'path' => '/assets/public-ui.css',
+        'label' => 'public layout stylesheet',
+        'path' => '/assets/public-layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.public-site-header',
             '.public-site-footer',
-            '.public-home',
             'background: var(--sr-bg',
         ],
         'must_contain_css_rules' => [
@@ -282,6 +281,23 @@ $checks = [
                     'padding-top' => '52px',
                 ],
             ],
+        ],
+    ],
+    [
+        'label' => 'public UI stylesheet',
+        'path' => '/assets/public-ui.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.public-ui-scope',
+            '.public-home',
+        ],
+    ],
+    [
+        'label' => 'community public stylesheet',
+        'path' => '/modules/community/assets/community-public.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.community-screen',
         ],
     ],
     [

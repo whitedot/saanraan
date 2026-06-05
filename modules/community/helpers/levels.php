@@ -178,6 +178,10 @@ function sr_community_public_layout_context(array $settings, array $context = []
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/community/assets/community-public.css';
+    $context['stylesheets'] = $stylesheets;
+
     $siteMenus = [
         'primary' => sr_community_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')),
         'secondary' => sr_community_clean_layout_menu_key((string) ($settings['layout_secondary_menu_key'] ?? '')),

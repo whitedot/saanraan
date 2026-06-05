@@ -1,7 +1,7 @@
 /*
  * Saanraan default public home skin tokens.
  * This file is loaded explicitly by the initial home views only.
- * Keep it limited to --sr-* page skin values consumed by public-ui.css and public modules.
+ * Keep it limited to --sr-* page skin values consumed by public layout, public UI, and public modules.
  */
 
 :root,
