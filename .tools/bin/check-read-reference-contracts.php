@@ -92,13 +92,48 @@ function sr_read_reference_count_function_counts_rows(string $functionName, stri
     }
 
     $body = implode('', array_slice($lines, $reflection->getStartLine() - 1, $reflection->getEndLine() - $reflection->getStartLine() + 1));
-    $pattern = '/return\s+count\s*\(\s*' . preg_quote($rowsFunctionName, '/') . '\s*\(\s*\$pdo\s*,\s*\$target\s*,\s*\$context\s*\)\s*\)\s*;/';
-    preg_match_all('/\breturn\b/', $body, $returnMatches);
-    if (count($returnMatches[0]) !== 1) {
+    $tokens = [];
+    foreach (token_get_all('<?php ' . $body) as $token) {
+        if (is_array($token)) {
+            if (in_array($token[0], [T_OPEN_TAG, T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                continue;
+            }
+            $tokens[] = [$token[0], $token[1]];
+            continue;
+        }
+        $tokens[] = [null, $token];
+    }
+
+    $returnIndexes = [];
+    foreach ($tokens as $index => $token) {
+        if ($token[0] === T_RETURN) {
+            $returnIndexes[] = $index;
+        }
+    }
+    if (count($returnIndexes) !== 1) {
         return false;
     }
 
-    return preg_match($pattern, $body) === 1;
+    $actual = array_slice($tokens, (int) $returnIndexes[0], 12);
+    $expected = [
+        [T_RETURN, 'return'],
+        [T_STRING, 'count'],
+        [null, '('],
+        [T_STRING, $rowsFunctionName],
+        [null, '('],
+        [T_VARIABLE, '$pdo'],
+        [null, ','],
+        [T_VARIABLE, '$target'],
+        [null, ','],
+        [T_VARIABLE, '$context'],
+        [null, ')'],
+        [null, ')'],
+    ];
+    if ($actual !== $expected) {
+        return false;
+    }
+
+    return isset($tokens[(int) $returnIndexes[0] + 12]) && $tokens[(int) $returnIndexes[0] + 12] === [null, ';'];
 }
 
 function sr_read_reference_check_count_function_source(string $path, string $functionName, string $rowsFunctionName): void
@@ -282,6 +317,14 @@ function sr_read_reference_check_sample_count_unreachable_rows(PDO $pdo, array $
     return count(sr_read_reference_check_sample_rows($pdo, $target, $context));
 }
 
+function sr_read_reference_check_sample_count_string_only(PDO $pdo, array $target, array $context): int
+{
+    $example = 'return count(sr_read_reference_check_sample_rows($pdo, $target, $context));';
+    unset($pdo, $target, $context, $example);
+
+    return count([]);
+}
+
 function sr_read_reference_check_count_function_source_samples(): void
 {
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_rows', 'sr_read_reference_check_sample_rows') !== true) {
@@ -292,6 +335,9 @@ function sr_read_reference_check_count_function_source_samples(): void
     }
     if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_unreachable_rows', 'sr_read_reference_check_sample_rows') !== false) {
         sr_read_reference_check_error('read reference count_function source sample accepted multiple return count function');
+    }
+    if (sr_read_reference_count_function_counts_rows('sr_read_reference_check_sample_count_string_only', 'sr_read_reference_check_sample_rows') !== false) {
+        sr_read_reference_check_error('read reference count_function source sample accepted string-only rows count expression');
     }
 }
 
