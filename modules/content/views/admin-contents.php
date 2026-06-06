@@ -367,7 +367,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($pageAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/save')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
         <section class="admin-card card">
-            <h2><?php echo $editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90'); ?></h2>
+            <h2><?php echo sr_e($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="content_id" value="<?php echo $editing ? sr_e((string) $editPage['id']) : '0'; ?>">
             <div class="admin-form-row">

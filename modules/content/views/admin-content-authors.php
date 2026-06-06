@@ -48,8 +48,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php foreach ($contentAuthorPermissions as $permission) { ?>
                 <tr>
                     <td>#<?php echo sr_e((string) (int) $permission['account_id']); ?><br><?php echo sr_e((string) (($permission['display_name'] ?? '') ?: ($permission['email'] ?? ''))); ?></td>
-                    <td><?php echo sr_e((string) $permission['status']); ?></td>
-                    <td><?php echo sr_e((string) $permission['review_required_override']); ?></td>
+                    <td><?php echo sr_e(sr_content_author_permission_status_label((string) $permission['status'])); ?></td>
+                    <td><?php echo sr_e(sr_content_author_review_override_label((string) $permission['review_required_override'])); ?></td>
                     <td><?php echo sr_e((string) ($permission['note'] ?? '')); ?></td>
                     <td><?php echo sr_content_time_html((string) ($permission['updated_at'] ?? '')); ?></td>
                 </tr>

@@ -1781,9 +1781,52 @@ function sr_content_submission_statuses(): array
     return ['member_draft', 'pending_review', 'revision_requested', 'rejected', 'approved', 'cancelled'];
 }
 
+function sr_content_submission_status_label(string $status): string
+{
+    return match ($status) {
+        'member_draft' => '임시저장',
+        'pending_review' => '검수 대기',
+        'revision_requested' => '수정 요청',
+        'rejected' => '반려',
+        'approved' => '승인',
+        'cancelled' => '취소',
+        default => $status,
+    };
+}
+
 function sr_content_author_application_statuses(): array
 {
     return ['pending', 'approved', 'rejected', 'cancelled'];
+}
+
+function sr_content_author_application_status_label(string $status): string
+{
+    return match ($status) {
+        'pending' => '대기',
+        'approved' => '승인',
+        'rejected' => '반려',
+        'cancelled' => '취소',
+        default => $status,
+    };
+}
+
+function sr_content_author_permission_status_label(string $status): string
+{
+    return match ($status) {
+        'allowed' => '허용',
+        'blocked' => '차단',
+        default => $status,
+    };
+}
+
+function sr_content_author_review_override_label(string $value): string
+{
+    return match ($value) {
+        'inherit' => '상속',
+        'required' => '항상 검수',
+        'exempt' => '검수 면제',
+        default => $value,
+    };
 }
 
 function sr_content_author_permission(PDO $pdo, int $accountId): ?array

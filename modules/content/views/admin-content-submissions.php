@@ -11,7 +11,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <select name="status" class="form-select">
             <option value="">전체 상태</option>
             <?php foreach (sr_content_submission_statuses() as $status) { ?>
-                <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($submissionStatus ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e($status); ?></option>
+                <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($submissionStatus ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_submission_status_label($status)); ?></option>
             <?php } ?>
         </select>
         <button type="submit" class="btn btn-solid-primary">검색</button>
@@ -28,7 +28,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <td><?php echo sr_e((string) $submission['title']); ?><br><span class="text-muted"><?php echo sr_e((string) mb_substr((string) ($submission['body_text'] ?? ''), 0, 120)); ?></span></td>
                     <td><?php echo sr_e((string) (($submission['author_display_name'] ?? '') ?: ($submission['author_email'] ?? ''))); ?></td>
                     <td><?php echo sr_e((string) ($submission['group_title'] ?? '')); ?></td>
-                    <td><?php echo sr_e((string) $submission['review_status']); ?></td>
+                    <td><?php echo sr_e(sr_content_submission_status_label((string) $submission['review_status'])); ?></td>
                     <td>
                         <form method="post" action="<?php echo sr_e(sr_url('/admin/content/submissions')); ?>" class="admin-form-actions">
                             <?php echo sr_csrf_field(); ?>

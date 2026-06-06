@@ -11,7 +11,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <select name="status" class="form-select">
             <option value="">대기 신청</option>
             <?php foreach (sr_content_author_application_statuses() as $statusOption) { ?>
-                <option value="<?php echo sr_e($statusOption); ?>"<?php echo (string) ($applicationStatus ?? 'pending') === $statusOption ? ' selected' : ''; ?>><?php echo sr_e($statusOption); ?></option>
+                <option value="<?php echo sr_e($statusOption); ?>"<?php echo (string) ($applicationStatus ?? 'pending') === $statusOption ? ' selected' : ''; ?>><?php echo sr_e(sr_content_author_application_status_label($statusOption)); ?></option>
             <?php } ?>
         </select>
         <button type="submit" class="btn btn-solid-primary">검색</button>
@@ -28,7 +28,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php foreach ($contentAuthorApplications as $application) { ?>
                 <tr>
                     <td>#<?php echo sr_e((string) (int) $application['account_id']); ?><br><?php echo sr_e((string) (($application['display_name'] ?? '') ?: ($application['email'] ?? ''))); ?></td>
-                    <td><?php echo sr_e((string) $application['status']); ?></td>
+                    <td><?php echo sr_e(sr_content_author_application_status_label((string) $application['status'])); ?></td>
                     <td><?php echo nl2br(sr_e((string) ($application['application_note'] ?? ''))); ?></td>
                     <td>
                         <?php if ((string) ($application['status'] ?? '') === 'pending') { ?>

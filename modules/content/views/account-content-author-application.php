@@ -22,7 +22,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, ['style_profile' => 'k
         <p>현재 콘텐츠 등록자 신청을 받지 않습니다.</p>
     <?php } else { ?>
         <?php if ($applicationStatus !== '') { ?>
-            <p>현재 신청 상태: <?php echo sr_e($applicationStatus); ?></p>
+            <p>현재 신청 상태: <?php echo sr_e(sr_content_author_application_status_label($applicationStatus)); ?></p>
             <?php if (!empty($authorApplication['review_note'])) { ?>
                 <p>검토 메모: <?php echo sr_e((string) $authorApplication['review_note']); ?></p>
             <?php } ?>
