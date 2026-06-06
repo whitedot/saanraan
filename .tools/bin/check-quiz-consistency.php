@@ -40,6 +40,7 @@ function sr_quiz_check_module_files(): void
         'modules/quiz/admin-menu.php',
         'modules/quiz/privacy-export.php',
         'modules/quiz/privacy-cleanup.php',
+        '.tools/bin/smoke-quiz-e2e.php',
     ] as $path) {
         if (!is_file($path)) {
             sr_quiz_check_error('quiz module file is missing: ' . $path);
@@ -188,6 +189,15 @@ function sr_quiz_check_paths_and_admin(): void
     sr_quiz_check_file_contains('modules/content/assets/public.css', [
         '.content-quiz-dialog',
     ]);
+    sr_quiz_check_file_contains('.tools/bin/smoke-quiz-e2e.php', [
+        'SR_SMOKE_ADMIN_IDENTIFIER',
+        'SR_SMOKE_ADMIN_PASSWORD',
+        'sr_quiz_e2e_choice',
+        'attempt_limit_policy',
+        'per_quiz_once',
+        '보상이 지급되었습니다.',
+        '응시 제한에 따라 다시 제출할 수 없습니다.',
+    ]);
 }
 
 function sr_quiz_check_privacy_contracts(): void
@@ -218,6 +228,7 @@ function sr_quiz_check_docs(): void
         '포커스 trap',
         '`return_to`',
         '`return_url`',
+        'smoke-quiz-e2e.php',
     ]);
 }
 

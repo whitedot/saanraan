@@ -167,6 +167,19 @@ php .tools/bin/smoke-community-auth.php
 - SEO 설정이나 로고 alt text에 기존 사이트명이 직접 들어 있으면 사이트명 변경 POST가 차단된다.
 - `php .tools/bin/check-read-reference-contracts.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
 
+## 퀴즈 보상 전용 E2E
+
+퀴즈 마일스톤을 검증할 때는 로컬 또는 스테이징에서 관리자 테스트 계정을 사용해 다음 명령을 실행한다. 이 검사는 퀴즈를 생성하고 제출 기록과 보상 지급을 만든 뒤 가능한 경우 생성 퀴즈를 소프트삭제하므로 운영 DB에서 실행하지 않는다.
+
+```sh
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_ADMIN_IDENTIFIER=admin \
+SR_SMOKE_ADMIN_PASSWORD='12341234' \
+php .tools/bin/smoke-quiz-e2e.php
+```
+
+활성 자산 보상 후보를 명시해야 하면 `SR_SMOKE_QUIZ_REWARD_MODULE=point`처럼 지정한다. 스크립트는 관리자 퀴즈 생성, 복수/단일 선택 제출, 통과 결과, 보상 지급, 회원당 1회 재응시 차단을 확인한다.
+
 전체 커뮤니티 흐름은 선택 계정을 함께 지정해 확인한다.
 
 ```sh
