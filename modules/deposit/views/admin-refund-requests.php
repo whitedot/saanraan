@@ -87,7 +87,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } else { ?>
                     <?php foreach ($requests as $request) { ?>
                         <tr>
-                            <td><?php echo sr_e((string) $request['requested_at']); ?></td>
+                            <td><?php echo sr_deposit_time_html((string) $request['requested_at']); ?></td>
                             <td>
                                 <?php echo sr_e(sr_admin_member_display_name_preview($request)); ?><br>
                                 <?php echo sr_e(sr_admin_member_email_display($request)); ?><br>
@@ -103,7 +103,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <br>거래 #<?php echo sr_e((string) $request['transaction_id']); ?>
                                 <?php } ?>
                                 <?php if (!empty($request['processed_at'])) { ?>
-                                    <br><?php echo sr_e((string) $request['processed_at']); ?>
+                                    <br><?php echo sr_deposit_time_html((string) $request['processed_at']); ?>
                                 <?php } ?>
                             </td>
                             <td class="admin-table-actions-cell">

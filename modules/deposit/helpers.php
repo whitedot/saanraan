@@ -370,6 +370,22 @@ function sr_deposit_transaction_type_allows_amount(string $transactionType, int 
     return $transactionType === 'adjustment';
 }
 
+function sr_deposit_transaction_type_label(string $transactionType): string
+{
+    $labels = [
+        'adjustment' => '조정',
+        'deposit' => '예치',
+        'use' => '사용',
+        'withdraw' => '출금',
+        'refund' => '환불',
+        'exchange_in' => '환전 입금',
+        'exchange_out' => '환전 출금',
+        'exchange_fee' => '환전 수수료',
+    ];
+
+    return $labels[$transactionType] ?? $transactionType;
+}
+
 function sr_deposit_clean_key(string $value, int $maxLength): string
 {
     $value = trim($value);
@@ -435,6 +451,38 @@ function sr_deposit_request_status_label(string $status): string
     ];
 
     return $labels[$status] ?? $status;
+}
+
+function sr_deposit_time_html(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $diff = time() - $timestamp;
+    if ($diff < 0) {
+        $relative = date('Y-m-d H:i', $timestamp);
+    } elseif ($diff < 60) {
+        $relative = '방금 전';
+    } elseif ($diff < 3600) {
+        $relative = floor($diff / 60) . '분 전';
+    } elseif ($diff < 86400) {
+        $relative = floor($diff / 3600) . '시간 전';
+    } elseif ($diff < 2592000) {
+        $relative = floor($diff / 86400) . '일 전';
+    } elseif ($diff < 31536000) {
+        $relative = floor($diff / 2592000) . '개월 전';
+    } else {
+        $relative = floor($diff / 31536000) . '년 전';
+    }
+
+    return '<time datetime="' . sr_e($value) . '" title="' . sr_e($value) . '">' . sr_e($relative) . '</time>';
 }
 
 function sr_deposit_create_refund_request(PDO $pdo, int $accountId, array $data): int

@@ -223,7 +223,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> <?php echo sr_e(sr_t('deposit::ui.text.c19fd678')); ?></td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['reference_type'], 'reference_type')); ?></td>
-                            <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
+                            <td><?php echo sr_deposit_time_html((string) $transaction['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <?php if ((int) ($transaction['amount'] ?? 0) < 0 && (string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
@@ -280,7 +280,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(sr_admin_member_display_name_preview($balance)); ?><br><?php echo sr_e(sr_admin_member_email_display($balance)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
                             <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> <?php echo sr_e(sr_t('deposit::ui.text.c19fd678')); ?></td>
-                            <td><?php echo sr_e((string) $balance['updated_at']); ?></td>
+                            <td><?php echo sr_deposit_time_html((string) $balance['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/deposits/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('deposit::ui.text.754ef98b')); ?></a>
