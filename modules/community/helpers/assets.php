@@ -841,6 +841,108 @@ function sr_community_asset_prefix_setting_keys(string $prefix): array
     return $keys;
 }
 
+function sr_community_publisher_reward_statuses(): array
+{
+    return ['pending', 'granted', 'failed', 'held', 'reversed', 'cancelled'];
+}
+
+function sr_community_time_html(?string $value, string $emptyText = ''): string
+{
+    $exactValue = trim((string) $value);
+    if ($exactValue === '') {
+        return sr_e($emptyText);
+    }
+
+    $machineValue = date('c', strtotime($exactValue) ?: time());
+    return '<time datetime="' . sr_e($machineValue) . '" title="' . sr_e($exactValue) . '">' . sr_e(sr_community_relative_time_label($exactValue)) . '</time>';
+}
+
+function sr_community_publisher_reward_config(PDO $pdo, array $board, array $settings): array
+{
+    $enabled = sr_community_asset_bool_config($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_enabled');
+    $rate = (int) sr_community_asset_board_setting($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_rate', (string) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0));
+
+    return [
+        'enabled' => $enabled,
+        'rate' => min(100, max(0, $rate)),
+    ];
+}
+
+function sr_community_publisher_reward_filters_from_request(): array
+{
+    $status = sr_get_string('status', 20);
+    return [
+        'status' => in_array($status, sr_community_publisher_reward_statuses(), true) ? $status : '',
+        'q' => trim(sr_get_string('q', 120)),
+    ];
+}
+
+function sr_community_publisher_reward_where_sql(array $filters, array &$params): string
+{
+    $where = [];
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '') {
+        $where[] = 'r.status = :status';
+        $params['status'] = $status;
+    }
+
+    $q = trim((string) ($filters['q'] ?? ''));
+    if ($q !== '') {
+        if (preg_match('/\A[1-9][0-9]*\z/', $q) === 1) {
+            $where[] = '(r.id = :q_id OR r.post_id = :q_id OR r.attachment_id = :q_id OR r.publisher_account_id = :q_id OR r.downloader_account_id = :q_id)';
+            $params['q_id'] = (int) $q;
+        } else {
+            $where[] = '(p.title LIKE :q_like OR a.original_name LIKE :q_like)';
+            $params['q_like'] = '%' . $q . '%';
+        }
+    }
+
+    return $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
+}
+
+function sr_community_publisher_reward_count(PDO $pdo, array $filters = []): int
+{
+    $params = [];
+    $whereSql = sr_community_publisher_reward_where_sql($filters, $params);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_community_publisher_reward_logs r
+         LEFT JOIN sr_community_posts p ON p.id = r.post_id
+         LEFT JOIN sr_community_attachments a ON a.id = r.attachment_id'
+        . $whereSql
+    );
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_community_publisher_reward_logs(PDO $pdo, int $limit = 50, int $offset = 0, array $filters = []): array
+{
+    $params = [];
+    $whereSql = sr_community_publisher_reward_where_sql($filters, $params);
+    $params['limit_value'] = max(1, min(200, $limit));
+    $params['offset_value'] = max(0, $offset);
+    $stmt = $pdo->prepare(
+        'SELECT r.*, p.title AS post_title, a.original_name AS attachment_name,
+                publisher.email AS publisher_email, publisher.display_name AS publisher_display_name,
+                downloader.email AS downloader_email, downloader.display_name AS downloader_display_name
+         FROM sr_community_publisher_reward_logs r
+         LEFT JOIN sr_community_posts p ON p.id = r.post_id
+         LEFT JOIN sr_community_attachments a ON a.id = r.attachment_id
+         LEFT JOIN sr_member_accounts publisher ON publisher.id = r.publisher_account_id
+         LEFT JOIN sr_member_accounts downloader ON downloader.id = r.downloader_account_id'
+        . $whereSql .
+        ' ORDER BY r.id DESC
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value, in_array($key, ['limit_value', 'offset_value', 'q_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function sr_community_asset_prefix_from_setting_key(string $settingKey): string
 {
     foreach (sr_community_asset_setting_prefixes() as $prefix) {
@@ -918,6 +1020,8 @@ function sr_community_asset_setting_keys(): array
             $keys[] = $settingKey;
         }
     }
+    $keys[] = 'paid_attachment_download_publisher_reward_enabled';
+    $keys[] = 'paid_attachment_download_publisher_reward_rate';
 
     return $keys;
 }
@@ -964,6 +1068,8 @@ function sr_community_asset_settings_for_audit(array $settings, bool $includeRev
         $auditSettings['post_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['post_reward_reversal_enabled'] ?? false);
         $auditSettings['comment_reward_reversal_enabled'] = sr_community_asset_bool_value_for_audit($settings['comment_reward_reversal_enabled'] ?? false);
     }
+    $auditSettings['paid_attachment_download_publisher_reward_enabled'] = sr_community_asset_bool_value_for_audit($settings['paid_attachment_download_publisher_reward_enabled'] ?? false);
+    $auditSettings['paid_attachment_download_publisher_reward_rate'] = min(100, max(0, (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)));
     $auditSettings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
 
     return $auditSettings;
@@ -1969,6 +2075,7 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
     }
 
     $processed = false;
+    $processedLogs = [];
     $dedupeKey = '';
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
@@ -2021,6 +2128,12 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
             if ($direction === 'use' && in_array($eventKey, ['post_read', 'attachment_download'], true)) {
                 sr_community_grant_access_entitlement($pdo, $accountId, $subjectType, $subjectId, $eventKey, 'asset', $assetModule, $chargePolicy, $assetModule . ':' . (string) $transactionId);
             }
+            $processedLogs[] = [
+                'dedupe_key' => $dedupeKey,
+                'asset_module' => $assetModule,
+                'transaction_id' => $transactionId,
+                'amount' => $allocatedAmount,
+            ];
             $processed = true;
         }
 
@@ -2058,9 +2171,170 @@ function sr_community_run_asset_event_once(PDO $pdo, array $config, int $account
         'asset_label' => sr_community_asset_module_labels($assetModuleValue, $pdo),
         'amount' => $amount,
         'direction' => $direction,
+        'processed_logs' => $processedLogs,
         'confirmation_fingerprint' => $confirmationFingerprint,
         'message' => '',
     ];
+}
+
+function sr_community_asset_log_by_dedupe_key(PDO $pdo, string $dedupeKey): ?array
+{
+    return sr_community_asset_log($pdo, $dedupeKey);
+}
+
+function sr_community_publisher_reward_log_by_dedupe_key(PDO $pdo, string $dedupeKey): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_community_publisher_reward_logs
+         WHERE dedupe_key = :dedupe_key
+         LIMIT 1'
+    );
+    $stmt->execute(['dedupe_key' => $dedupeKey]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_community_create_publisher_reward_notification(PDO $pdo, int $publisherAccountId, array $rewardLog): void
+{
+    if ($publisherAccountId < 1 || !is_file(SR_ROOT . '/modules/community/helpers/notifications.php')) {
+        return;
+    }
+
+    require_once SR_ROOT . '/modules/community/helpers/notifications.php';
+    if (!function_exists('sr_community_create_account_event_notification')) {
+        return;
+    }
+
+    sr_community_create_account_event_notification($pdo, $publisherAccountId, 'attachment.publisher_reward.granted', [
+        'amount' => number_format((int) ($rewardLog['reward_amount'] ?? 0)),
+        'asset' => sr_community_asset_module_label((string) ($rewardLog['asset_module'] ?? ''), $pdo),
+        'link_url' => sr_url('/community/post?id=' . rawurlencode((string) (int) ($rewardLog['post_id'] ?? 0))),
+    ], null);
+}
+
+function sr_community_grant_attachment_publisher_reward(PDO $pdo, array $board, array $settings, array $post, array $attachment, int $downloaderAccountId, array $downloadResult): void
+{
+    $config = sr_community_publisher_reward_config($pdo, $board, $settings);
+    if (empty($config['enabled']) || (int) ($config['rate'] ?? 0) <= 0 || empty($downloadResult['processed'])) {
+        return;
+    }
+
+    $publisherAccountId = (int) ($post['author_account_id'] ?? 0);
+    $attachmentId = (int) ($attachment['id'] ?? 0);
+    $postId = (int) ($post['id'] ?? 0);
+    if ($publisherAccountId < 1 || $downloaderAccountId < 1 || $attachmentId < 1 || $postId < 1 || $publisherAccountId === $downloaderAccountId) {
+        return;
+    }
+
+    $processedLogs = is_array($downloadResult['processed_logs'] ?? null) ? $downloadResult['processed_logs'] : [];
+    foreach ($processedLogs as $processedLog) {
+        $dedupeKey = (string) ($processedLog['dedupe_key'] ?? '');
+        if ($dedupeKey === '') {
+            continue;
+        }
+
+        $chargeLog = sr_community_asset_log_by_dedupe_key($pdo, $dedupeKey);
+        if (!is_array($chargeLog)
+            || (string) ($chargeLog['event_key'] ?? '') !== 'attachment_download'
+            || (string) ($chargeLog['direction'] ?? '') !== 'use'
+            || (int) ($chargeLog['transaction_id'] ?? 0) < 1
+            || (int) ($chargeLog['amount'] ?? 0) <= 0
+        ) {
+            continue;
+        }
+
+        $chargeAmount = (int) $chargeLog['amount'];
+        $rewardRate = (int) $config['rate'];
+        $rewardAmount = intdiv($chargeAmount * $rewardRate, 100);
+        if ($rewardAmount <= 0) {
+            continue;
+        }
+
+        $rewardDedupeKey = 'community.attachment_download.publisher_reward:' . (string) (int) $chargeLog['id'];
+        if (sr_community_publisher_reward_log_by_dedupe_key($pdo, $rewardDedupeKey) !== null) {
+            continue;
+        }
+
+        $now = sr_now();
+        $insert = $pdo->prepare(
+            'INSERT INTO sr_community_publisher_reward_logs
+                (charge_asset_log_id, charge_transaction_id, reward_transaction_id, reversal_transaction_id,
+                 post_id, attachment_id, downloader_account_id, publisher_account_id, asset_module,
+                 charge_amount, reward_rate, reward_amount, status, dedupe_key, failure_message, created_at, updated_at)
+             VALUES
+                (:charge_asset_log_id, :charge_transaction_id, 0, 0,
+                 :post_id, :attachment_id, :downloader_account_id, :publisher_account_id, :asset_module,
+                 :charge_amount, :reward_rate, :reward_amount, \'pending\', :dedupe_key, NULL, :created_at, :updated_at)'
+        );
+        try {
+            $insert->execute([
+                'charge_asset_log_id' => (int) $chargeLog['id'],
+                'charge_transaction_id' => (int) $chargeLog['transaction_id'],
+                'post_id' => $postId,
+                'attachment_id' => $attachmentId,
+                'downloader_account_id' => $downloaderAccountId,
+                'publisher_account_id' => $publisherAccountId,
+                'asset_module' => (string) $chargeLog['asset_module'],
+                'charge_amount' => $chargeAmount,
+                'reward_rate' => $rewardRate,
+                'reward_amount' => $rewardAmount,
+                'dedupe_key' => $rewardDedupeKey,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        } catch (Throwable $exception) {
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'community_publisher_reward_log_insert_failed');
+            }
+            continue;
+        }
+
+        try {
+            $transactionId = sr_community_create_asset_transaction($pdo, (string) $chargeLog['asset_module'], [
+                'account_id' => $publisherAccountId,
+                'amount' => $rewardAmount,
+                'transaction_type' => (string) ((sr_community_asset_modules($pdo)[(string) $chargeLog['asset_module']]['credit_type'] ?? 'grant')),
+                'reason' => 'community.attachment.publisher_reward',
+                'reference_type' => 'community.attachment.publisher_reward',
+                'reference_id' => (string) (int) $chargeLog['id'],
+                'created_by_account_id' => null,
+            ]);
+            $stmt = $pdo->prepare(
+                "UPDATE sr_community_publisher_reward_logs
+                 SET reward_transaction_id = :transaction_id,
+                     status = 'granted',
+                     updated_at = :updated_at
+                 WHERE dedupe_key = :dedupe_key"
+            );
+            $stmt->execute([
+                'transaction_id' => $transactionId,
+                'updated_at' => sr_now(),
+                'dedupe_key' => $rewardDedupeKey,
+            ]);
+            $rewardLog = sr_community_publisher_reward_log_by_dedupe_key($pdo, $rewardDedupeKey);
+            if (is_array($rewardLog)) {
+                sr_community_create_publisher_reward_notification($pdo, $publisherAccountId, $rewardLog);
+            }
+        } catch (Throwable $exception) {
+            $stmt = $pdo->prepare(
+                "UPDATE sr_community_publisher_reward_logs
+                 SET status = 'failed',
+                     failure_message = :failure_message,
+                     updated_at = :updated_at
+                 WHERE dedupe_key = :dedupe_key"
+            );
+            $stmt->execute([
+                'failure_message' => mb_substr($exception->getMessage(), 0, 1000),
+                'updated_at' => sr_now(),
+                'dedupe_key' => $rewardDedupeKey,
+            ]);
+            if (function_exists('sr_log_exception')) {
+                sr_log_exception($exception, 'community_publisher_reward_grant_failed');
+            }
+        }
+    }
 }
 
 function sr_community_asset_reversal_config(array $originalLog): array

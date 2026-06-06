@@ -125,6 +125,11 @@ function sr_content_default_settings(): array
         'layout_tertiary_menu_key' => '',
         'layout_quaternary_menu_key' => '',
         'layout_quinary_menu_key' => '',
+        'member_submission_enabled' => false,
+        'member_submission_default_review_required' => true,
+        'member_submission_author_reward_enabled' => false,
+        'member_submission_author_reward_asset_module' => '',
+        'member_submission_author_reward_amount' => 0,
     ];
 }
 
@@ -145,6 +150,15 @@ function sr_content_clean_layout_menu_key(string $value): string
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
+function sr_content_bool_setting(mixed $value): bool
+{
+    if (is_bool($value)) {
+        return $value;
+    }
+
+    return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
+}
+
 function sr_content_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_content_default_settings(), sr_module_settings($pdo, 'content'));
@@ -157,6 +171,12 @@ function sr_content_settings(PDO $pdo): array
     foreach (sr_content_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
+    $settings['member_submission_enabled'] = sr_content_bool_setting($settings['member_submission_enabled'] ?? false);
+    $settings['member_submission_default_review_required'] = sr_content_bool_setting($settings['member_submission_default_review_required'] ?? true);
+    $rewardAssetModule = sr_content_clean_slug((string) ($settings['member_submission_author_reward_asset_module'] ?? ''));
+    $settings['member_submission_author_reward_asset_module'] = isset(sr_content_asset_modules($pdo)[$rewardAssetModule]) ? $rewardAssetModule : '';
+    $settings['member_submission_author_reward_amount'] = min(999999999, max(0, (int) ($settings['member_submission_author_reward_amount'] ?? 0)));
+    $settings['member_submission_author_reward_enabled'] = sr_content_bool_setting($settings['member_submission_author_reward_enabled'] ?? false);
 
     return $settings;
 }
@@ -228,6 +248,11 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['layout_tertiary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_tertiary_menu_key'] ?? '')), 'string'],
         ['layout_quaternary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_quaternary_menu_key'] ?? '')), 'string'],
         ['layout_quinary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_quinary_menu_key'] ?? '')), 'string'],
+        ['member_submission_enabled', !empty($settings['member_submission_enabled']) ? '1' : '0', 'bool'],
+        ['member_submission_default_review_required', !empty($settings['member_submission_default_review_required']) ? '1' : '0', 'bool'],
+        ['member_submission_author_reward_enabled', !empty($settings['member_submission_author_reward_enabled']) ? '1' : '0', 'bool'],
+        ['member_submission_author_reward_asset_module', sr_content_clean_slug((string) ($settings['member_submission_author_reward_asset_module'] ?? '')), 'string'],
+        ['member_submission_author_reward_amount', (string) min(999999999, max(0, (int) ($settings['member_submission_author_reward_amount'] ?? 0))), 'integer'],
     ];
     $now = sr_now();
     $stmt = $pdo->prepare(
@@ -417,7 +442,7 @@ function sr_content_group_path(string $groupKey): string
 
 function sr_content_group_basic_setting_keys(): array
 {
-    return ['status', 'layout_key'];
+    return ['status', 'layout_key', 'member_submission_enabled', 'member_submission_allowed_group_keys', 'member_submission_review_required'];
 }
 
 function sr_content_group_asset_access_setting_keys(): array
@@ -503,6 +528,9 @@ function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null
         'file_asset_download_group_policies_json' => '',
         'file_asset_download_policy_set_id' => '0',
         'file_asset_charge_policy' => 'once',
+        'member_submission_enabled' => '0',
+        'member_submission_allowed_group_keys' => '[]',
+        'member_submission_review_required' => 'inherit',
     ];
 
     foreach (sr_content_public_display_setting_labels() as $settingKey => $settingLabel) {
@@ -1746,6 +1774,446 @@ function sr_content_group_settings(PDO $pdo, int $groupId): array
     }
 
     return $settings;
+}
+
+function sr_content_submission_statuses(): array
+{
+    return ['member_draft', 'pending_review', 'revision_requested', 'rejected', 'approved', 'cancelled'];
+}
+
+function sr_content_author_permission(PDO $pdo, int $accountId): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_content_author_permissions
+         WHERE account_id = :account_id
+         LIMIT 1'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_group_submission_group_keys(string $value): array
+{
+    $decoded = json_decode($value, true);
+    $rawValues = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $value);
+    $keys = [];
+    foreach (is_array($rawValues) ? $rawValues : [] as $rawValue) {
+        $key = strtolower(trim((string) $rawValue));
+        if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) === 1) {
+            $keys[$key] = true;
+        }
+    }
+
+    return array_keys($keys);
+}
+
+function sr_content_group_submission_group_keys_value(array $groupKeys): string
+{
+    $keys = [];
+    foreach ($groupKeys as $groupKey) {
+        $groupKey = strtolower(trim((string) $groupKey));
+        if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $groupKey) === 1) {
+            $keys[$groupKey] = true;
+        }
+    }
+
+    return json_encode(array_keys($keys), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '[]';
+}
+
+function sr_content_member_submission_allowed_groups(PDO $pdo, int $accountId): array
+{
+    $settings = sr_content_settings($pdo);
+    if (empty($settings['member_submission_enabled'])) {
+        return [];
+    }
+
+    $permission = sr_content_author_permission($pdo, $accountId);
+    $individualAllowed = is_array($permission) && (string) ($permission['status'] ?? '') === 'allowed';
+    $accountGroupKeys = [];
+    if (is_file(SR_ROOT . '/modules/member/helpers/groups.php')) {
+        require_once SR_ROOT . '/modules/member/helpers/groups.php';
+        if (function_exists('sr_member_account_group_keys')) {
+            $accountGroupKeys = sr_member_account_group_keys($pdo, $accountId);
+        }
+    }
+
+    $groups = [];
+    foreach (sr_content_groups($pdo) as $group) {
+        if ((string) ($group['status'] ?? '') !== 'enabled') {
+            continue;
+        }
+        $groupSettings = sr_content_group_settings($pdo, (int) $group['id']);
+        if (!sr_content_bool_setting($groupSettings['member_submission_enabled'] ?? false)) {
+            continue;
+        }
+        $allowedGroupKeys = sr_content_group_submission_group_keys((string) ($groupSettings['member_submission_allowed_group_keys'] ?? '[]'));
+        if ($individualAllowed || ($allowedGroupKeys !== [] && array_intersect($accountGroupKeys, $allowedGroupKeys) !== [])) {
+            $group['member_submission_review_required'] = (string) ($groupSettings['member_submission_review_required'] ?? 'inherit');
+            $groups[] = $group;
+        }
+    }
+
+    return $groups;
+}
+
+function sr_content_member_can_submit_to_group(PDO $pdo, int $accountId, int $groupId): bool
+{
+    foreach (sr_content_member_submission_allowed_groups($pdo, $accountId) as $group) {
+        if ((int) ($group['id'] ?? 0) === $groupId) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function sr_content_submission_review_required(PDO $pdo, int $accountId, int $groupId): bool
+{
+    $settings = sr_content_settings($pdo);
+    $reviewRequired = !empty($settings['member_submission_default_review_required']);
+    $groupSettings = sr_content_group_settings($pdo, $groupId);
+    $groupReview = (string) ($groupSettings['member_submission_review_required'] ?? 'inherit');
+    if ($groupReview === 'always') {
+        $reviewRequired = true;
+    } elseif ($groupReview === 'none') {
+        $reviewRequired = false;
+    }
+
+    $permission = sr_content_author_permission($pdo, $accountId);
+    $override = is_array($permission) ? (string) ($permission['review_required_override'] ?? 'inherit') : 'inherit';
+    if ($override === 'required') {
+        $reviewRequired = true;
+    } elseif ($override === 'exempt') {
+        $reviewRequired = false;
+    }
+
+    return $reviewRequired;
+}
+
+function sr_content_submission_by_id(PDO $pdo, int $submissionId): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT s.*, g.title AS group_title, a.email AS author_email, a.display_name AS author_display_name
+         FROM sr_content_submissions s
+         LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
+         LEFT JOIN sr_member_accounts a ON a.id = s.author_account_id
+         WHERE s.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $submissionId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_member_submissions(PDO $pdo, int $accountId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT s.*, g.title AS group_title
+         FROM sr_content_submissions s
+         LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
+         WHERE s.author_account_id = :account_id
+         ORDER BY s.id DESC
+         LIMIT 200'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_admin_submissions(PDO $pdo, string $status = ''): array
+{
+    $params = [];
+    $where = '';
+    if (in_array($status, sr_content_submission_statuses(), true)) {
+        $where = 'WHERE s.review_status = :status';
+        $params['status'] = $status;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT s.*, g.title AS group_title, a.email AS author_email, a.display_name AS author_display_name
+         FROM sr_content_submissions s
+         LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
+         LEFT JOIN sr_member_accounts a ON a.id = s.author_account_id
+         ' . $where . '
+         ORDER BY s.id DESC
+         LIMIT 200'
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_clean_submission_values(array $input): array
+{
+    return [
+        'content_group_id' => max(0, (int) ($input['content_group_id'] ?? 0)),
+        'title' => sr_content_clean_single_line((string) ($input['title'] ?? ''), 160),
+        'summary' => sr_content_clean_text((string) ($input['summary'] ?? ''), 2000),
+        'body_text' => sr_content_clean_text((string) ($input['body_text'] ?? ''), 200000),
+        'body_format' => 'plain',
+    ];
+}
+
+function sr_content_save_member_submission(PDO $pdo, int $accountId, array $values, int $submissionId = 0, bool $submit = false): int
+{
+    $values = sr_content_clean_submission_values($values);
+    if ($values['content_group_id'] < 1 || !sr_content_member_can_submit_to_group($pdo, $accountId, (int) $values['content_group_id'])) {
+        throw new InvalidArgumentException('이 콘텐츠 그룹에는 제출할 수 없습니다.');
+    }
+    if ($values['title'] === '') {
+        throw new InvalidArgumentException('제목을 입력하세요.');
+    }
+    if ($values['body_text'] === '') {
+        throw new InvalidArgumentException('본문을 입력하세요.');
+    }
+    if (sr_link_card_token_rejection_errors((string) $values['body_text']) !== []) {
+        throw new InvalidArgumentException('링크 카드 토큰은 본문에 저장할 수 없습니다.');
+    }
+
+    $existing = $submissionId > 0 ? sr_content_submission_by_id($pdo, $submissionId) : null;
+    if ($submissionId > 0 && (!is_array($existing) || (int) ($existing['author_account_id'] ?? 0) !== $accountId || !in_array((string) ($existing['review_status'] ?? ''), ['member_draft', 'revision_requested', 'rejected'], true))) {
+        throw new InvalidArgumentException('수정할 수 없는 제출본입니다.');
+    }
+
+    $reviewRequired = sr_content_submission_review_required($pdo, $accountId, (int) $values['content_group_id']);
+    $reviewStatus = $submit ? ($reviewRequired ? 'pending_review' : 'approved') : 'member_draft';
+    $now = sr_now();
+    if (is_array($existing)) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_content_submissions
+             SET content_group_id = :content_group_id,
+                 title = :title,
+                 summary = :summary,
+                 body_text = :body_text,
+                 body_format = :body_format,
+                 review_status = :review_status,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'content_group_id' => (int) $values['content_group_id'],
+            'title' => (string) $values['title'],
+            'summary' => (string) $values['summary'],
+            'body_text' => (string) $values['body_text'],
+            'body_format' => (string) $values['body_format'],
+            'review_status' => $reviewStatus,
+            'updated_at' => $now,
+            'id' => $submissionId,
+        ]);
+    } else {
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_content_submissions
+                (content_id, content_group_id, author_account_id, slug, title, summary, body_text, body_format, review_status, publish_target_status, review_note, created_at, updated_at)
+             VALUES
+                (NULL, :content_group_id, :author_account_id, \'\', :title, :summary, :body_text, :body_format, :review_status, \'published\', NULL, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'content_group_id' => (int) $values['content_group_id'],
+            'author_account_id' => $accountId,
+            'title' => (string) $values['title'],
+            'summary' => (string) $values['summary'],
+            'body_text' => (string) $values['body_text'],
+            'body_format' => (string) $values['body_format'],
+            'review_status' => $reviewStatus,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $submissionId = (int) $pdo->lastInsertId();
+    }
+
+    if ($submit && !$reviewRequired) {
+        sr_content_approve_submission($pdo, $submissionId, 0, '검수 면제 자동 승인');
+    }
+
+    return $submissionId;
+}
+
+function sr_content_unique_member_submission_slug(PDO $pdo, string $title, int $submissionId): string
+{
+    $base = sr_content_clean_slug($title);
+    if ($base === '' || strlen($base) < 3) {
+        $base = 'member-content';
+    }
+    $base = substr($base, 0, 100);
+    $slug = $base . '-' . (string) $submissionId;
+    $index = 2;
+    while (sr_content_slug_exists($pdo, $slug, 0)) {
+        $slug = $base . '-' . (string) $submissionId . '-' . (string) $index;
+        $index++;
+    }
+
+    return $slug;
+}
+
+function sr_content_approve_submission(PDO $pdo, int $submissionId, int $reviewerAccountId, string $note = ''): int
+{
+    $submission = sr_content_submission_by_id($pdo, $submissionId);
+    if (!is_array($submission)) {
+        throw new InvalidArgumentException('제출본을 찾을 수 없습니다.');
+    }
+    if (!in_array((string) ($submission['review_status'] ?? ''), ['pending_review', 'revision_requested', 'rejected', 'approved'], true)) {
+        throw new InvalidArgumentException('승인할 수 없는 제출 상태입니다.');
+    }
+
+    $slug = (string) ($submission['slug'] ?? '');
+    if ($slug === '' || sr_content_slug_exists($pdo, $slug, 0)) {
+        $slug = sr_content_unique_member_submission_slug($pdo, (string) $submission['title'], $submissionId);
+    }
+
+    $contentId = (int) ($submission['content_id'] ?? 0);
+    $values = array_merge(sr_content_default_values($pdo, null, sr_content_group_settings($pdo, (int) ($submission['content_group_id'] ?? 0))), [
+        'content_group_id' => (int) ($submission['content_group_id'] ?? 0),
+        'content_group_scope' => 'here_only',
+        'slug' => $slug,
+        'title' => (string) $submission['title'],
+        'summary' => (string) ($submission['summary'] ?? ''),
+        'body_text' => (string) ($submission['body_text'] ?? ''),
+        'body_format' => (string) ($submission['body_format'] ?? 'plain'),
+        'status' => 'published',
+        'seo_title' => '',
+        'seo_description' => '',
+    ]);
+    $authorAccountId = (int) ($submission['author_account_id'] ?? 0);
+    $savedContentId = sr_content_save($pdo, $values, $authorAccountId, $contentId);
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_content_submissions
+         SET content_id = :content_id,
+             slug = :slug,
+             review_status = 'approved',
+             review_note = :review_note,
+             reviewed_by = :reviewed_by,
+             reviewed_at = :reviewed_at,
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'content_id' => $savedContentId,
+        'slug' => $slug,
+        'review_note' => $note,
+        'reviewed_by' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
+        'reviewed_at' => $now,
+        'updated_at' => $now,
+        'id' => $submissionId,
+    ]);
+
+    sr_content_grant_submission_author_reward($pdo, $submissionId, $savedContentId, $authorAccountId, $reviewerAccountId);
+
+    return $savedContentId;
+}
+
+function sr_content_author_reward_statuses(): array
+{
+    return ['pending', 'granted', 'failed'];
+}
+
+function sr_content_author_reward_log_by_dedupe_key(PDO $pdo, string $dedupeKey): ?array
+{
+    if ($dedupeKey === '' || !sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_content_author_reward_logs
+         WHERE dedupe_key = :dedupe_key
+         LIMIT 1'
+    );
+    $stmt->execute(['dedupe_key' => $dedupeKey]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_grant_submission_author_reward(PDO $pdo, int $submissionId, int $contentId, int $authorAccountId, int $reviewerAccountId = 0): void
+{
+    $settings = sr_content_settings($pdo);
+    $assetModule = (string) ($settings['member_submission_author_reward_asset_module'] ?? '');
+    $amount = (int) ($settings['member_submission_author_reward_amount'] ?? 0);
+    if (empty($settings['member_submission_author_reward_enabled']) || $assetModule === '' || $amount <= 0 || $submissionId < 1 || $contentId < 1 || $authorAccountId < 1) {
+        return;
+    }
+    if (!sr_content_asset_module_is_available($pdo, $assetModule)) {
+        return;
+    }
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
+        return;
+    }
+
+    $dedupeKey = 'content.submission.author_reward:' . (string) $submissionId;
+    if (sr_content_author_reward_log_by_dedupe_key($pdo, $dedupeKey) !== null) {
+        return;
+    }
+
+    $now = sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_content_author_reward_logs
+                (submission_id, content_id, author_account_id, asset_module, amount, transaction_id, status, failure_reason, dedupe_key, created_by_account_id, created_at, updated_at)
+             VALUES
+                (:submission_id, :content_id, :author_account_id, :asset_module, :amount, NULL, \'pending\', NULL, :dedupe_key, :created_by_account_id, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'submission_id' => $submissionId,
+            'content_id' => $contentId,
+            'author_account_id' => $authorAccountId,
+            'asset_module' => $assetModule,
+            'amount' => $amount,
+            'dedupe_key' => $dedupeKey,
+            'created_by_account_id' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'content_author_reward_log_insert_failed');
+        return;
+    }
+
+    $transactionFunction = (string) (sr_content_asset_modules($pdo)[$assetModule]['transaction_function'] ?? '');
+    try {
+        if (!function_exists($transactionFunction)) {
+            throw new RuntimeException('Author reward transaction function is unavailable.');
+        }
+        $transactionId = (int) $transactionFunction($pdo, [
+            'account_id' => $authorAccountId,
+            'amount' => $amount,
+            'transaction_type' => 'grant',
+            'reason' => 'content.submission.author_reward',
+            'reference_type' => 'content.submission.author_reward',
+            'reference_id' => 'submission:' . (string) $submissionId,
+            'created_by_account_id' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
+        ]);
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_author_reward_logs
+             SET transaction_id = :transaction_id,
+                 status = 'granted',
+                 failure_reason = NULL,
+                 updated_at = :updated_at
+             WHERE dedupe_key = :dedupe_key"
+        );
+        $stmt->execute([
+            'transaction_id' => $transactionId,
+            'updated_at' => sr_now(),
+            'dedupe_key' => $dedupeKey,
+        ]);
+    } catch (Throwable $exception) {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_author_reward_logs
+             SET status = 'failed',
+                 failure_reason = :failure_reason,
+                 updated_at = :updated_at
+             WHERE dedupe_key = :dedupe_key"
+        );
+        $stmt->execute([
+            'failure_reason' => mb_substr($exception->getMessage(), 0, 2000),
+            'updated_at' => sr_now(),
+            'dedupe_key' => $dedupeKey,
+        ]);
+        sr_log_exception($exception, 'content_author_reward_grant_failed');
+    }
 }
 
 function sr_content_optional_table_exists(PDO $pdo, string $tableName): bool

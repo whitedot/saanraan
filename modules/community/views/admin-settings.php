@@ -294,6 +294,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </select>
                         </div>
                     </div>
+                    <div class="admin-form-row">
+                        <span class="form-label">게시자 리워드</span>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled">
+                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate">게시자 리워드 지급률</label>
+                        <div class="admin-form-field">
+                            <div class="input-group admin-asset-single-amount-group">
+                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e((string) (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)); ?>" class="form-input">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <p class="admin-form-help">실제 차감된 자산과 같은 자산으로 게시글 작성자에게 지급합니다. 본인 다운로드, 무료 통과, 이미 차감된 once 다운로드는 지급하지 않습니다.</p>
+                        </div>
+                    </div>
                 <?php } ?>
                 <div class="admin-form-row">
                     <span class="form-label"><?php echo sr_e($assetLabel . ' 자산 설정'); ?></span>

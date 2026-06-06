@@ -22,6 +22,7 @@ $contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($
     <?php
 };
 $contentLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
+$assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
 $contentLayoutMenuFields = [
     'layout_primary_menu_key' => [
         'label' => '주 메뉴 슬롯',
@@ -114,6 +115,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
                 <p class="admin-form-help">과금 방식을 최초 1회로 운영할 때 예전에 이용한 회원을 다시 결제시킬지 정합니다. 기존 원장 거래와 쿠폰 사용 로그는 자동 환불하거나 추가 차감하지 않습니다.</p>
+            </div>
+        </div>
+    </section>
+    <section class="admin-card card">
+        <h2>회원 콘텐츠 제출</h2>
+        <div class="admin-form-row">
+            <span class="form-label">회원 제출 기능</span>
+            <div class="admin-form-field">
+                <label class="admin-form-check form-label" for="content_admin_settings_member_submission_enabled">
+                    <input id="content_admin_settings_member_submission_enabled" type="checkbox" name="member_submission_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['member_submission_enabled']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('승인 회원 또는 허용 그룹의 콘텐츠 제출 사용'); ?>
+                </label>
+                <p class="admin-form-help">콘텐츠 그룹별 제출 허용과 작성자 승인/회원 그룹 조건을 함께 만족해야 합니다.</p>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label">기본 검수</span>
+            <div class="admin-form-field">
+                <label class="admin-form-check form-label" for="content_admin_settings_member_submission_default_review_required">
+                    <input id="content_admin_settings_member_submission_default_review_required" type="checkbox" name="member_submission_default_review_required" value="1" class="form-checkbox"<?php echo !empty($settings['member_submission_default_review_required']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('회원 제출 콘텐츠는 기본적으로 검수 후 공개'); ?>
+                </label>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label">작성자 리워드</span>
+            <div class="admin-form-field">
+                <label class="admin-form-check form-label" for="content_admin_settings_member_submission_author_reward_enabled">
+                    <input id="content_admin_settings_member_submission_author_reward_enabled" type="checkbox" name="member_submission_author_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['member_submission_author_reward_enabled']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('회원 제출 콘텐츠 승인 시 작성자에게 리워드 지급'); ?>
+                </label>
+                <p class="admin-form-help">제출본이 승인되어 콘텐츠로 공개될 때 제출 회원에게 한 번만 지급합니다. 지급 실패는 로그에 남기고 승인 처리는 유지합니다.</p>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_member_submission_author_reward_asset_module">작성자 리워드 자산</label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_member_submission_author_reward_asset_module" name="member_submission_author_reward_asset_module" class="form-select">
+                    <option value="">선택안함</option>
+                    <?php foreach ($assetModuleOptions as $assetModule => $assetOption) { ?>
+                        <option value="<?php echo sr_e((string) $assetModule); ?>"<?php echo (string) ($settings['member_submission_author_reward_asset_module'] ?? '') === (string) $assetModule ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) ($assetOption['label'] ?? $assetModule)); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_member_submission_author_reward_amount">작성자 리워드 금액</label>
+            <div class="admin-form-field">
+                <?php echo sr_content_asset_single_amount_input_group_html('member_submission_author_reward_amount', (int) ($settings['member_submission_author_reward_amount'] ?? 0), $assetModuleOptions, (string) ($settings['member_submission_author_reward_asset_module'] ?? ''), '작성자 리워드 금액', 'content_admin_settings_member_submission_author_reward_amount', false, 'member_submission_author_reward_asset_module'); ?>
             </div>
         </div>
     </section>

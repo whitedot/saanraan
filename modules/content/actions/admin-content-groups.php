@@ -180,6 +180,9 @@ if (sr_request_method() === 'POST') {
         'file_asset_download_group_policies_json' => sr_content_asset_policy_set_selection_json_from_ids($groupFilePolicySetIds),
         'file_asset_download_policy_set_id' => sr_content_asset_policy_set_first_id($groupFilePolicySetIds),
         'file_asset_charge_policy' => sr_content_clean_slug(sr_post_string('group_file_asset_charge_policy', 20)),
+        'member_submission_enabled' => sr_post_string('group_member_submission_enabled', 1) === '1' ? 1 : 0,
+        'member_submission_allowed_group_keys' => sr_content_group_submission_group_keys_value(is_array($_POST['group_member_submission_allowed_group_keys'] ?? null) ? $_POST['group_member_submission_allowed_group_keys'] : []),
+        'member_submission_review_required' => in_array(sr_post_string('group_member_submission_review_required', 20), ['inherit', 'always', 'none'], true) ? sr_post_string('group_member_submission_review_required', 20) : 'inherit',
     ];
     foreach (sr_content_public_display_setting_labels() as $settingKey => $settingLabel) {
         $rawValue = sr_post_string('group_' . $settingKey, 20);

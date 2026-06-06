@@ -204,6 +204,7 @@ if ($disposition === 'attachment' && is_array($board)) {
             }
             sr_redirect('/community/attachment?id=' . rawurlencode((string) $attachment['id']));
         }
+        sr_community_grant_attachment_publisher_reward($pdo, $board, $settings, $post, $attachment, (int) $account['id'], $downloadResult);
     }
 }
 if ($downloadUrl !== '') {

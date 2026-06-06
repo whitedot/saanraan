@@ -101,6 +101,8 @@ function sr_community_board_group_asset_setting_keys(): array
     }
     $keys[] = 'paid_read_charge_policy';
     $keys[] = 'paid_attachment_download_charge_policy';
+    $keys[] = 'paid_attachment_download_publisher_reward_enabled';
+    $keys[] = 'paid_attachment_download_publisher_reward_rate';
 
     return $keys;
 }

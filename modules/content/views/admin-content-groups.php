@@ -478,6 +478,44 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
+        <section class="admin-card card">
+            <h2>회원 콘텐츠 제출</h2>
+            <div class="admin-form-row">
+                <span class="form-label">회원 제출</span>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="content_group_member_submission_enabled">
+                        <input id="content_group_member_submission_enabled" type="checkbox" name="group_member_submission_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'member_submission_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('이 콘텐츠 그룹에 회원 제출 허용'); ?>
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label">허용 회원 그룹</span>
+                <div class="admin-form-field">
+                    <?php $selectedSubmissionGroupKeys = sr_content_group_submission_group_keys($groupSettingValue($groupSettings, 'member_submission_allowed_group_keys', '[]')); ?>
+                    <?php foreach ($memberGroups as $memberGroup) { ?>
+                        <?php if ((string) ($memberGroup['status'] ?? '') !== 'enabled') { continue; } ?>
+                        <?php $memberGroupKey = (string) ($memberGroup['group_key'] ?? ''); ?>
+                        <label class="admin-form-check form-label">
+                            <input type="checkbox" name="group_member_submission_allowed_group_keys[]" value="<?php echo sr_e($memberGroupKey); ?>" class="form-checkbox"<?php echo in_array($memberGroupKey, $selectedSubmissionGroupKeys, true) ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html((string) ($memberGroup['title'] ?? $memberGroupKey)); ?>
+                        </label>
+                    <?php } ?>
+                    <p class="admin-form-help">개별 승인 작성자는 이 목록과 별개로 제출할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_member_submission_review_required">검수 정책</label>
+                <div class="admin-form-field">
+                    <?php $submissionReviewRequired = $groupSettingValue($groupSettings, 'member_submission_review_required', 'inherit'); ?>
+                    <select id="content_group_member_submission_review_required" name="group_member_submission_review_required" class="form-select">
+                        <option value="inherit"<?php echo $submissionReviewRequired === 'inherit' ? ' selected' : ''; ?>>전체 설정 상속</option>
+                        <option value="always"<?php echo $submissionReviewRequired === 'always' ? ' selected' : ''; ?>>항상 검수</option>
+                        <option value="none"<?php echo $submissionReviewRequired === 'none' ? ' selected' : ''; ?>>검수 없음</option>
+                    </select>
+                </div>
+            </div>
+        </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>

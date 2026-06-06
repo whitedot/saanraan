@@ -30,6 +30,16 @@ return [
             'order' => 27,
         ],
         [
+            'label' => '회원 제출 콘텐츠',
+            'path' => '/admin/content/submissions',
+            'order' => 28,
+        ],
+        [
+            'label' => '콘텐츠 작성자 승인',
+            'path' => '/admin/content/authors',
+            'order' => 29,
+        ],
+        [
             'label' => '콘텐츠 환경설정',
             'path' => '/admin/content/settings',
             'order' => 30,

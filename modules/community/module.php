@@ -123,5 +123,7 @@ return [
         'paid_attachment_download_group_policies_json' => '',
         'paid_attachment_download_policy_set_id' => 0,
         'paid_attachment_download_charge_policy' => 'once',
+        'paid_attachment_download_publisher_reward_enabled' => false,
+        'paid_attachment_download_publisher_reward_rate' => 0,
     ],
 ];

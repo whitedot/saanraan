@@ -9,6 +9,8 @@ return static function (PDO $pdo, int $accountId): array {
             'asset_access_logs' => [],
             'file_download_logs' => [],
             'asset_action_logs' => [],
+            'submissions' => [],
+            'author_reward_logs' => [],
             'comments' => [],
             'series' => [],
             'series_items' => [],
@@ -85,6 +87,41 @@ return static function (PDO $pdo, int $accountId): array {
     );
     $stmt->execute(['account_id' => $accountId]);
 
+    $submissions = [];
+    if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_submissions')) {
+        $submissionStmt = $pdo->prepare(
+            'SELECT s.id, s.content_id, p.slug AS content_slug, p.title AS content_title,
+                    s.content_group_id, g.group_key, g.title AS group_title,
+                    s.author_account_id, s.slug, s.title, s.summary, s.body_text, s.body_format,
+                    s.review_status, s.publish_target_status, s.review_note,
+                    s.reviewed_by, s.reviewed_at, s.created_at, s.updated_at
+             FROM sr_content_submissions s
+             LEFT JOIN sr_content_items p ON p.id = s.content_id
+             LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
+             WHERE s.author_account_id = :account_id
+             ORDER BY s.id ASC
+             LIMIT 1000'
+        );
+        $submissionStmt->execute(['account_id' => $accountId]);
+        $submissions = $submissionStmt->fetchAll();
+    }
+
+    $authorRewardLogs = [];
+    if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
+        $rewardStmt = $pdo->prepare(
+            'SELECT r.id, r.submission_id, r.content_id, p.slug, p.title,
+                    r.author_account_id, r.asset_module, r.amount, r.transaction_id,
+                    r.status, r.failure_reason, r.created_by_account_id, r.created_at, r.updated_at
+             FROM sr_content_author_reward_logs r
+             LEFT JOIN sr_content_items p ON p.id = r.content_id
+             WHERE r.author_account_id = :account_id
+             ORDER BY r.id ASC
+             LIMIT 1000'
+        );
+        $rewardStmt->execute(['account_id' => $accountId]);
+        $authorRewardLogs = $rewardStmt->fetchAll();
+    }
+
     $series = [];
     $seriesItems = [];
     if (sr_content_series_supported($pdo)) {
@@ -137,6 +174,8 @@ return static function (PDO $pdo, int $accountId): array {
         'asset_access_logs' => $accessLogs,
         'file_download_logs' => $fileDownloadLogs,
         'asset_action_logs' => $stmt->fetchAll(),
+        'submissions' => $submissions,
+        'author_reward_logs' => $authorRewardLogs,
         'comments' => $comments,
         'series' => $series,
         'series_items' => $seriesItems,

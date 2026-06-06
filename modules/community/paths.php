@@ -35,6 +35,7 @@ return [
     'POST /admin/community/settings' => 'actions/admin-settings.php',
     'GET /admin/community/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
     'POST /admin/community/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
+    'GET /admin/community/publisher-rewards' => 'actions/admin-publisher-rewards.php',
     'GET /admin/community/levels' => 'actions/admin-levels.php',
     'POST /admin/community/levels' => 'actions/admin-levels.php',
     'POST /admin/community/levels/recalculate' => 'actions/admin-level-recalculate.php',

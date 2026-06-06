@@ -92,6 +92,8 @@ if (sr_request_method() === 'POST') {
         $assetSettings['comment_reward_reversal_enabled'] = ($_POST['comment_reward_reversal_enabled'] ?? '') === '1';
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
+        $assetSettings['paid_attachment_download_publisher_reward_enabled'] = ($_POST['paid_attachment_download_publisher_reward_enabled'] ?? '') === '1';
+        $assetSettings['paid_attachment_download_publisher_reward_rate'] = sr_admin_post_int_in_range('paid_attachment_download_publisher_reward_rate', 0, 100);
         $beforeAssetSettings = sr_community_asset_settings_for_audit($settings, true);
 
         if ($levelPostScore === null) {
@@ -171,6 +173,10 @@ if (sr_request_method() === 'POST') {
             $assetModulesForPolicy = sr_community_asset_module_keys_from_value((string) ($assetSettings[$assetPrefix . '_asset_module'] ?? ''), true);
             $errors = array_merge($errors, sr_community_asset_policy_set_ids_validation_errors($pdo, $assetPolicySetIds, $assetLabel));
             $errors = array_merge($errors, sr_community_asset_policy_set_asset_match_errors($pdo, $assetPolicySetIds, $assetModulesForPolicy, $assetLabel));
+        }
+        if ($assetSettings['paid_attachment_download_publisher_reward_rate'] === null) {
+            $errors[] = '첨부 다운로드 게시자 리워드 지급률이 올바르지 않습니다.';
+            $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
 
         if (sr_community_board_group_keys_input_too_long($messageWriteGroupKeysInput)) {
@@ -253,6 +259,8 @@ if (sr_request_method() === 'POST') {
                 ['paid_attachment_download_group_policies_json', (string) $assetSettings['paid_attachment_download_group_policies_json'], 'json'],
                 ['paid_attachment_download_policy_set_id', (string) $assetSettings['paid_attachment_download_policy_set_id'], 'int'],
                 ['paid_attachment_download_charge_policy', (string) $assetSettings['paid_attachment_download_charge_policy'], 'string'],
+                ['paid_attachment_download_publisher_reward_enabled', $assetSettings['paid_attachment_download_publisher_reward_enabled'] ? '1' : '0', 'bool'],
+                ['paid_attachment_download_publisher_reward_rate', (string) $assetSettings['paid_attachment_download_publisher_reward_rate'], 'int'],
             ];
             try {
                 $pdo->beginTransaction();

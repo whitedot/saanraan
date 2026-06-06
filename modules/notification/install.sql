@@ -87,7 +87,8 @@ VALUES
     ('content', 'comment.created', '새 콘텐츠 댓글이 등록되었습니다.', '{member_name}님이 회원님의 콘텐츠에 댓글을 남겼습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('content', 'comment.mention', '콘텐츠 댓글에서 회원님을 언급했습니다.', '{member_name}님이 콘텐츠 댓글에서 회원님을 언급했습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('community', 'comment.created', '새 댓글이 등록되었습니다.', '{member_name}님이 회원님의 게시글에 댓글을 남겼습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
-    ('community', 'comment.mention', '댓글에서 회원님을 언급했습니다.', '{member_name}님이 커뮤니티 댓글에서 회원님을 언급했습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW())
+    ('community', 'comment.mention', '댓글에서 회원님을 언급했습니다.', '{member_name}님이 커뮤니티 댓글에서 회원님을 언급했습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
+    ('community', 'attachment.publisher_reward.granted', '첨부 다운로드 리워드가 지급되었습니다.', '지급 금액: {amount}{asset}', '{link_url}', '["site"]', 'active', NOW(), NOW())
 ON DUPLICATE KEY UPDATE
     title_template = VALUES(title_template),
     body_template = VALUES(body_template),

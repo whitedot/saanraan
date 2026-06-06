@@ -79,6 +79,8 @@ function sr_community_default_settings(): array
         'paid_attachment_download_group_policies_json' => is_string($settings['paid_attachment_download_group_policies_json'] ?? null) ? (string) $settings['paid_attachment_download_group_policies_json'] : '',
         'paid_attachment_download_policy_set_id' => (int) ($settings['paid_attachment_download_policy_set_id'] ?? 0),
         'paid_attachment_download_charge_policy' => is_string($settings['paid_attachment_download_charge_policy'] ?? null) ? (string) $settings['paid_attachment_download_charge_policy'] : 'once',
+        'paid_attachment_download_publisher_reward_enabled' => (bool) ($settings['paid_attachment_download_publisher_reward_enabled'] ?? false),
+        'paid_attachment_download_publisher_reward_rate' => (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0),
     ];
 }
 
@@ -175,6 +177,8 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['comment_reward_reversal_enabled'] = sr_community_bool_setting($settings['comment_reward_reversal_enabled'] ?? false);
     $settings['paid_read_charge_policy'] = sr_community_asset_charge_policy((string) ($settings['paid_read_charge_policy'] ?? 'once'), 'once');
     $settings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy((string) ($settings['paid_attachment_download_charge_policy'] ?? 'once'), 'once');
+    $settings['paid_attachment_download_publisher_reward_enabled'] = sr_community_bool_setting($settings['paid_attachment_download_publisher_reward_enabled'] ?? false);
+    $settings['paid_attachment_download_publisher_reward_rate'] = min(100, max(0, (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)));
 
     return $settings;
 }

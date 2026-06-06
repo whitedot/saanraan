@@ -49,5 +49,10 @@ return [
             'path' => '/admin/community/asset-policy-sets',
             'order' => 90,
         ],
+        [
+            'label' => '첨부 리워드 로그',
+            'path' => '/admin/community/publisher-rewards',
+            'order' => 95,
+        ],
     ],
 ];

@@ -651,6 +651,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </select>
                                 </div>
                             </div>
+                            <div class="admin-form-row">
+                                <span class="form-label">게시자 리워드</span>
+                                <div class="admin-form-field">
+                                    <label class="admin-form-check form-label" for="community_board_group_paid_attachment_download_publisher_reward_enabled">
+                                        <input id="community_board_group_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="group_paid_attachment_download_publisher_reward_enabled" value="1" class="form-checkbox"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_publisher_reward_enabled', '0') === '1' ? ' checked' : ''; ?>>
+                                        <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="community_board_group_paid_attachment_download_publisher_reward_rate">게시자 리워드 지급률</label>
+                                <div class="admin-form-field">
+                                    <div class="input-group admin-asset-single-amount-group">
+                                        <input id="community_board_group_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="group_paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'paid_attachment_download_publisher_reward_rate', '0')); ?>" class="form-input">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
                         <?php } ?>
                 <?php } ?>
             </div>

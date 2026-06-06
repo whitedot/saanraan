@@ -489,6 +489,10 @@ if (sr_request_method() === 'POST') {
         }
         $assetSettings['paid_read_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_read_charge_policy', 20), 'once');
         $assetSettings['paid_attachment_download_charge_policy'] = sr_community_asset_charge_policy(sr_post_string('paid_attachment_download_charge_policy', 20), 'once');
+        $assetSettings['paid_attachment_download_publisher_reward_enabled'] = ($_POST['paid_attachment_download_publisher_reward_enabled'] ?? '') === '1';
+        $assetSettings['paid_attachment_download_publisher_reward_rate'] = sr_admin_post_int_in_range('paid_attachment_download_publisher_reward_rate', 0, 100);
+        $assetSettingSources['paid_attachment_download_publisher_reward_enabled'] = sr_community_normalize_board_setting_source(sr_post_string('source_paid_attachment_download_publisher_reward_enabled', 20));
+        $assetSettingSources['paid_attachment_download_publisher_reward_rate'] = sr_community_normalize_board_setting_source(sr_post_string('source_paid_attachment_download_publisher_reward_rate', 20));
         $assetSettingLabels = [];
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
             $assetSettingLabels[$assetPrefix] = sr_community_asset_setting_label($assetPrefix);
@@ -716,6 +720,10 @@ if (sr_request_method() === 'POST') {
             $assetModulesForPolicy = sr_community_asset_module_keys_from_value((string) ($assetSettings[$assetPrefix . '_asset_module'] ?? ''), true);
             $errors = array_merge($errors, sr_community_asset_policy_set_ids_validation_errors($pdo, $assetPolicySetIds, $assetLabel));
             $errors = array_merge($errors, sr_community_asset_policy_set_asset_match_errors($pdo, $assetPolicySetIds, $assetModulesForPolicy, $assetLabel));
+        }
+        if ($assetSettings['paid_attachment_download_publisher_reward_rate'] === null) {
+            $errors[] = '첨부 다운로드 게시자 리워드 지급률이 올바르지 않습니다.';
+            $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
 
         if ($errors === [] && $intent === 'create' && sr_community_board_by_key($pdo, $boardKey) !== null) {
@@ -1072,6 +1080,10 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
             $board[$assetPrefix . '_charge_policy'] = sr_community_asset_board_setting($pdo, $board, $settings, $assetPrefix . '_charge_policy', (string) ($settings[$assetPrefix . '_charge_policy'] ?? 'once'));
         }
     }
+    $board['paid_attachment_download_publisher_reward_enabled'] = sr_community_asset_board_setting($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_enabled', !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? '1' : '0');
+    $board['paid_attachment_download_publisher_reward_rate'] = sr_community_asset_board_setting($pdo, $board, $settings, 'paid_attachment_download_publisher_reward_rate', (string) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0));
+    $board['source_paid_attachment_download_publisher_reward_enabled'] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], 'paid_attachment_download_publisher_reward_enabled');
+    $board['source_paid_attachment_download_publisher_reward_rate'] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], 'paid_attachment_download_publisher_reward_rate');
 
     return $board;
 };

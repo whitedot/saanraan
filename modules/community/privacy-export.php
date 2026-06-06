@@ -17,6 +17,7 @@ return static function (PDO $pdo, int $accountId): array {
         'level_logs' => [],
         'access_entitlements' => [],
         'asset_logs' => [],
+        'publisher_reward_logs' => [],
     ];
 
     if ($accountId < 1) {
@@ -199,11 +200,32 @@ return static function (PDO $pdo, int $accountId): array {
         );
         $stmt->execute(['account_id' => $accountId]);
         $empty['asset_logs'] = $stmt->fetchAll();
+
+        $stmt = $pdo->prepare(
+            'SELECT id, charge_asset_log_id, charge_transaction_id, reward_transaction_id, reversal_transaction_id,
+                    post_id, attachment_id,
+                    CASE WHEN downloader_account_id = :downloader_account_id THEN downloader_account_id ELSE NULL END AS downloader_account_id,
+                    CASE WHEN publisher_account_id = :publisher_account_id THEN publisher_account_id ELSE NULL END AS publisher_account_id,
+                    CASE WHEN downloader_account_id = :downloader_role_account_id THEN \'downloader\' ELSE \'publisher\' END AS account_role,
+                    asset_module, charge_amount, reward_rate, reward_amount, status, created_at, updated_at
+             FROM sr_community_publisher_reward_logs
+             WHERE downloader_account_id = :account_id OR publisher_account_id = :account_id
+             ORDER BY id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'downloader_account_id' => $accountId,
+            'publisher_account_id' => $accountId,
+            'downloader_role_account_id' => $accountId,
+        ]);
+        $empty['publisher_reward_logs'] = $stmt->fetchAll();
     } catch (Throwable $exception) {
         $empty['level'] = [];
         $empty['level_logs'] = [];
         $empty['access_entitlements'] = [];
         $empty['asset_logs'] = [];
+        $empty['publisher_reward_logs'] = [];
     }
 
     return $empty;
