@@ -24,7 +24,7 @@ return [
     'ui.duration.second' => '초',
     'ui.duration.unknown' => '확인 불가',
     'ui.https.example.com.9a232e78' => '/ 또는 https://example.com',
-    'ui.logo.add' => '로고 배치 추가',
+    'ui.logo.add' => '로고 추가',
     'ui.logo.empty' => '등록된 로고 배치가 없습니다.',
     'ui.logo.form_help' => '로고를 사용할 용도와 기간을 선택합니다. 시작/종료 시각을 비우면 상시 적용됩니다.',
     'ui.logo.list' => '로고 배치 목록',
