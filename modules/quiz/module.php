@@ -2,7 +2,7 @@
 
 return [
     'name' => '퀴즈',
-    'version' => '2026.06.001',
+    'version' => '2026.06.002',
     'type' => 'module',
     'description' => '퀴즈 응시, 채점, 콘텐츠 연계 보상을 관리하는 모듈입니다.',
     'admin' => [

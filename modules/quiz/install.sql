@@ -7,9 +7,12 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     quiz_mode VARCHAR(30) NOT NULL DEFAULT 'scored',
     scoring_model VARCHAR(40) NOT NULL DEFAULT 'correct_answer',
     pass_score INT NULL,
+    starts_at DATETIME NULL,
+    ends_at DATETIME NULL,
     time_limit_seconds INT UNSIGNED NULL,
     attempt_limit_policy VARCHAR(30) NOT NULL DEFAULT 'unlimited',
     attempt_limit_period_seconds INT UNSIGNED NULL,
+    member_group_keys_json LONGTEXT NULL,
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_scope VARCHAR(20) NOT NULL DEFAULT 'per_quiz',
     created_by_account_id BIGINT UNSIGNED NULL,
@@ -20,6 +23,7 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     PRIMARY KEY (id),
     UNIQUE KEY uq_sr_quiz_sets_quiz_key (quiz_key),
     KEY idx_sr_quiz_sets_status (status),
+    KEY idx_sr_quiz_sets_status_dates (status, starts_at, ends_at),
     KEY idx_sr_quiz_sets_mode_model (quiz_mode, scoring_model),
     KEY idx_sr_quiz_sets_reward (reward_enabled)
 );

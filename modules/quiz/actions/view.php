@@ -16,11 +16,14 @@ if (!sr_quiz_key_is_valid($quizKey)) {
 }
 $quiz = sr_quiz_by_key($pdo, $quizKey);
 
-if (!is_array($quiz) || (string) ($quiz['status'] ?? '') !== 'active') {
+if (!is_array($quiz) || (string) ($quiz['status'] ?? '') !== 'active' || !sr_quiz_public_window_is_open($quiz)) {
     sr_render_error(404, '퀴즈를 찾을 수 없습니다.');
 }
 $questions = sr_quiz_questions_with_choices($pdo, (int) ($quiz['id'] ?? 0));
 $currentAccount = sr_member_current_account($pdo);
+$attemptAccess = is_array($currentAccount)
+    ? sr_quiz_account_can_attempt($pdo, $quiz, (int) ($currentAccount['id'] ?? 0))
+    : ['allowed' => false, 'message' => '로그인 후 퀴즈를 풀 수 있습니다.'];
 $submitResult = null;
 $submitErrors = [];
 $returnTo = sr_quiz_internal_return_path(sr_get_string('return_to', 255));
@@ -47,6 +50,11 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     if ($questions === []) {
         $submitErrors[] = '응시 가능한 문제가 없습니다.';
+    } else {
+        $attemptAccess = sr_quiz_account_can_attempt($pdo, $quiz, (int) ($account['id'] ?? 0));
+        if (empty($attemptAccess['allowed'])) {
+            $submitErrors[] = (string) ($attemptAccess['message'] ?? '현재 응시할 수 없는 퀴즈입니다.');
+        }
     }
     if ($submitErrors === []) {
         try {
@@ -59,6 +67,19 @@ if (sr_request_method() === 'POST') {
                 sr_quiz_asset_options($pdo)
             );
             $currentAccount = $account;
+            $attemptAccess = sr_quiz_account_can_attempt($pdo, $quiz, (int) ($account['id'] ?? 0));
+        } catch (RuntimeException $exception) {
+            $message = (string) $exception->getMessage();
+            if (!in_array($message, [
+                '현재 응시할 수 없는 퀴즈입니다.',
+                '응시 권한이 없는 퀴즈입니다.',
+                '응시 제한 기간 설정을 확인해야 합니다.',
+                '응시 제한에 따라 다시 제출할 수 없습니다.',
+            ], true)) {
+                sr_log_exception($exception, 'quiz_submit_failed');
+                $message = '퀴즈 제출 중 오류가 발생했습니다.';
+            }
+            $submitErrors[] = $message;
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'quiz_submit_failed');
             $submitErrors[] = '퀴즈 제출 중 오류가 발생했습니다.';
@@ -115,6 +136,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <?php if (!is_array($currentAccount)): ?>
                     <p>로그인 후 퀴즈를 풀 수 있습니다.</p>
                     <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($quizNextUrl))); ?>" target="_top">로그인</a></p>
+                <?php elseif (empty($attemptAccess['allowed'])): ?>
+                    <p><?php echo sr_e((string) ($attemptAccess['message'] ?? '현재 응시할 수 없는 퀴즈입니다.')); ?></p>
                 <?php else: ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/quiz/' . (string) $quiz['quiz_key'])); ?>" class="sr-quiz-form">
                         <?php echo sr_csrf_field(); ?>

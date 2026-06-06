@@ -63,6 +63,134 @@ function sr_quiz_status_label(string $status): string
     ][$status] ?? $status;
 }
 
+function sr_quiz_attempt_limit_policies(): array
+{
+    return ['unlimited', 'per_quiz_once', 'per_period'];
+}
+
+function sr_quiz_attempt_limit_policy_label(string $policy): string
+{
+    return [
+        'unlimited' => '제한 없음',
+        'per_quiz_once' => '회원당 1회',
+        'per_period' => '기간당 1회',
+    ][$policy] ?? $policy;
+}
+
+function sr_quiz_clean_admin_datetime(string $value): ?string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return null;
+    }
+
+    $timestamp = strtotime(str_replace('T', ' ', $value));
+    return $timestamp === false ? null : date('Y-m-d H:i:s', $timestamp);
+}
+
+function sr_quiz_datetime_local_value(mixed $value): string
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
+}
+
+function sr_quiz_member_group_keys_from_value(mixed $value): array
+{
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            $value = $decoded;
+        } else {
+            $value = preg_split('/[\s,]+/', $value) ?: [];
+        }
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $keys = [];
+    foreach ($value as $groupKey) {
+        $groupKey = sr_quiz_clean_key((string) $groupKey, 64);
+        if ($groupKey !== '' && function_exists('sr_member_group_key_is_valid') && sr_member_group_key_is_valid($groupKey)) {
+            $keys[$groupKey] = true;
+        }
+    }
+
+    return array_keys($keys);
+}
+
+function sr_quiz_member_groups_for_admin(PDO $pdo): array
+{
+    if (!function_exists('sr_member_groups')) {
+        return [];
+    }
+
+    return array_values(array_filter(sr_member_groups($pdo), static function (array $group): bool {
+        return (string) ($group['status'] ?? '') === 'enabled';
+    }));
+}
+
+function sr_quiz_public_window_is_open(array $quiz, ?string $now = null): bool
+{
+    $now = $now ?? sr_now();
+    $startsAt = trim((string) ($quiz['starts_at'] ?? ''));
+    $endsAt = trim((string) ($quiz['ends_at'] ?? ''));
+
+    return ($startsAt === '' || $startsAt <= $now)
+        && ($endsAt === '' || $endsAt >= $now);
+}
+
+function sr_quiz_account_can_attempt(PDO $pdo, array $quiz, int $accountId): array
+{
+    if ($accountId < 1) {
+        return ['allowed' => false, 'message' => '로그인 후 퀴즈를 풀 수 있습니다.'];
+    }
+    if ((string) ($quiz['status'] ?? '') !== 'active' || !sr_quiz_public_window_is_open($quiz)) {
+        return ['allowed' => false, 'message' => '현재 응시할 수 없는 퀴즈입니다.'];
+    }
+
+    $requiredGroupKeys = sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? '');
+    if ($requiredGroupKeys !== [] && (!function_exists('sr_member_account_in_any_group') || !sr_member_account_in_any_group($pdo, $accountId, $requiredGroupKeys))) {
+        return ['allowed' => false, 'message' => '응시 권한이 없는 퀴즈입니다.'];
+    }
+
+    $policy = (string) ($quiz['attempt_limit_policy'] ?? 'unlimited');
+    if (!in_array($policy, sr_quiz_attempt_limit_policies(), true)) {
+        $policy = 'unlimited';
+    }
+    if ($policy === 'unlimited') {
+        return ['allowed' => true, 'message' => ''];
+    }
+
+    $params = [
+        'quiz_id' => (int) ($quiz['id'] ?? 0),
+        'account_id' => $accountId,
+    ];
+    $sql = 'SELECT COUNT(*) FROM sr_quiz_attempts WHERE quiz_id = :quiz_id AND account_id = :account_id AND submitted_at IS NOT NULL';
+    if ($policy === 'per_period') {
+        $seconds = (int) ($quiz['attempt_limit_period_seconds'] ?? 0);
+        if ($seconds < 1) {
+            return ['allowed' => false, 'message' => '응시 제한 기간 설정을 확인해야 합니다.'];
+        }
+        $since = date('Y-m-d H:i:s', max(0, time() - $seconds));
+        $sql .= ' AND submitted_at >= :since';
+        $params['since'] = $since;
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    if ((int) $stmt->fetchColumn() > 0) {
+        return ['allowed' => false, 'message' => '응시 제한에 따라 다시 제출할 수 없습니다.'];
+    }
+
+    return ['allowed' => true, 'message' => ''];
+}
+
 function sr_quiz_key_exists(PDO $pdo, string $quizKey, int $excludeId = 0): bool
 {
     if (!sr_quiz_key_is_valid($quizKey)) {
@@ -89,9 +217,14 @@ function sr_quiz_public_quizzes(PDO $pdo, int $limit = 50): array
          FROM sr_quiz_sets
          WHERE status = 'active'
            AND deleted_at IS NULL
+           AND (starts_at IS NULL OR starts_at <= :now_start)
+           AND (ends_at IS NULL OR ends_at >= :now_end)
          ORDER BY updated_at DESC, id DESC
          LIMIT :limit_value"
     );
+    $now = sr_now();
+    $stmt->bindValue('now_start', $now);
+    $stmt->bindValue('now_end', $now);
     $stmt->bindValue('limit_value', max(1, min(100, $limit)), PDO::PARAM_INT);
     $stmt->execute();
 
@@ -283,6 +416,10 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
     if ($quizId < 1 || $accountId < 1) {
         throw new InvalidArgumentException('Quiz and account are required.');
     }
+    $attemptAccess = sr_quiz_account_can_attempt($pdo, $quiz, $accountId);
+    if (empty($attemptAccess['allowed'])) {
+        throw new RuntimeException((string) ($attemptAccess['message'] ?? 'Quiz attempt is not allowed.'));
+    }
 
     $now = sr_now();
     $totalScore = 0;
@@ -321,13 +458,14 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
     try {
         $returnUrl = sr_quiz_internal_return_path(sr_post_string('return_to', 255));
         $sourceContext = sr_quiz_valid_source_context($pdo, $quizId, sr_quiz_source_context_from_request());
+        $sourceSnapshot = sr_quiz_source_snapshot($pdo, $sourceContext, $returnUrl);
         $stmt = $pdo->prepare(
             'INSERT INTO sr_quiz_attempts
                 (quiz_id, account_id, status, source_module, source_type, source_id, return_url, started_at, submitted_at, scored_at,
-                 total_score, passed, answer_snapshot_json, scoring_snapshot_json, user_agent_hash, ip_hash, created_at, updated_at)
+                 source_title_snapshot, source_url_snapshot, total_score, passed, answer_snapshot_json, scoring_snapshot_json, user_agent_hash, ip_hash, created_at, updated_at)
              VALUES
                 (:quiz_id, :account_id, \'scored\', :source_module, :source_type, :source_id, :return_url, :started_at, :submitted_at, :scored_at,
-                 :total_score, :passed, :answer_snapshot_json, :scoring_snapshot_json, :user_agent_hash, :ip_hash, :created_at, :updated_at)'
+                 :source_title_snapshot, :source_url_snapshot, :total_score, :passed, :answer_snapshot_json, :scoring_snapshot_json, :user_agent_hash, :ip_hash, :created_at, :updated_at)'
         );
         $answerSnapshotJson = json_encode($selectedChoiceIds, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $scoringSnapshotJson = json_encode([
@@ -346,6 +484,8 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
             'started_at' => $now,
             'submitted_at' => $now,
             'scored_at' => $now,
+            'source_title_snapshot' => $sourceSnapshot['title'],
+            'source_url_snapshot' => $sourceSnapshot['url'],
             'total_score' => $totalScore,
             'passed' => $passed ? 1 : 0,
             'answer_snapshot_json' => is_string($answerSnapshotJson) ? $answerSnapshotJson : '{}',
@@ -386,7 +526,7 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
         if ($passed && (int) ($quiz['reward_enabled'] ?? 0) === 1) {
             $rewardPolicy = sr_quiz_active_reward_policy($pdo, $quizId);
             if (is_array($rewardPolicy)) {
-                $rewardGrant = sr_quiz_issue_reward_grant($pdo, $quiz, $attemptId, $accountId, $rewardPolicy, $assetOptions, $now);
+                $rewardGrant = sr_quiz_issue_reward_grant($pdo, $quiz, $attemptId, $accountId, $rewardPolicy, $assetOptions, $now, $sourceContext);
                 $rewardError = (string) ($rewardGrant['error_message'] ?? '');
             }
         }
@@ -408,7 +548,26 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
     }
 }
 
-function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $accountId, array $policy, array $assetOptions, string $now): array
+function sr_quiz_source_snapshot(PDO $pdo, array $sourceContext, string $returnUrl): array
+{
+    $sourceModule = (string) ($sourceContext['source_module'] ?? '');
+    $sourceType = (string) ($sourceContext['source_type'] ?? '');
+    $sourceId = (int) ($sourceContext['source_id'] ?? 0);
+    $snapshot = ['title' => null, 'url' => $returnUrl !== '' ? $returnUrl : null];
+
+    if ($sourceModule !== 'content' || $sourceType !== 'content_item' || $sourceId < 1 || !function_exists('sr_content_by_id')) {
+        return $snapshot;
+    }
+
+    $page = sr_content_by_id($pdo, $sourceId);
+    if (is_array($page)) {
+        $snapshot['title'] = (string) ($page['title'] ?? '');
+    }
+
+    return $snapshot;
+}
+
+function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $accountId, array $policy, array $assetOptions, string $now, array $sourceContext = []): array
 {
     $quizId = (int) ($quiz['id'] ?? 0);
     $policyId = (int) ($policy['id'] ?? 0);
@@ -423,10 +582,10 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_quiz_reward_grants
             (quiz_id, attempt_id, reward_policy_id, account_id, reward_provider, reward_module, reward_code, reward_amount,
-             dedupe_scope, dedupe_key, status, request_snapshot_json, created_at, updated_at)
+             source_module, source_type, source_id, dedupe_scope, dedupe_key, status, request_snapshot_json, created_at, updated_at)
          VALUES
             (:quiz_id, :attempt_id, :reward_policy_id, :account_id, \'ledger_asset\', :reward_module, :reward_code, :reward_amount,
-             :dedupe_scope, :dedupe_key, \'pending\', :request_snapshot_json, :created_at, :updated_at)'
+             :source_module, :source_type, :source_id, :dedupe_scope, :dedupe_key, \'pending\', :request_snapshot_json, :created_at, :updated_at)'
     );
     $snapshotJson = json_encode([
         'quiz_key' => (string) ($quiz['quiz_key'] ?? ''),
@@ -441,6 +600,9 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
         'reward_module' => $rewardModule,
         'reward_code' => (string) ($policy['reward_code'] ?? 'quiz_reward'),
         'reward_amount' => $rewardAmount,
+        'source_module' => $sourceContext['source_module'] ?? null,
+        'source_type' => $sourceContext['source_type'] ?? null,
+        'source_id' => $sourceContext['source_id'] ?? null,
         'dedupe_scope' => $dedupeScope,
         'dedupe_key' => $dedupeKey,
         'request_snapshot_json' => is_string($snapshotJson) ? $snapshotJson : '{}',
@@ -534,7 +696,8 @@ function sr_quiz_admin_quizzes(PDO $pdo): array
 {
     $stmt = $pdo->query(
         'SELECT q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
-                q.reward_enabled, q.updated_at,
+                q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
+                q.member_group_keys_json, q.reward_enabled, q.updated_at,
                 COUNT(DISTINCT qs.id) AS question_count,
                 COUNT(DISTINCT rp.id) AS reward_policy_count,
                 COUNT(DISTINCT src.id) AS source_count
@@ -543,7 +706,9 @@ function sr_quiz_admin_quizzes(PDO $pdo): array
          LEFT JOIN sr_quiz_reward_policies rp ON rp.quiz_id = q.id AND rp.status = \'active\'
          LEFT JOIN sr_quiz_sources src ON src.quiz_id = q.id AND src.status = \'active\'
          WHERE q.deleted_at IS NULL
-         GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score, q.reward_enabled, q.updated_at
+         GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
+                  q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
+                  q.member_group_keys_json, q.reward_enabled, q.updated_at
          ORDER BY q.updated_at DESC, q.id DESC
          LIMIT 100'
     );
@@ -618,6 +783,11 @@ function sr_quiz_default_admin_values(): array
         'description' => '',
         'status' => 'draft',
         'pass_score' => 1,
+        'starts_at' => '',
+        'ends_at' => '',
+        'attempt_limit_policy' => 'unlimited',
+        'attempt_limit_period_seconds' => '',
+        'member_group_keys' => [],
         'reward_enabled' => 0,
         'reward_module' => '',
         'reward_amount' => '',
@@ -674,6 +844,11 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'description' => (string) ($quiz['description'] ?? ''),
         'status' => (string) ($quiz['status'] ?? 'draft'),
         'pass_score' => (string) ($quiz['pass_score'] ?? ''),
+        'starts_at' => sr_quiz_datetime_local_value($quiz['starts_at'] ?? ''),
+        'ends_at' => sr_quiz_datetime_local_value($quiz['ends_at'] ?? ''),
+        'attempt_limit_policy' => (string) ($quiz['attempt_limit_policy'] ?? 'unlimited'),
+        'attempt_limit_period_seconds' => (string) ($quiz['attempt_limit_period_seconds'] ?? ''),
+        'member_group_keys' => sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''),
         'reward_enabled' => (int) ($quiz['reward_enabled'] ?? 0),
         'reward_module' => (string) ($policy['reward_module'] ?? ''),
         'reward_amount' => (string) ($policy['reward_amount'] ?? ''),
@@ -734,6 +909,11 @@ function sr_quiz_admin_values_from_post(): array
         ];
     }
 
+    $memberGroupKeys = $_POST['member_group_keys'] ?? [];
+    if (!is_array($memberGroupKeys)) {
+        $memberGroupKeys = [];
+    }
+
     return [
         'id' => (int) sr_post_string('quiz_id', 20),
         'quiz_key' => sr_quiz_clean_key(sr_post_string('quiz_key', 64)),
@@ -741,6 +921,11 @@ function sr_quiz_admin_values_from_post(): array
         'description' => sr_quiz_clean_text(sr_post_string('description', 2000), 2000),
         'status' => sr_post_string('status', 20),
         'pass_score' => sr_post_string('pass_score', 20),
+        'starts_at' => sr_post_string('starts_at', 30),
+        'ends_at' => sr_post_string('ends_at', 30),
+        'attempt_limit_policy' => sr_post_string('attempt_limit_policy', 30),
+        'attempt_limit_period_seconds' => sr_post_string('attempt_limit_period_seconds', 20),
+        'member_group_keys' => sr_quiz_member_group_keys_from_value($memberGroupKeys),
         'reward_enabled' => ($_POST['reward_enabled'] ?? '') === '1' ? 1 : 0,
         'reward_module' => sr_quiz_clean_key(sr_post_string('reward_module', 40), 40),
         'reward_amount' => sr_post_string('reward_amount', 20),
@@ -827,6 +1012,31 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     if ((string) ($values['pass_score'] ?? '') !== '' && (int) $values['pass_score'] < 0) {
         $errors[] = '통과 점수는 0 이상이어야 합니다.';
     }
+    $startsAtInput = (string) ($values['starts_at'] ?? '');
+    $endsAtInput = (string) ($values['ends_at'] ?? '');
+    $startsAt = sr_quiz_clean_admin_datetime($startsAtInput);
+    $endsAt = sr_quiz_clean_admin_datetime($endsAtInput);
+    if (trim($startsAtInput) !== '' && $startsAt === null) {
+        $errors[] = '공개 시작일시 형식이 올바르지 않습니다.';
+    }
+    if (trim($endsAtInput) !== '' && $endsAt === null) {
+        $errors[] = '공개 종료일시 형식이 올바르지 않습니다.';
+    }
+    if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
+        $errors[] = '공개 종료일시는 시작일시 이후여야 합니다.';
+    }
+    $attemptLimitPolicy = (string) ($values['attempt_limit_policy'] ?? 'unlimited');
+    if (!in_array($attemptLimitPolicy, sr_quiz_attempt_limit_policies(), true)) {
+        $errors[] = '응시 제한 정책 값이 올바르지 않습니다.';
+    }
+    if ($attemptLimitPolicy === 'per_period' && (int) ($values['attempt_limit_period_seconds'] ?? 0) < 1) {
+        $errors[] = '기간당 1회 제한은 제한 기간을 1초 이상 입력해야 합니다.';
+    }
+    foreach (sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []) as $groupKey) {
+        if (!function_exists('sr_member_group_exists') || !sr_member_group_exists($pdo, $groupKey)) {
+            $errors[] = '응시 가능 회원 그룹을 찾을 수 없습니다: ' . $groupKey;
+        }
+    }
 
     $questions = (array) ($values['questions'] ?? []);
     if ($questions === []) {
@@ -901,6 +1111,16 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
     $quizId = (int) ($values['id'] ?? 0);
     $now = sr_now();
     $passScore = (string) ($values['pass_score'] ?? '') === '' ? null : (int) $values['pass_score'];
+    $startsAt = sr_quiz_clean_admin_datetime((string) ($values['starts_at'] ?? ''));
+    $endsAt = sr_quiz_clean_admin_datetime((string) ($values['ends_at'] ?? ''));
+    $attemptLimitPolicy = (string) ($values['attempt_limit_policy'] ?? 'unlimited');
+    if (!in_array($attemptLimitPolicy, sr_quiz_attempt_limit_policies(), true)) {
+        $attemptLimitPolicy = 'unlimited';
+    }
+    $attemptLimitPeriodSeconds = $attemptLimitPolicy === 'per_period'
+        ? max(1, (int) ($values['attempt_limit_period_seconds'] ?? 0))
+        : null;
+    $memberGroupKeysJson = json_encode(sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
     $pdo->beginTransaction();
     try {
@@ -927,6 +1147,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                      quiz_mode = \'scored\',
                      scoring_model = \'correct_answer\',
                      pass_score = :pass_score,
+                     starts_at = :starts_at,
+                     ends_at = :ends_at,
+                     attempt_limit_policy = :attempt_limit_policy,
+                     attempt_limit_period_seconds = :attempt_limit_period_seconds,
+                     member_group_keys_json = :member_group_keys_json,
                      reward_enabled = :reward_enabled,
                      updated_by_account_id = :updated_by_account_id,
                      updated_at = :updated_at
@@ -939,6 +1164,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'description' => (string) $values['description'],
                 'status' => (string) $values['status'],
                 'pass_score' => $passScore,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'attempt_limit_policy' => $attemptLimitPolicy,
+                'attempt_limit_period_seconds' => $attemptLimitPeriodSeconds,
+                'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'updated_by_account_id' => $accountId,
                 'updated_at' => $now,
@@ -947,10 +1177,12 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_quiz_sets
-                    (quiz_key, title, description, status, quiz_mode, scoring_model, pass_score, reward_enabled,
+                    (quiz_key, title, description, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
+                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, reward_enabled,
                      created_by_account_id, updated_by_account_id, created_at, updated_at)
                  VALUES
-                    (:quiz_key, :title, :description, :status, \'scored\', \'correct_answer\', :pass_score, :reward_enabled,
+                    (:quiz_key, :title, :description, :status, \'scored\', \'correct_answer\', :pass_score, :starts_at, :ends_at,
+                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :reward_enabled,
                      :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
             );
             $stmt->execute([
@@ -959,6 +1191,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'description' => (string) $values['description'],
                 'status' => (string) $values['status'],
                 'pass_score' => $passScore,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'attempt_limit_policy' => $attemptLimitPolicy,
+                'attempt_limit_period_seconds' => $attemptLimitPeriodSeconds,
+                'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'created_by_account_id' => $accountId,
                 'updated_by_account_id' => $accountId,
@@ -1093,7 +1330,7 @@ function sr_quiz_content_quizzes(PDO $pdo, int $contentId): array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT q.id, q.quiz_key, q.title, q.description, s.cta_label
+        'SELECT q.id, q.quiz_key, q.title, q.description, q.member_group_keys_json, s.cta_label
          FROM sr_quiz_sources s
          INNER JOIN sr_quiz_sets q ON q.id = s.quiz_id
          WHERE s.source_module = \'content\'
@@ -1102,9 +1339,15 @@ function sr_quiz_content_quizzes(PDO $pdo, int $contentId): array
            AND s.status = \'active\'
            AND q.status = \'active\'
            AND q.deleted_at IS NULL
+           AND (q.starts_at IS NULL OR q.starts_at <= :now_start)
+           AND (q.ends_at IS NULL OR q.ends_at >= :now_end)
          ORDER BY s.sort_order ASC, q.updated_at DESC, q.id DESC'
     );
-    $stmt->execute(['content_id' => $contentId]);
+    $stmt->execute([
+        'content_id' => $contentId,
+        'now_start' => sr_now(),
+        'now_end' => sr_now(),
+    ]);
 
     return $stmt->fetchAll();
 }

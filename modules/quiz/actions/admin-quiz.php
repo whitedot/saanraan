@@ -11,6 +11,7 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
+$memberGroups = sr_quiz_member_groups_for_admin($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -133,8 +134,10 @@ if ($mode === 'list') {
                             <th>상태</th>
                             <th>문제</th>
                             <th>연결</th>
-                            <th>통과</th>
-                            <th>보상</th>
+	                            <th>통과</th>
+	                            <th>응시 제한</th>
+	                            <th>회원 조건</th>
+	                            <th>보상</th>
                             <th>수정일</th>
                             <th>관리</th>
                         </tr>
@@ -147,8 +150,10 @@ if ($mode === 'list') {
                                 <td><?php echo sr_e(sr_quiz_status_label((string) $quiz['status'])); ?></td>
                                 <td><?php echo sr_e((string) (int) ($quiz['question_count'] ?? 0)); ?></td>
                                 <td><?php echo sr_e((string) (int) ($quiz['source_count'] ?? 0)); ?></td>
-                                <td><?php echo sr_e((string) ($quiz['pass_score'] ?? '')); ?></td>
-                                <td><?php echo ((int) ($quiz['reward_enabled'] ?? 0) === 1) ? '사용' : '미사용'; ?></td>
+	                                <td><?php echo sr_e((string) ($quiz['pass_score'] ?? '')); ?></td>
+	                                <td><?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?></td>
+	                                <td><?php echo sr_e((string) count(sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''))); ?></td>
+	                                <td><?php echo ((int) ($quiz['reward_enabled'] ?? 0) === 1) ? '사용' : '미사용'; ?></td>
                                 <td><?php echo sr_e((string) $quiz['updated_at']); ?></td>
                                 <td class="admin-table-actions">
                                     <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=edit&id=' . (string) (int) $quiz['id'])); ?>" aria-label="퀴즈 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
@@ -234,6 +239,42 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 <label class="form-label" for="quiz_pass_score">통과 점수</label>
                 <div class="admin-form-field">
                     <input id="quiz_pass_score" type="number" name="pass_score" value="<?php echo sr_e((string) ($values['pass_score'] ?? '')); ?>" class="form-input" min="0" step="1">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_starts_at">공개 시작일시</label>
+                <div class="admin-form-field">
+                    <input id="quiz_starts_at" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_quiz_datetime_local_value($values['starts_at'] ?? '')); ?>" class="form-input">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_ends_at">공개 종료일시</label>
+                <div class="admin-form-field">
+                    <input id="quiz_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_quiz_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_attempt_limit_policy">응시 제한</label>
+                <div class="admin-form-field">
+                    <select id="quiz_attempt_limit_policy" name="attempt_limit_policy" class="form-select">
+                        <?php foreach (sr_quiz_attempt_limit_policies() as $policy) { ?>
+                            <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($values['attempt_limit_policy'] ?? 'unlimited') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_attempt_limit_policy_label($policy)); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_attempt_limit_period_seconds">제한 기간(초)</label>
+                <div class="admin-form-field">
+                    <input id="quiz_attempt_limit_period_seconds" type="number" name="attempt_limit_period_seconds" value="<?php echo sr_e((string) ($values['attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1">
+                    <p class="admin-form-help">응시 제한이 기간당 1회일 때만 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_member_group_keys">응시 가능 회원 그룹</label>
+                <div class="admin-form-field">
+                    <?php echo sr_admin_member_group_key_select_html('quiz_member_group_keys', 'member_group_keys', sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), $memberGroups); ?>
+                    <p class="admin-form-help">선택하지 않으면 로그인 회원 전체가 응시할 수 있습니다.</p>
                 </div>
             </div>
         </div>
