@@ -154,7 +154,7 @@ if ($mode === 'list') {
 	                                <td><?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?></td>
 	                                <td><?php echo sr_e((string) count(sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''))); ?></td>
 	                                <td><?php echo ((int) ($quiz['reward_enabled'] ?? 0) === 1) ? '사용' : '미사용'; ?></td>
-                                <td><?php echo sr_e((string) $quiz['updated_at']); ?></td>
+                                <td><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
                                 <td class="admin-table-actions">
                                     <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=edit&id=' . (string) (int) $quiz['id'])); ?>" aria-label="퀴즈 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-inline-form">
@@ -198,7 +198,7 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
     <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
     <div class="admin-card">
         <div class="admin-card-header">
-            <h2><?php echo $mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성'; ?></h2>
+            <h2><?php echo sr_e($mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성'); ?></h2>
         </div>
         <div class="admin-card-body">
             <?php if ($errors !== []) { ?>
@@ -275,9 +275,9 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_attempt_limit_policy">응시 제한</label>
+                <label class="form-label" for="quiz_attempt_limit_policy">응시 제한 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
-                    <select id="quiz_attempt_limit_policy" name="attempt_limit_policy" class="form-select">
+                    <select id="quiz_attempt_limit_policy" name="attempt_limit_policy" class="form-select" required>
                         <?php foreach (sr_quiz_attempt_limit_policies() as $policy) { ?>
                             <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($values['attempt_limit_policy'] ?? 'unlimited') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_attempt_limit_policy_label($policy)); ?></option>
                         <?php } ?>
@@ -285,9 +285,9 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_attempt_limit_period_seconds">제한 기간(초)</label>
+                <label class="form-label" for="quiz_attempt_limit_period_seconds">제한 기간(초) <span class="sr-required-label" data-quiz-attempt-period-required hidden>(필수)</span></label>
                 <div class="admin-form-field">
-                    <input id="quiz_attempt_limit_period_seconds" type="number" name="attempt_limit_period_seconds" value="<?php echo sr_e((string) ($values['attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1">
+                    <input id="quiz_attempt_limit_period_seconds" type="number" name="attempt_limit_period_seconds" value="<?php echo sr_e((string) ($values['attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-attempt-period>
                     <p class="admin-form-help">응시 제한이 기간당 1회일 때만 사용합니다.</p>
                 </div>
             </div>
@@ -321,9 +321,9 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                     <div class="admin-section-body">
                         <input type="hidden" name="question_uid[]" value="<?php echo sr_e($questionUid); ?>">
                         <div class="admin-form-row">
-                            <label class="form-label" for="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>">문제 유형</label>
-                            <div class="admin-form-field">
-                                <select id="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>" name="question_type[]" class="form-select">
+	                            <label class="form-label" for="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>">문제 유형 <span class="sr-required-label">(필수)</span></label>
+	                            <div class="admin-form-field">
+	                                <select id="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>" name="question_type[]" class="form-select" required>
                                     <?php foreach (sr_quiz_question_types() as $questionType) { ?>
                                         <option value="<?php echo sr_e($questionType); ?>"<?php echo (string) ($question['question_type'] ?? 'single_choice') === $questionType ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_question_type_label($questionType)); ?></option>
                                     <?php } ?>
@@ -331,15 +331,15 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>">문제 Key</label>
-                            <div class="admin-form-field">
-                                <input id="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input>
+	                            <label class="form-label" for="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>">문제 Key <span class="sr-required-label">(필수)</span></label>
+	                            <div class="admin-form-field">
+	                                <input id="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>">문제</label>
-                            <div class="admin-form-field">
-                                <textarea id="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>" name="question_prompt[]" class="form-textarea" rows="3"><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
+	                            <label class="form-label" for="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>">문제 <span class="sr-required-label">(필수)</span></label>
+	                            <div class="admin-form-field">
+	                                <textarea id="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>" name="question_prompt[]" class="form-textarea" rows="3" required><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
                             </div>
                         </div>
                         <div class="admin-form-row">
@@ -362,8 +362,8 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                                 <?php foreach ($choices as $choiceIndex => $choice) { ?>
                                     <tr>
                                         <td><input type="checkbox" name="correct_choice[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) $choiceIndex); ?>"<?php echo (int) ($choice['is_correct'] ?? 0) === 1 ? ' checked' : ''; ?>></td>
-                                        <td><input type="text" name="choice_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
-                                        <td><input type="text" name="choice_label[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['label'] ?? '')); ?>" class="form-input form-control-full" maxlength="255"></td>
+                                        <td><input type="text" name="choice_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input></td>
+                                        <td><input type="text" name="choice_label[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['label'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" required></td>
                                         <td><input type="text" name="choice_category_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['category_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
                                         <td><input type="number" name="choice_category_weight[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) (int) ($choice['category_weight'] ?? 0)); ?>" class="form-input" step="1"></td>
                                     </tr>
@@ -471,3 +471,24 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
+<script>
+(function () {
+    var policy = document.getElementById('quiz_attempt_limit_policy');
+    var period = document.querySelector('[data-quiz-attempt-period]');
+    var periodLabel = document.querySelector('[data-quiz-attempt-period-required]');
+    if (!policy || !period) {
+        return;
+    }
+
+    function syncAttemptPeriodRequired() {
+        var required = policy.value === 'per_period';
+        period.required = required;
+        if (periodLabel) {
+            periodLabel.hidden = !required;
+        }
+    }
+
+    policy.addEventListener('change', syncAttemptPeriodRequired);
+    syncAttemptPeriodRequired();
+})();
+</script>

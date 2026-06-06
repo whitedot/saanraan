@@ -45,21 +45,21 @@ $attempts = $stmt->fetchAll();
                             <td><?php echo sr_e((string) $attempt['id']); ?></td>
                             <td><?php echo sr_e((string) $attempt['title']); ?></td>
                             <td><?php echo sr_e((string) $attempt['account_id']); ?></td>
-                            <td><?php echo sr_e((string) $attempt['status']); ?></td>
+                            <td><?php echo sr_e(sr_quiz_attempt_status_label((string) $attempt['status'])); ?></td>
                             <td><?php echo sr_e((string) ($attempt['total_score'] ?? '')); ?></td>
                             <td><?php echo ((int) ($attempt['passed'] ?? 0) === 1) ? '예' : '아니오'; ?></td>
                             <td>
                                 <?php if ((string) ($attempt['grant_status'] ?? '') === ''): ?>
                                     -
                                 <?php else: ?>
-                                    <?php echo sr_e((string) $attempt['grant_status']); ?>
+                                    <?php echo sr_e(sr_quiz_reward_grant_status_label((string) $attempt['grant_status'])); ?>
                                     <?php echo sr_e(' ' . (string) ($attempt['reward_module'] ?? '') . ' ' . (string) ($attempt['reward_amount'] ?? '')); ?>
                                     <?php if ((string) ($attempt['error_message'] ?? '') !== ''): ?>
                                         <br><small><?php echo sr_e((string) $attempt['error_message']); ?></small>
                                     <?php endif; ?>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo sr_e((string) ($attempt['submitted_at'] ?? '')); ?></td>
+                            <td><?php echo sr_quiz_time_html((string) ($attempt['submitted_at'] ?? '')); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

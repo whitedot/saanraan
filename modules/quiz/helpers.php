@@ -152,8 +152,21 @@ function sr_quiz_clean_admin_datetime(string $value): ?string
         return null;
     }
 
-    $timestamp = strtotime(str_replace('T', ' ', $value));
-    return $timestamp === false ? null : date('Y-m-d H:i:s', $timestamp);
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}\z/', $value) !== 1) {
+        return null;
+    }
+
+    $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
+    $dateErrors = DateTimeImmutable::getLastErrors();
+    if (
+        !$date instanceof DateTimeImmutable
+        || (is_array($dateErrors) && ((int) ($dateErrors['warning_count'] ?? 0) > 0 || (int) ($dateErrors['error_count'] ?? 0) > 0))
+        || $date->format('Y-m-d\TH:i') !== $value
+    ) {
+        return null;
+    }
+
+    return $date->format('Y-m-d H:i:s');
 }
 
 function sr_quiz_datetime_local_value(mixed $value): string
@@ -165,6 +178,57 @@ function sr_quiz_datetime_local_value(mixed $value): string
 
     $timestamp = strtotime($value);
     return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
+}
+
+function sr_quiz_time_html(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $diff = time() - $timestamp;
+    if ($diff < 0) {
+        $relative = date('Y-m-d H:i', $timestamp);
+    } elseif ($diff < 60) {
+        $relative = '방금 전';
+    } elseif ($diff < 3600) {
+        $relative = floor($diff / 60) . '분 전';
+    } elseif ($diff < 86400) {
+        $relative = floor($diff / 3600) . '시간 전';
+    } elseif ($diff < 2592000) {
+        $relative = floor($diff / 86400) . '일 전';
+    } elseif ($diff < 31536000) {
+        $relative = floor($diff / 2592000) . '개월 전';
+    } else {
+        $relative = floor($diff / 31536000) . '년 전';
+    }
+
+    return '<time datetime="' . sr_e($value) . '" title="' . sr_e($value) . '">' . sr_e($relative) . '</time>';
+}
+
+function sr_quiz_attempt_status_label(string $status): string
+{
+    return [
+        'submitted' => '제출',
+        'scored' => '채점 완료',
+        'rewarded' => '보상 완료',
+        'failed' => '실패',
+    ][$status] ?? $status;
+}
+
+function sr_quiz_reward_grant_status_label(string $status): string
+{
+    return [
+        'pending' => '대기',
+        'granted' => '지급',
+        'failed' => '실패',
+    ][$status] ?? $status;
 }
 
 function sr_quiz_member_group_keys_from_value(mixed $value): array
