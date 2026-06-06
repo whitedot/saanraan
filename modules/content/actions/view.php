@@ -53,6 +53,11 @@ if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
 $contentFiles = sr_content_files_for_content($pdo, (int) $page['id']);
 $contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array($account) ? $account : null, $contentAdminPreview);
 $contentComments = !empty($pageAccess['allowed']) ? sr_content_comments($pdo, (int) $page['id']) : [];
+$contentQuizLinks = [];
+if (sr_module_enabled($pdo, 'quiz') && is_file(SR_ROOT . '/modules/quiz/helpers.php')) {
+    require_once SR_ROOT . '/modules/quiz/helpers.php';
+    $contentQuizLinks = !empty($pageAccess['allowed']) ? sr_quiz_content_quizzes($pdo, (int) $page['id']) : [];
+}
 $contentCommentNotice = $_SESSION['sr_content_comment_notice'] ?? '';
 $contentCommentErrors = $_SESSION['sr_content_comment_errors'] ?? [];
 $contentCommentBody = $_SESSION['sr_content_comment_body'] ?? '';

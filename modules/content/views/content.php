@@ -100,6 +100,58 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <div class="content-body">
                 <?php echo sr_content_body_html($page); ?>
             </div>
+            <?php if (is_array($contentQuizLinks ?? null) && $contentQuizLinks !== []) { ?>
+                <section class="content-quiz-links">
+                    <h2>퀴즈</h2>
+                    <?php foreach ($contentQuizLinks as $contentQuizIndex => $contentQuiz) { ?>
+                        <?php
+                        $contentQuizReturnTo = sr_content_path((string) $page['slug']);
+                        $contentQuizQuery = http_build_query([
+                            'return_to' => $contentQuizReturnTo,
+                            'source_module' => 'content',
+                            'source_type' => 'content_item',
+                            'source_id' => (string) (int) ($page['id'] ?? 0),
+                        ]);
+                        $contentQuizUrl = '/quiz/' . rawurlencode((string) ($contentQuiz['quiz_key'] ?? '')) . '?' . $contentQuizQuery;
+                        $contentQuizDialogId = 'content_quiz_dialog_' . (string) $contentQuizIndex;
+                        $contentQuizFrameTitle = (string) ($contentQuiz['title'] ?? '퀴즈');
+                        ?>
+                        <div class="content-quiz-link">
+                            <h3><?php echo sr_e((string) ($contentQuiz['title'] ?? '퀴즈')); ?></h3>
+                            <?php if ((string) ($contentQuiz['description'] ?? '') !== '') { ?>
+                                <p><?php echo sr_e((string) ($contentQuiz['description'] ?? '')); ?></p>
+                            <?php } ?>
+                            <button type="button" class="btn btn-solid-primary" data-content-quiz-dialog-open="<?php echo sr_e($contentQuizDialogId); ?>"><?php echo sr_e((string) (($contentQuiz['cta_label'] ?? '') !== '' ? $contentQuiz['cta_label'] : '퀴즈 풀기')); ?></button>
+                            <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url($contentQuizUrl)); ?>">새 페이지</a>
+                            <dialog id="<?php echo sr_e($contentQuizDialogId); ?>" class="content-quiz-dialog" aria-label="<?php echo sr_e($contentQuizFrameTitle); ?>" aria-modal="true">
+                                <form method="dialog" class="content-quiz-dialog-toolbar">
+                                    <button type="submit" class="btn btn-sm btn-solid-light">닫기</button>
+                                </form>
+                                <iframe title="<?php echo sr_e($contentQuizFrameTitle); ?>" src="<?php echo sr_e(sr_url($contentQuizUrl)); ?>" loading="lazy"></iframe>
+                            </dialog>
+                        </div>
+                    <?php } ?>
+                    <script>
+                    (function () {
+                        document.addEventListener('click', function (event) {
+                            var opener = event.target && event.target.closest ? event.target.closest('[data-content-quiz-dialog-open]') : null;
+                            if (!opener) {
+                                return;
+                            }
+                            var dialog = document.getElementById(opener.getAttribute('data-content-quiz-dialog-open'));
+                            if (!dialog || typeof dialog.showModal !== 'function') {
+                                var fallback = opener.parentNode ? opener.parentNode.querySelector('a[href]') : null;
+                                if (fallback) {
+                                    window.location.href = fallback.href;
+                                }
+                                return;
+                            }
+                            dialog.showModal();
+                        });
+                    }());
+                    </script>
+                </section>
+            <?php } ?>
             <?php if (is_array($contentSeriesContext ?? null) && is_array($contentSeriesContext['items'] ?? null) && $contentSeriesContext['items'] !== []) { ?>
                 <nav class="content-series-nav" aria-label="<?php echo sr_e('시리즈 콘텐츠'); ?>">
                     <h2><?php echo sr_e((string) $contentSeriesContext['title']); ?></h2>

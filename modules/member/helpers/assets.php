@@ -79,8 +79,12 @@ function sr_member_ledger_asset_definitions(?PDO $pdo = null): array
     foreach (sr_member_asset_contracts($pdo, 'member-assets.php') as $moduleKey => $contract) {
         $balanceFunction = (string) ($contract['balance_function'] ?? '');
         $transactionFunction = (string) ($contract['transaction_function'] ?? '');
+        $transactionLookupFunction = (string) ($contract['transaction_lookup_function'] ?? '');
         if (!function_exists($balanceFunction) || !function_exists($transactionFunction)) {
             continue;
+        }
+        if ($transactionLookupFunction !== '' && !function_exists($transactionLookupFunction)) {
+            $transactionLookupFunction = '';
         }
 
         $assets[$moduleKey] = [
@@ -89,6 +93,7 @@ function sr_member_ledger_asset_definitions(?PDO $pdo = null): array
             'module_key' => $moduleKey,
             'balance_function' => $balanceFunction,
             'transaction_function' => $transactionFunction,
+            'transaction_lookup_function' => $transactionLookupFunction,
             'transaction_table' => (string) ($contract['transaction_table'] ?? ''),
             'use_type' => (string) ($contract['use_type'] ?? 'use'),
             'credit_type' => (string) ($contract['credit_type'] ?? 'grant'),

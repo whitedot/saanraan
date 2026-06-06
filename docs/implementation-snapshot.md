@@ -51,7 +51,7 @@
 | 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/content/comment`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content-groups` |
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/series`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-copy-jobs`, `/admin/community/board-groups`, `/admin/community/series`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
-| 퀴즈 | `/quiz`, `/quiz/*`, `/admin/quiz`, `/admin/quiz/attempts` |
+| 퀴즈 | `/quiz`, `GET/POST /quiz/*`, `GET/POST /admin/quiz`, `/admin/quiz/attempts` |
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/asset-exchange`, `/account/coupons` |
 | 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/rewards/settings`, `/admin/deposits`, `/admin/deposits/settings`, `/admin/asset-exchange`, `/admin/asset-exchange/settings`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
@@ -96,7 +96,7 @@
 
 게시글 리액션은 마일스톤 8 기준으로 DB와 UI를 새로 추가하지 않는다. 현재 사용자 반응 표면은 커뮤니티 게시글/시리즈 스크랩과 콘텐츠 완료 버튼으로 유지하며, 새 리액션 도입은 중복 집계 정책, 개인정보 보존 기간, 신고/운영 정책이 확정될 때 별도 마일스톤에서 다룬다.
 
-마일스톤 2 퀴즈 보상 모듈은 `quiz` 서비스 모듈로 구현을 시작했다. 현재 반영 범위는 모듈 메타데이터, `/quiz`와 `/admin/quiz` 기본 진입점, `sr_quiz_*` 설치 스키마, 개인정보 export/cleanup 계약, 자산 원장 reference 조회 callable, `.tools/bin/check-quiz-consistency.php` 정합성 검사다. 계획 기준은 [퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)를 따른다. MVP source는 `content/content_item`으로 고정하며, 실제 응시/채점/모달 UI/보상 지급 실행은 후속 수직 슬라이스에서 구현한다.
+마일스톤 2 퀴즈 보상 모듈은 `quiz` 서비스 모듈로 구현을 시작했다. 현재 반영 범위는 모듈 메타데이터, `/quiz` 공개 진입점, `/quiz/{quiz_key}` 풀이/제출/자동 채점, `/admin/quiz` 최소 CRUD, `content/content_item` source 연결, 콘텐츠 상세 퀴즈 CTA/모달/page fallback, `sr_quiz_*` 설치 스키마, 개인정보 export/cleanup 계약, 자산 원장 reference 조회 callable과 통과 보상 지급, `.tools/bin/check-quiz-consistency.php` 정합성 검사다. 계획 기준은 [퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)를 따른다.
 
 ## 검증 기준
 

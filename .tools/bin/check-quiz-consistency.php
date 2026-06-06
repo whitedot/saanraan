@@ -77,6 +77,11 @@ function sr_quiz_check_schema(): void
 
 function sr_quiz_check_asset_lookup_contracts(): void
 {
+    sr_quiz_check_file_contains('modules/member/helpers/assets.php', [
+        "'transaction_lookup_function' =>",
+        '$transactionLookupFunction',
+    ]);
+
     $assets = [
         'point' => 'sr_point_transaction_by_reference',
         'reward' => 'sr_reward_transaction_by_reference',
@@ -102,12 +107,56 @@ function sr_quiz_check_paths_and_admin(): void
     sr_quiz_check_file_contains('modules/quiz/paths.php', [
         'GET /quiz',
         'GET /quiz/*',
+        'POST /quiz/*',
         'GET /admin/quiz',
+        'POST /admin/quiz',
         'GET /admin/quiz/attempts',
     ]);
     sr_quiz_check_file_contains('modules/quiz/admin-menu.php', [
         '/admin/quiz',
         '/admin/quiz/attempts',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/view.php', [
+        'rawurldecode($quizKey)',
+        'sr_quiz_key_is_valid($quizKey)',
+        'sr_require_csrf()',
+        'sr_quiz_submit_attempt',
+        'sr_quiz_asset_options',
+        'source_module',
+        'source_type',
+        'source_id',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/helpers.php', [
+        'deleted_at IS NULL',
+        'sr_quiz_attempts',
+        'sr_quiz_attempt_answers',
+        'sr_quiz_reward_grants',
+        'sr_quiz_valid_source_context',
+        '$dedupeScope !== \'per_quiz\'',
+        'reference_type\' => \'quiz_reward',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/admin-quiz.php', [
+        'sr_require_csrf()',
+        'sr_quiz_admin_quizzes',
+        'sr_quiz_save_admin_quiz',
+        'sr_quiz_soft_delete',
+        'question_uid[]',
+        'reward_module',
+        'content_source_ids',
+    ]);
+    sr_quiz_check_file_contains('modules/content/actions/view.php', [
+        'sr_quiz_content_quizzes',
+    ]);
+    sr_quiz_check_file_contains('modules/content/views/content.php', [
+        'content-quiz-dialog',
+        'data-content-quiz-dialog-open',
+        'return_to',
+        'source_module',
+        'source_type',
+        'source_id',
+    ]);
+    sr_quiz_check_file_contains('modules/content/assets/public.css', [
+        '.content-quiz-dialog',
     ]);
 }
 
