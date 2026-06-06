@@ -84,6 +84,8 @@ if ($filters['status'] === 'unread') {
     $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NULL';
 } elseif ($filters['status'] === 'read') {
     $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NOT NULL';
+} else {
+    $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NULL';
 }
 
 $notificationSql .= ' ORDER BY n.id DESC LIMIT 100';

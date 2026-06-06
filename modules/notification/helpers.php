@@ -34,31 +34,58 @@ function sr_notification_clean_link_url(string $value): string
     return '';
 }
 
-function sr_notification_read_redirect_url(int $notificationId, string $url = ''): string
+function sr_notification_read_token(int $notificationId, int $accountId): string
+{
+    if ($notificationId <= 0 || $accountId <= 0) {
+        return '';
+    }
+
+    try {
+        return substr(sr_hmac_hash('notification-read|' . $accountId . '|' . $notificationId, sr_runtime_config()), 0, 32);
+    } catch (Throwable) {
+        return '';
+    }
+}
+
+function sr_notification_read_token_is_valid(int $notificationId, int $accountId, string $token): bool
+{
+    if ($token === '' || preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+        return false;
+    }
+
+    $expected = sr_notification_read_token($notificationId, $accountId);
+    return $expected !== '' && hash_equals($expected, $token);
+}
+
+function sr_notification_read_redirect_url(int $notificationId, int $accountId): string
 {
     if ($notificationId <= 0) {
         return sr_url('/account/notifications');
     }
 
-    $url = sr_notification_clean_link_url($url);
     $query = 'id=' . rawurlencode((string) $notificationId);
-    if ($url !== '') {
-        $query .= '&next=' . rawurlencode($url);
+    $token = sr_notification_read_token($notificationId, $accountId);
+    if ($token === '') {
+        return sr_url('/account/notifications');
     }
 
+    $query .= '&token=' . rawurlencode($token);
     return sr_url('/account/notifications/read?' . $query);
 }
 
-function sr_notification_link_attributes(string $url, int $notificationId = 0, bool $markRead = false): string
+function sr_notification_link_attributes(string $url, int $notificationId = 0, bool $markRead = false, int $accountId = 0): string
 {
     $url = sr_notification_clean_link_url($url);
-    if ($url === '') {
+    $canMarkRead = $markRead && $notificationId > 0 && $accountId > 0 && sr_notification_read_token($notificationId, $accountId) !== '';
+    if ($url === '' && !$canMarkRead) {
         return '';
     }
 
-    $href = $markRead && $notificationId > 0
-        ? sr_notification_read_redirect_url($notificationId, $url)
-        : (sr_is_http_url($url) ? $url : sr_url($url));
+    $href = $url === '' ? sr_url('/account/notifications') : (sr_is_http_url($url) ? $url : sr_url($url));
+    if ($canMarkRead) {
+        $href = sr_notification_read_redirect_url($notificationId, $accountId);
+    }
+
     $attributes = ' href="' . sr_e($href) . '"';
     if (!$markRead && sr_is_http_url($url)) {
         $attributes .= ' target="_blank" rel="noopener noreferrer"';
@@ -67,14 +94,24 @@ function sr_notification_link_attributes(string $url, int $notificationId = 0, b
     return $attributes;
 }
 
-function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId): bool
+function sr_notification_item_link_attributes(array $notification, int $accountId, bool $markRead = false): string
+{
+    return sr_notification_link_attributes(
+        (string) ($notification['link_url'] ?? ''),
+        (int) ($notification['id'] ?? 0),
+        $markRead,
+        $accountId
+    );
+}
+
+function sr_notification_readable_notification(PDO $pdo, int $notificationId, int $accountId): ?array
 {
     if ($notificationId <= 0 || $accountId <= 0) {
-        return false;
+        return null;
     }
 
     $stmt = $pdo->prepare(
-        "SELECT id, audience
+        "SELECT id, audience, link_url
          FROM sr_notifications
          WHERE id = :id
            AND (account_id = :account_id OR audience = 'all')
@@ -85,7 +122,14 @@ function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId
         'account_id' => $accountId,
     ]);
     $notification = $stmt->fetch();
-    if (!is_array($notification)) {
+
+    return is_array($notification) ? $notification : null;
+}
+
+function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId): bool
+{
+    $notification = sr_notification_readable_notification($pdo, $notificationId, $accountId);
+    if ($notification === null) {
         return false;
     }
 
@@ -120,6 +164,24 @@ function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId
     return true;
 }
 
+function sr_notification_mark_read_redirect_link(PDO $pdo, int $notificationId, int $accountId, string $token): string
+{
+    if (!sr_notification_read_token_is_valid($notificationId, $accountId, $token)) {
+        return '';
+    }
+
+    $notification = sr_notification_readable_notification($pdo, $notificationId, $accountId);
+    if ($notification === null) {
+        return '';
+    }
+
+    if (!sr_notification_mark_read($pdo, $notificationId, $accountId)) {
+        return '';
+    }
+
+    return sr_notification_clean_link_url((string) ($notification['link_url'] ?? ''));
+}
+
 function sr_notification_public_header_summary(PDO $pdo, int $accountId, int $limit = 5): array
 {
     if ($accountId <= 0) {
@@ -136,7 +198,8 @@ function sr_notification_public_header_summary(PDO $pdo, int $accountId, int $li
                     n.created_at
              FROM sr_notifications n
              LEFT JOIN sr_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
-             WHERE n.account_id = :account_id OR n.audience = 'all'
+             WHERE (n.account_id = :account_id OR n.audience = 'all')
+               AND COALESCE(n.read_at, r.read_at) IS NULL
              ORDER BY n.id DESC
              LIMIT " . $limit
         );

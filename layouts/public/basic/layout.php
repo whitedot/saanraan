@@ -114,7 +114,7 @@ $layoutCopyrightYear = date('Y');
                             <div class="public-layout-notification-list">
                                 <?php foreach ($layoutNotificationSummary['items'] as $layoutNotification) { ?>
                                     <?php
-                                    $layoutNotificationLinkAttributes = sr_notification_link_attributes((string) ($layoutNotification['link_url'] ?? ''), (int) ($layoutNotification['id'] ?? 0), true);
+                                    $layoutNotificationLinkAttributes = sr_notification_item_link_attributes($layoutNotification, (int) ($layoutCurrentAccount['id'] ?? 0), true);
                                     $layoutNotificationBody = trim(strip_tags((string) ($layoutNotification['body_text'] ?? '')));
                                     $layoutNotificationClass = (string) ($layoutNotification['status'] ?? '') === 'unread'
                                         ? 'public-layout-notification-item is-unread'

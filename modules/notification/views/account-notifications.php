@@ -33,7 +33,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <label for="modules_notification_account_notifications_status">
                     <span><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></span>
                     <select id="modules_notification_account_notifications_status" name="status">
-                        <?php foreach (['' => sr_t('notification::ui.all.a4b69faf'), 'unread' => sr_t('notification::ui.text.62808119'), 'read' => sr_t('notification::ui.text.3fe5701c')] as $value => $label) { ?>
+                        <?php foreach (['' => sr_t('notification::ui.text.62808119'), 'unread' => sr_t('notification::ui.text.62808119'), 'read' => sr_t('notification::ui.text.3fe5701c')] as $value => $label) { ?>
                             <option value="<?php echo sr_e((string) $value); ?>"<?php echo $filters['status'] === (string) $value ? ' selected' : ''; ?>>
                                 <?php echo sr_e($label); ?>
                             </option>
@@ -64,7 +64,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 </thead>
                 <tbody>
                     <?php foreach ($notifications as $notification) { ?>
-                        <?php $notificationLinkAttributes = sr_notification_link_attributes((string) ($notification['link_url'] ?? ''), (int) ($notification['id'] ?? 0), true); ?>
+                        <?php $notificationLinkAttributes = sr_notification_item_link_attributes($notification, (int) ($account['id'] ?? 0), true); ?>
                         <tr>
                             <td>
                                 <?php if ($notificationLinkAttributes !== '') { ?>
