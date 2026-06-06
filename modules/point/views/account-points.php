@@ -38,15 +38,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <tbody>
                         <?php foreach ($transactions as $transaction) { ?>
                             <tr>
-                                <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
+                                <td><?php echo sr_point_time_html((string) $transaction['created_at']); ?></td>
                                 <td><?php echo sr_e((string) $transaction['transaction_type']); ?></td>
                                 <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?></td>
                                 <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?></td>
                                 <td>
                                     <?php if ((string) ($transaction['expires_at'] ?? '') !== '') { ?>
-                                        <?php echo sr_e((string) $transaction['expires_at']); ?>
+                                        <?php echo sr_point_time_html((string) $transaction['expires_at']); ?>
                                     <?php } elseif ((string) ($transaction['transaction_type'] ?? '') === 'expire' && (string) ($transaction['created_at'] ?? '') !== '') { ?>
-                                        <?php echo sr_e((string) $transaction['created_at']); ?>
+                                        <?php echo sr_point_time_html((string) $transaction['created_at']); ?>
                                     <?php } else { ?>
                                         -
                                     <?php } ?>

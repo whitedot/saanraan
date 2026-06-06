@@ -11,6 +11,57 @@ function sr_point_default_settings(): array
     ];
 }
 
+function sr_point_relative_time_label(string $dateTime): string
+{
+    $timestamp = strtotime($dateTime);
+    if ($timestamp === false) {
+        return $dateTime;
+    }
+
+    $seconds = time() - $timestamp;
+    $isFuture = $seconds < 0;
+    $diff = abs($seconds);
+    $suffix = $isFuture ? ' 후' : ' 전';
+
+    if ($diff < 60) {
+        return $isFuture ? '잠시 후' : '방금 전';
+    }
+    if ($diff < 3600) {
+        return (string) floor($diff / 60) . '분' . $suffix;
+    }
+    if ($diff < 86400) {
+        return (string) floor($diff / 3600) . '시간' . $suffix;
+    }
+    if ($diff < 2592000) {
+        return (string) floor($diff / 86400) . '일' . $suffix;
+    }
+    if ($diff < 31536000) {
+        return (string) floor($diff / 2592000) . '개월' . $suffix;
+    }
+
+    return (string) floor($diff / 31536000) . '년' . $suffix;
+}
+
+function sr_point_time_html(?string $value, string $emptyText = ''): string
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return sr_e($emptyText);
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $exactValue = date('Y-m-d H:i:s', $timestamp);
+    $machineValue = date('Y-m-d\TH:i:sP', $timestamp);
+
+    return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" title="' . sr_e($exactValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
+        . sr_e(sr_point_relative_time_label($exactValue))
+        . '</time>';
+}
+
 function sr_point_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_point_default_settings(), sr_module_settings($pdo, 'point'));

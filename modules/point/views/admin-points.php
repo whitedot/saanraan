@@ -230,10 +230,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
                             <td>
                                 <?php if ((string) ($transaction['expires_at'] ?? '') !== '') { ?>
-                                    <?php echo sr_e((string) $transaction['expires_at']); ?><br>
+                                    <?php echo sr_point_time_html((string) $transaction['expires_at']); ?><br>
                                     <span class="text-muted"><?php echo sr_e(sr_t('point::ui.text.expires_remaining')); ?> <?php echo sr_e(number_format((int) ($transaction['expires_remaining'] ?? 0))); ?> <?php echo sr_e($pointUnitLabel); ?></span>
                                     <?php if ((string) ($transaction['expired_at'] ?? '') !== '') { ?>
-                                        <br><span class="text-muted"><?php echo sr_e(sr_t('point::ui.text.expired_at')); ?> <?php echo sr_e((string) $transaction['expired_at']); ?></span>
+                                        <br><span class="text-muted"><?php echo sr_e(sr_t('point::ui.text.expired_at')); ?> <?php echo sr_point_time_html((string) $transaction['expired_at']); ?></span>
                                     <?php } ?>
                                 <?php } else { ?>
                                     <span class="text-muted">-</span>
@@ -241,7 +241,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td><?php echo sr_e((string) $transaction['reason']); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $transaction['reference_type'], 'reference_type')); ?></td>
-                            <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
+                            <td><?php echo sr_point_time_html((string) $transaction['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <?php if ((int) ($transaction['amount'] ?? 0) < 0 && (string) ($transaction['transaction_type'] ?? '') !== 'refund') { ?>
@@ -298,7 +298,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e(sr_admin_member_display_name_preview($balance)); ?><br><?php echo sr_e(sr_admin_member_email_display($balance)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
                             <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
-                            <td><?php echo sr_e((string) $balance['updated_at']); ?></td>
+                            <td><?php echo sr_point_time_html((string) $balance['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('point::ui.text.754ef98b')); ?></a>
