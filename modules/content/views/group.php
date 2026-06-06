@@ -46,15 +46,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <?php } ?>
                         <?php
                         $groupContentDateText = (string) ($groupContent['published_at'] ?? '') !== ''
-                            ? substr((string) $groupContent['published_at'], 0, 10)
-                            : substr((string) ($groupContent['updated_at'] ?? ''), 0, 10);
+                            ? (string) $groupContent['published_at']
+                            : (string) ($groupContent['updated_at'] ?? '');
                         ?>
                         <article class="content-group-item">
                             <div class="content-group-item-main">
                                 <p class="content-group-item-meta">
                                     <span><?php echo sr_e($contentPublisherName); ?></span>
                                     <?php if ($groupContentDateText !== '') { ?>
-                                        <span><?php echo sr_e($groupContentDateText); ?></span>
+                                        <span><?php echo sr_content_time_html($groupContentDateText); ?></span>
                                     <?php } ?>
                                 </p>
                                 <h2><a href="<?php echo sr_e(sr_url(sr_content_path($groupContentSlug))); ?>"><?php echo sr_e((string) ($groupContent['title'] ?? $groupContentSlug)); ?></a></h2>

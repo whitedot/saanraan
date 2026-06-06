@@ -25,6 +25,25 @@ function sr_content_datetime_local_value(?string $value): string
     return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
 }
 
+function sr_content_time_html(?string $value, string $emptyText = ''): string
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return sr_e($emptyText);
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $exactValue = date('Y-m-d H:i:s', $timestamp);
+    $machineValue = date('Y-m-d\TH:i:sP', $timestamp);
+    return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" title="' . sr_e($exactValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
+        . sr_e(sr_content_relative_time_label($exactValue))
+        . '</time>';
+}
+
 function sr_content_scheduled_publish_at_from_post(): string
 {
     $value = trim(sr_post_string('scheduled_publish_at', 30));

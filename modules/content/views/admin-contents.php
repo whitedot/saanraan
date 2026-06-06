@@ -885,8 +885,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } ?>
                                 </td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['created_by_name'] ?? '')); ?></td>
-                                <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_e((string) $page['updated_at']); ?></td>
-                                <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_e((string) ($page['published_at'] ?? '')); ?></td>
+                                <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_content_time_html((string) $page['updated_at']); ?></td>
+                                <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_content_time_html((string) ($page['published_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <?php if (in_array((string) $page['status'], ['published', 'draft', 'scheduled'], true)) { ?>

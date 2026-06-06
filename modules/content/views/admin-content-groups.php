@@ -149,7 +149,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($pageGroup['content_count'] ?? 0))); ?></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($pageGroup['sort_order'] ?? 0)); ?></td>
-                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($pageGroup['updated_at'] ?? '')); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) ($pageGroup['updated_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <a href="<?php echo sr_e(sr_url('/admin/content/new?content_group_id=' . rawurlencode((string) $pageGroup['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="이 그룹에 콘텐츠 추가" title="이 그룹에 콘텐츠 추가"><?php echo sr_material_icon_html('add'); ?></a>

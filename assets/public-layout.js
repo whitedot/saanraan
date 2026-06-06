@@ -47,8 +47,36 @@
     update();
   }
 
+  function closeNotificationMenus(exceptMenu) {
+    Array.prototype.slice.call(document.querySelectorAll('.public-layout-notification-menu[open]')).forEach(function (menu) {
+      if (menu !== exceptMenu) {
+        menu.removeAttribute('open');
+      }
+    });
+  }
+
+  function bindNotificationMenus() {
+    document.addEventListener('click', function (event) {
+      var target = event.target;
+      if (!(target instanceof Element)) {
+        closeNotificationMenus(null);
+        return;
+      }
+
+      var currentMenu = target.closest('.public-layout-notification-menu');
+      closeNotificationMenus(currentMenu);
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeNotificationMenus(null);
+      }
+    });
+  }
+
   function init() {
     Array.prototype.slice.call(document.querySelectorAll(HEADER_SELECTOR)).forEach(bindHeader);
+    bindNotificationMenus();
   }
 
   if (document.readyState === 'loading') {

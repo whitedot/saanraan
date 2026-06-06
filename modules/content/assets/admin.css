@@ -20,6 +20,7 @@
 .admin-content-list .admin-content-table .admin-table-actions-cell{min-width:12rem}
 .admin-content-list .admin-content-table th:nth-child(2),.admin-content-list .admin-content-table th:nth-child(3),.admin-content-list .admin-content-table th:nth-child(4),.admin-content-list .admin-content-table th:nth-child(6),.admin-content-list .admin-content-table th:nth-child(7),.admin-content-list .admin-content-table th:nth-child(8),.admin-content-list .admin-content-table th:nth-child(9){width:1%}
 .admin-content-list .admin-content-title-cell,.admin-content-list .admin-content-slug-cell,.admin-content-list .admin-content-date-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-content-list .admin-content-date-cell{overflow:visible}
 .admin-content-list .admin-content-table .admin-row-actions{gap:.5rem}
 .admin-content-group-list .admin-content-group-search-grid:not(.admin-content-filter-stack){align-items:end;display:grid;grid-template-columns:max-content max-content minmax(14rem,1fr) max-content;justify-content:stretch;width:100%;max-width:100%}
 .admin-content-group-list .admin-content-group-filter .filtering-field{min-width:0}
@@ -38,7 +39,7 @@
 .admin-content-series-list .admin-content-series-title-cell{min-width:18rem}
 .admin-content-series-list .admin-content-series-title-cell .form-input+.form-input{margin-top:calc(var(--spacing) * 1)}
 .admin-content-series-list .admin-content-series-sort-input{width:6rem}
-.admin-content-series-list .admin-content-series-date-cell{white-space:nowrap}
+.admin-content-series-list .admin-content-series-date-cell{white-space:nowrap;overflow:visible}
 .admin-content-download-files .admin-content-download-file-filter,.admin-content-file-downloads .admin-content-file-download-filter{max-width:100%;width:100%}
 .admin-content-download-files .admin-content-download-file-search-grid{align-items:end;grid-template-columns:max-content minmax(14rem,20rem) max-content;justify-content:start;width:fit-content;max-width:100%}
 .admin-content-file-downloads .admin-content-file-download-search-grid{align-items:stretch;grid-template-columns:minmax(0,1fr);justify-content:stretch;width:100%;max-width:100%}

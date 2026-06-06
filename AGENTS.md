@@ -48,6 +48,12 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Prefer closing PHP and writing normal HTML for view output, using small `<?php echo ...; ?>` blocks only where values are needed.
 - Escape output before printing user-controlled or variable values.
 
+## UI Date and Time Display
+
+- In public and admin UI, display authored/created timestamps in relative Korean form such as `며칠 전`, `몇시간 전`, or `방금 전` when the context benefits from quick scanning.
+- Preserve the original exact timestamp in the markup and expose it through a tooltip on hover or click, such as a `title` attribute on a `<time>` element.
+- Keep the exact timestamp escaped and machine-readable where practical, for example with `<time datetime="...">상대 시간</time>`.
+
 ## Documentation
 
 - When changing behavior, features, database schema, admin screens, module contracts, request flow, security/privacy policy, deployment assumptions, or operational procedures, update the relevant GitHub Wiki pages in the same work item.

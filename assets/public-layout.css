@@ -192,7 +192,7 @@
 
 .public-layout-notification-badge {
     align-items: center;
-    background: #d83b3b;
+    background: #ff2d2d;
     border: 2px solid #fff;
     border-radius: 999px;
     color: #fff;
@@ -269,7 +269,7 @@
 }
 
 .public-layout-notification-item.is-unread::before {
-    background: #d83b3b;
+    background: #ff2d2d;
     border-radius: 999px;
     content: "";
     height: 7px;

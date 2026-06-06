@@ -116,7 +116,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                     $canRefund = $canEditFileDownloads && $isPaid && $hasRefundAccessLogs && (int) ($downloadLog['account_id'] ?? 0) > 0 && $refundStatus === '';
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap"><?php echo sr_e((string) $downloadLog['created_at']); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) $downloadLog['created_at']); ?></td>
                         <td class="admin-table-break">
                             <strong><?php echo sr_e((string) ($downloadLog['content_title'] ?? '삭제된 콘텐츠')); ?></strong>
                             <small class="admin-summary-meta">#<?php echo sr_e((string) (int) ($downloadLog['content_id'] ?? 0)); ?> <?php echo sr_e((string) ($downloadLog['content_status'] ?? '')); ?></small>

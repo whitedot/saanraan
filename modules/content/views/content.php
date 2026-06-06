@@ -23,7 +23,7 @@ $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayou
 $contentPublisherName = trim((string) (($site ?? [])['name'] ?? ($site ?? [])['site_name'] ?? 'Saanraan'));
 $contentPublisherName = $contentPublisherName !== '' ? $contentPublisherName : 'Saanraan';
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
-$contentDateText = $contentPublishedAt !== '' ? substr($contentPublishedAt, 0, 10) : substr((string) ($page['updated_at'] ?? ''), 0, 10);
+$contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) ($page['updated_at'] ?? '');
 $contentStylesheets = [
     '/modules/banner/assets/public.css',
     '/modules/popup_layer/assets/public.css',
@@ -58,7 +58,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <div class="content-meta" aria-label="<?php echo sr_e('콘텐츠 정보'); ?>">
                 <span><?php echo sr_e($contentPublisherName); ?></span>
                 <?php if ($contentDateText !== '') { ?>
-                    <span><?php echo sr_e($contentDateText); ?></span>
+                    <span><?php echo sr_content_time_html($contentDateText); ?></span>
                 <?php } ?>
             </div>
         </header>
@@ -235,7 +235,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <div class="content-comment-meta">
                                     <strong><?php echo sr_e((string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원')); ?></strong>
                                     <?php if ($contentCommentCreatedAt !== '') { ?>
-                                        <time datetime="<?php echo sr_e($contentCommentCreatedAt); ?>" title="<?php echo sr_e($contentCommentCreatedAt); ?>"><?php echo sr_e(sr_content_relative_time_label($contentCommentCreatedAt)); ?></time>
+                                        <?php echo sr_content_time_html($contentCommentCreatedAt); ?>
                                     <?php } ?>
                                     <?php if ((int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
                                         <span>비밀</span>

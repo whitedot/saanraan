@@ -1480,8 +1480,156 @@
     }
   }
 
+  var activeTimeTooltip = null;
+  var pinnedTimeTooltip = null;
+  var floatingTimeTooltip = null;
+
+  function ensureFloatingTimeTooltip() {
+    if (floatingTimeTooltip) {
+      return floatingTimeTooltip;
+    }
+
+    floatingTimeTooltip = document.createElement('div');
+    floatingTimeTooltip.className = 'sr-time-floating-tooltip';
+    floatingTimeTooltip.setAttribute('role', 'tooltip');
+    floatingTimeTooltip.hidden = true;
+    document.body.appendChild(floatingTimeTooltip);
+    return floatingTimeTooltip;
+  }
+
+  function timeTooltipLabel(trigger) {
+    if (!trigger) {
+      return '';
+    }
+
+    return trigger.getAttribute('data-sr-time-tooltip-label') || trigger.getAttribute('title') || trigger.getAttribute('datetime') || '';
+  }
+
+  function positionFloatingTimeTooltip(trigger) {
+    var tooltip = ensureFloatingTimeTooltip();
+    if (!trigger || tooltip.hidden) {
+      return;
+    }
+
+    var label = timeTooltipLabel(trigger);
+    if (!label) {
+      tooltip.hidden = true;
+      return;
+    }
+
+    tooltip.textContent = label;
+    var rect = trigger.getBoundingClientRect();
+    var tooltipRect = tooltip.getBoundingClientRect();
+    var gap = 8;
+    var left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+    var top = rect.bottom + gap;
+
+    if (top + tooltipRect.height > window.innerHeight - gap) {
+      top = rect.top - tooltipRect.height - gap;
+    }
+    left = Math.max(gap, Math.min(left, window.innerWidth - tooltipRect.width - gap));
+    top = Math.max(gap, Math.min(top, window.innerHeight - tooltipRect.height - gap));
+
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  }
+
+  function showTimeTooltip(trigger, pinned) {
+    var label = timeTooltipLabel(trigger);
+    if (!trigger || !label) {
+      return;
+    }
+
+    var tooltip = ensureFloatingTimeTooltip();
+    tooltip.textContent = label;
+    tooltip.hidden = false;
+    activeTimeTooltip = trigger;
+    pinnedTimeTooltip = pinned ? trigger : null;
+    trigger.classList.add('is-sr-time-tooltip-open');
+    positionFloatingTimeTooltip(trigger);
+  }
+
+  function hideTimeTooltip(force) {
+    if (!force && pinnedTimeTooltip) {
+      return;
+    }
+
+    if (activeTimeTooltip) {
+      activeTimeTooltip.classList.remove('is-sr-time-tooltip-open');
+    }
+    if (floatingTimeTooltip) {
+      floatingTimeTooltip.hidden = true;
+    }
+    activeTimeTooltip = null;
+    pinnedTimeTooltip = null;
+  }
+
+  document.addEventListener('mouseover', function (event) {
+    var target = getElementTarget(event.target);
+    var trigger = target && target.closest('[data-sr-time-tooltip]');
+    if (trigger && trigger !== activeTimeTooltip) {
+      showTimeTooltip(trigger, false);
+    }
+  });
+
+  document.addEventListener('mouseout', function (event) {
+    var target = getElementTarget(event.target);
+    var trigger = target && target.closest('[data-sr-time-tooltip]');
+    if (!trigger || pinnedTimeTooltip) {
+      return;
+    }
+
+    var relatedTarget = getElementTarget(event.relatedTarget);
+    if (!relatedTarget || !trigger.contains(relatedTarget)) {
+      hideTimeTooltip(true);
+    }
+  });
+
+  document.addEventListener('focusin', function (event) {
+    var target = getElementTarget(event.target);
+    var trigger = target && target.closest('[data-sr-time-tooltip]');
+    if (trigger) {
+      showTimeTooltip(trigger, false);
+    }
+  });
+
+  document.addEventListener('focusout', function (event) {
+    var target = getElementTarget(event.target);
+    var trigger = target && target.closest('[data-sr-time-tooltip]');
+    if (trigger && !pinnedTimeTooltip) {
+      hideTimeTooltip(true);
+    }
+  });
+
+  window.addEventListener('scroll', function () {
+    if (activeTimeTooltip) {
+      positionFloatingTimeTooltip(activeTimeTooltip);
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', function () {
+    if (activeTimeTooltip) {
+      positionFloatingTimeTooltip(activeTimeTooltip);
+    }
+  });
+
   document.addEventListener('click', function (event) {
     var target = getElementTarget(event.target);
+    var timeTooltip = target && target.closest('[data-sr-time-tooltip]');
+
+    if (timeTooltip) {
+      event.preventDefault();
+      if (pinnedTimeTooltip === timeTooltip) {
+        hideTimeTooltip(true);
+      } else {
+        hideTimeTooltip(true);
+        showTimeTooltip(timeTooltip, true);
+      }
+      return;
+    }
+
+    hideTimeTooltip(true);
+
     var filteringToggle = target && target.closest('[data-filtering-toggle]');
 
     if (filteringToggle) {
@@ -1561,5 +1709,13 @@
         passwordTrigger.setAttribute('aria-label', label);
       }
     }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') {
+      return;
+    }
+
+    hideTimeTooltip(true);
   });
 })();

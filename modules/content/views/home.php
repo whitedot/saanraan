@@ -20,8 +20,8 @@ $contentHomeFeatured = $contentHomeContents[0] ?? null;
 $contentHomeLatestList = array_slice($contentHomeContents, is_array($contentHomeFeatured) ? 1 : 0, 12);
 $contentHomeDateText = static function (array $content): string {
     return (string) ($content['published_at'] ?? '') !== ''
-        ? substr((string) $content['published_at'], 0, 10)
-        : substr((string) ($content['updated_at'] ?? ''), 0, 10);
+        ? (string) $content['published_at']
+        : (string) ($content['updated_at'] ?? '');
 };
 $contentHomeGroupText = static function (array $content) use ($contentPublisherName): string {
     $groupTitle = trim((string) ($content['content_group_title'] ?? ''));
@@ -56,7 +56,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <p class="content-home-hero-meta">
                         <span><?php echo sr_e('By ' . $contentPublisherName); ?></span>
                         <?php if ($contentHomeDateText($contentHomeFeatured) !== '') { ?>
-                            <span><?php echo sr_e($contentHomeDateText($contentHomeFeatured)); ?></span>
+                            <span><?php echo sr_content_time_html($contentHomeDateText($contentHomeFeatured)); ?></span>
                         <?php } ?>
                     </p>
                     <p class="content-home-hero-group"><?php echo sr_e($contentHomeGroupText($contentHomeFeatured)); ?></p>
@@ -103,7 +103,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             <div class="content-home-latest-footer">
                                 <span><?php echo sr_e($contentHomeGroupText($contentHomeItem)); ?></span>
                                 <?php if ($contentHomeDateText($contentHomeItem) !== '') { ?>
-                                    <time datetime="<?php echo sr_e($contentHomeDateText($contentHomeItem)); ?>"><?php echo sr_e($contentHomeDateText($contentHomeItem)); ?></time>
+                                    <?php echo sr_content_time_html($contentHomeDateText($contentHomeItem)); ?>
                                 <?php } ?>
                             </div>
                         </div>

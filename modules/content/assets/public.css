@@ -21,6 +21,34 @@
     min-width: 0;
 }
 
+.sr-time-tooltip {
+    cursor: help;
+    display: inline-flex;
+    position: relative;
+}
+
+.sr-time-tooltip:focus-visible {
+    outline: 2px solid rgba(21, 21, 21, .45);
+    outline-offset: 2px;
+}
+
+.sr-time-floating-tooltip {
+    background: rgba(17, 17, 17, .94);
+    border-radius: 6px;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    left: 0;
+    line-height: 1.25;
+    padding: 6px 8px;
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    white-space: nowrap;
+    z-index: 999;
+}
+
+
 .content-header {
     border-bottom: 1px solid #e6e6e6;
     margin-bottom: 34px;

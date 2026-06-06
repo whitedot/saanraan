@@ -510,3 +510,30 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .sr-link-card-picker-result span,.sr-link-card-picker-result small{color:var(--text-muted);font-size:var(--type-caption-size);line-height:var(--type-caption-line-height);overflow-wrap:anywhere}
 .sr-link-card-picker-result.is-selected{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 12%,transparent)}
 @media (max-width:720px){.sr-link-card-picker-controls{grid-template-columns:1fr}.sr-link-card-picker-controls>.btn{width:100%;justify-content:center}}
+
+.sr-time-tooltip {
+    cursor: help;
+    display: inline-flex;
+    position: relative;
+}
+
+.sr-time-tooltip:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--color-primary, #2563eb) 55%, transparent);
+    outline-offset: 2px;
+}
+
+.sr-time-floating-tooltip {
+    background: rgba(17, 17, 17, .94);
+    border-radius: 6px;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    left: 0;
+    line-height: 1.25;
+    padding: 6px 8px;
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    white-space: nowrap;
+    z-index: 999;
+}

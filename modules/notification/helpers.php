@@ -41,7 +41,8 @@ function sr_notification_link_attributes(string $url): string
         return '';
     }
 
-    $attributes = ' href="' . sr_e($url) . '"';
+    $href = sr_is_http_url($url) ? $url : sr_url($url);
+    $attributes = ' href="' . sr_e($href) . '"';
     if (sr_is_http_url($url)) {
         $attributes .= ' target="_blank" rel="noopener noreferrer"';
     }

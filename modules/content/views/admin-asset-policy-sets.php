@@ -94,7 +94,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-break"><?php echo sr_e((string) ($policySet['title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap"><code><?php echo sr_e((string) ($policySet['set_key'] ?? '')); ?></code></td>
                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($policyStatus, 'content_status')); ?></span></td>
-                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($policySet['updated_at'] ?? '')); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) ($policySet['updated_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/content/asset-policy-sets?mode=edit&id=' . (string) (int) ($policySet['id'] ?? 0))); ?>" aria-label="회원 그룹별 설정 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>

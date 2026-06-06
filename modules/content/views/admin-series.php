@@ -174,7 +174,7 @@ $seriesVisibilities = sr_content_series_visibility_values();
                         <td class="admin-table-nowrap">
                             <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="number" name="sort_order" value="<?php echo sr_e((string) $series['sort_order']); ?>" min="0" max="1000000" class="form-input admin-content-series-sort-input">
                         </td>
-                        <td class="admin-table-nowrap admin-content-series-date-cell"><?php echo sr_e((string) ($series['updated_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-content-series-date-cell"><?php echo sr_content_time_html((string) ($series['updated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="콘텐츠 시리즈 저장" title="저장"><?php echo sr_material_icon_html('save'); ?></button>

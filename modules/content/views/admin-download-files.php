@@ -197,7 +197,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         무료
                                     <?php } ?>
                                 </td>
-                                <td class="admin-table-nowrap"><?php echo sr_e((string) $downloadFile['updated_at']); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) $downloadFile['updated_at']); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
                                         <a href="<?php echo sr_e(sr_url('/admin/content/file-downloads?file_id=' . rawurlencode((string) (int) $downloadFile['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="다운로드 내역" title="다운로드 내역"><?php echo sr_material_icon_html('history'); ?></a>
