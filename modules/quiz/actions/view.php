@@ -99,7 +99,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php endif; ?>
                     <?php $returnTo = sr_quiz_internal_return_path(sr_post_string('return_to', 255)); ?>
                     <?php if ($returnTo !== ''): ?>
-                        <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url($returnTo)); ?>">돌아가기</a></p>
+                        <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url($returnTo)); ?>" target="_top">돌아가기</a></p>
                     <?php endif; ?>
                 </section>
             <?php elseif ($questions === []): ?>
@@ -114,7 +114,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <?php endif; ?>
                 <?php if (!is_array($currentAccount)): ?>
                     <p>로그인 후 퀴즈를 풀 수 있습니다.</p>
-                    <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($quizNextUrl))); ?>">로그인</a></p>
+                    <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($quizNextUrl))); ?>" target="_top">로그인</a></p>
                 <?php else: ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/quiz/' . (string) $quiz['quiz_key'])); ?>" class="sr-quiz-form">
                         <?php echo sr_csrf_field(); ?>

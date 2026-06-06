@@ -418,7 +418,7 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
         'updated_at' => $now,
     ]);
 
-    $grantStmt = $pdo->prepare('SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1');
+    $grantStmt = $pdo->prepare('SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1 FOR UPDATE');
     $grantStmt->execute(['dedupe_key' => $dedupeKey]);
     $grant = $grantStmt->fetch();
     if (!is_array($grant) || (string) ($grant['status'] ?? '') === 'granted') {

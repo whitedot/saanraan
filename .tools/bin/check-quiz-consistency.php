@@ -125,6 +125,7 @@ function sr_quiz_check_paths_and_admin(): void
         'source_module',
         'source_type',
         'source_id',
+        'target="_top"',
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [
         'deleted_at IS NULL',
@@ -132,6 +133,7 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_attempt_answers',
         'sr_quiz_reward_grants',
         'sr_quiz_valid_source_context',
+        'LIMIT 1 FOR UPDATE',
         '$dedupeScope !== \'per_quiz\'',
         'reference_type\' => \'quiz_reward',
     ]);
