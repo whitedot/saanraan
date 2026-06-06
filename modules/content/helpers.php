@@ -1781,6 +1781,11 @@ function sr_content_submission_statuses(): array
     return ['member_draft', 'pending_review', 'revision_requested', 'rejected', 'approved', 'cancelled'];
 }
 
+function sr_content_author_application_statuses(): array
+{
+    return ['pending', 'approved', 'rejected', 'cancelled'];
+}
+
 function sr_content_author_permission(PDO $pdo, int $accountId): ?array
 {
     $stmt = $pdo->prepare(
@@ -1793,6 +1798,270 @@ function sr_content_author_permission(PDO $pdo, int $accountId): ?array
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_content_author_application_by_account(PDO $pdo, int $accountId): ?array
+{
+    if ($accountId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_content_author_applications
+         WHERE account_id = :account_id
+         LIMIT 1'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_author_application_by_id(PDO $pdo, int $applicationId): ?array
+{
+    if ($applicationId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT a.*, m.email, m.display_name, m.status AS account_status
+         FROM sr_content_author_applications a
+         LEFT JOIN sr_member_accounts m ON m.id = a.account_id
+         WHERE a.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $applicationId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_content_author_applications(PDO $pdo, string $status = 'pending'): array
+{
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
+        return [];
+    }
+
+    $params = [];
+    $where = '';
+    if (in_array($status, sr_content_author_application_statuses(), true)) {
+        $where = 'WHERE a.status = :status';
+        $params['status'] = $status;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT a.*, m.email, m.display_name, m.status AS account_status
+         FROM sr_content_author_applications a
+         LEFT JOIN sr_member_accounts m ON m.id = a.account_id
+         ' . $where . '
+         ORDER BY a.id DESC
+         LIMIT 200'
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_admin_permission_tables_exist(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_admin_account_roles LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_admin_account_permissions LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_content_author_application_admin_account_ids(PDO $pdo): array
+{
+    if (!sr_content_admin_permission_tables_exist($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        "SELECT DISTINCT a.id
+         FROM sr_member_accounts a
+         LEFT JOIN sr_admin_account_roles r ON r.account_id = a.id AND r.role_key = 'owner'
+         LEFT JOIN sr_admin_account_permissions p ON p.account_id = a.id
+         WHERE (r.id IS NOT NULL OR (p.menu_path = '/admin/content/author-applications' AND p.action_key = 'view'))
+           AND a.status = 'active'
+         ORDER BY a.id ASC"
+    );
+
+    $accountIds = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $accountId = (int) ($row['id'] ?? 0);
+        if ($accountId > 0) {
+            $accountIds[] = $accountId;
+        }
+    }
+
+    return $accountIds;
+}
+
+function sr_content_create_admin_author_application_notifications(PDO $pdo, int $applicationId, int $applicantAccountId): int
+{
+    $createNotificationFunction = sr_content_notification_create_function($pdo);
+    if ($applicationId < 1 || $applicantAccountId < 1 || $createNotificationFunction === '') {
+        return 0;
+    }
+
+    $sentCount = 0;
+    foreach (sr_content_author_application_admin_account_ids($pdo) as $adminAccountId) {
+        try {
+            $createNotificationFunction($pdo, [
+                'audience' => 'account',
+                'account_id' => $adminAccountId,
+                'title' => '새 콘텐츠 등록자 신청이 접수되었습니다.',
+                'body_text' => '회원 #' . (string) $applicantAccountId . '의 콘텐츠 등록자 신청을 검토해 주세요.',
+                'link_url' => '/admin/content/author-applications',
+                'channels' => ['site'],
+                'created_by_account_id' => $applicantAccountId,
+            ]);
+            $sentCount++;
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'content_author_application_admin_notification_create');
+        }
+    }
+
+    return $sentCount;
+}
+
+function sr_content_save_author_application(PDO $pdo, int $accountId, string $applicationNote): int
+{
+    if ($accountId < 1) {
+        throw new InvalidArgumentException('회원 정보가 올바르지 않습니다.');
+    }
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
+        throw new RuntimeException('콘텐츠 작성자 신청 테이블이 준비되어 있지 않습니다.');
+    }
+
+    $note = sr_content_clean_text($applicationNote, 2000);
+    if ($note === '') {
+        throw new InvalidArgumentException('신청 사유를 입력하세요.');
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_content_author_applications
+            (account_id, application_note, status, review_note, reviewed_by, reviewed_at, created_at, updated_at)
+         VALUES
+            (:account_id, :application_note, \'pending\', NULL, NULL, NULL, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            application_note = VALUES(application_note),
+            status = \'pending\',
+            review_note = NULL,
+            reviewed_by = NULL,
+            reviewed_at = NULL,
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'application_note' => $note,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    $application = sr_content_author_application_by_account($pdo, $accountId);
+    return is_array($application) ? (int) $application['id'] : 0;
+}
+
+function sr_content_review_author_application(PDO $pdo, int $applicationId, string $status, int $reviewerAccountId, string $reviewNote = ''): void
+{
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
+        throw new RuntimeException('콘텐츠 작성자 신청 테이블이 준비되어 있지 않습니다.');
+    }
+    if (!in_array($status, ['approved', 'rejected'], true)) {
+        throw new InvalidArgumentException('처리 상태가 올바르지 않습니다.');
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM sr_content_author_applications WHERE id = :id LIMIT 1 FOR UPDATE');
+        $stmt->execute(['id' => $applicationId]);
+        $application = $stmt->fetch();
+        if (!is_array($application)) {
+            throw new InvalidArgumentException('작성자 신청을 찾을 수 없습니다.');
+        }
+        if ((string) ($application['status'] ?? '') !== 'pending') {
+            throw new InvalidArgumentException('대기 중인 신청만 처리할 수 있습니다.');
+        }
+
+        $now = sr_now();
+        $note = sr_content_clean_text($reviewNote, 2000);
+        $stmt = $pdo->prepare(
+            'UPDATE sr_content_author_applications
+             SET status = :status,
+                 review_note = :review_note,
+                 reviewed_by = :reviewed_by,
+                 reviewed_at = :reviewed_at,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND status = \'pending\''
+        );
+        $stmt->execute([
+            'status' => $status,
+            'review_note' => $note,
+            'reviewed_by' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
+            'reviewed_at' => $now,
+            'updated_at' => $now,
+            'id' => $applicationId,
+        ]);
+        if ($stmt->rowCount() < 1) {
+            throw new RuntimeException('작성자 신청 상태를 저장하지 못했습니다.');
+        }
+
+        if ($status === 'approved') {
+            $applicationAccountId = (int) ($application['account_id'] ?? 0);
+            if ($applicationAccountId < 1) {
+                throw new InvalidArgumentException('회원 정보가 없는 신청은 승인할 수 없습니다.');
+            }
+
+            $permissionNote = $note !== '' ? $note : (string) ($application['application_note'] ?? '');
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_content_author_permissions
+                    (account_id, status, review_required_override, note, created_by, updated_by, created_at, updated_at)
+                 VALUES
+                    (:account_id, \'allowed\', \'inherit\', :note, :created_by, :updated_by, :created_at, :updated_at)
+                 ON DUPLICATE KEY UPDATE
+                    status = \'allowed\',
+                    review_required_override = VALUES(review_required_override),
+                    note = VALUES(note),
+                    updated_by = VALUES(updated_by),
+                    updated_at = VALUES(updated_at)'
+            );
+            $stmt->execute([
+                'account_id' => $applicationAccountId,
+                'note' => $permissionNote,
+                'created_by' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
+                'updated_by' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 
 function sr_content_group_submission_group_keys(string $value): array

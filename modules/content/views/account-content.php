@@ -12,6 +12,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, ['style_profile' => 'k
 
     <?php if ($allowedSubmissionGroups === []) { ?>
         <p>제출 가능한 콘텐츠 그룹이 없습니다.</p>
+        <p><a href="<?php echo sr_e(sr_url('/account/content/author-application')); ?>">콘텐츠 등록자 신청</a></p>
     <?php } else { ?>
         <form method="post" action="<?php echo sr_e(sr_url('/account/content' . (!empty($formSubmission['id']) ? '?id=' . (string) (int) $formSubmission['id'] : ''))); ?>">
             <?php echo sr_csrf_field(); ?>

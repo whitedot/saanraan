@@ -10,6 +10,7 @@ return static function (PDO $pdo, int $accountId): array {
             'file_download_logs' => [],
             'asset_action_logs' => [],
             'submissions' => [],
+            'author_applications' => [],
             'author_reward_logs' => [],
             'comments' => [],
             'series' => [],
@@ -107,6 +108,20 @@ return static function (PDO $pdo, int $accountId): array {
     }
 
     $authorRewardLogs = [];
+    $authorApplications = [];
+    if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
+        $applicationStmt = $pdo->prepare(
+            'SELECT id, account_id, application_note, status, review_note,
+                    reviewed_by, reviewed_at, created_at, updated_at
+             FROM sr_content_author_applications
+             WHERE account_id = :account_id
+             ORDER BY id ASC
+             LIMIT 1000'
+        );
+        $applicationStmt->execute(['account_id' => $accountId]);
+        $authorApplications = $applicationStmt->fetchAll();
+    }
+
     if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_author_reward_logs')) {
         $rewardStmt = $pdo->prepare(
             'SELECT r.id, r.submission_id, r.content_id, p.slug, p.title,
@@ -175,6 +190,7 @@ return static function (PDO $pdo, int $accountId): array {
         'file_download_logs' => $fileDownloadLogs,
         'asset_action_logs' => $stmt->fetchAll(),
         'submissions' => $submissions,
+        'author_applications' => $authorApplications,
         'author_reward_logs' => $authorRewardLogs,
         'comments' => $comments,
         'series' => $series,

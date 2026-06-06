@@ -60,6 +60,23 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         $fileDownloadLogAnonymizedCount = $stmt->rowCount();
     }
 
+    $authorApplicationAnonymizedCount = 0;
+    if ($columnExists($pdo, 'sr_content_author_applications', 'account_id')) {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_author_applications
+             SET account_id = NULL,
+                 application_note = '',
+                 review_note = '',
+                 updated_at = :updated_at
+             WHERE account_id = :account_id"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'updated_at' => sr_now(),
+        ]);
+        $authorApplicationAnonymizedCount = $stmt->rowCount();
+    }
+
     $seriesMetadataCount = 0;
     if (function_exists('sr_content_series_supported') && sr_content_series_supported($pdo)) {
         foreach (['created_by', 'updated_by'] as $columnName) {
@@ -93,6 +110,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'content_access_entitlement_anonymized_count' => sr_content_anonymize_access_entitlements($pdo, $accountId),
         'content_author_snapshot_anonymized_count' => $authorSnapshotAnonymizedCount,
         'content_file_download_log_anonymized_count' => $fileDownloadLogAnonymizedCount,
+        'content_author_application_anonymized_count' => $authorApplicationAnonymizedCount,
         'content_series_metadata_anonymized_count' => $seriesMetadataCount,
     ];
 };

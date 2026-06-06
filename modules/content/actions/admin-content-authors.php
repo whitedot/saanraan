@@ -18,12 +18,14 @@ if (sr_request_method() === 'POST') {
     $status = in_array(sr_post_string('status', 20), ['allowed', 'blocked'], true) ? sr_post_string('status', 20) : 'allowed';
     $reviewOverride = in_array(sr_post_string('review_required_override', 20), ['inherit', 'required', 'exempt'], true) ? sr_post_string('review_required_override', 20) : 'inherit';
     $note = sr_content_clean_text(sr_post_string('note', 2000), 2000);
-    if ($targetAccountId < 1) {
-        $errors[] = '회원 ID를 입력하세요.';
-    } elseif (sr_member_find_by_id($pdo, $targetAccountId) === null) {
-        $errors[] = '회원을 찾을 수 없습니다.';
-    }
-    if ($errors === []) {
+    try {
+        if ($targetAccountId < 1) {
+            throw new InvalidArgumentException('회원 ID를 입력하세요.');
+        }
+        if (sr_member_find_by_id($pdo, $targetAccountId) === null) {
+            throw new InvalidArgumentException('회원을 찾을 수 없습니다.');
+        }
+
         $now = sr_now();
         $stmt = $pdo->prepare(
             'INSERT INTO sr_content_author_permissions
@@ -48,6 +50,8 @@ if (sr_request_method() === 'POST') {
             'updated_at' => $now,
         ]);
         $notice = '작성자 승인을 저장했습니다.';
+    } catch (Throwable $exception) {
+        $errors[] = $exception->getMessage();
     }
 }
 

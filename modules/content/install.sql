@@ -151,6 +151,21 @@ CREATE TABLE IF NOT EXISTS sr_content_author_permissions (
     KEY idx_sr_content_author_permissions_status (status, updated_at)
 );
 
+CREATE TABLE IF NOT EXISTS sr_content_author_applications (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NULL,
+    application_note TEXT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    review_note TEXT NULL,
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_content_author_applications_account (account_id),
+    KEY idx_sr_content_author_applications_status (status, updated_at)
+);
+
 CREATE TABLE IF NOT EXISTS sr_content_author_reward_logs (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     submission_id BIGINT UNSIGNED NOT NULL,
