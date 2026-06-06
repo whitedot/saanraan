@@ -74,7 +74,20 @@ $uiKitTableRows = [
                 <div id="admin_ui_filtering_card_detail" class="filtering-body" data-filtering-body hidden>
                     <div class="filtering-field">
                         <span class="form-label">분류</span>
-                        <?php echo sr_admin_filter_radio_toggle_group_html('admin_ui_filtering_card_category', 'category', ['공지' => '공지', '가이드' => '가이드'], [], '전체'); ?>
+                        <div id="content_ui_filtering_card_category" class="filtering-toggle-group filtering-radio-toggle-group" data-filtering-radio-toggle-group>
+                            <span class="filtering-toggle-item">
+                                <input id="content_ui_filtering_card_category_all" type="radio" name="category" value="" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice checked>
+                                <label for="content_ui_filtering_card_category_all" class="btn btn-choice-light btn-group-start">전체</label>
+                            </span>
+                            <span class="filtering-toggle-item">
+                                <input id="content_ui_filtering_card_category_notice" type="radio" name="category" value="공지" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice>
+                                <label for="content_ui_filtering_card_category_notice" class="btn btn-choice-light btn-group-middle">공지</label>
+                            </span>
+                            <span class="filtering-toggle-item">
+                                <input id="content_ui_filtering_card_category_guide" type="radio" name="category" value="가이드" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice>
+                                <label for="content_ui_filtering_card_category_guide" class="btn btn-choice-light btn-group-end">가이드</label>
+                            </span>
+                        </div>
                     </div>
                     <label class="filtering-field" for="admin_ui_filtering_card_author">
                         <span class="form-label">작성자</span>

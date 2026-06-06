@@ -112,6 +112,23 @@ if ($method === 'GET' && $path === '/ui-kit') {
     exit;
 }
 
+if ($method === 'GET' && ($path === '/content/ui-kit' || $path === '/community/ui-kit')) {
+    $uiKitModuleKey = $path === '/content/ui-kit' ? 'content' : 'community';
+    if (sr_module_record_entry($pdo, $uiKitModuleKey) === null) {
+        sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
+        exit;
+    }
+
+    $uiKitActionFile = SR_ROOT . '/modules/' . $uiKitModuleKey . '/actions/ui-kit.php';
+    if (!is_file($uiKitActionFile)) {
+        sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
+        exit;
+    }
+
+    include $uiKitActionFile;
+    exit;
+}
+
 $routeKey = $method . ' ' . $path;
 $routeMatches = [];
 

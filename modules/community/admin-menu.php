@@ -35,11 +35,6 @@ return [
             'order' => 65,
         ],
         [
-            'label' => '커뮤니티 UI Kit',
-            'path' => '/admin/community/ui-kit',
-            'order' => 67,
-        ],
-        [
             'label' => sr_t('community::ui.nav.settings'),
             'path' => '/admin/community/settings',
             'order' => 70,

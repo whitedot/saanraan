@@ -20,20 +20,20 @@ $uiKitSamples = [
 
 $publicUiKitLinks = [
     [
-        'label' => sr_t('admin::ui.public.ui.kit.cba054e6'),
+        'label' => '초기 UI Kit',
         'path' => '/ui-kit',
     ],
 ];
-if (sr_module_enabled($pdo, 'content')) {
+if (sr_module_record_entry($pdo, 'content') !== null && is_file(SR_ROOT . '/modules/content/actions/ui-kit.php')) {
     $publicUiKitLinks[] = [
         'label' => '콘텐츠 UI Kit',
-        'path' => '/admin/content/ui-kit',
+        'path' => '/content/ui-kit',
     ];
 }
-if (sr_module_enabled($pdo, 'community')) {
+if (sr_module_record_entry($pdo, 'community') !== null && is_file(SR_ROOT . '/modules/community/actions/ui-kit.php')) {
     $publicUiKitLinks[] = [
         'label' => '커뮤니티 UI Kit',
-        'path' => '/admin/community/ui-kit',
+        'path' => '/community/ui-kit',
     ];
 }
 

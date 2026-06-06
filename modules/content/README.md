@@ -63,7 +63,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 
 ## UI Kit
 
-콘텐츠 모듈 전용 UI-KIT 미리보기는 `/admin/content/ui-kit`에서 제공한다. 샘플은 `modules/content/views/ui-kit-samples/`, 보조 스타일은 `modules/content/assets/ui-kit.css`가 소유한다. 공개 콘텐츠 제목, 요약, 본문, 메타, 캡션은 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 역할 토큰을 기준으로 맞춘다.
+콘텐츠 모듈 전용 UI-KIT 미리보기는 `/content/ui-kit` 사용자 화면에서 현재 콘텐츠 공개 레이아웃 설정을 적용해 제공한다. 모듈 서브메뉴에는 노출하지 않고 관리자 UI-KIT의 사용자 화면 링크에서 접근한다. 샘플은 `modules/content/views/ui-kit-samples/`, 보조 스타일은 `modules/content/assets/ui-kit.css`가 소유한다. 공개 콘텐츠 제목, 요약, 본문, 메타, 캡션은 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 역할 토큰을 기준으로 맞춘다.
 
 ## 출력 위치
 

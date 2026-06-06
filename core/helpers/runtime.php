@@ -560,13 +560,23 @@ function sr_request_path(): string
 function sr_base_path(): string
 {
     $scriptName = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
-    if ($scriptName === '' || preg_match('/[\x00-\x1F\x7F]/', $scriptName) === 1) {
-        return '';
+    if ($scriptName !== '' && preg_match('/[\x00-\x1F\x7F]/', $scriptName) !== 1) {
+        $basePath = str_replace('\\', '/', dirname($scriptName));
+        $basePath = '/' . trim($basePath, '/');
+        if ($basePath !== '/') {
+            return $basePath;
+        }
     }
 
-    $basePath = str_replace('\\', '/', dirname($scriptName));
-    $basePath = '/' . trim($basePath, '/');
-    return $basePath === '/' ? '' : $basePath;
+    $site = $GLOBALS['sr_runtime_site'] ?? [];
+    $baseUrl = is_array($site) ? (string) ($site['base_url'] ?? '') : '';
+    $baseUrlPath = $baseUrl !== '' ? parse_url($baseUrl, PHP_URL_PATH) : '';
+    if (is_string($baseUrlPath) && $baseUrlPath !== '' && preg_match('#\A/[^\x00-\x1F\x7F\\\\]*\z#', $baseUrlPath) === 1) {
+        $basePath = '/' . trim($baseUrlPath, '/');
+        return $basePath === '/' ? '' : $basePath;
+    }
+
+    return '';
 }
 
 function sr_is_installed(): bool
@@ -689,6 +699,8 @@ function sr_apply_runtime_config(array $config): void
 
 function sr_apply_site_runtime_settings(?array $site): void
 {
+    $GLOBALS['sr_runtime_site'] = is_array($site) ? $site : [];
+
     $timezone = is_array($site) ? (string) ($site['timezone'] ?? '') : '';
     if ($timezone !== '' && in_array($timezone, timezone_identifiers_list(), true)) {
         date_default_timezone_set($timezone);

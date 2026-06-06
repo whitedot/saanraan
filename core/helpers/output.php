@@ -634,7 +634,7 @@ function sr_public_layout_normalize_key(string $layoutKey): string
     return (string) ($legacyMap[$layoutKey] ?? $layoutKey);
 }
 
-function sr_public_layout_options(?PDO $pdo = null): array
+function sr_public_layout_options(?PDO $pdo = null, bool $includeInstalledModules = false): array
 {
     $options = [
         sr_public_layout_default_key() => [
@@ -653,7 +653,10 @@ function sr_public_layout_options(?PDO $pdo = null): array
     ];
 
     if ($pdo instanceof PDO) {
-        foreach (sr_enabled_module_contract_files($pdo, 'layout-options.php') as $moduleKey => $file) {
+        $contractFiles = $includeInstalledModules
+            ? sr_installed_module_contract_files($pdo, 'layout-options.php')
+            : sr_enabled_module_contract_files($pdo, 'layout-options.php');
+        foreach ($contractFiles as $moduleKey => $file) {
             $moduleOptions = sr_load_module_contract_file($moduleKey, $file);
             if (!is_array($moduleOptions)) {
                 continue;
@@ -683,10 +686,10 @@ function sr_public_layout_key(?array $site = null, ?PDO $pdo = null): string
     return isset(sr_public_layout_options($pdo)[$layoutKey]) ? $layoutKey : sr_public_layout_default_key();
 }
 
-function sr_public_layout_file(string $layoutKey, ?PDO $pdo = null): string
+function sr_public_layout_file(string $layoutKey, ?PDO $pdo = null, bool $includeInstalledModules = false): string
 {
     $layoutKey = sr_public_layout_normalize_key($layoutKey);
-    $options = sr_public_layout_options($pdo);
+    $options = sr_public_layout_options($pdo, $includeInstalledModules);
     if (!isset($options[$layoutKey])) {
         $layoutKey = sr_public_layout_default_key();
     }
@@ -703,14 +706,14 @@ function sr_public_layout_file(string $layoutKey, ?PDO $pdo = null): string
     return $layoutFile;
 }
 
-function sr_public_layout_optional_view_file(string $layoutKey, string $viewKey, ?PDO $pdo = null): ?string
+function sr_public_layout_optional_view_file(string $layoutKey, string $viewKey, ?PDO $pdo = null, bool $includeInstalledModules = false): ?string
 {
     if (preg_match('/\A[a-z0-9_]{1,40}\z/', $viewKey) !== 1) {
         return null;
     }
 
     $layoutKey = sr_public_layout_normalize_key($layoutKey);
-    $options = sr_public_layout_options($pdo);
+    $options = sr_public_layout_options($pdo, $includeInstalledModules);
     if (!isset($options[$layoutKey])) {
         $layoutKey = sr_public_layout_default_key();
     }
@@ -802,9 +805,10 @@ function sr_public_layout_end(): void
     } else {
         $layoutKey = sr_public_layout_normalize_key($layoutKey);
     }
-    $layoutFile = sr_public_layout_file($layoutKey, $pdo instanceof PDO ? $pdo : null);
+    $includeInstalledLayoutOptions = !empty($layoutContext['include_installed_layout_options']);
+    $layoutFile = sr_public_layout_file($layoutKey, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
     if (!isset($layoutContext['style_profile'])) {
-        $layoutOptions = sr_public_layout_options($pdo instanceof PDO ? $pdo : null);
+        $layoutOptions = sr_public_layout_options($pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions);
         $layoutProfile = (string) ($layoutOptions[$layoutKey]['style_profile'] ?? 'kit');
         $layoutContext['style_profile'] = sr_public_style_profile_key($layoutProfile);
     }
