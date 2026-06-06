@@ -2056,7 +2056,9 @@ function sr_content_approve_submission(PDO $pdo, int $submissionId, int $reviewe
     }
 
     try {
-        $submission = sr_content_submission_by_id($pdo, $submissionId);
+        $stmt = $pdo->prepare('SELECT * FROM sr_content_submissions WHERE id = :id LIMIT 1 FOR UPDATE');
+        $stmt->execute(['id' => $submissionId]);
+        $submission = $stmt->fetch();
         if (!is_array($submission)) {
             throw new InvalidArgumentException('제출본을 찾을 수 없습니다.');
         }
