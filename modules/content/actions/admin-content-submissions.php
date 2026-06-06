@@ -22,6 +22,23 @@ if (sr_request_method() === 'POST') {
             sr_content_approve_submission($pdo, $submissionId, (int) $account['id'], $note);
             $notice = '제출 콘텐츠를 승인했습니다.';
         } elseif (in_array($intent, ['revision_requested', 'rejected', 'cancelled'], true)) {
+            $submission = sr_content_submission_by_id($pdo, $submissionId);
+            if (!is_array($submission)) {
+                throw new InvalidArgumentException('제출본을 찾을 수 없습니다.');
+            }
+
+            $currentStatus = (string) ($submission['review_status'] ?? '');
+            if ($currentStatus === 'approved' || (int) ($submission['content_id'] ?? 0) > 0) {
+                throw new InvalidArgumentException('이미 승인된 제출본의 검수 상태는 되돌릴 수 없습니다.');
+            }
+            if (in_array($intent, ['revision_requested', 'rejected'], true) && $currentStatus !== 'pending_review') {
+                throw new InvalidArgumentException('대기 중인 제출본만 수정 요청 또는 반려할 수 있습니다.');
+            }
+            if ($intent === 'cancelled' && !in_array($currentStatus, ['member_draft', 'pending_review', 'revision_requested', 'rejected'], true)) {
+                throw new InvalidArgumentException('취소할 수 없는 제출 상태입니다.');
+            }
+
+            $now = sr_now();
             $stmt = $pdo->prepare(
                 'UPDATE sr_content_submissions
                  SET review_status = :review_status,
@@ -35,10 +52,13 @@ if (sr_request_method() === 'POST') {
                 'review_status' => $intent,
                 'review_note' => $note,
                 'reviewed_by' => (int) $account['id'],
-                'reviewed_at' => sr_now(),
-                'updated_at' => sr_now(),
+                'reviewed_at' => $now,
+                'updated_at' => $now,
                 'id' => $submissionId,
             ]);
+            if ($stmt->rowCount() < 1) {
+                throw new RuntimeException('검수 상태를 저장하지 못했습니다.');
+            }
             $notice = '검수 상태를 저장했습니다.';
         } else {
             $errors[] = '요청한 검수 작업이 올바르지 않습니다.';

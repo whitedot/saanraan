@@ -59,6 +59,24 @@ CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}content_author_reward_logs (
     KEY idx_sr_content_author_reward_status (status, updated_at)
 );
 
+INSERT IGNORE INTO {{SR_TABLE_PREFIX}}admin_account_permissions (account_id, menu_path, action_key, created_at)
+SELECT account_id,
+       '/admin/content/submissions',
+       action_key,
+       NOW()
+FROM {{SR_TABLE_PREFIX}}admin_account_permissions
+WHERE menu_path = '/admin/content'
+  AND action_key IN ('view', 'edit');
+
+INSERT IGNORE INTO {{SR_TABLE_PREFIX}}admin_account_permissions (account_id, menu_path, action_key, created_at)
+SELECT account_id,
+       '/admin/content/authors',
+       action_key,
+       NOW()
+FROM {{SR_TABLE_PREFIX}}admin_account_permissions
+WHERE menu_path = '/admin/content/settings'
+  AND action_key IN ('view', 'edit');
+
 UPDATE {{SR_TABLE_PREFIX}}modules
 SET version = '2026.06.013',
     updated_at = NOW()

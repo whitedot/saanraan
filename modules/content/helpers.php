@@ -1979,7 +1979,7 @@ function sr_content_save_member_submission(PDO $pdo, int $accountId, array $valu
     }
 
     $reviewRequired = sr_content_submission_review_required($pdo, $accountId, (int) $values['content_group_id']);
-    $reviewStatus = $submit ? ($reviewRequired ? 'pending_review' : 'approved') : 'member_draft';
+    $reviewStatus = $submit ? 'pending_review' : 'member_draft';
     $now = sr_now();
     if (is_array($existing)) {
         $stmt = $pdo->prepare(
@@ -2054,7 +2054,7 @@ function sr_content_approve_submission(PDO $pdo, int $submissionId, int $reviewe
     if (!is_array($submission)) {
         throw new InvalidArgumentException('제출본을 찾을 수 없습니다.');
     }
-    if (!in_array((string) ($submission['review_status'] ?? ''), ['pending_review', 'revision_requested', 'rejected', 'approved'], true)) {
+    if (!in_array((string) ($submission['review_status'] ?? ''), ['pending_review', 'revision_requested', 'rejected'], true)) {
         throw new InvalidArgumentException('승인할 수 없는 제출 상태입니다.');
     }
 

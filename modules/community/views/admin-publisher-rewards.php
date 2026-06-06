@@ -6,6 +6,7 @@ $adminContainerClass = 'admin-page-community-publisher-rewards admin-ui-scope';
 $publisherRewardFilters = isset($publisherRewardFilters) && is_array($publisherRewardFilters) ? $publisherRewardFilters : ['status' => '', 'q' => ''];
 $publisherRewardLogs = isset($publisherRewardLogs) && is_array($publisherRewardLogs) ? $publisherRewardLogs : [];
 
+include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <section class="admin-card card">
@@ -76,3 +77,4 @@ $publisherRewardLogs = isset($publisherRewardLogs) && is_array($publisherRewardL
     </table>
     <?php echo sr_admin_pagination_html($publisherRewardPagination, '게시자 리워드 로그 페이지'); ?>
 </section>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
