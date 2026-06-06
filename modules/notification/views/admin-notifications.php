@@ -151,14 +151,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
                             <td class="admin-table-break admin-notification-delivery-recipient-cell"><?php echo sr_e((string) (($delivery['recipient'] ?? '') !== '' ? $delivery['recipient'] : '-')); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($deliveryStatusClass); ?>"><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span></td>
-                            <td class="admin-table-nowrap admin-notification-delivery-date-cell"><?php echo sr_e((string) $delivery['updated_at']); ?></td>
+                            <td class="admin-table-nowrap admin-notification-delivery-date-cell"><?php echo sr_notification_time_html((string) $delivery['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries/status')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="delivery_id" value="<?php echo sr_e((string) $delivery['id']); ?>">
                                     <label class="sr-only" for="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
-                                    <select name="status" id="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>" class="form-select">
+                                    <select name="status" id="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>" class="form-select" required>
                                                 <?php foreach ($allowedDeliveryStatuses as $status) { ?>
                                                     <option value="<?php echo sr_e($status); ?>"<?php echo (string) $delivery['status'] === $status ? ' selected' : ''; ?>>
                                                         <?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?>
@@ -269,7 +269,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-break admin-notification-title-cell"><?php echo sr_e((string) ($notification['title'] ?? '')); ?></td>
                             <td class="admin-table-nowrap admin-notification-audience-cell"><?php echo sr_e(sr_admin_code_label((string) $notification['audience'], 'notification_audience')); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($notificationStatus, 'notification_status')); ?></span></td>
-                            <td class="admin-table-nowrap admin-notification-date-cell"><?php echo sr_e((string) $notification['created_at']); ?></td>
+                            <td class="admin-table-nowrap admin-notification-date-cell"><?php echo sr_notification_time_html((string) $notification['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/delete')); ?>">
@@ -303,7 +303,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="notification_admin_notifications_audience"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <select id="notification_admin_notifications_audience" name="audience" class="form-select" data-notification-audience data-overlay-focus>
+                            <select id="notification_admin_notifications_audience" name="audience" class="form-select" required data-notification-audience data-overlay-focus>
                                 <?php foreach ($allowedAudiences as $audience) { ?>
                                     <option value="<?php echo sr_e($audience); ?>"<?php echo (string) ($notificationCreateValues['audience'] ?? '') === $audience ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($audience, 'notification_audience')); ?></option>
                                 <?php } ?>
