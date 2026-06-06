@@ -191,6 +191,26 @@ function sr_quiz_account_can_attempt(PDO $pdo, array $quiz, int $accountId): arr
     return ['allowed' => true, 'message' => ''];
 }
 
+function sr_quiz_lock_quiz_for_attempt(PDO $pdo, int $quizId): ?array
+{
+    if ($quizId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_quiz_sets
+         WHERE id = :id
+           AND deleted_at IS NULL
+         LIMIT 1
+         FOR UPDATE'
+    );
+    $stmt->execute(['id' => $quizId]);
+    $quiz = $stmt->fetch();
+
+    return is_array($quiz) ? $quiz : null;
+}
+
 function sr_quiz_key_exists(PDO $pdo, string $quizKey, int $excludeId = 0): bool
 {
     if (!sr_quiz_key_is_valid($quizKey)) {
@@ -449,13 +469,25 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
         ];
     }
 
-    $passScore = $quiz['pass_score'] === null ? 0 : (int) $quiz['pass_score'];
-    $passed = $allRequiredAnswered && $totalScore >= $passScore;
+    $passScore = 0;
+    $passed = false;
     $rewardGrant = null;
     $rewardError = '';
 
     $pdo->beginTransaction();
     try {
+        $lockedQuiz = sr_quiz_lock_quiz_for_attempt($pdo, $quizId);
+        if (!is_array($lockedQuiz)) {
+            throw new RuntimeException('현재 응시할 수 없는 퀴즈입니다.');
+        }
+        $attemptAccess = sr_quiz_account_can_attempt($pdo, $lockedQuiz, $accountId);
+        if (empty($attemptAccess['allowed'])) {
+            throw new RuntimeException((string) ($attemptAccess['message'] ?? 'Quiz attempt is not allowed.'));
+        }
+        $quiz = $lockedQuiz;
+        $passScore = $quiz['pass_score'] === null ? 0 : (int) $quiz['pass_score'];
+        $passed = $allRequiredAnswered && $totalScore >= $passScore;
+
         $returnUrl = sr_quiz_internal_return_path(sr_post_string('return_to', 255));
         $sourceContext = sr_quiz_valid_source_context($pdo, $quizId, sr_quiz_source_context_from_request());
         $sourceSnapshot = sr_quiz_source_snapshot($pdo, $sourceContext, $returnUrl);

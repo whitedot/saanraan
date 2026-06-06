@@ -141,6 +141,7 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_source_context_is_accessible',
         'sr_content_once_access_already_granted',
         'sr_quiz_account_can_attempt',
+        'sr_quiz_lock_quiz_for_attempt',
         'sr_quiz_public_window_is_open',
         'member_group_keys_json',
         'attempt_limit_policy',
