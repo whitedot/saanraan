@@ -15,7 +15,7 @@
 
 ## 번들 모듈
 
-현재 저장소에는 다음 17개 모듈 또는 플러그인이 포함되어 있다.
+현재 저장소에는 다음 18개 모듈 또는 플러그인이 포함되어 있다.
 
 | 분류 | key | 성격 |
 | --- | --- | --- |
@@ -33,6 +33,7 @@
 | 사이트 | `seo` | robots, sitemap, SEO 보조 |
 | 서비스 | `content` | 콘텐츠 작성, 공개 URL, 콘텐츠 그룹 |
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지 |
+| 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠 연계 보상 기반 |
 | 운영 | `notification` | 사이트 알림, 이메일 delivery queue |
 | 운영 | `privacy` | 개인정보 요청과 사본 제공 조정 |
 | 플러그인 | `ckeditor` | textarea 에디터 강화 |
@@ -50,6 +51,7 @@
 | 콘텐츠 | `/content/*`, `/content/group`, `/content/download`, `/content/action`, `/content/comment`, `/admin/content`, `/admin/content/series`, `/admin/content/settings`, `/admin/content-groups` |
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/series`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-copy-jobs`, `/admin/community/board-groups`, `/admin/community/series`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
+| 퀴즈 | `/quiz`, `/quiz/*`, `/admin/quiz`, `/admin/quiz/attempts` |
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/asset-exchange`, `/account/coupons` |
 | 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/rewards/settings`, `/admin/deposits`, `/admin/deposits/settings`, `/admin/asset-exchange`, `/admin/asset-exchange/settings`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
@@ -67,6 +69,7 @@
 | 개인정보 | `sr_privacy_requests` |
 | 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_comments`, `sr_content_link_refs`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs` |
 | 커뮤니티 | `sr_community_boards`, `sr_community_board_groups`, `sr_community_board_settings`, `sr_community_board_group_settings`, `sr_community_board_setting_sources`, `sr_community_board_copy_jobs`, `sr_community_board_copy_job_maps`, `sr_community_asset_policy_sets`, `sr_community_categories`, `sr_community_series`, `sr_community_series_items`, `sr_community_series_scraps`, `sr_community_posts`, `sr_community_comments`, `sr_community_link_refs`, `sr_community_attachments`, `sr_community_reports`, `sr_community_scraps`, `sr_community_messages`, `sr_community_levels`, `sr_community_account_levels`, `sr_community_level_logs`, `sr_community_asset_logs`, `sr_community_access_entitlements` |
+| 퀴즈 | `sr_quiz_sets`, `sr_quiz_sources`, `sr_quiz_questions`, `sr_quiz_choices`, `sr_quiz_results`, `sr_quiz_result_rules`, `sr_quiz_reward_policies`, `sr_quiz_attempts`, `sr_quiz_attempt_answers`, `sr_quiz_attempt_result_scores`, `sr_quiz_reward_grants` |
 | 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_point_expiration_consumptions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
 | 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_logos`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
 | 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates` |
@@ -92,6 +95,8 @@
 감사 로그 조회 화면 `/admin/audit-logs`는 이벤트 유형, 대상 유형, 대상 식별값, 처리자 계정 ID, 처리자 유형, IP, 처리 결과, 날짜 범위 필터를 제공한다. metadata JSON은 민감 키와 민감 문자열을 마스킹한 뒤 상세 모달에 표시하고, 모달에는 원본 이벤트/대상 식별자, 처리자, 결과, IP, user agent를 함께 보여 운영 조사 맥락을 확인할 수 있게 한다. 별도 로그 export는 아직 제공하지 않으며, 보존/삭제는 `/admin/retention`의 감사 로그 보관일 정책을 따른다.
 
 게시글 리액션은 마일스톤 8 기준으로 DB와 UI를 새로 추가하지 않는다. 현재 사용자 반응 표면은 커뮤니티 게시글/시리즈 스크랩과 콘텐츠 완료 버튼으로 유지하며, 새 리액션 도입은 중복 집계 정책, 개인정보 보존 기간, 신고/운영 정책이 확정될 때 별도 마일스톤에서 다룬다.
+
+마일스톤 2 퀴즈 보상 모듈은 `quiz` 서비스 모듈로 구현을 시작했다. 현재 반영 범위는 모듈 메타데이터, `/quiz`와 `/admin/quiz` 기본 진입점, `sr_quiz_*` 설치 스키마, 개인정보 export/cleanup 계약, 자산 원장 reference 조회 callable, `.tools/bin/check-quiz-consistency.php` 정합성 검사다. 계획 기준은 [퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)를 따른다. MVP source는 `content/content_item`으로 고정하며, 실제 응시/채점/모달 UI/보상 지급 실행은 후속 수직 슬라이스에서 구현한다.
 
 ## 검증 기준
 

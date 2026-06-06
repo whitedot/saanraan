@@ -1108,6 +1108,31 @@ function sr_point_transaction_by_id(PDO $pdo, int $transactionId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_point_transaction_by_reference(PDO $pdo, string $referenceType, string $referenceId): ?array
+{
+    $referenceType = sr_point_clean_key($referenceType, 60);
+    $referenceId = sr_point_clean_reference_id($referenceId, 120);
+    if ($referenceType === '' || $referenceId === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at
+         FROM sr_point_transactions
+         WHERE reference_type = :reference_type
+           AND reference_id = :reference_id
+         ORDER BY id DESC
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'reference_type' => $referenceType,
+        'reference_id' => $referenceId,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function sr_point_admin_transaction_rows(PDO $pdo, array $config, array $sort, array $pagination, int $accountId = 0): array
 {
     $sql = 'SELECT t.id, t.account_id, t.amount, t.balance_after, t.transaction_type, t.reason, t.reference_type, t.reference_id, t.created_by_account_id, t.expires_at, t.expires_remaining, t.expired_at, t.created_at,

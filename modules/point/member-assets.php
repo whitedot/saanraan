@@ -8,6 +8,7 @@ return [
     'unit_function' => 'sr_point_unit_label',
     'balance_function' => 'sr_point_balance',
     'transaction_function' => 'sr_point_create_transaction',
+    'transaction_lookup_function' => 'sr_point_transaction_by_reference',
     'transaction_table' => 'sr_point_transactions',
     'use_type' => 'use',
     'credit_type' => 'grant',

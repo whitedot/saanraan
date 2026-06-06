@@ -1023,6 +1023,31 @@ function sr_reward_transaction_by_id(PDO $pdo, int $transactionId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_reward_transaction_by_reference(PDO $pdo, string $referenceType, string $referenceId): ?array
+{
+    $referenceType = sr_reward_clean_key($referenceType, 60);
+    $referenceId = sr_reward_clean_reference_id($referenceId, 120);
+    if ($referenceType === '' || $referenceId === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at
+         FROM sr_reward_transactions
+         WHERE reference_type = :reference_type
+           AND reference_id = :reference_id
+         ORDER BY id DESC
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'reference_type' => $referenceType,
+        'reference_id' => $referenceId,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function sr_reward_notify_transaction_created(PDO $pdo, int $transactionId): ?int
 {
     $createAccountEventFunction = sr_reward_notification_event_function($pdo);

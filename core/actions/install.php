@@ -112,6 +112,12 @@ $optionalModules = [
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
+    'quiz' => [
+        'name' => '퀴즈',
+        'version' => '2026.06.001',
+        'label' => '퀴즈',
+        'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
+    ],
     'community' => [
         'name' => '커뮤니티',
         'version' => '2026.06.013',
