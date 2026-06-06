@@ -155,7 +155,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) $definition['coupon_key']); ?></td>
                         <td><?php echo sr_e((string) $definition['title']); ?></td>
                         <td><?php echo sr_e((string) ($targetTypes[(string) $definition['target_type']] ?? $definition['target_type'])); ?> <?php echo sr_e((string) $definition['target_id']); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? $definition['status'])); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? sr_coupon_status_label((string) $definition['status']))); ?></span></td>
                         <td class="admin-table-actions-cell">
                             <?php
                             $definitionId = (int) ($definition['id'] ?? 0);
@@ -174,7 +174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="intent" value="set_definition_status">
                                     <input type="hidden" name="definition_id" value="<?php echo sr_e((string) $definition['id']); ?>">
                                     <input type="hidden" name="status" value="<?php echo (string) $definition['status'] === 'active' ? 'disabled' : 'active'; ?>">
-                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo (string) $definition['status'] === 'active' ? '사용 중지' : '다시 사용'; ?></button>
+                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e((string) $definition['status'] === 'active' ? '사용 중지' : '다시 사용'); ?></button>
                                 </form>
                             </div>
                         </td>
@@ -549,7 +549,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) ($targetTypes[(string) ($issue['target_type'] ?? '')] ?? ($issue['target_type'] ?? ''))); ?> <?php echo sr_e((string) ($issue['target_id'] ?? '')); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($issueStatusClasses[(string) $issue['status']] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issue['status'])); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) $issue['used_count']); ?></td>
-                        <td class="admin-table-nowrap"><?php echo sr_e((string) $issue['issued_at']); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) $issue['issued_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <?php if ((string) $issue['status'] === 'active') { ?>
@@ -675,9 +675,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_e((string) ($redemption['reference_module'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_type'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_id'] ?? '')); ?>
                         </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($redemptionStatusClasses[$redemptionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></span></td>
-                        <td class="admin-table-nowrap"><?php echo sr_e((string) ($redemption['redeemed_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($redemption['redeemed_at'] ?? '')); ?></td>
                         <td class="admin-table-nowrap">
-                            <?php echo sr_e((string) ($redemption['refunded_at'] ?? '')); ?>
+                            <?php echo sr_coupon_time_html((string) ($redemption['refunded_at'] ?? ''), '-'); ?>
                             <?php if ((string) ($redemption['refund_note'] ?? '') !== '') { ?>
                                 <br><?php echo sr_e((string) ($redemption['refund_note'] ?? '')); ?>
                             <?php } ?>
