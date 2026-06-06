@@ -2050,6 +2050,12 @@ function sr_content_unique_member_submission_slug(PDO $pdo, string $title, int $
 
 function sr_content_approve_submission(PDO $pdo, int $submissionId, int $reviewerAccountId, string $note = ''): int
 {
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
     $submission = sr_content_submission_by_id($pdo, $submissionId);
     if (!is_array($submission)) {
         throw new InvalidArgumentException('제출본을 찾을 수 없습니다.');
@@ -2099,10 +2105,24 @@ function sr_content_approve_submission(PDO $pdo, int $submissionId, int $reviewe
         'updated_at' => $now,
         'id' => $submissionId,
     ]);
+    if ($stmt->rowCount() < 1) {
+        throw new RuntimeException('제출본 승인 상태를 저장하지 못했습니다.');
+    }
 
     sr_content_grant_submission_author_reward($pdo, $submissionId, $savedContentId, $authorAccountId, $reviewerAccountId);
 
+    if ($startedTransaction) {
+        $pdo->commit();
+    }
+
     return $savedContentId;
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 
 function sr_content_author_reward_statuses(): array
@@ -2307,7 +2327,10 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     $contentIds = sr_content_group_content_ids($pdo, $groupId);
     $coverImageUrls = sr_content_group_cover_image_urls_for_delete($pdo, $contentIds);
     $files = sr_content_group_file_rows_for_delete($pdo, $contentIds);
-    $pdo->beginTransaction();
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
     try {
         $deletedSettings = sr_content_optional_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
         $deletedContents = count($contentIds);
@@ -3514,9 +3537,11 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         }
         sr_link_card_clear_legacy_refs($pdo, 'sr_content_link_refs', 'content_id', $pageId);
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
-        $pdo->commit();
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
     } catch (Throwable $exception) {
-        if ($pdo->inTransaction()) {
+        if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
 
