@@ -33,7 +33,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                 <?php if ($assetKey === 'coupon') { ?>
                                     <?php echo sr_e((string) ($asset['unit_label'] ?? '개')); ?> <?php echo sr_e((string) $asset['process_label']); ?>
                                 <?php } else { ?>
-                                    <?php echo $assetKey === 'deposit' ? sr_t('member::ui.text.d3263170') : sr_t('member::ui.text.9f2904c9'); ?>
+                                    <?php echo sr_e($assetKey === 'deposit' ? sr_t('member::ui.text.d3263170') : sr_t('member::ui.text.9f2904c9')); ?>
                                 <?php } ?>
                             </li>
                         <?php } ?>

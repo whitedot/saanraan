@@ -23,7 +23,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <dt><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></dt>
             <dd><?php echo sr_e((string) $account['status']); ?></dd>
             <dt><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></dt>
-            <dd><?php echo $account['email_verified_at'] === null ? sr_t('member::ui.text.a7800e5d') : sr_e((string) $account['email_verified_at']); ?></dd>
+            <dd><?php echo sr_e($account['email_verified_at'] === null ? sr_t('member::ui.text.a7800e5d') : (string) $account['email_verified_at']); ?></dd>
         </dl>
 
         <?php if ($notice !== '') { ?>
@@ -127,7 +127,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php if (!empty($profilePolicies['phone']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_phone">
-                                <span><?php echo sr_e(sr_t('member::ui.text.4edc9439')); ?><?php echo !empty($profilePolicies['phone']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
+                                <span><?php echo sr_e(sr_t('member::ui.text.4edc9439')); ?><?php echo !empty($profilePolicies['phone']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                 <input id="modules_member_account_phone" type="text" name="phone" value="<?php echo sr_e($profile['phone']); ?>" maxlength="40"<?php echo !empty($profilePolicies['phone']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
@@ -135,7 +135,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_birth_date">
-                                <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
+                                <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                 <input id="modules_member_account_birth_date" type="date" name="birth_date" value="<?php echo sr_e($profile['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
                             </label>
                         </p>
@@ -144,7 +144,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <?php $avatarSrc = sr_member_avatar_src((string) $profile['avatar_path']); ?>
                         <p>
                             <label for="modules_member_account_avatar_file">
-                                <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
+                                <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                 <input id="modules_member_account_avatar_file" type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
                             </label>
                             <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
@@ -166,7 +166,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php if (!empty($profilePolicies['profile_text']['visible'])) { ?>
                         <p>
                             <label for="modules_member_account_profile_text">
-                                <span><?php echo sr_e(sr_t('member::ui.text.7367283c')); ?><?php echo !empty($profilePolicies['profile_text']['required']) ? sr_t('member::ui.span.class.sr.required.label.07a9346b') : ''; ?></span>
+                                <span><?php echo sr_e(sr_t('member::ui.text.7367283c')); ?><?php echo !empty($profilePolicies['profile_text']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                 <textarea id="modules_member_account_profile_text" name="profile_text" maxlength="1000"<?php echo !empty($profilePolicies['profile_text']['required']) ? ' required' : ''; ?>><?php echo sr_e($profile['profile_text']); ?></textarea>
                             </label>
                         </p>
@@ -185,7 +185,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php foreach ($consents as $consent) { ?>
                         <dt><?php echo sr_e((string) $consent['consent_key']); ?></dt>
                         <dd>
-                            <?php echo !empty($consent['consented']) ? sr_t('member::ui.text.051a33c2') : sr_t('member::ui.text.1c15cddb'); ?>
+                            <?php echo sr_e(!empty($consent['consented']) ? sr_t('member::ui.text.051a33c2') : sr_t('member::ui.text.1c15cddb')); ?>
                             <?php echo sr_e((string) $consent['consent_version']); ?>
                             <?php echo sr_e((string) $consent['created_at']); ?>
                         </dd>
