@@ -192,7 +192,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select">
+                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required>
                                 <?php foreach ($allowedStatuses as $status) { ?>
                                     <option value="<?php echo sr_e($status); ?>"<?php echo $statusValue === $status ? ' selected' : ''; ?>>
                                         <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
@@ -295,7 +295,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_target"><?php echo sr_e(sr_t('site_menu::ui.text.5235ffd9')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e($modalId); ?>_target" name="target" class="form-select">
+                            <select id="<?php echo sr_e($modalId); ?>_target" name="target" class="form-select" required>
                                 <?php foreach ($allowedTargets as $target) { ?>
                                     <option value="<?php echo sr_e($target); ?>"<?php echo $targetValue === $target ? ' selected' : ''; ?>>
                                         <?php echo sr_e(sr_admin_code_label($target, 'menu_target')); ?>
@@ -307,7 +307,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select">
+                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required>
                                 <?php foreach ($allowedStatuses as $status) { ?>
                                     <option value="<?php echo sr_e($status); ?>"<?php echo $statusValue === $status ? ' selected' : ''; ?>>
                                         <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>

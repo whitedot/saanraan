@@ -215,6 +215,14 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        if ($errors === [] && $itemId > 0) {
+            $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_items WHERE id = :id AND menu_id = :menu_id LIMIT 1');
+            $stmt->execute(['id' => $itemId, 'menu_id' => $menuId]);
+            if (!is_array($stmt->fetch())) {
+                $errors[] = sr_t('site_menu::action.admin.item_edit_not_found');
+            }
+        }
+
         if ($errors === [] && $parentId > 0) {
             $parentDepth = sr_site_menu_admin_parent_depth($pdo, $menuId, $parentId, $itemId);
             if ($parentDepth === null) {
@@ -339,6 +347,14 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'delete_item') {
         if ($itemId <= 0) {
             $errors[] = sr_t('site_menu::action.admin.item_delete_not_found');
+        }
+
+        if ($errors === []) {
+            $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_items WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $itemId]);
+            if (!is_array($stmt->fetch())) {
+                $errors[] = sr_t('site_menu::action.admin.item_delete_not_found');
+            }
         }
 
         if ($errors === []) {

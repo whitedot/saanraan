@@ -189,7 +189,7 @@ function sr_site_menu_item_href(string $url): string
         return sr_url($url);
     }
 
-    return $url;
+    return sr_is_http_url($url) ? $url : '#';
 }
 
 function sr_site_menu_current_login_next_path(): string

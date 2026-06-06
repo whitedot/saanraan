@@ -6,6 +6,7 @@ return [
     'action.admin.intent_invalid' => '요청한 작업을 처리할 수 없습니다.',
     'action.admin.item_deleted' => '메뉴 항목을 삭제했습니다.',
     'action.admin.item_delete_not_found' => '삭제할 항목을 찾을 수 없습니다.',
+    'action.admin.item_edit_not_found' => '수정할 항목을 찾을 수 없습니다.',
     'action.admin.item_name_required' => '항목 이름을 입력하세요.',
     'action.admin.item_order_saved' => '메뉴 항목 순서를 저장했습니다.',
     'action.admin.item_saved' => '메뉴 항목을 저장했습니다.',
