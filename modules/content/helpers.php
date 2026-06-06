@@ -2056,66 +2056,66 @@ function sr_content_approve_submission(PDO $pdo, int $submissionId, int $reviewe
     }
 
     try {
-    $submission = sr_content_submission_by_id($pdo, $submissionId);
-    if (!is_array($submission)) {
-        throw new InvalidArgumentException('제출본을 찾을 수 없습니다.');
-    }
-    if (!in_array((string) ($submission['review_status'] ?? ''), ['pending_review', 'revision_requested', 'rejected'], true)) {
-        throw new InvalidArgumentException('승인할 수 없는 제출 상태입니다.');
-    }
+        $submission = sr_content_submission_by_id($pdo, $submissionId);
+        if (!is_array($submission)) {
+            throw new InvalidArgumentException('제출본을 찾을 수 없습니다.');
+        }
+        if (!in_array((string) ($submission['review_status'] ?? ''), ['pending_review', 'revision_requested', 'rejected'], true)) {
+            throw new InvalidArgumentException('승인할 수 없는 제출 상태입니다.');
+        }
 
-    $slug = (string) ($submission['slug'] ?? '');
-    if ($slug === '' || sr_content_slug_exists($pdo, $slug, 0)) {
-        $slug = sr_content_unique_member_submission_slug($pdo, (string) $submission['title'], $submissionId);
-    }
+        $slug = (string) ($submission['slug'] ?? '');
+        if ($slug === '' || sr_content_slug_exists($pdo, $slug, 0)) {
+            $slug = sr_content_unique_member_submission_slug($pdo, (string) $submission['title'], $submissionId);
+        }
 
-    $contentId = (int) ($submission['content_id'] ?? 0);
-    $values = array_merge(sr_content_default_values($pdo, null, sr_content_group_settings($pdo, (int) ($submission['content_group_id'] ?? 0))), [
-        'content_group_id' => (int) ($submission['content_group_id'] ?? 0),
-        'content_group_scope' => 'here_only',
-        'slug' => $slug,
-        'title' => (string) $submission['title'],
-        'summary' => (string) ($submission['summary'] ?? ''),
-        'body_text' => (string) ($submission['body_text'] ?? ''),
-        'body_format' => (string) ($submission['body_format'] ?? 'plain'),
-        'status' => 'published',
-        'seo_title' => '',
-        'seo_description' => '',
-    ]);
-    $authorAccountId = (int) ($submission['author_account_id'] ?? 0);
-    $savedContentId = sr_content_save($pdo, $values, $authorAccountId, $contentId);
-    $now = sr_now();
-    $stmt = $pdo->prepare(
-        "UPDATE sr_content_submissions
-         SET content_id = :content_id,
-             slug = :slug,
-             review_status = 'approved',
-             review_note = :review_note,
-             reviewed_by = :reviewed_by,
-             reviewed_at = :reviewed_at,
-             updated_at = :updated_at
-         WHERE id = :id"
-    );
-    $stmt->execute([
-        'content_id' => $savedContentId,
-        'slug' => $slug,
-        'review_note' => $note,
-        'reviewed_by' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
-        'reviewed_at' => $now,
-        'updated_at' => $now,
-        'id' => $submissionId,
-    ]);
-    if ($stmt->rowCount() < 1) {
-        throw new RuntimeException('제출본 승인 상태를 저장하지 못했습니다.');
-    }
+        $contentId = (int) ($submission['content_id'] ?? 0);
+        $values = array_merge(sr_content_default_values($pdo, null, sr_content_group_settings($pdo, (int) ($submission['content_group_id'] ?? 0))), [
+            'content_group_id' => (int) ($submission['content_group_id'] ?? 0),
+            'content_group_scope' => 'here_only',
+            'slug' => $slug,
+            'title' => (string) $submission['title'],
+            'summary' => (string) ($submission['summary'] ?? ''),
+            'body_text' => (string) ($submission['body_text'] ?? ''),
+            'body_format' => (string) ($submission['body_format'] ?? 'plain'),
+            'status' => 'published',
+            'seo_title' => '',
+            'seo_description' => '',
+        ]);
+        $authorAccountId = (int) ($submission['author_account_id'] ?? 0);
+        $savedContentId = sr_content_save($pdo, $values, $authorAccountId, $contentId);
+        $now = sr_now();
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_submissions
+             SET content_id = :content_id,
+                 slug = :slug,
+                 review_status = 'approved',
+                 review_note = :review_note,
+                 reviewed_by = :reviewed_by,
+                 reviewed_at = :reviewed_at,
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            'content_id' => $savedContentId,
+            'slug' => $slug,
+            'review_note' => $note,
+            'reviewed_by' => $reviewerAccountId > 0 ? $reviewerAccountId : null,
+            'reviewed_at' => $now,
+            'updated_at' => $now,
+            'id' => $submissionId,
+        ]);
+        if ($stmt->rowCount() < 1) {
+            throw new RuntimeException('제출본 승인 상태를 저장하지 못했습니다.');
+        }
 
-    sr_content_grant_submission_author_reward($pdo, $submissionId, $savedContentId, $authorAccountId, $reviewerAccountId);
+        sr_content_grant_submission_author_reward($pdo, $submissionId, $savedContentId, $authorAccountId, $reviewerAccountId);
 
-    if ($startedTransaction) {
-        $pdo->commit();
-    }
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
 
-    return $savedContentId;
+        return $savedContentId;
     } catch (Throwable $exception) {
         if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
@@ -3383,7 +3383,10 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
     }
 
     $now = sr_now();
-    $pdo->beginTransaction();
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
 
     try {
         $existing = $pageId > 0 ? sr_content_by_id($pdo, $pageId) : null;
