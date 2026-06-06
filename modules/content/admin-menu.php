@@ -20,6 +20,11 @@ return [
             'order' => 22,
         ],
         [
+            'label' => '콘텐츠 UI Kit',
+            'path' => '/admin/content/ui-kit',
+            'order' => 24,
+        ],
+        [
             'label' => '다운로드 파일 관리',
             'path' => '/admin/content/files',
             'order' => 25,

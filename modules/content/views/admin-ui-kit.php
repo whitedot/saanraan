@@ -1,8 +1,8 @@
 <?php
 
-$adminPageTitle = sr_t('admin::ui.admin.ui.kit.e8bf017c');
-$adminPageSubtitle = sr_t('admin::ui.admin.ui.kit.6edaa059');
-$adminContainerClass = 'admin-page-ui-kit';
+$adminPageTitle = '콘텐츠 UI Kit';
+$adminPageSubtitle = '콘텐츠 모듈이 소유하는 화면 요소와 공개 타이포그래피 기준입니다.';
+$adminContainerClass = 'admin-page-ui-kit admin-page-content-ui-kit';
 
 $uiKitSamples = [
     'typography' => 'Typography',
@@ -18,42 +18,20 @@ $uiKitSamples = [
     'tables-static' => 'Tables',
 ];
 
-$publicUiKitLinks = [
-    [
-        'label' => sr_t('admin::ui.public.ui.kit.cba054e6'),
-        'path' => '/ui-kit',
-    ],
-];
-if (sr_module_enabled($pdo, 'content')) {
-    $publicUiKitLinks[] = [
-        'label' => '콘텐츠 UI Kit',
-        'path' => '/admin/content/ui-kit',
-    ];
-}
-if (sr_module_enabled($pdo, 'community')) {
-    $publicUiKitLinks[] = [
-        'label' => '커뮤니티 UI Kit',
-        'path' => '/admin/community/ui-kit',
-    ];
-}
-
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/admin/assets/ui-kit.css')); ?>">
+<link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/content/assets/ui-kit.css')); ?>">
+<link rel="stylesheet" href="<?php echo sr_e(sr_admin_asset_url('/modules/content/assets/public.css')); ?>">
 
 <section class="admin-card card">
     <div class="card-header">
-        <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.1f36938c')); ?></h2>
-        <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="사용자 화면 UI Kit">
-            <?php foreach ($publicUiKitLinks as $publicUiKitLink) { ?>
-                <a href="<?php echo sr_e(sr_url((string) $publicUiKitLink['path'])); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e((string) $publicUiKitLink['label']); ?></a>
-            <?php } ?>
-        </nav>
+        <h2 class="card-title">콘텐츠 모듈 UI Kit</h2>
+        <a href="<?php echo sr_e(sr_url('/admin/ui-kit')); ?>" class="btn btn-sm btn-outline-secondary">관리자 UI Kit</a>
     </div>
     <div class="card-body">
-        <p class="admin-card-subtitle"><?php echo sr_e(sr_t('admin::ui.admin.ui.49666d14')); ?></p>
-        <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.ui.kit.03cf9fea')); ?>">
+        <p class="admin-card-subtitle">공통 런타임을 참고하되, 콘텐츠 모듈이 실제로 쓰는 UI 기준은 이 미리보기에서 관리합니다.</p>
+        <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="콘텐츠 UI Kit 샘플">
             <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                 <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
             <?php } ?>
@@ -61,12 +39,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 
-<div class="ui-kit-sample-body admin-ui-kit-samples ui-form-theme">
+<div class="ui-kit-sample-body admin-ui-kit-samples content-ui-kit-samples ui-form-theme">
     <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
         <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="admin-ui-kit-section ui-kit-space-before-base" aria-labelledby="ui-kit-title-<?php echo sr_e($sampleKey); ?>">
             <h2 id="ui-kit-title-<?php echo sr_e($sampleKey); ?>" class="admin-ui-kit-section-title"><?php echo sr_e($sampleLabel); ?></h2>
             <?php
-            $sampleFile = SR_ROOT . '/modules/admin/views/ui-kit-samples/' . $sampleKey . '.php';
+            $sampleFile = SR_ROOT . '/modules/content/views/ui-kit-samples/' . $sampleKey . '.php';
             if (is_file($sampleFile)) {
                 include $sampleFile;
             }
@@ -77,7 +55,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <script>
 (function () {
-    var root = document.querySelector('.admin-ui-kit-samples');
+    var root = document.querySelector('.content-ui-kit-samples');
     if (!root) {
         return;
     }

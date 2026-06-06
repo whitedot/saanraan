@@ -1,4 +1,6 @@
 .community-screen {
+    color: var(--text-strong, #242424);
+    font-family: var(--font-body);
     margin: 0 auto;
     max-width: 1360px;
     padding: 40px 0;
@@ -10,12 +12,12 @@
 }
 
 .community-screen h1 {
-    color: #242424;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 700;
+    color: var(--text-strong, #242424);
+    font-family: var(--font-secondary);
+    font-size: clamp(var(--type-page-title-size), 4vw, var(--type-page-title-fluid-max-size));
+    font-weight: var(--font-weight-bold);
     letter-spacing: 0;
-    line-height: 1.05;
+    line-height: var(--type-page-title-line-height);
     overflow-wrap: anywhere;
 }
 
@@ -47,8 +49,11 @@
 }
 
 .community-comments-panel-header h2 {
-    font-size: 1.25rem;
-    line-height: 1.35;
+    color: var(--text-strong, #242424);
+    font-family: var(--font-secondary);
+    font-size: var(--type-section-title-size);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--type-section-title-line-height);
     margin: 0;
 }
 
@@ -66,10 +71,19 @@
 }
 
 .community-post-body {
-    font-size: 1.125rem;
-    line-height: 1.6;
+    color: var(--text-strong, #242424);
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-line-height);
     overflow-wrap: anywhere;
     word-break: normal;
+}
+
+.community-post-body blockquote {
+    border-left: 3px solid var(--text-strong, #242424);
+    color: var(--text-muted, #3d3d3d);
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-line-height);
+    padding-left: 20px;
 }
 
 .community-post-body :is(p, ul, ol, blockquote, pre, table) {
@@ -113,8 +127,8 @@
 }
 
 .community-screen legend {
-    color: #242424;
-    font-weight: 700;
+    color: var(--text-strong, #242424);
+    font-weight: var(--font-weight-semibold);
     padding: 0 6px;
 }
 
@@ -126,8 +140,8 @@
 .community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea, .form-input) {
     border: 1px solid #d8d8d8;
     border-radius: 8px;
-    color: #242424;
-    line-height: 1.5;
+    color: var(--text-strong, #242424);
+    line-height: var(--type-body-line-height);
     padding: 10px 12px;
     width: 100%;
 }
@@ -138,8 +152,8 @@
     border-radius: 999px;
     cursor: pointer;
     display: inline-flex;
-    font-size: .9375rem;
-    font-weight: 700;
+    font-size: var(--type-small-size);
+    font-weight: var(--font-weight-bold);
     gap: 8px;
     justify-content: center;
     line-height: 1.2;
@@ -151,22 +165,22 @@
 }
 
 .community-screen :is(button[type="submit"], .btn-solid-primary) {
-    background: #242424;
+    background: var(--text-strong, #242424);
     color: #ffffff;
 }
 
 .community-screen .btn-solid-light {
     background: #f2f2f2;
-    color: #242424;
+    color: var(--text-strong, #242424);
 }
 
 .community-screen :is(button, .btn, input, select, textarea):focus-visible {
-    outline: 2px solid #242424;
+    outline: 2px solid var(--text-strong, #242424);
     outline-offset: 2px;
 }
 
 .community-comment-secret {
-    color: #6b6b6b;
+    color: var(--text-muted, #6b6b6b);
 }
 
 .community-comment-actions {
@@ -214,8 +228,8 @@
 }
 
 .community-screen th {
-    color: #242424;
-    font-weight: 700;
+    color: var(--text-strong, #242424);
+    font-weight: var(--font-weight-semibold);
 }
 
 .community-screen .sr-link-card-picker {
@@ -234,9 +248,9 @@
 }
 
 .community-screen .sr-link-card-picker-results {
-    color: #6b6b6b;
-    font-size: .875rem;
-    line-height: 1.5;
+    color: var(--text-muted, #6b6b6b);
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
 }
 
 @media (max-width: 900px) {

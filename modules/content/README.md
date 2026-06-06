@@ -61,6 +61,10 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 
 콘텐츠 메인은 `/content`, 그룹 목록은 `/content/group?key={group_key}`, 단일 콘텐츠 공개 URL은 `/content/{slug}` 형식이다. slug는 3-120자의 소문자 영문, 숫자, 하이픈만 허용하며 예약어는 사용할 수 없다.
 
+## UI Kit
+
+콘텐츠 모듈 전용 UI-KIT 미리보기는 `/admin/content/ui-kit`에서 제공한다. 샘플은 `modules/content/views/ui-kit-samples/`, 보조 스타일은 `modules/content/assets/ui-kit.css`가 소유한다. 공개 콘텐츠 제목, 요약, 본문, 메타, 캡션은 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 역할 토큰을 기준으로 맞춘다.
+
 ## 출력 위치
 
 `content.view` point는 `before_content`, `after_content` content slot을 제공한다. 배너와 팝업레이어 모듈은 이 위치를 대상으로 `all` 또는 콘텐츠 ID 기반 `exact` 규칙을 저장할 수 있다.
