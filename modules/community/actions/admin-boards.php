@@ -175,6 +175,45 @@ if (sr_request_method() === 'POST') {
     } elseif ($intent === 'delete_board') {
         $boardIdValue = sr_post_string('board_id', 20);
         $boardId = preg_match('/\A[1-9][0-9]*\z/', $boardIdValue) === 1 ? (int) $boardIdValue : 0;
+        $deleteCheck = sr_community_can_delete_board($pdo, $boardId);
+        $deleteBoard = is_array($deleteCheck['board'] ?? null) ? $deleteCheck['board'] : null;
+        $deleteReferences = is_array($deleteCheck['references'] ?? null) ? $deleteCheck['references'] : [];
+        $deleteTargetRecords = (int) ($deleteReferences['posts'] ?? 0)
+            + (int) ($deleteReferences['comments'] ?? 0)
+            + (int) ($deleteReferences['attachments'] ?? 0)
+            + (int) ($deleteReferences['series'] ?? 0);
+        $deleteLoadAssessment = sr_admin_high_load_assessment([
+            'target_records' => $deleteTargetRecords,
+            'file_operations' => (int) ($deleteReferences['attachments'] ?? 0),
+            'table_count' => 8,
+            'long_transaction' => true,
+            'rollback_limited' => true,
+        ]);
+        $deleteConfirmText = is_array($deleteBoard) ? '삭제 ' . (string) ($deleteBoard['board_key'] ?? '') : '';
+        if (!is_array($deleteBoard)) {
+            $errors[] = sr_t('community::action.error.board_not_found');
+        } elseif (sr_post_string('delete_confirm_text', 80) !== $deleteConfirmText) {
+            $errors[] = '게시판 삭제 확인 문구가 일치하지 않습니다.';
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.board.delete_confirmation_failed',
+                'target_type' => 'community_board',
+                'target_id' => (string) $boardId,
+                'result' => 'failure',
+                'message' => 'Community board delete confirmation failed.',
+                'metadata' => [
+                    'board_key' => (string) ($deleteBoard['board_key'] ?? ''),
+                    'target_records' => $deleteTargetRecords,
+                    'load_grade' => (string) $deleteLoadAssessment['grade'],
+                    'confirmation_checked' => false,
+                ],
+            ]);
+        }
+        if ($errors !== []) {
+            sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+            sr_redirect(is_array($deleteBoard) ? '/admin/community/boards/edit?id=' . (string) $boardId : '/admin/community/boards');
+        }
         $deleteResult = sr_community_delete_board($pdo, $boardId);
         $errors = array_merge($errors, is_array($deleteResult['errors'] ?? null) ? $deleteResult['errors'] : []);
         $board = is_array($deleteResult['board'] ?? null) ? $deleteResult['board'] : null;
@@ -201,6 +240,10 @@ if (sr_request_method() === 'POST') {
                     'failed_attachment_files' => (int) ($deleteResult['failed_attachment_files'] ?? 0),
                     'failed_attachment_file_refs' => array_slice(array_map('strval', is_array($deleteResult['failed_attachment_file_refs'] ?? null) ? $deleteResult['failed_attachment_file_refs'] : []), 0, 20),
                     'deleted_series' => (int) ($deleteResult['deleted_series'] ?? 0),
+                    'target_records' => $deleteTargetRecords,
+                    'batch' => false,
+                    'load_grade' => (string) $deleteLoadAssessment['grade'],
+                    'confirmation_checked' => true,
                 ],
             ]);
             if ((int) ($deleteResult['failed_attachment_files'] ?? 0) > 0) {

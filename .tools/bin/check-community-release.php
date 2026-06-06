@@ -564,6 +564,18 @@ sr_community_release_file_contains('modules/community/actions/delete.php', [
     "'community.post.deleted_by_admin'",
     "'community.post.deleted_by_board_manager'",
 ], 'Community delete action policy');
+sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
+    'sr_community_can_delete_board($pdo, $boardId)',
+    'delete_confirm_text',
+    "'event_type' => 'community.board.delete_confirmation_failed'",
+    "'confirmation_checked' => true",
+    "'load_grade' => (string) \$deleteLoadAssessment['grade']",
+], 'Community board delete high-load confirmation policy');
+sr_community_release_file_contains('modules/community/actions/view.php', [
+    '$isBoardManagerOgRemove',
+    "'actor_type' => \$isAuthorOgRemove ? 'member' : (\$isAdminOgRemove ? 'admin' : 'community_board_manager')",
+    "'permission_source' => \$isAuthorOgRemove ? 'author' : (\$isAdminOgRemove ? 'admin' : 'board_manager')",
+], 'Community delegated OG removal audit policy');
 sr_community_release_file_contains('modules/community/helpers/posts.php', [
     "sr_admin_has_permission(\$pdo, \$accountId, '/admin/community/posts', 'delete')",
     "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'delete_post')",

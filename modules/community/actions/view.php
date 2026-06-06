@@ -58,9 +58,16 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'remove_o
     }
 
     sr_community_update_post_og_image($pdo, (int) $post['id'], null);
+    $isAuthorOgRemove = (int) ($post['author_account_id'] ?? 0) === (int) $account['id'];
+    $isAdminOgRemove = !$isAuthorOgRemove
+        && (sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit')
+            || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete'));
+    $isBoardManagerOgRemove = !$isAdminOgRemove
+        && !$isAuthorOgRemove
+        && sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), (int) $account['id'], 'remove_post_og_image');
     sr_audit_log($pdo, [
         'actor_account_id' => (int) $account['id'],
-        'actor_type' => sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit') || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete') ? 'admin' : 'member',
+        'actor_type' => $isAuthorOgRemove ? 'member' : ($isAdminOgRemove ? 'admin' : 'community_board_manager'),
         'event_type' => 'community.post.og_image_removed',
         'target_type' => 'community_post',
         'target_id' => (string) (int) $post['id'],
@@ -69,6 +76,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'remove_o
         'metadata' => [
             'board_key' => (string) ($post['board_key'] ?? ''),
             'removed_attachment_id' => (int) ($post['og_image_attachment_id'] ?? 0),
+            'permission_source' => $isAuthorOgRemove ? 'author' : ($isAdminOgRemove ? 'admin' : 'board_manager'),
         ],
     ]);
     $_SESSION['sr_community_post_notice'] = '게시글 OG 이미지를 제거했습니다.';

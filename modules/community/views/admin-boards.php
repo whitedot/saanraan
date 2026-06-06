@@ -846,6 +846,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <?php if ($communityBoardsPage === 'edit') { ?>
         <?php $boardDeleteCheck = sr_community_can_delete_board($pdo, (int) ($formBoard['id'] ?? 0)); ?>
+        <?php $boardDeleteReferences = is_array($boardDeleteCheck['references'] ?? null) ? $boardDeleteCheck['references'] : []; ?>
+        <?php $boardDeleteTargetRecords = (int) ($boardDeleteReferences['posts'] ?? 0) + (int) ($boardDeleteReferences['comments'] ?? 0) + (int) ($boardDeleteReferences['attachments'] ?? 0) + (int) ($boardDeleteReferences['series'] ?? 0); ?>
+        <?php $boardDeleteLoad = sr_admin_high_load_assessment([
+            'target_records' => $boardDeleteTargetRecords,
+            'file_operations' => (int) ($boardDeleteReferences['attachments'] ?? 0),
+            'table_count' => 8,
+            'long_transaction' => true,
+            'rollback_limited' => true,
+        ]); ?>
+        <?php $boardDeleteConfirmText = '삭제 ' . (string) ($formBoard['board_key'] ?? ''); ?>
         <section class="admin-card card">
             <h2>위험 작업</h2>
             <p class="admin-form-help">
@@ -856,11 +866,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 시리즈 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['series'] ?? 0)); ?>건,
                 외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardDeleteCheck['external_references'] ?? null) ? $boardDeleteCheck['external_references'] : []))); ?>건.
             </p>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-form-actions">
+            <dl class="admin-meta-list">
+                <dt><?php echo sr_e('부하 등급'); ?></dt>
+                <dd><?php echo sr_e((string) $boardDeleteLoad['label']); ?></dd>
+                <dt><?php echo sr_e('중단/실패 시 상태'); ?></dt>
+                <dd><?php echo sr_e((string) $boardDeleteLoad['failure_state']); ?></dd>
+                <dt><?php echo sr_e('권장 실행 시점'); ?></dt>
+                <dd><?php echo sr_e((string) $boardDeleteLoad['recommended_time']); ?></dd>
+            </dl>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-form ui-form-theme">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="delete_board">
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) ($formBoard['id'] ?? 0)); ?>">
-                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('이 게시판을 삭제할까요? 게시글, 댓글, 첨부파일, 시리즈 연결도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');">게시판 삭제</button>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_board_delete_confirm_text">삭제 확인 문구 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_board_delete_confirm_text" type="text" name="delete_confirm_text" maxlength="80" class="form-input" required>
+                        <p class="admin-form-help"><?php echo sr_e('삭제하려면 "' . $boardDeleteConfirmText . '"를 입력하세요.'); ?></p>
+                    </div>
+                </div>
+                <div class="admin-form-actions">
+                    <button type="submit" class="btn btn-outline-danger">게시판 삭제</button>
+                </div>
             </form>
         </section>
 
