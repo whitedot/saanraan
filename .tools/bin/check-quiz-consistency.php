@@ -146,6 +146,7 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_admin_quizzes',
         'sr_quiz_save_admin_quiz',
         'sr_quiz_soft_delete',
+        '저장할 퀴즈를 찾을 수 없습니다.',
         'question_uid[]',
         'reward_module',
         'content_source_ids',

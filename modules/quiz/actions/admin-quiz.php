@@ -29,7 +29,14 @@ if (sr_request_method() === 'POST') {
             sr_redirect($redirect);
         }
 
-        $savedId = sr_quiz_save_admin_quiz($pdo, $values, (int) ($account['id'] ?? 0));
+        try {
+            $savedId = sr_quiz_save_admin_quiz($pdo, $values, (int) ($account['id'] ?? 0));
+        } catch (RuntimeException $exception) {
+            if ((string) $exception->getMessage() !== 'Quiz to update was not found.') {
+                throw $exception;
+            }
+            sr_admin_redirect_with_result(sr_admin_action_result(['저장할 퀴즈를 찾을 수 없습니다.'], ''), '/admin/quiz');
+        }
         sr_audit_log($pdo, [
             'actor_account_id' => (int) ($account['id'] ?? 0),
             'actor_type' => 'admin',
