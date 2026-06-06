@@ -291,7 +291,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 <?php if ($memberGroupsPage === 'group_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-groups/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2><?php echo is_array($editGroup) ? sr_t('member::ui.edit.5784f889') : sr_t('member::ui.text.22129319'); ?></h2>
+            <h2><?php echo sr_e(is_array($editGroup) ? sr_t('member::ui.edit.5784f889') : sr_t('member::ui.text.22129319')); ?></h2>
             <?php $memberGroupFormFields(is_array($editGroup) ? $editGroup : null, 'member_admin_groups'); ?>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
@@ -1013,7 +1013,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 <?php } elseif ($memberGroupsPage === 'rule_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-rules/save')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2><?php echo is_array($editRule) ? sr_t('member::ui.edit.6e308f62') : sr_t('member::ui.text.eee300ae'); ?></h2>
+            <h2><?php echo sr_e(is_array($editRule) ? sr_t('member::ui.edit.6e308f62') : sr_t('member::ui.text.eee300ae')); ?></h2>
             <?php $memberRuleFormFields(is_array($editRule) ? $editRule : null, 'member_admin_groups_rule_form'); ?>
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">

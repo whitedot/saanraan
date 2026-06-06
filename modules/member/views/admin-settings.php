@@ -71,17 +71,7 @@ $memberSettingsHelp = [
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
