@@ -134,12 +134,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                 <?php foreach ($logs as $log) { ?>
                                     <?php $failureReason = trim((string) ($log['failure_reason'] ?? '')); ?>
                                     <tr>
-                                        <td><?php echo sr_e((string) $log['created_at']); ?></td>
+                                        <td><?php echo sr_asset_exchange_time_html((string) $log['created_at']); ?></td>
                                         <td><?php echo sr_e(sr_asset_exchange_asset_label($assets, (string) $log['from_module_key']) . ' -> ' . sr_asset_exchange_asset_label($assets, (string) $log['to_module_key'])); ?></td>
                                         <td class="sr-asset-exchange-number"><?php echo sr_e(number_format((int) $log['request_amount'])); ?></td>
                                         <td class="sr-asset-exchange-number"><?php echo sr_e(number_format((int) $log['deposit_amount'])); ?></td>
                                         <td class="sr-asset-exchange-number"><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
-                                        <td><span class="sr-asset-exchange-status sr-asset-exchange-status-<?php echo sr_e((string) $log['status']); ?> type-caption"><?php echo sr_e((string) $log['status']); ?></span></td>
+                                        <td><span class="sr-asset-exchange-status sr-asset-exchange-status-<?php echo sr_e((string) $log['status']); ?> type-caption"><?php echo sr_e(sr_asset_exchange_log_status_label((string) $log['status'])); ?></span></td>
                                         <td><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
                                     </tr>
                                 <?php } ?>

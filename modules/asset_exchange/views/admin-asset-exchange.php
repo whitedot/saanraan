@@ -238,7 +238,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <br><small>실행 불가</small>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><?php echo sr_e((string) $policy['updated_at']); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_asset_exchange_time_html((string) $policy['updated_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/admin/asset-exchange?edit=' . (int) $policy['id'])); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="환전 정책 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>

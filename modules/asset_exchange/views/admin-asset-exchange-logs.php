@@ -81,7 +81,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php foreach ($logs as $log) { ?>
                     <?php $failureReason = trim((string) ($log['failure_reason'] ?? '')); ?>
                     <tr>
-                        <td class="admin-table-nowrap"><?php echo sr_e((string) $log['created_at']); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_asset_exchange_time_html((string) $log['created_at']); ?></td>
                         <td>
                             <?php echo sr_e(sr_admin_member_display_name_preview($log)); ?><br>
                             <small><?php echo sr_e(sr_admin_member_email_display($log)); ?></small>
