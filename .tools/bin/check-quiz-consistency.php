@@ -132,8 +132,12 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_attempts',
         'sr_quiz_attempt_answers',
         'sr_quiz_reward_grants',
+        'SELECT 1 FROM sr_quiz_sets WHERE quiz_key = :quiz_key',
         'sr_quiz_valid_source_context',
+        'sr_quiz_source_context_is_accessible',
+        'sr_content_once_access_already_granted',
         'LIMIT 1 FOR UPDATE',
+        'Quiz to update was not found.',
         '$dedupeScope !== \'per_quiz\'',
         'reference_type\' => \'quiz_reward',
     ]);

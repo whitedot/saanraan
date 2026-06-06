@@ -69,7 +69,7 @@ function sr_quiz_key_exists(PDO $pdo, string $quizKey, int $excludeId = 0): bool
         return false;
     }
 
-    $sql = 'SELECT 1 FROM sr_quiz_sets WHERE quiz_key = :quiz_key AND deleted_at IS NULL';
+    $sql = 'SELECT 1 FROM sr_quiz_sets WHERE quiz_key = :quiz_key';
     $params = ['quiz_key' => $quizKey];
     if ($excludeId > 0) {
         $sql .= ' AND id <> :id';
@@ -232,7 +232,7 @@ function sr_quiz_valid_source_context(PDO $pdo, int $quizId, array $sourceContex
         'source_id' => $sourceId,
     ]);
 
-    if (!is_array($stmt->fetch())) {
+    if (!is_array($stmt->fetch()) || !sr_quiz_source_context_is_accessible($pdo, $sourceModule, $sourceType, $sourceId)) {
         return [
             'source_module' => null,
             'source_type' => null,
@@ -245,6 +245,36 @@ function sr_quiz_valid_source_context(PDO $pdo, int $quizId, array $sourceContex
         'source_type' => $sourceType,
         'source_id' => $sourceId,
     ];
+}
+
+function sr_quiz_source_context_is_accessible(PDO $pdo, string $sourceModule, string $sourceType, int $sourceId): bool
+{
+    if ($sourceModule !== 'content' || $sourceType !== 'content_item') {
+        return true;
+    }
+
+    if (!sr_module_enabled($pdo, 'content') || !is_file(SR_ROOT . '/modules/content/helpers.php')) {
+        return false;
+    }
+
+    require_once SR_ROOT . '/modules/content/helpers.php';
+    $page = sr_content_by_id($pdo, $sourceId);
+    if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
+        return false;
+    }
+
+    if (!sr_content_asset_access_required($page)) {
+        return true;
+    }
+
+    $account = function_exists('sr_member_current_account') ? sr_member_current_account($pdo) : null;
+    if (!is_array($account) || (int) ($account['id'] ?? 0) < 1) {
+        return false;
+    }
+
+    $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
+
+    return sr_content_once_access_already_granted($pdo, $assetModules, (int) $account['id'], $sourceId);
 }
 
 function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $accountId, array $selectedChoiceIds, array $assetOptions): array
@@ -875,6 +905,19 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
     $pdo->beginTransaction();
     try {
         if ($quizId > 0) {
+            $existingStmt = $pdo->prepare(
+                'SELECT id
+                 FROM sr_quiz_sets
+                 WHERE id = :id
+                   AND deleted_at IS NULL
+                 LIMIT 1
+                 FOR UPDATE'
+            );
+            $existingStmt->execute(['id' => $quizId]);
+            if (!is_array($existingStmt->fetch())) {
+                throw new RuntimeException('Quiz to update was not found.');
+            }
+
             $stmt = $pdo->prepare(
                 'UPDATE sr_quiz_sets
                  SET quiz_key = :quiz_key,
