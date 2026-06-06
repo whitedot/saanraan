@@ -141,7 +141,7 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
             <?php } ?>
             <?php foreach ($logs as $log) { ?>
                 <tr>
-                    <td><?php echo sr_e((string) $log['created_at']); ?></td>
+                    <td><?php echo sr_admin_time_html((string) $log['created_at']); ?></td>
                     <td>
                         <?php $actorAccountId = (int) ($log['actor_account_id'] ?? 0); ?>
                         <?php if ($actorAccountId > 0) { ?>
@@ -238,7 +238,7 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
                     <div class="admin-summary-stats">
                         <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['event_type']); ?></span>
                         <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['raw_event_type']); ?></span>
-                        <span class="admin-summary-meta"><?php echo sr_e((string) $auditMetadataModal['created_at']); ?></span>
+                        <span class="admin-summary-meta"><?php echo sr_admin_time_html((string) $auditMetadataModal['created_at']); ?></span>
                         <span class="admin-summary-meta">처리자 <?php echo sr_e((string) $auditMetadataModal['actor']); ?></span>
                         <span class="admin-summary-meta">대상 <?php echo sr_e((string) $auditMetadataModal['target']); ?></span>
                         <span class="admin-summary-meta">결과 <?php echo sr_e((string) $auditMetadataModal['result']); ?></span>

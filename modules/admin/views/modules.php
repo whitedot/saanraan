@@ -41,7 +41,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <p><?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></p>
                     </div>
                     <span class="admin-status <?php echo $canInstall ? 'is-normal' : 'is-blocked'; ?>">
-                        <?php echo $canInstall ? sr_t('admin::ui.text.24a5a830') : sr_t('admin::ui.text.944c1818'); ?>
+                        <?php echo sr_e($canInstall ? sr_t('admin::ui.text.24a5a830') : sr_t('admin::ui.text.944c1818')); ?>
                     </span>
                 </div>
                 <div class="admin-module-card-body">
@@ -349,7 +349,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.06834fc9')); ?></dt>
-                            <dd><?php echo !empty($module['is_bundled']) ? sr_t('admin::ui.text.2eb73fba') : sr_t('admin::ui.text.4c490f1c'); ?></dd>
+                            <dd><?php echo sr_e(!empty($module['is_bundled']) ? sr_t('admin::ui.text.2eb73fba') : sr_t('admin::ui.text.4c490f1c')); ?></dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.dd537afa')); ?></dt>
                             <dd><?php echo sr_e((string) ($module['installed_at'] ?? '')); ?></dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.8c3f651d')); ?></dt>

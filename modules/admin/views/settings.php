@@ -239,7 +239,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <option value="<?php echo sr_e($candidatePath); ?>"<?php echo $candidateSelected ? ' selected' : ''; ?><?php echo empty($candidate['available']) && !$candidateSelected ? ' disabled' : ''; ?>>
                             <?php echo sr_e((string) ($candidate['label'] ?? $candidatePath)); ?>
                             <?php echo $candidatePath !== '/' ? ' - ' . sr_e($candidatePath) : ''; ?>
-                            <?php echo empty($candidate['available']) ? sr_t('admin::ui.active.6e2fcb45') : ''; ?>
+                            <?php echo empty($candidate['available']) ? sr_e(sr_t('admin::ui.active.6e2fcb45')) : ''; ?>
                         </option>
                     <?php } ?>
                 </select>

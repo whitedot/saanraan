@@ -103,7 +103,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td>
                             <?php echo ((int) ($update['statements'] ?? 0) > 0)
                                 ? sr_e((string) $update['statements'])
-                                : sr_t('admin::ui.text.03f022d3'); ?>
+                                : sr_e(sr_t('admin::ui.text.03f022d3')); ?>
                         </td>
                         <td><?php echo sr_e(str_replace(SR_ROOT . '/', '', (string) $update['path'])); ?></td>
                         <td><code><?php echo sr_e(substr((string) ($update['checksum'] ?? ''), 0, 16)); ?></code></td>
