@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}content_author_applications (
     KEY idx_sr_content_author_applications_status (status, updated_at)
 );
 
+ALTER TABLE {{SR_TABLE_PREFIX}}content_author_applications
+    MODIFY account_id BIGINT UNSIGNED NULL;
+
 INSERT IGNORE INTO {{SR_TABLE_PREFIX}}admin_account_permissions (account_id, menu_path, action_key, created_at)
 SELECT account_id,
        '/admin/content/author-applications',
