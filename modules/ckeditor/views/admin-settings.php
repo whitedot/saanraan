@@ -16,7 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="ckeditor_admin_asset_mode">에셋 로딩 방식 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <select id="ckeditor_admin_asset_mode" name="asset_mode" class="form-select">
+                <select id="ckeditor_admin_asset_mode" name="asset_mode" class="form-select" required>
                     <?php foreach ($assetModeOptions as $assetMode => $assetModeLabel) { ?>
                         <option value="<?php echo sr_e((string) $assetMode); ?>"<?php echo (string) $settings['asset_mode'] === (string) $assetMode ? ' selected' : ''; ?>><?php echo sr_e((string) $assetModeLabel); ?></option>
                     <?php } ?>
@@ -44,7 +44,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="ckeditor_admin_toolbar_preset">툴바 구성 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <select id="ckeditor_admin_toolbar_preset" name="toolbar_preset" class="form-select">
+                <select id="ckeditor_admin_toolbar_preset" name="toolbar_preset" class="form-select" required>
                     <?php foreach ($toolbarPresets as $presetKey => $preset) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) $settings['toolbar_preset'] === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($preset['label'] ?? $presetKey)); ?></option>
                     <?php } ?>

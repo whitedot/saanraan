@@ -27,10 +27,11 @@ if (sr_request_method() === 'POST') {
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }
 
+    $postedLicenseKey = sr_post_string_without_truncation('license_key', 255);
     $postedSettings = [
         'asset_mode' => sr_post_string('asset_mode', 30),
         'cdn_version' => sr_post_string('cdn_version', 20),
-        'license_key' => sr_post_string_without_truncation('license_key', 255),
+        'license_key' => $postedLicenseKey ?? '',
         'toolbar_preset' => sr_post_string('toolbar_preset', 60),
     ];
 
@@ -39,6 +40,11 @@ if (sr_request_method() === 'POST') {
     }
     if (sr_ckeditor_clean_version((string) $postedSettings['cdn_version']) !== (string) $postedSettings['cdn_version']) {
         $errors[] = 'CDN 버전은 48.1.0 형식으로 입력해 주세요.';
+    }
+    if ($postedLicenseKey === null) {
+        $errors[] = '라이선스 키는 255자 이내로 입력해 주세요.';
+    } elseif (trim((string) $postedLicenseKey) === '') {
+        $errors[] = '라이선스 키를 입력해 주세요.';
     }
     if (!isset($toolbarPresets[$postedSettings['toolbar_preset']])) {
         $errors[] = '툴바 구성이 올바르지 않습니다.';
