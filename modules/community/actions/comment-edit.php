@@ -38,7 +38,7 @@ $commentMentionNotificationResult = sr_community_create_comment_mention_notifica
     $commentId,
     (string) $values['body_text'],
     (int) $account['id'],
-    [(int) $comment['author_account_id']]
+    [(int) $comment['author_account_id'], (int) $post['author_account_id']]
 );
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],

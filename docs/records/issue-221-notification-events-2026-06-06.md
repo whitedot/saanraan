@@ -26,7 +26,7 @@
 
 ## 1차 구현 결정
 
-- `content.comment.created`, `content.comment.mention`, `community.comment.created`, `community.comment.mention` 기본 템플릿을 알림 모듈 설치 SQL과 `2026.06.002` 업데이트 SQL에 추가한다.
+- `module_key=content/community`, `event_key=comment.created/comment.mention` 기본 템플릿을 알림 모듈 설치 SQL과 `2026.06.002` 업데이트 SQL에 추가한다.
 - 콘텐츠/커뮤니티 댓글 알림 생성은 `notification-events.php`의 `create_account_event_function` 계약으로 전환한다.
 - 자기 알림은 제외한다. 멘션 알림은 댓글 작성자와 글/콘텐츠 작성자를 대상에서 제외한다.
 - 댓글 작성자 알림과 멘션 알림은 알림 모듈 비활성화 또는 템플릿 누락 시 no-op으로 처리하고 댓글 저장을 실패시키지 않는다.
