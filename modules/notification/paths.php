@@ -12,4 +12,5 @@ return [
     'POST /admin/notification-deliveries/status' => 'actions/admin-notification-delivery-status.php',
     'GET /account/notifications' => 'actions/account-notifications.php',
     'POST /account/notifications' => 'actions/account-notifications.php',
+    'GET /account/notifications/read' => 'actions/account-notification-read.php',
 ];

@@ -55,46 +55,7 @@ if (sr_request_method() === 'POST') {
 
         $notice = '모든 알림을 읽음 처리했습니다.';
     } elseif ($notificationId > 0) {
-        $now = sr_now();
-        $stmt = $pdo->prepare(
-            "SELECT id, audience
-             FROM sr_notifications
-             WHERE id = :id
-               AND (account_id = :account_id OR audience = 'all')
-             LIMIT 1"
-        );
-        $stmt->execute([
-            'id' => $notificationId,
-            'account_id' => (int) $account['id'],
-        ]);
-        $notification = $stmt->fetch();
-
-        if (is_array($notification)) {
-            if ((string) $notification['audience'] === 'all') {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO sr_notification_reads (notification_id, account_id, read_at)
-                     VALUES (:notification_id, :account_id, :read_at)
-                     ON DUPLICATE KEY UPDATE read_at = VALUES(read_at)'
-                );
-                $stmt->execute([
-                    'notification_id' => $notificationId,
-                    'account_id' => (int) $account['id'],
-                    'read_at' => $now,
-                ]);
-            } else {
-                $stmt = $pdo->prepare(
-                    'UPDATE sr_notifications
-                     SET read_at = :read_at, updated_at = :updated_at
-                     WHERE id = :id AND account_id = :account_id'
-                );
-                $stmt->execute([
-                    'read_at' => $now,
-                    'updated_at' => $now,
-                    'id' => $notificationId,
-                    'account_id' => (int) $account['id'],
-                ]);
-            }
-
+        if (sr_notification_mark_read($pdo, $notificationId, (int) $account['id'])) {
             $notice = '알림을 읽음 처리했습니다.';
         }
     }

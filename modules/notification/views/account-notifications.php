@@ -64,7 +64,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 </thead>
                 <tbody>
                     <?php foreach ($notifications as $notification) { ?>
-                        <?php $notificationLinkAttributes = sr_notification_link_attributes((string) ($notification['link_url'] ?? '')); ?>
+                        <?php $notificationLinkAttributes = sr_notification_link_attributes((string) ($notification['link_url'] ?? ''), (int) ($notification['id'] ?? 0), true); ?>
                         <tr>
                             <td>
                                 <?php if ($notificationLinkAttributes !== '') { ?>

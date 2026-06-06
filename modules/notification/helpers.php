@@ -34,20 +34,90 @@ function sr_notification_clean_link_url(string $value): string
     return '';
 }
 
-function sr_notification_link_attributes(string $url): string
+function sr_notification_read_redirect_url(int $notificationId, string $url = ''): string
+{
+    if ($notificationId <= 0) {
+        return sr_url('/account/notifications');
+    }
+
+    $url = sr_notification_clean_link_url($url);
+    $query = 'id=' . rawurlencode((string) $notificationId);
+    if ($url !== '') {
+        $query .= '&next=' . rawurlencode($url);
+    }
+
+    return sr_url('/account/notifications/read?' . $query);
+}
+
+function sr_notification_link_attributes(string $url, int $notificationId = 0, bool $markRead = false): string
 {
     $url = sr_notification_clean_link_url($url);
     if ($url === '') {
         return '';
     }
 
-    $href = sr_is_http_url($url) ? $url : sr_url($url);
+    $href = $markRead && $notificationId > 0
+        ? sr_notification_read_redirect_url($notificationId, $url)
+        : (sr_is_http_url($url) ? $url : sr_url($url));
     $attributes = ' href="' . sr_e($href) . '"';
-    if (sr_is_http_url($url)) {
+    if (!$markRead && sr_is_http_url($url)) {
         $attributes .= ' target="_blank" rel="noopener noreferrer"';
     }
 
     return $attributes;
+}
+
+function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId): bool
+{
+    if ($notificationId <= 0 || $accountId <= 0) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, audience
+         FROM sr_notifications
+         WHERE id = :id
+           AND (account_id = :account_id OR audience = 'all')
+         LIMIT 1"
+    );
+    $stmt->execute([
+        'id' => $notificationId,
+        'account_id' => $accountId,
+    ]);
+    $notification = $stmt->fetch();
+    if (!is_array($notification)) {
+        return false;
+    }
+
+    $now = sr_now();
+    if ((string) $notification['audience'] === 'all') {
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_notification_reads (notification_id, account_id, read_at)
+             VALUES (:notification_id, :account_id, :read_at)
+             ON DUPLICATE KEY UPDATE read_at = VALUES(read_at)'
+        );
+        $stmt->execute([
+            'notification_id' => $notificationId,
+            'account_id' => $accountId,
+            'read_at' => $now,
+        ]);
+
+        return true;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_notifications
+         SET read_at = :read_at, updated_at = :updated_at
+         WHERE id = :id AND account_id = :account_id'
+    );
+    $stmt->execute([
+        'read_at' => $now,
+        'updated_at' => $now,
+        'id' => $notificationId,
+        'account_id' => $accountId,
+    ]);
+
+    return true;
 }
 
 function sr_notification_public_header_summary(PDO $pdo, int $accountId, int $limit = 5): array
