@@ -20,6 +20,8 @@ if (sr_request_method() === 'POST') {
     $note = sr_content_clean_text(sr_post_string('note', 2000), 2000);
     if ($targetAccountId < 1) {
         $errors[] = '회원 ID를 입력하세요.';
+    } elseif (sr_member_find_by_id($pdo, $targetAccountId) === null) {
+        $errors[] = '회원을 찾을 수 없습니다.';
     }
     if ($errors === []) {
         $now = sr_now();
