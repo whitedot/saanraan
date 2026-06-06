@@ -816,7 +816,8 @@ if (
     || strpos($communityMessageWriteView, 'name="recipient_account_hash"') === false
     || strpos($communityMessageViewView, "'/community/message/write?to_account=' . (string) \$replyAccountId") !== false
     || strpos($communityMessageViewView, 'rawurlencode($replyAccountHash)') === false
-    || strpos($communityCommentAction, 'sr_community_create_account_notification(') === false
+    || strpos($communityCommentAction, 'sr_community_create_account_event_notification(') === false
+    || strpos($communityCommentAction, "'comment.created'") === false
     || strpos($communityCommentAction, "(int) \$post['author_account_id'] !== (int) \$account['id']") === false
     || strpos($communityReportAction, 'sr_community_create_admin_report_notifications(') === false
 ) {

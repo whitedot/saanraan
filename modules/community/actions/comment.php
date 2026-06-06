@@ -89,14 +89,17 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         sr_community_member_nickname($pdo, (int) $account['id']),
         sr_member_settings($pdo)
     );
-    $postAuthorNotificationCreated = sr_community_create_account_notification(
+    $postAuthorNotificationCreated = sr_community_create_account_event_notification(
         $pdo,
         (int) $post['author_account_id'],
-        sr_t('community::notification.comment.title'),
-        sr_t('community::notification.comment.body', [
-            'account' => $commentAuthorLabel,
-        ]),
-        '/community/post?id=' . (string) $postId . '#comments',
+        'comment.created',
+        [
+            'post_id' => $postId,
+            'comment_id' => $commentId,
+            'member_name' => $commentAuthorLabel,
+            'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+            'created_at' => sr_now(),
+        ],
         (int) $account['id']
     );
 }

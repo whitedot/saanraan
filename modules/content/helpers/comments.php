@@ -366,6 +366,11 @@ function sr_content_notification_create_function(PDO $pdo): string
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_function');
 }
 
+function sr_content_notification_event_function(PDO $pdo): string
+{
+    return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
+}
+
 function sr_content_create_account_notification(PDO $pdo, int $accountId, string $title, string $bodyText, string $linkUrl, ?int $createdByAccountId = null): bool
 {
     $createNotificationFunction = sr_content_notification_create_function($pdo);
@@ -386,6 +391,33 @@ function sr_content_create_account_notification(PDO $pdo, int $accountId, string
         return true;
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'content_notification_create');
+    }
+
+    return false;
+}
+
+function sr_content_create_account_event_notification(
+    PDO $pdo,
+    int $accountId,
+    string $eventKey,
+    array $metadata,
+    ?int $createdByAccountId = null
+): bool {
+    $createAccountEventFunction = sr_content_notification_event_function($pdo);
+    if ($accountId < 1 || $createAccountEventFunction === '') {
+        return false;
+    }
+
+    try {
+        return $createAccountEventFunction($pdo, [
+            'account_id' => $accountId,
+            'module_key' => 'content',
+            'event_key' => $eventKey,
+            'created_by_account_id' => $createdByAccountId,
+            'metadata' => $metadata,
+        ]) !== null;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'content_notification_event_create');
     }
 
     return false;
@@ -429,8 +461,16 @@ function sr_content_create_comment_notifications(PDO $pdo, array $page, int $com
     $contentId = (int) ($page['id'] ?? 0);
     $link = sr_content_path((string) ($page['slug'] ?? '')) . '#content-comments';
     $authorAccountId = (int) ($page['created_by'] ?? 0);
+    $memberName = sr_member_public_name_for_account_id($pdo, $createdByAccountId, '회원');
+    $metadata = [
+        'content_id' => $contentId,
+        'comment_id' => $commentId,
+        'member_name' => $memberName,
+        'link_url' => $link,
+        'created_at' => sr_now(),
+    ];
     if ($authorAccountId > 0 && $authorAccountId !== $createdByAccountId) {
-        $result['content_author_notification_created'] = sr_content_create_account_notification($pdo, $authorAccountId, '새 콘텐츠 댓글이 등록되었습니다.', '회원님의 콘텐츠에 새 댓글이 등록되었습니다.', $link, $createdByAccountId);
+        $result['content_author_notification_created'] = sr_content_create_account_event_notification($pdo, $authorAccountId, 'comment.created', $metadata, $createdByAccountId);
     }
 
     $mentionedAccountIds = sr_content_mentioned_account_ids($pdo, $bodyText, [$createdByAccountId, $authorAccountId]);
@@ -440,7 +480,7 @@ function sr_content_create_comment_notifications(PDO $pdo, array $page, int $com
         $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
     }
     foreach ($mentionedAccountIds as $accountId) {
-        if (sr_content_create_account_notification($pdo, $accountId, '콘텐츠 댓글 멘션 알림', '콘텐츠 댓글에서 회원님을 언급했습니다.', $link, $createdByAccountId)) {
+        if (sr_content_create_account_event_notification($pdo, $accountId, 'comment.mention', $metadata, $createdByAccountId)) {
             $result['mention_notification_count']++;
         }
     }

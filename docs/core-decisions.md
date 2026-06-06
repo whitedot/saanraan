@@ -416,7 +416,7 @@ core + member + admin + privacy
 
 계약 파일은 모든 모듈에 전부 필요한 필수 파일이 아닙니다. 모듈이 URL을 노출하면 `paths.php`, 관리자 메뉴를 노출하면 `admin-menu.php`, 출력 슬롯을 렌더링하면 `output-slots.php`, 관리자 대시보드 요약을 제공하면 `dashboard.php`처럼 기능별로 필요합니다. `paths.php`는 기본적으로 정확한 method/path를 선언하고, `/content/*`처럼 끝에 붙은 좁은 wildcard prefix만 허용합니다. wildcard는 content 모듈처럼 자기 prefix 아래의 slug 화면을 소유하는 경우에 쓰며, 루트 catch-all permalink나 숨은 dispatcher 용도로 쓰지 않습니다. 계약 파일이 실제로 존재하면 `module.php`의 `contracts.provides`에 반드시 선언해야 하며, `contracts.provides`에 선언한 파일은 실제 모듈 폴더에 있어야 합니다. 다른 모듈이 `requires.contracts`로 특정 계약 파일을 요구할 때도 대상 모듈의 파일 존재와 `contracts.provides` 선언을 함께 확인합니다.
 
-선택 모듈의 런타임 연동도 직접 helper 파일 경로에만 기대지 않고 좁은 계약 파일을 우선합니다. 예를 들어 포인트, 적립금, 예치금, 쿠폰, 콘텐츠, 커뮤니티는 알림 저장 정책을 소유하지 않고, 알림 모듈이 활성화되어 있고 `notification-events.php` 계약을 제공할 때만 계정 알림 생성 함수를 호출합니다. 알림 템플릿, 채널, delivery queue는 계속 `notification` 모듈 책임입니다.
+선택 모듈의 런타임 연동도 직접 helper 파일 경로에만 기대지 않고 좁은 계약 파일을 우선합니다. 예를 들어 포인트, 적립금, 예치금, 쿠폰, 콘텐츠, 커뮤니티는 알림 저장 정책을 소유하지 않고, 알림 모듈이 활성화되어 있고 `notification-events.php` 계약을 제공할 때만 계정 알림 생성 함수를 호출합니다. 반복 가능한 도메인 이벤트는 `sr_notification_event_templates`의 DB 템플릿을 우선 사용하며, 알림 템플릿, 채널, delivery queue는 계속 `notification` 모듈 책임입니다.
 
 ## 10. 로그인 식별자는 원문보다 hash 조회를 우선한다
 
@@ -567,7 +567,7 @@ module -> point -> slot -> subject
 
 textarea 강화 에디터 후보도 core 고정 목록으로 늘리지 않는다. core는 기본 `textarea`만 알고, CKEditor 같은 플러그인은 `editor-options.php` 계약으로 key, 표시명, 에셋 렌더링 함수를 제공한다. 콘텐츠/커뮤니티/관리자 설정 화면은 core editor helper를 통해 활성 플러그인의 계약만 선택지와 렌더링에 사용한다.
 
-포인트/적립금/예치금 원장 거래와 쿠폰·이용권 지급/사용/상태 변경/수동 환불은 알림 모듈이 활성화되어 있으면 `sr_notification_event_templates`의 DB 템플릿을 통해 회원 대상 사이트 알림을 만듭니다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고, 자산 처리 자체를 실패시키지 않습니다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다는 정책을 유지합니다.
+포인트/적립금/예치금 원장 거래, 쿠폰·이용권 지급/사용/상태 변경/수동 환불, 콘텐츠/커뮤니티 댓글 작성자 알림과 멘션 알림은 알림 모듈이 활성화되어 있으면 `sr_notification_event_templates`의 DB 템플릿을 통해 회원 대상 사이트 알림을 만듭니다. 알림 모듈이 비활성화되어 있거나 설치되어 있지 않으면 no-op으로 처리하고, 자산 처리나 댓글 저장 자체를 실패시키지 않습니다. 외부 채널은 템플릿의 `channels_json`에 명시된 경우에만 delivery queue를 만든다는 정책을 유지합니다. 쪽지, 신고 관리자 알림, 닉네임 강제 초기화 알림은 아직 직접 생성 흐름을 유지하며 후속 템플릿화 대상으로 둡니다.
 
 관리자 수동 자산 조정은 포인트/적립금/예치금 모두 회원 그룹별 차등 정책을 두지 않고, 관리자 권한 확인과 원장/감사 로그 기록을 기준선으로 삼습니다. 관리자가 입력한 금액은 거래 유형별 부호 검증과 잔액 검증을 거친 뒤 그대로 원장에 저장하며, 회원 그룹에 따른 자동 증감이나 면제는 적용하지 않습니다. 콘텐츠와 커뮤니티처럼 도메인 정책이 필요한 자산 처리는 각 도메인 모듈의 회원 그룹별 자산 정책으로 분리해 다룹니다.
 

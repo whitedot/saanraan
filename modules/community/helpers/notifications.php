@@ -12,6 +12,11 @@ function sr_community_notification_create_function(PDO $pdo): string
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_function');
 }
 
+function sr_community_notification_event_function(PDO $pdo): string
+{
+    return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
+}
+
 function sr_community_create_account_notification(
     PDO $pdo,
     int $accountId,
@@ -38,6 +43,33 @@ function sr_community_create_account_notification(
         return true;
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'community_notification_create');
+    }
+
+    return false;
+}
+
+function sr_community_create_account_event_notification(
+    PDO $pdo,
+    int $accountId,
+    string $eventKey,
+    array $metadata,
+    ?int $createdByAccountId = null
+): bool {
+    $createAccountEventFunction = sr_community_notification_event_function($pdo);
+    if ($accountId < 1 || $createAccountEventFunction === '') {
+        return false;
+    }
+
+    try {
+        return $createAccountEventFunction($pdo, [
+            'account_id' => $accountId,
+            'module_key' => 'community',
+            'event_key' => $eventKey,
+            'created_by_account_id' => $createdByAccountId,
+            'metadata' => $metadata,
+        ]) !== null;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'community_notification_event_create');
     }
 
     return false;
@@ -167,12 +199,17 @@ function sr_community_create_comment_mention_notifications(
         $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
     }
     foreach ($mentionedAccountIds as $accountId) {
-        if (sr_community_create_account_notification(
+        if (sr_community_create_account_event_notification(
             $pdo,
             $accountId,
-            sr_t('community::notification.comment_mention.title'),
-            sr_t('community::notification.comment_mention.body'),
-            '/community/post?id=' . (string) $postId . '#comments',
+            'comment.mention',
+            [
+                'post_id' => $postId,
+                'comment_id' => $commentId,
+                'member_name' => sr_member_public_name_for_account_id($pdo, $createdByAccountId, sr_t('community::report.account.member')),
+                'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+                'created_at' => sr_now(),
+            ],
             $createdByAccountId
         )) {
             $result['mention_notification_count']++;

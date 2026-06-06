@@ -586,7 +586,8 @@ sr_community_release_file_contains('modules/community/actions/comment.php', [
     "sr_community_asset_event_config(\$pdo, \$board, \$settings, 'comment_charge', 'every_action')",
     'sr_community_record_comment_rate_limit($pdo, (int) $account[\'id\'], $settings)',
     "'event_type' => 'community.comment.created'",
-    'sr_community_create_account_notification(',
+    'sr_community_create_account_event_notification(',
+    "'comment.created'",
 ], 'Community comment action policy');
 sr_community_release_file_contains('modules/community/actions/comment-edit.php', [
     'sr_community_account_can_edit_comment($comment, $account)',
@@ -609,6 +610,7 @@ sr_community_release_file_contains('modules/community/actions/report.php', [
 
 sr_community_release_file_contains('modules/community/helpers/notifications.php', [
     "sr_module_contract_function(\$pdo, 'notification', 'notification-events.php', 'create_function')",
+    "sr_module_contract_function(\$pdo, 'notification', 'notification-events.php', 'create_account_event_function')",
     'catch (Throwable $exception)',
     'function sr_community_create_admin_report_notifications',
     "p.menu_path = '/admin/community/reports'",
@@ -628,7 +630,8 @@ sr_community_release_file_contains('modules/community/views/message-view.php', [
     'rawurlencode($replyAccountHash)',
 ], 'Community message reply link');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
-    'sr_community_create_account_notification(',
+    'sr_community_create_account_event_notification(',
+    "'comment.created'",
     "(int) \$post['author_account_id'] !== (int) \$account['id']",
 ], 'Community comment notification policy');
 sr_community_release_file_contains('modules/community/actions/report.php', [
