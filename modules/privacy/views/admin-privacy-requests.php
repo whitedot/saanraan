@@ -124,7 +124,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($requestStatus, 'privacy_request_status')); ?></span></td>
                     <td><?php echo sr_e(sr_admin_privacy_request_requester_display($request)); ?></td>
                     <td><?php echo sr_e(sr_admin_privacy_request_list_preview($request['request_message'] ?? null)); ?></td>
-                    <td><?php echo sr_e((string) ($request['handled_at'] ?? '')); ?></td>
+                    <td><?php echo sr_privacy_time_html((string) ($request['handled_at'] ?? '')); ?></td>
                     <td class="admin-table-actions-cell">
                         <div class="admin-row-actions privacy-request-manage">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests/export')); ?>">
@@ -141,7 +141,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="request_id" value="<?php echo sr_e($requestId); ?>">
                                     <label for="privacy_status_<?php echo sr_e($requestId); ?>">
                                         <span><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
-                                        <select name="status" id="privacy_status_<?php echo sr_e($requestId); ?>" class="form-select" data-privacy-status>
+                                        <select name="status" id="privacy_status_<?php echo sr_e($requestId); ?>" class="form-select" required data-privacy-status>
                                             <?php foreach ($allowedStatuses as $status) { ?>
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
                                                     <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>

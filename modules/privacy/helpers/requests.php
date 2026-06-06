@@ -12,6 +12,66 @@ function sr_privacy_request_types(): array
     return ['access', 'rectification', 'erasure', 'restriction', 'portability', 'objection', 'withdrawal'];
 }
 
+function sr_privacy_request_type_label(string $requestType): string
+{
+    $labels = [
+        'access' => '열람',
+        'rectification' => '정정',
+        'erasure' => '삭제',
+        'restriction' => '처리 제한',
+        'portability' => '이동권',
+        'objection' => '처리 반대',
+        'withdrawal' => '동의 철회',
+    ];
+
+    return $labels[$requestType] ?? $requestType;
+}
+
+function sr_privacy_request_status_label(string $status): string
+{
+    $labels = [
+        'requested' => '요청',
+        'reviewing' => '검토 중',
+        'completed' => '완료',
+        'rejected' => '거절',
+        'cancelled' => '취소',
+    ];
+
+    return $labels[$status] ?? $status;
+}
+
+function sr_privacy_time_html(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $diff = time() - $timestamp;
+    if ($diff < 0) {
+        $relative = date('Y-m-d H:i', $timestamp);
+    } elseif ($diff < 60) {
+        $relative = '방금 전';
+    } elseif ($diff < 3600) {
+        $relative = floor($diff / 60) . '분 전';
+    } elseif ($diff < 86400) {
+        $relative = floor($diff / 3600) . '시간 전';
+    } elseif ($diff < 2592000) {
+        $relative = floor($diff / 86400) . '일 전';
+    } elseif ($diff < 31536000) {
+        $relative = floor($diff / 2592000) . '개월 전';
+    } else {
+        $relative = floor($diff / 31536000) . '년 전';
+    }
+
+    return '<time datetime="' . sr_e($value) . '" title="' . sr_e($value) . '">' . sr_e($relative) . '</time>';
+}
+
 function sr_admin_privacy_request_terminal_statuses(): array
 {
     return ['completed', 'rejected', 'cancelled'];
