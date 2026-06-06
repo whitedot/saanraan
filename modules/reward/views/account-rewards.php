@@ -96,7 +96,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <tbody>
                         <?php foreach ($withdrawalRequests as $request) { ?>
                             <tr>
-                                <td><?php echo sr_e((string) $request['requested_at']); ?></td>
+                                <td><?php echo sr_reward_time_html((string) $request['requested_at']); ?></td>
                                 <td><?php echo sr_e(number_format((int) $request['amount'])); ?>원</td>
                                 <td><?php echo sr_e((string) $request['bank_name']); ?> <?php echo sr_e((string) $request['bank_account_number']); ?> <?php echo sr_e((string) $request['bank_account_holder']); ?></td>
                                 <td><?php echo sr_e(sr_reward_request_status_label((string) $request['status'])); ?></td>
@@ -137,7 +137,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <tbody>
                         <?php foreach ($transactions as $transaction) { ?>
                             <tr>
-                                <td><?php echo sr_e((string) $transaction['created_at']); ?></td>
+                                <td><?php echo sr_reward_time_html((string) $transaction['created_at']); ?></td>
                                 <td><?php echo sr_e(sr_reward_transaction_type_label((string) $transaction['transaction_type'])); ?></td>
                                 <td><?php echo sr_e(number_format((int) $transaction['amount'])); ?></td>
                                 <td><?php echo sr_e(number_format((int) $transaction['balance_after'])); ?></td>
