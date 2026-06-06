@@ -28,6 +28,7 @@
 | [핵심 설계 결정](core-decisions.md) | 최상위 설계 결정 |
 | [모듈 작성 가이드](module-guide.md) | 모듈 계약과 작성 기준 |
 | [모듈 배치와 업데이트 기준](module-update-policy.md) | 모듈 설치/업데이트 기준 |
+| [커스터마이징 가이드](customization-guide.md) | 배포판 모듈과 사이트별 확장 경계 |
 | [DB 접근 정책](database-access-policy.md) | SQL 작성과 DB 접근 정책 |
 | [산란 보안 모델](security-model.md) | 보안 책임 경계 |
 | [보안 체크리스트](security-checklist.md) | 변경 검토 체크리스트 |
