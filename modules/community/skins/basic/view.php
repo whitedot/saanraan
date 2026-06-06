@@ -252,6 +252,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 
             <div class="community-comments-panel-header">
                 <h2><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></h2>
+                <?php if ($canComment) { ?>
+                    <a href="#community-comment-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></a>
+                <?php } ?>
             </div>
             <?php if ($commentNotice !== '') { ?>
                 <p><?php echo sr_e($commentNotice); ?></p>
@@ -263,34 +266,69 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <ul>
                     <?php foreach ($comments as $comment) { ?>
                         <li>
+                            <?php
+                            $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null);
+                            $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
+                            $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post);
+                            $communityCommentCanHide = sr_community_account_can_hide_comment($pdo, $comment, $post, is_array($account ?? null) ? $account : null);
+                            $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
+                            $communityCommentCreatedAt = (string) ($comment['created_at'] ?? '');
+                            ?>
                             <p>
                                 <?php echo sr_e(sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
-                                /
-                                <?php echo sr_e((string) $comment['created_at']); ?>
+                                <?php if ($communityCommentCreatedAt !== '') { ?>
+                                    /
+                                    <time datetime="<?php echo sr_e($communityCommentCreatedAt); ?>" title="<?php echo sr_e($communityCommentCreatedAt); ?>"><?php echo sr_e(sr_community_relative_time_label($communityCommentCreatedAt)); ?></time>
+                                <?php } ?>
+                                <?php if ((int) ($comment['is_secret'] ?? 0) === 1) { ?>
+                                    / <?php echo sr_e('비밀'); ?>
+                                <?php } ?>
                             </p>
-                            <p><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></p>
+                            <?php if ($communityCommentCanViewBody) { ?>
+                                <p><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></p>
+                            <?php } else { ?>
+                                <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
+                            <?php } ?>
                             <?php if (is_array($account)) { ?>
-                                <?php if (sr_community_account_can_edit_comment($comment, $account)) { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                        <p>
-                                            <label for="modules_community_view_body_text">
+                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanHide) { ?>
+                                    <div class="community-comment-actions">
+                                        <?php if ($communityCommentCanEdit) { ?>
+                                            <details>
+                                                <summary class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></summary>
+                                                <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
+                                                    <?php echo sr_csrf_field(); ?>
+                                                    <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                    <p>
+                                                        <label for="<?php echo sr_e($communityCommentEditId); ?>">
                     <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                <textarea id="modules_community_view_body_text" name="body_text" rows="3" cols="60" required><?php echo sr_e((string) $comment['body_text']); ?></textarea>
-                                            </label>
-                                        </p>
-                                        <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
-                                    </form>
+                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required><?php echo sr_e((string) $comment['body_text']); ?></textarea>
+                                                        </label>
+                                                    </p>
+                                                    <label class="community-comment-secret-toggle">
+                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                        <span><?php echo sr_e('비밀 댓글'); ?></span>
+                                                    </label>
+                                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                                </form>
+                                            </details>
+                                        <?php } ?>
+                                        <?php if ($communityCommentCanDelete) { ?>
+                                            <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
+                                                <?php echo sr_csrf_field(); ?>
+                                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                            </form>
+                                        <?php } ?>
+                                        <?php if ($communityCommentCanHide) { ?>
+                                            <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
+                                                <?php echo sr_csrf_field(); ?>
+                                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                <button type="submit"><?php echo sr_e('숨기기'); ?></button>
+                                            </form>
+                                        <?php } ?>
+                                    </div>
                                 <?php } ?>
-                                <?php if (sr_community_account_can_delete_comment($comment, $account)) { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                        <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
-                                    </form>
-                                <?php } ?>
-                                <?php if ((int) $comment['author_account_id'] !== (int) $account['id']) { ?>
+                                <?php if ($communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="target_type" value="comment">
@@ -329,7 +367,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php } ?>
 
             <?php if ($canComment) { ?>
-                <form method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>">
+                <form id="community-comment-form" method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <p>
@@ -338,6 +376,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required><?php echo sr_e($commentBody); ?></textarea>
                         </label>
                     </p>
+                    <label class="community-comment-secret-toggle">
+                        <input type="checkbox" name="is_secret" value="1">
+                        <span><?php echo sr_e('비밀 댓글'); ?></span>
+                    </label>
                     <button type="submit"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
                 </form>
             <?php } elseif ($commentUnavailableMessage !== '') { ?>

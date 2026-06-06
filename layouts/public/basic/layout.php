@@ -45,6 +45,24 @@ if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
 if ($layoutPrimaryNavigationHtml !== '') {
     $layoutStylesheets[] = '/modules/site_menu/assets/public.css';
 }
+$layoutNotificationEnabled = false;
+$layoutNotificationHasAccount = false;
+$layoutNotificationSummary = ['unread' => 0, 'items' => []];
+if (
+    $layoutPdo instanceof PDO
+    && sr_module_enabled($layoutPdo, 'notification')
+    && is_file(SR_ROOT . '/modules/member/helpers.php')
+    && is_file(SR_ROOT . '/modules/notification/helpers.php')
+) {
+    $layoutNotificationEnabled = true;
+    require_once SR_ROOT . '/modules/member/helpers.php';
+    require_once SR_ROOT . '/modules/notification/helpers.php';
+    $layoutCurrentAccount = sr_member_current_account($layoutPdo);
+    if (is_array($layoutCurrentAccount)) {
+        $layoutNotificationSummary = sr_notification_public_header_summary($layoutPdo, (int) $layoutCurrentAccount['id'], 5);
+        $layoutNotificationHasAccount = true;
+    }
+}
 $layoutCopyrightYear = date('Y');
 ?>
 <!doctype html>
@@ -71,9 +89,58 @@ $layoutCopyrightYear = date('Y');
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>
         <div class="public-layout-actions">
-            <a class="public-layout-icon-button" href="<?php echo sr_e(sr_url('/')); ?>" aria-label="<?php echo sr_e('홈'); ?>">
-                <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>local_mall</span>
-            </a>
+            <?php if ($layoutNotificationEnabled) { ?>
+                <details class="public-layout-notification-menu">
+                    <summary class="public-layout-icon-button public-layout-notification-button" aria-label="<?php echo sr_e('알림'); ?>">
+                        <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>notifications</span>
+                        <?php if ((int) $layoutNotificationSummary['unread'] > 0) { ?>
+                            <span class="public-layout-notification-badge"><?php echo sr_e((int) $layoutNotificationSummary['unread'] > 99 ? '99+' : (string) (int) $layoutNotificationSummary['unread']); ?></span>
+                        <?php } ?>
+                    </summary>
+                    <div class="public-layout-notification-dropdown">
+                        <div class="public-layout-notification-header">
+                            <strong><?php echo sr_e('알림'); ?></strong>
+                            <?php if ($layoutNotificationHasAccount) { ?>
+                                <a href="<?php echo sr_e(sr_url('/account/notifications')); ?>"><?php echo sr_e('전체'); ?></a>
+                            <?php } else { ?>
+                                <a href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e('로그인'); ?></a>
+                            <?php } ?>
+                        </div>
+                        <?php if (!$layoutNotificationHasAccount) { ?>
+                            <p class="public-layout-notification-empty"><?php echo sr_e('로그인 후 알림을 확인할 수 있습니다.'); ?></p>
+                        <?php } elseif ($layoutNotificationSummary['items'] === []) { ?>
+                            <p class="public-layout-notification-empty"><?php echo sr_e('새 알림이 없습니다.'); ?></p>
+                        <?php } else { ?>
+                            <div class="public-layout-notification-list">
+                                <?php foreach ($layoutNotificationSummary['items'] as $layoutNotification) { ?>
+                                    <?php
+                                    $layoutNotificationLinkAttributes = sr_notification_link_attributes((string) ($layoutNotification['link_url'] ?? ''));
+                                    $layoutNotificationBody = trim(strip_tags((string) ($layoutNotification['body_text'] ?? '')));
+                                    $layoutNotificationClass = (string) ($layoutNotification['status'] ?? '') === 'unread'
+                                        ? 'public-layout-notification-item is-unread'
+                                        : 'public-layout-notification-item';
+                                    ?>
+                                    <?php if ($layoutNotificationLinkAttributes !== '') { ?>
+                                        <a class="<?php echo sr_e($layoutNotificationClass); ?>"<?php echo $layoutNotificationLinkAttributes; ?>>
+                                    <?php } else { ?>
+                                        <div class="<?php echo sr_e($layoutNotificationClass); ?>">
+                                    <?php } ?>
+                                        <span class="public-layout-notification-title"><?php echo sr_e((string) ($layoutNotification['title'] ?? '알림')); ?></span>
+                                        <?php if ($layoutNotificationBody !== '') { ?>
+                                            <span class="public-layout-notification-text"><?php echo sr_e(sr_notification_clean_single_line($layoutNotificationBody, 80)); ?></span>
+                                        <?php } ?>
+                                        <span class="public-layout-notification-date"><?php echo sr_e((string) ($layoutNotification['created_at'] ?? '')); ?></span>
+                                    <?php if ($layoutNotificationLinkAttributes !== '') { ?>
+                                        </a>
+                                    <?php } else { ?>
+                                        </div>
+                                    <?php } ?>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </details>
+            <?php } ?>
             <a class="public-layout-icon-button" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e('회원'); ?>">
                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
             </a>

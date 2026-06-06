@@ -193,6 +193,7 @@ CREATE TABLE IF NOT EXISTS sr_content_comments (
     author_account_id BIGINT UNSIGNED NOT NULL,
     author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
     body_text TEXT NOT NULL,
+    is_secret TINYINT(1) NOT NULL DEFAULT 0,
     status VARCHAR(30) NOT NULL DEFAULT 'published',
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,

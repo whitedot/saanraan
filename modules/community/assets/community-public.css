@@ -1,7 +1,4 @@
 .community-screen {
-    display: grid;
-    gap: 18px 48px;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
     margin: 0 auto;
     max-width: 1360px;
     padding: 40px 0;
@@ -23,30 +20,18 @@
 }
 
 .community-screen > article {
-    align-self: start;
-    grid-column: 1;
-    grid-row: 2;
-    padding-right: 4px;
+    min-width: 0;
 }
 
 .community-comments-panel {
-    align-self: start;
     background: #fafafa;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    grid-column: 2;
-    grid-row: 2;
-    height: calc(100vh - 96px);
-    margin: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    margin: 48px 0 0;
     padding: 18px;
-    position: sticky;
-    top: 76px;
-    scrollbar-gutter: stable;
     width: 100%;
 }
 
@@ -65,6 +50,12 @@
     font-size: 1.25rem;
     line-height: 1.35;
     margin: 0;
+}
+
+.community-comments-panel-header .btn {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 7px 12px;
 }
 
 .community-screen article,
@@ -172,6 +163,41 @@
 .community-screen :is(button, .btn, input, select, textarea):focus-visible {
     outline: 2px solid #242424;
     outline-offset: 2px;
+}
+
+.community-comment-secret {
+    color: #6b6b6b;
+}
+
+.community-comment-actions {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.community-comment-actions details {
+    display: grid;
+    gap: 10px;
+}
+
+.community-comment-actions summary {
+    list-style: none;
+}
+
+.community-comment-actions summary::-webkit-details-marker {
+    display: none;
+}
+
+.community-comment-actions form {
+    margin-top: 10px;
+}
+
+.community-comment-secret-toggle {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
 }
 
 .community-screen table {

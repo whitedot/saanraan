@@ -282,7 +282,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             (int) $comment['author_account_id'],
                             is_string($comment['author_account_status'] ?? null) ? $comment['author_account_status'] : null
                         )); ?></td>
-                        <td class="admin-table-break admin-community-comment-body-cell"><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></td>
+                        <td class="admin-table-break admin-community-comment-body-cell">
+                            <?php if ((int) ($comment['is_secret'] ?? 0) === 1) { ?>
+                                <span class="admin-status is-left"><?php echo sr_e('비밀'); ?></span>
+                            <?php } ?>
+                            <?php echo sr_community_plain_text_html((string) $comment['body_text']); ?>
+                        </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($commentStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-community-comment-date-cell"><?php echo sr_e((string) $comment['created_at']); ?></td>
                         <td class="admin-table-actions-cell">

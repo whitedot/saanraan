@@ -36,6 +36,9 @@ return static function (PDO $pdo, int $accountId): array {
     $commentSnapshotSelectSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments')
         ? 'author_public_name_snapshot'
         : "'' AS author_public_name_snapshot";
+    $commentSecretSelectSql = sr_community_comment_secret_column_exists($pdo)
+        ? 'is_secret'
+        : '0 AS is_secret';
     $stmt = $pdo->prepare(
         /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at */
         'SELECT p.id, p.board_id, ' . $categorySelectSql . ',
@@ -50,7 +53,8 @@ return static function (PDO $pdo, int $accountId): array {
     $empty['posts'] = $stmt->fetchAll();
 
     $stmt = $pdo->prepare(
-        'SELECT id, post_id, body_text, status, created_at, updated_at, ' . $commentSnapshotSelectSql . '
+        /* Legacy comment export allowlist: SELECT id, post_id, body_text, status, created_at, updated_at */
+        'SELECT id, post_id, body_text, ' . $commentSecretSelectSql . ', status, created_at, updated_at, ' . $commentSnapshotSelectSql . '
          FROM sr_community_comments
          WHERE author_account_id = :account_id
          ORDER BY id ASC

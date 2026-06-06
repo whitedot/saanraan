@@ -206,6 +206,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <section id="content-comments" class="content-comments">
                 <div class="content-comments-panel-header">
                     <h2>댓글</h2>
+                    <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
+                        <a href="#content-comment-form" class="btn btn-solid-light">작성</a>
+                    <?php } ?>
                 </div>
                 <?php if ((string) ($contentCommentNotice ?? '') !== '') { ?>
                     <p><?php echo sr_e((string) $contentCommentNotice); ?></p>
@@ -221,8 +224,62 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <ul>
                         <?php foreach ($contentComments as $contentComment) { ?>
                             <li>
-                                <strong><?php echo sr_e((string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원')); ?></strong>
-                                <p><?php echo nl2br(sr_e((string) $contentComment['body_text'])); ?></p>
+                                <?php
+                                $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null);
+                                $contentCommentCanEdit = is_array($account ?? null) && sr_content_account_can_edit_comment($contentComment, $account);
+                                $contentCommentCanDelete = is_array($account ?? null) && sr_content_account_can_delete_comment($contentComment, $account, $pdo);
+                                $contentCommentCanHide = sr_content_account_can_hide_comment($pdo, $contentComment, is_array($account ?? null) ? $account : null);
+                                $contentCommentEditId = 'content_comment_edit_' . (string) $contentComment['id'];
+                                $contentCommentCreatedAt = (string) ($contentComment['created_at'] ?? '');
+                                ?>
+                                <div class="content-comment-meta">
+                                    <strong><?php echo sr_e((string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원')); ?></strong>
+                                    <?php if ($contentCommentCreatedAt !== '') { ?>
+                                        <time datetime="<?php echo sr_e($contentCommentCreatedAt); ?>" title="<?php echo sr_e($contentCommentCreatedAt); ?>"><?php echo sr_e(sr_content_relative_time_label($contentCommentCreatedAt)); ?></time>
+                                    <?php } ?>
+                                    <?php if ((int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
+                                        <span>비밀</span>
+                                    <?php } ?>
+                                </div>
+                                <?php if ($contentCommentCanViewBody) { ?>
+                                    <p><?php echo nl2br(sr_e((string) $contentComment['body_text'])); ?></p>
+                                <?php } else { ?>
+                                    <p class="content-comment-secret">비밀 댓글입니다.</p>
+                                <?php } ?>
+                                <?php if ($contentCommentCanEdit || $contentCommentCanDelete || $contentCommentCanHide) { ?>
+                                    <div class="content-comment-actions">
+                                        <?php if ($contentCommentCanEdit) { ?>
+                                            <details>
+                                                <summary class="btn btn-solid-light">수정</summary>
+                                                <form method="post" action="<?php echo sr_e(sr_url('/content/comment/edit')); ?>">
+                                                    <?php echo sr_csrf_field(); ?>
+                                                    <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
+                                                    <label for="<?php echo sr_e($contentCommentEditId); ?>">댓글 수정</label>
+                                                    <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
+                                                    <label class="content-comment-secret-toggle">
+                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                        <span>비밀 댓글</span>
+                                                    </label>
+                                                    <button type="submit" class="btn btn-solid-light">저장</button>
+                                                </form>
+                                            </details>
+                                        <?php } ?>
+                                        <?php if ($contentCommentCanDelete) { ?>
+                                            <form method="post" action="<?php echo sr_e(sr_url('/content/comment/delete')); ?>">
+                                                <?php echo sr_csrf_field(); ?>
+                                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
+                                                <button type="submit" class="btn btn-solid-light">삭제</button>
+                                            </form>
+                                        <?php } ?>
+                                        <?php if ($contentCommentCanHide) { ?>
+                                            <form method="post" action="<?php echo sr_e(sr_url('/content/comment/hide')); ?>">
+                                                <?php echo sr_csrf_field(); ?>
+                                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
+                                                <button type="submit" class="btn btn-solid-light">숨기기</button>
+                                            </form>
+                                        <?php } ?>
+                                    </div>
+                                <?php } ?>
                             </li>
                         <?php } ?>
                     </ul>
@@ -230,11 +287,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <p>등록된 댓글이 없습니다.</p>
                 <?php } ?>
                 <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
-                    <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
+                    <form id="content-comment-form" method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
                         <label for="content_comment_body">댓글</label>
                         <textarea id="content_comment_body" name="body_text" rows="4" cols="60"><?php echo sr_e((string) ($contentCommentBody ?? '')); ?></textarea>
+                        <label class="content-comment-secret-toggle">
+                            <input type="checkbox" name="is_secret" value="1">
+                            <span>비밀 댓글</span>
+                        </label>
                         <p class="admin-form-help">@이름 형식으로 회원을 언급할 수 있습니다.</p>
                         <button type="submit" class="btn btn-solid-light">댓글 등록</button>
                     </form>

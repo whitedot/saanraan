@@ -49,6 +49,58 @@ function sr_notification_link_attributes(string $url): string
     return $attributes;
 }
 
+function sr_notification_public_header_summary(PDO $pdo, int $accountId, int $limit = 5): array
+{
+    if ($accountId <= 0) {
+        return ['unread' => 0, 'items' => []];
+    }
+
+    $limit = max(1, min(10, $limit));
+
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT n.id, n.title, n.body_text, n.body_format, n.link_url,
+                    CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 'unread' ELSE 'read' END AS status,
+                    COALESCE(n.read_at, r.read_at) AS read_at,
+                    n.created_at
+             FROM sr_notifications n
+             LEFT JOIN sr_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
+             WHERE n.account_id = :account_id OR n.audience = 'all'
+             ORDER BY n.id DESC
+             LIMIT " . $limit
+        );
+        $stmt->execute([
+            'read_account_id' => $accountId,
+            'account_id' => $accountId,
+        ]);
+        $items = [];
+        foreach ($stmt->fetchAll() as $row) {
+            if (is_array($row)) {
+                $items[] = $row;
+            }
+        }
+
+        $stmt = $pdo->prepare(
+            "SELECT SUM(CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 1 ELSE 0 END) AS unread_count
+             FROM sr_notifications n
+             LEFT JOIN sr_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
+             WHERE n.account_id = :account_id OR n.audience = 'all'"
+        );
+        $stmt->execute([
+            'read_account_id' => $accountId,
+            'account_id' => $accountId,
+        ]);
+        $summary = $stmt->fetch();
+    } catch (Throwable) {
+        return ['unread' => 0, 'items' => []];
+    }
+
+    return [
+        'unread' => is_array($summary) ? (int) ($summary['unread_count'] ?? 0) : 0,
+        'items' => $items,
+    ];
+}
+
 function sr_notification_allowed_channels(): array
 {
     return ['site', 'email', 'sms', 'alimtalk'];

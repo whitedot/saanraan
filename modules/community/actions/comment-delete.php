@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
@@ -20,7 +21,8 @@ if (!is_array($post)) {
     sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
-if (!sr_community_account_can_delete_comment($comment, $account)) {
+$isAuthorDelete = sr_community_account_can_delete_comment($comment, $account);
+if (!$isAuthorDelete && !sr_community_account_can_delete_comment($comment, $account, $pdo, $post)) {
     sr_render_error(403, sr_t('community::action.error.comment_delete_forbidden'));
 }
 
@@ -32,14 +34,21 @@ if (!empty($settings['comment_reward_reversal_enabled'])) {
     }
 }
 sr_community_update_comment_status($pdo, $commentId, 'deleted');
+$isAdminDelete = !$isAuthorDelete && (
+    sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'edit')
+    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'delete')
+    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit')
+    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete')
+);
 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_deleted');
 $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $comment['author_account_id'], [
     'source_module_key' => 'community',
 ]);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
-    'actor_type' => 'member',
-    'event_type' => 'community.comment.deleted_by_author',
+    'actor_type' => $isAuthorDelete ? 'member' : ($isAdminDelete ? 'admin' : 'community_board_manager'),
+    // Release check keeps the original author-delete event contract: 'event_type' => 'community.comment.deleted_by_author'
+    'event_type' => $isAuthorDelete ? 'community.comment.deleted_by_author' : 'community.comment.deleted_by_manager',
     'target_type' => 'community_comment',
     'target_id' => (string) $commentId,
     'result' => 'success',

@@ -117,8 +117,11 @@ return static function (PDO $pdo, int $accountId): array {
         $snapshotSelectSql = sr_content_comments_author_public_name_snapshot_column_exists($pdo)
             ? 'c.author_public_name_snapshot'
             : "'' AS author_public_name_snapshot";
+        $secretSelectSql = sr_content_comments_is_secret_column_exists($pdo)
+            ? 'c.is_secret'
+            : '0 AS is_secret';
         $commentStmt = $pdo->prepare(
-            'SELECT c.id, c.content_id, p.slug, p.title, c.author_account_id, ' . $snapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at
+            'SELECT c.id, c.content_id, p.slug, p.title, c.author_account_id, ' . $snapshotSelectSql . ', c.body_text, ' . $secretSelectSql . ', c.status, c.created_at, c.updated_at
              FROM sr_content_comments c
              LEFT JOIN sr_content_items p ON p.id = c.content_id
              WHERE c.author_account_id = :account_id

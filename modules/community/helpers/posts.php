@@ -335,8 +335,9 @@ function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): arr
 {
     $limit = max(1, min(100, $limit));
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
+    $secretSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        "SELECT c.id, c.post_id, c.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, c.body_text, c.status, c.created_at, c.updated_at
+        "SELECT c.id, c.post_id, c.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, c.body_text, " . $secretSelectSql . " c.status, c.created_at, c.updated_at
          FROM sr_community_comments c
          LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
          WHERE c.post_id = :post_id
@@ -354,6 +355,93 @@ function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): arr
 function sr_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
 {
     return sr_community_post_comments($pdo, $postId, $limit);
+}
+
+function sr_community_comment_secret_column_exists(PDO $pdo): bool
+{
+    static $existsByConnection = [];
+    $key = (string) spl_object_id($pdo);
+    if (array_key_exists($key, $existsByConnection)) {
+        return $existsByConnection[$key];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => 'sr_community_comments',
+            'column_name' => 'is_secret',
+        ]);
+        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable $exception) {
+        $existsByConnection[$key] = false;
+    }
+
+    return $existsByConnection[$key];
+}
+
+function sr_community_account_can_view_comment_body(array $comment, array $post, ?array $account): bool
+{
+    if ((int) ($comment['is_secret'] ?? 0) !== 1) {
+        return true;
+    }
+    if (!is_array($account)) {
+        return false;
+    }
+
+    $accountId = (int) ($account['id'] ?? 0);
+
+    return $accountId > 0
+        && ($accountId === (int) ($comment['author_account_id'] ?? 0)
+            || $accountId === (int) ($post['author_account_id'] ?? 0));
+}
+
+function sr_community_account_can_hide_comment(PDO $pdo, array $comment, array $post, ?array $account): bool
+{
+    if (!is_array($account) || (int) ($account['id'] ?? 0) < 1 || (string) ($comment['status'] ?? '') !== 'published') {
+        return false;
+    }
+
+    $accountId = (int) $account['id'];
+
+    return (function_exists('sr_admin_has_permission')
+            && (sr_admin_has_permission($pdo, $accountId, '/admin/community/comments', 'edit')
+                || sr_admin_has_permission($pdo, $accountId, '/admin/community/comments', 'delete')
+                || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'edit')
+                || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete')))
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
+}
+
+function sr_community_relative_time_label(string $dateTime): string
+{
+    $timestamp = strtotime($dateTime);
+    if ($timestamp === false) {
+        return $dateTime;
+    }
+
+    $diff = max(0, time() - $timestamp);
+    if ($diff < 60) {
+        return '방금 전';
+    }
+    if ($diff < 3600) {
+        return (string) floor($diff / 60) . '분 전';
+    }
+    if ($diff < 86400) {
+        return (string) floor($diff / 3600) . '시간 전';
+    }
+    if ($diff < 2592000) {
+        return (string) floor($diff / 86400) . '일 전';
+    }
+    if ($diff < 31536000) {
+        return (string) floor($diff / 2592000) . '개월 전';
+    }
+
+    return (string) floor($diff / 31536000) . '년 전';
 }
 
 function sr_community_post_statuses(): array
@@ -816,7 +904,9 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     $where = $queryParts['where'];
     $params = $queryParts['params'];
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
+    $secretSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
     $sql = 'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at,
+                   ' . $secretSelectSql . '
                    p.title AS post_title,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
@@ -855,8 +945,9 @@ function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
     }
 
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
+    $secretSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at,
+        'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, ' . $secretSelectSql . ' c.status, c.created_at, c.updated_at,
                 p.title AS post_title,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
@@ -893,17 +984,23 @@ function sr_community_update_comment_status(PDO $pdo, int $commentId, string $st
 
 function sr_community_update_comment_content(PDO $pdo, int $commentId, array $values): void
 {
+    $secretSql = sr_community_comment_secret_column_exists($pdo) ? 'is_secret = :is_secret,' : '';
     $stmt = $pdo->prepare(
         'UPDATE sr_community_comments
          SET body_text = :body_text,
+             ' . $secretSql . '
              updated_at = :updated_at
          WHERE id = :id'
     );
-    $stmt->execute([
+    $params = [
         'body_text' => trim((string) $values['body_text']),
         'updated_at' => sr_now(),
         'id' => $commentId,
-    ]);
+    ];
+    if ($secretSql !== '') {
+        $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
+    }
+    $stmt->execute($params);
 }
 
 function sr_community_account_can_edit_comment(array $comment, array $account): bool
@@ -913,11 +1010,18 @@ function sr_community_account_can_edit_comment(array $comment, array $account): 
         && (string) $comment['status'] === 'published';
 }
 
-function sr_community_account_can_delete_comment(array $comment, array $account): bool
+function sr_community_account_can_delete_comment(array $comment, array $account, ?PDO $pdo = null, ?array $post = null): bool
 {
-    return (int) ($account['id'] ?? 0) > 0
+    if ((int) ($account['id'] ?? 0) > 0
         && (int) $comment['author_account_id'] === (int) $account['id']
-        && (string) $comment['status'] === 'published';
+        && (string) $comment['status'] === 'published') {
+        return true;
+    }
+    if (!$pdo instanceof PDO || !is_array($post)) {
+        return false;
+    }
+
+    return sr_community_account_can_hide_comment($pdo, $comment, $post, $account);
 }
 
 function sr_community_account_can_write_board(PDO $pdo, array $board, array $account, bool $isAdminWriter = false): bool
@@ -1285,6 +1389,7 @@ function sr_community_comment_input_values(): array
 {
     return [
         'body_text' => sr_post_string_without_truncation('body_text', 5000),
+        'is_secret' => sr_post_string('is_secret', 10) === '1' ? 1 : 0,
     ];
 }
 
@@ -1307,11 +1412,13 @@ function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId
     $now = sr_now();
     $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments') ? 'author_public_name_snapshot, ' : '';
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
+    $secretColumnSql = sr_community_comment_secret_column_exists($pdo) ? 'is_secret, ' : '';
+    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_comments
-            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, status, created_at, updated_at)
+            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, ' . $secretColumnSql . 'status, created_at, updated_at)
          VALUES
-            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, :status, :created_at, :updated_at)'
+            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, ' . $secretValueSql . ':status, :created_at, :updated_at)'
     );
     $params = [
         'post_id' => $postId,
@@ -1323,6 +1430,9 @@ function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId
     ];
     if ($authorSnapshotColumnSql !== '') {
         $params['author_public_name_snapshot'] = sr_community_author_public_name_snapshot($pdo, $authorAccountId);
+    }
+    if ($secretColumnSql !== '') {
+        $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
     }
     $stmt->execute($params);
     $commentId = (int) $pdo->lastInsertId();

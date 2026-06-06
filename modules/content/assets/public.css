@@ -11,9 +11,6 @@
 }
 
 .content-article {
-    display: grid;
-    gap: 0 48px;
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
     margin: 0 auto;
     max-width: 1360px;
     padding: 58px 0 0;
@@ -21,9 +18,7 @@
 }
 
 .content-reading-panel {
-    grid-column: 1;
     min-width: 0;
-    padding-right: 4px;
 }
 
 .content-header {
@@ -200,23 +195,14 @@
 }
 
 .content-comments {
-    align-self: start;
     background: #fafafa;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    grid-column: 2;
-    grid-row: 1;
-    height: calc(100vh - 96px);
-    margin: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    margin: 48px 0 0;
     padding: 18px;
-    position: sticky;
-    top: 76px;
-    scrollbar-gutter: stable;
     width: 100%;
 }
 
@@ -229,6 +215,12 @@
     justify-content: space-between;
     margin: -18px -18px 0;
     padding: 16px 18px 14px;
+}
+
+.content-comments-panel-header .btn {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 7px 12px;
 }
 
 .content-public :is(.btn, button[type="submit"]),
@@ -273,6 +265,54 @@
     color: #242424;
     line-height: 1.5;
     padding: 12px;
+}
+
+.content-comment-meta {
+    align-items: center;
+    color: #6b6b6b;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: .875rem;
+    gap: 8px;
+}
+
+.content-comment-meta strong {
+    color: #242424;
+}
+
+.content-comment-secret {
+    color: #6b6b6b;
+}
+
+.content-comment-actions {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.content-comment-actions details {
+    display: grid;
+    gap: 10px;
+}
+
+.content-comment-actions summary {
+    list-style: none;
+}
+
+.content-comment-actions summary::-webkit-details-marker {
+    display: none;
+}
+
+.content-comment-actions form {
+    margin-top: 10px;
+}
+
+.content-comment-secret-toggle {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
 }
 
 .content-home,

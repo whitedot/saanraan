@@ -536,11 +536,13 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
     $maps = sr_community_board_copy_job_pending_maps($pdo, (int) $job['id'], 'comment', $limit);
     $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments') ? 'author_public_name_snapshot, ' : '';
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
+    $secretColumnSql = sr_community_comment_secret_column_exists($pdo) ? 'is_secret, ' : '';
+    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
     $insert = $pdo->prepare(
         'INSERT INTO sr_community_comments
-            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, status, created_at, updated_at)
+            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, ' . $secretColumnSql . 'status, created_at, updated_at)
          VALUES
-            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, :status, :created_at, :updated_at)'
+            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, ' . $secretValueSql . ':status, :created_at, :updated_at)'
     );
     $processed = 0;
     foreach ($maps as $map) {
@@ -566,6 +568,9 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
         ];
         if ($authorSnapshotColumnSql !== '') {
             $params['author_public_name_snapshot'] = (string) ($comment['author_public_name_snapshot'] ?? '');
+        }
+        if ($secretColumnSql !== '') {
+            $params['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
         $insert->execute($params);
         sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied');
