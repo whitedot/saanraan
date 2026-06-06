@@ -342,6 +342,20 @@ if (!is_string($adminRolesView)) {
     $errors[] = 'Admin roles view must render member identity fields through privacy display helpers.';
 }
 
+$adminRolesHelper = file_get_contents($root . '/modules/admin/helpers/roles.php');
+if (!is_string($adminRolesHelper)) {
+    $errors[] = 'Admin roles helper cannot be read.';
+} elseif (
+    strpos($adminRolesHelper, 'function sr_admin_permission_reauth_errors') === false
+    || strpos($adminRolesHelper, 'admin_permission_reauth') === false
+    || strpos($adminRolesHelper, '$beforeIsOwner !== $selectedIsOwner || $addsPermissionKeys !== []') === false
+    || strpos($adminRolesHelper, 'sr_admin_permission_reauth_errors($pdo, $account, $intent, $targetAccountId)') === false
+    || !is_string($adminRolesView)
+    || strpos($adminRolesView, 'name="owner_password"') === false
+) {
+    $errors[] = 'Admin role grants and owner role changes must require owner password reauthentication.';
+}
+
 $adminSettingsHelper = file_get_contents($root . '/modules/admin/helpers/settings.php');
 if (!isset($adminModuleActionsHelper)) {
     $adminModuleActionsHelper = file_get_contents($root . '/modules/admin/helpers/module-actions.php');
