@@ -195,8 +195,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="logo_status">
                                         <input type="hidden" name="logo_id" value="<?php echo sr_e((string) $logo['id']); ?>">
-                                        <input type="hidden" name="status" value="<?php echo (string) $logo['status'] === 'active' ? 'disabled' : 'active'; ?>">
-                                        <button type="submit" class="btn btn-sm btn-solid-light"><?php echo (string) $logo['status'] === 'active' ? sr_t('logo_manager::ui.text.92cdef3c') : sr_t('logo_manager::ui.active.93c558d7'); ?></button>
+                                        <?php $logoManagerNextStatus = (string) $logo['status'] === 'active' ? 'disabled' : 'active'; ?>
+                                        <?php $logoManagerStatusButtonLabel = (string) $logo['status'] === 'active' ? sr_t('logo_manager::ui.text.92cdef3c') : sr_t('logo_manager::ui.active.93c558d7'); ?>
+                                        <input type="hidden" name="status" value="<?php echo sr_e($logoManagerNextStatus); ?>">
+                                        <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e($logoManagerStatusButtonLabel); ?></button>
                                     </form>
                                 </div>
                             </td>

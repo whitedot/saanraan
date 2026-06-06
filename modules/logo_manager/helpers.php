@@ -625,7 +625,16 @@ function sr_logo_manager_clean_admin_datetime(string $value): ?string
     }
 
     $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
-    return $date instanceof DateTimeImmutable ? $date->format('Y-m-d H:i:00') : null;
+    $dateErrors = DateTimeImmutable::getLastErrors();
+    if (
+        !$date instanceof DateTimeImmutable
+        || (is_array($dateErrors) && ((int) ($dateErrors['warning_count'] ?? 0) > 0 || (int) ($dateErrors['error_count'] ?? 0) > 0))
+        || $date->format('Y-m-d\TH:i') !== $value
+    ) {
+        return null;
+    }
+
+    return $date->format('Y-m-d H:i:00');
 }
 
 function sr_logo_manager_admin_datetime_value(mixed $value): string
