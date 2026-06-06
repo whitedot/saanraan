@@ -140,7 +140,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($popupLayerAdminPage === 'form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/save')); ?>" class="admin-form ui-form-theme" data-admin-subject-form data-public-target-value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>">
         <section class="admin-card card">
-            <h2><?php echo $editing ? sr_t('popup_layer::ui.edit.b0a3dd3e') : sr_t('popup_layer::ui.text.628a32fc'); ?></h2>
+            <h2><?php echo sr_e($editing ? sr_t('popup_layer::ui.edit.b0a3dd3e') : sr_t('popup_layer::ui.text.628a32fc')); ?></h2>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="popup_id" value="<?php echo $editing ? sr_e((string) $editPopup['id']) : '0'; ?>">
 
@@ -159,7 +159,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_status', sr_t('popup_layer::ui.status.e10195a1'), $popupLayerHelp['status']['id'], $popupLayerHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="popup_layer_admin_popup_layers_status" name="status" class="form-select">
+                        <select id="popup_layer_admin_popup_layers_status" name="status" class="form-select" required>
                                                     <?php foreach ($allowedStatuses as $status) { ?>
                                                         <?php $currentStatus = $editing ? (string) $editPopup['status'] : (isset($popupLayerDefaultStatus) ? (string) $popupLayerDefaultStatus : 'draft'); ?>
                                                         <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>>
@@ -172,7 +172,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_skin_key', sr_t('popup_layer::ui.text.9c7f107d'), $popupLayerHelp['skin_key']['id'], $popupLayerHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select">
+                        <select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select" required>
                                                     <?php foreach ($popupLayerSkinOptions as $skinKey => $skinOption) { ?>
                                                         <?php $currentSkinKey = $editing ? (string) ($editPopup['skin_key'] ?? $popupLayerSkinKey) : $popupLayerSkinKey; ?>
                                                         <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo $currentSkinKey === (string) $skinKey ? ' selected' : ''; ?>>
@@ -185,7 +185,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_target_option', sr_t('popup_layer::ui.text.75911303'), $popupLayerHelp['target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="popup_layer_admin_popup_layers_target_option" name="target_option" class="form-select">
+                        <select id="popup_layer_admin_popup_layers_target_option" name="target_option" class="form-select" required>
                                                     <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
                                                         <?php echo sr_e(sr_t('popup_layer::ui.text.11677edb')); ?>
                                                     </option>
@@ -203,7 +203,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_match_type', sr_t('popup_layer::ui.text.175f56ba'), $popupLayerHelp['match_type']['id'], $popupLayerHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="popup_layer_admin_popup_layers_match_type" name="match_type" class="form-select">
+                        <select id="popup_layer_admin_popup_layers_match_type" name="match_type" class="form-select" required>
                                                     <?php foreach ($allowedMatchTypes as $matchType) { ?>
                                                         <option value="<?php echo sr_e($matchType); ?>"<?php echo $currentMatchType === $matchType ? ' selected' : ''; ?>>
                                                             <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
@@ -380,7 +380,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['starts_at'] ?? '-')); ?></td>
                             <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) ($popup['ends_at'] ?? '-')); ?></td>
                             <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $popup['dismiss_cookie_days']); ?></td>
-                            <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_e((string) $popup['updated_at']); ?></td>
+                            <td class="admin-table-nowrap admin-popup-layer-date-cell"><?php echo sr_popup_layer_time_html((string) $popup['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <?php

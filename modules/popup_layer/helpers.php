@@ -511,7 +511,17 @@ function sr_popup_layer_clean_admin_datetime(string $value): ?string
         return null;
     }
 
-    return str_replace('T', ' ', $value) . ':00';
+    $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
+    $dateErrors = DateTimeImmutable::getLastErrors();
+    if (
+        !$date instanceof DateTimeImmutable
+        || (is_array($dateErrors) && ((int) ($dateErrors['warning_count'] ?? 0) > 0 || (int) ($dateErrors['error_count'] ?? 0) > 0))
+        || $date->format('Y-m-d\TH:i') !== $value
+    ) {
+        return null;
+    }
+
+    return $date->format('Y-m-d H:i:00');
 }
 
 function sr_popup_layer_admin_datetime_value(?string $value): string
@@ -525,6 +535,38 @@ function sr_popup_layer_admin_datetime_value(?string $value): string
     }
 
     return $matches[1] . 'T' . $matches[2];
+}
+
+function sr_popup_layer_time_html(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $diff = time() - $timestamp;
+    if ($diff < 0) {
+        $relative = date('Y-m-d H:i', $timestamp);
+    } elseif ($diff < 60) {
+        $relative = '방금 전';
+    } elseif ($diff < 3600) {
+        $relative = floor($diff / 60) . '분 전';
+    } elseif ($diff < 86400) {
+        $relative = floor($diff / 3600) . '시간 전';
+    } elseif ($diff < 2592000) {
+        $relative = floor($diff / 86400) . '일 전';
+    } elseif ($diff < 31536000) {
+        $relative = floor($diff / 2592000) . '개월 전';
+    } else {
+        $relative = floor($diff / 31536000) . '년 전';
+    }
+
+    return '<time datetime="' . sr_e($value) . '" title="' . sr_e($value) . '">' . sr_e($relative) . '</time>';
 }
 
 function sr_popup_layer_clean_subject_id(string $value): string
