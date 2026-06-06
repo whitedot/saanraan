@@ -17,7 +17,7 @@ $notice = (string) ($flash['notice'] ?? '');
 $filters = [
     'status' => sr_get_string('status', 20),
 ];
-if (!in_array($filters['status'], ['', 'unread', 'read'], true)) {
+if (!in_array($filters['status'], ['', 'read'], true)) {
     $filters['status'] = '';
 }
 
@@ -80,9 +80,7 @@ $notificationParams = [
     'account_id' => (int) $account['id'],
 ];
 
-if ($filters['status'] === 'unread') {
-    $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NULL';
-} elseif ($filters['status'] === 'read') {
+if ($filters['status'] === 'read') {
     $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NOT NULL';
 } else {
     $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NULL';
