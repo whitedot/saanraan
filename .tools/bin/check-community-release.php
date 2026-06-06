@@ -556,12 +556,18 @@ sr_community_release_file_contains('modules/community/actions/edit.php', [
     "'event_type' => 'community.post.updated_by_author'",
 ], 'Community edit action policy');
 sr_community_release_file_contains('modules/community/actions/delete.php', [
+    'sr_community_admin_post_by_id($pdo, $postId)',
     'sr_community_account_can_delete_post($post, $account, $pdo)',
     'sr_community_update_post_status($pdo, $postId, \'deleted\')',
     'sr_community_update_post_attachments_status($pdo, $postId, \'deleted\')',
     "'community.post.deleted_by_author'",
+    "'community.post.deleted_by_admin'",
     "'community.post.deleted_by_board_manager'",
 ], 'Community delete action policy');
+sr_community_release_file_contains('modules/community/helpers/posts.php', [
+    "sr_admin_has_permission(\$pdo, \$accountId, '/admin/community/posts', 'delete')",
+    "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'delete_post')",
+], 'Community delegated post delete policy');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
     'sr_community_account_can_comment_post($pdo, $post, $account)',
     'sr_community_comment_rate_limited($pdo, (int) $account[\'id\'], $settings)',

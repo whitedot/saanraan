@@ -23,6 +23,20 @@ if (!is_array($post)) {
             $post = sr_community_post_for_read($pdo, $postId, $account);
         }
         if (!is_array($post)
+            && sr_request_method() === 'POST'
+            && sr_post_string('intent', 40) === 'remove_og_image'
+            && is_array($board)
+            && (string) ($rawPost['status'] ?? '') === 'published'
+            && (string) ($board['status'] ?? '') === 'enabled'
+        ) {
+            if (!is_array($account)) {
+                $account = sr_member_require_login($pdo);
+            }
+            if (sr_community_account_can_remove_post_og_image($pdo, $rawPost, $account)) {
+                $post = $rawPost;
+            }
+        }
+        if (!is_array($post)
             && is_array($board)
             && (string) $rawPost['status'] === 'published'
             && (string) $board['status'] === 'enabled'

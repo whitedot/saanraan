@@ -510,7 +510,7 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . ', p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . ', p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
                 author_nickname.nickname AS author_nickname,
@@ -704,8 +704,15 @@ function sr_community_account_can_delete_post(array $post, array $account, ?PDO 
         return true;
     }
 
-    return $pdo instanceof PDO
-        && sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
+    if (!$pdo instanceof PDO) {
+        return false;
+    }
+
+    if (function_exists('sr_admin_has_permission') && sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete')) {
+        return true;
+    }
+
+    return sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
 }
 
 function sr_community_comment_statuses(): array

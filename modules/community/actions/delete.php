@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
 $account = sr_member_require_login($pdo);
@@ -12,7 +13,15 @@ $postIdValue = sr_post_string('post_id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
 $post = sr_community_post_for_read($pdo, $postId, $account);
 if (!is_array($post)) {
-    sr_render_error(404, sr_t('community::action.error.post_not_found'));
+    $rawPost = sr_community_admin_post_by_id($pdo, $postId);
+    $rawBoard = is_array($rawPost) ? sr_community_board_by_id($pdo, (int) ($rawPost['board_id'] ?? 0)) : null;
+    if (!is_array($rawPost) || !is_array($rawBoard) || (string) ($rawPost['status'] ?? '') !== 'published' || (string) ($rawBoard['status'] ?? '') !== 'enabled') {
+        sr_render_error(404, sr_t('community::action.error.post_not_found'));
+    }
+    if (!sr_community_account_can_delete_post($rawPost, $account, $pdo)) {
+        sr_render_error(403, sr_t('community::action.error.post_delete_forbidden'));
+    }
+    $post = $rawPost;
 }
 
 if (!sr_community_account_can_delete_post($post, $account, $pdo)) {
@@ -32,14 +41,18 @@ $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['au
     'source_module_key' => 'community',
 ]);
 $updatedAttachmentCount = sr_community_update_post_attachments_status($pdo, $postId, 'deleted');
+$isAuthorDelete = (int) $post['author_account_id'] === (int) $account['id'];
+$isAdminDelete = !$isAuthorDelete && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete');
+$deleteActorType = $isAuthorDelete ? 'member' : ($isAdminDelete ? 'admin' : 'community_board_manager');
+$deleteEventType = $isAuthorDelete ? 'community.post.deleted_by_author' : ($isAdminDelete ? 'community.post.deleted_by_admin' : 'community.post.deleted_by_board_manager');
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
-    'actor_type' => (int) $post['author_account_id'] === (int) $account['id'] ? 'member' : 'community_board_manager',
-    'event_type' => (int) $post['author_account_id'] === (int) $account['id'] ? 'community.post.deleted_by_author' : 'community.post.deleted_by_board_manager',
+    'actor_type' => $deleteActorType,
+    'event_type' => $deleteEventType,
     'target_type' => 'community_post',
     'target_id' => (string) $postId,
     'result' => 'success',
-    'message' => 'Community post deleted by author.',
+    'message' => 'Community post deleted.',
     'metadata' => array_merge([
         'board_key' => (string) $post['board_key'],
         'before_status' => (string) $post['status'],
