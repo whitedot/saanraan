@@ -12,6 +12,13 @@ if (
         || preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/assets/#', $requestPath) === 1
     )
 ) {
+    if (preg_match('#\.(?:php[0-9]?|phtml|phar|sql)\z#i', $requestPath) === 1) {
+        http_response_code(403);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo "Forbidden\n";
+        return true;
+    }
+
     $staticPath = realpath($root . $requestPath);
     if (is_string($staticPath) && str_starts_with($staticPath, $root . DIRECTORY_SEPARATOR) && is_file($staticPath)) {
         $extension = strtolower(pathinfo($staticPath, PATHINFO_EXTENSION));
