@@ -377,6 +377,8 @@ function sr_admin_audit_log_display_message(array $log): string
         'Sensitive module setting reauthentication failed.' => '민감한 모듈 설정 재인증에 실패했습니다.',
         'Module source write reauthentication blocked by throttle.' => '모듈 소스 쓰기 재인증이 제한 정책으로 차단되었습니다.',
         'Module source write reauthentication failed.' => '모듈 소스 쓰기 재인증에 실패했습니다.',
+        'Admin permission change reauthentication blocked by throttle.' => '관리자 권한 변경 재인증이 제한 정책으로 차단되었습니다.',
+        'Admin permission change reauthentication failed.' => '관리자 권한 변경 재인증에 실패했습니다.',
         'Module installed version synced from updates screen.' => '업데이트 화면에서 모듈 설치 버전을 동기화했습니다.',
         'Module installed version synced after schema updates.' => '스키마 업데이트 후 모듈 설치 버전을 동기화했습니다.',
         'Deposit transaction created.' => '예치금 거래가 생성되었습니다.',

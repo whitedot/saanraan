@@ -249,7 +249,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 data-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>"
                             ><?php echo sr_material_icon_html('add'); ?></button>
                         <?php } ?>
-                        <?php if (empty($adminAccount['is_owner']) || $ownerCount > 1) { ?>
+                        <?php if (empty($adminAccount['is_owner'])) { ?>
                             <form method="post" action="<?php echo sr_e($permissionFormAction); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="revoke_permission">
@@ -346,6 +346,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </label>
                             <?php } ?>
                         </fieldset>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="admin-permission-add-owner-password">현재 비밀번호 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="admin-permission-add-owner-password" type="password" name="owner_password" value="" class="form-input" maxlength="255" autocomplete="current-password" required>
+                        <p class="admin-form-help">관리자 권한을 부여하거나 소유자 권한을 변경하려면 현재 비밀번호를 다시 확인합니다.</p>
                     </div>
                 </div>
             </div>
@@ -476,6 +483,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </div>
                                     <?php } ?>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($permissionModalId); ?>-owner-password">현재 비밀번호</label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($permissionModalId); ?>-owner-password" type="password" name="owner_password" value="" class="form-input" maxlength="255" autocomplete="current-password">
+                                <p class="admin-form-help">새 권한을 추가하거나 소유자 권한을 변경하는 저장 요청에서 필요합니다.</p>
                             </div>
                         </div>
                     </div>

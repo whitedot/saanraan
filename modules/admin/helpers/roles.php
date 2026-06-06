@@ -587,6 +587,16 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
         $selectedPermissionKeys = [];
     }
 
+    if ($errors === []) {
+        $addsPermissionKeys = array_values(array_diff($selectedPermissionKeys, $beforePermissionKeys));
+        $requiresReauth = $beforeIsOwner !== $selectedIsOwner || $addsPermissionKeys !== [];
+        if ($requiresReauth) {
+            foreach (sr_admin_permission_reauth_errors($pdo, $account, $intent, $targetAccountId) as $reauthError) {
+                $errors[] = $reauthError;
+            }
+        }
+    }
+
     if ($errors === [] && $beforeIsOwner && !$selectedIsOwner) {
         if (sr_admin_owner_count($pdo) <= 1) {
             $errors[] = sr_t('admin::action.roles.last_owner_revoke_disallowed');
@@ -670,6 +680,53 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
     }
 
     return sr_admin_action_result($errors, $notice);
+}
+
+function sr_admin_permission_reauth_errors(PDO $pdo, array $account, string $intent, int $targetAccountId): array
+{
+    $password = sr_post_string('owner_password', 255);
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId < 1) {
+        return ['소유자 재인증 계정을 확인할 수 없습니다.'];
+    }
+
+    $throttle = sr_member_reauth_throttle_status($pdo, $accountId);
+    if (!empty($throttle['limited'])) {
+        sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'admin.permissions.reauth_blocked',
+            'target_type' => 'member_account',
+            'target_id' => (string) $targetAccountId,
+            'result' => 'failure',
+            'message' => 'Admin permission change reauthentication blocked by throttle.',
+            'metadata' => [
+                'intent' => $intent,
+            ],
+        ]);
+        return ['재인증 시도가 많습니다. 잠시 후 다시 시도하세요.'];
+    }
+
+    if ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? ''))) {
+        sr_member_log_auth($pdo, $accountId, 'admin_permission_reauth', 'failure');
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'admin.permissions.reauth_failed',
+            'target_type' => 'member_account',
+            'target_id' => (string) $targetAccountId,
+            'result' => 'failure',
+            'message' => 'Admin permission change reauthentication failed.',
+            'metadata' => [
+                'intent' => $intent,
+            ],
+        ]);
+        return ['관리자 권한을 부여하거나 소유자 권한을 변경하려면 현재 비밀번호를 다시 입력하세요.'];
+    }
+
+    sr_member_log_auth($pdo, $accountId, 'admin_permission_reauth', 'success');
+    return [];
 }
 
 function sr_admin_permission_account_query_parts(PDO $pdo, string $statusFilter = '', array $searchFilter = [], string $permissionFilter = ''): array
