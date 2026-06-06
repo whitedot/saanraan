@@ -32,6 +32,9 @@ return [
         'layout_quinary_menu_key' => '',
         'member_submission_enabled' => false,
         'member_submission_default_review_required' => true,
+        'member_submission_author_reward_enabled' => false,
+        'member_submission_author_reward_asset_module' => '',
+        'member_submission_author_reward_amount' => 0,
     ],
     'contracts' => [
         'provides' => [
