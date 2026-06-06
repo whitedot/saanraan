@@ -134,7 +134,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 </form>
             </article>
             <?php } else { ?>
-            <div>
+            <div class="community-post-body">
                 <?php echo sr_community_post_body_html($post); ?>
             </div>
 
@@ -242,7 +242,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php } ?>
         </article>
 
-        <section id="comments">
+        <section id="comments" class="community-comments-panel">
             <?php echo sr_render_output_slot($pdo, [
                 'module_key' => 'community',
                 'point_key' => 'community.post.view',
@@ -250,7 +250,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 'subject_id' => (string) $post['id'],
             ]); ?>
 
-            <h2><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></h2>
+            <div class="community-comments-panel-header">
+                <h2><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></h2>
+            </div>
             <?php if ($commentNotice !== '') { ?>
                 <p><?php echo sr_e($commentNotice); ?></p>
             <?php } ?>

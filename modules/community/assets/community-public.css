@@ -1,11 +1,16 @@
 .community-screen {
+    --community-sticky-top: 76px;
+    display: grid;
+    gap: 18px 48px;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
     margin: 0 auto;
-    max-width: 1080px;
-    padding: 40px clamp(1rem, 4vw, 2.5rem);
+    max-width: 1360px;
+    padding: 40px 0;
+    width: calc(100% - clamp(32px, 5vw, 96px));
 }
 
 .community-screen > * + * {
-    margin-top: 18px;
+    margin-top: 0;
 }
 
 .community-screen h1 {
@@ -15,6 +20,98 @@
     font-weight: 700;
     letter-spacing: 0;
     line-height: 1.05;
+    overflow-wrap: anywhere;
+}
+
+.community-screen > article {
+    align-self: start;
+    grid-column: 1;
+    grid-row: 2;
+    padding-right: 4px;
+}
+
+.community-screen > article.is-community-smart-sticky,
+.community-comments-panel.is-community-smart-sticky {
+    position: sticky;
+    top: var(--community-smart-sticky-top, var(--community-sticky-top));
+}
+
+.community-comments-panel {
+    align-self: start;
+    background: #fafafa;
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    padding: 18px;
+    width: 100%;
+}
+
+.community-comments-panel-header {
+    align-items: center;
+    background: #fafafa;
+    border-bottom: 1px solid #eeeeee;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin: -18px -18px 0;
+    padding: 16px 18px 14px;
+    position: sticky;
+    top: -18px;
+    z-index: 1;
+}
+
+.community-comments-panel-header h2 {
+    font-size: 1.25rem;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.community-screen article,
+.community-screen section,
+.community-screen nav,
+.community-screen form {
+    min-width: 0;
+}
+
+.community-post-body {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.community-post-body :is(p, ul, ol, blockquote, pre, table) {
+    margin: 0 0 1.35em;
+}
+
+.community-post-body :is(a, li, dd, figcaption, code) {
+    overflow-wrap: anywhere;
+}
+
+.community-post-body :is(pre, table) {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.community-post-body pre {
+    white-space: pre-wrap;
+}
+
+.community-post-body img {
+    display: block;
+    height: auto;
+    margin: 24px auto;
+    max-width: 100%;
+}
+
+.community-post-body :is(video, iframe, embed, object) {
+    display: block;
+    max-width: 100%;
 }
 
 .community-screen :is(form, fieldset) {
@@ -120,9 +217,16 @@
     line-height: 1.5;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 900px) {
     .community-screen {
+        display: block;
+        max-width: 1360px;
         padding-block: 28px;
+    }
+
+    .community-screen > article {
+        padding-right: 0;
+        position: static;
     }
 
     .community-screen :is(button, .btn) {
@@ -131,5 +235,16 @@
 
     .community-screen .sr-link-card-picker-controls {
         align-items: stretch;
+    }
+
+    .community-comments-panel {
+        margin-top: 28px;
+        position: static;
+    }
+}
+
+@media (max-width: 767px) {
+    .community-screen {
+        width: calc(100% - 40px);
     }
 }

@@ -49,6 +49,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     <?php } ?>
 
     <article class="content-article">
+        <div class="content-reading-panel">
         <header class="content-header">
             <h1><?php echo sr_e((string) $page['title']); ?></h1>
             <?php if ((string) $page['summary'] !== '') { ?>
@@ -199,8 +200,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     </button>
                 </form>
             <?php } ?>
+        <?php } ?>
+        </div>
+        <?php if (!empty($pageAccess['allowed'])) { ?>
             <section id="content-comments" class="content-comments">
-                <h2>댓글</h2>
+                <div class="content-comments-panel-header">
+                    <h2>댓글</h2>
+                </div>
                 <?php if ((string) ($contentCommentNotice ?? '') !== '') { ?>
                     <p><?php echo sr_e((string) $contentCommentNotice); ?></p>
                 <?php } ?>
