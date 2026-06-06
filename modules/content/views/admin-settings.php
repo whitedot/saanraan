@@ -22,6 +22,33 @@ $contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($
     <?php
 };
 $contentLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
+$contentLayoutMenuFields = [
+    'layout_primary_menu_key' => [
+        'label' => '주 메뉴 슬롯',
+        'help' => '선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 공개 가능한 콘텐츠 그룹이 주 메뉴 후보로 표시됩니다.',
+        'default' => 'header',
+    ],
+    'layout_secondary_menu_key' => [
+        'label' => '보조 메뉴 슬롯',
+        'help' => '선택한 공개 레이아웃이 보조 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_tertiary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 1',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 1을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_quaternary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 2',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 2를 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_quinary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 3',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 3을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -60,15 +87,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-form-help">새 콘텐츠와 새 콘텐츠 그룹을 만들 때 먼저 채울 공개 레이아웃입니다. 기존 콘텐츠와 그룹은 자동 변경되지 않습니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
-            <label class="form-label" for="content_admin_settings_layout_primary_menu_key">주 메뉴 슬롯</label>
-            <div class="admin-form-field">
-                <select id="content_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
-                    <?php $contentSiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
-                </select>
-                <p class="admin-form-help">선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 공개 가능한 콘텐츠 그룹이 주 메뉴 후보로 표시됩니다.</p>
+        <?php foreach ($contentLayoutMenuFields as $contentLayoutMenuSettingKey => $contentLayoutMenuField) { ?>
+            <?php $contentLayoutMenuInputId = 'content_admin_settings_' . $contentLayoutMenuSettingKey; ?>
+            <div class="admin-form-row">
+                <label class="form-label" for="<?php echo sr_e($contentLayoutMenuInputId); ?>"><?php echo sr_e((string) $contentLayoutMenuField['label']); ?></label>
+                <div class="admin-form-field">
+                    <select id="<?php echo sr_e($contentLayoutMenuInputId); ?>" name="<?php echo sr_e((string) $contentLayoutMenuSettingKey); ?>" class="form-select">
+                        <?php $contentSiteMenuSelectOptions((string) ($settings[$contentLayoutMenuSettingKey] ?? $contentLayoutMenuField['default'])); ?>
+                    </select>
+                    <p class="admin-form-help"><?php echo sr_e((string) $contentLayoutMenuField['help']); ?></p>
+                </div>
             </div>
-        </div>
+        <?php } ?>
     </section>
 
     <section class="admin-card card">

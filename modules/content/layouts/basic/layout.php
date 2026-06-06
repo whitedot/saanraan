@@ -14,12 +14,19 @@ $layoutCleanMenuKey = static function (string $value): string {
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 };
 $layoutPrimaryMenuKey = array_key_exists('primary', $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus['primary']) : '';
+$layoutFooterMenuSlots = [
+    'secondary' => ['slot_key' => 'secondary_navigation', 'label' => '보조 메뉴'],
+    'tertiary' => ['slot_key' => 'tertiary_navigation', 'label' => '추가 메뉴 1'],
+    'quaternary' => ['slot_key' => 'quaternary_navigation', 'label' => '추가 메뉴 2'],
+    'quinary' => ['slot_key' => 'quinary_navigation', 'label' => '추가 메뉴 3'],
+];
 $layoutSiteName = trim((string) ($layoutSite['name'] ?? $layoutSite['site_name'] ?? 'Saanraan'));
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandLinkUrl = sr_url('/content');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
+$layoutFooterNavigationHtml = [];
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
@@ -57,7 +64,23 @@ if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists
         $layoutPrimaryNavigationHtml .= '</ul></div>';
     }
 }
-if ($layoutPrimaryNavigationHtml !== '') {
+if ($layoutPdo instanceof PDO) {
+    foreach ($layoutFooterMenuSlots as $layoutFooterMenuContextKey => $layoutFooterMenuSlot) {
+        $layoutFooterMenuKey = array_key_exists($layoutFooterMenuContextKey, $layoutSiteMenus) ? $layoutCleanMenuKey((string) $layoutSiteMenus[$layoutFooterMenuContextKey]) : '';
+        if ($layoutFooterMenuKey === '') {
+            continue;
+        }
+        $layoutFooterMenuSlotKey = (string) ($layoutFooterMenuSlot['slot_key'] ?? '');
+        $layoutFooterMenuHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.footer', 'slot_key' => $layoutFooterMenuSlotKey, 'menu_key' => $layoutFooterMenuKey]);
+        if ($layoutFooterMenuHtml !== '') {
+            $layoutFooterNavigationHtml[$layoutFooterMenuSlotKey] = [
+                'html' => $layoutFooterMenuHtml,
+                'label' => (string) ($layoutFooterMenuSlot['label'] ?? '하단 메뉴'),
+            ];
+        }
+    }
+}
+if ($layoutPrimaryNavigationHtml !== '' || $layoutFooterNavigationHtml !== []) {
     $layoutStylesheets[] = '/modules/site_menu/assets/public.css';
 }
 $layoutNotificationEnabled = false;
@@ -165,6 +188,11 @@ $layoutCopyrightYear = date('Y');
         <?php echo $layoutContent; ?>
     </div>
     <footer class="content-layout-footer">
+        <?php foreach ($layoutFooterNavigationHtml as $layoutFooterNavigationSlotKey => $layoutFooterNavigation) { ?>
+            <nav class="content-layout-footer-nav content-layout-footer-nav-<?php echo sr_e($layoutFooterNavigationSlotKey); ?>" aria-label="<?php echo sr_e((string) ($layoutFooterNavigation['label'] ?? '하단 메뉴')); ?>">
+                <?php echo (string) ($layoutFooterNavigation['html'] ?? ''); ?>
+            </nav>
+        <?php } ?>
         <p>Copyright <?php echo sr_e($layoutCopyrightYear); ?> <?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?>.</p>
     </footer>
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>

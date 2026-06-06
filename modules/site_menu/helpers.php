@@ -40,6 +40,8 @@ function sr_site_menu_layout_slot_menu_key(string $slotKey): string
         'primary_navigation' => 'header',
         'secondary_navigation' => 'footer',
         'tertiary_navigation' => 'utility',
+        'quaternary_navigation' => '',
+        'quinary_navigation' => '',
     ];
 
     return (string) ($map[$slotKey] ?? '');

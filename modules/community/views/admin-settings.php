@@ -14,6 +14,33 @@ $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use 
     <?php } ?>
     <?php
 };
+$communityLayoutMenuFields = [
+    'layout_primary_menu_key' => [
+        'label' => '주 메뉴 슬롯',
+        'help' => '선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 접근 가능한 게시판 그룹이 주 메뉴 후보로 표시됩니다.',
+        'default' => 'header',
+    ],
+    'layout_secondary_menu_key' => [
+        'label' => '보조 메뉴 슬롯',
+        'help' => '선택한 공개 레이아웃이 보조 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_tertiary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 1',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 1을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_quaternary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 2',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 2를 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_quinary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 3',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 3을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+];
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
@@ -328,15 +355,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </select>
             </div>
         </div>
-        <div class="admin-form-row">
-            <label class="form-label" for="community_admin_settings_layout_primary_menu_key">주 메뉴 슬롯</label>
-            <div class="admin-form-field">
-                <select id="community_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
-                    <?php $communitySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
-                </select>
-                <p class="admin-form-help">선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다. 사용 안 함이면 접근 가능한 게시판 그룹이 주 메뉴 후보로 표시됩니다.</p>
+        <?php foreach ($communityLayoutMenuFields as $communityLayoutMenuSettingKey => $communityLayoutMenuField) { ?>
+            <?php $communityLayoutMenuInputId = 'community_admin_settings_' . $communityLayoutMenuSettingKey; ?>
+            <div class="admin-form-row">
+                <label class="form-label" for="<?php echo sr_e($communityLayoutMenuInputId); ?>"><?php echo sr_e((string) $communityLayoutMenuField['label']); ?></label>
+                <div class="admin-form-field">
+                    <select id="<?php echo sr_e($communityLayoutMenuInputId); ?>" name="<?php echo sr_e((string) $communityLayoutMenuSettingKey); ?>" class="form-select">
+                        <?php $communitySiteMenuSelectOptions((string) ($settings[$communityLayoutMenuSettingKey] ?? $communityLayoutMenuField['default'])); ?>
+                    </select>
+                    <p class="admin-form-help"><?php echo sr_e((string) $communityLayoutMenuField['help']); ?></p>
+                </div>
             </div>
-        </div>
+        <?php } ?>
         <div class="admin-form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">

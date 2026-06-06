@@ -34,6 +34,10 @@ if (sr_request_method() === 'POST') {
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'layout_primary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
+        'layout_secondary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
+        'layout_tertiary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
+        'layout_quaternary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60)),
+        'layout_quinary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60)),
     ];
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
@@ -45,7 +49,7 @@ if (sr_request_method() === 'POST') {
     if (!isset($publicLayoutOptions[(string) $postedSettings['layout_key']])) {
         $errors[] = '기본 콘텐츠 레이아웃 값이 올바르지 않습니다.';
     }
-    foreach (['layout_primary_menu_key'] as $menuSettingKey) {
+    foreach (sr_content_layout_menu_slots() as $menuSettingKey) {
         $menuKey = (string) $postedSettings[$menuSettingKey];
         if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey])) {
             $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';

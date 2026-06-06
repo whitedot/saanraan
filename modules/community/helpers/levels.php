@@ -39,6 +39,10 @@ function sr_community_default_settings(): array
         'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
         'layout_primary_menu_key' => is_string($settings['layout_primary_menu_key'] ?? null) ? (string) $settings['layout_primary_menu_key'] : 'header',
+        'layout_secondary_menu_key' => is_string($settings['layout_secondary_menu_key'] ?? null) ? (string) $settings['layout_secondary_menu_key'] : '',
+        'layout_tertiary_menu_key' => is_string($settings['layout_tertiary_menu_key'] ?? null) ? (string) $settings['layout_tertiary_menu_key'] : '',
+        'layout_quaternary_menu_key' => is_string($settings['layout_quaternary_menu_key'] ?? null) ? (string) $settings['layout_quaternary_menu_key'] : '',
+        'layout_quinary_menu_key' => is_string($settings['layout_quinary_menu_key'] ?? null) ? (string) $settings['layout_quinary_menu_key'] : '',
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
         'post_reward_asset_module' => is_string($settings['post_reward_asset_module'] ?? null) ? (string) $settings['post_reward_asset_module'] : '',
@@ -75,6 +79,17 @@ function sr_community_default_settings(): array
         'paid_attachment_download_group_policies_json' => is_string($settings['paid_attachment_download_group_policies_json'] ?? null) ? (string) $settings['paid_attachment_download_group_policies_json'] : '',
         'paid_attachment_download_policy_set_id' => (int) ($settings['paid_attachment_download_policy_set_id'] ?? 0),
         'paid_attachment_download_charge_policy' => is_string($settings['paid_attachment_download_charge_policy'] ?? null) ? (string) $settings['paid_attachment_download_charge_policy'] : 'once',
+    ];
+}
+
+function sr_community_layout_menu_slots(): array
+{
+    return [
+        'primary' => 'layout_primary_menu_key',
+        'secondary' => 'layout_secondary_menu_key',
+        'tertiary' => 'layout_tertiary_menu_key',
+        'quaternary' => 'layout_quaternary_menu_key',
+        'quinary' => 'layout_quinary_menu_key',
     ];
 }
 
@@ -134,7 +149,9 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['nickname_required'] = $settings['nickname_enabled'];
     $settings['theme_key'] = sr_community_theme_key($settings);
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
-    $settings['layout_primary_menu_key'] = sr_community_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'));
+    foreach (sr_community_layout_menu_slots() as $settingKey) {
+        $settings[$settingKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
+    }
     $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
@@ -178,9 +195,10 @@ function sr_community_public_layout_context(array $settings, array $context = []
     $stylesheets[] = '/modules/community/assets/community-public.css';
     $context['stylesheets'] = $stylesheets;
 
-    $siteMenus = [
-        'primary' => sr_community_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')),
-    ];
+    $siteMenus = [];
+    foreach (sr_community_layout_menu_slots() as $slotKey => $settingKey) {
+        $siteMenus[$slotKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ($slotKey === 'primary' ? 'header' : '')));
+    }
 
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
 

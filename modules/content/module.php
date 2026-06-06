@@ -26,6 +26,10 @@ return [
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
         'layout_primary_menu_key' => 'header',
+        'layout_secondary_menu_key' => '',
+        'layout_tertiary_menu_key' => '',
+        'layout_quaternary_menu_key' => '',
+        'layout_quinary_menu_key' => '',
     ],
     'contracts' => [
         'provides' => [

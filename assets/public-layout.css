@@ -317,6 +317,16 @@
     width: calc(100% - clamp(32px, 5vw, 96px));
 }
 
+.public-layout-footer-nav {
+    margin: 0 auto 16px;
+    width: min(1360px, 100%);
+}
+
+.public-layout-footer-nav .sr-site-menu-list {
+    flex-wrap: wrap;
+    gap: 10px 18px;
+}
+
 .public-layout-footer p {
     border-top: 1px solid rgba(0, 0, 0, .11);
     font-size: .75rem;
@@ -358,5 +368,9 @@
     .public-layout-footer {
         padding: 24px 0 34px;
         width: calc(100% - 40px);
+    }
+
+    .public-layout-footer-nav .sr-site-menu-list {
+        gap: 8px 14px;
     }
 }

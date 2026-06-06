@@ -13,11 +13,10 @@ return static function (PDO $pdo, array $context): string {
 
     $pointKey = (string) ($context['point_key'] ?? '');
     $slotKey = (string) ($context['slot_key'] ?? '');
+    $allowedSlotKeys = ['navigation', 'primary_navigation', 'secondary_navigation', 'tertiary_navigation', 'quaternary_navigation', 'quinary_navigation'];
     if (
-        !in_array($pointKey, ['site.header', 'site.footer'], true)
-        ||
-        ($pointKey === 'site.header' && !in_array($slotKey, ['navigation', 'primary_navigation'], true))
-        || ($pointKey === 'site.footer' && !in_array($slotKey, ['secondary_navigation', 'tertiary_navigation'], true))
+        !str_starts_with($pointKey, 'site.')
+        || !in_array($slotKey, $allowedSlotKeys, true)
     ) {
         return '';
     }

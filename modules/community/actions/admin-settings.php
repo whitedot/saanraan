@@ -63,6 +63,10 @@ if (sr_request_method() === 'POST') {
         $onceHistoryPolicy = sr_community_once_history_policy($onceHistoryPolicyInput);
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
         $layoutPrimaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60));
+        $layoutSecondaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60));
+        $layoutTertiaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60));
+        $layoutQuaternaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60));
+        $layoutQuinaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60));
         $assetSettings = [];
         foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
             $policySetIds = sr_community_asset_policy_set_ids_from_value($_POST[$assetPrefix . '_policy_set_ids'] ?? []);
@@ -122,7 +126,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.layout_invalid');
             $layoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
         }
-        foreach ([$layoutPrimaryMenuKey] as $layoutMenuKey) {
+        foreach ([$layoutPrimaryMenuKey, $layoutSecondaryMenuKey, $layoutTertiaryMenuKey, $layoutQuaternaryMenuKey, $layoutQuinaryMenuKey] as $layoutMenuKey) {
             if ($layoutMenuKey !== '' && !isset($siteMenuOptions[$layoutMenuKey])) {
                 $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
                 break;
@@ -205,6 +209,10 @@ if (sr_request_method() === 'POST') {
                 ['theme_key', 'basic', 'string'],
                 ['layout_key', $layoutKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
+                ['layout_secondary_menu_key', $layoutSecondaryMenuKey, 'string'],
+                ['layout_tertiary_menu_key', $layoutTertiaryMenuKey, 'string'],
+                ['layout_quaternary_menu_key', $layoutQuaternaryMenuKey, 'string'],
+                ['layout_quinary_menu_key', $layoutQuinaryMenuKey, 'string'],
                 ['post_editor', $postEditor, 'string'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
                 ['post_reward_asset_module', (string) $assetSettings['post_reward_asset_module'], 'string'],
@@ -296,6 +304,10 @@ if (sr_request_method() === 'POST') {
                         'message_write_min_level' => $messageWriteMinLevel,
                         'layout_key' => $layoutKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,
+                        'layout_secondary_menu_key' => $layoutSecondaryMenuKey,
+                        'layout_tertiary_menu_key' => $layoutTertiaryMenuKey,
+                        'layout_quaternary_menu_key' => $layoutQuaternaryMenuKey,
+                        'layout_quinary_menu_key' => $layoutQuinaryMenuKey,
                         'post_editor' => $postEditor,
                         'once_history_policy' => $onceHistoryPolicy,
                         'asset_settings' => $assetSettings,

@@ -137,7 +137,7 @@ modules/board/
 공개 화면 디자인 책임은 public layout, 모듈 theme, 모듈 skin을 구분한다.
 
 - public layout은 사이트 전체 껍데기만 담당한다. `<html>`, `<head>`, 공통 header/footer, 사이트 메뉴, output slot, 전체 폭과 기본 여백이 여기에 속한다.
-- public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 슬롯 구분으로 `primary_navigation` output slot을 사용한다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`로 전달한다. 관리자 화면에서는 고정 위치명 대신 `주 메뉴 슬롯`처럼 표시하고, 실제 위치는 레이아웃 구현이 결정한다. `secondary_navigation`, `tertiary_navigation`은 사이트 메뉴 출력 슬롯 계약에 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링한다.
+- public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 슬롯 구분으로 `primary_navigation`, `secondary_navigation`, `tertiary_navigation`, `quaternary_navigation`, `quinary_navigation` output slot을 사용한다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`, `site_menus.secondary`, `site_menus.tertiary`, `site_menus.quaternary`, `site_menus.quinary`로 전달한다. 관리자 화면에서는 고정 위치명 대신 `주 메뉴 슬롯`, `보조 메뉴 슬롯`, `추가 메뉴 슬롯 1`처럼 표시하고, 실제 위치는 레이아웃 구현이 결정한다. 번들 공통/콘텐츠/커뮤니티 레이아웃은 primary 메뉴를 header에, 나머지 메뉴 슬롯을 footer 영역에 렌더링한다.
 - public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 초기/기본 공개 페이지와 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 원본 개발자 화면이며 admin 모듈에 의존하지 않는다. 모듈별 UI-KIT를 추가하더라도 이 화면은 초기 페이지용 기준으로 보존한다.
 - 관리자 화면을 가진 모듈은 자기 화면 조합을 확인하기 위해 모듈 전용 UI-KIT 조회 화면을 둘 수 있다. 이때 route와 view/action은 소유 모듈에 두고, 보조 스타일은 `modules/{module_key}/assets/ui-kit.css` 또는 `modules/{module_key}/assets/{module_key}-ui-kit.css`, 샘플은 `modules/{module_key}/views/ui-kit-samples/`처럼 모듈 내부에 둔다. 공통 UI-KIT 샘플을 복제해 시작할 수 있지만, 실제 모듈 화면에서 쓰는 클래스와 타이포그래피 기준은 모듈 프리뷰에서 따로 검증한다.
 - 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `content.basic`, `community.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
@@ -1289,7 +1289,7 @@ return [
 
 - 링크 자산 제공은 메뉴 항목 자동 생성을 의미하지 않는다.
 - 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 결정한다.
-- 콘텐츠와 커뮤니티 환경설정에서 번들 공개 레이아웃의 주 메뉴 슬롯에 연결할 사이트 메뉴를 선택할 수 있다. 하단/보조 메뉴 슬롯 계약은 남아 있을 수 있지만, 번들 공통/콘텐츠/커뮤니티 레이아웃은 콘텐츠 레이아웃과 같은 기준을 유지하기 위해 primary 메뉴만 렌더링한다.
+- 콘텐츠와 커뮤니티 환경설정에서 번들 공개 레이아웃의 주 메뉴 슬롯, 보조 메뉴 슬롯, 추가 메뉴 슬롯 1, 추가 메뉴 슬롯 2, 추가 메뉴 슬롯 3에 연결할 사이트 메뉴를 선택할 수 있다. 기존 `layout_primary_menu_key`, `layout_secondary_menu_key`, `layout_tertiary_menu_key`는 유지하고, 추가 슬롯은 `layout_quaternary_menu_key`, `layout_quinary_menu_key`로 저장한다.
 - 주 메뉴 슬롯을 사용 안 함으로 설정하면 명시적인 사이트 메뉴 대신 모듈이 공개 가능한 fallback 링크를 렌더링할 수 있다. 번들 콘텐츠 레이아웃은 공개 가능한 콘텐츠 그룹, 번들 커뮤니티 레이아웃은 공개 읽기가 가능한 게시판 그룹과 그룹 없는 게시판을 후보로 사용한다.
 - 사이트 메뉴 항목은 `parent_id` 기반으로 최대 3단계까지 구성할 수 있으며, 관리자 화면은 메뉴 묶음과 항목을 단일 계층 테이블에서 관리한다.
 - 사이트 메뉴 항목은 선택적으로 `icon_name`을 저장해 공개 메뉴 라벨 앞에 아이콘을 표시할 수 있다. 선택지는 관리자 메뉴 아이콘 helper의 허용 심볼과 공개 출력 가능한 Material 공용 아이콘 키를 사용한다.
