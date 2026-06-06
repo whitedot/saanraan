@@ -181,12 +181,13 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
     $questions[] = [
         'question_key' => '',
         'prompt' => '',
+        'question_type' => 'single_choice',
         'score_value' => 1,
         'choices' => [
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 1],
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 0],
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 0],
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 0],
+                    ['choice_key' => '', 'label' => '', 'is_correct' => 1, 'category_key' => '', 'category_weight' => 0],
+                    ['choice_key' => '', 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0],
+                    ['choice_key' => '', 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0],
+                    ['choice_key' => '', 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0],
                 ],
             ];
 }
@@ -231,6 +232,26 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                     <select id="quiz_status" name="status" class="form-select" required>
                         <?php foreach (sr_quiz_statuses() as $status) { ?>
                             <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_status_label($status)); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_mode">모드 <span class="sr-required-label">(필수)</span></label>
+                <div class="admin-form-field">
+                    <select id="quiz_mode" name="quiz_mode" class="form-select" required>
+                        <?php foreach (sr_quiz_modes() as $quizMode) { ?>
+                            <option value="<?php echo sr_e($quizMode); ?>"<?php echo (string) ($values['quiz_mode'] ?? 'scored') === $quizMode ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_mode_label($quizMode)); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_scoring_model">채점 모델 <span class="sr-required-label">(필수)</span></label>
+                <div class="admin-form-field">
+                    <select id="quiz_scoring_model" name="scoring_model" class="form-select" required>
+                        <?php foreach (sr_quiz_scoring_models() as $scoringModel) { ?>
+                            <option value="<?php echo sr_e($scoringModel); ?>"<?php echo (string) ($values['scoring_model'] ?? 'correct_answer') === $scoringModel ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_scoring_model_label($scoringModel)); ?></option>
                         <?php } ?>
                     </select>
                 </div>
@@ -290,7 +311,7 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 $questionUid = 'qrow_' . (string) $questionIndex;
                 $choices = (array) ($question['choices'] ?? []);
                 for ($choiceExtra = count($choices); $choiceExtra < 4; $choiceExtra++) {
-                    $choices[] = ['choice_key' => chr(97 + $choiceExtra), 'label' => '', 'is_correct' => 0];
+                    $choices[] = ['choice_key' => chr(97 + $choiceExtra), 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0];
                 }
                 ?>
                 <section class="admin-quiz-question-block">
@@ -299,6 +320,16 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                     </div>
                     <div class="admin-section-body">
                         <input type="hidden" name="question_uid[]" value="<?php echo sr_e($questionUid); ?>">
+                        <div class="admin-form-row">
+                            <label class="form-label" for="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>">문제 유형</label>
+                            <div class="admin-form-field">
+                                <select id="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>" name="question_type[]" class="form-select">
+                                    <?php foreach (sr_quiz_question_types() as $questionType) { ?>
+                                        <option value="<?php echo sr_e($questionType); ?>"<?php echo (string) ($question['question_type'] ?? 'single_choice') === $questionType ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_question_type_label($questionType)); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
                         <div class="admin-form-row">
                             <label class="form-label" for="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>">문제 Key</label>
                             <div class="admin-form-field">
@@ -323,14 +354,18 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                                     <th>정답</th>
                                     <th>선택지 Key</th>
                                     <th>선택지</th>
+                                    <th>카테고리 Key</th>
+                                    <th>가중치</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($choices as $choiceIndex => $choice) { ?>
                                     <tr>
-                                        <td><input type="radio" name="correct_choice[<?php echo sr_e($questionUid); ?>]" value="<?php echo sr_e((string) $choiceIndex); ?>"<?php echo (int) ($choice['is_correct'] ?? 0) === 1 ? ' checked' : ''; ?>></td>
+                                        <td><input type="checkbox" name="correct_choice[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) $choiceIndex); ?>"<?php echo (int) ($choice['is_correct'] ?? 0) === 1 ? ' checked' : ''; ?>></td>
                                         <td><input type="text" name="choice_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
                                         <td><input type="text" name="choice_label[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['label'] ?? '')); ?>" class="form-input form-control-full" maxlength="255"></td>
+                                        <td><input type="text" name="choice_category_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['category_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
+                                        <td><input type="number" name="choice_category_weight[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) (int) ($choice['category_weight'] ?? 0)); ?>" class="form-input" step="1"></td>
                                     </tr>
                                 <?php } ?>
                             </tbody>
@@ -356,6 +391,16 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 </div>
             </div>
             <div class="admin-form-row">
+                <label class="form-label" for="quiz_reward_provider">보상 공급자</label>
+                <div class="admin-form-field">
+                    <select id="quiz_reward_provider" name="reward_provider" class="form-select">
+                        <?php foreach (sr_quiz_reward_providers() as $provider) { ?>
+                            <option value="<?php echo sr_e($provider); ?>"<?php echo (string) ($values['reward_provider'] ?? 'ledger_asset') === $provider ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_reward_provider_label($provider)); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin-form-row">
                 <label class="form-label" for="quiz_reward_module">보상 자산</label>
                 <div class="admin-form-field">
                     <select id="quiz_reward_module" name="reward_module" class="form-select">
@@ -367,9 +412,26 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 </div>
             </div>
             <div class="admin-form-row">
+                <label class="form-label" for="quiz_reward_coupon_definition_id">보상 쿠폰 정의 ID</label>
+                <div class="admin-form-field">
+                    <input id="quiz_reward_coupon_definition_id" type="number" name="reward_coupon_definition_id" value="<?php echo sr_e((string) ($values['reward_coupon_definition_id'] ?? '')); ?>" class="form-input" min="1" step="1">
+                    <p class="admin-form-help">보상 공급자가 쿠폰 발급일 때 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
                 <label class="form-label" for="quiz_reward_amount">보상 금액</label>
                 <div class="admin-form-field">
                     <input id="quiz_reward_amount" type="number" name="reward_amount" value="<?php echo sr_e((string) ($values['reward_amount'] ?? '')); ?>" class="form-input" min="1" step="1">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_reward_dedupe_scope">보상 중복 제한</label>
+                <div class="admin-form-field">
+                    <select id="quiz_reward_dedupe_scope" name="reward_dedupe_scope" class="form-select">
+                        <?php foreach (sr_quiz_reward_dedupe_scopes() as $scope) { ?>
+                            <option value="<?php echo sr_e($scope); ?>"<?php echo (string) ($values['reward_dedupe_scope'] ?? 'per_quiz') === $scope ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_reward_dedupe_scope_label($scope)); ?></option>
+                        <?php } ?>
+                    </select>
                 </div>
             </div>
         </div>
@@ -384,7 +446,21 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 <label class="form-label" for="quiz_content_source_ids">콘텐츠 ID</label>
                 <div class="admin-form-field">
                     <textarea id="quiz_content_source_ids" name="content_source_ids" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['content_source_ids'] ?? '')); ?></textarea>
-                    <p class="admin-form-help">MVP는 콘텐츠 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
+                    <p class="admin-form-help">콘텐츠 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_community_source_ids">커뮤니티 게시글 ID</label>
+                <div class="admin-form-field">
+                    <textarea id="quiz_community_source_ids" name="community_source_ids" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['community_source_ids'] ?? '')); ?></textarea>
+                    <p class="admin-form-help">커뮤니티 게시글 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_result_rules">결과 규칙</label>
+                <div class="admin-form-field">
+                    <textarea id="quiz_result_rules" name="result_rules" class="form-textarea" rows="5"><?php echo sr_e((string) ($values['result_rules'] ?? '')); ?></textarea>
+                    <p class="admin-form-help">한 줄에 key|제목|최소점수|최대점수|카테고리key|기준값|요약 순서로 입력합니다.</p>
                 </div>
             </div>
         </div>

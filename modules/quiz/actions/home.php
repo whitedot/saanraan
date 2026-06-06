@@ -14,6 +14,7 @@ $seo = [
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'body_class' => 'sr-quiz-page',
+    'stylesheets' => ['/modules/quiz/assets/public.css'],
 ]);
 ?>
 <main class="sr-public-main">

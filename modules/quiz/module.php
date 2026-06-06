@@ -31,6 +31,7 @@ return [
             'menu-links.php',
             'privacy-export.php',
             'privacy-cleanup.php',
+            'coupon-references.php',
         ],
         'consumes' => [
             'member-assets.php',

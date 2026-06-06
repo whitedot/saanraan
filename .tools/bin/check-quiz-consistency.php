@@ -147,7 +147,9 @@ function sr_quiz_check_paths_and_admin(): void
         'attempt_limit_policy',
         'LIMIT 1 FOR UPDATE',
         'Quiz to update was not found.',
-        '$dedupeScope !== \'per_quiz\'',
+        '$dedupeScope === \'per_source\'',
+        '$dedupeScope === \'per_attempt\'',
+        'sr_quiz_issue_coupon_reward_grant',
         'reference_type\' => \'quiz_reward',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/admin-quiz.php', [
@@ -205,7 +207,9 @@ function sr_quiz_check_privacy_contracts(): void
 function sr_quiz_check_docs(): void
 {
     sr_quiz_check_file_contains('docs/plans/quiz-reward-module-plan.md', [
-        'MVP source는 `content/content_item`으로 고정',
+        '`content/content_item`과 `community/community_post`',
+        '`per_quiz`, `per_source`, `per_attempt`',
+        '`ledger_asset` 또는 `coupon`',
         'transaction_lookup_function',
         '포커스 trap',
         '`return_to`',

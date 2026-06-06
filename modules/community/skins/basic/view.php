@@ -14,6 +14,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
         '/modules/banner/assets/public.css',
         '/modules/popup_layer/assets/public.css',
+        '/modules/quiz/assets/public.css',
     ]),
 ]));
 ?>
@@ -137,6 +138,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <div class="community-post-body">
                 <?php echo sr_community_post_body_html($post); ?>
             </div>
+
+            <?php if (is_array($communityQuizQuizzes ?? null) && $communityQuizQuizzes !== []) { ?>
+                <?php
+                $sourceQuizzes = $communityQuizQuizzes;
+                $sourceModule = 'community';
+                $sourceType = 'community_post';
+                $sourceId = (int) $post['id'];
+                $returnTo = '/community/post?id=' . rawurlencode((string) (int) $post['id']);
+                include SR_ROOT . '/modules/quiz/views/source-quizzes.php';
+                ?>
+            <?php } ?>
 
             <?php if ($imageAttachments !== []) { ?>
                 <section>

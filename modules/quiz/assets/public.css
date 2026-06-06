@@ -1,0 +1,40 @@
+.sr-quiz-dialog {
+    width: min(960px, calc(100vw - 32px));
+    max-width: 100%;
+    height: min(760px, calc(100vh - 32px));
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.sr-quiz-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.48);
+}
+
+.sr-quiz-dialog-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    background: #fff;
+}
+
+.sr-quiz-dialog iframe {
+    display: block;
+    width: 100%;
+    height: calc(100% - 53px);
+    border: 0;
+}
+
+.sr-quiz-source-links {
+    display: grid;
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.sr-quiz-source-link {
+    padding: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+}

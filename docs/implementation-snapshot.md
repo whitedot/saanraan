@@ -96,7 +96,7 @@
 
 게시글 리액션은 마일스톤 8 기준으로 DB와 UI를 새로 추가하지 않는다. 현재 사용자 반응 표면은 커뮤니티 게시글/시리즈 스크랩과 콘텐츠 완료 버튼으로 유지하며, 새 리액션 도입은 중복 집계 정책, 개인정보 보존 기간, 신고/운영 정책이 확정될 때 별도 마일스톤에서 다룬다.
 
-마일스톤 2 퀴즈 보상 모듈은 `quiz` 서비스 모듈로 구현했다. 현재 반영 범위는 모듈 메타데이터, `/quiz` 공개 진입점, `/quiz/{quiz_key}` 풀이/제출/자동 채점, `/admin/quiz` CRUD, `/admin/quiz/attempts` 시도/보상 조회, 공개 기간/회원 그룹/시도 제한 검증, `content/content_item` source 연결, 콘텐츠 상세 퀴즈 CTA/모달/page fallback, `sr_quiz_*` 설치/업데이트 스키마, 개인정보 export/cleanup 계약, 자산 원장 reference 조회 callable과 통과 보상 지급, `.tools/bin/check-quiz-consistency.php` 정합성 검사다. 계획 기준은 [퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)를 따른다.
+마일스톤 2 퀴즈 보상 모듈은 `quiz` 서비스 모듈로 구현했다. 현재 반영 범위는 모듈 메타데이터, `/quiz` 공개 진입점, `/quiz/{quiz_key}` 풀이/제출/자동 채점, `/admin/quiz` CRUD, `/admin/quiz/attempts` 시도/보상 조회, 공개 기간/회원 그룹/시도 제한 검증, 단일/복수 선택 문제, 총점/카테고리 결과 규칙, `content/content_item`과 `community/community_post` source 연결, 콘텐츠/커뮤니티 상세 퀴즈 CTA/모달/page fallback, `sr_quiz_*` 설치/업데이트 스키마, 개인정보 export/cleanup 계약, 자산 원장 reference 조회 callable, 쿠폰 지급 provider와 쿠폰 정의 읽기 참조 계약, 통과 보상 지급, `.tools/bin/check-quiz-consistency.php` 정합성 검사다. 계획 기준은 [퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)를 따른다.
 
 ## 검증 기준
 

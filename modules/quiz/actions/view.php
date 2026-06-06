@@ -98,6 +98,7 @@ $seo = [
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'body_class' => 'sr-quiz-page',
+    'stylesheets' => ['/modules/quiz/assets/public.css'],
 ]);
 ?>
 <main class="sr-public-main">
@@ -112,6 +113,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <h2>퀴즈 결과</h2>
                     <p>점수: <?php echo sr_e((string) (int) ($submitResult['total_score'] ?? 0)); ?></p>
                     <p><?php echo !empty($submitResult['passed']) ? '통과했습니다.' : '통과하지 못했습니다.'; ?></p>
+                    <?php $resultSnapshot = is_array($submitResult['selected_result'] ?? null) ? $submitResult['selected_result'] : []; ?>
+                    <?php if ((string) ($resultSnapshot['title'] ?? '') !== ''): ?>
+                        <p>결과: <?php echo sr_e((string) $resultSnapshot['title']); ?></p>
+                        <?php if ((string) ($resultSnapshot['summary'] ?? '') !== ''): ?>
+                            <p><?php echo sr_e((string) $resultSnapshot['summary']); ?></p>
+                        <?php endif; ?>
+                    <?php endif; ?>
                     <?php $rewardGrant = is_array($submitResult['reward_grant'] ?? null) ? $submitResult['reward_grant'] : null; ?>
                     <?php if (is_array($rewardGrant) && (string) ($rewardGrant['status'] ?? '') === 'granted'): ?>
                         <p>보상이 지급되었습니다.</p>
@@ -146,11 +154,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <input type="hidden" name="source_type" value="<?php echo sr_e($sourceType); ?>">
                         <input type="hidden" name="source_id" value="<?php echo sr_e((string) $sourceId); ?>">
                         <?php foreach ($questions as $questionIndex => $question): ?>
+                            <?php $questionType = (string) ($question['question_type'] ?? 'single_choice'); ?>
                             <fieldset class="sr-quiz-question">
                                 <legend><?php echo sr_e((string) ($questionIndex + 1) . '. ' . (string) ($question['prompt'] ?? '')); ?></legend>
                                 <?php foreach ((array) ($question['choices'] ?? []) as $choice): ?>
                                     <label class="sr-quiz-choice" for="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>">
-                                        <input id="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="radio" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>">
+                                        <?php if ($questionType === 'multiple_choice'): ?>
+                                            <input id="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="checkbox" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>">
+                                        <?php else: ?>
+                                            <input id="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="radio" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>">
+                                        <?php endif; ?>
                                         <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
                                     </label>
                                 <?php endforeach; ?>
