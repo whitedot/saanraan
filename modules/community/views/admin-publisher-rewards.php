@@ -16,7 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <select id="community_publisher_reward_status" name="status" class="form-select">
                 <option value="">전체 상태</option>
                 <?php foreach (sr_community_publisher_reward_statuses() as $status) { ?>
-                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($publisherRewardFilters['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e($status); ?></option>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($publisherRewardFilters['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_community_publisher_reward_status_label($status)); ?></option>
                 <?php } ?>
             </select>
             <label class="sr-only" for="community_publisher_reward_q">검색어</label>
@@ -53,7 +53,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php foreach ($publisherRewardLogs as $rewardLog) { ?>
                 <tr>
                     <td>#<?php echo sr_e((string) (int) ($rewardLog['id'] ?? 0)); ?></td>
-                    <td><?php echo sr_e((string) ($rewardLog['status'] ?? '')); ?></td>
+                    <td><?php echo sr_e(sr_community_publisher_reward_status_label((string) ($rewardLog['status'] ?? ''))); ?></td>
                     <td>
                         <a href="<?php echo sr_e(sr_url('/community/post?id=' . rawurlencode((string) (int) ($rewardLog['post_id'] ?? 0)))); ?>" class="btn btn-sm btn-solid-light">게시글</a>
                         <br><?php echo sr_e((string) ($rewardLog['post_title'] ?? '')); ?>

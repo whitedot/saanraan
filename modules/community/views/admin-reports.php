@@ -163,7 +163,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
                         )); ?></td>
                         <td class="admin-table-break admin-community-report-memo-cell"><?php echo sr_e((string) ($report['memo_text'] ?? '')); ?></td>
-                        <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_e((string) $report['created_at']); ?></td>
+                        <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_community_time_html((string) $report['created_at']); ?></td>
                         <td class="admin-table-break admin-community-report-account-cell">
                             <?php if ((int) ($report['reviewer_account_id'] ?? 0) > 0) { ?>
                                 <?php echo sr_e(sr_community_report_account_label(

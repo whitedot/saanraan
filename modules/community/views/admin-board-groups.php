@@ -327,7 +327,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardGroupsPage === 'edit' ? '/admin/community/board-groups/update' : '/admin/community/board-groups/create')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2><?php echo $communityBoardGroupsPage === 'edit' ? sr_t('community::ui.edit.669f4ac3') : sr_t('community::ui.text.08aafae8'); ?></h2>
+            <h2><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.edit.669f4ac3') : sr_t('community::ui.text.08aafae8')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $formBoardGroup['id']); ?>">
@@ -675,7 +675,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
-            <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319'); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319')); ?></button>
         </div>
     </form>
 

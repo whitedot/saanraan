@@ -35,7 +35,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <h1><?php echo sr_e($pageTitle); ?></h1>
             <p>
                 <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
-                <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_e((string) $post['created_at']); ?>
+                <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_community_time_html((string) $post['created_at']); ?>
                 <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
                 <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
                     / <?php echo sr_e('카테고리'); ?>
@@ -69,7 +69,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <input type="hidden" name="intent" value="<?php echo $isScrapped ? 'remove' : 'add'; ?>">
-                    <button type="submit"><?php echo $isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a'); ?></button>
+                    <button type="submit"><?php echo sr_e($isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a')); ?></button>
                 </form>
                 <?php if ($canReportPost) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>">
@@ -198,7 +198,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <input type="hidden" name="target_type" value="series">
                             <input type="hidden" name="series_id" value="<?php echo sr_e((string) (int) $communitySeriesContext['id']); ?>">
                             <input type="hidden" name="intent" value="<?php echo !empty($isSeriesScrapped) ? 'remove' : 'add'; ?>">
-                            <button type="submit"><?php echo !empty($isSeriesScrapped) ? '시리즈 스크랩 해제' : '시리즈 스크랩'; ?></button>
+                            <button type="submit"><?php echo sr_e(!empty($isSeriesScrapped) ? '시리즈 스크랩 해제' : '시리즈 스크랩'); ?></button>
                         </form>
                     <?php } ?>
                     <?php

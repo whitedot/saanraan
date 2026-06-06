@@ -80,7 +80,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e((string) ($row['source_title'] ?? '') . ' #' . (string) (int) $row['source_board_id']); ?></td>
                         <td><?php echo sr_e((string) ($row['target_title'] ?? '') . ' #' . (string) (int) $row['target_board_id']); ?></td>
                         <td><?php echo sr_e((string) $row['status'] . ' / ' . (string) $row['stage']); ?></td>
-                        <td><?php echo sr_e((string) $row['created_at']); ?></td>
+                        <td><?php echo sr_community_time_html((string) $row['created_at']); ?></td>
                         <td><a href="<?php echo sr_e(sr_url('/admin/community/board-copy-jobs?id=' . rawurlencode((string) (int) $row['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('열기'); ?></a></td>
                     </tr>
                 <?php } ?>

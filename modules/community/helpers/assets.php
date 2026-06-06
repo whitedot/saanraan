@@ -846,6 +846,19 @@ function sr_community_publisher_reward_statuses(): array
     return ['pending', 'granted', 'failed', 'held', 'reversed', 'cancelled'];
 }
 
+function sr_community_publisher_reward_status_label(string $status): string
+{
+    return match ($status) {
+        'pending' => '대기',
+        'granted' => '지급',
+        'failed' => '실패',
+        'held' => '보류',
+        'reversed' => '회수',
+        'cancelled' => '취소',
+        default => $status,
+    };
+}
+
 function sr_community_time_html(?string $value, string $emptyText = ''): string
 {
     $exactValue = trim((string) $value);

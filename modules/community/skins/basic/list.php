@@ -88,7 +88,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php if (!empty($categoryInvalid)) { ?>
             <p>카테고리를 찾을 수 없거나 현재 사용할 수 없습니다.</p>
         <?php } elseif ($posts === []) { ?>
-            <p><?php echo $keyword !== '' ? sr_t('community::ui.search.58726bf2') : sr_t('community::ui.text.6a3d84bd'); ?></p>
+            <p><?php echo sr_e($keyword !== '' ? sr_t('community::ui.search.58726bf2') : sr_t('community::ui.text.6a3d84bd')); ?></p>
         <?php } else { ?>
             <table>
                 <thead>
@@ -120,7 +120,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <?php } ?>
                             </td>
                             <td><?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?></td>
-                            <td><?php echo sr_e((string) $post['created_at']); ?></td>
+                            <td><?php echo sr_community_time_html((string) $post['created_at']); ?></td>
                             <td><?php echo sr_e((string) ($post['published_comment_count'] ?? 0)); ?></td>
                             <td><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
                             <td><?php echo sr_e((string) $post['view_count']); ?></td>

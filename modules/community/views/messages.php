@@ -30,7 +30,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <table>
                 <thead>
                     <tr>
-                        <th><?php echo $box === 'sent' ? sr_t('community::ui.member.a8116cfc') : sr_t('community::ui.member.2d301cb0'); ?></th>
+                        <th><?php echo sr_e($box === 'sent' ? sr_t('community::ui.member.a8116cfc') : sr_t('community::ui.member.2d301cb0')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.ed5e184f')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></th>
@@ -51,8 +51,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
                                 )); ?>
                             </td>
-                            <td><?php echo $box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.62808119') : sr_t('community::ui.text.3fe5701c')) : ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.eacc746d') : sr_t('community::ui.text.3fe5701c')); ?></td>
-                            <td><?php echo sr_e((string) $message['created_at']); ?></td>
+                            <td><?php echo sr_e($box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.62808119') : sr_t('community::ui.text.3fe5701c')) : ((string) ($message['read_at'] ?? '') === '' ? sr_t('community::ui.text.eacc746d') : sr_t('community::ui.text.3fe5701c'))); ?></td>
+                            <td><?php echo sr_community_time_html((string) $message['created_at']); ?></td>
                             <td><a href="<?php echo sr_e(sr_url('/community/message?id=' . (string) $message['id'])); ?>"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></a></td>
                             <td>
                                 <form method="post" action="<?php echo sr_e(sr_url('/community/message/delete')); ?>">

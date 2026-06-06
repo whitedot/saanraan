@@ -369,7 +369,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme">
         <section class="admin-card card">
-            <h2><?php echo $communityBoardsPage === 'edit' ? sr_t('community::ui.edit.e92ca332') : sr_t('community::ui.text.713b7a18'); ?></h2>
+            <h2><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.e92ca332') : sr_t('community::ui.text.713b7a18')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
@@ -860,7 +860,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $formBoard['id']))); ?>" class="btn btn-solid-light"><?php echo sr_e('복사'); ?></a>
             <?php } ?>
-            <button type="submit" class="btn btn-solid-primary"><?php echo $communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27'); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27')); ?></button>
         </div>
     </form>
 
@@ -981,7 +981,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     )); ?>
                                 </td>
                                 <td><?php echo sr_e((string) ($communityBoardManagerPermissions[(string) ($manager['permission_key'] ?? '')] ?? (string) ($manager['permission_key'] ?? ''))); ?></td>
-                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($manager['created_at'] ?? '')); ?></td>
+                                <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($manager['created_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form">
                                         <?php echo sr_csrf_field(); ?>

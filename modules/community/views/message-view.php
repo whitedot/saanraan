@@ -14,7 +14,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <a href="<?php echo sr_e(sr_url('/community')); ?>"><?php echo sr_e(sr_t('community::ui.community.4a285775')); ?></a>
             /
             <a href="<?php echo sr_e(sr_url($messageBox === 'sent' ? '/community/messages?box=sent' : '/community/messages')); ?>">
-                <?php echo $messageBox === 'sent' ? sr_t('community::ui.text.add34931') : sr_t('community::ui.text.1df1e319'); ?>
+                <?php echo sr_e($messageBox === 'sent' ? sr_t('community::ui.text.add34931') : sr_t('community::ui.text.1df1e319')); ?>
             </a>
         </p>
         <h1><?php echo sr_e($pageTitle); ?></h1>
@@ -40,9 +40,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
             )); ?></dd>
             <dt><?php echo sr_e(sr_t('community::ui.text.4f639f73')); ?></dt>
-            <dd><?php echo sr_e((string) $message['created_at']); ?></dd>
+            <dd><?php echo sr_community_time_html((string) $message['created_at']); ?></dd>
             <dt><?php echo sr_e(sr_t('community::ui.text.e37351b4')); ?></dt>
-            <dd><?php echo sr_e((string) ($message['read_at'] ?? '')); ?></dd>
+            <dd><?php echo sr_community_time_html((string) ($message['read_at'] ?? ''), '-'); ?></dd>
         </dl>
         <div>
             <?php echo sr_community_plain_text_html((string) $message['body_text']); ?>

@@ -63,7 +63,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <?php echo sr_e(sr_t('community::ui.delete.029fd110')); ?>
                                 <?php } ?>
                             </td>
-                            <td><?php echo sr_e((string) $scrap['created_at']); ?></td>
+                            <td><?php echo sr_community_time_html((string) $scrap['created_at']); ?></td>
                             <td>
                                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
                                     <?php echo sr_csrf_field(); ?>
@@ -114,7 +114,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <?php echo sr_e(sr_community_series_visibility_label((string) ($seriesScrap['visibility'] ?? ''))); ?>
                                 <?php } ?>
                             </td>
-                            <td><?php echo sr_e((string) $seriesScrap['created_at']); ?></td>
+                            <td><?php echo sr_community_time_html((string) $seriesScrap['created_at']); ?></td>
                             <td>
                                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
                                     <?php echo sr_csrf_field(); ?>

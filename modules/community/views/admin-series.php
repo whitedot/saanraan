@@ -149,7 +149,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </select>
                         </td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($series['active_item_count'] ?? 0))); ?></td>
-                        <td class="admin-table-nowrap admin-community-series-date-cell"><?php echo sr_e((string) ($series['updated_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-community-series-date-cell"><?php echo sr_community_time_html((string) ($series['updated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions admin-community-series-actions">
                                 <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="text" name="admin_note" maxlength="2000" value="<?php echo sr_e((string) ($series['admin_note'] ?? '')); ?>" class="form-input admin-community-series-note-input" aria-label="관리자 메모">

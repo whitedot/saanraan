@@ -150,7 +150,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($postStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $post['published_comment_count']); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
-                        <td class="admin-table-nowrap admin-community-post-date-cell"><?php echo sr_e((string) $post['created_at']); ?></td>
+                        <td class="admin-table-nowrap admin-community-post-date-cell"><?php echo sr_community_time_html((string) $post['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
@@ -289,7 +289,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_community_plain_text_html((string) $comment['body_text']); ?>
                         </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($commentStatus, 'content_status')); ?></span></td>
-                        <td class="admin-table-nowrap admin-community-comment-date-cell"><?php echo sr_e((string) $comment['created_at']); ?></td>
+                        <td class="admin-table-nowrap admin-community-comment-date-cell"><?php echo sr_community_time_html((string) $comment['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>">
