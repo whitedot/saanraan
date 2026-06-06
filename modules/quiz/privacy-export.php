@@ -3,8 +3,8 @@
 return static function (PDO $pdo, int $accountId): array {
     $attemptStmt = $pdo->prepare(
         'SELECT id, quiz_id, status, source_module, source_type, source_id, source_title_snapshot, source_url_snapshot,
-                return_url, started_at, submitted_at, scored_at, rewarded_at, total_score, passed,
-                answer_snapshot_json, result_snapshot_json, created_at, updated_at
+                return_url, started_at, submitted_at, scored_at, rewarded_at, total_score, passed, selected_result_id,
+                answer_snapshot_json, scoring_snapshot_json, result_snapshot_json, created_at, updated_at
          FROM sr_quiz_attempts
          WHERE account_id = :account_id
          ORDER BY id ASC'
@@ -23,8 +23,19 @@ return static function (PDO $pdo, int $accountId): array {
     $grantStmt->execute(['account_id' => $accountId]);
     $grants = $grantStmt->fetchAll();
 
+    $scoreStmt = $pdo->prepare(
+        'SELECT s.id, s.attempt_id, s.result_id, s.category_key, s.score_value, s.is_selected, s.snapshot_json, s.created_at
+         FROM sr_quiz_attempt_result_scores s
+         INNER JOIN sr_quiz_attempts a ON a.id = s.attempt_id
+         WHERE a.account_id = :account_id
+         ORDER BY s.attempt_id ASC, s.id ASC'
+    );
+    $scoreStmt->execute(['account_id' => $accountId]);
+    $resultScores = $scoreStmt->fetchAll();
+
     return [
         'quiz_attempts' => $attempts,
+        'quiz_attempt_result_scores' => $resultScores,
         'quiz_reward_grants' => $grants,
     ];
 };

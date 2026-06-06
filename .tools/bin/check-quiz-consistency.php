@@ -140,6 +140,7 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_valid_source_context',
         'sr_quiz_source_context_is_accessible',
         'sr_content_once_access_already_granted',
+        'sr_quiz_score_answers',
         'sr_quiz_account_can_attempt',
         'sr_quiz_lock_quiz_for_attempt',
         'sr_quiz_public_window_is_open',
@@ -150,6 +151,7 @@ function sr_quiz_check_paths_and_admin(): void
         '$dedupeScope === \'per_source\'',
         '$dedupeScope === \'per_attempt\'',
         'sr_quiz_issue_coupon_reward_grant',
+        'sr_quiz_refresh_reward_grant_for_retry',
         'reference_type\' => \'quiz_reward',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/admin-quiz.php', [
@@ -192,6 +194,8 @@ function sr_quiz_check_privacy_contracts(): void
 {
     sr_quiz_check_file_contains('modules/quiz/privacy-export.php', [
         'sr_quiz_attempts',
+        'scoring_snapshot_json',
+        'sr_quiz_attempt_result_scores',
         'sr_quiz_reward_grants',
         'account_id = :account_id',
     ]);

@@ -534,56 +534,6 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
     }
 
     $now = sr_now();
-    $totalScore = 0;
-    $categoryScores = [];
-    $answerRows = [];
-    $allRequiredAnswered = true;
-    foreach ($questions as $question) {
-        $questionId = (int) ($question['id'] ?? 0);
-        $questionType = (string) ($question['question_type'] ?? 'single_choice');
-        if (!in_array($questionType, sr_quiz_question_types(), true)) {
-            $questionType = 'single_choice';
-        }
-        $selectedIds = $selectedChoiceIds[$questionId] ?? [];
-        if (!is_array($selectedIds)) {
-            $selectedIds = [(int) $selectedIds];
-        }
-        $selectedIds = array_values(array_filter(array_unique(array_map('intval', $selectedIds)), static fn (int $choiceId): bool => $choiceId > 0));
-        if ($questionType === 'single_choice' && count($selectedIds) > 1) {
-            $selectedIds = [(int) $selectedIds[0]];
-        }
-        $selectedChoices = [];
-        $correctIds = [];
-        foreach ((array) ($question['choices'] ?? []) as $choice) {
-            $choiceId = (int) ($choice['id'] ?? 0);
-            if ((int) ($choice['is_correct'] ?? 0) === 1) {
-                $correctIds[] = $choiceId;
-            }
-            if (in_array($choiceId, $selectedIds, true)) {
-                $selectedChoices[] = $choice;
-                $categoryKey = (string) ($choice['category_key'] ?? '');
-                $categoryWeight = (int) ($choice['category_weight'] ?? 0);
-                if ($categoryKey !== '' && $categoryWeight !== 0) {
-                    $categoryScores[$categoryKey] = (int) ($categoryScores[$categoryKey] ?? 0) + $categoryWeight;
-                }
-            }
-        }
-        if ((int) ($question['required'] ?? 1) === 1 && $selectedChoices === []) {
-            $allRequiredAnswered = false;
-        }
-        sort($selectedIds);
-        sort($correctIds);
-        $scoreAwarded = $selectedIds !== [] && $selectedIds === $correctIds ? (int) ($question['score_value'] ?? 0) : 0;
-        $totalScore += $scoreAwarded;
-        $answerRows[] = [
-            'question' => $question,
-            'choices' => $selectedChoices,
-            'selected_choice_ids' => $selectedIds,
-            'correct_choice_ids' => $correctIds,
-            'score_awarded' => $scoreAwarded,
-        ];
-    }
-
     $passScore = 0;
     $passed = false;
     $rewardGrant = null;
@@ -600,6 +550,15 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
             throw new RuntimeException((string) ($attemptAccess['message'] ?? 'Quiz attempt is not allowed.'));
         }
         $quiz = $lockedQuiz;
+        $questions = sr_quiz_questions_with_choices($pdo, $quizId);
+        if ($questions === []) {
+            throw new RuntimeException('응시 가능한 문제가 없습니다.');
+        }
+        $scoredAnswers = sr_quiz_score_answers($questions, $selectedChoiceIds);
+        $totalScore = (int) $scoredAnswers['total_score'];
+        $categoryScores = (array) $scoredAnswers['category_scores'];
+        $answerRows = (array) $scoredAnswers['answer_rows'];
+        $allRequiredAnswered = !empty($scoredAnswers['all_required_answered']);
         $passScore = $quiz['pass_score'] === null ? 0 : (int) $quiz['pass_score'];
         $scoringModel = (string) ($quiz['scoring_model'] ?? 'correct_answer');
         if (!in_array($scoringModel, sr_quiz_scoring_models(), true)) {
@@ -735,6 +694,66 @@ function sr_quiz_answer_category_scores(array $choices): array
     }
 
     return $scores;
+}
+
+function sr_quiz_score_answers(array $questions, array $selectedChoiceIds): array
+{
+    $totalScore = 0;
+    $categoryScores = [];
+    $answerRows = [];
+    $allRequiredAnswered = true;
+    foreach ($questions as $question) {
+        $questionId = (int) ($question['id'] ?? 0);
+        $questionType = (string) ($question['question_type'] ?? 'single_choice');
+        if (!in_array($questionType, sr_quiz_question_types(), true)) {
+            $questionType = 'single_choice';
+        }
+        $selectedIds = $selectedChoiceIds[$questionId] ?? [];
+        if (!is_array($selectedIds)) {
+            $selectedIds = [(int) $selectedIds];
+        }
+        $selectedIds = array_values(array_filter(array_unique(array_map('intval', $selectedIds)), static fn (int $choiceId): bool => $choiceId > 0));
+        if ($questionType === 'single_choice' && count($selectedIds) > 1) {
+            $selectedIds = [(int) $selectedIds[0]];
+        }
+        $selectedChoices = [];
+        $correctIds = [];
+        foreach ((array) ($question['choices'] ?? []) as $choice) {
+            $choiceId = (int) ($choice['id'] ?? 0);
+            if ((int) ($choice['is_correct'] ?? 0) === 1) {
+                $correctIds[] = $choiceId;
+            }
+            if (in_array($choiceId, $selectedIds, true)) {
+                $selectedChoices[] = $choice;
+                $categoryKey = (string) ($choice['category_key'] ?? '');
+                $categoryWeight = (int) ($choice['category_weight'] ?? 0);
+                if ($categoryKey !== '' && $categoryWeight !== 0) {
+                    $categoryScores[$categoryKey] = (int) ($categoryScores[$categoryKey] ?? 0) + $categoryWeight;
+                }
+            }
+        }
+        if ((int) ($question['required'] ?? 1) === 1 && $selectedChoices === []) {
+            $allRequiredAnswered = false;
+        }
+        sort($selectedIds);
+        sort($correctIds);
+        $scoreAwarded = $selectedIds !== [] && $selectedIds === $correctIds ? (int) ($question['score_value'] ?? 0) : 0;
+        $totalScore += $scoreAwarded;
+        $answerRows[] = [
+            'question' => $question,
+            'choices' => $selectedChoices,
+            'selected_choice_ids' => $selectedIds,
+            'correct_choice_ids' => $correctIds,
+            'score_awarded' => $scoreAwarded,
+        ];
+    }
+
+    return [
+        'total_score' => $totalScore,
+        'category_scores' => $categoryScores,
+        'answer_rows' => $answerRows,
+        'all_required_answered' => $allRequiredAnswered,
+    ];
 }
 
 function sr_quiz_select_result(PDO $pdo, int $quizId, string $scoringModel, int $totalScore, array $categoryScores): array
@@ -904,6 +923,20 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
     }
 
     $grantId = (int) ($grant['id'] ?? 0);
+    sr_quiz_refresh_reward_grant_for_retry($pdo, $grantId, [
+        'attempt_id' => $attemptId,
+        'reward_policy_id' => $policyId,
+        'reward_provider' => $rewardProvider,
+        'reward_module' => $rewardModule,
+        'reward_code' => (string) ($policy['reward_code'] ?? 'quiz_reward'),
+        'reward_amount' => $rewardAmount,
+        'source_module' => $sourceContext['source_module'] ?? null,
+        'source_type' => $sourceContext['source_type'] ?? null,
+        'source_id' => $sourceContext['source_id'] ?? null,
+        'dedupe_scope' => $dedupeScope,
+        'request_snapshot_json' => is_string($snapshotJson) ? $snapshotJson : '{}',
+        'updated_at' => $now,
+    ]);
     if ($rewardProvider === 'coupon') {
         return sr_quiz_issue_coupon_reward_grant($pdo, $quiz, $grantId, $attemptId, $accountId, $policy, $now);
     }
@@ -960,6 +993,48 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
     $grant = $grantStmt->fetch();
 
     return is_array($grant) ? $grant : [];
+}
+
+function sr_quiz_refresh_reward_grant_for_retry(PDO $pdo, int $grantId, array $values): void
+{
+    if ($grantId < 1) {
+        return;
+    }
+
+    $pdo->prepare(
+        'UPDATE sr_quiz_reward_grants
+         SET attempt_id = :attempt_id,
+             reward_policy_id = :reward_policy_id,
+             reward_provider = :reward_provider,
+             reward_module = :reward_module,
+             reward_code = :reward_code,
+             reward_amount = :reward_amount,
+             source_module = :source_module,
+             source_type = :source_type,
+             source_id = :source_id,
+             dedupe_scope = :dedupe_scope,
+             request_snapshot_json = :request_snapshot_json,
+             status = \'pending\',
+             error_message = NULL,
+             failed_at = NULL,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status <> \'granted\''
+    )->execute([
+        'attempt_id' => (int) ($values['attempt_id'] ?? 0),
+        'reward_policy_id' => (int) ($values['reward_policy_id'] ?? 0),
+        'reward_provider' => (string) ($values['reward_provider'] ?? ''),
+        'reward_module' => (string) ($values['reward_module'] ?? ''),
+        'reward_code' => (string) ($values['reward_code'] ?? ''),
+        'reward_amount' => $values['reward_amount'] ?? null,
+        'source_module' => $values['source_module'] ?? null,
+        'source_type' => $values['source_type'] ?? null,
+        'source_id' => $values['source_id'] ?? null,
+        'dedupe_scope' => (string) ($values['dedupe_scope'] ?? 'per_quiz'),
+        'request_snapshot_json' => (string) ($values['request_snapshot_json'] ?? '{}'),
+        'updated_at' => (string) ($values['updated_at'] ?? sr_now()),
+        'id' => $grantId,
+    ]);
 }
 
 function sr_quiz_issue_coupon_reward_grant(PDO $pdo, array $quiz, int $grantId, int $attemptId, int $accountId, array $policy, string $now): array
