@@ -42,7 +42,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 }
                 ?>
                 <section<?php echo $sectionGroupKey !== '' ? ' id="group-' . sr_e($sectionGroupKey) . '"' : ''; ?>>
-                    <h2><?php echo sr_e((string) $section['title']); ?></h2>
+                    <h2>
+                        <?php if (sr_community_board_group_key_is_valid($sectionGroupKey)) { ?>
+                            <a href="<?php echo sr_e(sr_url(sr_community_board_group_path($sectionGroupKey))); ?>"><?php echo sr_e((string) $section['title']); ?></a>
+                        <?php } else { ?>
+                            <?php echo sr_e((string) $section['title']); ?>
+                        <?php } ?>
+                    </h2>
                     <ul>
                         <?php foreach ($section['boards'] as $board) { ?>
                             <li>

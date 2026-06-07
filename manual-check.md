@@ -186,6 +186,7 @@
 - [ ] `/admin/community/board-groups` 게시판 그룹 목록
 - [ ] `/admin/community/board-groups/new` 게시판 그룹 생성
 - [ ] `/admin/community/board-groups/edit?id=...` 게시판 그룹 수정
+- [ ] `/community/group?key=...` 게시판 그룹 전용 페이지와 주 메뉴 슬롯 사용 안 함 fallback의 그룹 링크
 - [ ] `/admin/community/posts` 게시글 관리
 - [ ] `/admin/community/reports` 신고 관리
 

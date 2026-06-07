@@ -12,6 +12,11 @@ function sr_community_board_group_key_is_valid(string $groupKey): bool
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $groupKey) === 1;
 }
 
+function sr_community_board_group_path(string $groupKey): string
+{
+    return '/community/group?key=' . rawurlencode($groupKey);
+}
+
 function sr_community_board_statuses(): array
 {
     return ['enabled', 'disabled', 'archived'];
@@ -814,6 +819,24 @@ function sr_community_enabled_board_groups(PDO $pdo): array
 function sr_community_primary_menu_fallback_links(PDO $pdo): array
 {
     $groupLinks = [];
+    foreach (sr_community_enabled_board_groups($pdo) as $group) {
+        $groupKey = (string) ($group['group_key'] ?? '');
+        if (!sr_community_board_group_key_is_valid($groupKey)) {
+            continue;
+        }
+
+        $groupLabel = trim((string) ($group['title'] ?? ''));
+        $groupLinks[] = [
+            'label' => $groupLabel !== '' ? $groupLabel : $groupKey,
+            'url' => sr_community_board_group_path($groupKey),
+            'group_key' => $groupKey,
+        ];
+    }
+
+    if ($groupLinks !== []) {
+        return $groupLinks;
+    }
+
     $boardLinks = [];
     foreach (sr_community_enabled_boards($pdo) as $board) {
         if ((string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? '') !== 'public') {
@@ -822,13 +845,6 @@ function sr_community_primary_menu_fallback_links(PDO $pdo): array
 
         $groupKey = (string) ($board['board_group_key'] ?? '');
         if (sr_community_board_group_key_is_valid($groupKey) && (string) ($board['board_group_status'] ?? '') === 'enabled') {
-            $groupLabel = trim((string) ($board['board_group_title'] ?? ''));
-            if (!isset($groupLinks[$groupKey])) {
-                $groupLinks[$groupKey] = [
-                    'label' => $groupLabel !== '' ? $groupLabel : $groupKey,
-                    'url' => '/community#group-' . rawurlencode($groupKey),
-                ];
-            }
             continue;
         }
 
@@ -840,10 +856,11 @@ function sr_community_primary_menu_fallback_links(PDO $pdo): array
         $boardLinks[] = [
             'label' => $boardLabel !== '' ? $boardLabel : $boardKey,
             'url' => '/community/board?key=' . rawurlencode($boardKey),
+            'board_key' => $boardKey,
         ];
     }
 
-    return array_merge(array_values($groupLinks), $boardLinks);
+    return $boardLinks;
 }
 
 function sr_community_board_group_by_id(PDO $pdo, int $groupId): ?array
@@ -870,6 +887,16 @@ function sr_community_board_group_by_key(PDO $pdo, string $groupKey): ?array
     $group = $stmt->fetch();
 
     return is_array($group) ? $group : null;
+}
+
+function sr_community_enabled_board_group_by_key(PDO $pdo, string $groupKey): ?array
+{
+    $group = sr_community_board_group_by_key($pdo, $groupKey);
+    if (!is_array($group) || (string) ($group['status'] ?? '') !== 'enabled') {
+        return null;
+    }
+
+    return $group;
 }
 
 function sr_community_create_board_group(PDO $pdo, array $data): int
@@ -1741,7 +1768,10 @@ function sr_community_board_group_external_reference_counts(PDO $pdo, int $group
     $groupKey = (string) ($group['group_key'] ?? '');
     return [
         'site_menu' => $groupKey !== ''
-            ? sr_community_optional_count($pdo, 'sr_site_menu_items', 'url = :url', ['url' => '/community#group-' . $groupKey])
+            ? sr_community_optional_count($pdo, 'sr_site_menu_items', 'url IN (:url, :legacy_url)', [
+                'url' => sr_community_board_group_path($groupKey),
+                'legacy_url' => '/community#group-' . $groupKey,
+            ])
             : 0,
     ];
 }

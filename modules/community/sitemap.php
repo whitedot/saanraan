@@ -13,6 +13,25 @@ return static function (PDO $pdo, ?array $site): array {
     ];
 
     $stmt = $pdo->query(
+        "SELECT group_key, updated_at
+         FROM sr_community_board_groups
+         WHERE status = 'enabled'
+         ORDER BY sort_order ASC, id ASC
+         LIMIT 1000"
+    );
+    foreach ($stmt->fetchAll() as $group) {
+        $groupKey = (string) ($group['group_key'] ?? '');
+        if (!sr_community_board_group_key_is_valid($groupKey)) {
+            continue;
+        }
+
+        $entries[] = [
+            'loc' => sr_community_board_group_path($groupKey),
+            'lastmod' => substr((string) $group['updated_at'], 0, 10),
+        ];
+    }
+
+    $stmt = $pdo->query(
         "SELECT id, board_group_id, board_key, status, read_policy, updated_at
          FROM sr_community_boards
          WHERE status = 'enabled'

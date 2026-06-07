@@ -241,6 +241,7 @@ sr_community_release_require_list_values($requiredModules, ['member', 'admin'], 
 
 $requiredRoutes = [
     'GET /community',
+    'GET /community/group',
     'GET /community/board',
     'GET /community/post',
     'GET /community/attachment',
@@ -314,6 +315,7 @@ if (!is_array($menuLinks) && !is_callable($menuLinks)) {
 sr_community_release_file_contains('modules/community/menu-links.php', [
     "'asset_type' => 'board_group'",
     "'asset_type' => 'board'",
+    'sr_community_board_group_path($groupKey)',
     '/community/board?key=',
 ], 'Community menu-links.php');
 if (!is_callable($privacyExport)) {
@@ -373,6 +375,7 @@ sr_community_release_file_contains('modules/community/extension-points.php', [
 
 sr_community_release_file_contains('modules/community/sitemap.php', [
     "WHERE status = 'enabled'",
+    'sr_community_board_group_path($groupKey)',
     'sr_community_account_can_read_board($pdo, $board, null)',
     "WHERE p.status = 'published'",
     "AND b.status = 'enabled'",

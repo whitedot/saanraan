@@ -23,7 +23,7 @@ return static function (PDO $pdo): array {
             'asset_type' => 'board_group',
             'asset_type_label' => sr_t('community::ui.text.ec060706'),
             'label' => (string) ($group['title'] ?? $groupKey),
-            'url' => '/community#group-' . rawurlencode($groupKey),
+            'url' => sr_community_board_group_path($groupKey),
         ];
     }
 

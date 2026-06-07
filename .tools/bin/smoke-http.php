@@ -88,6 +88,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community default board group entry',
+        'path' => '/community/group?key=general',
+        'allowed_statuses' => [200, 302, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'community message write entry',
         'path' => '/community/message/write',
         'allowed_statuses' => [302, 404],
