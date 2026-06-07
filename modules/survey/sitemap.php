@@ -19,6 +19,9 @@ return static function (PDO $pdo, ?array $site): array {
          FROM sr_survey_forms
          WHERE status = 'active'
            AND deleted_at IS NULL
+           AND public_listed = 1
+           AND login_required = 0
+           AND robots_policy <> 'noindex'
            AND (starts_at IS NULL OR starts_at <= :now_start)
            AND (ends_at IS NULL OR ends_at >= :now_end)
          ORDER BY updated_at DESC, id DESC

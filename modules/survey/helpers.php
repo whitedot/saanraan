@@ -177,6 +177,66 @@ function sr_survey_save_settings(PDO $pdo, array $settings): void
     sr_clear_module_settings_cache('survey');
 }
 
+function sr_survey_coupon_definition_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_survey_coupon_definition_reference_rows($pdo, $target, $context));
+}
+
+function sr_survey_coupon_definition_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $definitionId = (int) ($target['target_id'] ?? 0);
+    if ($definitionId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT rp.id AS reward_policy_id, rp.status AS reward_policy_status, s.id AS survey_id, s.survey_key, s.title, s.status AS survey_status, s.updated_at
+         FROM sr_survey_reward_policies rp
+         INNER JOIN sr_survey_forms s ON s.id = rp.survey_id
+         WHERE rp.reward_provider = \'coupon\'
+           AND rp.reward_code = :definition_id
+           AND s.deleted_at IS NULL
+         ORDER BY s.updated_at DESC, s.id DESC'
+    );
+    $stmt->execute(['definition_id' => (string) $definitionId]);
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $rows[] = [
+            'consumer_module_key' => 'survey',
+            'reference_type' => 'survey_reward_coupon',
+            'reference_id' => (string) (int) ($row['reward_policy_id'] ?? 0),
+            'survey_id' => (int) ($row['survey_id'] ?? 0),
+            'target_type' => 'coupon_definition',
+            'target_id' => (string) $definitionId,
+            'title' => (string) ($row['title'] ?? ''),
+            'status' => (string) ($row['survey_status'] ?? ''),
+            'summary' => '설문 보상: ' . (string) ($row['survey_key'] ?? ''),
+            'admin_url' => '/admin/surveys?mode=edit&id=' . rawurlencode((string) (int) ($row['survey_id'] ?? 0)),
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_survey_coupon_definition_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    $surveyId = (int) ($row['survey_id'] ?? 0);
+    if ($surveyId < 1) {
+        return ['status' => 'unknown', 'message' => '설문 참조를 확인할 수 없습니다.'];
+    }
+
+    return ['status' => 'ok'];
+}
+
+function sr_survey_coupon_definition_reference_admin_url(array $row, array $context): string
+{
+    $surveyId = (int) ($row['survey_id'] ?? 0);
+
+    return $surveyId > 0 ? '/admin/surveys?mode=edit&id=' . rawurlencode((string) $surveyId) : '/admin/surveys';
+}
+
 function sr_survey_reward_providers(): array
 {
     return ['ledger_asset', 'coupon'];
