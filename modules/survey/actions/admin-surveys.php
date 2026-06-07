@@ -32,11 +32,32 @@ if (sr_request_method() === 'POST') {
     $surveyKey = sr_survey_clean_key(sr_post_string('survey_key', 64), 64);
     $title = sr_survey_clean_single_line(sr_post_string('title', 190), 190);
     $description = sr_survey_clean_text(sr_post_string('description', 2000), 2000);
+    $researchPurpose = sr_survey_clean_text(sr_post_string('research_purpose', 4000), 4000);
+    $targetPopulation = sr_survey_clean_text(sr_post_string('target_population', 2000), 2000);
+    $recruitmentMethod = sr_survey_clean_text(sr_post_string('recruitment_method', 2000), 2000);
+    $estimatedMinutes = max(0, min(10080, (int) sr_post_string('estimated_minutes', 20)));
+    $organizerName = sr_survey_clean_single_line(sr_post_string('organizer_name', 120), 120);
+    $contactText = sr_survey_clean_single_line(sr_post_string('contact_text', 190), 190);
+    $consentRequired = ($_POST['consent_required'] ?? '') === '1';
+    $consentText = sr_survey_clean_text(sr_post_string('consent_text', 4000), 4000);
+    $privacyNotice = sr_survey_clean_text(sr_post_string('privacy_notice', 4000), 4000);
+    $anonymousAllowed = ($_POST['anonymous_allowed'] ?? '') === '1';
+    $loginRequired = ($_POST['login_required'] ?? '') === '1';
+    $publicListed = ($_POST['public_listed'] ?? '') === '1';
+    $robotsPolicy = sr_survey_clean_key(sr_post_string('robots_policy', 30), 30);
+    if (!in_array($robotsPolicy, ['auto', 'index', 'noindex'], true)) {
+        $robotsPolicy = 'auto';
+    }
     $status = sr_post_string('status', 20);
     $startsAtInput = sr_post_string('starts_at', 30);
     $endsAtInput = sr_post_string('ends_at', 30);
     $startsAt = sr_survey_clean_admin_datetime($startsAtInput);
     $endsAt = sr_survey_clean_admin_datetime($endsAtInput);
+    $responseLimitPolicy = sr_survey_clean_key(sr_post_string('response_limit_policy', 30), 30);
+    if (!in_array($responseLimitPolicy, sr_survey_response_limit_policies(), true)) {
+        $responseLimitPolicy = 'per_survey_once';
+    }
+    $responseLimitPeriodSeconds = max(0, (int) sr_post_string('response_limit_period_seconds', 20));
     $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
     $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
     $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);
@@ -68,6 +89,18 @@ if (sr_request_method() === 'POST') {
     if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
         $errors[] = '공개 종료일시는 시작일시 이후여야 합니다.';
     }
+    if ($consentRequired && $consentText === '') {
+        $errors[] = '참여 동의가 필수이면 동의 문구를 입력해야 합니다.';
+    }
+    if (!$loginRequired && !$anonymousAllowed) {
+        $errors[] = '로그인이 필요 없으면 익명 응답 허용을 함께 켜야 합니다.';
+    }
+    if ($rewardEnabled && !$loginRequired) {
+        $errors[] = '참여 보상은 로그인 필요 설문에서만 사용할 수 있습니다.';
+    }
+    if ($responseLimitPolicy === 'per_period' && $responseLimitPeriodSeconds < 1) {
+        $errors[] = '기간당 1회 제한은 제한 기간을 1초 이상 입력해야 합니다.';
+    }
     if ($rewardEnabled) {
         if (!in_array($rewardProvider, sr_survey_reward_providers(), true)) {
             $errors[] = '보상 공급자 값이 올바르지 않습니다.';
@@ -91,13 +124,26 @@ if (sr_request_method() === 'POST') {
     $questionKeys = $_POST['question_key'] ?? [];
     $questionTypes = $_POST['question_type'] ?? [];
     $questionPrompts = $_POST['question_prompt'] ?? [];
+    $questionAnalysisNotes = $_POST['question_analysis_note'] ?? [];
     $questionRequired = $_POST['question_required'] ?? [];
+    $questionMinChoices = $_POST['question_min_choices'] ?? [];
+    $questionMaxChoices = $_POST['question_max_choices'] ?? [];
+    $questionScalePoints = $_POST['question_scale_points'] ?? [];
+    $questionScaleMinLabels = $_POST['question_scale_min_label'] ?? [];
+    $questionScaleMaxLabels = $_POST['question_scale_max_label'] ?? [];
+    $questionNumberUnits = $_POST['question_number_unit'] ?? [];
+    $questionNumberMins = $_POST['question_number_min'] ?? [];
+    $questionNumberMaxes = $_POST['question_number_max'] ?? [];
+    $questionAllowDecimal = $_POST['question_allow_decimal'] ?? [];
+    $questionAllowOther = $_POST['question_allow_other'] ?? [];
+    $questionNonresponsePolicies = $_POST['question_nonresponse_policy'] ?? [];
     $choiceLabels = $_POST['choice_labels'] ?? [];
     if (is_array($questionKeys)) {
         foreach ($questionKeys as $index => $questionKeyValue) {
             $questionKey = sr_survey_clean_key((string) $questionKeyValue, 64);
             $questionType = is_array($questionTypes) ? (string) ($questionTypes[$index] ?? 'single_choice') : 'single_choice';
             $prompt = is_array($questionPrompts) ? sr_survey_clean_text((string) ($questionPrompts[$index] ?? ''), 2000) : '';
+            $analysisNote = is_array($questionAnalysisNotes) ? sr_survey_clean_text((string) ($questionAnalysisNotes[$index] ?? ''), 2000) : '';
             if ($questionKey === '' && $prompt === '') {
                 continue;
             }
@@ -116,7 +162,19 @@ if (sr_request_method() === 'POST') {
                 'question_key' => $questionKey,
                 'question_type' => in_array($questionType, sr_survey_question_types(), true) ? $questionType : 'single_choice',
                 'prompt' => $prompt,
+                'analysis_note' => $analysisNote,
                 'required' => is_array($questionRequired) && in_array((string) $index, array_map('strval', $questionRequired), true) ? 1 : 0,
+                'min_choices' => is_array($questionMinChoices) && trim((string) ($questionMinChoices[$index] ?? '')) !== '' ? max(0, (int) $questionMinChoices[$index]) : null,
+                'max_choices' => is_array($questionMaxChoices) && trim((string) ($questionMaxChoices[$index] ?? '')) !== '' ? max(0, (int) $questionMaxChoices[$index]) : null,
+                'scale_points' => is_array($questionScalePoints) && trim((string) ($questionScalePoints[$index] ?? '')) !== '' ? max(2, min(11, (int) $questionScalePoints[$index])) : null,
+                'scale_min_label' => is_array($questionScaleMinLabels) ? sr_survey_clean_single_line((string) ($questionScaleMinLabels[$index] ?? ''), 120) : '',
+                'scale_max_label' => is_array($questionScaleMaxLabels) ? sr_survey_clean_single_line((string) ($questionScaleMaxLabels[$index] ?? ''), 120) : '',
+                'number_unit' => is_array($questionNumberUnits) ? sr_survey_clean_single_line((string) ($questionNumberUnits[$index] ?? ''), 60) : '',
+                'number_min' => is_array($questionNumberMins) && trim((string) ($questionNumberMins[$index] ?? '')) !== '' && is_numeric((string) $questionNumberMins[$index]) ? (string) $questionNumberMins[$index] : null,
+                'number_max' => is_array($questionNumberMaxes) && trim((string) ($questionNumberMaxes[$index] ?? '')) !== '' && is_numeric((string) $questionNumberMaxes[$index]) ? (string) $questionNumberMaxes[$index] : null,
+                'allow_decimal' => is_array($questionAllowDecimal) && in_array((string) $index, array_map('strval', $questionAllowDecimal), true) ? 1 : 0,
+                'allow_other' => is_array($questionAllowOther) && in_array((string) $index, array_map('strval', $questionAllowOther), true) ? 1 : 0,
+                'nonresponse_policy' => is_array($questionNonresponsePolicies) ? sr_survey_clean_key((string) ($questionNonresponsePolicies[$index] ?? 'none'), 30) : 'none',
                 'choices' => $choices,
             ];
         }
@@ -131,8 +189,14 @@ if (sr_request_method() === 'POST') {
         if ((string) $question['prompt'] === '') {
             $errors[] = '문항 ' . (string) ($index + 1) . '의 내용을 입력하세요.';
         }
-        if ((string) $question['question_type'] !== 'text' && count((array) $question['choices']) < 2) {
+        if (in_array((string) $question['question_type'], ['single_choice', 'multiple_choice'], true) && count((array) $question['choices']) < 2) {
             $errors[] = '선택형 문항 ' . (string) ($index + 1) . '에는 선택지를 2개 이상 입력하세요.';
+        }
+        if ((string) $question['question_type'] === 'multiple_choice' && $question['min_choices'] !== null && $question['max_choices'] !== null && (int) $question['min_choices'] > (int) $question['max_choices']) {
+            $errors[] = '복수 선택 문항 ' . (string) ($index + 1) . '의 최대 선택 수는 최소 선택 수 이상이어야 합니다.';
+        }
+        if (in_array((string) $question['question_type'], ['number', 'rating', 'scale'], true) && $question['number_min'] !== null && $question['number_max'] !== null && (float) $question['number_min'] > (float) $question['number_max']) {
+            $errors[] = '숫자/척도 문항 ' . (string) ($index + 1) . '의 최대값은 최소값 이상이어야 합니다.';
         }
     }
 
@@ -143,17 +207,38 @@ if (sr_request_method() === 'POST') {
             if ($surveyId > 0) {
                 $pdo->prepare(
                     'UPDATE sr_survey_forms
-                     SET survey_key = :survey_key, title = :title, description = :description, status = :status,
-                         starts_at = :starts_at, ends_at = :ends_at, reward_enabled = :reward_enabled,
+                     SET survey_key = :survey_key, title = :title, description = :description,
+                         research_purpose = :research_purpose, target_population = :target_population, recruitment_method = :recruitment_method,
+                         estimated_minutes = :estimated_minutes, organizer_name = :organizer_name, contact_text = :contact_text,
+                         consent_required = :consent_required, consent_text = :consent_text, privacy_notice = :privacy_notice,
+                         anonymous_allowed = :anonymous_allowed, login_required = :login_required, public_listed = :public_listed, robots_policy = :robots_policy,
+                         status = :status, starts_at = :starts_at, ends_at = :ends_at,
+                         response_limit_policy = :response_limit_policy, response_limit_period_seconds = :response_limit_period_seconds,
+                         reward_enabled = :reward_enabled,
                          updated_by_account_id = :updated_by_account_id, updated_at = :updated_at
                      WHERE id = :id AND deleted_at IS NULL'
                 )->execute([
                     'survey_key' => $surveyKey,
                     'title' => $title,
                     'description' => $description,
+                    'research_purpose' => $researchPurpose,
+                    'target_population' => $targetPopulation,
+                    'recruitment_method' => $recruitmentMethod,
+                    'estimated_minutes' => $estimatedMinutes > 0 ? $estimatedMinutes : null,
+                    'organizer_name' => $organizerName,
+                    'contact_text' => $contactText,
+                    'consent_required' => $consentRequired ? 1 : 0,
+                    'consent_text' => $consentText,
+                    'privacy_notice' => $privacyNotice,
+                    'anonymous_allowed' => $anonymousAllowed ? 1 : 0,
+                    'login_required' => $loginRequired ? 1 : 0,
+                    'public_listed' => $publicListed ? 1 : 0,
+                    'robots_policy' => $robotsPolicy,
                     'status' => $status,
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
+                    'response_limit_policy' => $responseLimitPolicy,
+                    'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_at' => $now,
@@ -162,18 +247,37 @@ if (sr_request_method() === 'POST') {
             } else {
                 $pdo->prepare(
                     'INSERT INTO sr_survey_forms
-                        (survey_key, title, description, status, starts_at, ends_at, response_limit_policy, reward_enabled,
+                        (survey_key, title, description, research_purpose, target_population, recruitment_method, estimated_minutes,
+                         organizer_name, contact_text, consent_required, consent_text, privacy_notice, anonymous_allowed, login_required,
+                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
-                        (:survey_key, :title, :description, :status, :starts_at, :ends_at, \'per_survey_once\', :reward_enabled,
+                        (:survey_key, :title, :description, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
+                         :organizer_name, :contact_text, :consent_required, :consent_text, :privacy_notice, :anonymous_allowed, :login_required,
+                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :reward_enabled,
                          :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
                 )->execute([
                     'survey_key' => $surveyKey,
                     'title' => $title,
                     'description' => $description,
+                    'research_purpose' => $researchPurpose,
+                    'target_population' => $targetPopulation,
+                    'recruitment_method' => $recruitmentMethod,
+                    'estimated_minutes' => $estimatedMinutes > 0 ? $estimatedMinutes : null,
+                    'organizer_name' => $organizerName,
+                    'contact_text' => $contactText,
+                    'consent_required' => $consentRequired ? 1 : 0,
+                    'consent_text' => $consentText,
+                    'privacy_notice' => $privacyNotice,
+                    'anonymous_allowed' => $anonymousAllowed ? 1 : 0,
+                    'login_required' => $loginRequired ? 1 : 0,
+                    'public_listed' => $publicListed ? 1 : 0,
+                    'robots_policy' => $robotsPolicy,
                     'status' => $status,
                     'starts_at' => $startsAt,
                     'ends_at' => $endsAt,
+                    'response_limit_policy' => $responseLimitPolicy,
+                    'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'created_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
@@ -206,9 +310,13 @@ function sr_survey_replace_questions(PDO $pdo, int $surveyId, array $questions, 
     $pdo->prepare('DELETE FROM sr_survey_questions WHERE survey_id = :survey_id')->execute(['survey_id' => $surveyId]);
     $questionStmt = $pdo->prepare(
         'INSERT INTO sr_survey_questions
-            (survey_id, question_key, question_type, prompt, required, sort_order, created_at, updated_at)
+            (survey_id, question_key, question_type, prompt, analysis_note, required, min_choices, max_choices, scale_points,
+             scale_min_label, scale_max_label, number_unit, number_min, number_max, allow_decimal, allow_other, nonresponse_policy,
+             sort_order, created_at, updated_at)
          VALUES
-            (:survey_id, :question_key, :question_type, :prompt, :required, :sort_order, :created_at, :updated_at)'
+            (:survey_id, :question_key, :question_type, :prompt, :analysis_note, :required, :min_choices, :max_choices, :scale_points,
+             :scale_min_label, :scale_max_label, :number_unit, :number_min, :number_max, :allow_decimal, :allow_other, :nonresponse_policy,
+             :sort_order, :created_at, :updated_at)'
     );
     $choiceStmt = $pdo->prepare(
         'INSERT INTO sr_survey_choices
@@ -222,7 +330,19 @@ function sr_survey_replace_questions(PDO $pdo, int $surveyId, array $questions, 
             'question_key' => (string) $question['question_key'],
             'question_type' => (string) $question['question_type'],
             'prompt' => (string) $question['prompt'],
+            'analysis_note' => (string) ($question['analysis_note'] ?? ''),
             'required' => (int) $question['required'],
+            'min_choices' => $question['min_choices'] ?? null,
+            'max_choices' => $question['max_choices'] ?? null,
+            'scale_points' => $question['scale_points'] ?? null,
+            'scale_min_label' => (string) ($question['scale_min_label'] ?? ''),
+            'scale_max_label' => (string) ($question['scale_max_label'] ?? ''),
+            'number_unit' => (string) ($question['number_unit'] ?? ''),
+            'number_min' => $question['number_min'] ?? null,
+            'number_max' => $question['number_max'] ?? null,
+            'allow_decimal' => (int) ($question['allow_decimal'] ?? 0),
+            'allow_other' => (int) ($question['allow_other'] ?? 0),
+            'nonresponse_policy' => in_array((string) ($question['nonresponse_policy'] ?? 'none'), ['none', 'allow_na', 'allow_unknown', 'allow_refusal'], true) ? (string) $question['nonresponse_policy'] : 'none',
             'sort_order' => $index,
             'created_at' => $now,
             'updated_at' => $now,
@@ -347,14 +467,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'survey_key' => '',
         'title' => '',
         'description' => '',
+        'research_purpose' => '',
+        'target_population' => '',
+        'recruitment_method' => '',
+        'estimated_minutes' => '',
+        'organizer_name' => '',
+        'contact_text' => '',
+        'consent_required' => 0,
+        'consent_text' => '',
+        'privacy_notice' => '',
+        'anonymous_allowed' => 0,
+        'login_required' => 1,
+        'public_listed' => 1,
+        'robots_policy' => 'auto',
         'status' => 'draft',
         'starts_at' => '',
         'ends_at' => '',
+        'response_limit_policy' => 'per_survey_once',
+        'response_limit_period_seconds' => '',
         'reward_enabled' => 0,
     ];
     if ($editQuestions === []) {
         $editQuestions = [
-            ['question_key' => 'q1', 'question_type' => 'single_choice', 'prompt' => '', 'required' => 1, 'choices' => [['label' => ''], ['label' => '']]],
+            [
+                'question_key' => 'q1',
+                'question_type' => 'single_choice',
+                'prompt' => '',
+                'analysis_note' => '',
+                'required' => 1,
+                'min_choices' => null,
+                'max_choices' => null,
+                'scale_points' => null,
+                'scale_min_label' => '',
+                'scale_max_label' => '',
+                'number_unit' => '',
+                'number_min' => null,
+                'number_max' => null,
+                'allow_decimal' => 0,
+                'allow_other' => 0,
+                'nonresponse_policy' => 'none',
+                'choices' => [['label' => ''], ['label' => '']],
+            ],
         ];
     }
     ?>
@@ -377,6 +530,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <textarea id="survey_description" name="description" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
             </div>
             <div class="form-field">
+                <label class="form-label" for="survey_research_purpose">연구 목적</label>
+                <textarea id="survey_research_purpose" name="research_purpose" class="form-textarea"><?php echo sr_e((string) ($values['research_purpose'] ?? '')); ?></textarea>
+                <p class="admin-form-help">공개 화면과 응답 스냅샷에 남길 설문 목적입니다.</p>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_target_population">대상자</label>
+                    <textarea id="survey_target_population" name="target_population" class="form-textarea"><?php echo sr_e((string) ($values['target_population'] ?? '')); ?></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_recruitment_method">모집 방법</label>
+                    <textarea id="survey_recruitment_method" name="recruitment_method" class="form-textarea"><?php echo sr_e((string) ($values['recruitment_method'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_estimated_minutes">예상 소요 시간</label>
+                    <input id="survey_estimated_minutes" type="number" name="estimated_minutes" value="<?php echo sr_e((string) ($values['estimated_minutes'] ?? '')); ?>" class="form-input" min="0" max="10080">
+                    <p class="admin-form-help">분 단위로 입력합니다.</p>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_organizer_name">주관자</label>
+                    <input id="survey_organizer_name" type="text" name="organizer_name" value="<?php echo sr_e((string) ($values['organizer_name'] ?? '')); ?>" class="form-input" maxlength="120">
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_contact_text">문의처</label>
+                    <input id="survey_contact_text" type="text" name="contact_text" value="<?php echo sr_e((string) ($values['contact_text'] ?? '')); ?>" class="form-input" maxlength="190">
+                </div>
+            </div>
+            <div class="form-field">
                 <label class="form-label" for="survey_status">상태 <span class="required">(필수)</span></label>
                 <select id="survey_status" name="status" class="form-select">
                     <?php foreach (sr_survey_statuses() as $status): ?>
@@ -393,6 +576,65 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="survey_ends_at">공개 종료일시</label>
                     <input id="survey_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
                 </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="admin-form-check form-label" for="survey_login_required">
+                        <input id="survey_login_required" type="checkbox" name="login_required" value="1" class="form-checkbox"<?php echo (int) ($values['login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                        로그인 필요
+                    </label>
+                    <p class="admin-form-help">보상 설문은 로그인 필요 상태에서만 저장됩니다.</p>
+                </div>
+                <div class="form-field">
+                    <label class="admin-form-check form-label" for="survey_anonymous_allowed">
+                        <input id="survey_anonymous_allowed" type="checkbox" name="anonymous_allowed" value="1" class="form-checkbox"<?php echo (int) ($values['anonymous_allowed'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        익명 응답 허용
+                    </label>
+                </div>
+                <div class="form-field">
+                    <label class="admin-form-check form-label" for="survey_public_listed">
+                        <input id="survey_public_listed" type="checkbox" name="public_listed" value="1" class="form-checkbox"<?php echo (int) ($values['public_listed'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                        공개 목록 노출
+                    </label>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_response_limit_policy">응답 제한</label>
+                    <select id="survey_response_limit_policy" name="response_limit_policy" class="form-select">
+                        <?php foreach (sr_survey_response_limit_policies() as $limitPolicy): ?>
+                            <option value="<?php echo sr_e($limitPolicy); ?>"<?php echo (string) ($values['response_limit_policy'] ?? 'per_survey_once') === $limitPolicy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($limitPolicy)); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_response_limit_period_seconds">제한 기간</label>
+                    <input id="survey_response_limit_period_seconds" type="number" name="response_limit_period_seconds" value="<?php echo sr_e((string) ($values['response_limit_period_seconds'] ?? '')); ?>" class="form-input" min="0">
+                    <p class="admin-form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_robots_policy">검색 로봇</label>
+                    <select id="survey_robots_policy" name="robots_policy" class="form-select">
+                        <option value="auto"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'auto' ? ' selected' : ''; ?>>자동</option>
+                        <option value="index"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'index' ? ' selected' : ''; ?>>색인 허용</option>
+                        <option value="noindex"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'noindex' ? ' selected' : ''; ?>>색인 제외</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-header"><h2 class="card-title">참여 동의</h2></div>
+        <div class="card-body">
+            <label class="admin-form-check form-label" for="survey_consent_required">
+                <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-checkbox"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                동의 필요
+            </label>
+            <div class="form-field">
+                <label class="form-label" for="survey_consent_text">동의 문구</label>
+                <textarea id="survey_consent_text" name="consent_text" class="form-textarea"><?php echo sr_e((string) ($values['consent_text'] ?? '')); ?></textarea>
+            </div>
+            <div class="form-field">
+                <label class="form-label" for="survey_privacy_notice">개인정보 안내</label>
+                <textarea id="survey_privacy_notice" name="privacy_notice" class="form-textarea"><?php echo sr_e((string) ($values['privacy_notice'] ?? '')); ?></textarea>
             </div>
         </div>
         <div class="card-header"><h2 class="card-title">보상</h2></div>
@@ -445,7 +687,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header"><h2 class="card-title">문항</h2></div>
         <div class="card-body">
             <?php for ($index = 0; $index < 10; $index++): ?>
-                <?php $question = is_array($editQuestions[$index] ?? null) ? $editQuestions[$index] : ['question_key' => '', 'question_type' => 'single_choice', 'prompt' => '', 'required' => 1, 'choices' => []]; ?>
+                <?php $question = is_array($editQuestions[$index] ?? null) ? $editQuestions[$index] : ['question_key' => '', 'question_type' => 'single_choice', 'prompt' => '', 'analysis_note' => '', 'required' => 1, 'min_choices' => null, 'max_choices' => null, 'scale_points' => null, 'scale_min_label' => '', 'scale_max_label' => '', 'number_unit' => '', 'number_min' => null, 'number_max' => null, 'allow_decimal' => 0, 'allow_other' => 0, 'nonresponse_policy' => 'none', 'choices' => []]; ?>
                 <div class="admin-survey-question-row">
                     <div class="form-grid">
                         <div class="form-field">
@@ -470,6 +712,72 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <label class="form-label" for="question_prompt_<?php echo sr_e((string) $index); ?>">문항 내용</label>
                         <textarea id="question_prompt_<?php echo sr_e((string) $index); ?>" name="question_prompt[]" class="form-textarea"><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label" for="question_analysis_note_<?php echo sr_e((string) $index); ?>">분석 메모</label>
+                        <textarea id="question_analysis_note_<?php echo sr_e((string) $index); ?>" name="question_analysis_note[]" class="form-textarea"><?php echo sr_e((string) ($question['analysis_note'] ?? '')); ?></textarea>
+                        <p class="admin-form-help">분석 코드북이나 품질 판정에 참고할 내부 메모입니다.</p>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="form-label" for="question_min_choices_<?php echo sr_e((string) $index); ?>">최소 선택 수</label>
+                            <input id="question_min_choices_<?php echo sr_e((string) $index); ?>" type="number" name="question_min_choices[]" value="<?php echo sr_e((string) ($question['min_choices'] ?? '')); ?>" class="form-input" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="question_max_choices_<?php echo sr_e((string) $index); ?>">최대 선택 수</label>
+                            <input id="question_max_choices_<?php echo sr_e((string) $index); ?>" type="number" name="question_max_choices[]" value="<?php echo sr_e((string) ($question['max_choices'] ?? '')); ?>" class="form-input" min="0">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="question_scale_points_<?php echo sr_e((string) $index); ?>">척도 단계</label>
+                            <input id="question_scale_points_<?php echo sr_e((string) $index); ?>" type="number" name="question_scale_points[]" value="<?php echo sr_e((string) ($question['scale_points'] ?? '')); ?>" class="form-input" min="2" max="11">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="form-label" for="question_scale_min_label_<?php echo sr_e((string) $index); ?>">낮은 값 라벨</label>
+                            <input id="question_scale_min_label_<?php echo sr_e((string) $index); ?>" type="text" name="question_scale_min_label[]" value="<?php echo sr_e((string) ($question['scale_min_label'] ?? '')); ?>" class="form-input" maxlength="120">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="question_scale_max_label_<?php echo sr_e((string) $index); ?>">높은 값 라벨</label>
+                            <input id="question_scale_max_label_<?php echo sr_e((string) $index); ?>" type="text" name="question_scale_max_label[]" value="<?php echo sr_e((string) ($question['scale_max_label'] ?? '')); ?>" class="form-input" maxlength="120">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="question_number_unit_<?php echo sr_e((string) $index); ?>">숫자 단위</label>
+                            <input id="question_number_unit_<?php echo sr_e((string) $index); ?>" type="text" name="question_number_unit[]" value="<?php echo sr_e((string) ($question['number_unit'] ?? '')); ?>" class="form-input" maxlength="60">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="form-label" for="question_number_min_<?php echo sr_e((string) $index); ?>">최소값</label>
+                            <input id="question_number_min_<?php echo sr_e((string) $index); ?>" type="number" name="question_number_min[]" value="<?php echo sr_e((string) ($question['number_min'] ?? '')); ?>" class="form-input" step="any">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="question_number_max_<?php echo sr_e((string) $index); ?>">최대값</label>
+                            <input id="question_number_max_<?php echo sr_e((string) $index); ?>" type="number" name="question_number_max[]" value="<?php echo sr_e((string) ($question['number_max'] ?? '')); ?>" class="form-input" step="any">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label" for="question_nonresponse_policy_<?php echo sr_e((string) $index); ?>">무응답 옵션</label>
+                            <select id="question_nonresponse_policy_<?php echo sr_e((string) $index); ?>" name="question_nonresponse_policy[]" class="form-select">
+                                <option value="none"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'none' ? ' selected' : ''; ?>>없음</option>
+                                <option value="allow_na"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_na' ? ' selected' : ''; ?>>해당 없음 허용</option>
+                                <option value="allow_unknown"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_unknown' ? ' selected' : ''; ?>>모름 허용</option>
+                                <option value="allow_refusal"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_refusal' ? ' selected' : ''; ?>>응답 거부 허용</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="admin-form-check form-label" for="question_allow_decimal_<?php echo sr_e((string) $index); ?>">
+                                <input id="question_allow_decimal_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_decimal[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                소수 허용
+                            </label>
+                        </div>
+                        <div class="form-field">
+                            <label class="admin-form-check form-label" for="question_allow_other_<?php echo sr_e((string) $index); ?>">
+                                <input id="question_allow_other_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_other[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_other'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                기타 답변 허용
+                            </label>
+                        </div>
                     </div>
                     <div class="form-field">
                         <label class="form-label" for="choice_labels_<?php echo sr_e((string) $index); ?>">선택지</label>
