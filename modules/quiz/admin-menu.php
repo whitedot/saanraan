@@ -19,5 +19,10 @@ return [
             'path' => '/admin/quiz/settings',
             'order' => 30,
         ],
+        [
+            'label' => '퀴즈 매뉴얼',
+            'path' => '/admin/quiz/manual',
+            'order' => 40,
+        ],
     ],
 ];

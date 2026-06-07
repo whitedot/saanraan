@@ -2,7 +2,7 @@
 
 return [
     'name' => '퀴즈',
-    'version' => '2026.06.003',
+    'version' => '2026.06.004',
     'type' => 'module',
     'description' => '퀴즈 응시, 채점, 콘텐츠 연계 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -11,6 +11,7 @@ return [
         'category_order' => 30,
         'menu_order' => 8,
         'icon' => ['type' => 'symbol', 'name' => 'service'],
+        'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',
