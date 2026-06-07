@@ -6,5 +6,7 @@ return [
     'POST /quiz/*' => 'actions/view.php',
     'GET /admin/quiz' => 'actions/admin-quiz.php',
     'POST /admin/quiz' => 'actions/admin-quiz.php',
+    'GET /admin/quiz/settings' => 'actions/admin-settings.php',
+    'POST /admin/quiz/settings' => 'actions/admin-settings.php',
     'GET /admin/quiz/attempts' => 'actions/admin-attempts.php',
 ];

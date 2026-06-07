@@ -145,6 +145,171 @@ function sr_quiz_reward_dedupe_scope_label(string $scope): string
     ][$scope] ?? $scope;
 }
 
+function sr_quiz_truthy(mixed $value): bool
+{
+    return in_array($value, [true, 1, '1', 'true', 'yes', 'on'], true);
+}
+
+function sr_quiz_default_settings(): array
+{
+    return [
+        'default_status' => 'draft',
+        'default_quiz_mode' => 'scored',
+        'default_scoring_model' => 'correct_answer',
+        'default_pass_score' => 1,
+        'default_question_choice_count' => 4,
+        'default_question_score' => 1,
+        'default_attempt_limit_policy' => 'unlimited',
+        'default_attempt_limit_period_seconds' => '',
+        'default_reward_enabled' => false,
+        'default_reward_provider' => 'ledger_asset',
+        'default_reward_module' => '',
+        'default_reward_coupon_definition_id' => '',
+        'default_reward_amount' => '',
+        'default_reward_dedupe_scope' => 'per_quiz',
+        'default_cta_label' => '퀴즈 풀기',
+        'public_list_limit' => 50,
+    ];
+}
+
+function sr_quiz_normalize_settings(array $settings): array
+{
+    $defaults = sr_quiz_default_settings();
+    $normalized = array_merge($defaults, $settings);
+
+    $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_quiz_statuses(), true)
+        ? (string) $normalized['default_status']
+        : (string) $defaults['default_status'];
+    $normalized['default_quiz_mode'] = in_array((string) $normalized['default_quiz_mode'], sr_quiz_modes(), true)
+        ? (string) $normalized['default_quiz_mode']
+        : (string) $defaults['default_quiz_mode'];
+    $normalized['default_scoring_model'] = in_array((string) $normalized['default_scoring_model'], sr_quiz_scoring_models(), true)
+        ? (string) $normalized['default_scoring_model']
+        : (string) $defaults['default_scoring_model'];
+    $normalized['default_pass_score'] = max(0, min(100000, (int) $normalized['default_pass_score']));
+    $normalized['default_question_choice_count'] = max(2, min(10, (int) $normalized['default_question_choice_count']));
+    $normalized['default_question_score'] = max(0, min(10000, (int) $normalized['default_question_score']));
+    $normalized['default_attempt_limit_policy'] = in_array((string) $normalized['default_attempt_limit_policy'], sr_quiz_attempt_limit_policies(), true)
+        ? (string) $normalized['default_attempt_limit_policy']
+        : (string) $defaults['default_attempt_limit_policy'];
+    $normalized['default_attempt_limit_period_seconds'] = (string) $normalized['default_attempt_limit_policy'] === 'per_period'
+        ? (trim((string) $normalized['default_attempt_limit_period_seconds']) === '' ? '' : (string) max(1, (int) $normalized['default_attempt_limit_period_seconds']))
+        : '';
+    $normalized['default_reward_enabled'] = sr_quiz_truthy($normalized['default_reward_enabled']);
+    $normalized['default_reward_provider'] = in_array((string) $normalized['default_reward_provider'], sr_quiz_reward_providers(), true)
+        ? (string) $normalized['default_reward_provider']
+        : (string) $defaults['default_reward_provider'];
+    $normalized['default_reward_module'] = sr_quiz_clean_key((string) $normalized['default_reward_module'], 40);
+    $normalized['default_reward_coupon_definition_id'] = (string) max(0, (int) $normalized['default_reward_coupon_definition_id']);
+    if ($normalized['default_reward_coupon_definition_id'] === '0') {
+        $normalized['default_reward_coupon_definition_id'] = '';
+    }
+    $normalized['default_reward_amount'] = (string) max(0, min(1000000000, (int) $normalized['default_reward_amount']));
+    if ($normalized['default_reward_amount'] === '0') {
+        $normalized['default_reward_amount'] = '';
+    }
+    $normalized['default_reward_dedupe_scope'] = in_array((string) $normalized['default_reward_dedupe_scope'], sr_quiz_reward_dedupe_scopes(), true)
+        ? (string) $normalized['default_reward_dedupe_scope']
+        : (string) $defaults['default_reward_dedupe_scope'];
+    $normalized['default_cta_label'] = sr_quiz_clean_single_line((string) $normalized['default_cta_label'], 120);
+    if ($normalized['default_cta_label'] === '') {
+        $normalized['default_cta_label'] = (string) $defaults['default_cta_label'];
+    }
+    $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
+
+    return $normalized;
+}
+
+function sr_quiz_settings(PDO $pdo): array
+{
+    return sr_quiz_normalize_settings(sr_module_settings($pdo, 'quiz'));
+}
+
+function sr_quiz_settings_from_post(): array
+{
+    return sr_quiz_normalize_settings([
+        'default_status' => sr_post_string('default_status', 20),
+        'default_quiz_mode' => sr_post_string('default_quiz_mode', 30),
+        'default_scoring_model' => sr_post_string('default_scoring_model', 40),
+        'default_pass_score' => sr_post_string('default_pass_score', 20),
+        'default_question_choice_count' => sr_post_string('default_question_choice_count', 20),
+        'default_question_score' => sr_post_string('default_question_score', 20),
+        'default_attempt_limit_policy' => sr_post_string('default_attempt_limit_policy', 30),
+        'default_attempt_limit_period_seconds' => sr_post_string('default_attempt_limit_period_seconds', 20),
+        'default_reward_enabled' => ($_POST['default_reward_enabled'] ?? '') === '1',
+        'default_reward_provider' => sr_quiz_clean_key(sr_post_string('default_reward_provider', 30), 30),
+        'default_reward_module' => sr_quiz_clean_key(sr_post_string('default_reward_module', 40), 40),
+        'default_reward_coupon_definition_id' => sr_post_string('default_reward_coupon_definition_id', 20),
+        'default_reward_amount' => sr_post_string('default_reward_amount', 20),
+        'default_reward_dedupe_scope' => sr_quiz_clean_key(sr_post_string('default_reward_dedupe_scope', 20), 20),
+        'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
+        'public_list_limit' => sr_post_string('public_list_limit', 20),
+    ]);
+}
+
+function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $assetOptions): array
+{
+    $errors = [];
+    if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
+        $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
+    }
+    if (!empty($settings['default_reward_enabled'])) {
+        $provider = (string) ($settings['default_reward_provider'] ?? '');
+        if ($provider === 'ledger_asset') {
+            $moduleKey = (string) ($settings['default_reward_module'] ?? '');
+            if ($moduleKey === '' || !isset($assetOptions[$moduleKey])) {
+                $errors[] = '기본 보상 자산을 선택하세요.';
+            }
+            if ((int) ($settings['default_reward_amount'] ?? 0) < 1) {
+                $errors[] = '기본 보상 금액은 1 이상이어야 합니다.';
+            }
+        } elseif ($provider === 'coupon') {
+            if (!sr_quiz_reward_coupon_definition_is_available($pdo, (int) ($settings['default_reward_coupon_definition_id'] ?? 0))) {
+                $errors[] = '기본 보상으로 사용할 수 있는 쿠폰을 선택하세요.';
+            }
+        } else {
+            $errors[] = '기본 보상 종류 값이 올바르지 않습니다.';
+        }
+    }
+
+    return array_values(array_unique($errors));
+}
+
+function sr_quiz_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'quiz' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('Quiz module was not found.');
+    }
+
+    $settings = sr_quiz_normalize_settings($settings);
+    $now = sr_now();
+    $save = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    foreach ($settings as $key => $value) {
+        $valueType = is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string');
+        $save->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $key,
+            'setting_value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
+            'value_type' => $valueType,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    sr_clear_module_settings_cache('quiz');
+}
+
 function sr_quiz_clean_admin_datetime(string $value): ?string
 {
     $value = trim($value);
@@ -406,8 +571,13 @@ function sr_quiz_key_exists(PDO $pdo, string $quizKey, int $excludeId = 0): bool
     return (bool) $stmt->fetchColumn();
 }
 
-function sr_quiz_public_quizzes(PDO $pdo, int $limit = 50): array
+function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null): array
 {
+    if ($limit === null) {
+        $settings = sr_quiz_settings($pdo);
+        $limit = (int) ($settings['public_list_limit'] ?? 50);
+    }
+
     $stmt = $pdo->prepare(
         "SELECT id, quiz_key, title, description
          FROM sr_quiz_sets
@@ -1328,10 +1498,12 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
                 q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
                 q.member_group_keys_json, q.reward_enabled, q.updated_at,
                 COUNT(DISTINCT qs.id) AS question_count,
+                COUNT(DISTINCT rr.id) AS result_rule_count,
                 COUNT(DISTINCT rp.id) AS reward_policy_count,
                 COUNT(DISTINCT src.id) AS source_count
          FROM sr_quiz_sets q
          LEFT JOIN sr_quiz_questions qs ON qs.quiz_id = q.id
+         LEFT JOIN sr_quiz_result_rules rr ON rr.quiz_id = q.id
          LEFT JOIN sr_quiz_reward_policies rp ON rp.quiz_id = q.id AND rp.status = \'active\'
          LEFT JOIN sr_quiz_sources src ON src.quiz_id = q.id AND src.status = \'active\'
          ' . $whereSql . '
@@ -1562,28 +1734,41 @@ function sr_quiz_admin_quiz_by_id(PDO $pdo, int $quizId): ?array
     return $quiz;
 }
 
-function sr_quiz_default_admin_values(): array
+function sr_quiz_default_admin_values(?array $settings = null): array
 {
+    $settings = sr_quiz_normalize_settings(is_array($settings) ? $settings : []);
+    $choiceCount = (int) ($settings['default_question_choice_count'] ?? 4);
+    $defaultChoices = [];
+    for ($index = 0; $index < $choiceCount; $index++) {
+        $defaultChoices[] = [
+            'choice_key' => '',
+            'label' => '',
+            'is_correct' => $index === 0 ? 1 : 0,
+            'category_key' => '',
+            'category_weight' => 0,
+        ];
+    }
+
     return [
         'id' => 0,
         'quiz_key' => '',
         'title' => '',
         'description' => '',
-        'status' => 'draft',
-        'quiz_mode' => 'scored',
-        'scoring_model' => 'correct_answer',
-        'pass_score' => 1,
+        'status' => (string) $settings['default_status'],
+        'quiz_mode' => (string) $settings['default_quiz_mode'],
+        'scoring_model' => (string) $settings['default_scoring_model'],
+        'pass_score' => (int) $settings['default_pass_score'],
         'starts_at' => '',
         'ends_at' => '',
-        'attempt_limit_policy' => 'unlimited',
-        'attempt_limit_period_seconds' => '',
+        'attempt_limit_policy' => (string) $settings['default_attempt_limit_policy'],
+        'attempt_limit_period_seconds' => (string) $settings['default_attempt_limit_period_seconds'],
         'member_group_keys' => [],
-        'reward_enabled' => 0,
-        'reward_provider' => 'ledger_asset',
-        'reward_module' => '',
-        'reward_coupon_definition_id' => '',
-        'reward_amount' => '',
-        'reward_dedupe_scope' => 'per_quiz',
+        'reward_enabled' => !empty($settings['default_reward_enabled']) ? 1 : 0,
+        'reward_provider' => (string) $settings['default_reward_provider'],
+        'reward_module' => (string) $settings['default_reward_module'],
+        'reward_coupon_definition_id' => (string) $settings['default_reward_coupon_definition_id'],
+        'reward_amount' => (string) $settings['default_reward_amount'],
+        'reward_dedupe_scope' => (string) $settings['default_reward_dedupe_scope'],
         'content_source_ids' => '',
         'community_source_ids' => '',
         'result_rules' => '',
@@ -1592,13 +1777,8 @@ function sr_quiz_default_admin_values(): array
                 'question_key' => 'q1',
                 'question_type' => 'single_choice',
                 'prompt' => '',
-                'score_value' => 1,
-                'choices' => [
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 1, 'category_key' => '', 'category_weight' => 0],
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0],
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0],
-                    ['choice_key' => '', 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0],
-                ],
+                'score_value' => (int) $settings['default_question_score'],
+                'choices' => $defaultChoices,
             ],
         ],
     ];
@@ -2172,6 +2352,367 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     return array_values(array_unique($errors));
 }
 
+function sr_quiz_copy_options_from_post(): array
+{
+    return [
+        'source_quiz_id' => (int) sr_post_string('source_quiz_id', 20),
+        'quiz_key' => sr_quiz_clean_key(sr_post_string('copy_quiz_key', 64)),
+        'title' => sr_quiz_clean_single_line(sr_post_string('copy_title', 190), 190),
+        'copy_dates' => ($_POST['copy_dates'] ?? '') === '1',
+        'copy_member_groups' => ($_POST['copy_member_groups'] ?? '') === '1',
+        'copy_reward_policy' => ($_POST['copy_reward_policy'] ?? '') === '1',
+        'copy_sources' => ($_POST['copy_sources'] ?? '') === '1',
+        'copy_status' => ($_POST['copy_status'] ?? '') === '1',
+    ];
+}
+
+function sr_quiz_copy_validation_errors(PDO $pdo, array $options): array
+{
+    $errors = [];
+    $sourceQuizId = (int) ($options['source_quiz_id'] ?? 0);
+    if ($sourceQuizId < 1) {
+        $errors[] = '복사할 원본 퀴즈를 선택하세요.';
+    }
+    $quizKey = (string) ($options['quiz_key'] ?? '');
+    if (!sr_quiz_key_is_valid($quizKey)) {
+        $errors[] = '새 퀴즈 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+    } elseif (sr_quiz_key_exists($pdo, $quizKey, 0)) {
+        $errors[] = '이미 사용 중인 퀴즈 key입니다.';
+    }
+    if ((string) ($options['title'] ?? '') === '') {
+        $errors[] = '새 퀴즈 제목을 입력하세요.';
+    }
+
+    return $errors;
+}
+
+function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, int $accountId): array
+{
+    $warnings = [];
+    $skippedSources = [];
+    $skippedMemberGroupKeys = [];
+    $skippedRewardPolicy = '';
+    $newQuizId = 0;
+    $newQuizKey = (string) ($options['quiz_key'] ?? '');
+    $now = sr_now();
+
+    $pdo->beginTransaction();
+    try {
+        $sourceStmt = $pdo->prepare(
+            'SELECT *
+             FROM sr_quiz_sets
+             WHERE id = :id
+               AND deleted_at IS NULL
+             LIMIT 1
+             FOR UPDATE'
+        );
+        $sourceStmt->execute(['id' => $sourceQuizId]);
+        $sourceQuiz = $sourceStmt->fetch();
+        if (!is_array($sourceQuiz)) {
+            throw new RuntimeException('Source quiz was not found.');
+        }
+        if (!sr_quiz_key_is_valid($newQuizKey) || sr_quiz_key_exists($pdo, $newQuizKey, 0)) {
+            throw new RuntimeException('New quiz key is invalid or duplicated.');
+        }
+
+        $memberGroupKeys = [];
+        if (!empty($options['copy_member_groups'])) {
+            foreach (sr_quiz_member_group_keys_from_value($sourceQuiz['member_group_keys_json'] ?? '') as $groupKey) {
+                if (function_exists('sr_member_group_exists') && sr_member_group_exists($pdo, $groupKey)) {
+                    $memberGroupKeys[] = $groupKey;
+                } else {
+                    $skippedMemberGroupKeys[] = $groupKey;
+                }
+            }
+            if ($skippedMemberGroupKeys !== []) {
+                $warnings[] = '존재하지 않는 회원 그룹 key는 복사하지 않았습니다.';
+            }
+        }
+
+        $rewardPolicy = null;
+        if (!empty($options['copy_reward_policy']) && (int) ($sourceQuiz['reward_enabled'] ?? 0) === 1) {
+            $policyStmt = $pdo->prepare(
+                'SELECT *
+                 FROM sr_quiz_reward_policies
+                 WHERE quiz_id = :quiz_id
+                   AND status = \'active\'
+                 ORDER BY sort_order ASC, id ASC
+                 LIMIT 1'
+            );
+            $policyStmt->execute(['quiz_id' => $sourceQuizId]);
+            $policy = $policyStmt->fetch();
+            if (is_array($policy)) {
+                $provider = (string) ($policy['reward_provider'] ?? '');
+                if ($provider === 'coupon') {
+                    if (sr_quiz_reward_coupon_definition_is_available($pdo, (int) ($policy['reward_code'] ?? 0))) {
+                        $rewardPolicy = $policy;
+                    } else {
+                        $skippedRewardPolicy = 'coupon_unavailable';
+                    }
+                } elseif ($provider === 'ledger_asset') {
+                    $assetOptions = sr_quiz_asset_options($pdo);
+                    $moduleKey = (string) ($policy['reward_module'] ?? '');
+                    if (isset($assetOptions[$moduleKey]) && (int) ($policy['reward_amount'] ?? 0) > 0) {
+                        $rewardPolicy = $policy;
+                    } else {
+                        $skippedRewardPolicy = 'asset_unavailable';
+                    }
+                } else {
+                    $skippedRewardPolicy = 'provider_unsupported';
+                }
+            } else {
+                $skippedRewardPolicy = 'active_policy_missing';
+            }
+            if ($skippedRewardPolicy !== '') {
+                $warnings[] = '보상 정책은 현재 사용할 수 없어 복사하지 않았습니다.';
+            }
+        }
+
+        $insertQuiz = $pdo->prepare(
+            'INSERT INTO sr_quiz_sets
+                (quiz_key, title, description, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
+                 attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, reward_enabled,
+                 created_by_account_id, updated_by_account_id, created_at, updated_at)
+             VALUES
+                (:quiz_key, :title, :description, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
+                 :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :reward_enabled,
+                 :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
+        );
+        $memberGroupKeysJson = json_encode(array_values($memberGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $insertQuiz->execute([
+            'quiz_key' => $newQuizKey,
+            'title' => (string) ($options['title'] ?? ''),
+            'description' => (string) ($sourceQuiz['description'] ?? ''),
+            'status' => !empty($options['copy_status']) ? (string) ($sourceQuiz['status'] ?? 'draft') : 'draft',
+            'quiz_mode' => (string) ($sourceQuiz['quiz_mode'] ?? 'scored'),
+            'scoring_model' => (string) ($sourceQuiz['scoring_model'] ?? 'correct_answer'),
+            'pass_score' => $sourceQuiz['pass_score'] ?? null,
+            'starts_at' => !empty($options['copy_dates']) ? ($sourceQuiz['starts_at'] ?? null) : null,
+            'ends_at' => !empty($options['copy_dates']) ? ($sourceQuiz['ends_at'] ?? null) : null,
+            'attempt_limit_policy' => (string) ($sourceQuiz['attempt_limit_policy'] ?? 'unlimited'),
+            'attempt_limit_period_seconds' => $sourceQuiz['attempt_limit_period_seconds'] ?? null,
+            'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
+            'reward_enabled' => is_array($rewardPolicy) ? 1 : 0,
+            'created_by_account_id' => $accountId,
+            'updated_by_account_id' => $accountId,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $newQuizId = (int) $pdo->lastInsertId();
+
+        $questionIdMap = [];
+        $questionStmt = $pdo->prepare(
+            'SELECT *
+             FROM sr_quiz_questions
+             WHERE quiz_id = :quiz_id
+             ORDER BY sort_order ASC, id ASC'
+        );
+        $questionStmt->execute(['quiz_id' => $sourceQuizId]);
+        $insertQuestion = $pdo->prepare(
+            'INSERT INTO sr_quiz_questions
+                (quiz_id, question_key, question_type, prompt, help_text, required, score_value, sort_order, settings_json, created_at, updated_at)
+             VALUES
+                (:quiz_id, :question_key, :question_type, :prompt, :help_text, :required, :score_value, :sort_order, :settings_json, :created_at, :updated_at)'
+        );
+        $insertChoice = $pdo->prepare(
+            'INSERT INTO sr_quiz_choices
+                (question_id, choice_key, label, description, is_correct, score_value, category_key, category_weight, sort_order, settings_json, created_at, updated_at)
+             VALUES
+                (:question_id, :choice_key, :label, :description, :is_correct, :score_value, :category_key, :category_weight, :sort_order, :settings_json, :created_at, :updated_at)'
+        );
+        $choiceStmt = $pdo->prepare(
+            'SELECT *
+             FROM sr_quiz_choices
+             WHERE question_id = :question_id
+             ORDER BY sort_order ASC, id ASC'
+        );
+        foreach ($questionStmt->fetchAll() as $question) {
+            $insertQuestion->execute([
+                'quiz_id' => $newQuizId,
+                'question_key' => (string) ($question['question_key'] ?? ''),
+                'question_type' => (string) ($question['question_type'] ?? 'single_choice'),
+                'prompt' => (string) ($question['prompt'] ?? ''),
+                'help_text' => $question['help_text'] ?? null,
+                'required' => (int) ($question['required'] ?? 1),
+                'score_value' => (int) ($question['score_value'] ?? 0),
+                'sort_order' => (int) ($question['sort_order'] ?? 0),
+                'settings_json' => $question['settings_json'] ?? null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $newQuestionId = (int) $pdo->lastInsertId();
+            $questionIdMap[(int) ($question['id'] ?? 0)] = $newQuestionId;
+            $choiceStmt->execute(['question_id' => (int) ($question['id'] ?? 0)]);
+            foreach ($choiceStmt->fetchAll() as $choice) {
+                $insertChoice->execute([
+                    'question_id' => $newQuestionId,
+                    'choice_key' => (string) ($choice['choice_key'] ?? ''),
+                    'label' => (string) ($choice['label'] ?? ''),
+                    'description' => $choice['description'] ?? null,
+                    'is_correct' => (int) ($choice['is_correct'] ?? 0),
+                    'score_value' => (int) ($choice['score_value'] ?? 0),
+                    'category_key' => (string) ($choice['category_key'] ?? '') !== '' ? (string) $choice['category_key'] : null,
+                    'category_weight' => (int) ($choice['category_weight'] ?? 0),
+                    'sort_order' => (int) ($choice['sort_order'] ?? 0),
+                    'settings_json' => $choice['settings_json'] ?? null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        $resultIdMap = [];
+        $resultStmt = $pdo->prepare(
+            'SELECT *
+             FROM sr_quiz_results
+             WHERE quiz_id = :quiz_id
+             ORDER BY sort_order ASC, id ASC'
+        );
+        $resultStmt->execute(['quiz_id' => $sourceQuizId]);
+        $insertResult = $pdo->prepare(
+            'INSERT INTO sr_quiz_results
+                (quiz_id, result_key, title, summary, body, status, sort_order, created_at, updated_at)
+             VALUES
+                (:quiz_id, :result_key, :title, :summary, :body, :status, :sort_order, :created_at, :updated_at)'
+        );
+        foreach ($resultStmt->fetchAll() as $result) {
+            $insertResult->execute([
+                'quiz_id' => $newQuizId,
+                'result_key' => (string) ($result['result_key'] ?? ''),
+                'title' => (string) ($result['title'] ?? ''),
+                'summary' => $result['summary'] ?? null,
+                'body' => $result['body'] ?? null,
+                'status' => (string) ($result['status'] ?? 'active'),
+                'sort_order' => (int) ($result['sort_order'] ?? 0),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $resultIdMap[(int) ($result['id'] ?? 0)] = (int) $pdo->lastInsertId();
+        }
+
+        $ruleStmt = $pdo->prepare(
+            'SELECT *
+             FROM sr_quiz_result_rules
+             WHERE quiz_id = :quiz_id
+             ORDER BY priority DESC, id ASC'
+        );
+        $ruleStmt->execute(['quiz_id' => $sourceQuizId]);
+        $insertRule = $pdo->prepare(
+            'INSERT INTO sr_quiz_result_rules
+                (quiz_id, result_id, rule_type, min_score, max_score, category_key, threshold_value, priority, settings_json, created_at, updated_at)
+             VALUES
+                (:quiz_id, :result_id, :rule_type, :min_score, :max_score, :category_key, :threshold_value, :priority, :settings_json, :created_at, :updated_at)'
+        );
+        foreach ($ruleStmt->fetchAll() as $rule) {
+            $oldResultId = (int) ($rule['result_id'] ?? 0);
+            if (!isset($resultIdMap[$oldResultId])) {
+                continue;
+            }
+            $insertRule->execute([
+                'quiz_id' => $newQuizId,
+                'result_id' => $resultIdMap[$oldResultId],
+                'rule_type' => (string) ($rule['rule_type'] ?? 'score_range'),
+                'min_score' => $rule['min_score'] ?? null,
+                'max_score' => $rule['max_score'] ?? null,
+                'category_key' => (string) ($rule['category_key'] ?? '') !== '' ? (string) $rule['category_key'] : null,
+                'threshold_value' => $rule['threshold_value'] ?? null,
+                'priority' => (int) ($rule['priority'] ?? 0),
+                'settings_json' => $rule['settings_json'] ?? null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        if (is_array($rewardPolicy)) {
+            $insertPolicy = $pdo->prepare(
+                'INSERT INTO sr_quiz_reward_policies
+                    (quiz_id, status, trigger_type, result_id, reward_provider, reward_module, reward_code, reward_amount, dedupe_scope, sort_order, settings_json, created_at, updated_at)
+                 VALUES
+                    (:quiz_id, :status, :trigger_type, NULL, :reward_provider, :reward_module, :reward_code, :reward_amount, :dedupe_scope, :sort_order, :settings_json, :created_at, :updated_at)'
+            );
+            $insertPolicy->execute([
+                'quiz_id' => $newQuizId,
+                'status' => (string) ($rewardPolicy['status'] ?? 'active'),
+                'trigger_type' => (string) ($rewardPolicy['trigger_type'] ?? 'passed'),
+                'reward_provider' => (string) ($rewardPolicy['reward_provider'] ?? 'ledger_asset'),
+                'reward_module' => (string) ($rewardPolicy['reward_module'] ?? ''),
+                'reward_code' => (string) ($rewardPolicy['reward_code'] ?? ''),
+                'reward_amount' => $rewardPolicy['reward_amount'] ?? null,
+                'dedupe_scope' => (string) ($rewardPolicy['dedupe_scope'] ?? 'per_quiz'),
+                'sort_order' => (int) ($rewardPolicy['sort_order'] ?? 0),
+                'settings_json' => $rewardPolicy['settings_json'] ?? null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        if (!empty($options['copy_sources'])) {
+            $sourceStmt = $pdo->prepare(
+                'SELECT *
+                 FROM sr_quiz_sources
+                 WHERE quiz_id = :quiz_id
+                   AND status = \'active\'
+                 ORDER BY sort_order ASC, id ASC'
+            );
+            $sourceStmt->execute(['quiz_id' => $sourceQuizId]);
+            $insertSource = $pdo->prepare(
+                'INSERT INTO sr_quiz_sources
+                    (quiz_id, source_module, source_type, source_id, status, sort_order, cta_label, created_at, updated_at)
+                 VALUES
+                    (:quiz_id, :source_module, :source_type, :source_id, \'active\', :sort_order, :cta_label, :created_at, :updated_at)'
+            );
+            foreach ($sourceStmt->fetchAll() as $source) {
+                $sourceModule = (string) ($source['source_module'] ?? '');
+                $sourceType = (string) ($source['source_type'] ?? '');
+                $sourceId = (int) ($source['source_id'] ?? 0);
+                $valid = false;
+                if ($sourceModule === 'content' && $sourceType === 'content_item' && sr_module_enabled($pdo, 'content')) {
+                    $valid = in_array($sourceId, sr_quiz_content_source_ids_exist($pdo, [$sourceId]), true);
+                } elseif ($sourceModule === 'community' && $sourceType === 'community_post' && sr_module_enabled($pdo, 'community')) {
+                    $valid = in_array($sourceId, sr_quiz_community_source_ids_exist($pdo, [$sourceId]), true);
+                }
+                if (!$valid) {
+                    $skippedSources[] = [
+                        'source_module' => $sourceModule,
+                        'source_type' => $sourceType,
+                        'source_id' => $sourceId,
+                    ];
+                    continue;
+                }
+                $insertSource->execute([
+                    'quiz_id' => $newQuizId,
+                    'source_module' => $sourceModule,
+                    'source_type' => $sourceType,
+                    'source_id' => $sourceId,
+                    'sort_order' => (int) ($source['sort_order'] ?? 0),
+                    'cta_label' => (string) ($source['cta_label'] ?? '') !== '' ? (string) $source['cta_label'] : '퀴즈 풀기',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+            if ($skippedSources !== []) {
+                $warnings[] = '삭제되었거나 사용할 수 없는 연결 대상은 복사하지 않았습니다.';
+            }
+        }
+
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return [
+        'quiz_id' => $newQuizId,
+        'quiz_key' => $newQuizKey,
+        'warnings' => $warnings,
+        'skipped_sources' => $skippedSources,
+        'skipped_reward_policy' => $skippedRewardPolicy,
+        'skipped_member_group_keys' => $skippedMemberGroupKeys,
+    ];
+}
+
 function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
 {
     $quizId = (int) ($values['id'] ?? 0);
@@ -2189,6 +2730,8 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
         ? max(1, (int) ($values['attempt_limit_period_seconds'] ?? 0))
         : null;
     $memberGroupKeysJson = json_encode(sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $settings = sr_quiz_settings($pdo);
+    $defaultCtaLabel = (string) ($settings['default_cta_label'] ?? '퀴즈 풀기');
 
     $pdo->beginTransaction();
     try {
@@ -2408,7 +2951,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'source_type' => 'content_item',
                 'source_id' => $contentId,
                 'sort_order' => $sourceIndex,
-                'cta_label' => '퀴즈 풀기',
+                'cta_label' => $defaultCtaLabel,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
@@ -2420,7 +2963,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'source_type' => 'community_post',
                 'source_id' => $postId,
                 'sort_order' => $sourceIndex,
-                'cta_label' => '퀴즈 풀기',
+                'cta_label' => $defaultCtaLabel,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);

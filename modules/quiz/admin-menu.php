@@ -14,5 +14,10 @@ return [
             'path' => '/admin/quiz/attempts',
             'order' => 20,
         ],
+        [
+            'label' => '퀴즈 환경설정',
+            'path' => '/admin/quiz/settings',
+            'order' => 30,
+        ],
     ],
 ];

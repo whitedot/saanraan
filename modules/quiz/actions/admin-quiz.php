@@ -57,6 +57,53 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
         sr_admin_redirect_with_result(sr_admin_action_result([], '퀴즈를 저장했습니다.'), '/admin/quiz');
+    } elseif ($intent === 'copy') {
+        sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'edit');
+        $copyOptions = sr_quiz_copy_options_from_post();
+        $postErrors = sr_quiz_copy_validation_errors($pdo, $copyOptions);
+        if ($postErrors !== []) {
+            sr_admin_redirect_with_result(sr_admin_action_result($postErrors, ''), '/admin/quiz');
+        }
+
+        try {
+            $copyResult = sr_quiz_copy_admin_quiz($pdo, (int) $copyOptions['source_quiz_id'], $copyOptions, (int) ($account['id'] ?? 0));
+        } catch (RuntimeException $exception) {
+            sr_admin_redirect_with_result(sr_admin_action_result(['퀴즈를 복사할 수 없습니다. 원본이나 새 key를 다시 확인하세요.'], ''), '/admin/quiz');
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'quiz_copy_failed');
+            sr_admin_redirect_with_result(sr_admin_action_result(['퀴즈 복사 중 오류가 발생했습니다.'], ''), '/admin/quiz');
+        }
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) ($account['id'] ?? 0),
+            'actor_type' => 'admin',
+            'event_type' => 'quiz.copied',
+            'target_type' => 'quiz',
+            'target_id' => (string) (int) ($copyResult['quiz_id'] ?? 0),
+            'result' => 'success',
+            'message' => 'Quiz copied.',
+            'metadata' => [
+                'source_quiz_id' => (int) ($copyOptions['source_quiz_id'] ?? 0),
+                'new_quiz_id' => (int) ($copyResult['quiz_id'] ?? 0),
+                'new_quiz_key' => (string) ($copyResult['quiz_key'] ?? ''),
+                'copy_dates' => !empty($copyOptions['copy_dates']),
+                'copy_member_groups' => !empty($copyOptions['copy_member_groups']),
+                'copy_reward_policy' => !empty($copyOptions['copy_reward_policy']),
+                'copy_sources' => !empty($copyOptions['copy_sources']),
+                'copy_status' => !empty($copyOptions['copy_status']),
+                'warnings' => (array) ($copyResult['warnings'] ?? []),
+                'skipped_sources' => (array) ($copyResult['skipped_sources'] ?? []),
+                'skipped_reward_policy' => (string) ($copyResult['skipped_reward_policy'] ?? ''),
+                'skipped_member_group_keys' => (array) ($copyResult['skipped_member_group_keys'] ?? []),
+            ],
+        ]);
+        $noticeMessage = '퀴즈를 복사했습니다.';
+        if ((array) ($copyResult['warnings'] ?? []) !== []) {
+            $noticeMessage .= ' ' . implode(' ', array_map('strval', (array) $copyResult['warnings']));
+        }
+        sr_admin_redirect_with_result(
+            sr_admin_action_result([], $noticeMessage),
+            '/admin/quiz?mode=edit&id=' . (string) (int) ($copyResult['quiz_id'] ?? 0)
+        );
     } elseif ($intent === 'delete') {
         sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'delete');
         $quizId = (int) sr_post_string('quiz_id', 20);
@@ -101,7 +148,7 @@ if ($mode === 'edit') {
 
 $values = is_array($sessionValues) && $sessionValues !== []
     ? $sessionValues
-    : (is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values());
+    : (is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values(sr_quiz_settings($pdo)));
 
 $adminPageTitle = $mode === 'list' ? '퀴즈 관리' : ($mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -195,6 +242,7 @@ if ($mode === 'list') {
                         $quizStatus = (string) ($quiz['status'] ?? '');
                         $memberGroupCount = count(sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''));
                         $rewardEnabled = (int) ($quiz['reward_enabled'] ?? 0) === 1;
+                        $copyModalId = 'quiz-copy-modal-' . (string) (int) $quiz['id'];
                         ?>
                         <tr>
                             <td class="admin-table-nowrap"><code><?php echo sr_e((string) $quiz['quiz_key']); ?></code></td>
@@ -213,6 +261,7 @@ if ($mode === 'list') {
                             <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="퀴즈 복사" title="복사" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($copyModalId); ?>" data-overlay="#<?php echo sr_e($copyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                     <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=edit&id=' . (string) (int) $quiz['id'])); ?>" aria-label="퀴즈 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-inline-form">
                                         <?php echo sr_csrf_field(); ?>
@@ -228,6 +277,87 @@ if ($mode === 'list') {
             </table>
         </div>
     </section>
+    <?php foreach ($quizzes as $quiz) { ?>
+        <?php
+        $copyModalId = 'quiz-copy-modal-' . (string) (int) $quiz['id'];
+        $sourceKey = (string) ($quiz['quiz_key'] ?? '');
+        $copyKey = sr_quiz_clean_key($sourceKey . '_copy');
+        if ($copyKey === '' || sr_quiz_key_exists($pdo, $copyKey, 0)) {
+            $copyKey = sr_quiz_clean_key($sourceKey . '_copy_' . (string) (int) $quiz['id']);
+        }
+        $copyTitle = (string) ($quiz['title'] ?? '') . ' 복사본';
+        ?>
+        <div id="<?php echo sr_e($copyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($copyModalId); ?>-label" aria-hidden="true" inert>
+            <div class="modal-dialog modal-dialog-lg">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="modal-content ui-form-theme">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="copy">
+                    <input type="hidden" name="source_quiz_id" value="<?php echo sr_e((string) (int) $quiz['id']); ?>">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($copyModalId); ?>-label" class="modal-title">퀴즈 복사</h3>
+                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($copyModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="admin-summary-list">
+                            <p class="admin-form-help">
+                                문제 <?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?>개,
+                                결과 규칙 <?php echo sr_e(number_format((int) ($quiz['result_rule_count'] ?? 0))); ?>개,
+                                연결 <?php echo sr_e(number_format((int) ($quiz['source_count'] ?? 0))); ?>개,
+                                보상 정책 <?php echo (int) ($quiz['reward_policy_count'] ?? 0) > 0 ? '있음' : '없음'; ?>
+                            </p>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($copyModalId); ?>-key">새 퀴즈 Key <span class="sr-required-label">(필수)</span></label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($copyModalId); ?>-key" type="text" name="copy_quiz_key" value="<?php echo sr_e($copyKey); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input data-overlay-focus>
+                                <p class="admin-form-help">삭제된 퀴즈의 key까지 포함해 중복될 수 없습니다.</p>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="<?php echo sr_e($copyModalId); ?>-title">새 제목 <span class="sr-required-label">(필수)</span></label>
+                            <div class="admin-form-field">
+                                <input id="<?php echo sr_e($copyModalId); ?>-title" type="text" name="copy_title" value="<?php echo sr_e($copyTitle); ?>" class="form-input form-control-full" maxlength="190" required>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <span class="form-label">복사 범위</span>
+                            <div class="admin-form-field">
+                                <label class="admin-form-check form-label">
+                                    <input type="checkbox" class="form-checkbox" checked disabled>
+                                    <?php echo sr_admin_choice_label_html('기본 정보, 채점, 문제, 결과 규칙'); ?>
+                                </label>
+                                <label class="admin-form-check form-label">
+                                    <input type="checkbox" name="copy_dates" value="1" class="form-checkbox">
+                                    <?php echo sr_admin_choice_label_html('공개 기간 복사'); ?>
+                                </label>
+                                <label class="admin-form-check form-label">
+                                    <input type="checkbox" name="copy_member_groups" value="1" class="form-checkbox" checked>
+                                    <?php echo sr_admin_choice_label_html('응시 가능 회원 그룹 복사'); ?>
+                                </label>
+                                <label class="admin-form-check form-label">
+                                    <input type="checkbox" name="copy_reward_policy" value="1" class="form-checkbox">
+                                    <?php echo sr_admin_choice_label_html('보상 정책 복사'); ?>
+                                </label>
+                                <label class="admin-form-check form-label">
+                                    <input type="checkbox" name="copy_sources" value="1" class="form-checkbox">
+                                    <?php echo sr_admin_choice_label_html('콘텐츠/커뮤니티 연결 복사'); ?>
+                                </label>
+                                <label class="admin-form-check form-label">
+                                    <input type="checkbox" name="copy_status" value="1" class="form-checkbox">
+                                    <?php echo sr_admin_choice_label_html('원본 공개 상태 복사'); ?>
+                                </label>
+                                <p class="admin-form-help">기본 생성 상태는 초안입니다. 보상 정책과 연결 대상은 선택한 경우에도 서버에서 현재 사용 가능 여부를 다시 확인합니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($copyModalId); ?>">취소</button>
+                        <button type="submit" class="btn btn-solid-primary">복사</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php } ?>
     <?php echo sr_admin_pagination_html($quizPagination, '퀴즈 목록 페이지'); ?>
     <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
     <?php

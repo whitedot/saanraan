@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../helpers.php';
 
-$quizzes = sr_quiz_public_quizzes($pdo, 50);
+$quizzes = sr_quiz_public_quizzes($pdo);
 $seo = [
     'title' => '퀴즈',
     'canonical' => '/quiz',
