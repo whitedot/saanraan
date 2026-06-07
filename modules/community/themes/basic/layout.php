@@ -52,6 +52,32 @@ if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
 if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_community_primary_menu_fallback_links')) {
     $layoutFallbackLinks = sr_community_primary_menu_fallback_links($layoutPdo);
     if ($layoutFallbackLinks !== []) {
+        $layoutCurrentPath = '/' . trim(sr_request_path(), '/');
+        $layoutCurrentPath = $layoutCurrentPath === '/' ? '/' : rtrim($layoutCurrentPath, '/');
+        $layoutCurrentQuery = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+        parse_str(is_string($layoutCurrentQuery) ? $layoutCurrentQuery : '', $layoutCurrentQueryParams);
+        $layoutCurrentCommunityBoardKey = '';
+        if (in_array($layoutCurrentPath, ['/community/board', '/community/write'], true)) {
+            $layoutCurrentCommunityBoardKey = (string) ($layoutCurrentQueryParams['key'] ?? '');
+        } elseif (in_array($layoutCurrentPath, ['/community/post', '/community/edit'], true)) {
+            $layoutCurrentPostId = (int) ($layoutCurrentQueryParams['id'] ?? 0);
+            if ($layoutCurrentPostId > 0) {
+                try {
+                    $layoutCurrentPostBoardStmt = $layoutPdo->prepare(
+                        'SELECT b.board_key
+                         FROM sr_community_posts p
+                         INNER JOIN sr_community_boards b ON b.id = p.board_id
+                         WHERE p.id = :id
+                         LIMIT 1'
+                    );
+                    $layoutCurrentPostBoardStmt->execute(['id' => $layoutCurrentPostId]);
+                    $layoutCurrentPostBoard = $layoutCurrentPostBoardStmt->fetch();
+                    $layoutCurrentCommunityBoardKey = is_array($layoutCurrentPostBoard) ? (string) ($layoutCurrentPostBoard['board_key'] ?? '') : '';
+                } catch (Throwable) {
+                    $layoutCurrentCommunityBoardKey = '';
+                }
+            }
+        }
         $layoutPrimaryNavigationHtml = '<div class="sr-site-menu sr-site-menu-fallback" data-site-menu-fallback="primary"><ul class="sr-site-menu-list sr-site-menu-list-depth-1">';
         foreach ($layoutFallbackLinks as $layoutFallbackLink) {
             $layoutFallbackLabel = (string) ($layoutFallbackLink['label'] ?? '');
@@ -59,7 +85,28 @@ if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists
             if ($layoutFallbackLabel === '' || $layoutFallbackUrl === '') {
                 continue;
             }
-            $layoutPrimaryNavigationHtml .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($layoutFallbackUrl)) . '">' . sr_e($layoutFallbackLabel) . '</a></li>';
+            $layoutFallbackPath = parse_url($layoutFallbackUrl, PHP_URL_PATH);
+            $layoutFallbackPath = is_string($layoutFallbackPath) && $layoutFallbackPath !== '' ? '/' . trim($layoutFallbackPath, '/') : '/';
+            $layoutFallbackPath = $layoutFallbackPath === '/' ? '/' : rtrim($layoutFallbackPath, '/');
+            $layoutFallbackQuery = parse_url($layoutFallbackUrl, PHP_URL_QUERY);
+            parse_str(is_string($layoutFallbackQuery) ? $layoutFallbackQuery : '', $layoutFallbackQueryParams);
+            $layoutFallbackBoardKey = (string) ($layoutFallbackQueryParams['key'] ?? '');
+            $layoutFallbackQueryMatches = $layoutFallbackQueryParams === [];
+            if (!$layoutFallbackQueryMatches && is_array($layoutCurrentQueryParams)) {
+                $layoutFallbackQueryMatches = true;
+                foreach ($layoutFallbackQueryParams as $layoutFallbackQueryKey => $layoutFallbackQueryValue) {
+                    if (!array_key_exists((string) $layoutFallbackQueryKey, $layoutCurrentQueryParams) || $layoutCurrentQueryParams[(string) $layoutFallbackQueryKey] != $layoutFallbackQueryValue) {
+                        $layoutFallbackQueryMatches = false;
+                        break;
+                    }
+                }
+            }
+            $layoutCurrentAttribute = ($layoutFallbackPath === $layoutCurrentPath && $layoutFallbackQueryMatches) || (
+                $layoutFallbackPath === '/community/board'
+                && $layoutFallbackBoardKey !== ''
+                && $layoutFallbackBoardKey === $layoutCurrentCommunityBoardKey
+            ) ? ' aria-current="page"' : '';
+            $layoutPrimaryNavigationHtml .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($layoutFallbackUrl)) . '"' . $layoutCurrentAttribute . '>' . sr_e($layoutFallbackLabel) . '</a></li>';
         }
         $layoutPrimaryNavigationHtml .= '</ul></div>';
     }

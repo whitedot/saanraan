@@ -128,11 +128,11 @@
     display: none;
 }
 
-.community-layout-nav a:is([aria-current="page"], [href="/community"], [href$="/community"]) {
+.community-layout-nav a[aria-current="page"] {
     font-weight: 800;
 }
 
-.community-layout-nav a:is([aria-current="page"], [href="/community"], [href$="/community"])::after,
+.community-layout-nav a[aria-current="page"]::after,
 .community-layout-nav a:hover::after {
     background: #151515;
     bottom: 0;

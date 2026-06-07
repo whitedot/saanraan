@@ -207,6 +207,143 @@ function sr_site_menu_current_login_next_path(): string
     return sr_is_safe_relative_url($path) ? $path : '';
 }
 
+function sr_site_menu_normalize_path(string $path): string
+{
+    $path = '/' . trim($path, '/');
+    return $path === '/' ? '/' : rtrim($path, '/');
+}
+
+function sr_site_menu_relative_url_parts(string $url): ?array
+{
+    if (!sr_is_safe_relative_url($url)) {
+        return null;
+    }
+
+    $path = parse_url($url, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        $path = '/';
+    }
+
+    $basePath = sr_base_path();
+    $path = sr_site_menu_normalize_path($path);
+    if ($basePath !== '' && ($path === $basePath || str_starts_with($path, $basePath . '/'))) {
+        $path = substr($path, strlen($basePath));
+        $path = is_string($path) && $path !== '' ? $path : '/';
+    }
+
+    $query = parse_url($url, PHP_URL_QUERY);
+
+    return [
+        'path' => sr_site_menu_normalize_path($path),
+        'query' => is_string($query) ? $query : '',
+    ];
+}
+
+function sr_site_menu_current_url_parts(): array
+{
+    static $parts = null;
+    if (is_array($parts)) {
+        return $parts;
+    }
+
+    $query = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+    $parts = [
+        'path' => sr_site_menu_normalize_path(sr_request_path()),
+        'query' => is_string($query) ? $query : '',
+    ];
+
+    return $parts;
+}
+
+function sr_site_menu_query_contains(string $currentQuery, string $targetQuery): bool
+{
+    if ($targetQuery === '') {
+        return true;
+    }
+
+    parse_str($targetQuery, $targetParams);
+    parse_str($currentQuery, $currentParams);
+    if (!is_array($targetParams) || $targetParams === [] || !is_array($currentParams)) {
+        return $targetQuery === $currentQuery;
+    }
+
+    foreach ($targetParams as $key => $value) {
+        if (!array_key_exists((string) $key, $currentParams) || $currentParams[(string) $key] != $value) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function sr_site_menu_current_community_board_key(?PDO $pdo): string
+{
+    $current = sr_site_menu_current_url_parts();
+    $path = (string) $current['path'];
+    parse_str((string) $current['query'], $queryParams);
+
+    if (in_array($path, ['/community/board', '/community/write'], true)) {
+        $boardKey = is_array($queryParams) ? (string) ($queryParams['key'] ?? '') : '';
+        return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $boardKey) === 1 ? $boardKey : '';
+    }
+
+    if (!in_array($path, ['/community/post', '/community/edit'], true) || !($pdo instanceof PDO)) {
+        return '';
+    }
+
+    $postId = is_array($queryParams) ? (int) ($queryParams['id'] ?? 0) : 0;
+    if ($postId <= 0) {
+        return '';
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT b.board_key
+             FROM sr_community_posts p
+             INNER JOIN sr_community_boards b ON b.id = p.board_id
+             WHERE p.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $postId]);
+        $row = $stmt->fetch();
+    } catch (Throwable) {
+        return '';
+    }
+
+    $boardKey = is_array($row) ? (string) ($row['board_key'] ?? '') : '';
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $boardKey) === 1 ? $boardKey : '';
+}
+
+function sr_site_menu_item_matches_current_community_board(?PDO $pdo, array $target): bool
+{
+    if ((string) ($target['path'] ?? '') !== '/community/board') {
+        return false;
+    }
+
+    parse_str((string) ($target['query'] ?? ''), $targetParams);
+    $targetBoardKey = is_array($targetParams) ? (string) ($targetParams['key'] ?? '') : '';
+    if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $targetBoardKey) !== 1) {
+        return false;
+    }
+
+    return $targetBoardKey === sr_site_menu_current_community_board_key($pdo);
+}
+
+function sr_site_menu_item_is_current(string $url, ?PDO $pdo = null): bool
+{
+    $target = sr_site_menu_relative_url_parts($url);
+    if ($target === null) {
+        return false;
+    }
+
+    $current = sr_site_menu_current_url_parts();
+    if ((string) $target['path'] !== (string) $current['path']) {
+        return sr_site_menu_item_matches_current_community_board($pdo, $target);
+    }
+
+    return sr_site_menu_query_contains((string) $current['query'], (string) $target['query']);
+}
+
 function sr_site_menu_render(PDO $pdo, string $menuKey, string $layoutSlotKey = ''): string
 {
     $menuKey = sr_site_menu_clean_key($menuKey);
@@ -260,14 +397,23 @@ function sr_site_menu_render_item_list(PDO $pdo, array $itemsByParent, int $pare
         $target = (string) ($item['target'] ?? 'self');
         $targetAttribute = $target === 'blank' ? ' target="_blank" rel="noopener noreferrer"' : '';
         $childrenHtml = $itemId > 0 ? sr_site_menu_render_item_list($pdo, $itemsByParent, $itemId, $depth + 1) : '';
-        $html .= '<li class="sr-site-menu-item sr-site-menu-item-depth-' . sr_e((string) $depth) . '">';
+        $isCurrent = sr_site_menu_item_is_current((string) ($item['url'] ?? ''), $pdo);
+        $hasCurrentChild = $childrenHtml !== '' && strpos($childrenHtml, 'aria-current="page"') !== false;
+        $itemClass = 'sr-site-menu-item sr-site-menu-item-depth-' . (string) $depth;
+        if ($isCurrent) {
+            $itemClass .= ' is-current';
+        } elseif ($hasCurrentChild) {
+            $itemClass .= ' is-current-ancestor';
+        }
+        $currentAttribute = $isCurrent ? ' aria-current="page"' : '';
+        $html .= '<li class="' . sr_e($itemClass) . '">';
         $labelHtml = '';
         $iconName = trim((string) ($item['icon_name'] ?? ''));
         if ($iconName !== '' && sr_site_menu_icon_allowed($pdo, $iconName)) {
             $labelHtml .= sr_icon(sr_admin_icon_material_name($pdo, $iconName), 'sr-site-menu-link-icon');
         }
         $labelHtml .= '<span class="sr-site-menu-link-label">' . sr_e((string) $item['label']) . '</span>';
-        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . '>' . $labelHtml . '</a>';
+        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . $currentAttribute . '>' . $labelHtml . '</a>';
         $html .= $childrenHtml;
         $html .= '</li>';
     }

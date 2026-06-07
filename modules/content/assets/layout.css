@@ -128,11 +128,11 @@
     display: none;
 }
 
-.content-layout-nav a:is([aria-current="page"], [href="/content"], [href$="/content"]) {
+.content-layout-nav a[aria-current="page"] {
     font-weight: 800;
 }
 
-.content-layout-nav a:is([aria-current="page"], [href="/content"], [href$="/content"])::after,
+.content-layout-nav a[aria-current="page"]::after,
 .content-layout-nav a:hover::after {
     background: #151515;
     bottom: 0;
