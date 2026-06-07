@@ -126,7 +126,7 @@ function sr_quiz_reward_providers(): array
 function sr_quiz_reward_provider_label(string $provider): string
 {
     return [
-        'ledger_asset' => '자산 장부',
+        'ledger_asset' => '포인트/금액',
         'coupon' => '쿠폰 발급',
     ][$provider] ?? $provider;
 }
@@ -1162,6 +1162,9 @@ function sr_quiz_issue_coupon_reward_grant(PDO $pdo, array $quiz, int $grantId, 
     if ($definitionId < 1) {
         return sr_quiz_mark_reward_grant_failed($pdo, $grantId, '쿠폰 정의 ID를 확인해야 합니다.', $now);
     }
+    if (!sr_quiz_reward_coupon_definition_is_available($pdo, $definitionId)) {
+        return sr_quiz_mark_reward_grant_failed($pdo, $grantId, '사용 가능한 보상 쿠폰이 아닙니다.', $now);
+    }
 
     try {
         $issueId = sr_coupon_issue_to_account($pdo, $definitionId, $accountId, '퀴즈 보상: ' . (string) ($quiz['title'] ?? ''), null, null);
@@ -1677,6 +1680,47 @@ function sr_quiz_admin_values_from_row(array $quiz): array
 
 function sr_quiz_admin_values_from_post(): array
 {
+    $resultRuleKeys = $_POST['result_rule_key'] ?? [];
+    $resultRuleTitles = $_POST['result_rule_title'] ?? [];
+    $resultRuleMinScores = $_POST['result_rule_min_score'] ?? [];
+    $resultRuleMaxScores = $_POST['result_rule_max_score'] ?? [];
+    $resultRuleCategoryKeys = $_POST['result_rule_category_key'] ?? [];
+    $resultRuleThresholdValues = $_POST['result_rule_threshold_value'] ?? [];
+    $resultRuleSummaries = $_POST['result_rule_summary'] ?? [];
+    $resultRuleLines = [];
+
+    if (is_array($resultRuleKeys)) {
+        foreach ($resultRuleKeys as $index => $keyValue) {
+            $resultKey = sr_quiz_clean_key((string) $keyValue, 64);
+            $title = is_array($resultRuleTitles) && isset($resultRuleTitles[$index])
+                ? sr_quiz_clean_single_line((string) $resultRuleTitles[$index], 190)
+                : '';
+            $minScore = is_array($resultRuleMinScores) && isset($resultRuleMinScores[$index]) ? trim((string) $resultRuleMinScores[$index]) : '';
+            $maxScore = is_array($resultRuleMaxScores) && isset($resultRuleMaxScores[$index]) ? trim((string) $resultRuleMaxScores[$index]) : '';
+            $categoryKey = is_array($resultRuleCategoryKeys) && isset($resultRuleCategoryKeys[$index])
+                ? sr_quiz_clean_key((string) $resultRuleCategoryKeys[$index], 64)
+                : '';
+            $thresholdValue = is_array($resultRuleThresholdValues) && isset($resultRuleThresholdValues[$index]) ? trim((string) $resultRuleThresholdValues[$index]) : '';
+            $summary = is_array($resultRuleSummaries) && isset($resultRuleSummaries[$index])
+                ? sr_quiz_clean_text((string) $resultRuleSummaries[$index], 1000)
+                : '';
+
+            if ($resultKey === '' && $title === '' && $minScore === '' && $maxScore === '' && $categoryKey === '' && $thresholdValue === '' && $summary === '') {
+                continue;
+            }
+
+            $resultRuleLines[] = implode('|', [
+                $resultKey,
+                $title,
+                $minScore,
+                $maxScore,
+                $categoryKey,
+                $thresholdValue,
+                str_replace(["\r\n", "\r", "\n"], ' ', $summary),
+            ]);
+        }
+    }
+
     $questionUids = $_POST['question_uid'] ?? [];
     $questionKeys = $_POST['question_key'] ?? [];
     $questionTypes = $_POST['question_type'] ?? [];
@@ -1768,7 +1812,7 @@ function sr_quiz_admin_values_from_post(): array
         'reward_dedupe_scope' => sr_quiz_clean_key(sr_post_string('reward_dedupe_scope', 20), 20),
         'content_source_ids' => sr_quiz_clean_text(sr_post_string('content_source_ids', 1000), 1000),
         'community_source_ids' => sr_quiz_clean_text(sr_post_string('community_source_ids', 1000), 1000),
-        'result_rules' => sr_quiz_clean_text(sr_post_string('result_rules', 4000), 4000),
+        'result_rules' => sr_quiz_clean_text($resultRuleLines === [] ? sr_post_string('result_rules', 4000) : implode("\n", $resultRuleLines), 4000),
         'questions' => $questions,
     ];
 }
@@ -1889,6 +1933,66 @@ function sr_quiz_asset_options(PDO $pdo): array
     return $options;
 }
 
+function sr_quiz_reward_coupon_definitions(PDO $pdo, int $limit = 200): array
+{
+    $limit = max(1, min(300, $limit));
+    if (!sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return [];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_tables_available') || !sr_coupon_tables_available($pdo)) {
+        return [];
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'SELECT id, coupon_key, title, target_type, target_id, max_uses_per_issue, valid_from, valid_until
+         FROM sr_coupon_definitions
+         WHERE status = \'active\'
+           AND (valid_from IS NULL OR valid_from <= :now_from)
+           AND (valid_until IS NULL OR valid_until >= :now_until)
+         ORDER BY title ASC, coupon_key ASC, id ASC
+         LIMIT ' . $limit
+    );
+    $stmt->execute([
+        'now_from' => $now,
+        'now_until' => $now,
+    ]);
+
+    return $stmt->fetchAll();
+}
+
+function sr_quiz_reward_coupon_definition_is_available(PDO $pdo, int $definitionId): bool
+{
+    if ($definitionId < 1 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return false;
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_tables_available') || !sr_coupon_tables_available($pdo)) {
+        return false;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_coupon_definitions
+         WHERE id = :id
+           AND status = \'active\'
+           AND (valid_from IS NULL OR valid_from <= :now_from)
+           AND (valid_until IS NULL OR valid_until >= :now_until)
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'id' => $definitionId,
+        'now_from' => $now,
+        'now_until' => $now,
+    ]);
+
+    return is_array($stmt->fetch());
+}
+
 function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOptions): array
 {
     $errors = [];
@@ -1990,6 +2094,24 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
         }
     }
 
+    $resultRuleKeys = [];
+    foreach (sr_quiz_result_rules_from_value((string) ($values['result_rules'] ?? '')) as $ruleIndex => $rule) {
+        $number = $ruleIndex + 1;
+        $resultKey = (string) ($rule['result_key'] ?? '');
+        if (!sr_quiz_key_is_valid($resultKey)) {
+            $errors[] = '결과 규칙 ' . (string) $number . '의 key가 올바르지 않습니다.';
+        } elseif (isset($resultRuleKeys[$resultKey])) {
+            $errors[] = '결과 규칙 key가 중복되었습니다: ' . $resultKey;
+        }
+        $resultRuleKeys[$resultKey] = true;
+        if ((string) ($rule['title'] ?? '') === '') {
+            $errors[] = '결과 규칙 ' . (string) $number . '의 제목을 입력하세요.';
+        }
+        if (($rule['min_score'] ?? null) !== null && ($rule['max_score'] ?? null) !== null && (int) $rule['min_score'] > (int) $rule['max_score']) {
+            $errors[] = '결과 규칙 ' . (string) $number . '의 최대 점수는 최소 점수 이상이어야 합니다.';
+        }
+    }
+
     if ((int) ($values['reward_enabled'] ?? 0) === 1) {
         $rewardProvider = (string) ($values['reward_provider'] ?? 'ledger_asset');
         if (!in_array($rewardProvider, sr_quiz_reward_providers(), true)) {
@@ -2009,14 +2131,8 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
             }
         } elseif ($rewardProvider === 'coupon') {
             $definitionId = (int) ($values['reward_coupon_definition_id'] ?? 0);
-            if ($definitionId < 1 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
-                $errors[] = '보상 쿠폰 정의를 선택하세요.';
-            } else {
-                require_once SR_ROOT . '/modules/coupon/helpers.php';
-                $definition = function_exists('sr_coupon_definition_by_id') ? sr_coupon_definition_by_id($pdo, $definitionId) : null;
-                if (!is_array($definition) || (string) ($definition['status'] ?? '') !== 'active') {
-                    $errors[] = '사용 중인 쿠폰 정의만 보상으로 선택할 수 있습니다.';
-                }
+            if (!sr_quiz_reward_coupon_definition_is_available($pdo, $definitionId)) {
+                $errors[] = '보상으로 사용할 수 있는 쿠폰을 선택하세요.';
             }
         }
     }
