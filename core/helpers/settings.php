@@ -618,6 +618,7 @@ function sr_module_known_contract_files(): array
         'site-setting-references.php',
         'logo-positions.php',
         'notification-events.php',
+        'content-embed-targets.php',
     ];
 }
 

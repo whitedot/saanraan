@@ -169,6 +169,7 @@ function sr_check_module_lifecycle_metadata(): void
         'site-setting-references.php' => true,
         'logo-positions.php' => true,
         'notification-events.php' => true,
+        'content-embed-targets.php' => true,
     ];
 
     foreach ($requiredModules as $moduleKey) {
@@ -327,6 +328,7 @@ function sr_check_module_contract_files(): void
         'site-setting-references.php',
         'logo-positions.php',
         'notification-events.php',
+        'content-embed-targets.php',
     ];
 
     foreach (sr_check_module_dirs() as $moduleDir) {

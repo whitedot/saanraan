@@ -47,8 +47,10 @@ CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type =>
 - 다른 모듈이 이 모듈을 활용할 때는 양방향 공유 테이블보다 안정 식별자 기반의 단방향 참조나 명시적 계약 파일을 우선한다.
 - 파일 업로드, 메일 운영 화면, 백업, healthcheck처럼 공통으로 보이지만 정책 판단이 들어가는 기능은 먼저 선택 모듈 후보로 검토한다.
 
-모듈 간 본문 연결은 본문 저장값을 참조 원장으로 쓰지 않는다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, 시스템 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 작성 편의를 위한 보조 기능으로만 동작하고, 선택한 대상은 CKEditor에서는 허용 HTML 조각으로, 일반 textarea에서는 제목과 URL 중심의 텍스트로 삽입한다.
+모듈 간 본문 연결의 1.0 정책은 본문 저장값을 참조 원장으로 쓰지 않는 것이다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, 시스템 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 작성 편의를 위한 보조 기능으로만 동작하고, 선택한 대상은 CKEditor에서는 허용 HTML 조각으로, 일반 textarea에서는 제목과 URL 중심의 텍스트로 삽입한다.
 검색 삽입 UI는 대상 모듈이 제공하는 공개 대상 검색 helper를 JSON action으로 감싼다. 검색 결과는 현재 공개 링크로 안내할 수 있는 대상만 반환해야 하며, 저장 이후의 본문은 일반 링크/인용 HTML 또는 텍스트이므로 별도 링크 카드 참조 점검 화면을 요구하지 않는다.
+
+`content_embed` 공식 선택 모듈은 이 결정을 바꾸는 후보 설계다. 에디토리얼 위치 보존이 필요한 화면은 본문에 제한된 marker를 두고 `sr_content_embed_refs`를 임베드 렌더링과 관리자 점검의 명시적 참조로 사용할 수 있다. refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니며, broken/private/deleted 상태 표시는 렌더링 정책과 점검 화면으로 처리한다. 실제 저장 연동은 marker sanitizer, 저장 transaction, refs 동기화, 복사 시 ref_key 재발급과 본문 rewrite, 비활성화 fallback을 함께 구현해야 한다.
 
 코어에 넣지 않는다:
 
@@ -884,6 +886,7 @@ return [
 - `coupon-targets.php`: 쿠폰 사용처 후보
 - `logo-positions.php`: 모듈별 로고 용도 후보. 계약 파일명은 호환을 위해 position을 유지하지만 관리자 UI에서는 `로고 용도`로 표시한다.
 - `notification-events.php`: 계정 이벤트 알림 생성 후보
+- `content-embed-targets.php`: 콘텐츠 임베드 대상 검색, 검증, 렌더링 snapshot 후보
 
 계약 파일 규칙:
 
@@ -1065,6 +1068,7 @@ return [
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `coupon-targets.php` | `coupon` 모듈 | 쿠폰 종류 생성 화면, 저장 검증, 대상 검색, 환불 시 접근권 회수 | 모듈별 쿠폰 사용처 후보와 선택적 콜백 |
 | `coupon-targets.php` | `banner` 모듈 | 배너 특정 대상 검색 모달 | 배너 노출 대상 번호 선택에 재사용할 대상 검색 후보 |
+| `content-embed-targets.php` | `content_embed` 모듈 | 임베드 검색, 저장 검증, 렌더링, 상태 점검 | 모듈별 임베드 대상 후보와 snapshot/status/variant 계약 |
 | `coupon-references.php` | `coupon` 모듈 | 쿠폰 정의 상태 변경 전 | 발급/사용 이력 기준 쿠폰 정의 역방향 참조 조회 |
 | `banner-references.php` | `banner` 모듈 | 배너 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 배너 ID 역방향 참조 조회 |
 | `popup-layer-references.php` | `popup_layer` 모듈 | 팝업레이어 삭제/상태 변경 전 | 콘텐츠/커뮤니티가 직접 저장한 팝업레이어 ID 역방향 참조 조회 |
@@ -1089,6 +1093,7 @@ return [
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `coupon-targets.php`, `banner-references.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `popup-layer-references.php` |
 | `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `notification-events.php` | 없음 |
+| `content_embed` | `paths.php`, `admin-menu.php` | `content-embed-targets.php` |
 | `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php` | `notification-events.php` |
 | `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |

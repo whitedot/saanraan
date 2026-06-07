@@ -8,6 +8,7 @@ require_once SR_ROOT . '/modules/content/helpers/files.php';
 require_once SR_ROOT . '/modules/content/helpers/series.php';
 require_once SR_ROOT . '/modules/content/helpers/comments.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/content_embed/helpers.php';
 
 function sr_content_allowed_statuses(): array
 {

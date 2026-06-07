@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS sr_content_embed_refs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ref_key VARCHAR(80) NOT NULL,
+    owner_module VARCHAR(60) NOT NULL,
+    owner_type VARCHAR(60) NOT NULL,
+    owner_id BIGINT UNSIGNED NOT NULL,
+    owner_field VARCHAR(60) NOT NULL DEFAULT 'body',
+    target_module VARCHAR(60) NOT NULL,
+    target_type VARCHAR(60) NOT NULL,
+    target_id VARCHAR(80) NOT NULL,
+    variant VARCHAR(60) NOT NULL DEFAULT 'card',
+    label_snapshot VARCHAR(255) NOT NULL DEFAULT '',
+    image_snapshot VARCHAR(500) NOT NULL DEFAULT '',
+    sort_order INT NOT NULL DEFAULT 0,
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
+    created_by_account_id BIGINT UNSIGNED NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    UNIQUE KEY uq_sr_content_embed_ref_key (ref_key),
+    KEY idx_sr_content_embed_owner (owner_module, owner_type, owner_id, owner_field, status, sort_order),
+    KEY idx_sr_content_embed_target (target_module, target_type, target_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

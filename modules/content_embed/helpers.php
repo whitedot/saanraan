@@ -2,6 +2,102 @@
 
 declare(strict_types=1);
 
+function sr_content_embed_marker_pattern(): string
+{
+    return '/<span\b(?=[^>]*\bsr-content-embed-marker\b)(?=[^>]*\bdata-sr-content-embed-ref=(["\'])([^"\']+)\\1)[^>]*><\/span>/iu';
+}
+
+function sr_content_embed_extract_marker_refs(string $bodyHtml): array
+{
+    if ($bodyHtml === '') {
+        return [];
+    }
+
+    if (preg_match_all(sr_content_embed_marker_pattern(), $bodyHtml, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
+        return [];
+    }
+
+    $refs = [];
+    $position = 0;
+    foreach ($matches as $match) {
+        $refKey = sr_content_embed_clean_ref_key((string) ($match[2][0] ?? ''));
+        if ($refKey === '') {
+            continue;
+        }
+
+        $refs[] = [
+            'ref_key' => $refKey,
+            'position' => $position,
+            'source_offset' => (int) ($match[0][1] ?? 0),
+        ];
+        $position++;
+    }
+
+    return $refs;
+}
+
+function sr_content_embed_clean_ref_key(string $value): string
+{
+    $value = trim($value);
+    return preg_match('/\Ace_[a-z0-9_]{6,70}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_content_embed_allowed_statuses(): array
+{
+    return ['active', 'removed', 'broken', 'private', 'deleted'];
+}
+
+function sr_content_embed_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_content_embed_refs LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_content_embed_admin_refs(PDO $pdo, array $filters, int $limit = 100): array
+{
+    if (!sr_content_embed_table_exists($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(200, $limit));
+    $where = [];
+    $params = [];
+
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '' && in_array($status, sr_content_embed_allowed_statuses(), true)) {
+        $where[] = 'status = :status';
+        $params['status'] = $status;
+    }
+
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
+        $where[] = '(ref_key LIKE :keyword OR owner_module LIKE :keyword OR target_module LIKE :keyword OR target_type LIKE :keyword OR target_id LIKE :keyword OR label_snapshot LIKE :keyword)';
+        $params['keyword'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+    }
+
+    $sql = 'SELECT *
+            FROM sr_content_embed_refs'
+        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . ' ORDER BY updated_at DESC, id DESC
+            LIMIT ' . $limit;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
 function sr_link_card_token_pattern(): string
 {
     return '/\{\{sr_link_card\s+([^{}]+)\}\}/u';
