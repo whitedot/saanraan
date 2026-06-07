@@ -92,11 +92,13 @@ input:focus-visible + [class*=btn-choice-],[class*=btn-choice-]:has(> .form-choi
 .card .card-footer{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-top:1px solid var(--color-light);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .card-title{font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
 .card-header .card-title{font-weight:var(--font-weight-bold)}
-.filtering{align-items:end;background-color:var(--color-default-50);border:1px solid var(--color-default-200);border-radius:var(--radius);display:flex;gap:calc(var(--spacing) * 3);margin:0;padding:calc(var(--spacing) * 4)}
+.filtering{align-items:end;background-color:var(--color-default-50);border:1px solid var(--color-default-200);border-radius:var(--radius);display:flex;font-size:.9375rem;gap:calc(var(--spacing) * 3);margin:0;padding:calc(var(--spacing) * 4)}
+.filtering-form{font-size:.9375rem}
+.filtering-form :is(input,select,textarea,button,label,.btn,.filtering-label){font-size:.9375rem}
 .filtering-fields{align-items:start;display:flex;flex:1 1 auto;flex-wrap:wrap;gap:calc(var(--spacing) * 3);min-width:0}
 .filtering-field{display:grid;gap:calc(var(--spacing) * 2.25);min-inline-size:0;min-width:0;width:fit-content}
 .filtering-field-fill{flex:1 1 18rem;width:auto}
-.filtering-field>:is(.form-label,.filtering-label){color:var(--text-muted);display:block;font-size:var(--type-meta-size);font-weight:var(--font-weight-medium);line-height:var(--type-meta-line-height);margin:0;min-width:0;padding:0}
+.filtering-field>:is(.form-label,.filtering-label){color:var(--text-muted);display:block;font-size:.9375rem;font-weight:var(--font-weight-medium);line-height:var(--type-meta-line-height);margin:0;min-width:0;padding:0}
 .filtering-field>:is(.form-input,.form-textarea,.filtering-input){max-width:100%;width:min(16rem,100vw)}
 .filtering-plain>.filtering-fields>.filtering-field:has(:is(input[name=q],textarea[name=q])){width:100%}
 .filtering-plain>.filtering-fields>.filtering-field:has(:is(input[name=q],textarea[name=q]))>:is(.form-input,.form-textarea,.filtering-input){width:100%}

@@ -475,7 +475,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-account-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto;align-items:end;gap:.875rem;display:grid}
 .admin-role-search-grid{grid-template-columns:max-content max-content max-content minmax(16rem,1fr) max-content;align-items:end;gap:.875rem;justify-content:start;display:grid}
 .filtering-field{min-width:calc(var(--spacing) * 0);gap:.45rem;display:grid}
-.filtering-field>:is(label,.filtering-label){margin:calc(var(--spacing) * 0);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);font-weight:var(--font-weight-medium);color:var(--text-muted)}
+.filtering-field>:is(label,.filtering-label){margin:calc(var(--spacing) * 0);font-size:.9375rem;line-height:var(--type-meta-line-height);font-weight:var(--font-weight-medium);color:var(--text-muted)}
 .filtering-field :is(select:not(.form-select),textarea:not(.form-textarea),input:not(.form-input):not(.form-range):not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset])){width:100%;height:auto;color:var(--color-body-color);background-color:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);font-size:inherit;line-height:inherit;box-shadow:none}
 .filtering-field :is(select:not(.form-select),input:not(.form-input):not(.form-range):not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=reset])){min-height:calc(var(--spacing) * 9.25);padding-inline:calc(var(--spacing) * 3);padding-block:0}
 .filtering-field textarea:not(.form-textarea){min-height:calc(var(--spacing) * 28);padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 2);resize:vertical}
@@ -850,6 +850,11 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: 100%;
 }
 
+.filtering-form,
+.filtering-form :is(input, select, textarea, button, label, .btn, .filtering-label) {
+    font-size: .9375rem;
+}
+
 .admin-role-filter {
     max-width: 100%;
     width: 100%;
@@ -923,7 +928,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 
 .filtering-label {
     color: var(--text-muted);
-    font-size: var(--type-meta-size);
+    font-size: .9375rem;
     font-weight: var(--font-weight-medium);
     line-height: var(--type-meta-line-height);
 }
