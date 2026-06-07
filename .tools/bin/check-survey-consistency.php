@@ -92,6 +92,9 @@ foreach (['GROUP BY a.question_id', 'choiceStats[(int)', 'choice_id IS NOT NULL'
 
 foreach ([
     'foreach ($choices as $choice)',
+    'sr_survey_other_answers_from_post',
+    "'other_text' => (int) (\$choice['is_other'] ?? 0) === 1",
+    '기타 답변을 입력해 주세요.',
     'sr_survey_current_user_agent_hash',
     'sr_survey_current_ip_hash',
     'account_id IS NULL',
@@ -102,6 +105,14 @@ foreach ([
         'modules/survey/helpers.php',
         $needle,
         'Survey response helpers must preserve multi-choice answers and anonymous duplicate checks'
+    );
+}
+
+foreach (['other_answers[', 'sr-survey-other-input'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/view.php',
+        $needle,
+        'Survey public form must collect text for selected other choices'
     );
 }
 

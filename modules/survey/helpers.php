@@ -641,7 +641,35 @@ function sr_survey_selected_answers_from_post(array $questions): array
     return $answers;
 }
 
-function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, int $accountId, array $answers, array $assetOptions, bool $consentAccepted = false, bool $isTest = false): array
+function sr_survey_other_answers_from_post(array $questions): array
+{
+    $posted = $_POST['other_answers'] ?? [];
+    $answers = [];
+    foreach ($questions as $question) {
+        $questionId = (int) ($question['id'] ?? 0);
+        if (!in_array((string) ($question['question_type'] ?? ''), ['single_choice', 'multiple_choice'], true)) {
+            continue;
+        }
+
+        $postedQuestion = is_array($posted) ? ($posted[$questionId] ?? []) : [];
+        if (!is_array($postedQuestion)) {
+            continue;
+        }
+
+        foreach ((array) ($question['choices'] ?? []) as $choice) {
+            $choiceId = (int) ($choice['id'] ?? 0);
+            if ($choiceId < 1 || (int) ($choice['is_other'] ?? 0) !== 1) {
+                continue;
+            }
+
+            $answers[$questionId][$choiceId] = sr_survey_clean_text((string) ($postedQuestion[$choiceId] ?? ''), 500);
+        }
+    }
+
+    return $answers;
+}
+
+function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, int $accountId, array $answers, array $assetOptions, bool $consentAccepted = false, bool $isTest = false, array $otherAnswers = []): array
 {
     $surveyId = (int) ($survey['id'] ?? 0);
     $now = sr_now();
@@ -675,10 +703,10 @@ function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, in
             if ((int) ($question['required'] ?? 1) === 1 && $empty) {
                 throw new RuntimeException('필수 문항에 답변해 주세요.');
             }
-            sr_survey_validate_answer($question, $answer);
+            sr_survey_validate_answer($question, $answer, $otherAnswers[$questionId] ?? []);
         }
 
-        $snapshotJson = json_encode($answers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $snapshotJson = json_encode(['answers' => $answers, 'other_answers' => $otherAnswers], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $consentSnapshotJson = json_encode([
             'consent_required' => (int) ($survey['consent_required'] ?? 0) === 1,
             'consent_accepted' => $consentAccepted,
@@ -740,7 +768,7 @@ function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, in
         ]);
         $responseId = (int) $pdo->lastInsertId();
 
-        sr_survey_insert_response_answers($pdo, $responseId, $questions, $answers, $now);
+        sr_survey_insert_response_answers($pdo, $responseId, $questions, $answers, $now, $otherAnswers);
         $rewardGrant = null;
         if (!$isTest && $accountId > 0 && (int) ($survey['reward_enabled'] ?? 0) === 1) {
             $policy = sr_survey_active_reward_policy($pdo, $surveyId);
@@ -759,7 +787,7 @@ function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, in
     }
 }
 
-function sr_survey_validate_answer(array $question, mixed $answer): void
+function sr_survey_validate_answer(array $question, mixed $answer, array $otherAnswers = []): void
 {
     $type = (string) ($question['question_type'] ?? 'single_choice');
     if (in_array($type, ['single_choice', 'multiple_choice'], true) && is_array($answer) && $answer !== []) {
@@ -769,6 +797,12 @@ function sr_survey_validate_answer(array $question, mixed $answer): void
         foreach ((array) ($question['choices'] ?? []) as $choice) {
             if ((int) ($choice['is_nonresponse'] ?? 0) === 1) {
                 $nonresponseChoiceIds[] = (int) ($choice['id'] ?? 0);
+            }
+            if ((int) ($choice['is_other'] ?? 0) === 1 && in_array((int) ($choice['id'] ?? 0), array_map('intval', $answer), true)) {
+                $otherText = trim((string) ($otherAnswers[(int) ($choice['id'] ?? 0)] ?? ''));
+                if ($otherText === '') {
+                    throw new RuntimeException('기타 답변을 입력해 주세요.');
+                }
             }
         }
         foreach ($answer as $choiceId) {
@@ -814,7 +848,7 @@ function sr_survey_validate_answer(array $question, mixed $answer): void
     }
 }
 
-function sr_survey_insert_response_answers(PDO $pdo, int $responseId, array $questions, array $answers, string $now): void
+function sr_survey_insert_response_answers(PDO $pdo, int $responseId, array $questions, array $answers, string $now, array $otherAnswers = []): void
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_survey_response_answers
@@ -838,18 +872,20 @@ function sr_survey_insert_response_answers(PDO $pdo, int $responseId, array $que
             'choice_labels' => array_map(static fn (array $choice): string => (string) ($choice['label'] ?? ''), $choices),
             'answer_text' => in_array($type, ['text', 'short_text', 'long_text'], true) ? (string) $answer : '',
             'answer_number' => in_array($type, ['number', 'rating', 'scale'], true) && trim((string) $answer) !== '' ? (float) $answer : null,
+            'other_answers' => $otherAnswers[$questionId] ?? [],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (in_array($type, ['single_choice', 'multiple_choice'], true) && $choices !== []) {
             foreach ($choices as $choice) {
+                $choiceId = (int) ($choice['id'] ?? 0);
                 $stmt->execute([
                     'response_id' => $responseId,
                     'question_id' => $questionId,
                     'question_key' => (string) ($question['question_key'] ?? ''),
-                    'choice_id' => (int) ($choice['id'] ?? 0),
+                    'choice_id' => $choiceId,
                     'choice_key' => (string) ($choice['choice_key'] ?? ''),
                     'answer_text' => null,
                     'answer_number' => null,
-                    'other_text' => null,
+                    'other_text' => (int) ($choice['is_other'] ?? 0) === 1 ? (string) (($otherAnswers[$questionId][$choiceId] ?? '')) : null,
                     'answer_snapshot_json' => is_string($snapshotJson) ? $snapshotJson : '{}',
                     'created_at' => $now,
                 ]);

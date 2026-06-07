@@ -49,7 +49,8 @@ if (sr_request_method() === 'POST') {
             sr_survey_selected_answers_from_post($questions),
             sr_survey_asset_options($pdo),
             ($_POST['consent_accepted'] ?? '') === '1',
-            $isPreviewTestSubmit
+            $isPreviewTestSubmit,
+            sr_survey_other_answers_from_post($questions)
         );
         $currentAccount = $account;
         if (!$isPreviewTestSubmit) {
@@ -58,7 +59,7 @@ if (sr_request_method() === 'POST') {
         $access = ['allowed' => true, 'message' => ''];
     } catch (RuntimeException $exception) {
         $message = (string) $exception->getMessage();
-        if (!in_array($message, ['현재 참여할 수 없는 설문입니다.', '이미 참여한 설문입니다.', '필수 문항에 답변해 주세요.', '응답 가능한 문항이 없습니다.', '참여 동의가 필요합니다.', '응답 제한 기간 설정을 확인해야 합니다.', '선택지 값을 확인해 주세요.', '무응답 선택지는 다른 선택지와 함께 고를 수 없습니다.', '복수 선택 문항의 최소 선택 수를 확인해 주세요.', '복수 선택 문항의 최대 선택 수를 확인해 주세요.', '숫자 문항에는 숫자만 입력해 주세요.', '정수만 입력할 수 있는 문항입니다.', '숫자 문항의 최소값을 확인해 주세요.', '숫자 문항의 최대값을 확인해 주세요.', '별점 범위를 확인해 주세요.', '관리자 테스트 제출은 로그인 계정이 필요합니다.'], true)) {
+        if (!in_array($message, ['현재 참여할 수 없는 설문입니다.', '이미 참여한 설문입니다.', '필수 문항에 답변해 주세요.', '응답 가능한 문항이 없습니다.', '참여 동의가 필요합니다.', '응답 제한 기간 설정을 확인해야 합니다.', '선택지 값을 확인해 주세요.', '무응답 선택지는 다른 선택지와 함께 고를 수 없습니다.', '기타 답변을 입력해 주세요.', '복수 선택 문항의 최소 선택 수를 확인해 주세요.', '복수 선택 문항의 최대 선택 수를 확인해 주세요.', '숫자 문항에는 숫자만 입력해 주세요.', '정수만 입력할 수 있는 문항입니다.', '숫자 문항의 최소값을 확인해 주세요.', '숫자 문항의 최대값을 확인해 주세요.', '별점 범위를 확인해 주세요.', '관리자 테스트 제출은 로그인 계정이 필요합니다.'], true)) {
             sr_log_exception($exception, 'survey_submit_failed');
             $message = '설문 제출 중 오류가 발생했습니다.';
         }
@@ -214,6 +215,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                             <input type="<?php echo $type === 'multiple_choice' ? 'checkbox' : 'radio'; ?>" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]<?php echo $type === 'multiple_choice' ? '[]' : ''; ?>" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>">
                                             <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
                                         </label>
+                                        <?php if ((int) ($choice['is_other'] ?? 0) === 1): ?>
+                                            <input type="text" name="other_answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>]" class="sr-survey-other-input" maxlength="500">
+                                        <?php endif; ?>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </fieldset>
