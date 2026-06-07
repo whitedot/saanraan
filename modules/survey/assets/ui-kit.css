@@ -1,0 +1,18 @@
+.survey-ui-kit .sr-survey-info,
+.survey-ui-kit .sr-survey-result,
+.survey-ui-kit .sr-form-errors,
+.survey-ui-kit .survey-ui-kit-restricted {
+    margin-bottom: 1rem;
+}
+
+.survey-ui-kit .sr-survey-question input[type="number"],
+.survey-ui-kit .sr-survey-question textarea {
+    max-width: 100%;
+    width: 100%;
+}
+
+.survey-ui-kit-restricted {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 1rem;
+}
