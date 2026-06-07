@@ -14,7 +14,7 @@
 - 공개 전 점검: QA 상태, 설문지 버전, 관리자 미리보기, 테스트 응답
 - 선택 보상: `ledger_asset`, `coupon`
 - 보상 중복 방지: `sr_survey_reward_grants.dedupe_key`
-- sitemap, 개인정보 export/cleanup, 쿠폰 정의 참조, 회원 그룹 참조 계약
+- sitemap, 공개 레이아웃, 초기화면 후보, 개인정보 export/cleanup, 쿠폰 정의 참조, 회원 그룹 참조 계약
 - 통계와 CSV: 원본, 분석용 row-per-answer, 코드북 CSV
 
 ## 의존성
