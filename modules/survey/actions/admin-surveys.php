@@ -593,17 +593,79 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($mode === 'list'): ?>
     <?php
-    $stmt = $pdo->query(
+    $listStatus = sr_survey_clean_key(sr_get_string('status', 30), 30);
+    if ($listStatus !== '' && !in_array($listStatus, sr_survey_statuses(), true)) {
+        $listStatus = '';
+    }
+    $listAvailability = sr_survey_clean_key(sr_get_string('availability', 30), 30);
+    if (!in_array($listAvailability, ['open', 'closed'], true)) {
+        $listAvailability = '';
+    }
+    $listKeyword = sr_survey_clean_single_line(sr_get_string('q', 120), 120);
+    $listWhere = ['s.deleted_at IS NULL'];
+    $listParams = [];
+    if ($listStatus !== '') {
+        $listWhere[] = 's.status = :status';
+        $listParams['status'] = $listStatus;
+    }
+    if ($listAvailability === 'open') {
+        $listParams['now_start'] = sr_now();
+        $listParams['now_end'] = sr_now();
+        $listWhere[] = "s.status = 'active'";
+        $listWhere[] = '(s.starts_at IS NULL OR s.starts_at <= :now_start)';
+        $listWhere[] = '(s.ends_at IS NULL OR s.ends_at >= :now_end)';
+    } elseif ($listAvailability === 'closed') {
+        $listParams['now_start'] = sr_now();
+        $listParams['now_end'] = sr_now();
+        $listWhere[] = "(s.status <> 'active' OR (s.starts_at IS NOT NULL AND s.starts_at > :now_start) OR (s.ends_at IS NOT NULL AND s.ends_at < :now_end))";
+    }
+    if ($listKeyword !== '') {
+        $listWhere[] = '(s.survey_key LIKE :keyword OR s.title LIKE :keyword OR s.description LIKE :keyword)';
+        $listParams['keyword'] = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $listKeyword) . '%';
+    }
+    $stmt = $pdo->prepare(
         'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
          FROM sr_survey_forms s
          LEFT JOIN sr_survey_responses r ON r.survey_id = s.id
-         WHERE s.deleted_at IS NULL
+         WHERE ' . implode(' AND ', $listWhere) . '
          GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.reward_enabled, s.updated_at
          ORDER BY s.updated_at DESC, s.id DESC
          LIMIT 200'
     );
+    $stmt->execute($listParams);
     $surveys = $stmt->fetchAll();
     ?>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="filtering-form ui-form-theme">
+        <div class="filtering filtering-card">
+            <div class="filtering-fields">
+                <div class="filtering-field filtering-field-fill">
+                    <label for="survey_list_keyword" class="filtering-label">검색어</label>
+                    <input id="survey_list_keyword" type="text" name="q" value="<?php echo sr_e($listKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="key, 제목, 설명">
+                </div>
+                <div class="filtering-field">
+                    <label for="survey_list_status" class="filtering-label">상태</label>
+                    <select id="survey_list_status" name="status" class="form-select">
+                        <option value="">전체</option>
+                        <?php foreach (sr_survey_statuses() as $statusKey): ?>
+                            <option value="<?php echo sr_e($statusKey); ?>"<?php echo $listStatus === $statusKey ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($statusKey)); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="filtering-field">
+                    <label for="survey_list_availability" class="filtering-label">응답 가능</label>
+                    <select id="survey_list_availability" name="availability" class="form-select">
+                        <option value="">전체</option>
+                        <option value="open"<?php echo $listAvailability === 'open' ? ' selected' : ''; ?>>가능</option>
+                        <option value="closed"<?php echo $listAvailability === 'closed' ? ' selected' : ''; ?>>불가</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filtering-actions">
+                <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+                <a class="btn btn-outline-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">초기화</a>
+            </div>
+        </div>
+    </form>
     <section class="admin-card card admin-list-card">
         <div class="card-header">
             <h2 class="card-title">설문 목록</h2>
