@@ -19,7 +19,7 @@
 - 공개 `/survey`와 `/survey/{survey_key}`에서 공개 설문 목록과 로그인/익명 응답 제출, 회원 그룹 제한, 동의 확인, 응답 제한, 공개 안내, `noindex` 정책을 처리한다. 일반 제출은 완료 화면으로 GET redirect하며 관리자 미리보기는 초안/기간 외 설문도 `noindex`로 열고 테스트 응답을 보상 없이 저장한다.
 - 완료 화면은 URL query의 보상 상태를 신뢰하지 않고, POST 처리 직후 확인된 결과가 있을 때만 보상 지급/확인 필요 문구를 표시한다.
 - 관리자 `/admin/surveys/responses`에서 raw 응답 스냅샷을 확인하고 품질 상태와 메모를 관리한다.
-- 관리자 `/admin/surveys/statistics`에서 테스트/제외 응답을 뺀 선택형/숫자형 통계를 확인하고, 선택형 통계는 문항/선택지 숫자 ID가 재생성되어도 유지되도록 `question_key`/`choice_key` 기준으로 집계한다. `/admin/surveys/export`에서 원본 CSV, 분석용 CSV, 코드북 CSV를 내려받는다. CSV 수식 주입 방지를 적용한다.
+- 관리자 `/admin/surveys/statistics`에서 테스트/제외 응답을 뺀 선택형/숫자형 통계를 확인하고, 선택형 통계는 문항/선택지 숫자 ID가 재생성되어도 유지되도록 `question_key`/`choice_key` 기준으로 집계한다. 기타 선택지를 고른 응답은 공개 제출에서 기타 텍스트를 받아 `other_text`로 저장한다. `/admin/surveys/export`에서 원본 CSV, 분석용 CSV, 코드북 CSV를 내려받는다. CSV 수식 주입 방지를 적용한다.
 - 관리자 `/admin/surveys/settings`, `/admin/surveys/manual`, `/survey/ui-kit`을 추가했다.
 - 개인정보 export/cleanup 계약, 쿠폰 정의 읽기 참조 계약, 회원 그룹 읽기 참조 계약, 공개 레이아웃 계약, 초기화면 후보 계약을 추가했다. 개인정보 사본에는 응답 스냅샷과 안정 key 기반 답변 행을 함께 포함하며, 탈퇴/익명화 정리에서는 설문/퀴즈 보상 grant의 `dedupe_key`도 익명화한다.
 - 응답 보상은 `ledger_asset`과 `coupon`을 지원하고, 지급 직전 provider 상태를 다시 확인한다.

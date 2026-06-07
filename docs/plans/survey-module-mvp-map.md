@@ -38,4 +38,4 @@
 
 관리자 미리보기와 테스트 제출은 `sr_survey_responses.is_test = 1`로 저장하고 실제 보상을 지급하지 않는다. 통계와 분석 CSV는 테스트 응답과 제외 응답을 기본 집계에서 뺀다.
 
-선택형 통계는 숫자 ID가 아니라 `question_key`/`choice_key` 기준으로 집계한다. 개인정보 사본 제공은 응답 스냅샷과 `sr_survey_response_answers`의 안정 key 기반 답변 행을 함께 포함하며, 탈퇴/익명화 cleanup은 설문/퀴즈 보상 grant의 `dedupe_key`를 익명화한다. 설문 완료 화면은 URL query의 보상 상태를 신뢰하지 않는다.
+선택형 통계는 숫자 ID가 아니라 `question_key`/`choice_key` 기준으로 집계한다. 기타 선택지 텍스트는 `sr_survey_response_answers.other_text`에 저장한다. 개인정보 사본 제공은 응답 스냅샷과 `sr_survey_response_answers`의 안정 key 기반 답변 행을 함께 포함하며, 탈퇴/익명화 cleanup은 설문/퀴즈 보상 grant의 `dedupe_key`를 익명화한다. 설문 완료 화면은 URL query의 보상 상태를 신뢰하지 않는다.
