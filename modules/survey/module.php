@@ -2,7 +2,7 @@
 
 return [
     'name' => '설문',
-    'version' => '2026.06.002',
+    'version' => '2026.06.003',
     'type' => 'module',
     'description' => '설문 작성, 공개 응답 수집, 응답 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -37,6 +37,7 @@ return [
             'privacy-export.php',
             'privacy-cleanup.php',
             'coupon-references.php',
+            'member-group-references.php',
             'sitemap.php',
         ],
         'consumes' => [

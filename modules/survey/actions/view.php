@@ -60,7 +60,8 @@ $seo = [
     'description' => sr_survey_clean_single_line((string) ($survey['description'] ?? ''), 160),
     'canonical' => '/survey/' . (string) $survey['survey_key'],
 ];
-if ((int) ($survey['login_required'] ?? 1) === 1 || (int) ($survey['public_listed'] ?? 1) !== 1 || (string) ($survey['robots_policy'] ?? 'auto') === 'noindex') {
+$memberGroupKeys = sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]');
+if ((int) ($survey['login_required'] ?? 1) === 1 || $memberGroupKeys !== [] || (int) ($survey['public_listed'] ?? 1) !== 1 || (string) ($survey['robots_policy'] ?? 'auto') === 'noindex') {
     $seo['robots'] = 'noindex, nofollow';
 }
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
@@ -80,11 +81,26 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php if ((string) ($survey['research_purpose'] ?? '') !== ''): ?>
                         <p><?php echo sr_e((string) $survey['research_purpose']); ?></p>
                     <?php endif; ?>
+                    <?php if ((string) ($survey['methodology_disclosure'] ?? '') !== ''): ?>
+                        <p><?php echo sr_e((string) $survey['methodology_disclosure']); ?></p>
+                    <?php endif; ?>
                     <?php if ((string) ($survey['target_population'] ?? '') !== ''): ?>
                         <p>참여 대상: <?php echo sr_e((string) $survey['target_population']); ?></p>
                     <?php endif; ?>
+                    <?php if ((string) ($survey['fieldwork_method'] ?? '') !== ''): ?>
+                        <p>조사 방식: <?php echo sr_e((string) $survey['fieldwork_method']); ?></p>
+                    <?php endif; ?>
+                    <?php if ((string) ($survey['sample_method'] ?? '') !== ''): ?>
+                        <p>표본 추출: <?php echo sr_e((string) $survey['sample_method']); ?></p>
+                    <?php endif; ?>
+                    <?php if ((int) ($survey['target_sample_size'] ?? 0) > 0): ?>
+                        <p>목표 표본 수: <?php echo sr_e((string) (int) $survey['target_sample_size']); ?>명</p>
+                    <?php endif; ?>
                     <?php if ((int) ($survey['estimated_minutes'] ?? 0) > 0): ?>
                         <p>예상 소요 시간: <?php echo sr_e((string) (int) $survey['estimated_minutes']); ?>분</p>
+                    <?php endif; ?>
+                    <?php if ((string) ($survey['sponsor_name'] ?? '') !== ''): ?>
+                        <p>의뢰/후원: <?php echo sr_e((string) $survey['sponsor_name']); ?></p>
                     <?php endif; ?>
                     <?php if ((string) ($survey['organizer_name'] ?? '') !== ''): ?>
                         <p>주관: <?php echo sr_e((string) $survey['organizer_name']); ?></p>
@@ -94,6 +110,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php endif; ?>
                     <?php if ((string) ($survey['privacy_notice'] ?? '') !== ''): ?>
                         <p><?php echo sr_e((string) $survey['privacy_notice']); ?></p>
+                    <?php endif; ?>
+                    <?php if ((string) ($survey['withdrawal_policy'] ?? '') !== ''): ?>
+                        <p><?php echo sr_e((string) $survey['withdrawal_policy']); ?></p>
+                    <?php endif; ?>
+                    <?php if ((string) ($survey['sensitive_data_policy'] ?? '') !== ''): ?>
+                        <p><?php echo sr_e((string) $survey['sensitive_data_policy']); ?></p>
                     <?php endif; ?>
                     <?php if ((int) ($survey['reward_enabled'] ?? 0) === 1): ?>
                         <p>참여 완료 후 보상 지급 조건을 다시 확인한 뒤 보상 지급을 시도합니다.</p>

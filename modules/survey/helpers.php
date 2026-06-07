@@ -90,6 +90,47 @@ function sr_survey_quality_status_label(string $status): string
     ][$status] ?? $status;
 }
 
+function sr_survey_qa_statuses(): array
+{
+    return ['unchecked', 'needs_fix', 'approved'];
+}
+
+function sr_survey_qa_status_label(string $status): string
+{
+    return [
+        'unchecked' => '미점검',
+        'needs_fix' => '수정 필요',
+        'approved' => '승인',
+    ][$status] ?? $status;
+}
+
+function sr_survey_normalize_member_group_keys(mixed $groupKeys): array
+{
+    require_once SR_ROOT . '/modules/member/helpers/groups.php';
+    $values = is_array($groupKeys) ? $groupKeys : preg_split('/[\s,]+/', (string) $groupKeys);
+    $normalized = [];
+    foreach ($values ?: [] as $groupKey) {
+        $groupKey = strtolower(trim((string) $groupKey));
+        if ($groupKey !== '' && sr_member_group_key_is_valid($groupKey)) {
+            $normalized[$groupKey] = true;
+        }
+    }
+
+    return array_keys($normalized);
+}
+
+function sr_survey_member_group_keys_from_json(mixed $json): array
+{
+    $decoded = json_decode((string) $json, true);
+    return sr_survey_normalize_member_group_keys(is_array($decoded) ? $decoded : []);
+}
+
+function sr_survey_member_group_keys_json(array $groupKeys): string
+{
+    $json = json_encode(array_values(sr_survey_normalize_member_group_keys($groupKeys)), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '[]';
+}
+
 function sr_survey_default_settings(): array
 {
     return [
@@ -237,6 +278,73 @@ function sr_survey_coupon_definition_reference_admin_url(array $row, array $cont
     return $surveyId > 0 ? '/admin/surveys?mode=edit&id=' . rawurlencode((string) $surveyId) : '/admin/surveys';
 }
 
+function sr_survey_member_group_reference_count(PDO $pdo, array $target, array $context): int
+{
+    return count(sr_survey_member_group_reference_rows($pdo, $target, $context));
+}
+
+function sr_survey_member_group_reference_rows(PDO $pdo, array $target, array $context): array
+{
+    $targetKey = (string) ($target['target_key'] ?? '');
+    if ($targetKey === '') {
+        require_once SR_ROOT . '/modules/member/helpers/groups.php';
+        $groupId = (int) ($target['target_id'] ?? 0);
+        if ($groupId > 0 && sr_member_groups_table_exists($pdo)) {
+            $stmt = $pdo->prepare('SELECT group_key FROM sr_member_groups WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $groupId]);
+            $targetKey = (string) $stmt->fetchColumn();
+        }
+    }
+    $targetKey = strtolower(trim($targetKey));
+    if ($targetKey === '') {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT id, survey_key, title, status, member_group_keys_json, updated_at
+         FROM sr_survey_forms
+         WHERE member_group_keys_json IS NOT NULL
+           AND member_group_keys_json <> \'\'
+           AND deleted_at IS NULL
+         ORDER BY updated_at DESC, id DESC
+         LIMIT 500'
+    );
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $groupKeys = sr_survey_member_group_keys_from_json($row['member_group_keys_json'] ?? '[]');
+        if (!in_array($targetKey, $groupKeys, true)) {
+            continue;
+        }
+        $rows[] = [
+            'consumer_module_key' => 'survey',
+            'reference_type' => 'survey_member_group_target',
+            'reference_id' => 'survey_form:' . (string) (int) ($row['id'] ?? 0),
+            'target_type' => 'member_group',
+            'target_id' => (string) ($target['target_id'] ?? ''),
+            'target_key' => $targetKey,
+            'title' => (string) ($row['title'] ?? ''),
+            'status' => (string) ($row['status'] ?? ''),
+            'summary' => '설문 참여 대상: ' . (string) ($row['survey_key'] ?? ''),
+            'admin_url' => '/admin/surveys?mode=edit&id=' . rawurlencode((string) (int) ($row['id'] ?? 0)),
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+        ];
+    }
+
+    return $rows;
+}
+
+function sr_survey_member_group_reference_health(PDO $pdo, array $target, array $row, array $context): array
+{
+    return (string) ($row['status'] ?? '') === 'active'
+        ? ['status' => 'ok']
+        : ['status' => 'inactive_reference'];
+}
+
+function sr_survey_member_group_reference_admin_url(array $row, array $context): string
+{
+    return (string) ($row['admin_url'] ?? '/admin/surveys');
+}
+
 function sr_survey_reward_providers(): array
 {
     return ['ledger_asset', 'coupon'];
@@ -344,6 +452,17 @@ function sr_survey_account_can_respond(PDO $pdo, array $survey, int $accountId):
 {
     if ((int) ($survey['login_required'] ?? 1) === 1 && $accountId < 1) {
         return ['allowed' => false, 'message' => '로그인 후 설문에 참여할 수 있습니다.'];
+    }
+    $groupKeys = sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]');
+    if ($groupKeys !== []) {
+        if ($accountId < 1) {
+            return ['allowed' => false, 'message' => '참여 대상 회원 그룹에 속한 회원만 참여할 수 있습니다.'];
+        }
+        require_once SR_ROOT . '/modules/member/helpers/groups.php';
+        sr_member_group_evaluate_account($pdo, $accountId);
+        if (!sr_member_account_in_any_group($pdo, $accountId, $groupKeys)) {
+            return ['allowed' => false, 'message' => '참여 대상 회원 그룹에 속한 회원만 참여할 수 있습니다.'];
+        }
     }
     if ((string) ($survey['status'] ?? '') !== 'active' || !sr_survey_public_window_is_open($survey)) {
         return ['allowed' => false, 'message' => '현재 참여할 수 없는 설문입니다.'];
@@ -498,6 +617,30 @@ function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, in
             'research_purpose' => (string) ($survey['research_purpose'] ?? ''),
             'target_population' => (string) ($survey['target_population'] ?? ''),
             'recruitment_method' => (string) ($survey['recruitment_method'] ?? ''),
+            'project_brief' => (string) ($survey['project_brief'] ?? ''),
+            'sponsor_name' => (string) ($survey['sponsor_name'] ?? ''),
+            'research_region' => (string) ($survey['research_region'] ?? ''),
+            'research_language' => (string) ($survey['research_language'] ?? ''),
+            'fieldwork_method' => (string) ($survey['fieldwork_method'] ?? ''),
+            'sample_frame' => (string) ($survey['sample_frame'] ?? ''),
+            'sample_method' => (string) ($survey['sample_method'] ?? ''),
+            'target_sample_size' => (int) ($survey['target_sample_size'] ?? 0),
+            'quota_policy' => (string) ($survey['quota_policy'] ?? ''),
+            'response_rate_basis' => (string) ($survey['response_rate_basis'] ?? ''),
+            'analysis_plan' => (string) ($survey['analysis_plan'] ?? ''),
+            'weighting_policy' => (string) ($survey['weighting_policy'] ?? ''),
+            'margin_error_note' => (string) ($survey['margin_error_note'] ?? ''),
+            'methodology_disclosure' => (string) ($survey['methodology_disclosure'] ?? ''),
+            'ethics_note' => (string) ($survey['ethics_note'] ?? ''),
+            'sensitive_data_policy' => (string) ($survey['sensitive_data_policy'] ?? ''),
+            'recontact_policy' => (string) ($survey['recontact_policy'] ?? ''),
+            'withdrawal_policy' => (string) ($survey['withdrawal_policy'] ?? ''),
+            'vendor_name' => (string) ($survey['vendor_name'] ?? ''),
+            'external_channel_policy' => (string) ($survey['external_channel_policy'] ?? ''),
+            'invite_token_policy' => (string) ($survey['invite_token_policy'] ?? ''),
+            'qa_status' => (string) ($survey['qa_status'] ?? 'unchecked'),
+            'questionnaire_version' => (int) ($survey['questionnaire_version'] ?? 1),
+            'member_group_keys' => sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]'),
             'estimated_minutes' => (int) ($survey['estimated_minutes'] ?? 0),
             'organizer_name' => (string) ($survey['organizer_name'] ?? ''),
             'contact_text' => (string) ($survey['contact_text'] ?? ''),

@@ -1,6 +1,7 @@
 <?php
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/helpers/groups.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
 
@@ -9,6 +10,13 @@ sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys',
 
 $assetOptions = sr_survey_asset_options($pdo);
 $couponDefinitions = sr_survey_coupon_definitions($pdo);
+$memberGroups = sr_member_groups($pdo);
+$enabledMemberGroupKeys = [];
+foreach ($memberGroups as $memberGroup) {
+    if ((string) ($memberGroup['status'] ?? '') === 'enabled') {
+        $enabledMemberGroupKeys[(string) ($memberGroup['group_key'] ?? '')] = true;
+    }
+}
 $errors = [];
 $notice = '';
 
@@ -24,6 +32,16 @@ if (sr_request_method() === 'POST') {
             'account_id' => (int) ($account['id'] ?? 0),
             'id' => $surveyId,
         ]);
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) ($account['id'] ?? 0),
+            'actor_type' => 'admin',
+            'event_type' => 'survey.form.deleted',
+            'target_type' => 'survey.form',
+            'target_id' => (string) $surveyId,
+            'result' => 'success',
+            'message' => 'Survey form deleted.',
+            'metadata' => [],
+        ]);
         sr_admin_redirect_with_result(sr_admin_action_result([], '설문을 삭제했습니다.'), '/admin/surveys');
     }
 
@@ -35,6 +53,34 @@ if (sr_request_method() === 'POST') {
     $researchPurpose = sr_survey_clean_text(sr_post_string('research_purpose', 4000), 4000);
     $targetPopulation = sr_survey_clean_text(sr_post_string('target_population', 2000), 2000);
     $recruitmentMethod = sr_survey_clean_text(sr_post_string('recruitment_method', 2000), 2000);
+    $projectBrief = sr_survey_clean_text(sr_post_string('project_brief', 4000), 4000);
+    $sponsorName = sr_survey_clean_single_line(sr_post_string('sponsor_name', 190), 190);
+    $researchRegion = sr_survey_clean_single_line(sr_post_string('research_region', 120), 120);
+    $researchLanguage = sr_survey_clean_single_line(sr_post_string('research_language', 60), 60);
+    $fieldworkMethod = sr_survey_clean_single_line(sr_post_string('fieldwork_method', 120), 120);
+    $sampleFrame = sr_survey_clean_text(sr_post_string('sample_frame', 3000), 3000);
+    $sampleMethod = sr_survey_clean_single_line(sr_post_string('sample_method', 190), 190);
+    $targetSampleSizeInput = trim(sr_post_string('target_sample_size', 20));
+    $targetSampleSize = $targetSampleSizeInput === '' ? null : max(0, (int) $targetSampleSizeInput);
+    $quotaPolicy = sr_survey_clean_text(sr_post_string('quota_policy', 3000), 3000);
+    $responseRateBasis = sr_survey_clean_text(sr_post_string('response_rate_basis', 3000), 3000);
+    $analysisPlan = sr_survey_clean_text(sr_post_string('analysis_plan', 4000), 4000);
+    $weightingPolicy = sr_survey_clean_text(sr_post_string('weighting_policy', 3000), 3000);
+    $marginErrorNote = sr_survey_clean_text(sr_post_string('margin_error_note', 2000), 2000);
+    $methodologyDisclosure = sr_survey_clean_text(sr_post_string('methodology_disclosure', 4000), 4000);
+    $ethicsNote = sr_survey_clean_text(sr_post_string('ethics_note', 4000), 4000);
+    $sensitiveDataPolicy = sr_survey_clean_text(sr_post_string('sensitive_data_policy', 3000), 3000);
+    $recontactPolicy = sr_survey_clean_text(sr_post_string('recontact_policy', 3000), 3000);
+    $withdrawalPolicy = sr_survey_clean_text(sr_post_string('withdrawal_policy', 3000), 3000);
+    $vendorName = sr_survey_clean_single_line(sr_post_string('vendor_name', 190), 190);
+    $externalChannelPolicy = sr_survey_clean_text(sr_post_string('external_channel_policy', 3000), 3000);
+    $inviteTokenPolicy = sr_survey_clean_text(sr_post_string('invite_token_policy', 3000), 3000);
+    $qaStatus = sr_survey_clean_key(sr_post_string('qa_status', 30), 30);
+    if (!in_array($qaStatus, sr_survey_qa_statuses(), true)) {
+        $qaStatus = 'unchecked';
+    }
+    $qaNote = sr_survey_clean_text(sr_post_string('qa_note', 3000), 3000);
+    $revisionLocked = ($_POST['revision_locked'] ?? '') === '1';
     $estimatedMinutes = max(0, min(10080, (int) sr_post_string('estimated_minutes', 20)));
     $organizerName = sr_survey_clean_single_line(sr_post_string('organizer_name', 120), 120);
     $contactText = sr_survey_clean_single_line(sr_post_string('contact_text', 190), 190);
@@ -58,6 +104,7 @@ if (sr_request_method() === 'POST') {
         $responseLimitPolicy = 'per_survey_once';
     }
     $responseLimitPeriodSeconds = max(0, (int) sr_post_string('response_limit_period_seconds', 20));
+    $memberGroupKeys = sr_survey_normalize_member_group_keys($_POST['member_group_keys'] ?? []);
     $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
     $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
     $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);
@@ -97,6 +144,14 @@ if (sr_request_method() === 'POST') {
     }
     if ($rewardEnabled && !$loginRequired) {
         $errors[] = '참여 보상은 로그인 필요 설문에서만 사용할 수 있습니다.';
+    }
+    if ($memberGroupKeys !== [] && !$loginRequired) {
+        $errors[] = '회원 그룹 제한 설문은 로그인 필요 상태에서만 저장할 수 있습니다.';
+    }
+    foreach ($memberGroupKeys as $memberGroupKey) {
+        if (empty($enabledMemberGroupKeys[$memberGroupKey])) {
+            $errors[] = '참여 대상 회원 그룹을 확인하세요: ' . $memberGroupKey;
+        }
     }
     if ($responseLimitPolicy === 'per_period' && $responseLimitPeriodSeconds < 1) {
         $errors[] = '기간당 1회 제한은 제한 기간을 1초 이상 입력해야 합니다.';
@@ -205,15 +260,24 @@ if (sr_request_method() === 'POST') {
         $pdo->beginTransaction();
         try {
             if ($surveyId > 0) {
+                $existingSurvey = sr_survey_by_id($pdo, $surveyId);
+                $nextQuestionnaireVersion = max(1, (int) ($existingSurvey['questionnaire_version'] ?? 1)) + 1;
                 $pdo->prepare(
                     'UPDATE sr_survey_forms
                      SET survey_key = :survey_key, title = :title, description = :description,
                          research_purpose = :research_purpose, target_population = :target_population, recruitment_method = :recruitment_method,
+                         project_brief = :project_brief, sponsor_name = :sponsor_name, research_region = :research_region, research_language = :research_language,
+                         fieldwork_method = :fieldwork_method, sample_frame = :sample_frame, sample_method = :sample_method, target_sample_size = :target_sample_size,
+                         quota_policy = :quota_policy, response_rate_basis = :response_rate_basis, analysis_plan = :analysis_plan, weighting_policy = :weighting_policy,
+                         margin_error_note = :margin_error_note, methodology_disclosure = :methodology_disclosure, ethics_note = :ethics_note,
+                         sensitive_data_policy = :sensitive_data_policy, recontact_policy = :recontact_policy, withdrawal_policy = :withdrawal_policy,
+                         vendor_name = :vendor_name, external_channel_policy = :external_channel_policy, invite_token_policy = :invite_token_policy,
+                         qa_status = :qa_status, qa_note = :qa_note, questionnaire_version = :questionnaire_version, revision_locked = :revision_locked,
                          estimated_minutes = :estimated_minutes, organizer_name = :organizer_name, contact_text = :contact_text,
                          consent_required = :consent_required, consent_text = :consent_text, privacy_notice = :privacy_notice,
                          anonymous_allowed = :anonymous_allowed, login_required = :login_required, public_listed = :public_listed, robots_policy = :robots_policy,
                          status = :status, starts_at = :starts_at, ends_at = :ends_at,
-                         response_limit_policy = :response_limit_policy, response_limit_period_seconds = :response_limit_period_seconds,
+                         response_limit_policy = :response_limit_policy, response_limit_period_seconds = :response_limit_period_seconds, member_group_keys_json = :member_group_keys_json,
                          reward_enabled = :reward_enabled,
                          updated_by_account_id = :updated_by_account_id, updated_at = :updated_at
                      WHERE id = :id AND deleted_at IS NULL'
@@ -224,6 +288,31 @@ if (sr_request_method() === 'POST') {
                     'research_purpose' => $researchPurpose,
                     'target_population' => $targetPopulation,
                     'recruitment_method' => $recruitmentMethod,
+                    'project_brief' => $projectBrief,
+                    'sponsor_name' => $sponsorName,
+                    'research_region' => $researchRegion,
+                    'research_language' => $researchLanguage,
+                    'fieldwork_method' => $fieldworkMethod,
+                    'sample_frame' => $sampleFrame,
+                    'sample_method' => $sampleMethod,
+                    'target_sample_size' => $targetSampleSize,
+                    'quota_policy' => $quotaPolicy,
+                    'response_rate_basis' => $responseRateBasis,
+                    'analysis_plan' => $analysisPlan,
+                    'weighting_policy' => $weightingPolicy,
+                    'margin_error_note' => $marginErrorNote,
+                    'methodology_disclosure' => $methodologyDisclosure,
+                    'ethics_note' => $ethicsNote,
+                    'sensitive_data_policy' => $sensitiveDataPolicy,
+                    'recontact_policy' => $recontactPolicy,
+                    'withdrawal_policy' => $withdrawalPolicy,
+                    'vendor_name' => $vendorName,
+                    'external_channel_policy' => $externalChannelPolicy,
+                    'invite_token_policy' => $inviteTokenPolicy,
+                    'qa_status' => $qaStatus,
+                    'qa_note' => $qaNote,
+                    'questionnaire_version' => $nextQuestionnaireVersion,
+                    'revision_locked' => $revisionLocked ? 1 : 0,
                     'estimated_minutes' => $estimatedMinutes > 0 ? $estimatedMinutes : null,
                     'organizer_name' => $organizerName,
                     'contact_text' => $contactText,
@@ -239,6 +328,7 @@ if (sr_request_method() === 'POST') {
                     'ends_at' => $endsAt,
                     'response_limit_policy' => $responseLimitPolicy,
                     'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
+                    'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_at' => $now,
@@ -248,13 +338,21 @@ if (sr_request_method() === 'POST') {
                 $pdo->prepare(
                     'INSERT INTO sr_survey_forms
                         (survey_key, title, description, research_purpose, target_population, recruitment_method, estimated_minutes,
+                         project_brief, sponsor_name, research_region, research_language, fieldwork_method, sample_frame, sample_method, target_sample_size,
+                         quota_policy, response_rate_basis, analysis_plan, weighting_policy, margin_error_note, methodology_disclosure, ethics_note,
+                         sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
+                         qa_status, qa_note, questionnaire_version, revision_locked,
                          organizer_name, contact_text, consent_required, consent_text, privacy_notice, anonymous_allowed, login_required,
-                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, reward_enabled,
+                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
                         (:survey_key, :title, :description, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
+                         :project_brief, :sponsor_name, :research_region, :research_language, :fieldwork_method, :sample_frame, :sample_method, :target_sample_size,
+                         :quota_policy, :response_rate_basis, :analysis_plan, :weighting_policy, :margin_error_note, :methodology_disclosure, :ethics_note,
+                         :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
+                         :qa_status, :qa_note, 1, :revision_locked,
                          :organizer_name, :contact_text, :consent_required, :consent_text, :privacy_notice, :anonymous_allowed, :login_required,
-                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :reward_enabled,
+                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :reward_enabled,
                          :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
                 )->execute([
                     'survey_key' => $surveyKey,
@@ -263,6 +361,30 @@ if (sr_request_method() === 'POST') {
                     'research_purpose' => $researchPurpose,
                     'target_population' => $targetPopulation,
                     'recruitment_method' => $recruitmentMethod,
+                    'project_brief' => $projectBrief,
+                    'sponsor_name' => $sponsorName,
+                    'research_region' => $researchRegion,
+                    'research_language' => $researchLanguage,
+                    'fieldwork_method' => $fieldworkMethod,
+                    'sample_frame' => $sampleFrame,
+                    'sample_method' => $sampleMethod,
+                    'target_sample_size' => $targetSampleSize,
+                    'quota_policy' => $quotaPolicy,
+                    'response_rate_basis' => $responseRateBasis,
+                    'analysis_plan' => $analysisPlan,
+                    'weighting_policy' => $weightingPolicy,
+                    'margin_error_note' => $marginErrorNote,
+                    'methodology_disclosure' => $methodologyDisclosure,
+                    'ethics_note' => $ethicsNote,
+                    'sensitive_data_policy' => $sensitiveDataPolicy,
+                    'recontact_policy' => $recontactPolicy,
+                    'withdrawal_policy' => $withdrawalPolicy,
+                    'vendor_name' => $vendorName,
+                    'external_channel_policy' => $externalChannelPolicy,
+                    'invite_token_policy' => $inviteTokenPolicy,
+                    'qa_status' => $qaStatus,
+                    'qa_note' => $qaNote,
+                    'revision_locked' => $revisionLocked ? 1 : 0,
                     'estimated_minutes' => $estimatedMinutes > 0 ? $estimatedMinutes : null,
                     'organizer_name' => $organizerName,
                     'contact_text' => $contactText,
@@ -278,6 +400,7 @@ if (sr_request_method() === 'POST') {
                     'ends_at' => $endsAt,
                     'response_limit_policy' => $responseLimitPolicy,
                     'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
+                    'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'created_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
@@ -288,6 +411,22 @@ if (sr_request_method() === 'POST') {
             }
             sr_survey_replace_questions($pdo, $surveyId, $questions, $now);
             sr_survey_replace_reward_policy($pdo, $surveyId, $rewardEnabled, $rewardProvider, $rewardModule, $rewardCouponDefinitionId, $rewardAmount, $rewardDedupeScope, $now);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) ($account['id'] ?? 0),
+                'actor_type' => 'admin',
+                'event_type' => 'survey.form.saved',
+                'target_type' => 'survey.form',
+                'target_id' => (string) $surveyId,
+                'result' => 'success',
+                'message' => 'Survey form saved.',
+                'metadata' => [
+                    'survey_key' => $surveyKey,
+                    'status' => $status,
+                    'qa_status' => $qaStatus,
+                    'member_group_keys' => $memberGroupKeys,
+                    'reward_enabled' => $rewardEnabled,
+                ],
+            ]);
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -408,11 +547,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($mode === 'list'): ?>
     <?php
     $stmt = $pdo->query(
-        'SELECT s.id, s.survey_key, s.title, s.status, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
+        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
          FROM sr_survey_forms s
          LEFT JOIN sr_survey_responses r ON r.survey_id = s.id
          WHERE s.deleted_at IS NULL
-         GROUP BY s.id, s.survey_key, s.title, s.status, s.reward_enabled, s.updated_at
+         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.reward_enabled, s.updated_at
          ORDER BY s.updated_at DESC, s.id DESC
          LIMIT 200'
     );
@@ -432,6 +571,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th>Key</th>
                         <th>제목</th>
                         <th>상태</th>
+                        <th>기간</th>
+                        <th>대상</th>
+                        <th>QA</th>
                         <th>응답</th>
                         <th>보상</th>
                         <th>수정일</th>
@@ -440,13 +582,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </thead>
                 <tbody>
                     <?php if ($surveys === []): ?>
-                        <tr><td colspan="7" class="admin-empty-state">등록된 설문이 없습니다.</td></tr>
+                        <tr><td colspan="10" class="admin-empty-state">등록된 설문이 없습니다.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($surveys as $survey): ?>
                         <tr>
                             <td><?php echo sr_e((string) $survey['survey_key']); ?></td>
                             <td><?php echo sr_e((string) $survey['title']); ?></td>
                             <td><?php echo sr_e(sr_survey_status_label((string) $survey['status'])); ?></td>
+                            <td><?php echo sr_e(trim((string) ($survey['starts_at'] ?? '') . ' ~ ' . (string) ($survey['ends_at'] ?? ''))); ?></td>
+                            <td><?php $listGroupKeys = sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]'); echo $listGroupKeys === [] ? '전체' : sr_e(implode(', ', $listGroupKeys)); ?></td>
+                            <td><?php echo sr_e(sr_survey_qa_status_label((string) ($survey['qa_status'] ?? 'unchecked'))); ?></td>
                             <td><?php echo sr_e((string) (int) $survey['response_count']); ?></td>
                             <td><?php echo (int) $survey['reward_enabled'] === 1 ? '사용' : '미사용'; ?></td>
                             <td><?php echo sr_e((string) $survey['updated_at']); ?></td>
@@ -471,6 +616,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'research_purpose' => '',
         'target_population' => '',
         'recruitment_method' => '',
+        'project_brief' => '',
+        'sponsor_name' => '',
+        'research_region' => '',
+        'research_language' => '',
+        'fieldwork_method' => '',
+        'sample_frame' => '',
+        'sample_method' => '',
+        'target_sample_size' => '',
+        'quota_policy' => '',
+        'response_rate_basis' => '',
+        'analysis_plan' => '',
+        'weighting_policy' => '',
+        'margin_error_note' => '',
+        'methodology_disclosure' => '',
+        'ethics_note' => '',
+        'sensitive_data_policy' => '',
+        'recontact_policy' => '',
+        'withdrawal_policy' => '',
+        'vendor_name' => '',
+        'external_channel_policy' => '',
+        'invite_token_policy' => '',
+        'qa_status' => 'unchecked',
+        'qa_note' => '',
+        'questionnaire_version' => 1,
+        'revision_locked' => 0,
         'estimated_minutes' => '',
         'organizer_name' => '',
         'contact_text' => '',
@@ -488,6 +658,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'response_limit_period_seconds' => (string) sr_survey_settings($pdo)['default_response_limit_period_seconds'],
         'reward_enabled' => 0,
     ];
+    $selectedMemberGroupKeys = sr_survey_member_group_keys_from_json($values['member_group_keys_json'] ?? '[]');
     if ($editQuestions === []) {
         $editQuestions = [
             [
@@ -545,6 +716,52 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <textarea id="survey_recruitment_method" name="recruitment_method" class="form-textarea"><?php echo sr_e((string) ($values['recruitment_method'] ?? '')); ?></textarea>
                 </div>
             </div>
+            <div class="form-field">
+                <label class="form-label" for="survey_project_brief">프로젝트 개요</label>
+                <textarea id="survey_project_brief" name="project_brief" class="form-textarea"><?php echo sr_e((string) ($values['project_brief'] ?? '')); ?></textarea>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_sponsor_name">의뢰/후원</label>
+                    <input id="survey_sponsor_name" type="text" name="sponsor_name" value="<?php echo sr_e((string) ($values['sponsor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_research_region">조사 지역</label>
+                    <input id="survey_research_region" type="text" name="research_region" value="<?php echo sr_e((string) ($values['research_region'] ?? '')); ?>" class="form-input" maxlength="120">
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_research_language">조사 언어</label>
+                    <input id="survey_research_language" type="text" name="research_language" value="<?php echo sr_e((string) ($values['research_language'] ?? '')); ?>" class="form-input" maxlength="60">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_fieldwork_method">실사 방식</label>
+                    <input id="survey_fieldwork_method" type="text" name="fieldwork_method" value="<?php echo sr_e((string) ($values['fieldwork_method'] ?? '')); ?>" class="form-input" maxlength="120">
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_sample_method">표본 추출</label>
+                    <input id="survey_sample_method" type="text" name="sample_method" value="<?php echo sr_e((string) ($values['sample_method'] ?? '')); ?>" class="form-input" maxlength="190">
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_target_sample_size">목표 표본 수</label>
+                    <input id="survey_target_sample_size" type="number" name="target_sample_size" value="<?php echo sr_e((string) ($values['target_sample_size'] ?? '')); ?>" class="form-input" min="0">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_sample_frame">표본틀</label>
+                    <textarea id="survey_sample_frame" name="sample_frame" class="form-textarea"><?php echo sr_e((string) ($values['sample_frame'] ?? '')); ?></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_quota_policy">쿼터/마감 기준</label>
+                    <textarea id="survey_quota_policy" name="quota_policy" class="form-textarea"><?php echo sr_e((string) ($values['quota_policy'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="form-field">
+                <label class="form-label" for="survey_response_rate_basis">응답률 산정 기준</label>
+                <textarea id="survey_response_rate_basis" name="response_rate_basis" class="form-textarea"><?php echo sr_e((string) ($values['response_rate_basis'] ?? '')); ?></textarea>
+            </div>
             <div class="form-grid">
                 <div class="form-field">
                     <label class="form-label" for="survey_estimated_minutes">예상 소요 시간</label>
@@ -599,6 +816,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </label>
                 </div>
             </div>
+            <div class="form-field">
+                <label class="form-label">참여 대상 회원 그룹</label>
+                <div class="admin-checkbox-list">
+                    <?php if ($memberGroups === []): ?>
+                        <p class="admin-form-help">선택 가능한 회원 그룹이 없습니다.</p>
+                    <?php endif; ?>
+                    <?php foreach ($memberGroups as $memberGroup): ?>
+                        <?php $groupKey = (string) ($memberGroup['group_key'] ?? ''); ?>
+                        <label class="admin-form-check form-label">
+                            <input type="checkbox" name="member_group_keys[]" value="<?php echo sr_e($groupKey); ?>" class="form-checkbox"<?php echo in_array($groupKey, $selectedMemberGroupKeys, true) ? ' checked' : ''; ?><?php echo (string) ($memberGroup['status'] ?? '') === 'enabled' ? '' : ' disabled'; ?>>
+                            <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> (<?php echo sr_e($groupKey); ?>)
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <p class="admin-form-help">선택하면 해당 그룹에 속한 로그인 회원만 참여할 수 있습니다.</p>
+            </div>
             <div class="form-grid">
                 <div class="form-field">
                     <label class="form-label" for="survey_response_limit_policy">응답 제한</label>
@@ -621,6 +854,90 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <option value="noindex"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'noindex' ? ' selected' : ''; ?>>색인 제외</option>
                     </select>
                 </div>
+            </div>
+        </div>
+        <div class="card-header"><h2 class="card-title">분석·공표·윤리</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_analysis_plan">분석 계획</label>
+                    <textarea id="survey_analysis_plan" name="analysis_plan" class="form-textarea"><?php echo sr_e((string) ($values['analysis_plan'] ?? '')); ?></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_weighting_policy">가중치 기준</label>
+                    <textarea id="survey_weighting_policy" name="weighting_policy" class="form-textarea"><?php echo sr_e((string) ($values['weighting_policy'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_margin_error_note">오차/한계</label>
+                    <textarea id="survey_margin_error_note" name="margin_error_note" class="form-textarea"><?php echo sr_e((string) ($values['margin_error_note'] ?? '')); ?></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_methodology_disclosure">방법론 공표 문구</label>
+                    <textarea id="survey_methodology_disclosure" name="methodology_disclosure" class="form-textarea"><?php echo sr_e((string) ($values['methodology_disclosure'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_ethics_note">윤리 검토</label>
+                    <textarea id="survey_ethics_note" name="ethics_note" class="form-textarea"><?php echo sr_e((string) ($values['ethics_note'] ?? '')); ?></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_sensitive_data_policy">민감정보 기준</label>
+                    <textarea id="survey_sensitive_data_policy" name="sensitive_data_policy" class="form-textarea"><?php echo sr_e((string) ($values['sensitive_data_policy'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_recontact_policy">재연락 기준</label>
+                    <textarea id="survey_recontact_policy" name="recontact_policy" class="form-textarea"><?php echo sr_e((string) ($values['recontact_policy'] ?? '')); ?></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_withdrawal_policy">철회 기준</label>
+                    <textarea id="survey_withdrawal_policy" name="withdrawal_policy" class="form-textarea"><?php echo sr_e((string) ($values['withdrawal_policy'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_vendor_name">외부 패널/벤더</label>
+                    <input id="survey_vendor_name" type="text" name="vendor_name" value="<?php echo sr_e((string) ($values['vendor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_external_channel_policy">외부 채널 기준</label>
+                    <textarea id="survey_external_channel_policy" name="external_channel_policy" class="form-textarea"><?php echo sr_e((string) ($values['external_channel_policy'] ?? '')); ?></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_invite_token_policy">초대 토큰 기준</label>
+                    <textarea id="survey_invite_token_policy" name="invite_token_policy" class="form-textarea"><?php echo sr_e((string) ($values['invite_token_policy'] ?? '')); ?></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="card-header"><h2 class="card-title">QA·버전</h2></div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_qa_status">QA 상태</label>
+                    <select id="survey_qa_status" name="qa_status" class="form-select">
+                        <?php foreach (sr_survey_qa_statuses() as $statusKey): ?>
+                            <option value="<?php echo sr_e($statusKey); ?>"<?php echo (string) ($values['qa_status'] ?? 'unchecked') === $statusKey ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_qa_status_label($statusKey)); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">설문지 버전</label>
+                    <p class="admin-form-help"><?php echo sr_e((string) (int) ($values['questionnaire_version'] ?? 1)); ?></p>
+                </div>
+                <div class="form-field">
+                    <label class="admin-form-check form-label" for="survey_revision_locked">
+                        <input id="survey_revision_locked" type="checkbox" name="revision_locked" value="1" class="form-checkbox"<?php echo (int) ($values['revision_locked'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        설문지 잠금
+                    </label>
+                </div>
+            </div>
+            <div class="form-field">
+                <label class="form-label" for="survey_qa_note">QA 메모</label>
+                <textarea id="survey_qa_note" name="qa_note" class="form-textarea"><?php echo sr_e((string) ($values['qa_note'] ?? '')); ?></textarea>
             </div>
         </div>
         <div class="card-header"><h2 class="card-title">참여 동의</h2></div>
