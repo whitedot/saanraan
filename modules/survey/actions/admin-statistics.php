@@ -36,7 +36,8 @@ if (is_array($survey)) {
                 SUM(CASE WHEN quality_status = 'excluded' THEN 1 ELSE 0 END) AS excluded_count,
                 SUM(CASE WHEN account_id IS NULL THEN 1 ELSE 0 END) AS anonymous_count
          FROM sr_survey_responses
-         WHERE survey_id = :survey_id"
+         WHERE survey_id = :survey_id
+           AND is_test = 0"
     );
     $summaryStmt->execute(['survey_id' => $surveyId]);
     $summaryRow = $summaryStmt->fetch();
@@ -50,6 +51,7 @@ if (is_array($survey)) {
          INNER JOIN sr_survey_responses r ON r.id = a.response_id
          WHERE r.survey_id = :survey_id
            AND r.quality_status <> 'excluded'
+           AND r.is_test = 0
            AND a.choice_id IS NOT NULL
          GROUP BY a.question_id, a.choice_id, a.choice_key"
     );
@@ -63,6 +65,7 @@ if (is_array($survey)) {
          INNER JOIN sr_survey_responses r ON r.id = a.response_id
          WHERE r.survey_id = :survey_id
            AND r.quality_status <> 'excluded'
+           AND r.is_test = 0
            AND a.answer_number IS NOT NULL
          GROUP BY a.question_id"
     );
@@ -90,7 +93,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-actions">
             <button type="submit" class="btn btn-solid-primary filtering-submit">보기</button>
             <?php if (is_array($survey)): ?>
-                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?survey_id=' . (string) $surveyId)); ?>">CSV</a>
+                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>">분석 CSV</a>
+                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'codebook'], '', '&', PHP_QUERY_RFC3986))); ?>">코드북 CSV</a>
             <?php endif; ?>
         </div>
     </div>

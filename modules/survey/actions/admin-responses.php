@@ -140,7 +140,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-actions">
             <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
             <a class="btn btn-outline-light" href="<?php echo sr_e(sr_url('/admin/surveys/responses')); ?>">초기화</a>
-            <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter], '', '&', PHP_QUERY_RFC3986))); ?>">CSV</a>
+            <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'raw'], '', '&', PHP_QUERY_RFC3986))); ?>">원본 CSV</a>
+            <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>">분석 CSV</a>
         </div>
     </div>
 </form>
