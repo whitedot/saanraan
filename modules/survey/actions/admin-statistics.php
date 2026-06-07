@@ -46,32 +46,36 @@ if (is_array($survey)) {
     }
     $questions = sr_survey_questions_with_choices($pdo, $surveyId);
     $choiceStmt = $pdo->prepare(
-        "SELECT a.question_id, a.choice_id, a.choice_key, COUNT(*) AS answer_count
+        "SELECT a.question_key, a.choice_key, COUNT(*) AS answer_count
          FROM sr_survey_response_answers a
          INNER JOIN sr_survey_responses r ON r.id = a.response_id
          WHERE r.survey_id = :survey_id
            AND r.quality_status <> 'excluded'
            AND r.is_test = 0
-           AND a.choice_id IS NOT NULL
-         GROUP BY a.question_id, a.choice_id, a.choice_key"
+           AND a.choice_key IS NOT NULL
+           AND a.choice_key <> ''
+         GROUP BY a.question_key, a.choice_key"
     );
     $choiceStmt->execute(['survey_id' => $surveyId]);
     foreach ($choiceStmt->fetchAll() as $row) {
-        $choiceStats[(int) $row['question_id']][(int) $row['choice_id']] = (int) $row['answer_count'];
+        $questionKey = (string) ($row['question_key'] ?? '');
+        foreach (array_filter(array_map('trim', explode(',', (string) ($row['choice_key'] ?? '')))) as $choiceKey) {
+            $choiceStats[$questionKey][$choiceKey] = (int) ($choiceStats[$questionKey][$choiceKey] ?? 0) + (int) ($row['answer_count'] ?? 0);
+        }
     }
     $numberStmt = $pdo->prepare(
-        "SELECT a.question_id, COUNT(a.answer_number) AS answer_count, AVG(a.answer_number) AS average_value, MIN(a.answer_number) AS min_value, MAX(a.answer_number) AS max_value
+        "SELECT a.question_key, COUNT(a.answer_number) AS answer_count, AVG(a.answer_number) AS average_value, MIN(a.answer_number) AS min_value, MAX(a.answer_number) AS max_value
          FROM sr_survey_response_answers a
          INNER JOIN sr_survey_responses r ON r.id = a.response_id
          WHERE r.survey_id = :survey_id
            AND r.quality_status <> 'excluded'
            AND r.is_test = 0
            AND a.answer_number IS NOT NULL
-         GROUP BY a.question_id"
+         GROUP BY a.question_key"
     );
     $numberStmt->execute(['survey_id' => $surveyId]);
     foreach ($numberStmt->fetchAll() as $row) {
-        $numberStats[(int) $row['question_id']] = $row;
+        $numberStats[(string) ($row['question_key'] ?? '')] = $row;
     }
 }
 
@@ -128,7 +132,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </thead>
                 <tbody>
                     <?php foreach ($questions as $question): ?>
-                        <?php $questionId = (int) ($question['id'] ?? 0); ?>
+                        <?php $questionKey = (string) ($question['question_key'] ?? ''); ?>
                         <tr>
                             <td class="admin-table-break">
                                 <strong><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></strong><br>
@@ -138,11 +142,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-break">
                                 <?php if (in_array((string) ($question['question_type'] ?? ''), ['single_choice', 'multiple_choice'], true)): ?>
                                     <?php foreach ((array) ($question['choices'] ?? []) as $choice): ?>
-                                        <?php $count = (int) ($choiceStats[$questionId][(int) ($choice['id'] ?? 0)] ?? 0); ?>
+                                        <?php $count = (int) ($choiceStats[$questionKey][(string) ($choice['choice_key'] ?? '')] ?? 0); ?>
                                         <div><?php echo sr_e((string) ($choice['label'] ?? '')); ?>: <?php echo sr_e(number_format($count)); ?>건</div>
                                     <?php endforeach; ?>
-                                <?php elseif (isset($numberStats[$questionId])): ?>
-                                    <?php $stat = $numberStats[$questionId]; ?>
+                                <?php elseif (isset($numberStats[$questionKey])): ?>
+                                    <?php $stat = $numberStats[$questionKey]; ?>
                                     <div>응답 <?php echo sr_e(number_format((int) ($stat['answer_count'] ?? 0))); ?>건 · 평균 <?php echo sr_e(number_format((float) ($stat['average_value'] ?? 0), 2)); ?> · 최소 <?php echo sr_e((string) ($stat['min_value'] ?? '')); ?> · 최대 <?php echo sr_e((string) ($stat['max_value'] ?? '')); ?></div>
                                 <?php else: ?>
                                     <span class="admin-summary-meta">텍스트 응답은 CSV 내보내기에서 확인합니다.</span>

@@ -804,6 +804,23 @@ function sr_survey_insert_response_answers(PDO $pdo, int $responseId, array $que
             'answer_text' => in_array($type, ['text', 'short_text', 'long_text'], true) ? (string) $answer : '',
             'answer_number' => in_array($type, ['number', 'rating', 'scale'], true) && trim((string) $answer) !== '' ? (float) $answer : null,
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (in_array($type, ['single_choice', 'multiple_choice'], true) && $choices !== []) {
+            foreach ($choices as $choice) {
+                $stmt->execute([
+                    'response_id' => $responseId,
+                    'question_id' => $questionId,
+                    'question_key' => (string) ($question['question_key'] ?? ''),
+                    'choice_id' => (int) ($choice['id'] ?? 0),
+                    'choice_key' => (string) ($choice['choice_key'] ?? ''),
+                    'answer_text' => null,
+                    'answer_number' => null,
+                    'other_text' => null,
+                    'answer_snapshot_json' => is_string($snapshotJson) ? $snapshotJson : '{}',
+                    'created_at' => $now,
+                ]);
+            }
+            continue;
+        }
         $stmt->execute([
             'response_id' => $responseId,
             'question_id' => $questionId,
