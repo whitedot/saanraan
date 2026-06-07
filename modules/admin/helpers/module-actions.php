@@ -90,8 +90,26 @@ function sr_admin_handle_modules_post(
     }
 
     if ($errors === [] && in_array($intent, ['install', 'status'], true) && $status === 'enabled') {
-        foreach (sr_admin_prepare_module_foundations($pdo, $account, $moduleKey) as $preparedFoundation) {
-            $notice .= ($notice !== '' ? ' ' : '') . $preparedFoundation['module_key'] . ' 기반 모듈이 함께 준비되었습니다.';
+        try {
+            foreach (sr_admin_prepare_module_foundations($pdo, $account, $moduleKey) as $preparedFoundation) {
+                $notice .= ($notice !== '' ? ' ' : '') . $preparedFoundation['module_key'] . ' 기반 모듈이 함께 준비되었습니다.';
+            }
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'module_foundation_prepare_failed');
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'module.foundation.prepare_failed',
+                'target_type' => 'module',
+                'target_id' => $moduleKey,
+                'result' => 'failure',
+                'message' => 'Foundation module preparation failed.',
+                'metadata' => [
+                    'requested_module_key' => $moduleKey,
+                    'reason' => sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500)),
+                ],
+            ]);
+            $errors[] = '필요 기반 모듈을 준비하지 못했습니다. 모듈 파일과 업데이트 상태를 확인하세요.';
         }
     }
 
