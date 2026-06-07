@@ -129,6 +129,7 @@ $layoutCopyrightYear = date('Y');
         <p>Copyright <?php echo sr_e($layoutCopyrightYear); ?> <?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?>.</p>
     </footer>
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
+    <script src="<?php echo sr_e(sr_asset_url('/assets/mention-input.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/modules/community/assets/community-layout.js')); ?>" defer></script>
 </body>
 </html>

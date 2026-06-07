@@ -30,7 +30,14 @@ if ($errors !== []) {
 }
 
 $commentId = sr_content_create_comment($pdo, $contentId, (int) $account['id'], $values);
-$commentNotificationResult = sr_content_create_comment_notifications($pdo, $page, $commentId, (string) $values['body_text'], (int) $account['id']);
+$commentNotificationResult = sr_content_create_comment_notifications(
+    $pdo,
+    $page,
+    $commentId,
+    (string) $values['body_text'],
+    (int) $account['id'],
+    (int) ($values['is_secret'] ?? 0) !== 1
+);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',

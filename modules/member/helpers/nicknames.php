@@ -283,3 +283,228 @@ function sr_member_public_name_lookup_account_ids(PDO $pdo, array $tokens, array
 
     return array_keys($accountIds);
 }
+
+function sr_member_mention_token_rows(string $bodyText): array
+{
+    if (!preg_match_all('/@([^\s@:,.;!?()\[\]{}<>]{2,160})/u', $bodyText, $matches)) {
+        return [];
+    }
+
+    $rows = [];
+    foreach ($matches[1] as $rawToken) {
+        $token = trim((string) $rawToken);
+        if ($token === '') {
+            continue;
+        }
+
+        $name = $token;
+        $hashPrefix = '';
+        $hashPosition = strrpos($token, '#');
+        if ($hashPosition !== false) {
+            $suffix = strtolower(substr($token, $hashPosition + 1));
+            if (preg_match('/\A[a-f0-9]{6,32}\z/', $suffix) === 1) {
+                $name = substr($token, 0, $hashPosition);
+                $hashPrefix = $suffix;
+            }
+        }
+
+        $name = trim($name);
+        if ($name === '') {
+            continue;
+        }
+
+        $key = $name . '#' . $hashPrefix;
+        $rows[$key] = [
+            'token' => $token,
+            'public_name' => $name,
+            'hash_prefix' => $hashPrefix,
+            'has_hash_prefix' => $hashPrefix !== '',
+        ];
+    }
+
+    return array_values($rows);
+}
+
+function sr_member_mention_candidate_rows_by_public_name(PDO $pdo, string $publicName): array
+{
+    $publicName = trim($publicName);
+    if ($publicName === '') {
+        return [];
+    }
+
+    $settings = sr_member_settings($pdo);
+    if (!empty($settings['nickname_enabled']) && sr_member_nicknames_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            "SELECT a.id, a.display_name, a.locale, a.status, n.nickname
+             FROM sr_member_nicknames n
+             INNER JOIN sr_member_accounts a ON a.id = n.account_id
+             WHERE n.nickname_lookup = :lookup
+               AND a.status = 'active'
+             ORDER BY a.id ASC
+             LIMIT 50"
+        );
+        $stmt->execute(['lookup' => sr_member_nickname_lookup_key($publicName)]);
+    } else {
+        $stmt = $pdo->prepare(
+            "SELECT id, display_name, locale, status, '' AS nickname
+             FROM sr_member_accounts
+             WHERE display_name = :display_name
+               AND status = 'active'
+             ORDER BY id ASC
+             LIMIT 50"
+        );
+        $stmt->execute(['display_name' => $publicName]);
+    }
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $row['public_name'] = sr_member_public_name($row, $settings);
+        if ((string) $row['public_name'] === $publicName) {
+            $rows[] = $row;
+        }
+    }
+
+    return $rows;
+}
+
+function sr_member_mention_account_ids(PDO $pdo, array $config, string $bodyText, array $excludeAccountIds = []): array
+{
+    $exclude = [];
+    foreach ($excludeAccountIds as $accountId) {
+        $accountId = (int) $accountId;
+        if ($accountId > 0) {
+            $exclude[$accountId] = true;
+        }
+    }
+
+    $accountIds = [];
+    foreach (sr_member_mention_token_rows($bodyText) as $token) {
+        $candidates = sr_member_mention_candidate_rows_by_public_name($pdo, (string) $token['public_name']);
+        if (!empty($token['has_hash_prefix'])) {
+            $matches = [];
+            foreach ($candidates as $candidate) {
+                $accountId = (int) ($candidate['id'] ?? 0);
+                $publicHash = sr_member_public_account_hash($config, $accountId);
+                if ($accountId > 0 && str_starts_with($publicHash, (string) $token['hash_prefix'])) {
+                    $matches[] = $accountId;
+                }
+            }
+            if (count($matches) === 1 && !isset($exclude[$matches[0]])) {
+                $accountIds[$matches[0]] = true;
+            }
+            continue;
+        }
+
+        $matches = [];
+        foreach ($candidates as $candidate) {
+            $accountId = (int) ($candidate['id'] ?? 0);
+            if ($accountId > 0) {
+                $matches[] = $accountId;
+            }
+        }
+        if (count($matches) === 1 && !isset($exclude[$matches[0]])) {
+            $accountIds[$matches[0]] = true;
+        }
+    }
+
+    return array_keys($accountIds);
+}
+
+function sr_member_mention_prefix_length_for_hashes(array $publicHashes, string $publicHash, int $minimum = 6): int
+{
+    $minimum = max(6, min(32, $minimum));
+    for ($length = $minimum; $length <= 32; $length += 2) {
+        $prefix = substr($publicHash, 0, $length);
+        $count = 0;
+        foreach ($publicHashes as $hash) {
+            if (str_starts_with((string) $hash, $prefix)) {
+                $count++;
+            }
+        }
+        if ($count === 1) {
+            return $length;
+        }
+    }
+
+    return 32;
+}
+
+function sr_member_mention_search_rows(PDO $pdo, array $config, string $query, int $limit = 10, array $excludeAccountIds = []): array
+{
+    $query = trim($query);
+    if ($query === '') {
+        return [];
+    }
+
+    $limit = max(1, min(20, $limit));
+    $settings = sr_member_settings($pdo);
+    $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query) . '%';
+    $startLike = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query) . '%';
+
+    if (!empty($settings['nickname_enabled']) && sr_member_nicknames_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            "SELECT a.id, a.display_name, a.locale, a.status, n.nickname
+             FROM sr_member_nicknames n
+             INNER JOIN sr_member_accounts a ON a.id = n.account_id
+             WHERE n.nickname LIKE :keyword ESCAPE '\\\\'
+               AND a.status = 'active'
+             ORDER BY CASE WHEN n.nickname LIKE :start_keyword ESCAPE '\\\\' THEN 0 ELSE 1 END, n.nickname ASC, a.id ASC
+             LIMIT " . ($limit * 4)
+        );
+        $stmt->execute(['keyword' => $like, 'start_keyword' => $startLike]);
+    } else {
+        $stmt = $pdo->prepare(
+            "SELECT id, display_name, locale, status, '' AS nickname
+             FROM sr_member_accounts
+             WHERE display_name LIKE :keyword ESCAPE '\\\\'
+               AND status = 'active'
+             ORDER BY CASE WHEN display_name LIKE :start_keyword ESCAPE '\\\\' THEN 0 ELSE 1 END, display_name ASC, id ASC
+             LIMIT " . ($limit * 4)
+        );
+        $stmt->execute(['keyword' => $like, 'start_keyword' => $startLike]);
+    }
+
+    $exclude = [];
+    foreach ($excludeAccountIds as $accountId) {
+        $accountId = (int) $accountId;
+        if ($accountId > 0) {
+            $exclude[$accountId] = true;
+        }
+    }
+
+    $rows = [];
+    $hashesByName = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $accountId = (int) ($row['id'] ?? 0);
+        if ($accountId < 1 || isset($exclude[$accountId])) {
+            continue;
+        }
+        $publicName = sr_member_public_name($row, $settings);
+        if ($publicName === '') {
+            continue;
+        }
+        $publicHash = sr_member_public_account_hash($config, $accountId);
+        $row['public_name'] = $publicName;
+        $row['public_hash'] = $publicHash;
+        $rows[] = $row;
+        $hashesByName[$publicName][] = $publicHash;
+    }
+
+    $items = [];
+    foreach ($rows as $row) {
+        $publicName = (string) $row['public_name'];
+        $publicHash = (string) $row['public_hash'];
+        $prefixLength = sr_member_mention_prefix_length_for_hashes($hashesByName[$publicName] ?? [$publicHash], $publicHash, 6);
+        $hashPrefix = substr($publicHash, 0, $prefixLength);
+        $items[] = [
+            'public_name' => $publicName,
+            'hash_prefix' => $hashPrefix,
+            'insert_text' => '@' . $publicName . '#' . $hashPrefix . ' ',
+        ];
+        if (count($items) >= $limit) {
+            break;
+        }
+    }
+
+    return $items;
+}

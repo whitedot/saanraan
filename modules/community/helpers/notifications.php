@@ -151,16 +151,9 @@ function sr_community_create_admin_report_notifications(
 
 function sr_community_mention_tokens(string $bodyText): array
 {
-    if (!preg_match_all('/@([^\s@#:,.;!?()\[\]{}<>]{2,40})/u', $bodyText, $matches)) {
-        return [];
-    }
-
     $tokens = [];
-    foreach ($matches[1] as $token) {
-        $token = trim((string) $token);
-        if ($token !== '') {
-            $tokens[$token] = true;
-        }
+    foreach (sr_member_mention_token_rows($bodyText) as $row) {
+        $tokens[(string) $row['token']] = true;
     }
 
     return array_keys($tokens);
@@ -168,11 +161,7 @@ function sr_community_mention_tokens(string $bodyText): array
 
 function sr_community_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array
 {
-    $tokens = sr_community_mention_tokens($bodyText);
-    if ($tokens === []) {
-        return [];
-    }
-    return sr_member_public_name_lookup_account_ids($pdo, $tokens, $excludeAccountIds);
+    return sr_member_mention_account_ids($pdo, sr_runtime_config(), $bodyText, $excludeAccountIds);
 }
 
 function sr_community_create_comment_mention_notifications(
@@ -181,7 +170,8 @@ function sr_community_create_comment_mention_notifications(
     int $commentId,
     string $bodyText,
     int $createdByAccountId,
-    array $excludeAccountIds = []
+    array $excludeAccountIds = [],
+    ?string $previousBodyText = null
 ): array {
     $result = [
         'mention_candidate_count' => 0,
@@ -193,6 +183,13 @@ function sr_community_create_comment_mention_notifications(
     }
 
     $mentionedAccountIds = sr_community_mentioned_account_ids($pdo, $bodyText, array_merge($excludeAccountIds, [$createdByAccountId]));
+    if ($previousBodyText !== null) {
+        $previousAccountIds = sr_community_mentioned_account_ids($pdo, $previousBodyText, array_merge($excludeAccountIds, [$createdByAccountId]));
+        $previousMap = array_fill_keys(array_map('intval', $previousAccountIds), true);
+        $mentionedAccountIds = array_values(array_filter($mentionedAccountIds, static function (int $accountId) use ($previousMap): bool {
+            return !isset($previousMap[$accountId]);
+        }));
+    }
     $result['mention_candidate_count'] = count($mentionedAccountIds);
     $config = sr_runtime_config();
     foreach ($mentionedAccountIds as $accountId) {

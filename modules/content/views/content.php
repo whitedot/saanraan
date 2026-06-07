@@ -307,7 +307,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
                                                     <label for="<?php echo sr_e($contentCommentEditId); ?>">댓글 수정</label>
-                                                    <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
+                                                    <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
                                                     <label class="content-comment-secret-toggle">
                                                         <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                                         <span>비밀 댓글</span>
@@ -343,7 +343,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
                         <label for="content_comment_body">댓글</label>
-                        <textarea id="content_comment_body" name="body_text" rows="4" cols="60"><?php echo sr_e((string) ($contentCommentBody ?? '')); ?></textarea>
+                        <textarea id="content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($contentCommentBody ?? '')); ?></textarea>
                         <label class="content-comment-secret-toggle">
                             <input type="checkbox" name="is_secret" value="1">
                             <span>비밀 댓글</span>

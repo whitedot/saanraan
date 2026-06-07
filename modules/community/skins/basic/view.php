@@ -313,7 +313,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentEditId); ?>">
                     <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required><?php echo sr_e((string) $comment['body_text']); ?></textarea>
+                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
                                                         </label>
                                                     </p>
                                                     <label class="community-comment-secret-toggle">
@@ -385,7 +385,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <p>
                         <label for="modules_community_view_body_text_2">
                     <span><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required><?php echo sr_e($commentBody); ?></textarea>
+                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e($commentBody); ?></textarea>
                         </label>
                     </p>
                     <label class="community-comment-secret-toggle">

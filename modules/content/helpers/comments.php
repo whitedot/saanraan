@@ -425,16 +425,9 @@ function sr_content_create_account_event_notification(
 
 function sr_content_mention_tokens(string $bodyText): array
 {
-    if (!preg_match_all('/@([^\s@#:,.;!?()\[\]{}<>]{2,40})/u', $bodyText, $matches)) {
-        return [];
-    }
-
     $tokens = [];
-    foreach ($matches[1] as $token) {
-        $token = trim((string) $token);
-        if ($token !== '') {
-            $tokens[$token] = true;
-        }
+    foreach (sr_member_mention_token_rows($bodyText) as $row) {
+        $tokens[(string) $row['token']] = true;
     }
 
     return array_keys($tokens);
@@ -442,15 +435,64 @@ function sr_content_mention_tokens(string $bodyText): array
 
 function sr_content_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array
 {
-    $tokens = sr_content_mention_tokens($bodyText);
-    if ($tokens === []) {
-        return [];
-    }
-
-    return sr_member_public_name_lookup_account_ids($pdo, $tokens, $excludeAccountIds);
+    return sr_member_mention_account_ids($pdo, sr_runtime_config(), $bodyText, $excludeAccountIds);
 }
 
-function sr_content_create_comment_notifications(PDO $pdo, array $page, int $commentId, string $bodyText, int $createdByAccountId): array
+function sr_content_create_comment_mention_notifications(
+    PDO $pdo,
+    array $page,
+    int $commentId,
+    string $bodyText,
+    int $createdByAccountId,
+    array $excludeAccountIds = [],
+    ?string $previousBodyText = null
+): array {
+    $result = [
+        'mention_candidate_count' => 0,
+        'mention_notification_count' => 0,
+        'mention_account_hashes' => [],
+    ];
+    $contentId = (int) ($page['id'] ?? 0);
+    if ($contentId < 1 || $commentId < 1) {
+        return $result;
+    }
+
+    $authorAccountId = (int) ($page['created_by'] ?? 0);
+    $excludeAccountIds[] = $createdByAccountId;
+    if ($authorAccountId > 0) {
+        $excludeAccountIds[] = $authorAccountId;
+    }
+    $mentionedAccountIds = sr_content_mentioned_account_ids($pdo, $bodyText, $excludeAccountIds);
+    if ($previousBodyText !== null) {
+        $previousAccountIds = sr_content_mentioned_account_ids($pdo, $previousBodyText, $excludeAccountIds);
+        $previousMap = array_fill_keys(array_map('intval', $previousAccountIds), true);
+        $mentionedAccountIds = array_values(array_filter($mentionedAccountIds, static function (int $accountId) use ($previousMap): bool {
+            return !isset($previousMap[$accountId]);
+        }));
+    }
+
+    $result['mention_candidate_count'] = count($mentionedAccountIds);
+    $config = sr_runtime_config();
+    $metadata = [
+        'content_id' => $contentId,
+        'comment_id' => $commentId,
+        'member_name' => sr_member_public_name_for_account_id($pdo, $createdByAccountId, '회원'),
+        'link_url' => sr_content_path((string) ($page['slug'] ?? '')) . '#content-comments',
+        'created_at' => sr_now(),
+    ];
+    foreach ($mentionedAccountIds as $accountId) {
+        $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
+    }
+    foreach ($mentionedAccountIds as $accountId) {
+        if (sr_content_create_account_event_notification($pdo, (int) $accountId, 'comment.mention', $metadata, $createdByAccountId)) {
+            $result['mention_notification_count']++;
+        }
+    }
+
+    return $result;
+}
+
+function sr_content_create_comment_notifications(PDO $pdo, array $page, int $commentId, string $bodyText, int $createdByAccountId, bool $createMentionNotifications = true): array
 {
     $result = [
         'content_author_notification_created' => false,
@@ -473,16 +515,11 @@ function sr_content_create_comment_notifications(PDO $pdo, array $page, int $com
         $result['content_author_notification_created'] = sr_content_create_account_event_notification($pdo, $authorAccountId, 'comment.created', $metadata, $createdByAccountId);
     }
 
-    $mentionedAccountIds = sr_content_mentioned_account_ids($pdo, $bodyText, [$createdByAccountId, $authorAccountId]);
-    $result['mention_candidate_count'] = count($mentionedAccountIds);
-    $config = sr_runtime_config();
-    foreach ($mentionedAccountIds as $accountId) {
-        $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
-    }
-    foreach ($mentionedAccountIds as $accountId) {
-        if (sr_content_create_account_event_notification($pdo, $accountId, 'comment.mention', $metadata, $createdByAccountId)) {
-            $result['mention_notification_count']++;
-        }
+    if ($createMentionNotifications) {
+        $mentionResult = sr_content_create_comment_mention_notifications($pdo, $page, $commentId, $bodyText, $createdByAccountId);
+        $result['mention_candidate_count'] = (int) ($mentionResult['mention_candidate_count'] ?? 0);
+        $result['mention_notification_count'] = (int) ($mentionResult['mention_notification_count'] ?? 0);
+        $result['mention_account_hashes'] = $mentionResult['mention_account_hashes'] ?? [];
     }
 
     return $result;

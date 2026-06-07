@@ -6,6 +6,7 @@ return [
     'GET /register' => 'actions/register.php',
     'POST /register' => 'actions/register.php',
     'GET /member/avatar' => 'actions/avatar.php',
+    'GET /member/mention-search' => 'actions/mention-search.php',
     'GET /account' => 'actions/account.php',
     'POST /account' => 'actions/account.php',
     'GET /admin/members' => 'actions/admin-members.php',

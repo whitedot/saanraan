@@ -103,14 +103,16 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         (int) $account['id']
     );
 }
-$commentMentionNotificationResult = sr_community_create_comment_mention_notifications(
-    $pdo,
-    $postId,
-    $commentId,
-    (string) $values['body_text'],
-    (int) $account['id'],
-    [(int) $post['author_account_id']]
-);
+$commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
+    ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
+    : sr_community_create_comment_mention_notifications(
+        $pdo,
+        $postId,
+        $commentId,
+        (string) $values['body_text'],
+        (int) $account['id'],
+        [(int) $post['author_account_id']]
+    );
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',

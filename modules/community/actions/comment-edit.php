@@ -32,14 +32,17 @@ if ($errors !== []) {
 }
 
 sr_community_update_comment_content($pdo, $commentId, $values);
-$commentMentionNotificationResult = sr_community_create_comment_mention_notifications(
-    $pdo,
-    (int) $comment['post_id'],
-    $commentId,
-    (string) $values['body_text'],
-    (int) $account['id'],
-    [(int) $comment['author_account_id'], (int) $post['author_account_id']]
-);
+$commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
+    ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
+    : sr_community_create_comment_mention_notifications(
+        $pdo,
+        (int) $comment['post_id'],
+        $commentId,
+        (string) $values['body_text'],
+        (int) $account['id'],
+        [(int) $comment['author_account_id'], (int) $post['author_account_id']],
+        (string) ($comment['body_text'] ?? '')
+    );
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',

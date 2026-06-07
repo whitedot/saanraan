@@ -577,6 +577,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-output-helpers.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-upload-helpers.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-auth-policy.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-mention-ux.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-action-security.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-release.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-popup-layer-targets.php'));

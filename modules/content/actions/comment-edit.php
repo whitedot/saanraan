@@ -32,6 +32,17 @@ if ($errors !== []) {
 }
 
 sr_content_update_comment_content($pdo, $commentId, $values);
+$contentCommentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
+    ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
+    : sr_content_create_comment_mention_notifications(
+        $pdo,
+        $page,
+        $commentId,
+        (string) $values['body_text'],
+        (int) $account['id'],
+        [(int) $comment['author_account_id']],
+        (string) ($comment['body_text'] ?? '')
+    );
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
     'actor_type' => 'member',
@@ -43,6 +54,9 @@ sr_audit_log($pdo, [
     'metadata' => [
         'content_id' => (int) $comment['content_id'],
         'is_secret' => (int) ($values['is_secret'] ?? 0) === 1,
+        'mention_candidate_count' => (int) ($contentCommentMentionNotificationResult['mention_candidate_count'] ?? 0),
+        'mention_notification_count' => (int) ($contentCommentMentionNotificationResult['mention_notification_count'] ?? 0),
+        'mention_account_hashes' => $contentCommentMentionNotificationResult['mention_account_hashes'] ?? [],
     ],
 ]);
 $_SESSION['sr_content_comment_notice'] = '댓글을 수정했습니다.';
