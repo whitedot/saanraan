@@ -79,7 +79,7 @@ function sr_quiz_attempt_limit_policy_label(string $policy): string
 
 function sr_quiz_modes(): array
 {
-    return ['scored', 'diagnostic', 'survey'];
+    return ['scored', 'diagnostic'];
 }
 
 function sr_quiz_mode_label(string $mode): string
@@ -87,7 +87,6 @@ function sr_quiz_mode_label(string $mode): string
     return [
         'scored' => '점수형',
         'diagnostic' => '진단형',
-        'survey' => '설문형',
     ][$mode] ?? $mode;
 }
 
@@ -505,6 +504,8 @@ function sr_quiz_reward_grant_status_label(string $status): string
         'pending' => '대기',
         'granted' => '지급',
         'failed' => '실패',
+        'duplicate' => '중복',
+        'cancelled' => '취소',
     ][$status] ?? $status;
 }
 
@@ -1265,12 +1266,29 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
     if (!in_array($dedupeScope, sr_quiz_reward_dedupe_scopes(), true)) {
         $dedupeScope = 'per_quiz';
     }
-    $dedupeKey = 'quiz_reward:' . (string) $accountId . ':' . (string) $quizId;
+    $dedupeKeyParts = [
+        'quiz.reward',
+        'account',
+        (string) $accountId,
+        'quiz',
+        (string) $quizId,
+        'policy',
+        (string) $policyId,
+        'provider',
+        $rewardProvider,
+        'module',
+        $rewardModule,
+    ];
     if ($dedupeScope === 'per_source') {
-        $dedupeKey .= ':' . (string) ($sourceContext['source_module'] ?? '') . ':' . (string) ($sourceContext['source_type'] ?? '') . ':' . (string) ($sourceContext['source_id'] ?? '');
+        $dedupeKeyParts[] = 'source';
+        $dedupeKeyParts[] = (string) ($sourceContext['source_module'] ?? '');
+        $dedupeKeyParts[] = (string) ($sourceContext['source_type'] ?? '');
+        $dedupeKeyParts[] = (string) ($sourceContext['source_id'] ?? '');
     } elseif ($dedupeScope === 'per_attempt') {
-        $dedupeKey .= ':attempt:' . (string) $attemptId;
+        $dedupeKeyParts[] = 'attempt';
+        $dedupeKeyParts[] = (string) $attemptId;
     }
+    $dedupeKey = implode(':', $dedupeKeyParts);
 
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_quiz_reward_grants
@@ -1308,8 +1326,17 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
     $grantStmt = $pdo->prepare('SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1 FOR UPDATE');
     $grantStmt->execute(['dedupe_key' => $dedupeKey]);
     $grant = $grantStmt->fetch();
-    if (!is_array($grant) || (string) ($grant['status'] ?? '') === 'granted') {
-        return is_array($grant) ? $grant : [];
+    if (!is_array($grant)) {
+        return [];
+    }
+    $existingAttemptId = (int) ($grant['attempt_id'] ?? 0);
+    if ($existingAttemptId > 0 && $existingAttemptId !== $attemptId && $dedupeScope !== 'per_attempt') {
+        $grant['status'] = 'duplicate';
+        $grant['error_message'] = '';
+        return $grant;
+    }
+    if ((string) ($grant['status'] ?? '') === 'granted') {
+        return $grant;
     }
 
     $grantId = (int) ($grant['id'] ?? 0);
