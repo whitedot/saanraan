@@ -100,12 +100,17 @@ if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
 
 $seo = [
     'title' => (string) $quiz['title'],
+    'description' => sr_quiz_clean_single_line((string) ($quiz['description'] ?? ''), 160),
     'canonical' => '/quiz/' . (string) $quiz['quiz_key'],
     'og' => [
         'title' => (string) $quiz['title'],
+        'description' => sr_quiz_clean_single_line((string) ($quiz['description'] ?? ''), 160),
         'type' => 'article',
     ],
 ];
+if ($canPreviewAsAdmin) {
+    $seo['robots'] = 'noindex, nofollow';
+}
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
     'body_class' => 'sr-quiz-page',
