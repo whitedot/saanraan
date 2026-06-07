@@ -43,6 +43,16 @@ function sr_survey_status_label(string $status): string
     ][$status] ?? $status;
 }
 
+function sr_survey_admin_status_class(string $status): string
+{
+    return match ($status) {
+        'active', 'approved', 'accepted' => 'is-normal',
+        'paused', 'needs_fix', 'flagged' => 'is-blocked',
+        'draft', 'unchecked' => 'is-left',
+        default => 'is-left',
+    };
+}
+
 function sr_survey_question_types(): array
 {
     return ['single_choice', 'multiple_choice', 'short_text', 'long_text', 'number', 'rating', 'scale'];
@@ -377,6 +387,38 @@ function sr_survey_datetime_local_value(mixed $value): string
 {
     $timestamp = strtotime((string) $value);
     return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
+}
+
+function sr_survey_time_html(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $diff = time() - $timestamp;
+    if ($diff < 0) {
+        $relative = date('Y-m-d H:i', $timestamp);
+    } elseif ($diff < 60) {
+        $relative = '방금 전';
+    } elseif ($diff < 3600) {
+        $relative = floor($diff / 60) . '분 전';
+    } elseif ($diff < 86400) {
+        $relative = floor($diff / 3600) . '시간 전';
+    } elseif ($diff < 2592000) {
+        $relative = floor($diff / 86400) . '일 전';
+    } elseif ($diff < 31536000) {
+        $relative = floor($diff / 2592000) . '개월 전';
+    } else {
+        $relative = floor($diff / 31536000) . '년 전';
+    }
+
+    return '<time datetime="' . sr_e($value) . '" title="' . sr_e($value) . '">' . sr_e($relative) . '</time>';
 }
 
 function sr_survey_public_window_is_open(array $survey, ?string $now = null): bool

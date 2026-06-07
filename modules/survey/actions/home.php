@@ -9,6 +9,7 @@ $seo = [
     'canonical' => '/survey',
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'body_class' => 'sr-survey-page',
     'stylesheets' => ['/modules/survey/assets/public.css'],
 ]);
 ?>
@@ -16,19 +17,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     <section class="sr-public-section">
         <div class="sr-public-container">
             <h1>설문</h1>
-            <div class="sr-survey-list">
-                <?php if ($surveys === []): ?>
-                    <p>참여할 수 있는 설문이 없습니다.</p>
-                <?php endif; ?>
+            <?php if ($surveys === []): ?>
+                <p>참여할 수 있는 설문이 없습니다.</p>
+            <?php else: ?>
+                <ul class="sr-survey-list">
                 <?php foreach ($surveys as $survey): ?>
-                    <article class="sr-survey-item">
-                        <h2><a href="<?php echo sr_e(sr_url('/survey/' . (string) $survey['survey_key'])); ?>"><?php echo sr_e((string) $survey['title']); ?></a></h2>
-                        <?php if ((string) ($survey['description'] ?? '') !== ''): ?>
-                            <p><?php echo sr_e((string) $survey['description']); ?></p>
-                        <?php endif; ?>
-                    </article>
+                    <li>
+                        <a href="<?php echo sr_e(sr_url('/survey/' . rawurlencode((string) $survey['survey_key']))); ?>">
+                            <span class="sr-survey-list-title"><?php echo sr_e((string) $survey['title']); ?></span>
+                            <?php if ((string) ($survey['description'] ?? '') !== ''): ?>
+                                <span class="sr-survey-list-summary"><?php echo sr_e((string) $survey['description']); ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                 <?php endforeach; ?>
-            </div>
+                </ul>
+            <?php endif; ?>
         </div>
     </section>
 </main>
