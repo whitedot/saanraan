@@ -525,8 +525,43 @@ function sr_survey_account_can_respond(PDO $pdo, array $survey, int $accountId):
             return ['allowed' => false, 'message' => '이미 참여한 설문입니다.'];
         }
     }
+    if ($accountId < 1 && (int) ($survey['anonymous_allowed'] ?? 0) === 1 && $policy !== 'unlimited') {
+        $params = [
+            'survey_id' => (int) ($survey['id'] ?? 0),
+            'user_agent_hash' => sr_survey_current_user_agent_hash(),
+            'ip_hash' => sr_survey_current_ip_hash(),
+        ];
+        $sql = 'SELECT COUNT(*) FROM sr_survey_responses
+                WHERE survey_id = :survey_id
+                  AND account_id IS NULL
+                  AND user_agent_hash = :user_agent_hash
+                  AND ip_hash = :ip_hash';
+        if ($policy === 'per_period') {
+            $seconds = (int) ($survey['response_limit_period_seconds'] ?? 0);
+            if ($seconds < 1) {
+                return ['allowed' => false, 'message' => '응답 제한 기간 설정을 확인해야 합니다.'];
+            }
+            $sql .= ' AND submitted_at >= :since';
+            $params['since'] = date('Y-m-d H:i:s', max(0, time() - $seconds));
+        }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        if ((int) $stmt->fetchColumn() > 0) {
+            return ['allowed' => false, 'message' => '이미 참여한 설문입니다.'];
+        }
+    }
 
     return ['allowed' => true, 'message' => ''];
+}
+
+function sr_survey_current_user_agent_hash(): string
+{
+    return hash('sha256', (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+}
+
+function sr_survey_current_ip_hash(): string
+{
+    return hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
 }
 
 function sr_survey_asset_options(PDO $pdo): array
@@ -698,8 +733,8 @@ function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, in
             'is_test' => $isTest ? 1 : 0,
             'submitted_at' => $now,
             'answer_snapshot_json' => is_string($snapshotJson) ? $snapshotJson : '{}',
-            'user_agent_hash' => hash('sha256', (string) ($_SERVER['HTTP_USER_AGENT'] ?? '')),
-            'ip_hash' => hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? '')),
+            'user_agent_hash' => sr_survey_current_user_agent_hash(),
+            'ip_hash' => sr_survey_current_ip_hash(),
             'created_at' => $now,
             'updated_at' => $now,
         ]);
