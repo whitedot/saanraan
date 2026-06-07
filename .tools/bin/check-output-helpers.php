@@ -129,6 +129,40 @@ sr_output_helper_assert(
         && sr_public_layout_file('basic') === $root . '/layouts/public/basic/layout.php',
     'Common public layout and legacy key should resolve to the layouts directory.'
 );
+
+foreach ([
+    '/modules/admin/helpers/forms.php',
+    '/modules/asset_exchange/helpers.php',
+    '/modules/content/helpers.php',
+    '/modules/coupon/helpers.php',
+    '/modules/point/helpers.php',
+] as $timeHelperPath) {
+    $timeHelper = file_get_contents($root . $timeHelperPath);
+    sr_output_helper_assert(is_string($timeHelper), 'Time helper should be readable: ' . $timeHelperPath);
+    if (is_string($timeHelper) && str_contains($timeHelper, 'data-sr-time-tooltip')) {
+        preg_match_all('/<time\b[^>]*>/i', $timeHelper, $timeTagMatches);
+        $hasDuplicateTooltip = false;
+        foreach ($timeTagMatches[0] ?? [] as $timeTag) {
+            if (str_contains($timeTag, 'data-sr-time-tooltip') && preg_match('/\btitle\s*=/', $timeTag) === 1) {
+                $hasDuplicateTooltip = true;
+                break;
+            }
+        }
+        sr_output_helper_assert(
+            !$hasDuplicateTooltip,
+            'Custom time tooltip should not also render a native title tooltip: ' . $timeHelperPath
+        );
+    }
+}
+
+$commonUiScript = file_get_contents($root . '/assets/common-ui.js');
+sr_output_helper_assert(is_string($commonUiScript), 'Common UI script should be readable.');
+if (is_string($commonUiScript)) {
+    sr_output_helper_assert(
+        str_contains($commonUiScript, "trigger.removeAttribute('title')"),
+        'Custom time tooltip script should remove native title attributes to prevent duplicate tooltips.'
+    );
+}
 $layoutPdo = new PDO('sqlite::memory:');
 $layoutPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $layoutPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);

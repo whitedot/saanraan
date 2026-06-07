@@ -167,7 +167,7 @@ function sr_asset_exchange_time_html(?string $value, string $emptyText = ''): st
     $exactValue = date('Y-m-d H:i:s', $timestamp);
     $machineValue = date('Y-m-d\TH:i:sP', $timestamp);
 
-    return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" title="' . sr_e($exactValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
+    return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
         . sr_e(sr_asset_exchange_relative_time_label($exactValue))
         . '</time>';
 }

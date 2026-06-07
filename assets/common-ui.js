@@ -1533,7 +1533,15 @@
       return '';
     }
 
-    return trigger.getAttribute('data-sr-time-tooltip-label') || trigger.getAttribute('title') || trigger.getAttribute('datetime') || '';
+    var title = trigger.getAttribute('title') || '';
+    if (title) {
+      if (!trigger.getAttribute('data-sr-time-tooltip-label')) {
+        trigger.setAttribute('data-sr-time-tooltip-label', title);
+      }
+      trigger.removeAttribute('title');
+    }
+
+    return trigger.getAttribute('data-sr-time-tooltip-label') || trigger.getAttribute('datetime') || '';
   }
 
   function positionFloatingTimeTooltip(trigger) {
