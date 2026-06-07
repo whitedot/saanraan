@@ -121,6 +121,13 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'failed' => '실패',
             'canceled' => '취소',
         ],
+        'content_embed_status' => [
+            'active' => '정상',
+            'removed' => '제거됨',
+            'broken' => '깨짐',
+            'private' => '비공개',
+            'deleted' => '삭제됨',
+        ],
         'policy' => [
             'public' => '전체 공개',
             'member' => '회원',
