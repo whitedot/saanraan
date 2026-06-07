@@ -56,6 +56,13 @@ sr_survey_check_contains(
     'MODIFY COLUMN account_id BIGINT UNSIGNED NULL',
     'Survey reward grants privacy cleanup schema update must be present'
 );
+foreach (['INFORMATION_SCHEMA.COLUMNS', 'member_group_keys_json', 'DO 0', 'INFORMATION_SCHEMA.STATISTICS', 'idx_sr_survey_forms_qa'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/updates/2026.06.003.sql',
+        $needle,
+        'Survey 2026.06.003 update must be safe to retry after partial schema drift'
+    );
+}
 sr_survey_check_contains(
     'modules/survey/privacy-cleanup.php',
     "dedupe_key = CONCAT(\\'anonymized:survey_reward:\\', id)",
