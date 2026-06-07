@@ -17,26 +17,31 @@ $quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($qui
 $quizLayoutMenuFields = [
     'layout_primary_menu_key' => [
         'label' => '주 메뉴 슬롯',
+        'help_id' => 'quiz-settings-help-layout-primary-menu',
         'help' => '선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
         'default' => 'header',
     ],
     'layout_secondary_menu_key' => [
         'label' => '보조 메뉴 슬롯',
+        'help_id' => 'quiz-settings-help-layout-secondary-menu',
         'help' => '선택한 공개 레이아웃이 보조 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
         'default' => '',
     ],
     'layout_tertiary_menu_key' => [
         'label' => '추가 메뉴 슬롯 1',
+        'help_id' => 'quiz-settings-help-layout-tertiary-menu',
         'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 1을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
         'default' => '',
     ],
     'layout_quaternary_menu_key' => [
         'label' => '추가 메뉴 슬롯 2',
+        'help_id' => 'quiz-settings-help-layout-quaternary-menu',
         'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 2를 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
         'default' => '',
     ],
     'layout_quinary_menu_key' => [
         'label' => '추가 메뉴 슬롯 3',
+        'help_id' => 'quiz-settings-help-layout-quinary-menu',
         'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 3을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
         'default' => '',
     ],
@@ -50,43 +55,156 @@ $quizSettingsHelpBodyHtml = static function (array $items): string {
     return $html;
 };
 $quizSettingsHelp = [
-    'defaults' => [
-        'id' => 'quiz-settings-help-defaults',
-        'title' => '새 퀴즈 기본값',
+    'layout_key' => [
+        'id' => 'quiz-settings-help-layout-key',
+        'title' => '퀴즈 공개 레이아웃',
         'body_html' => $quizSettingsHelpBodyHtml([
-            '이 설정은 새 퀴즈 생성 화면의 초기값에만 사용합니다.',
-            '이미 저장된 퀴즈에는 소급 적용하지 않습니다.',
-            '복사 기능은 안전을 위해 기본 상태를 초안으로 만들며, 이 설정의 기본 상태보다 복사 옵션이 우선합니다.',
+            '퀴즈 목록과 퀴즈 풀이 화면에서 사용할 공개 화면 틀입니다.',
+            '레이아웃 변경은 기존 퀴즈 데이터나 응시 기록을 바꾸지 않고, 화면 출력 방식만 바꿉니다.',
         ]),
     ],
-    'reward' => [
-        'id' => 'quiz-settings-help-reward',
-        'title' => '기본 보상',
+    'theme_key' => [
+        'id' => 'quiz-settings-help-theme-key',
+        'title' => '퀴즈 테마',
         'body_html' => $quizSettingsHelpBodyHtml([
-            '새 퀴즈 생성 시 보상 정책 입력란에 항상 채울 기본값입니다.',
-            '포인트/금액은 회원 자산 모듈의 포인트, 적립금, 예치금 같은 항목에 금액을 지급합니다.',
+            '같은 레이아웃 안에서 목록, 문제, 선택지, 결과 표시 분위기를 바꿉니다.',
+            '테마 변경은 퀴즈 내용, 정답, 보상 지급 기록에 영향을 주지 않습니다.',
+        ]),
+    ],
+    'default_status' => [
+        'id' => 'quiz-settings-help-default-status',
+        'title' => '기본 상태',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '새 퀴즈 만들기 화면을 열 때 먼저 선택되어 있을 상태입니다.',
+            '바로 방문자에게 보이지 않게 하려면 초안으로 두고, 검수가 끝난 뒤 퀴즈 수정 화면에서 공개로 바꿉니다.',
+            '퀴즈 복사본은 안전을 위해 이 값과 관계없이 초안으로 시작합니다.',
+        ]),
+    ],
+    'default_quiz_mode' => [
+        'id' => 'quiz-settings-help-default-quiz-mode',
+        'title' => '기본 모드',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '새 퀴즈를 어떤 목적으로 운영할지 정하는 초기값입니다.',
+            '정답 통과는 맞힌 개수로 성공 여부를 나누고, 총점 결과는 점수 구간별 안내를 보여주며, 카테고리 진단은 답변 성향에 맞는 결과를 보여줄 때 사용합니다.',
+        ]),
+    ],
+    'default_scoring_model' => [
+        'id' => 'quiz-settings-help-default-scoring-model',
+        'title' => '기본 채점 모델',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '새 퀴즈가 답안을 점수로 계산하는 기본 방식입니다.',
+            '정답 개수, 문항별 점수, 카테고리 점수처럼 운영 목적에 맞는 계산 방식을 선택합니다.',
+        ]),
+    ],
+    'default_pass_score' => [
+        'id' => 'quiz-settings-help-default-pass-score',
+        'title' => '기본 통과 점수',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '정답 통과형 퀴즈에서 몇 점 이상이면 성공으로 볼지 정하는 초기값입니다.',
+            '예를 들어 3문제 중 2문제 이상 맞히면 통과라면 2를 입력합니다.',
+        ]),
+    ],
+    'default_question_choice_count' => [
+        'id' => 'quiz-settings-help-default-question-choice-count',
+        'title' => '새 문제 기본 선택지 수',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '문제 추가 모달을 열었을 때 먼저 보여줄 선택지 개수입니다.',
+            '운영자가 자주 만드는 문제 형식에 맞춰 두면 문제를 만들 때 선택지를 매번 추가하거나 줄이는 일이 줄어듭니다.',
+        ]),
+    ],
+    'default_question_score' => [
+        'id' => 'quiz-settings-help-default-question-score',
+        'title' => '새 문제 기본 점수',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '문제 추가 모달을 열었을 때 새 문제에 먼저 들어갈 점수입니다.',
+            '문항별 점수 방식이나 총점 결과형 퀴즈에서 기본 배점을 빠르게 맞출 때 사용합니다.',
+        ]),
+    ],
+    'default_attempt_limit_policy' => [
+        'id' => 'quiz-settings-help-default-attempt-limit-policy',
+        'title' => '기본 응시 제한',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '회원이 같은 퀴즈를 몇 번 풀 수 있는지에 대한 새 퀴즈 기본값입니다.',
+            '기간당 1회를 선택하면 아래 제한 기간을 함께 입력해야 합니다.',
+        ]),
+    ],
+    'default_attempt_limit_period_seconds' => [
+        'id' => 'quiz-settings-help-default-attempt-limit-period',
+        'title' => '기본 제한 기간',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '기본 응시 제한이 기간당 1회일 때만 사용하는 초 단위 값입니다.',
+            '예를 들어 하루에 한 번만 풀 수 있게 하려면 86400을 입력합니다.',
+        ]),
+    ],
+    'default_reward_provider' => [
+        'id' => 'quiz-settings-help-default-reward-provider',
+        'title' => '기본 보상 종류',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '새 퀴즈 생성 시 보상 정책에 먼저 들어갈 보상 방식입니다.',
+            '포인트/금액은 포인트, 적립금, 예치금 같은 항목에 금액을 지급합니다.',
             '쿠폰 발급은 현재 사용 가능한 활성 쿠폰 정의를 회원에게 1장 지급합니다.',
         ]),
     ],
-    'list' => [
-        'id' => 'quiz-settings-help-list',
-        'title' => '공개 목록',
+    'default_reward_module' => [
+        'id' => 'quiz-settings-help-default-reward-module',
+        'title' => '기본 보상 포인트/금액 항목',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '보상 종류가 포인트/금액일 때 지급할 포인트/금액 항목입니다.',
+            '예를 들어 포인트를 선택하면 회원의 포인트 잔액에 기본 보상 금액이 더해집니다.',
+        ]),
+    ],
+    'default_reward_coupon_definition_id' => [
+        'id' => 'quiz-settings-help-default-reward-coupon',
+        'title' => '기본 보상 쿠폰',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '보상 종류가 쿠폰 발급일 때 지급할 쿠폰입니다.',
+            '쿠폰 관리에 등록되어 있고 활성 상태이며 사용 기간 안에 있는 쿠폰만 선택할 수 있습니다.',
+        ]),
+    ],
+    'default_reward_amount' => [
+        'id' => 'quiz-settings-help-default-reward-amount',
+        'title' => '기본 보상 금액',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '보상 종류가 포인트/금액일 때 지급할 수량 또는 금액입니다.',
+            '예를 들어 포인트 항목에 100을 입력하면 통과한 회원에게 100포인트 지급을 시도합니다.',
+        ]),
+    ],
+    'default_reward_dedupe_scope' => [
+        'id' => 'quiz-settings-help-default-reward-dedupe-scope',
+        'title' => '기본 중복 지급 기준',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '같은 회원에게 보상을 다시 지급할 수 있는 기준입니다.',
+            '퀴즈당 1회는 같은 퀴즈에서 한 번만 지급하고, 출처당 1회는 같은 콘텐츠나 게시글 연결 기준으로 한 번만 지급합니다.',
+            '응시마다 지급은 반복 응시를 허용하는 이벤트에서만 신중하게 사용합니다.',
+        ]),
+    ],
+    'default_cta_label' => [
+        'id' => 'quiz-settings-help-default-cta-label',
+        'title' => '기본 연결 CTA 문구',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '콘텐츠나 커뮤니티 게시글에 퀴즈 버튼을 붙일 때 기본으로 사용할 버튼 문구입니다.',
+            '예: 퀴즈 풀기, 진단 시작하기, 혜택 받기',
+        ]),
+    ],
+    'public_list_limit' => [
+        'id' => 'quiz-settings-help-public-list-limit',
+        'title' => '공개 목록 노출 수',
         'body_html' => $quizSettingsHelpBodyHtml([
             '공개 퀴즈 목록에서 한 번에 가져올 퀴즈 수입니다.',
             '관리자 목록과 시도 목록의 page size는 관리자 공통 페이징 설정을 계속 사용합니다.',
         ]),
     ],
-    'layout' => [
-        'id' => 'quiz-settings-help-layout',
-        'title' => '공개 화면 구성',
-        'body_html' => $quizSettingsHelpBodyHtml([
-            '퀴즈 목록과 퀴즈 풀이 화면에서 사용할 공개 레이아웃을 정합니다.',
-            '퀴즈 테마는 같은 레이아웃 안에서 목록, 문제, 선택지, 결과 표시 분위기를 바꿉니다.',
-            '사이트 메뉴 슬롯은 레이아웃이 해당 위치를 출력할 때만 보입니다.',
-            '레이아웃 변경은 기존 퀴즈 데이터나 응시 기록을 바꾸지 않습니다.',
-        ]),
-    ],
 ];
+foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
+    $quizSettingsHelp[(string) $quizLayoutMenuField['help_id']] = [
+        'id' => (string) $quizLayoutMenuField['help_id'],
+        'title' => (string) $quizLayoutMenuField['label'],
+        'body_html' => $quizSettingsHelpBodyHtml([
+            (string) $quizLayoutMenuField['help'],
+            '사이트 메뉴를 선택하지 않으면 해당 레이아웃 슬롯에는 퀴즈 환경설정에서 지정한 메뉴를 전달하지 않습니다.',
+        ]),
+    ];
+}
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
@@ -96,13 +214,10 @@ $quizSettingsHelp = [
     <section class="admin-card card">
         <div class="card-header">
             <h2 class="card-title">공개 화면 구성</h2>
-            <div class="card-actions">
-                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="공개 화면 구성 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['layout']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['layout']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-            </div>
         </div>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_layout_key">퀴즈 공개 레이아웃 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_layout_key', '퀴즈 공개 레이아웃', $quizSettingsHelp['layout_key']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_layout_key" name="layout_key" class="form-select" required>
                         <?php foreach ($quizLayoutOptions as $layoutKey => $layoutOption) { ?>
@@ -115,7 +230,7 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_theme_key">퀴즈 테마 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_theme_key', '퀴즈 테마', $quizSettingsHelp['theme_key']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_theme_key" name="theme_key" class="form-select" required>
                         <?php foreach (sr_quiz_theme_options() as $themeKey => $themeLabel) { ?>
@@ -130,7 +245,7 @@ $quizSettingsHelp = [
             <?php foreach ($quizLayoutMenuFields as $quizLayoutMenuSettingKey => $quizLayoutMenuField) { ?>
                 <?php $quizLayoutMenuInputId = 'quiz_settings_' . $quizLayoutMenuSettingKey; ?>
                 <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e($quizLayoutMenuInputId); ?>"><?php echo sr_e((string) $quizLayoutMenuField['label']); ?></label>
+                    <?php echo sr_admin_form_label_help_html($quizLayoutMenuInputId, (string) $quizLayoutMenuField['label'], (string) $quizLayoutMenuField['help_id'], $quizSettingsHelpOpenLabel); ?>
                     <div class="admin-form-field">
                         <select id="<?php echo sr_e($quizLayoutMenuInputId); ?>" name="<?php echo sr_e((string) $quizLayoutMenuSettingKey); ?>" class="form-select">
                             <?php $quizSiteMenuSelectOptions((string) ($settings[$quizLayoutMenuSettingKey] ?? $quizLayoutMenuField['default'])); ?>
@@ -145,13 +260,10 @@ $quizSettingsHelp = [
     <section class="admin-card card">
         <div class="card-header">
             <h2 class="card-title">새 퀴즈 기본값</h2>
-            <div class="card-actions">
-                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="새 퀴즈 기본값 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['defaults']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['defaults']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-            </div>
         </div>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_status">기본 상태 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_status', '기본 상태', $quizSettingsHelp['default_status']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_status" name="default_status" class="form-select" required>
                         <?php foreach (sr_quiz_statuses() as $status) { ?>
@@ -162,7 +274,7 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_quiz_mode">기본 모드 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_quiz_mode', '기본 모드', $quizSettingsHelp['default_quiz_mode']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_quiz_mode" name="default_quiz_mode" class="form-select" required>
                         <?php foreach (sr_quiz_modes() as $quizMode) { ?>
@@ -172,7 +284,7 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_scoring_model">기본 채점 모델 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_scoring_model', '기본 채점 모델', $quizSettingsHelp['default_scoring_model']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_scoring_model" name="default_scoring_model" class="form-select" required>
                         <?php foreach (sr_quiz_scoring_models() as $scoringModel) { ?>
@@ -182,25 +294,25 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_pass_score">기본 통과 점수 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_pass_score', '기본 통과 점수', $quizSettingsHelp['default_pass_score']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="quiz_settings_default_pass_score" type="number" name="default_pass_score" value="<?php echo sr_e((string) ($settings['default_pass_score'] ?? 1)); ?>" class="form-input" min="0" max="100000" step="1" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_question_choice_count">새 문제 기본 선택지 수 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_question_choice_count', '새 문제 기본 선택지 수', $quizSettingsHelp['default_question_choice_count']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="quiz_settings_default_question_choice_count" type="number" name="default_question_choice_count" value="<?php echo sr_e((string) ($settings['default_question_choice_count'] ?? 4)); ?>" class="form-input" min="2" max="10" step="1" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_question_score">새 문제 기본 점수 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_question_score', '새 문제 기본 점수', $quizSettingsHelp['default_question_score']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="quiz_settings_default_question_score" type="number" name="default_question_score" value="<?php echo sr_e((string) ($settings['default_question_score'] ?? 1)); ?>" class="form-input" min="0" max="10000" step="1" required>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_attempt_limit_policy">기본 응시 제한 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_attempt_limit_policy', '기본 응시 제한', $quizSettingsHelp['default_attempt_limit_policy']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_attempt_limit_policy" name="default_attempt_limit_policy" class="form-select" required data-quiz-settings-attempt-policy>
                         <?php foreach (sr_quiz_attempt_limit_policies() as $policy) { ?>
@@ -210,7 +322,10 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_attempt_limit_period_seconds">기본 제한 기간(초) <span class="sr-required-label" data-quiz-settings-attempt-period-required hidden>(필수)</span></label>
+                <div class="form-label admin-form-label-help">
+                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="기본 제한 기간 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['default_attempt_limit_period_seconds']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['default_attempt_limit_period_seconds']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    <label for="quiz_settings_default_attempt_limit_period_seconds">기본 제한 기간(초) <span class="sr-required-label" data-quiz-settings-attempt-period-required hidden>(필수)</span></label>
+                </div>
                 <div class="admin-form-field">
                     <input id="quiz_settings_default_attempt_limit_period_seconds" type="number" name="default_attempt_limit_period_seconds" value="<?php echo sr_e((string) ($settings['default_attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-settings-attempt-period>
                     <p class="admin-form-help">기본 응시 제한이 기간당 1회일 때만 사용합니다.</p>
@@ -222,13 +337,10 @@ $quizSettingsHelp = [
     <section class="admin-card card">
         <div class="card-header">
             <h2 class="card-title">기본 보상</h2>
-            <div class="card-actions">
-                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="기본 보상 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['reward']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['reward']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-            </div>
         </div>
         <div class="admin-form-grid">
             <div class="admin-form-row" data-quiz-settings-reward-row>
-                <label class="form-label" for="quiz_settings_default_reward_provider">기본 보상 종류 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_reward_provider', '기본 보상 종류', $quizSettingsHelp['default_reward_provider']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_reward_provider" name="default_reward_provider" class="form-select" required data-quiz-settings-reward-provider>
                         <?php foreach (sr_quiz_reward_providers() as $provider) { ?>
@@ -238,7 +350,10 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row" data-quiz-settings-reward-row data-quiz-settings-reward-ledger-row>
-                <label class="form-label" for="quiz_settings_default_reward_module">기본 보상 자산 <span class="sr-required-label" data-quiz-settings-reward-required hidden>(필수)</span></label>
+                <div class="form-label admin-form-label-help">
+                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="기본 보상 포인트/금액 항목 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['default_reward_module']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['default_reward_module']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    <label for="quiz_settings_default_reward_module">기본 보상 포인트/금액 항목 <span class="sr-required-label" data-quiz-settings-reward-required hidden>(필수)</span></label>
+                </div>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_reward_module" name="default_reward_module" class="form-select" data-quiz-settings-reward-ledger-control>
                         <option value="">선택안함</option>
@@ -249,7 +364,10 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row" data-quiz-settings-reward-row data-quiz-settings-reward-coupon-row>
-                <label class="form-label" for="quiz_settings_default_reward_coupon_definition_id">기본 보상 쿠폰 <span class="sr-required-label" data-quiz-settings-reward-required hidden>(필수)</span></label>
+                <div class="form-label admin-form-label-help">
+                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="기본 보상 쿠폰 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['default_reward_coupon_definition_id']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['default_reward_coupon_definition_id']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    <label for="quiz_settings_default_reward_coupon_definition_id">기본 보상 쿠폰 <span class="sr-required-label" data-quiz-settings-reward-required hidden>(필수)</span></label>
+                </div>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_reward_coupon_definition_id" name="default_reward_coupon_definition_id" class="form-select" data-quiz-settings-reward-coupon-control>
                         <option value="">선택안함</option>
@@ -264,13 +382,16 @@ $quizSettingsHelp = [
                 </div>
             </div>
             <div class="admin-form-row" data-quiz-settings-reward-row data-quiz-settings-reward-ledger-row>
-                <label class="form-label" for="quiz_settings_default_reward_amount">기본 보상 금액 <span class="sr-required-label" data-quiz-settings-reward-required hidden>(필수)</span></label>
+                <div class="form-label admin-form-label-help">
+                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="기본 보상 금액 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['default_reward_amount']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['default_reward_amount']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    <label for="quiz_settings_default_reward_amount">기본 보상 금액 <span class="sr-required-label" data-quiz-settings-reward-required hidden>(필수)</span></label>
+                </div>
                 <div class="admin-form-field">
                     <input id="quiz_settings_default_reward_amount" type="number" name="default_reward_amount" value="<?php echo sr_e((string) ($settings['default_reward_amount'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-settings-reward-ledger-control>
                 </div>
             </div>
             <div class="admin-form-row" data-quiz-settings-reward-row>
-                <label class="form-label" for="quiz_settings_default_reward_dedupe_scope">기본 중복 지급 기준 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_reward_dedupe_scope', '기본 중복 지급 기준', $quizSettingsHelp['default_reward_dedupe_scope']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <select id="quiz_settings_default_reward_dedupe_scope" name="default_reward_dedupe_scope" class="form-select" required data-quiz-settings-reward-control>
                         <?php foreach (sr_quiz_reward_dedupe_scopes() as $scope) { ?>
@@ -285,20 +406,17 @@ $quizSettingsHelp = [
     <section class="admin-card card">
         <div class="card-header">
             <h2 class="card-title">공개 목록/연결</h2>
-            <div class="card-actions">
-                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="공개 목록 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['list']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['list']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-            </div>
         </div>
         <div class="admin-form-grid">
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_cta_label">기본 연결 CTA 문구 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_cta_label', '기본 연결 CTA 문구', $quizSettingsHelp['default_cta_label']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="quiz_settings_default_cta_label" type="text" name="default_cta_label" value="<?php echo sr_e((string) ($settings['default_cta_label'] ?? '퀴즈 풀기')); ?>" class="form-input" maxlength="120" required>
                     <p class="admin-form-help">새로 연결 대상을 저장할 때 버튼 문구로 사용합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_public_list_limit">공개 목록 노출 수 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_public_list_limit', '공개 목록 노출 수', $quizSettingsHelp['public_list_limit']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="quiz_settings_public_list_limit" type="number" name="public_list_limit" value="<?php echo sr_e((string) ($settings['public_list_limit'] ?? 50)); ?>" class="form-input" min="1" max="100" step="1" required>
                 </div>
