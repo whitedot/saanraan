@@ -250,22 +250,18 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
             ];
 }
 ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
+
 <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save">
     <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
-    <div class="admin-card">
-        <div class="admin-card-header">
-            <h2><?php echo sr_e($mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성'); ?></h2>
+
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title">기본 정보</h2>
         </div>
-        <div class="admin-card-body">
-            <?php if ($errors !== []) { ?>
-                <div class="admin-error">
-                    <?php foreach ($errors as $error) { ?>
-                        <p><?php echo sr_e((string) $error); ?></p>
-                    <?php } ?>
-                </div>
-            <?php } ?>
+        <div class="admin-form-grid">
             <div class="admin-form-row">
                 <label class="form-label" for="quiz_key">Key <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
@@ -294,6 +290,14 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                     </select>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title">채점/결과</h2>
+        </div>
+        <div class="admin-form-grid">
             <div class="admin-form-row">
                 <label class="form-label" for="quiz_mode">모드 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
@@ -320,6 +324,21 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                     <input id="quiz_pass_score" type="number" name="pass_score" value="<?php echo sr_e((string) ($values['pass_score'] ?? '')); ?>" class="form-input" min="0" step="1">
                 </div>
             </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_result_rules">결과 규칙</label>
+                <div class="admin-form-field">
+                    <textarea id="quiz_result_rules" name="result_rules" class="form-textarea" rows="5"><?php echo sr_e((string) ($values['result_rules'] ?? '')); ?></textarea>
+                    <p class="admin-form-help">한 줄에 key|제목|최소점수|최대점수|카테고리key|기준값|요약 순서로 입력합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title">공개/응시 조건</h2>
+        </div>
+        <div class="admin-form-grid">
             <div class="admin-form-row">
                 <label class="form-label" for="quiz_starts_at">공개 시작일시</label>
                 <div class="admin-form-field">
@@ -352,93 +371,90 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
             <div class="admin-form-row">
                 <label class="form-label" for="quiz_member_group_keys">응시 가능 회원 그룹</label>
                 <div class="admin-form-field">
-                    <?php echo sr_admin_member_group_key_select_html('quiz_member_group_keys', 'member_group_keys', sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), $memberGroups); ?>
+                    <?php echo sr_admin_member_group_key_badge_select_html('quiz_member_group_keys', 'member_group_keys', sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), $memberGroups); ?>
                     <p class="admin-form-help">선택하지 않으면 로그인 회원 전체가 응시할 수 있습니다.</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="admin-card">
-        <div class="admin-card-header">
-            <h2>문제/선택지</h2>
-        </div>
-        <div class="admin-card-body">
-            <?php foreach ($questions as $questionIndex => $question) { ?>
-                <?php
-                $questionUid = 'qrow_' . (string) $questionIndex;
-                $choices = (array) ($question['choices'] ?? []);
-                for ($choiceExtra = count($choices); $choiceExtra < 4; $choiceExtra++) {
-                    $choices[] = ['choice_key' => chr(97 + $choiceExtra), 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0];
-                }
-                ?>
-                <section class="admin-quiz-question-block">
-                    <div class="admin-section-header">
-                        <h3>문제 <?php echo sr_e((string) ($questionIndex + 1)); ?></h3>
-                    </div>
-                    <div class="admin-section-body">
-                        <input type="hidden" name="question_uid[]" value="<?php echo sr_e($questionUid); ?>">
-                        <div class="admin-form-row">
-	                            <label class="form-label" for="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>">문제 유형 <span class="sr-required-label">(필수)</span></label>
-	                            <div class="admin-form-field">
-	                                <select id="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>" name="question_type[]" class="form-select" required>
+    <?php foreach ($questions as $questionIndex => $question) { ?>
+        <?php
+        $questionUid = 'qrow_' . (string) $questionIndex;
+        $choices = (array) ($question['choices'] ?? []);
+        for ($choiceExtra = count($choices); $choiceExtra < 4; $choiceExtra++) {
+            $choices[] = ['choice_key' => chr(97 + $choiceExtra), 'label' => '', 'is_correct' => 0, 'category_key' => '', 'category_weight' => 0];
+        }
+        ?>
+        <section class="admin-card card admin-quiz-question-block">
+            <div class="card-header">
+                <h2 class="card-title">문제 <?php echo sr_e((string) ($questionIndex + 1)); ?></h2>
+            </div>
+            <div class="admin-form-grid">
+                <input type="hidden" name="question_uid[]" value="<?php echo sr_e($questionUid); ?>">
+                <div class="admin-form-row">
+                    <label class="form-label" for="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>">문제 유형 <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <select id="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>" name="question_type[]" class="form-select" required>
                                     <?php foreach (sr_quiz_question_types() as $questionType) { ?>
                                         <option value="<?php echo sr_e($questionType); ?>"<?php echo (string) ($question['question_type'] ?? 'single_choice') === $questionType ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_question_type_label($questionType)); ?></option>
                                     <?php } ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-	                            <label class="form-label" for="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>">문제 Key <span class="sr-required-label">(필수)</span></label>
-	                            <div class="admin-form-field">
-	                                <input id="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-	                            <label class="form-label" for="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>">문제 <span class="sr-required-label">(필수)</span></label>
-	                            <div class="admin-form-field">
-	                                <textarea id="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>" name="question_prompt[]" class="form-textarea" rows="3" required><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="quiz_question_score_<?php echo sr_e((string) $questionIndex); ?>">점수</label>
-                            <div class="admin-form-field">
-                                <input id="quiz_question_score_<?php echo sr_e((string) $questionIndex); ?>" type="number" name="question_score[]" value="<?php echo sr_e((string) ($question['score_value'] ?? 1)); ?>" class="form-input" min="0" step="1">
-                            </div>
-                        </div>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>정답</th>
-                                    <th>선택지 Key</th>
-                                    <th>선택지</th>
-                                    <th>카테고리 Key</th>
-                                    <th>가중치</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($choices as $choiceIndex => $choice) { ?>
-                                    <tr>
-                                        <td><input type="checkbox" name="correct_choice[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) $choiceIndex); ?>"<?php echo (int) ($choice['is_correct'] ?? 0) === 1 ? ' checked' : ''; ?>></td>
-                                        <td><input type="text" name="choice_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input></td>
-                                        <td><input type="text" name="choice_label[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['label'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" required></td>
-                                        <td><input type="text" name="choice_category_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['category_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
-                                        <td><input type="number" name="choice_category_weight[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) (int) ($choice['category_weight'] ?? 0)); ?>" class="form-input" step="1"></td>
-                                    </tr>
-                                <?php } ?>
-                            </tbody>
-                        </table>
+                        </select>
                     </div>
-                </section>
-            <?php } ?>
-        </div>
-    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>">문제 Key <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <input id="quiz_question_key_<?php echo sr_e((string) $questionIndex); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>">문제 <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <textarea id="quiz_question_prompt_<?php echo sr_e((string) $questionIndex); ?>" name="question_prompt[]" class="form-textarea" rows="3" required><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="quiz_question_score_<?php echo sr_e((string) $questionIndex); ?>">점수</label>
+                    <div class="admin-form-field">
+                        <input id="quiz_question_score_<?php echo sr_e((string) $questionIndex); ?>" type="number" name="question_score[]" value="<?php echo sr_e((string) ($question['score_value'] ?? 1)); ?>" class="form-input" min="0" step="1">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead class="ui-table-head">
+                            <tr>
+                                <th>정답</th>
+                                <th>선택지 Key</th>
+                                <th>선택지</th>
+                                <th>카테고리 Key</th>
+                                <th>가중치</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($choices as $choiceIndex => $choice) { ?>
+                                <tr>
+                                    <td class="admin-table-nowrap"><input type="checkbox" name="correct_choice[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) $choiceIndex); ?>" class="form-checkbox"<?php echo (int) ($choice['is_correct'] ?? 0) === 1 ? ' checked' : ''; ?>></td>
+                                    <td><input type="text" name="choice_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input></td>
+                                    <td><input type="text" name="choice_label[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['label'] ?? '')); ?>" class="form-input form-control-full" maxlength="255" required></td>
+                                    <td><input type="text" name="choice_category_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['category_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
+                                    <td><input type="number" name="choice_category_weight[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) (int) ($choice['category_weight'] ?? 0)); ?>" class="form-input" step="1"></td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    <?php } ?>
 
-    <div class="admin-card">
-        <div class="admin-card-header">
-            <h2>보상</h2>
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title">보상 정책</h2>
         </div>
-        <div class="admin-card-body">
+        <div class="admin-form-grid">
             <div class="admin-form-row">
                 <label class="form-label" for="quiz_reward_enabled">보상 사용</label>
                 <div class="admin-form-field">
@@ -493,13 +509,13 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="admin-card">
-        <div class="admin-card-header">
-            <h2>콘텐츠 연결</h2>
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title">연결 대상</h2>
         </div>
-        <div class="admin-card-body">
+        <div class="admin-form-grid">
             <div class="admin-form-row">
                 <label class="form-label" for="quiz_content_source_ids">콘텐츠 ID</label>
                 <div class="admin-form-field">
@@ -514,15 +530,8 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
                     <p class="admin-form-help">커뮤니티 게시글 ID를 줄바꿈 또는 쉼표로 입력해 연결합니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="quiz_result_rules">결과 규칙</label>
-                <div class="admin-form-field">
-                    <textarea id="quiz_result_rules" name="result_rules" class="form-textarea" rows="5"><?php echo sr_e((string) ($values['result_rules'] ?? '')); ?></textarea>
-                    <p class="admin-form-help">한 줄에 key|제목|최소점수|최대점수|카테고리key|기준값|요약 순서로 입력합니다.</p>
-                </div>
-            </div>
         </div>
-    </div>
+    </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="btn btn-solid-light">목록</a>
