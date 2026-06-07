@@ -163,10 +163,12 @@ php .tools/bin/smoke-community-auth.php
 
 - 발급/사용 이력이 있는 쿠폰 정의를 비활성화할 때 서버가 최신 `coupon-references.php` 결과로 차단한다.
 - 퀴즈 쿠폰 보상 정책이 쿠폰 정의를 참조하고 있으면 서버가 최신 `coupon-references.php` 결과로 비활성화 영향을 표시한다.
+- 설문 쿠폰 보상 정책이 쿠폰 정의를 참조하고 있으면 서버가 최신 `coupon-references.php` 결과로 비활성화 영향을 표시한다.
 - 콘텐츠나 커뮤니티 설정에서 직접 선택한 배너/팝업레이어가 있으면 해당 배너/팝업레이어 삭제 POST가 차단된다.
 - 적립금/예치금/콘텐츠/커뮤니티/회원 자동 규칙에서 쓰는 enabled 회원 그룹은 비활성 또는 보관 상태로 바꾸는 POST가 차단된다.
 - SEO 설정이나 로고 alt text에 기존 사이트명이 직접 들어 있으면 사이트명 변경 POST가 차단된다.
 - `php .tools/bin/check-read-reference-contracts.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
+- 보상/접근권 중복 방지 기준은 `php .tools/bin/check-reward-abuse-standards.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
 
 ## 퀴즈 보상 전용 E2E
 

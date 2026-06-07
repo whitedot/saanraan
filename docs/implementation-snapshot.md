@@ -98,6 +98,8 @@
 
 마일스톤 2 퀴즈 보상 모듈은 `quiz` 서비스 모듈로 구현했다. 현재 반영 범위는 모듈 메타데이터, `/quiz` 공개 진입점, `/quiz/{quiz_key}` 풀이/제출/자동 채점, 퀴즈 공개 레이아웃 후보와 환경설정의 레이아웃/테마/사이트 메뉴 슬롯 선택, `/admin/quiz` CRUD와 복사 및 관리자 사용자 화면 미리보기, `/admin/quiz/settings` 환경설정, `/admin/quiz/manual` 운영자 매뉴얼, `/admin/quiz/attempts` 시도/보상 조회, 공개 기간/회원 그룹/시도 제한 검증, 단일/복수 선택 문제, 총점/카테고리 결과 규칙, `content/content_item`과 `community/community_post` source 연결, 콘텐츠/커뮤니티 상세 퀴즈 CTA/모달/page fallback, `sr_quiz_*` 설치/업데이트 스키마, 개인정보 export/cleanup 계약, 자산 원장 reference 조회 callable, 쿠폰 지급 provider와 쿠폰 정의 읽기 참조 계약, 통과 보상 지급, `.tools/bin/check-quiz-consistency.php` 정합성 검사다. 계획 기준은 [퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)를 따른다.
 
+마일스톤 18 설문 모듈은 `survey` 서비스 모듈로 구현했다. 현재 반영 범위는 `/survey` 공개 목록, `/survey/{survey_key}` 응답 제출, 로그인/익명/동의/응답 제한, 설문 연구 메타데이터와 개인정보 안내 스냅샷, 단일/복수 선택·짧은 답변·긴 답변·숫자·별점·척도 문항, `/admin/surveys` CRUD, `/admin/surveys/responses` 품질 관리, `/admin/surveys/statistics` 통계, `/admin/surveys/export` CSV, `/admin/surveys/settings` 기본값, `/admin/surveys/manual` 운영 매뉴얼, `/survey/ui-kit`, 개인정보 export/cleanup 계약, 쿠폰 정의 읽기 참조 계약, sitemap 계약, `ledger_asset`/`coupon` 응답 보상 지급이다. 퀴즈와 설문 보상 grant 및 콘텐츠/커뮤니티/쿠폰 접근권 중복 방지는 `.tools/bin/check-reward-abuse-standards.php`로 통합 점검한다.
+
 ## 검증 기준
 
 현재 정적 기준은 다음 명령으로 확인한다.
