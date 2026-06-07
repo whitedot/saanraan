@@ -186,7 +186,7 @@
     cursor: pointer;
 }
 
-.sr-form-errors {
+.sr-quiz-page .sr-form-errors {
     display: grid;
     gap: 6px;
     padding: 14px 16px;
@@ -238,6 +238,15 @@
 
 .sr-quiz-theme-focus .sr-quiz-page p {
     color: #d6deef;
+}
+
+.sr-quiz-theme-focus .sr-quiz-result h2 {
+    color: #172033;
+}
+
+.sr-quiz-theme-focus .sr-quiz-result p,
+.sr-quiz-theme-focus .sr-quiz-question p {
+    color: #4d5b73;
 }
 
 .sr-quiz-theme-focus .sr-quiz-question,

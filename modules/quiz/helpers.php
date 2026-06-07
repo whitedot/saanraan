@@ -194,6 +194,12 @@ function sr_quiz_theme_key(string $value): string
     return isset(sr_quiz_theme_options()[$value]) ? $value : 'basic';
 }
 
+function sr_quiz_clean_theme_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $value) === 1 ? $value : '';
+}
+
 function sr_quiz_layout_menu_slots(): array
 {
     return [
@@ -276,9 +282,10 @@ function sr_quiz_settings(PDO $pdo): array
 
 function sr_quiz_settings_from_post(): array
 {
-    return sr_quiz_normalize_settings([
+    $themeKey = sr_quiz_clean_theme_key(sr_post_string('theme_key', 40));
+    $settings = sr_quiz_normalize_settings([
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
-        'theme_key' => sr_quiz_theme_key(sr_post_string('theme_key', 40)),
+        'theme_key' => $themeKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_secondary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
         'layout_tertiary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
@@ -301,6 +308,9 @@ function sr_quiz_settings_from_post(): array
         'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
+    $settings['theme_key'] = $themeKey;
+
+    return $settings;
 }
 
 function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $assetOptions): array
@@ -360,7 +370,7 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $stylesheets[] = '/modules/quiz/assets/public.css';
     $context['stylesheets'] = $stylesheets;
     $themeKey = sr_quiz_theme_key((string) ($settings['theme_key'] ?? 'basic'));
-    $bodyClass = trim((string) ($context['body_class'] ?? ''));
+    $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
     $context['body_class'] = trim($bodyClass . ' sr-quiz-theme-' . $themeKey);
 
     $siteMenus = [];
