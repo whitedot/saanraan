@@ -1,4 +1,5 @@
 .sr-survey-page .sr-public-main {
+    background: #ffffff;
     padding: clamp(28px, 5vw, 72px) 16px;
 }
 
@@ -14,23 +15,25 @@
 
 .sr-survey-page .sr-public-main h1 {
     margin: 0;
-    color: #172033;
-    font-size: clamp(2rem, 4vw, 3.25rem);
-    line-height: 1.12;
+    color: var(--text-strong, var(--color-default-900));
+    font-family: var(--font-secondary);
+    font-size: clamp(var(--type-page-title-size), 4vw, var(--type-page-title-fluid-max-size));
+    line-height: var(--type-page-title-line-height);
     letter-spacing: 0;
 }
 
 .sr-survey-page .sr-public-main h2 {
     margin: 0 0 12px;
-    color: #172033;
-    font-size: 1.35rem;
-    line-height: 1.25;
+    color: var(--text-strong, var(--color-default-900));
+    font-family: var(--font-secondary);
+    font-size: var(--type-section-title-size);
+    line-height: var(--type-section-title-line-height);
     letter-spacing: 0;
 }
 
 .sr-survey-page .sr-public-main p {
     margin: 0;
-    color: #4d5b73;
+    color: var(--text-muted, var(--color-default-600));
     line-height: 1.7;
 }
 
@@ -48,12 +51,23 @@
     gap: 6px 16px;
     min-height: 58px;
     padding: 16px 18px;
-    border: 1px solid rgba(23, 32, 51, 0.1);
-    border-radius: 8px;
-    background: #fff;
-    color: #172033;
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    background: var(--color-card);
+    color: var(--text-strong, var(--color-default-900));
     text-decoration: none;
-    box-shadow: 0 10px 26px rgba(23, 32, 51, 0.05);
+    box-shadow: var(--shadow);
+    transition: border-color var(--default-transition-duration) var(--default-transition-timing-function),
+        box-shadow var(--default-transition-duration) var(--default-transition-timing-function),
+        transform var(--default-transition-duration) var(--default-transition-timing-function);
+}
+
+@media (hover: hover) {
+    .sr-survey-list li a:hover {
+        border-color: color-mix(in oklab, var(--color-primary) 38%, var(--color-default-300));
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+    }
 }
 
 .sr-survey-list-title {
@@ -65,7 +79,7 @@
 .sr-survey-list-summary {
     min-width: 0;
     overflow-wrap: anywhere;
-    color: #647087;
+    color: var(--text-muted, var(--color-default-600));
     font-size: 0.95rem;
     font-weight: 500;
     line-height: 1.55;
@@ -93,14 +107,15 @@
     min-width: 0;
     margin: 0;
     padding: 18px;
-    border: 1px solid rgba(23, 32, 51, 0.1);
-    border-radius: 8px;
-    background: #fff;
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    background: var(--color-card);
+    box-shadow: var(--shadow);
 }
 
 .sr-survey-question legend {
     padding: 0;
-    color: #172033;
+    color: var(--text-strong, var(--color-default-900));
     font-weight: 800;
     line-height: 1.45;
 }
@@ -111,11 +126,13 @@
     gap: 10px;
     min-height: 44px;
     padding: 12px 14px;
-    border: 1px solid rgba(23, 32, 51, 0.1);
-    border-radius: 8px;
-    background: #f9fafc;
-    color: #172033;
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    background: var(--color-default-100);
+    color: var(--text-strong, var(--color-default-900));
     cursor: pointer;
+    transition: background-color var(--default-transition-duration) var(--default-transition-timing-function),
+        border-color var(--default-transition-duration) var(--default-transition-timing-function);
 }
 
 .sr-survey-choice input {
@@ -123,8 +140,8 @@
 }
 
 .sr-survey-choice:has(input:checked) {
-    border-color: #2563eb;
-    background: #eef5ff;
+    border-color: var(--color-primary);
+    background: color-mix(in oklab, var(--color-primary) 12%, transparent);
 }
 
 .sr-survey-other-input {
@@ -132,6 +149,40 @@
     margin-top: 8px;
     max-width: 28rem;
     width: 100%;
+}
+
+.sr-survey-question :is(input[type="text"], input[type="number"], textarea),
+.sr-survey-other-input {
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    color: var(--color-body-color);
+    line-height: var(--type-body-line-height);
+    padding: 10px 12px;
+}
+
+.sr-survey-info,
+.sr-survey-result,
+.sr-survey-page .sr-form-errors {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border-radius: var(--radius);
+}
+
+.sr-survey-info {
+    border: 1px solid color-mix(in oklab, var(--color-info) 24%, transparent);
+    background: color-mix(in oklab, var(--color-info) 10%, transparent);
+}
+
+.sr-survey-result {
+    border: 1px solid color-mix(in oklab, var(--color-success) 28%, var(--color-default-300));
+    background: var(--color-card);
+    box-shadow: var(--shadow);
+}
+
+.sr-survey-page .sr-form-errors {
+    border: 1px solid color-mix(in oklab, var(--color-danger) 28%, transparent);
+    background: color-mix(in oklab, var(--color-danger) 10%, transparent);
 }
 
 .sr-survey-page .sr-public-main .btn,
@@ -142,10 +193,10 @@
     min-height: 44px;
     width: fit-content;
     padding: 0 18px;
-    border: 0;
-    border-radius: 8px;
-    background: #2563eb;
-    color: #fff;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: var(--color-primary);
+    color: var(--color-white);
     font: inherit;
     font-weight: 800;
     text-decoration: none;

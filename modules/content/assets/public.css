@@ -1367,3 +1367,166 @@
         padding: 0;
     }
 }
+
+/*
+ * Public UI kit alignment layer.
+ * Keeps existing content layouts intact while adopting shared kit surfaces,
+ * radius, shadows, form controls, and button colors.
+ */
+
+.content-home,
+.content-public,
+.content-group {
+    --content-surface: var(--color-card);
+    --content-surface-soft: var(--color-default-100);
+    --content-border: var(--color-default-300);
+    --content-text: var(--text-strong, var(--color-default-900));
+    --content-muted: var(--text-muted, var(--color-default-600));
+    --content-radius: var(--radius);
+    background: #ffffff;
+    color: var(--content-text);
+}
+
+.content-header,
+.content-action-form,
+.content-access-notice,
+.content-quiz-links,
+.content-series-nav,
+.content-downloads,
+.content-comments,
+.content-home-feed,
+.content-group-feed,
+.content-group-tabs,
+.content-group-item,
+.content-home-aside section + section {
+    border-color: var(--content-border);
+}
+
+.content-header h1,
+.content-body,
+.content-body :is(h2, h3),
+.content-series-nav,
+.content-downloads,
+.content-comments,
+.content-comment-meta strong,
+.content-home-header h1,
+.content-group-header h1,
+.content-group-item h2,
+.content-home-aside h2,
+.content-group-aside h2 {
+    color: var(--content-text);
+}
+
+.content-header > p,
+.content-meta,
+.content-group-item-meta,
+.content-access-notice,
+.content-quiz-link p,
+.content-comment-meta,
+.content-comment-secret,
+.content-home-kicker,
+.content-group-kicker,
+.content-home-header p:last-child,
+.content-group-header p:last-child,
+.content-group-tabs span,
+.content-group-item-summary,
+.content-group-empty,
+.content-group-item-actions,
+.content-home-latest-meta,
+.content-home-latest-footer time {
+    color: var(--content-muted);
+}
+
+.content-meta span + span::before,
+.content-group-item-meta span + span::before {
+    color: var(--color-default-400);
+}
+
+.content-cover-image,
+.content-group-item-thumb {
+    background: var(--content-surface-soft);
+}
+
+.content-body blockquote {
+    border-left-color: var(--color-primary);
+    color: var(--content-muted);
+}
+
+.content-quiz-link,
+.content-series-nav,
+.content-downloads,
+.content-comments {
+    background: var(--content-surface);
+    border: 1px solid var(--content-border);
+    border-radius: var(--content-radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+}
+
+.content-quiz-link {
+    display: grid;
+    gap: 12px;
+}
+
+.content-quiz-dialog {
+    border-color: var(--content-border);
+    border-radius: var(--content-radius);
+}
+
+.content-quiz-dialog-toolbar,
+.content-comments-panel-header {
+    background: var(--content-surface-soft);
+    border-color: var(--content-border);
+}
+
+.content-series-nav li,
+.content-downloads li,
+.content-comments li {
+    border-bottom-color: var(--content-border);
+}
+
+.content-public :is(.btn, button[type="submit"]),
+.content-downloads .btn,
+.content-action-form .btn,
+.content-comments .btn {
+    border-radius: var(--content-radius);
+}
+
+.content-public :is(.btn-solid-primary, .btn-solid-success) {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.content-public .btn-solid-light {
+    background: var(--color-light);
+    color: var(--content-text);
+}
+
+.content-public :is(.btn, button[type="submit"]):focus-visible,
+.content-public :is(input, select, textarea):focus-visible {
+    outline-color: var(--color-primary);
+}
+
+.content-comments textarea {
+    border-color: var(--content-border);
+    border-radius: var(--content-radius);
+    color: var(--content-text);
+}
+
+.content-group-tabs span[aria-current="page"] {
+    border-bottom-color: var(--color-primary);
+    color: var(--content-text);
+}
+
+.content-home-latest-item {
+    background: var(--content-surface);
+    border-color: var(--content-border);
+    border-radius: var(--content-radius);
+    box-shadow: var(--shadow);
+}
+
+.content-home-latest-footer span {
+    background: var(--content-surface-soft);
+    border-radius: var(--content-radius);
+    color: var(--content-text);
+}

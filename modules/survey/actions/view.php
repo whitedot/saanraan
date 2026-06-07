@@ -90,6 +90,7 @@ if ((int) ($survey['estimated_minutes'] ?? 0) > 0 || (int) ($survey['target_samp
     $hasSurveyInfo = true;
 }
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+    'body_class' => 'sr-survey-page',
     'stylesheets' => ['/modules/survey/assets/public.css'],
 ]);
 ?>

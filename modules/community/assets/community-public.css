@@ -286,3 +286,82 @@
         width: calc(100% - 40px);
     }
 }
+
+/*
+ * Public UI kit alignment layer.
+ * Applies shared kit tokens without changing the procedural skin markup.
+ */
+
+.community-screen {
+    --community-surface: var(--color-card);
+    --community-surface-soft: var(--color-default-100);
+    --community-border: var(--color-default-300);
+    --community-text: var(--text-strong, var(--color-default-900));
+    --community-muted: var(--text-muted, var(--color-default-600));
+    --community-radius: var(--radius);
+    background: #ffffff;
+    color: var(--community-text);
+}
+
+.community-screen h1,
+.community-comments-panel-header h2,
+.community-post-body,
+.community-screen legend,
+.community-screen th {
+    color: var(--community-text);
+}
+
+.community-comment-secret,
+.community-screen .sr-link-card-picker-results {
+    color: var(--community-muted);
+}
+
+.community-comments-panel,
+.community-screen fieldset,
+.community-screen .sr-link-card-picker {
+    background: var(--community-surface);
+    border-color: var(--community-border);
+    border-radius: var(--community-radius);
+    box-shadow: var(--shadow);
+}
+
+.community-comments-panel-header,
+.community-screen th {
+    background: var(--community-surface-soft);
+    border-color: var(--community-border);
+}
+
+.community-post-body blockquote {
+    border-left-color: var(--color-primary);
+    color: var(--community-muted);
+}
+
+.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea, .form-input) {
+    background: var(--community-surface);
+    border-color: var(--community-border);
+    border-radius: var(--community-radius);
+    color: var(--community-text);
+}
+
+.community-screen :is(button, .btn) {
+    border-radius: var(--community-radius);
+}
+
+.community-screen :is(button[type="submit"], .btn-solid-primary) {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.community-screen .btn-solid-light {
+    background: var(--color-light);
+    color: var(--community-text);
+}
+
+.community-screen :is(button, .btn, input, select, textarea):focus-visible {
+    outline-color: var(--color-primary);
+}
+
+.community-screen th,
+.community-screen td {
+    border-bottom-color: var(--community-border);
+}
