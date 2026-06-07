@@ -243,6 +243,7 @@ if ($mode === 'list') {
                         $memberGroupCount = count(sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''));
                         $rewardEnabled = (int) ($quiz['reward_enabled'] ?? 0) === 1;
                         $copyModalId = 'quiz-copy-modal-' . (string) (int) $quiz['id'];
+                        $publicQuizUrl = sr_url('/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?preview=admin');
                         ?>
                         <tr>
                             <td class="admin-table-nowrap"><code><?php echo sr_e((string) $quiz['quiz_key']); ?></code></td>
@@ -261,6 +262,7 @@ if ($mode === 'list') {
                             <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
+                                    <a class="btn btn-sm btn-icon btn-solid-light" href="<?php echo sr_e($publicQuizUrl); ?>" target="_blank" rel="noopener noreferrer" aria-label="사용자 화면 미리보기" title="사용자 화면 미리보기"><?php echo sr_material_icon_html('visibility'); ?></a>
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="퀴즈 복사" title="복사" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($copyModalId); ?>" data-overlay="#<?php echo sr_e($copyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                     <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=edit&id=' . (string) (int) $quiz['id'])); ?>" aria-label="퀴즈 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-inline-form">

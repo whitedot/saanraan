@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../helpers.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/admin/helpers.php';
 
 $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
 $basePath = rtrim(sr_base_path(), '/');
@@ -15,15 +16,24 @@ if (!sr_quiz_key_is_valid($quizKey)) {
     sr_render_error(404, '퀴즈를 찾을 수 없습니다.');
 }
 $quiz = sr_quiz_by_key($pdo, $quizKey);
+$previewMode = sr_get_string('preview', 20) === 'admin';
+$currentAccount = sr_member_current_account($pdo);
+$adminHasQuizViewPermission = is_array($currentAccount)
+    && sr_admin_has_permission($pdo, (int) ($currentAccount['id'] ?? 0), '/admin/quiz', 'view');
+$isPubliclyOpen = is_array($quiz) && (string) ($quiz['status'] ?? '') === 'active' && sr_quiz_public_window_is_open($quiz);
+$canPreviewAsAdmin = $adminHasQuizViewPermission
+    && ($previewMode || !$isPubliclyOpen);
+$previewMode = $canPreviewAsAdmin;
 
-if (!is_array($quiz) || (string) ($quiz['status'] ?? '') !== 'active' || !sr_quiz_public_window_is_open($quiz)) {
+if (!is_array($quiz) || (!$isPubliclyOpen && !$canPreviewAsAdmin)) {
     sr_render_error(404, '퀴즈를 찾을 수 없습니다.');
 }
 $questions = sr_quiz_questions_with_choices($pdo, (int) ($quiz['id'] ?? 0));
-$currentAccount = sr_member_current_account($pdo);
-$attemptAccess = is_array($currentAccount)
+$attemptAccess = $canPreviewAsAdmin
+    ? ['allowed' => false, 'message' => '관리자 미리보기에서는 제출할 수 없습니다.']
+    : (is_array($currentAccount)
     ? sr_quiz_account_can_attempt($pdo, $quiz, (int) ($currentAccount['id'] ?? 0))
-    : ['allowed' => false, 'message' => '로그인 후 퀴즈를 풀 수 있습니다.'];
+    : ['allowed' => false, 'message' => '로그인 후 퀴즈를 풀 수 있습니다.']);
 $submitResult = null;
 $submitErrors = [];
 $returnTo = sr_quiz_internal_return_path(sr_get_string('return_to', 255));
@@ -45,7 +55,7 @@ if ($quizQuery !== []) {
     $quizNextUrl .= '?' . http_build_query($quizQuery);
 }
 
-if (sr_request_method() === 'POST') {
+if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
     $account = sr_member_require_login($pdo);
     sr_require_csrf();
     if ($questions === []) {
@@ -108,6 +118,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php if ((string) ($quiz['description'] ?? '') !== ''): ?>
                 <p><?php echo sr_e((string) $quiz['description']); ?></p>
             <?php endif; ?>
+            <?php if ($canPreviewAsAdmin): ?>
+                <div class="sr-quiz-preview-notice">
+                    <p>관리자 미리보기입니다. 초안, 중지, 기간 외 퀴즈도 확인할 수 있으며 제출은 저장되지 않습니다.</p>
+                </div>
+            <?php endif; ?>
             <?php if ($submitResult !== null): ?>
                 <section class="sr-quiz-result">
                     <h2>퀴즈 결과</h2>
@@ -141,7 +156,26 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
-                <?php if (!is_array($currentAccount)): ?>
+                <?php if ($canPreviewAsAdmin): ?>
+                    <form class="sr-quiz-form">
+                        <?php foreach ($questions as $questionIndex => $question): ?>
+                            <?php $questionType = (string) ($question['question_type'] ?? 'single_choice'); ?>
+                            <fieldset class="sr-quiz-question">
+                                <legend><?php echo sr_e((string) ($questionIndex + 1) . '. ' . (string) ($question['prompt'] ?? '')); ?></legend>
+                                <?php foreach ((array) ($question['choices'] ?? []) as $choice): ?>
+                                    <label class="sr-quiz-choice" for="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>">
+                                        <?php if ($questionType === 'multiple_choice'): ?>
+                                            <input id="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="checkbox" disabled>
+                                        <?php else: ?>
+                                            <input id="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="radio" disabled>
+                                        <?php endif; ?>
+                                        <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </fieldset>
+                        <?php endforeach; ?>
+                    </form>
+                <?php elseif (!is_array($currentAccount)): ?>
                     <p>로그인 후 퀴즈를 풀 수 있습니다.</p>
                     <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($quizNextUrl))); ?>" target="_top">로그인</a></p>
                 <?php elseif (empty($attemptAccess['allowed'])): ?>
