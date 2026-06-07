@@ -11,7 +11,8 @@ return static function (PDO $pdo, int $accountId): void {
 
     $pdo->prepare(
         'UPDATE sr_quiz_reward_grants
-         SET account_id = NULL
+         SET account_id = NULL,
+             dedupe_key = CONCAT(\'anonymized:quiz_reward:\', id)
          WHERE account_id = :account_id'
     )->execute(['account_id' => $accountId]);
 };

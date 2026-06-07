@@ -24,6 +24,7 @@ return static function (PDO $pdo, int $accountId): array {
     $grantStmt = $pdo->prepare(
         'UPDATE sr_survey_reward_grants
          SET account_id = NULL,
+             dedupe_key = CONCAT(\'anonymized:survey_reward:\', id),
              updated_at = :updated_at
          WHERE account_id = :account_id'
     );
