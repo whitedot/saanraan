@@ -168,7 +168,7 @@ function sr_quiz_default_settings(): array
         'default_question_score' => 1,
         'default_attempt_limit_policy' => 'unlimited',
         'default_attempt_limit_period_seconds' => '',
-        'default_reward_enabled' => false,
+        'default_reward_enabled' => true,
         'default_reward_provider' => 'ledger_asset',
         'default_reward_module' => '',
         'default_reward_coupon_definition_id' => '',
@@ -245,7 +245,7 @@ function sr_quiz_normalize_settings(array $settings): array
     $normalized['default_attempt_limit_period_seconds'] = (string) $normalized['default_attempt_limit_policy'] === 'per_period'
         ? (trim((string) $normalized['default_attempt_limit_period_seconds']) === '' ? '' : (string) max(1, (int) $normalized['default_attempt_limit_period_seconds']))
         : '';
-    $normalized['default_reward_enabled'] = sr_quiz_truthy($normalized['default_reward_enabled']);
+    $normalized['default_reward_enabled'] = true;
     $normalized['default_reward_provider'] = in_array((string) $normalized['default_reward_provider'], sr_quiz_reward_providers(), true)
         ? (string) $normalized['default_reward_provider']
         : (string) $defaults['default_reward_provider'];
@@ -299,7 +299,7 @@ function sr_quiz_settings_from_post(): array
         'default_question_score' => sr_post_string('default_question_score', 20),
         'default_attempt_limit_policy' => sr_post_string('default_attempt_limit_policy', 30),
         'default_attempt_limit_period_seconds' => sr_post_string('default_attempt_limit_period_seconds', 20),
-        'default_reward_enabled' => ($_POST['default_reward_enabled'] ?? '') === '1',
+        'default_reward_enabled' => true,
         'default_reward_provider' => sr_quiz_clean_key(sr_post_string('default_reward_provider', 30), 30),
         'default_reward_module' => sr_quiz_clean_key(sr_post_string('default_reward_module', 40), 40),
         'default_reward_coupon_definition_id' => sr_post_string('default_reward_coupon_definition_id', 20),
@@ -337,23 +337,21 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
     }
-    if (!empty($settings['default_reward_enabled'])) {
-        $provider = (string) ($settings['default_reward_provider'] ?? '');
-        if ($provider === 'ledger_asset') {
-            $moduleKey = (string) ($settings['default_reward_module'] ?? '');
-            if ($moduleKey === '' || !isset($assetOptions[$moduleKey])) {
-                $errors[] = '기본 보상 자산을 선택하세요.';
-            }
-            if ((int) ($settings['default_reward_amount'] ?? 0) < 1) {
-                $errors[] = '기본 보상 금액은 1 이상이어야 합니다.';
-            }
-        } elseif ($provider === 'coupon') {
-            if (!sr_quiz_reward_coupon_definition_is_available($pdo, (int) ($settings['default_reward_coupon_definition_id'] ?? 0))) {
-                $errors[] = '기본 보상으로 사용할 수 있는 쿠폰을 선택하세요.';
-            }
-        } else {
-            $errors[] = '기본 보상 종류 값이 올바르지 않습니다.';
+    $provider = (string) ($settings['default_reward_provider'] ?? '');
+    if ($provider === 'ledger_asset') {
+        $moduleKey = (string) ($settings['default_reward_module'] ?? '');
+        if ($moduleKey === '' || !isset($assetOptions[$moduleKey])) {
+            $errors[] = '기본 보상 자산을 선택하세요.';
         }
+        if ((int) ($settings['default_reward_amount'] ?? 0) < 1) {
+            $errors[] = '기본 보상 금액은 1 이상이어야 합니다.';
+        }
+    } elseif ($provider === 'coupon') {
+        if (!sr_quiz_reward_coupon_definition_is_available($pdo, (int) ($settings['default_reward_coupon_definition_id'] ?? 0))) {
+            $errors[] = '기본 보상으로 사용할 수 있는 쿠폰을 선택하세요.';
+        }
+    } else {
+        $errors[] = '기본 보상 종류 값이 올바르지 않습니다.';
     }
 
     return array_values(array_unique($errors));

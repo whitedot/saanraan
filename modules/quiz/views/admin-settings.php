@@ -63,7 +63,7 @@ $quizSettingsHelp = [
         'id' => 'quiz-settings-help-reward',
         'title' => '기본 보상',
         'body_html' => $quizSettingsHelpBodyHtml([
-            '새 퀴즈 생성 시 보상 정책 입력란에 채울 기본값입니다.',
+            '새 퀴즈 생성 시 보상 정책 입력란에 항상 채울 기본값입니다.',
             '포인트/금액은 회원 자산 모듈의 포인트, 적립금, 예치금 같은 항목에 금액을 지급합니다.',
             '쿠폰 발급은 현재 사용 가능한 활성 쿠폰 정의를 회원에게 1장 지급합니다.',
         ]),
@@ -227,15 +227,6 @@ $quizSettingsHelp = [
             </div>
         </div>
         <div class="admin-form-grid">
-            <div class="admin-form-row">
-                <label class="form-label" for="quiz_settings_default_reward_enabled">기본 보상 사용</label>
-                <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="quiz_settings_default_reward_enabled">
-                        <input id="quiz_settings_default_reward_enabled" type="checkbox" name="default_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['default_reward_enabled']) ? ' checked' : ''; ?> data-quiz-settings-reward-enabled>
-                        <?php echo sr_admin_choice_label_html('새 퀴즈에 보상 정책 기본값 입력'); ?>
-                    </label>
-                </div>
-            </div>
             <div class="admin-form-row" data-quiz-settings-reward-row>
                 <label class="form-label" for="quiz_settings_default_reward_provider">기본 보상 종류 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
@@ -341,7 +332,6 @@ $quizSettingsHelp = [
         syncAttemptPeriod();
     }
 
-    var rewardEnabled = document.querySelector('[data-quiz-settings-reward-enabled]');
     var rewardProvider = document.querySelector('[data-quiz-settings-reward-provider]');
     var rewardRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-row]'));
     var ledgerRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-ledger-row]'));
@@ -372,24 +362,22 @@ $quizSettingsHelp = [
         });
     }
     function syncReward() {
-        if (!rewardEnabled || !rewardProvider) {
+        if (!rewardProvider) {
             return;
         }
-        var enabled = rewardEnabled.checked;
-        var ledgerSelected = enabled && rewardProvider.value === 'ledger_asset';
-        var couponSelected = enabled && rewardProvider.value === 'coupon';
-        setRowsHidden(rewardRows, !enabled);
+        var ledgerSelected = rewardProvider.value === 'ledger_asset';
+        var couponSelected = rewardProvider.value === 'coupon';
+        setRowsHidden(rewardRows, false);
         setRowsHidden(ledgerRows, !ledgerSelected);
         setRowsHidden(couponRows, !couponSelected);
-        rewardProvider.disabled = !enabled;
-        setControlsEnabled(rewardControls, enabled);
+        rewardProvider.disabled = false;
+        setControlsEnabled(rewardControls, true);
         setControlsEnabled(ledgerControls, ledgerSelected);
         setControlsEnabled(couponControls, couponSelected);
         setControlsRequired(ledgerControls, ledgerSelected);
         setControlsRequired(couponControls, couponSelected);
     }
-    if (rewardEnabled && rewardProvider) {
-        rewardEnabled.addEventListener('change', syncReward);
+    if (rewardProvider) {
         rewardProvider.addEventListener('change', syncReward);
         syncReward();
     }
