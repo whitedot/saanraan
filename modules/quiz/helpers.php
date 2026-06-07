@@ -283,6 +283,8 @@ function sr_quiz_settings(PDO $pdo): array
 function sr_quiz_settings_from_post(): array
 {
     $themeKey = sr_quiz_clean_theme_key(sr_post_string('theme_key', 40));
+    $rewardProvider = sr_quiz_clean_key(sr_post_string('default_reward_provider', 30), 30);
+    $rewardDedupeScope = sr_quiz_clean_key(sr_post_string('default_reward_dedupe_scope', 20), 20);
     $settings = sr_quiz_normalize_settings([
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'theme_key' => $themeKey,
@@ -300,15 +302,17 @@ function sr_quiz_settings_from_post(): array
         'default_attempt_limit_policy' => sr_post_string('default_attempt_limit_policy', 30),
         'default_attempt_limit_period_seconds' => sr_post_string('default_attempt_limit_period_seconds', 20),
         'default_reward_enabled' => true,
-        'default_reward_provider' => sr_quiz_clean_key(sr_post_string('default_reward_provider', 30), 30),
+        'default_reward_provider' => $rewardProvider,
         'default_reward_module' => sr_quiz_clean_key(sr_post_string('default_reward_module', 40), 40),
         'default_reward_coupon_definition_id' => sr_post_string('default_reward_coupon_definition_id', 20),
         'default_reward_amount' => sr_post_string('default_reward_amount', 20),
-        'default_reward_dedupe_scope' => sr_quiz_clean_key(sr_post_string('default_reward_dedupe_scope', 20), 20),
+        'default_reward_dedupe_scope' => $rewardDedupeScope,
         'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
     $settings['theme_key'] = $themeKey;
+    $settings['default_reward_provider'] = $rewardProvider;
+    $settings['default_reward_dedupe_scope'] = $rewardDedupeScope;
 
     return $settings;
 }
@@ -336,6 +340,9 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     }
     if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
+    }
+    if (!in_array((string) ($settings['default_reward_dedupe_scope'] ?? ''), sr_quiz_reward_dedupe_scopes(), true)) {
+        $errors[] = '기본 중복 지급 기준 값이 올바르지 않습니다.';
     }
     $provider = (string) ($settings['default_reward_provider'] ?? '');
     if ($provider === 'ledger_asset') {
