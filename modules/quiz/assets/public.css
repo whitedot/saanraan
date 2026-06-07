@@ -65,7 +65,7 @@
     gap: 22px;
 }
 
-.sr-quiz-page h1 {
+.sr-quiz-page .sr-public-main h1 {
     margin: 0;
     color: #172033;
     font-size: clamp(2rem, 4vw, 3.25rem);
@@ -73,7 +73,7 @@
     letter-spacing: 0;
 }
 
-.sr-quiz-page h2 {
+.sr-quiz-page .sr-public-main h2 {
     margin: 0 0 12px;
     color: #172033;
     font-size: 1.35rem;
@@ -81,13 +81,13 @@
     letter-spacing: 0;
 }
 
-.sr-quiz-page p {
+.sr-quiz-page .sr-public-main p {
     margin: 0;
     color: #4d5b73;
     line-height: 1.7;
 }
 
-.sr-quiz-page ul {
+.sr-quiz-page .sr-public-main ul {
     display: grid;
     gap: 12px;
     margin: 0;
@@ -95,7 +95,7 @@
     list-style: none;
 }
 
-.sr-quiz-page li a {
+.sr-quiz-page .sr-public-main li a {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -111,8 +111,26 @@
     box-shadow: 0 10px 26px rgba(23, 32, 51, 0.05);
 }
 
-.sr-quiz-page li a::after {
+.sr-quiz-list-title {
+    order: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.sr-quiz-list-date {
+    display: inline-flex;
+    flex: 0 0 auto;
+    order: 2;
+    color: #647087;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sr-quiz-page .sr-public-main li a::after {
     content: "arrow_forward";
+    flex: 0 0 auto;
+    order: 3;
     font-family: "Material Symbols Outlined";
     font-size: 22px;
     font-weight: 400;
@@ -168,8 +186,8 @@
     cursor: default;
 }
 
-.sr-quiz-page .btn,
-.sr-quiz-page button[type="submit"] {
+.sr-quiz-page .sr-public-main .btn,
+.sr-quiz-page .sr-public-main button[type="submit"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -204,7 +222,7 @@
     background: #fff;
 }
 
-.sr-quiz-theme-card .sr-public-container {
+.sr-quiz-theme-card .sr-public-main .sr-public-container {
     padding: clamp(22px, 4vw, 42px);
     border: 1px solid rgba(23, 32, 51, 0.08);
     border-radius: 8px;
@@ -217,7 +235,7 @@
     background: #f9fafc;
 }
 
-.sr-quiz-theme-card li a {
+.sr-quiz-theme-card .sr-public-main li a {
     background: #f9fafc;
 }
 
@@ -227,16 +245,16 @@
         #0c111d;
 }
 
-.sr-quiz-theme-focus .quiz-layout-main {
+.sr-quiz-theme-focus .public-layout-main {
     background: transparent;
 }
 
-.sr-quiz-theme-focus .sr-quiz-page h1,
-.sr-quiz-theme-focus .sr-quiz-page h2 {
+.sr-quiz-theme-focus.sr-quiz-page .sr-public-main h1,
+.sr-quiz-theme-focus.sr-quiz-page .sr-public-main h2 {
     color: #fff;
 }
 
-.sr-quiz-theme-focus .sr-quiz-page p {
+.sr-quiz-theme-focus.sr-quiz-page .sr-public-main p {
     color: #d6deef;
 }
 
@@ -251,7 +269,7 @@
 
 .sr-quiz-theme-focus .sr-quiz-question,
 .sr-quiz-theme-focus .sr-quiz-result,
-.sr-quiz-theme-focus li a {
+.sr-quiz-theme-focus .sr-public-main li a {
     border-color: rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.94);
 }
@@ -270,11 +288,25 @@
         padding: 22px 12px 42px;
     }
 
-    .sr-quiz-page h1 {
+    .sr-quiz-page .sr-public-main h1 {
         font-size: 2rem;
     }
 
-    .sr-quiz-theme-card .sr-public-container {
+    .sr-quiz-page .sr-public-main li a {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .sr-quiz-list-date {
+        flex-basis: 100%;
+        order: 3;
+    }
+
+    .sr-quiz-page .sr-public-main li a::after {
+        order: 2;
+    }
+
+    .sr-quiz-theme-card .sr-public-main .sr-public-container {
         padding: 18px;
     }
 }

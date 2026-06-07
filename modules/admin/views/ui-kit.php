@@ -36,6 +36,12 @@ if (sr_module_record_entry($pdo, 'community') !== null && is_file(SR_ROOT . '/mo
         'path' => '/community/ui-kit',
     ];
 }
+if (sr_module_record_entry($pdo, 'quiz') !== null && is_file(SR_ROOT . '/modules/quiz/actions/ui-kit.php')) {
+    $publicUiKitLinks[] = [
+        'label' => '퀴즈 UI Kit',
+        'path' => '/quiz/ui-kit',
+    ];
+}
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

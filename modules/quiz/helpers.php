@@ -691,13 +691,13 @@ function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null): array
     }
 
     $stmt = $pdo->prepare(
-        "SELECT id, quiz_key, title, description
+        "SELECT id, quiz_key, title, description, created_at
          FROM sr_quiz_sets
          WHERE status = 'active'
            AND deleted_at IS NULL
            AND (starts_at IS NULL OR starts_at <= :now_start)
            AND (ends_at IS NULL OR ends_at >= :now_end)
-         ORDER BY updated_at DESC, id DESC
+         ORDER BY created_at DESC, id DESC
          LIMIT :limit_value"
     );
     $now = sr_now();

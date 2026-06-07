@@ -1,0 +1,27 @@
+/*
+ * Quiz UI Kit preview adjustments.
+ * Shared sample layout and kit primitives are loaded from /assets/public-ui-kit.css.
+ */
+
+.quiz-ui-kit-frame {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.quiz-ui-kit-frame .sr-public-main {
+    min-height: 0;
+    padding: 0;
+}
+
+.quiz-ui-kit-frame .sr-public-section {
+    width: 100%;
+}
+
+.quiz-ui-kit-frame.sr-quiz-theme-focus {
+    padding: clamp(18px, 4vw, 32px);
+}
+
+.quiz-ui-kit-frame .sr-form-errors + .sr-quiz-preview-notice,
+.quiz-ui-kit-frame .sr-quiz-preview-notice + .sr-form-errors {
+    margin-top: 12px;
+}

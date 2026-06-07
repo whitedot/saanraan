@@ -39,4 +39,10 @@ return [
             'member-assets.php',
         ],
     ],
+    'service_domain' => [
+        'main_page' => [
+            'label' => '퀴즈 메인',
+            'path' => '/quiz',
+        ],
+    ],
 ];

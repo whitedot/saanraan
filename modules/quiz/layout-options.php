@@ -9,6 +9,7 @@ return [
         'style_profile' => 'minimal',
         'views' => [
             'layout' => SR_ROOT . '/modules/quiz/layouts/basic/layout.php',
+            'ui_kit' => SR_ROOT . '/modules/quiz/views/ui-kit.php',
         ],
     ],
 ];

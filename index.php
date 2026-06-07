@@ -112,8 +112,8 @@ if ($method === 'GET' && $path === '/ui-kit') {
     exit;
 }
 
-if ($method === 'GET' && ($path === '/content/ui-kit' || $path === '/community/ui-kit')) {
-    $uiKitModuleKey = $path === '/content/ui-kit' ? 'content' : 'community';
+if ($method === 'GET' && ($path === '/content/ui-kit' || $path === '/community/ui-kit' || $path === '/quiz/ui-kit')) {
+    $uiKitModuleKey = $path === '/content/ui-kit' ? 'content' : ($path === '/community/ui-kit' ? 'community' : 'quiz');
     if (sr_module_record_entry($pdo, $uiKitModuleKey) === null) {
         sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
         exit;
