@@ -1,6 +1,7 @@
 <?php
 
 $adminPageTitle = '콘텐츠 임베드';
+$selectedStatuses = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -17,7 +18,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <select id="content_embed_status" name="status" class="form-select">
                         <option value=""><?php echo sr_e('전체'); ?></option>
                         <?php foreach (sr_content_embed_allowed_statuses() as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($filters['status'] ?? '') === $status ? ' selected' : ''; ?>>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo in_array($status, $selectedStatuses, true) ? ' selected' : ''; ?>>
                                 <?php echo sr_e($status); ?>
                             </option>
                         <?php } ?>

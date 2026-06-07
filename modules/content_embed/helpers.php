@@ -74,7 +74,8 @@ function sr_content_embed_admin_refs(PDO $pdo, array $filters, int $limit = 100)
     $where = [];
     $params = [];
 
-    $status = (string) ($filters['status'] ?? '');
+    $statusValues = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
+    $status = $statusValues === [] ? '' : (string) $statusValues[0];
     if ($status !== '' && in_array($status, sr_content_embed_allowed_statuses(), true)) {
         $where[] = 'status = :status';
         $params['status'] = $status;

@@ -54,6 +54,16 @@ if (sr_link_card_extract_tokens($fakeWidgetHtml) !== []) {
     sr_link_card_check_error('Rendered or pasted widget HTML must not be treated as a trusted link card reference.');
 }
 
+$markerRefs = sr_content_embed_extract_marker_refs('<p>A</p><span class="sr-content-embed-marker" data-sr-content-embed-ref="ce_abc123"></span>');
+if (count($markerRefs) !== 1 || (string) ($markerRefs[0]['ref_key'] ?? '') !== 'ce_abc123') {
+    sr_link_card_check_error('Content embed marker refs must be extracted from allowed marker spans.');
+}
+
+$adminRefsReflection = new ReflectionFunction('sr_content_embed_admin_refs');
+if ($adminRefsReflection->getNumberOfParameters() !== 3) {
+    sr_link_card_check_error('Content embed admin refs helper signature changed unexpectedly.');
+}
+
 $contentHelper = file_get_contents($root . '/modules/content/helpers.php');
 if (!is_string($contentHelper) || strpos($contentHelper, 'legacy 링크 카드 토큰이 남아 있는 콘텐츠는 복사할 수 없습니다.') === false) {
     sr_link_card_check_error('Content copy must not create new content rows from source bodies that still contain legacy link card tokens.');
