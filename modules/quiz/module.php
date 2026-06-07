@@ -9,7 +9,7 @@ return [
         'category' => 'service',
         'category_label' => '서비스',
         'category_order' => 30,
-        'menu_order' => 8,
+        'menu_order' => 11,
         'icon' => ['type' => 'symbol', 'name' => 'service'],
         'stylesheets' => ['assets/admin.css'],
     ],

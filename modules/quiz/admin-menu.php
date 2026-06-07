@@ -2,7 +2,7 @@
 
 return [
     'label' => '퀴즈',
-    'order' => 8,
+    'order' => 30,
     'items' => [
         [
             'label' => '퀴즈 관리',
