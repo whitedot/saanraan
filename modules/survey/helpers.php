@@ -410,6 +410,39 @@ function sr_survey_public_forms(PDO $pdo, int $limit = 50): array
     return $stmt->fetchAll();
 }
 
+function sr_survey_homepage_candidates(PDO $pdo): array
+{
+    return [
+        [
+            'module_key' => 'survey',
+            'label' => '설문 메인',
+            'path' => '/survey',
+            'detail' => '/survey',
+            'available' => true,
+        ],
+    ];
+}
+
+function sr_survey_homepage_path_is_available(PDO $pdo, string $homePath): ?bool
+{
+    if ($homePath === '/survey') {
+        return true;
+    }
+
+    if (str_starts_with($homePath, '/survey/')) {
+        $surveyKey = rawurldecode(substr($homePath, strlen('/survey/')));
+        $survey = sr_survey_by_key($pdo, $surveyKey);
+        return is_array($survey)
+            && (string) ($survey['status'] ?? '') === 'active'
+            && (int) ($survey['public_listed'] ?? 1) === 1
+            && (int) ($survey['login_required'] ?? 1) !== 1
+            && sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]') === []
+            && sr_survey_public_window_is_open($survey);
+    }
+
+    return null;
+}
+
 function sr_survey_by_key(PDO $pdo, string $surveyKey): ?array
 {
     if (!sr_survey_key_is_valid($surveyKey)) {

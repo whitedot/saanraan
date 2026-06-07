@@ -34,6 +34,8 @@ return [
             'paths.php',
             'admin-menu.php',
             'menu-links.php',
+            'homepage-candidates.php',
+            'layout-options.php',
             'privacy-export.php',
             'privacy-cleanup.php',
             'coupon-references.php',

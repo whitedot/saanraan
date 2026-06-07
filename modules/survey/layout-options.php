@@ -1,0 +1,14 @@
+<?php
+
+return [
+    'survey.basic' => [
+        'label' => '설문 기본 레이아웃',
+        'provider_module_key' => 'survey',
+        'provider_label' => '설문',
+        'supports' => ['site', 'survey.home', 'survey.view'],
+        'style_profile' => 'minimal',
+        'views' => [
+            'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
+        ],
+    ],
+];
