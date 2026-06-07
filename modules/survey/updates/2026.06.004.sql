@@ -1,0 +1,2 @@
+ALTER TABLE {{SR_TABLE_PREFIX}}survey_reward_grants
+    MODIFY COLUMN account_id BIGINT UNSIGNED NULL;

@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS sr_survey_reward_grants (
     survey_id BIGINT UNSIGNED NOT NULL,
     response_id BIGINT UNSIGNED NOT NULL,
     reward_policy_id BIGINT UNSIGNED NULL,
-    account_id BIGINT UNSIGNED NOT NULL,
+    account_id BIGINT UNSIGNED NULL,
     reward_provider VARCHAR(30) NOT NULL,
     reward_module VARCHAR(40) NOT NULL,
     reward_code VARCHAR(120) NOT NULL,
