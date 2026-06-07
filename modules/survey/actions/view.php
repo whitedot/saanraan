@@ -81,6 +81,16 @@ $memberGroupKeys = sr_survey_member_group_keys_from_json($survey['member_group_k
 if ($canPreviewAsAdmin || $submittedScreen || (int) ($survey['login_required'] ?? 1) === 1 || $memberGroupKeys !== [] || (int) ($survey['public_listed'] ?? 1) !== 1 || (string) ($survey['robots_policy'] ?? 'auto') === 'noindex') {
     $seo['robots'] = 'noindex, nofollow';
 }
+$hasSurveyInfo = (int) ($survey['reward_enabled'] ?? 0) === 1;
+foreach (['research_purpose', 'methodology_disclosure', 'target_population', 'fieldwork_method', 'sample_method', 'sponsor_name', 'organizer_name', 'contact_text', 'privacy_notice', 'withdrawal_policy', 'sensitive_data_policy'] as $surveyInfoField) {
+    if (trim((string) ($survey[$surveyInfoField] ?? '')) !== '') {
+        $hasSurveyInfo = true;
+        break;
+    }
+}
+if ((int) ($survey['estimated_minutes'] ?? 0) > 0 || (int) ($survey['target_sample_size'] ?? 0) > 0) {
+    $hasSurveyInfo = true;
+}
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'stylesheets' => ['/modules/survey/assets/public.css'],
 ]);
@@ -97,7 +107,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 설문도 확인할 수 있으며 제출은 테스트 응답으로 저장되고 보상은 지급되지 않습니다.</p>
                 </div>
             <?php endif; ?>
-            <?php if ((string) ($survey['research_purpose'] ?? '') !== '' || (int) ($survey['estimated_minutes'] ?? 0) > 0 || (string) ($survey['organizer_name'] ?? '') !== ''): ?>
+            <?php if ($hasSurveyInfo): ?>
                 <section class="sr-survey-info" aria-labelledby="survey_info_title">
                     <h2 id="survey_info_title">참여 안내</h2>
                     <?php if ((string) ($survey['research_purpose'] ?? '') !== ''): ?>
