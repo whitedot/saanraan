@@ -990,6 +990,7 @@ function sr_admin_member_sort_options(): array
     return [
         'email' => ['columns' => ['a.email', 'a.id']],
         'name' => ['columns' => ['a.display_name', 'a.id']],
+        'nickname' => ['columns' => ['n.nickname', 'a.id']],
         'status' => ['columns' => ['a.status', 'a.id']],
         'email_verified_at' => ['columns' => ['a.email_verified_at', 'a.id']],
         'last_login_at' => ['columns' => ['a.last_login_at', 'a.id']],

@@ -328,6 +328,8 @@ if (!is_string($adminMembersView)) {
 } elseif (
     strpos($adminMembersView, 'sr_admin_member_email_display($member)') === false
     || strpos($adminMembersView, 'sr_admin_member_display_name_preview($member)') === false
+    || strpos($adminMembersView, "\$memberListShowNicknameColumn = !empty(\$memberSettings['nickname_enabled'])") === false
+    || strpos($adminMembersView, "sr_admin_sort_header_html(sr_t('member::ui.nickname'), 'nickname'") === false
 ) {
     $errors[] = 'Admin members view must render member identity fields through privacy display helpers.';
 }

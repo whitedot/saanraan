@@ -302,6 +302,7 @@ foreach ($allowedStatuses as $status) {
         <?php } ?>
         <?php echo sr_admin_pagination_summary_html($memberPagination); ?>
     </div>
+    <?php $memberListShowNicknameColumn = !empty($memberSettings['nickname_enabled']); ?>
     <div class="table-wrapper">
         <table class="table admin-member-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.5e737292')); ?></caption>
@@ -309,6 +310,9 @@ foreach ($allowedStatuses as $status) {
                 <tr>
                     <th<?php echo sr_admin_sort_aria('email', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.3b7dbc4c') . ' / ' . sr_t('member::ui.text.4ca2f9ab'), 'email', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('name', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.public_name'), 'name', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <?php if ($memberListShowNicknameColumn) { ?>
+                        <th<?php echo sr_admin_sort_aria('nickname', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.nickname'), 'nickname', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <?php } ?>
                     <th<?php echo sr_admin_sort_aria('status', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('email_verified_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.2f905abd'), 'email_verified_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('last_login_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.login.677d154e'), 'last_login_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
@@ -320,7 +324,7 @@ foreach ($allowedStatuses as $status) {
             <tbody>
                 <?php if ($members === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
+                        <td colspan="<?php echo $memberListShowNicknameColumn ? '9' : '8'; ?>" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($members as $member) { ?>
@@ -338,6 +342,9 @@ foreach ($allowedStatuses as $status) {
                             <span class="admin-member-hash-value" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></span>
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
+                        <?php if ($memberListShowNicknameColumn) { ?>
+                            <td class="admin-table-nowrap"><?php echo sr_e(trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '-'); ?></td>
+                        <?php } ?>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['email_verified_at'] ?? '')); ?></td>
                         <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['last_login_at'] ?? '')); ?></td>
