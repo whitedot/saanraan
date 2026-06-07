@@ -1,0 +1,9 @@
+.admin-survey-form textarea {
+    min-height: 8rem;
+}
+
+.admin-survey-question-row {
+    border-top: 1px solid var(--color-default-200, #e5e7eb);
+    padding-top: 1rem;
+    margin-top: 1rem;
+}

@@ -1,0 +1,17 @@
+.sr-survey-list,
+.sr-survey-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.sr-survey-item,
+.sr-survey-question {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.sr-survey-choice {
+    display: block;
+    margin-top: .5rem;
+}

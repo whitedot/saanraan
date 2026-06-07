@@ -118,6 +118,12 @@ $optionalModules = [
         'label' => '퀴즈',
         'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
     ],
+    'survey' => [
+        'name' => '설문',
+        'version' => '2026.06.001',
+        'label' => '설문',
+        'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
+    ],
     'community' => [
         'name' => '커뮤니티',
         'version' => '2026.06.013',
