@@ -34,7 +34,6 @@ $access = $canPreviewAsAdmin
 $submitResult = null;
 $errors = [];
 $submittedScreen = sr_get_string('submitted', 5) === '1';
-$rewardResult = sr_survey_clean_key(sr_get_string('reward', 30), 30);
 
 if (sr_request_method() === 'POST') {
     $isPreviewTestSubmit = $canPreviewAsAdmin && ($_POST['test_submit'] ?? '') === '1';
@@ -54,9 +53,7 @@ if (sr_request_method() === 'POST') {
         );
         $currentAccount = $account;
         if (!$isPreviewTestSubmit) {
-            $grant = is_array($submitResult['reward_grant'] ?? null) ? $submitResult['reward_grant'] : null;
-            $rewardQuery = is_array($grant) ? '&reward=' . rawurlencode((string) ($grant['status'] ?? '')) : '';
-            sr_redirect('/survey/' . (string) $survey['survey_key'] . '?submitted=1' . $rewardQuery);
+            sr_redirect('/survey/' . (string) $survey['survey_key'] . '?submitted=1');
         }
         $access = ['allowed' => true, 'message' => ''];
     } catch (RuntimeException $exception) {
@@ -159,9 +156,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <h2>참여 완료</h2>
                     <p><?php echo $canPreviewAsAdmin ? '테스트 응답을 저장했습니다.' : '설문 응답을 저장했습니다.'; ?></p>
                     <?php $grant = is_array($submitResult['reward_grant'] ?? null) ? $submitResult['reward_grant'] : null; ?>
-                    <?php if ((is_array($grant) && (string) ($grant['status'] ?? '') === 'granted') || $rewardResult === 'granted'): ?>
+                    <?php if (is_array($grant) && (string) ($grant['status'] ?? '') === 'granted'): ?>
                         <p>보상이 지급되었습니다.</p>
-                    <?php elseif ((is_array($grant) && (string) ($grant['status'] ?? '') === 'failed') || $rewardResult === 'failed'): ?>
+                    <?php elseif (is_array($grant) && (string) ($grant['status'] ?? '') === 'failed'): ?>
                         <p>보상 지급을 확인해야 합니다.</p>
                     <?php endif; ?>
                 </section>
