@@ -93,6 +93,11 @@ $responses = $stmt->fetchAll();
 
 $surveyStmt = $pdo->query('SELECT id, survey_key, title FROM sr_survey_forms WHERE deleted_at IS NULL ORDER BY updated_at DESC, id DESC LIMIT 300');
 $surveyOptions = $surveyStmt->fetchAll();
+$responseDetailFilterOpen = $surveyId > 0 || $qualityFilter !== '';
+$qualityFilterOptions = [];
+foreach (sr_survey_quality_statuses() as $status) {
+    $qualityFilterOptions[$status] = sr_survey_quality_status_label($status);
+}
 
 function sr_survey_admin_preview_text(string $value, int $maxLength = 240): string
 {
@@ -111,16 +116,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/responses')); ?>" class="filtering-form ui-form-theme">
-    <div class="filtering filtering-card">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/responses')); ?>" class="filtering-form admin-survey-response-filter ui-form-theme">
+    <div class="filtering filtering-card<?php echo $responseDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
         <div class="filtering-fields">
-            <div class="filtering-field filtering-field-fill">
+            <div class="filtering-field filtering-field-fill admin-survey-response-filter-keyword">
                 <label for="survey_response_keyword" class="filtering-label">검색어</label>
                 <input id="survey_response_keyword" type="text" name="q" value="<?php echo sr_e($keyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="응답 ID, 회원 ID, 설문 key, 제목">
             </div>
+        </div>
+        <div id="survey_response_detail_filters" class="filtering-body" data-filtering-body<?php echo $responseDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field">
                 <label for="survey_response_survey_id" class="filtering-label">설문</label>
-                <select id="survey_response_survey_id" name="survey_id" class="form-select">
+                <select id="survey_response_survey_id" name="survey_id" class="form-select form-control-full">
                     <option value="">전체</option>
                     <?php foreach ($surveyOptions as $surveyOption): ?>
                         <option value="<?php echo sr_e((string) (int) $surveyOption['id']); ?>"<?php echo $surveyId === (int) $surveyOption['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $surveyOption['title']); ?></option>
@@ -128,25 +135,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
             <div class="filtering-field">
-                <label for="survey_response_quality_status" class="filtering-label">품질 상태</label>
-                <select id="survey_response_quality_status" name="quality_status" class="form-select">
-                    <option value="">전체</option>
-                    <?php foreach (sr_survey_quality_statuses() as $status): ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo $qualityFilter === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_quality_status_label($status)); ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <span class="filtering-label">품질 상태</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('survey_response_quality_status_filter', 'quality_status', $qualityFilterOptions, [$qualityFilter], '전체'); ?>
             </div>
         </div>
         <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $responseDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="survey_response_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
             <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
-            <a class="btn btn-outline-light" href="<?php echo sr_e(sr_url('/admin/surveys/responses')); ?>">초기화</a>
             <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'raw'], '', '&', PHP_QUERY_RFC3986))); ?>">원본 CSV</a>
             <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>">분석 CSV</a>
         </div>
     </div>
 </form>
 
-<section class="admin-card admin-list-card card">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">응답 목록</h2>
     </div>
@@ -177,7 +180,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="admin-summary-meta"><code><?php echo sr_e((string) ($response['survey_key'] ?? '')); ?></code> · 응답 #<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?></span>
                         </td>
                         <td class="admin-table-nowrap"><?php echo (int) ($response['account_id'] ?? 0) > 0 ? sr_e((string) (int) $response['account_id']) : '익명'; ?></td>
-                        <td class="admin-table-nowrap"><?php echo sr_e(sr_survey_quality_status_label((string) ($response['quality_status'] ?? 'accepted'))); ?></td>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class((string) ($response['quality_status'] ?? 'accepted'))); ?>"><?php echo sr_e(sr_survey_quality_status_label((string) ($response['quality_status'] ?? 'accepted'))); ?></span></td>
                         <td class="admin-table-break"><code><?php echo sr_e(sr_survey_admin_preview_text((string) ($response['answer_snapshot_json'] ?? ''))); ?></code></td>
                         <td>
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/responses')); ?>" class="admin-inline-form">

@@ -16,32 +16,68 @@
 }
 
 .admin-survey-form > .card-body {
-    display: grid;
-    gap: calc(var(--spacing) * 4);
+    display: block;
     margin-bottom: calc(var(--spacing) * 5);
-    padding: calc(var(--spacing) * 5);
+    padding: 0;
     border: 1px solid var(--color-default-300);
     border-radius: 0 0 var(--radius-card, 8px) var(--radius-card, 8px);
     background: var(--color-card);
 }
 
 .admin-survey-form .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
-    gap: calc(var(--spacing) * 4);
+    display: block;
 }
 
 .admin-survey-form .form-field {
+    display: grid;
+    grid-template-columns: minmax(8rem, 11.5rem) minmax(0, 1fr);
+    align-items: start;
+    column-gap: calc(var(--spacing) * 5);
     min-width: 0;
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 5);
+    border-bottom: 1px solid var(--color-default-200);
+}
+
+.admin-survey-form .form-field:last-child,
+.admin-survey-form .form-grid:last-child > .form-field:last-child {
+    border-bottom-width: 0;
 }
 
 .admin-survey-form .form-label {
+    display: flex;
+    align-items: center;
+    min-height: calc(var(--spacing) * 9.25);
     color: var(--color-default-700);
     font-weight: var(--font-weight-semibold);
 }
 
+.admin-survey-form .form-field > .form-input,
+.admin-survey-form .form-field > .form-select,
+.admin-survey-form .form-field > .form-textarea,
+.admin-survey-form .form-field > .admin-checkbox-list,
+.admin-survey-form .form-field > .admin-form-check {
+    min-width: 0;
+}
+
+.admin-survey-form .form-field > .admin-form-help {
+    grid-column: 2;
+    margin-top: calc(var(--spacing) * 2);
+}
+
+.admin-survey-form .form-input.form-control-full,
+.admin-survey-form .form-select.form-control-full,
+.admin-survey-form textarea {
+    width: 100%;
+}
+
 .admin-survey-form textarea {
     min-height: 7.5rem;
+}
+
+.admin-survey-form .card-body > .admin-form-check {
+    margin: 0;
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 5);
+    border-bottom: 1px solid var(--color-default-200);
 }
 
 .admin-survey-form .admin-checkbox-list {
@@ -60,12 +96,13 @@
 
 .admin-survey-question-row {
     display: grid;
-    gap: calc(var(--spacing) * 4);
-    margin-top: calc(var(--spacing) * 4);
-    padding: calc(var(--spacing) * 4);
+    gap: 0;
+    margin: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+    padding: 0;
     border: 1px solid var(--color-default-300);
     border-radius: var(--radius-card, 8px);
     background: var(--color-default-50);
+    overflow: hidden;
 }
 
 .admin-survey-question-row:first-child {
@@ -77,8 +114,29 @@
     align-items: baseline;
     justify-content: space-between;
     gap: calc(var(--spacing) * 3);
-    padding-bottom: calc(var(--spacing) * 3);
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
     border-bottom: 1px solid var(--color-default-200);
+    background: var(--color-card);
+}
+
+.admin-survey-question-row .form-field {
+    padding-inline: calc(var(--spacing) * 4);
+}
+
+.admin-survey-question-row .form-field:last-child {
+    border-bottom-width: 0;
+}
+
+.admin-survey-form .form-field:has(> .admin-form-check.form-label:first-child) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+}
+
+.admin-survey-form .form-field:has(> .admin-form-check.form-label:first-child) > .admin-form-help {
+    flex-basis: 100%;
+    margin-top: 0;
 }
 
 .admin-survey-delete-form {
@@ -95,4 +153,15 @@
 
 .admin-survey-delete-form .admin-form-help {
     margin: 0;
+}
+
+@media (max-width: 767px) {
+    .admin-survey-form .form-field {
+        grid-template-columns: 1fr;
+        row-gap: calc(var(--spacing) * 1.5);
+    }
+
+    .admin-survey-form .form-field > .admin-form-help {
+        grid-column: 1;
+    }
 }

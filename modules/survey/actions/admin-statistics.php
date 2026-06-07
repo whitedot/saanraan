@@ -82,12 +82,12 @@ if (is_array($survey)) {
 $adminPageTitle = '설문 통계';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/statistics')); ?>" class="filtering-form ui-form-theme">
+<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/statistics')); ?>" class="filtering-form admin-survey-statistics-filter ui-form-theme">
     <div class="filtering filtering-card">
         <div class="filtering-fields">
-            <div class="filtering-field filtering-field-fill">
+            <div class="filtering-field filtering-field-fill admin-survey-statistics-filter-survey">
                 <label for="survey_statistics_survey_id" class="filtering-label">설문</label>
-                <select id="survey_statistics_survey_id" name="survey_id" class="form-select">
+                <select id="survey_statistics_survey_id" name="survey_id" class="form-select form-control-full">
                     <?php foreach ($surveyOptions as $surveyOption): ?>
                         <option value="<?php echo sr_e((string) (int) $surveyOption['id']); ?>"<?php echo $surveyId === (int) $surveyOption['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $surveyOption['title']); ?></option>
                     <?php endforeach; ?>
@@ -96,6 +96,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="filtering-actions">
             <button type="submit" class="btn btn-solid-primary filtering-submit">보기</button>
+            <a class="btn btn-outline-light" href="<?php echo sr_e(sr_url('/admin/surveys/statistics')); ?>"><?php echo sr_material_icon_html('restart_alt'); ?>초기화</a>
             <?php if (is_array($survey)): ?>
                 <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>">분석 CSV</a>
                 <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'codebook'], '', '&', PHP_QUERY_RFC3986))); ?>">코드북 CSV</a>
@@ -119,7 +120,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </dl>
         </div>
     </section>
-    <section class="admin-card admin-list-card card">
+    <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title">문항별 통계</h2></div>
         <div class="table-wrapper">
             <table class="table">
