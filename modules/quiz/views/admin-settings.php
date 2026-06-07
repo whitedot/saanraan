@@ -81,6 +81,7 @@ $quizSettingsHelp = [
         'title' => '공개 화면 구성',
         'body_html' => $quizSettingsHelpBodyHtml([
             '퀴즈 목록과 퀴즈 풀이 화면에서 사용할 공개 레이아웃을 정합니다.',
+            '퀴즈 테마는 같은 레이아웃 안에서 목록, 문제, 선택지, 결과 표시 분위기를 바꿉니다.',
             '사이트 메뉴 슬롯은 레이아웃이 해당 위치를 출력할 때만 보입니다.',
             '레이아웃 변경은 기존 퀴즈 데이터나 응시 기록을 바꾸지 않습니다.',
         ]),
@@ -111,6 +112,19 @@ $quizSettingsHelp = [
                         <?php } ?>
                     </select>
                     <p class="admin-form-help">퀴즈 목록과 퀴즈 풀이 화면에 적용할 공개 레이아웃입니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_settings_theme_key">퀴즈 테마 <span class="sr-required-label">(필수)</span></label>
+                <div class="admin-form-field">
+                    <select id="quiz_settings_theme_key" name="theme_key" class="form-select" required>
+                        <?php foreach (sr_quiz_theme_options() as $themeKey => $themeLabel) { ?>
+                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'basic') === (string) $themeKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $themeLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">퀴즈 목록, 문제, 선택지, 결과 화면의 표현 방식을 선택합니다.</p>
                 </div>
             </div>
             <?php foreach ($quizLayoutMenuFields as $quizLayoutMenuSettingKey => $quizLayoutMenuField) { ?>

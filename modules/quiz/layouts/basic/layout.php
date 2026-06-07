@@ -7,6 +7,7 @@ $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
+$layoutBodyClass = trim((string) ($layoutContext['body_class'] ?? ''));
 $layoutStylesheets[] = '/modules/quiz/assets/layout.css';
 $layoutSiteMenus = is_array($layoutContext['site_menus'] ?? null) ? $layoutContext['site_menus'] : [];
 $layoutCleanMenuKey = static function (string $value): string {
@@ -98,7 +99,7 @@ $layoutCopyrightYear = date('Y');
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
-<body class="quiz-layout-body">
+<body class="<?php echo sr_e(trim('quiz-layout-body ' . $layoutBodyClass)); ?>">
     <header class="quiz-layout-header">
         <a class="quiz-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
             <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
