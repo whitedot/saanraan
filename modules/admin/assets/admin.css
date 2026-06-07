@@ -945,10 +945,10 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 .filtering-form > .filtering-fields.admin-audit-search-grid,
 .admin-audit-filter .filtering-card > .filtering-fields.admin-audit-search-grid {
     align-items: end;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
     gap: .875rem;
-    justify-content: flex-start;
+    grid-template-columns: max-content minmax(0, 1fr);
+    justify-content: stretch;
 }
 
 .admin-list-card>.card-header>.card-actions {
@@ -960,9 +960,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 .admin-audit-search-grid .filtering-field {
-    flex: 1 1 8.5rem;
-    max-width: 12rem;
     min-width: 0;
+    width: 100%;
 }
 
 .admin-audit-search-grid .filtering-input,
@@ -971,30 +970,8 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: 100%;
 }
 
-
-.admin-audit-search-grid .admin-audit-check-list {
-    align-items: center;
-    min-height: calc(var(--spacing) * 9.25);
-}
-
-.admin-audit-search-grid .admin-audit-check-list .admin-form-check {
-    white-space: nowrap;
-}
-
-.admin-audit-filter-result {
-    flex-basis: 10rem;
-    max-width: 13rem;
-}
-
-.admin-audit-filter-actor-type {
-    flex-basis: 15rem;
-    max-width: 18rem;
-}
-
 .admin-audit-filter-keyword {
-    flex: 999 1 18rem;
     margin-left: 0;
-    max-width: none;
     min-width: 0;
 }
 
