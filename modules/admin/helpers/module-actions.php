@@ -299,6 +299,19 @@ function sr_admin_prepare_module_foundations(PDO $pdo, array $account, string $m
         }
 
         if (is_array($foundation)) {
+            $metadata = sr_module_metadata($foundationModuleKey);
+            $moduleDirectory = SR_ROOT . '/modules/' . $foundationModuleKey;
+            $metadataErrors = $metadata === [] ? ['모듈 메타데이터를 찾을 수 없습니다.'] : array_merge(
+                sr_module_metadata_errors($metadata),
+                sr_module_contract_file_errors($moduleDirectory, $metadata),
+                sr_module_requirement_errors($pdo, $foundationModuleKey, $metadata, 'enabled'),
+                sr_module_code_older_errors($pdo, $foundationModuleKey),
+                sr_module_route_conflict_errors($pdo, $foundationModuleKey)
+            );
+            if ($metadataErrors !== []) {
+                throw new RuntimeException(implode(' ', array_values(array_unique($metadataErrors))));
+            }
+
             $statusChange = sr_update_module_status($pdo, $foundationModuleKey, 'enabled');
             $prepared[] = ['module_key' => $foundationModuleKey, 'action' => 'enabled'];
             sr_audit_log($pdo, [

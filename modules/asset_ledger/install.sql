@@ -1,2 +1,1 @@
--- asset_ledger provides shared balance/transaction helpers only.
--- Asset-specific balance and transaction tables remain owned by each asset module.
+SELECT 1;
