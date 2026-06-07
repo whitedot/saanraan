@@ -689,6 +689,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $listParams['keyword'] = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $listKeyword) . '%';
     }
     $surveyListFilterOpen = $listStatus !== '' || $listAvailability !== '';
+    $surveyStatusOptions = [];
+    foreach (sr_survey_statuses() as $statusKey) {
+        $surveyStatusOptions[$statusKey] = sr_survey_status_label($statusKey);
+    }
     $stmt = $pdo->prepare(
         'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
          FROM sr_survey_forms s
@@ -702,34 +706,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $surveys = $stmt->fetchAll();
     $surveyCanDelete = sr_admin_has_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'delete');
     ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="filtering-form ui-form-theme">
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="filtering-form admin-survey-filter ui-form-theme">
         <div class="filtering filtering-card<?php echo $surveyListFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
             <div class="filtering-fields">
-                <div class="filtering-field filtering-field-fill">
+                <div class="filtering-field filtering-field-fill admin-survey-filter-keyword">
                     <label for="survey_list_keyword" class="filtering-label">검색어</label>
                     <input id="survey_list_keyword" type="text" name="q" value="<?php echo sr_e($listKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="key, 제목, 설명">
                 </div>
+            </div>
+            <div id="survey_detail_filters" class="filtering-body" data-filtering-body<?php echo $surveyListFilterOpen ? '' : ' hidden'; ?>>
                 <div class="filtering-field">
-                    <label for="survey_list_status" class="filtering-label">상태</label>
-                    <select id="survey_list_status" name="status" class="form-select">
-                        <option value="">전체</option>
-                        <?php foreach (sr_survey_statuses() as $statusKey): ?>
-                            <option value="<?php echo sr_e($statusKey); ?>"<?php echo $listStatus === $statusKey ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($statusKey)); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <span class="filtering-label">상태</span>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('survey_status_filter', 'status', $surveyStatusOptions, [$listStatus], '전체'); ?>
                 </div>
                 <div class="filtering-field">
-                    <label for="survey_list_availability" class="filtering-label">응답 가능</label>
-                    <select id="survey_list_availability" name="availability" class="form-select">
-                        <option value="">전체</option>
-                        <option value="open"<?php echo $listAvailability === 'open' ? ' selected' : ''; ?>>가능</option>
-                        <option value="closed"<?php echo $listAvailability === 'closed' ? ' selected' : ''; ?>>불가</option>
-                    </select>
+                    <span class="filtering-label">응답 가능</span>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('survey_availability_filter', 'availability', ['open' => '가능', 'closed' => '불가'], [$listAvailability], '전체'); ?>
                 </div>
             </div>
             <div class="filtering-actions">
+                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $surveyListFilterOpen ? 'true' : 'false'; ?>" aria-controls="survey_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
                 <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
-                <a class="btn btn-outline-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>"><?php echo sr_material_icon_html('restart_alt'); ?>초기화</a>
             </div>
         </div>
     </form>
