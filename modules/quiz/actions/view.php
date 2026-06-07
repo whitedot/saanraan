@@ -29,6 +29,7 @@ if (!is_array($quiz) || (!$isPubliclyOpen && !$canPreviewAsAdmin)) {
     sr_render_error(404, '퀴즈를 찾을 수 없습니다.');
 }
 $questions = sr_quiz_questions_with_choices($pdo, (int) ($quiz['id'] ?? 0));
+$quizSettings = sr_quiz_settings($pdo);
 $attemptAccess = $canPreviewAsAdmin
     ? ['allowed' => false, 'message' => '관리자 미리보기에서는 제출할 수 없습니다.']
     : (is_array($currentAccount)
@@ -106,10 +107,9 @@ $seo = [
     ],
 ];
 
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
     'body_class' => 'sr-quiz-page',
-    'stylesheets' => ['/modules/quiz/assets/public.css'],
-]);
+]));
 ?>
 <main class="sr-public-main">
     <section class="sr-public-section">

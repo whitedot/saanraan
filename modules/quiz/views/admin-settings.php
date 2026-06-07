@@ -1,6 +1,46 @@
 <?php
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
+$quizLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
+$quizSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($quizSiteMenuOptions): void {
+    ?>
+    <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>사용 안 함</option>
+    <?php foreach ($quizSiteMenuOptions as $menuKey => $menu) { ?>
+        <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
+        <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
+            <?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?>
+        </option>
+    <?php } ?>
+    <?php
+};
+$quizLayoutMenuFields = [
+    'layout_primary_menu_key' => [
+        'label' => '주 메뉴 슬롯',
+        'help' => '선택한 공개 레이아웃이 주 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => 'header',
+    ],
+    'layout_secondary_menu_key' => [
+        'label' => '보조 메뉴 슬롯',
+        'help' => '선택한 공개 레이아웃이 보조 메뉴 슬롯을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_tertiary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 1',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 1을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_quaternary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 2',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 2를 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+    'layout_quinary_menu_key' => [
+        'label' => '추가 메뉴 슬롯 3',
+        'help' => '선택한 공개 레이아웃이 추가 메뉴 슬롯 3을 출력할 때 사용할 사이트 메뉴입니다. 실제 위치는 레이아웃에 따라 달라질 수 있습니다.',
+        'default' => '',
+    ],
+];
 $quizSettingsHelpOpenLabel = '설명 보기';
 $quizSettingsHelpBodyHtml = static function (array $items): string {
     $html = '';
@@ -36,12 +76,57 @@ $quizSettingsHelp = [
             '관리자 목록과 시도 목록의 page size는 관리자 공통 페이징 설정을 계속 사용합니다.',
         ]),
     ],
+    'layout' => [
+        'id' => 'quiz-settings-help-layout',
+        'title' => '공개 화면 구성',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '퀴즈 목록과 퀴즈 풀이 화면에서 사용할 공개 레이아웃을 정합니다.',
+            '사이트 메뉴 슬롯은 레이아웃이 해당 위치를 출력할 때만 보입니다.',
+            '레이아웃 변경은 기존 퀴즈 데이터나 응시 기록을 바꾸지 않습니다.',
+        ]),
+    ],
 ];
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
+
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title">공개 화면 구성</h2>
+            <div class="card-actions">
+                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="공개 화면 구성 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['layout']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['layout']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+            </div>
+        </div>
+        <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_settings_layout_key">퀴즈 공개 레이아웃 <span class="sr-required-label">(필수)</span></label>
+                <div class="admin-form-field">
+                    <select id="quiz_settings_layout_key" name="layout_key" class="form-select" required>
+                        <?php foreach ($quizLayoutOptions as $layoutKey => $layoutOption) { ?>
+                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">퀴즈 목록과 퀴즈 풀이 화면에 적용할 공개 레이아웃입니다.</p>
+                </div>
+            </div>
+            <?php foreach ($quizLayoutMenuFields as $quizLayoutMenuSettingKey => $quizLayoutMenuField) { ?>
+                <?php $quizLayoutMenuInputId = 'quiz_settings_' . $quizLayoutMenuSettingKey; ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e($quizLayoutMenuInputId); ?>"><?php echo sr_e((string) $quizLayoutMenuField['label']); ?></label>
+                    <div class="admin-form-field">
+                        <select id="<?php echo sr_e($quizLayoutMenuInputId); ?>" name="<?php echo sr_e((string) $quizLayoutMenuSettingKey); ?>" class="form-select">
+                            <?php $quizSiteMenuSelectOptions((string) ($settings[$quizLayoutMenuSettingKey] ?? $quizLayoutMenuField['default'])); ?>
+                        </select>
+                        <p class="admin-form-help"><?php echo sr_e((string) $quizLayoutMenuField['help']); ?></p>
+                    </div>
+                </div>
+            <?php } ?>
+        </div>
+    </section>
 
     <section class="admin-card card">
         <div class="card-header">

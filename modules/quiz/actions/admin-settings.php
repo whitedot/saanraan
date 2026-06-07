@@ -13,6 +13,12 @@ $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
 $couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo);
+$publicLayoutOptions = sr_public_layout_options($pdo);
+$siteMenuOptions = [];
+if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+    require_once SR_ROOT . '/modules/site_menu/helpers.php';
+    $siteMenuOptions = sr_site_menu_options($pdo);
+}
 $settings = sr_quiz_settings($pdo);
 
 if (sr_request_method() === 'POST') {

@@ -2,7 +2,7 @@
 
 return [
     'name' => '퀴즈',
-    'version' => '2026.06.004',
+    'version' => '2026.06.005',
     'type' => 'module',
     'description' => '퀴즈 응시, 채점, 콘텐츠 연계 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -30,6 +30,7 @@ return [
             'paths.php',
             'admin-menu.php',
             'menu-links.php',
+            'layout-options.php',
             'privacy-export.php',
             'privacy-cleanup.php',
             'coupon-references.php',

@@ -140,13 +140,13 @@ modules/board/
 - public layout이 사이트 메뉴를 노출할 때는 하위 depth가 아니라 레이아웃 슬롯 구분으로 `primary_navigation`, `secondary_navigation`, `tertiary_navigation`, `quaternary_navigation`, `quinary_navigation` output slot을 사용한다. 콘텐츠와 커뮤니티처럼 레이아웃을 설정하는 모듈은 환경설정의 메뉴 key를 `sr_public_layout_begin()` layout context의 `site_menus.primary`, `site_menus.secondary`, `site_menus.tertiary`, `site_menus.quaternary`, `site_menus.quinary`로 전달한다. 관리자 화면에서는 고정 위치명 대신 `주 메뉴 슬롯`, `보조 메뉴 슬롯`, `추가 메뉴 슬롯 1`처럼 표시하고, 실제 위치는 레이아웃 구현이 결정한다. 번들 공통/콘텐츠/커뮤니티 레이아웃은 primary 메뉴를 header에, 나머지 메뉴 슬롯을 footer 영역에 렌더링한다.
 - public layout은 선택적으로 `ui_kit` view를 제공할 수 있다. 기본 레이아웃의 `/ui-kit` 화면은 초기/기본 공개 페이지와 public layout 런타임 기준 공통 UI 원형을 확인하기 위한 원본 개발자 화면이며 admin 모듈에 의존하지 않는다. 모듈별 UI-KIT를 추가하더라도 이 화면은 초기 페이지용 기준으로 보존한다.
 - 관리자 화면을 가진 모듈은 자기 화면 조합을 확인하기 위해 모듈 전용 UI-KIT 조회 화면을 둘 수 있다. 이때 route와 view/action은 소유 모듈에 두고, 보조 스타일은 `modules/{module_key}/assets/ui-kit.css` 또는 `modules/{module_key}/assets/{module_key}-ui-kit.css`, 샘플은 `modules/{module_key}/views/ui-kit-samples/`처럼 모듈 내부에 둔다. 공통 UI-KIT 샘플을 복제해 시작할 수 있지만, 실제 모듈 화면에서 쓰는 클래스와 타이포그래피 기준은 모듈 프리뷰에서 따로 검증한다.
-- 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `content.basic`, `community.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
+- 레이아웃 제공 모듈은 `layout-options.php` 계약으로 `common.basic`, `content.basic`, `community.basic`, `quiz.basic` 같은 namespace 포함 key와 allowlist view를 제공할 수 있다.
 - 번들 `content.basic`과 `community.basic`은 공통 레이아웃 파일을 공유하지 않는다. 콘텐츠는 `modules/content/layouts/basic/layout.php`, 커뮤니티는 허용된 theme 경계 안의 `modules/community/themes/basic/layout.php`를 사용한다. 헤더/푸터처럼 같은 시각 언어를 쓰더라도 모듈 전용 레이아웃 CSS를 사용해 모듈 경계를 유지한다.
 - 모듈 theme는 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
 - 모듈 skin은 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시를 담당한다.
 - 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다. 관리자 shell은 화면 구성 편의를 위해 렌더 후 DOM을 다시 해석해 class나 레이블을 주입하지 않으므로, 폼 행과 선택 항목의 접근성 텍스트는 view가 최종 마크업으로 직접 출력한다. 보안 정화나 외부 HTML 변환처럼 렌더 후 DOM 처리가 정말 필요한 경우는 별도 helper나 모듈 책임으로 명확히 분리하고 테스트한다.
 
-모듈은 DB에 view 파일 경로를 저장하지 않는다. `public_layout_key`, `layout_key`, `theme_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist나 `layout-options.php` 계약에서 결정한다. 기존 공개 레이아웃 `basic` 값은 `common.basic`으로 정규화한다. 알 수 없는 사이트 공통 레이아웃 key는 기본 공통 레이아웃으로 fallback한다. 콘텐츠와 커뮤니티처럼 공개 레이아웃을 설정하는 모듈은 모듈 환경설정의 레이아웃 key를 메인, 그룹/게시판, 상세 하위 화면 전체에 적용한다.
+모듈은 DB에 view 파일 경로를 저장하지 않는다. `public_layout_key`, `layout_key`, `theme_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist나 `layout-options.php` 계약에서 결정한다. 기존 공개 레이아웃 `basic` 값은 `common.basic`으로 정규화한다. 알 수 없는 사이트 공통 레이아웃 key는 기본 공통 레이아웃으로 fallback한다. 콘텐츠, 커뮤니티, 퀴즈처럼 공개 레이아웃을 설정하는 모듈은 모듈 환경설정의 레이아웃 key를 메인, 그룹/게시판, 상세 하위 화면 전체에 적용한다.
 
 CSS class는 범위를 드러내는 이름을 사용한다. 모듈 전용 class는 `{module_key}-*` 또는 `sr-{module_key}-*`, 특정 스킨 전용 class는 `{module_key}-skin-{skin_key}-*` 형식을 우선한다. 모듈 skin은 전역 `body`, `a`, `.container`, `.btn`처럼 넓은 선택자를 직접 재정의하지 않고, 필요한 경우 자기 wrapper 아래에서만 스타일을 제한한다.
 
@@ -1027,7 +1027,7 @@ return [
 `layout-options.php`:
 
 - 배열을 반환한다.
-- 각 항목 key는 `common.basic`, `content.basic`, `community.basic`처럼 provider namespace를 포함한 안정적인 layout key다.
+- 각 항목 key는 `common.basic`, `content.basic`, `community.basic`, `quiz.basic`처럼 provider namespace를 포함한 안정적인 layout key다.
 - 각 항목은 `label`, `provider_module_key`, 선택 `provider_label`, 선택 `supports`, `views`를 가진다.
 - `views.layout`은 필수이며 public layout 파일을 가리킨다.
 - `views.community_home`처럼 특정 화면용 view는 선택으로 제공할 수 있다.
@@ -1092,7 +1092,7 @@ return [
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `coupon-references.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
 | `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
-| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php` | `member-assets.php` |
+| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php` | `member-assets.php` |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:

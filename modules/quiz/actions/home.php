@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../helpers.php';
 
+$quizSettings = sr_quiz_settings($pdo);
 $quizzes = sr_quiz_public_quizzes($pdo);
 $seo = [
     'title' => '퀴즈',
@@ -12,10 +13,9 @@ $seo = [
     ],
 ];
 
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
     'body_class' => 'sr-quiz-page',
-    'stylesheets' => ['/modules/quiz/assets/public.css'],
-]);
+]));
 ?>
 <main class="sr-public-main">
     <section class="sr-public-section">

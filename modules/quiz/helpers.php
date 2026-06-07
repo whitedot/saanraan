@@ -153,6 +153,12 @@ function sr_quiz_truthy(mixed $value): bool
 function sr_quiz_default_settings(): array
 {
     return [
+        'layout_key' => 'quiz.basic',
+        'layout_primary_menu_key' => 'header',
+        'layout_secondary_menu_key' => '',
+        'layout_tertiary_menu_key' => '',
+        'layout_quaternary_menu_key' => '',
+        'layout_quinary_menu_key' => '',
         'default_status' => 'draft',
         'default_quiz_mode' => 'scored',
         'default_scoring_model' => 'correct_answer',
@@ -172,11 +178,32 @@ function sr_quiz_default_settings(): array
     ];
 }
 
+function sr_quiz_layout_menu_slots(): array
+{
+    return [
+        'primary' => 'layout_primary_menu_key',
+        'secondary' => 'layout_secondary_menu_key',
+        'tertiary' => 'layout_tertiary_menu_key',
+        'quaternary' => 'layout_quaternary_menu_key',
+        'quinary' => 'layout_quinary_menu_key',
+    ];
+}
+
+function sr_quiz_clean_layout_menu_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
+}
+
 function sr_quiz_normalize_settings(array $settings): array
 {
     $defaults = sr_quiz_default_settings();
     $normalized = array_merge($defaults, $settings);
 
+    $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
+    foreach (sr_quiz_layout_menu_slots() as $settingKey) {
+        $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
+    }
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_quiz_statuses(), true)
         ? (string) $normalized['default_status']
         : (string) $defaults['default_status'];
@@ -222,12 +249,23 @@ function sr_quiz_normalize_settings(array $settings): array
 
 function sr_quiz_settings(PDO $pdo): array
 {
-    return sr_quiz_normalize_settings(sr_module_settings($pdo, 'quiz'));
+    $settings = sr_quiz_normalize_settings(sr_module_settings($pdo, 'quiz'));
+    if (!isset(sr_public_layout_options($pdo)[$settings['layout_key']])) {
+        $settings['layout_key'] = sr_public_layout_key(null, $pdo);
+    }
+
+    return $settings;
 }
 
 function sr_quiz_settings_from_post(): array
 {
     return sr_quiz_normalize_settings([
+        'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
+        'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
+        'layout_secondary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
+        'layout_tertiary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
+        'layout_quaternary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_quaternary_menu_key', 60)),
+        'layout_quinary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_quinary_menu_key', 60)),
         'default_status' => sr_post_string('default_status', 20),
         'default_quiz_mode' => sr_post_string('default_quiz_mode', 30),
         'default_scoring_model' => sr_post_string('default_scoring_model', 40),
@@ -250,6 +288,21 @@ function sr_quiz_settings_from_post(): array
 function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $assetOptions): array
 {
     $errors = [];
+    if (!isset(sr_public_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
+        $errors[] = '퀴즈 공개 레이아웃 값이 올바르지 않습니다.';
+    }
+    $siteMenuOptions = [];
+    if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+        require_once SR_ROOT . '/modules/site_menu/helpers.php';
+        $siteMenuOptions = sr_site_menu_options($pdo);
+    }
+    foreach (sr_quiz_layout_menu_slots() as $menuSettingKey) {
+        $menuKey = (string) ($settings[$menuSettingKey] ?? '');
+        if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey])) {
+            $errors[] = '퀴즈 레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
+            break;
+        }
+    }
     if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
     }
@@ -273,6 +326,26 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     }
 
     return array_values(array_unique($errors));
+}
+
+function sr_quiz_public_layout_context(array $settings, array $context = []): array
+{
+    $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
+    if ($layoutKey !== '') {
+        $context['layout_key'] = $layoutKey;
+    }
+
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/quiz/assets/public.css';
+    $context['stylesheets'] = $stylesheets;
+
+    $siteMenus = [];
+    foreach (sr_quiz_layout_menu_slots() as $slotKey => $settingKey) {
+        $siteMenus[$slotKey] = sr_quiz_clean_layout_menu_key((string) ($settings[$settingKey] ?? ($slotKey === 'primary' ? 'header' : '')));
+    }
+    $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
+
+    return $context;
 }
 
 function sr_quiz_save_settings(PDO $pdo, array $settings): void
