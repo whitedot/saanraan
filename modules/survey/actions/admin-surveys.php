@@ -531,15 +531,26 @@ function sr_survey_replace_reward_policy(PDO $pdo, int $surveyId, bool $enabled,
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result($errors, $notice);
 $errors = array_merge($errors, (array) ($flashResult['errors'] ?? []));
 $notice = (string) ($flashResult['notice'] ?? $notice);
-$mode = sr_get_string('mode', 20) === 'edit' ? 'edit' : (sr_get_string('mode', 20) === 'new' ? 'new' : 'list');
-$editSurvey = $mode === 'edit' ? sr_survey_by_id($pdo, (int) sr_get_string('id', 20)) : null;
-if ($mode === 'edit' && !is_array($editSurvey)) {
+$requestedMode = sr_get_string('mode', 20);
+$mode = in_array($requestedMode, ['edit', 'new', 'copy'], true) ? $requestedMode : 'list';
+$editSurvey = in_array($mode, ['edit', 'copy'], true) ? sr_survey_by_id($pdo, (int) sr_get_string('id', 20)) : null;
+if (in_array($mode, ['edit', 'copy'], true) && !is_array($editSurvey)) {
     sr_render_error(404, '설문을 찾을 수 없습니다.');
 }
 $editQuestions = is_array($editSurvey) ? sr_survey_questions_with_choices($pdo, (int) $editSurvey['id']) : [];
-$editPolicy = is_array($editSurvey) ? sr_survey_active_reward_policy($pdo, (int) $editSurvey['id']) : null;
+$editPolicy = $mode === 'edit' && is_array($editSurvey) ? sr_survey_active_reward_policy($pdo, (int) $editSurvey['id']) : null;
+if ($mode === 'copy' && is_array($editSurvey)) {
+    $editSurvey['id'] = 0;
+    $editSurvey['survey_key'] = sr_survey_clean_key((string) ($editSurvey['survey_key'] ?? '') . '_copy', 64);
+    $editSurvey['title'] = (string) ($editSurvey['title'] ?? '') . ' 복사본';
+    $editSurvey['status'] = 'draft';
+    $editSurvey['reward_enabled'] = 0;
+    $editSurvey['public_listed'] = 0;
+    $editSurvey['questionnaire_version'] = 1;
+    $editSurvey['revision_locked'] = 0;
+}
 
-$adminPageTitle = $mode === 'list' ? '설문 관리' : ($mode === 'edit' ? '설문 수정' : '설문 생성');
+$adminPageTitle = $mode === 'list' ? '설문 관리' : ($mode === 'edit' ? '설문 수정' : ($mode === 'copy' ? '설문 복사' : '설문 생성'));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
@@ -597,7 +608,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $survey['updated_at']); ?></td>
                             <td class="text-end">
                                 <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=edit&id=' . (string) (int) $survey['id'])); ?>">수정</a>
-                                <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/survey/' . (string) $survey['survey_key'])); ?>" target="_blank">보기</a>
+                                <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=copy&id=' . (string) (int) $survey['id'])); ?>">복사</a>
+                                <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/survey/' . (string) $survey['survey_key'] . '?preview=admin')); ?>" target="_blank">미리보기</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

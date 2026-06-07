@@ -585,9 +585,13 @@ function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, in
         if (!is_array($survey)) {
             throw new RuntimeException('현재 참여할 수 없는 설문입니다.');
         }
-        $access = sr_survey_account_can_respond($pdo, $survey, $accountId);
-        if (empty($access['allowed'])) {
-            throw new RuntimeException((string) ($access['message'] ?? '현재 참여할 수 없는 설문입니다.'));
+        if (!$isTest) {
+            $access = sr_survey_account_can_respond($pdo, $survey, $accountId);
+            if (empty($access['allowed'])) {
+                throw new RuntimeException((string) ($access['message'] ?? '현재 참여할 수 없는 설문입니다.'));
+            }
+        } elseif ($accountId < 1) {
+            throw new RuntimeException('관리자 테스트 제출은 로그인 계정이 필요합니다.');
         }
         $questions = sr_survey_questions_with_choices($pdo, $surveyId);
         if ($questions === []) {
