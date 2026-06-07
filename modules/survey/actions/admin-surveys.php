@@ -878,20 +878,130 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             ],
         ];
     }
+    $surveyHelpOpenLabel = '설명 보기';
+    $surveyHelpBodyHtml = static function (array $items): string {
+        $html = '';
+        foreach ($items as $item) {
+            $html .= '<p>' . sr_e((string) $item) . '</p>';
+        }
+        return $html;
+    };
+    $surveyHelp = [
+        'survey_key' => [
+            'id' => 'survey-help-key-modal',
+            'title' => '설문 Key',
+            'body_html' => $surveyHelpBodyHtml([
+                '공개 URL과 내부 연결에 쓰는 고유 식별자입니다.',
+                '소문자, 숫자, 밑줄만 사용하고 첫 글자는 소문자로 시작해야 합니다.',
+            ]),
+        ],
+        'status' => [
+            'id' => 'survey-help-status-modal',
+            'title' => '상태',
+            'body_html' => $surveyHelpBodyHtml([
+                '공개 상태는 설문 목록 노출과 상세 진입 가능 여부에 영향을 줍니다.',
+                '공개 기간, 로그인, 회원 그룹, 응답 제한은 제출 직전에 서버에서 다시 확인합니다.',
+            ]),
+        ],
+        'response_limit' => [
+            'id' => 'survey-help-response-limit-modal',
+            'title' => '응답 제한',
+            'body_html' => $surveyHelpBodyHtml([
+                '같은 참여자가 설문에 다시 응답할 수 있는 기준입니다.',
+                '기간당 1회를 선택하면 제한 기간을 초 단위로 입력해야 합니다.',
+            ]),
+        ],
+        'member_groups' => [
+            'id' => 'survey-help-member-groups-modal',
+            'title' => '참여 대상 회원 그룹',
+            'body_html' => $surveyHelpBodyHtml([
+                '선택한 활성 회원 그룹에 속한 로그인 회원만 참여할 수 있습니다.',
+                '그룹을 선택하지 않으면 로그인 조건에 맞는 전체 회원이 참여할 수 있습니다.',
+            ]),
+        ],
+        'consent' => [
+            'id' => 'survey-help-consent-modal',
+            'title' => '참여 동의',
+            'body_html' => $surveyHelpBodyHtml([
+                '동의 필요를 켜면 참여자가 제출 전에 동의 문구를 확인해야 합니다.',
+                '동의 문구와 개인정보 안내는 응답 스냅샷에도 함께 보관됩니다.',
+            ]),
+        ],
+        'reward' => [
+            'id' => 'survey-help-reward-modal',
+            'title' => '보상',
+            'body_html' => $surveyHelpBodyHtml([
+                '보상 사용을 켜면 설문 제출 완료 후 포인트/금액 또는 쿠폰 지급을 시도합니다.',
+                '보상 설문은 로그인 필요 상태에서만 저장되며, 지급 직전에 공급자 상태를 다시 확인합니다.',
+            ]),
+        ],
+        'questions' => [
+            'id' => 'survey-help-questions-modal',
+            'title' => '문항 관리',
+            'body_html' => $surveyHelpBodyHtml([
+                '문항 표에서 등록된 문항의 key, 유형, 필수 여부, 선택지 수를 확인합니다.',
+                '문항 등록과 수정은 모달에서 처리하고, 저장 시 서버가 key, 내용, 선택지, 범위를 다시 검증합니다.',
+            ]),
+        ],
+        'question_key' => [
+            'id' => 'survey-help-question-key-modal',
+            'title' => '문항 Key',
+            'body_html' => $surveyHelpBodyHtml([
+                '한 설문 안에서 문항을 구분하는 내부 식별자입니다.',
+                '통계, 분석 CSV, 개인정보 사본에서 문항을 안정적으로 찾는 기준이 됩니다.',
+            ]),
+        ],
+        'question_type' => [
+            'id' => 'survey-help-question-type-modal',
+            'title' => '문항 유형',
+            'body_html' => $surveyHelpBodyHtml([
+                '선택형, 텍스트, 숫자, 별점, 척도 등 답변 저장 방식과 검증 기준을 결정합니다.',
+                '선택형 문항은 선택지를 2개 이상 입력해야 합니다.',
+            ]),
+        ],
+        'choices' => [
+            'id' => 'survey-help-choices-modal',
+            'title' => '선택지',
+            'body_html' => $surveyHelpBodyHtml([
+                '선택형 문항에서 보여줄 선택지를 줄마다 하나씩 입력합니다.',
+                '기타 답변 허용은 선택지와 별개로 기타 텍스트 입력을 받을지 결정합니다.',
+            ]),
+        ],
+    ];
+    $surveyHelpButtonHtml = static function (string $label, string $modalId) use ($surveyHelpOpenLabel): string {
+        $modalId = trim($modalId);
+
+        return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $surveyHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+            . sr_material_icon_html('help')
+            . '</button>';
+    };
+    $questionSlots = [];
+    for ($slotIndex = 0; $slotIndex < 10; $slotIndex++) {
+        $questionSlots[$slotIndex] = is_array($editQuestions[$slotIndex] ?? null)
+            ? $editQuestions[$slotIndex]
+            : ['question_key' => '', 'question_type' => 'single_choice', 'prompt' => '', 'analysis_note' => '', 'required' => 1, 'min_choices' => null, 'max_choices' => null, 'scale_points' => null, 'scale_min_label' => '', 'scale_max_label' => '', 'number_unit' => '', 'number_min' => null, 'number_max' => null, 'allow_decimal' => 0, 'allow_other' => 0, 'nonresponse_policy' => 'none', 'choices' => []];
+    }
+    $firstEmptyQuestionIndex = null;
+    foreach ($questionSlots as $slotIndex => $questionSlot) {
+        if (trim((string) ($questionSlot['question_key'] ?? '')) === '' && trim((string) ($questionSlot['prompt'] ?? '')) === '') {
+            $firstEmptyQuestionIndex = $slotIndex;
+            break;
+        }
+    }
     ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme">
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="save">
-        <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
-        <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
-        <div class="card-body">
-            <div class="form-field">
-                <label class="form-label" for="survey_key">설문 key <span class="sr-required-label">(필수)</span></label>
-                <input id="survey_key" type="text" name="survey_key" value="<?php echo sr_e((string) ($values['survey_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input>
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_title">제목 <span class="sr-required-label">(필수)</span></label>
-                <input id="survey_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190">
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="save">
+            <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
+            <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
+            <div class="card-body">
+                <div class="form-field">
+                    <?php echo sr_admin_form_label_help_html('survey_key', '설문 key', $surveyHelp['survey_key']['id'], $surveyHelpOpenLabel, true); ?>
+                    <input id="survey_key" type="text" name="survey_key" value="<?php echo sr_e((string) ($values['survey_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_title">제목 <span class="sr-required-label">(필수)</span></label>
+                    <input id="survey_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190" required>
             </div>
             <div class="form-field">
                 <label class="form-label" for="survey_description">설명</label>
@@ -974,8 +1084,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-field">
-                <label class="form-label" for="survey_status">상태 <span class="sr-required-label">(필수)</span></label>
-                <select id="survey_status" name="status" class="form-select">
+                <?php echo sr_admin_form_label_help_html('survey_status', '상태', $surveyHelp['status']['id'], $surveyHelpOpenLabel, true); ?>
+                <select id="survey_status" name="status" class="form-select" required>
                     <?php foreach (sr_survey_statuses() as $status): ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
                     <?php endforeach; ?>
@@ -1013,7 +1123,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-field">
-                <label class="form-label">참여 대상 회원 그룹</label>
+                <div class="form-label admin-form-label-help"><?php echo $surveyHelpButtonHtml('참여 대상 회원 그룹', $surveyHelp['member_groups']['id']); ?><span>참여 대상 회원 그룹</span></div>
                 <div class="admin-checkbox-list">
                     <?php if ($memberGroups === []): ?>
                         <p class="admin-form-help">선택 가능한 회원 그룹이 없습니다.</p>
@@ -1030,7 +1140,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="form-grid">
                 <div class="form-field">
-                    <label class="form-label" for="survey_response_limit_policy">응답 제한</label>
+                    <?php echo sr_admin_form_label_help_html('survey_response_limit_policy', '응답 제한', $surveyHelp['response_limit']['id'], $surveyHelpOpenLabel); ?>
                     <select id="survey_response_limit_policy" name="response_limit_policy" class="form-select">
                         <?php foreach (sr_survey_response_limit_policies() as $limitPolicy): ?>
                             <option value="<?php echo sr_e($limitPolicy); ?>"<?php echo (string) ($values['response_limit_policy'] ?? 'per_survey_once') === $limitPolicy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($limitPolicy)); ?></option>
@@ -1138,10 +1248,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="card-header"><h2 class="card-title">참여 동의</h2></div>
         <div class="card-body">
-            <label class="admin-form-check form-label" for="survey_consent_required">
-                <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-checkbox"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                동의 필요
-            </label>
+            <div class="form-field">
+                <div class="form-label admin-form-label-help"><?php echo $surveyHelpButtonHtml('참여 동의', $surveyHelp['consent']['id']); ?><span>동의 필요</span></div>
+                <label class="admin-form-check form-label" for="survey_consent_required">
+                    <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-checkbox"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                    참여자 동의 확인
+                </label>
+            </div>
             <div class="form-field">
                 <label class="form-label" for="survey_consent_text">동의 문구</label>
                 <textarea id="survey_consent_text" name="consent_text" class="form-textarea"><?php echo sr_e((string) ($values['consent_text'] ?? '')); ?></textarea>
@@ -1153,10 +1266,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="card-header"><h2 class="card-title">보상</h2></div>
         <div class="card-body">
-            <label class="admin-form-check form-label" for="survey_reward_enabled">
-                <input id="survey_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                보상 사용
-            </label>
+            <div class="form-field">
+                <div class="form-label admin-form-label-help"><?php echo $surveyHelpButtonHtml('보상', $surveyHelp['reward']['id']); ?><span>보상 사용</span></div>
+                <label class="admin-form-check form-label" for="survey_reward_enabled">
+                    <input id="survey_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                    제출 완료 후 보상 지급
+                </label>
+            </div>
             <div class="form-grid">
                 <div class="form-field">
                     <label class="form-label" for="survey_reward_provider">보상 공급자</label>
@@ -1198,114 +1314,164 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </div>
-        <div class="card-header"><h2 class="card-title">문항</h2></div>
-        <div class="card-body">
-            <?php for ($index = 0; $index < 10; $index++): ?>
-                <?php $question = is_array($editQuestions[$index] ?? null) ? $editQuestions[$index] : ['question_key' => '', 'question_type' => 'single_choice', 'prompt' => '', 'analysis_note' => '', 'required' => 1, 'min_choices' => null, 'max_choices' => null, 'scale_points' => null, 'scale_min_label' => '', 'scale_max_label' => '', 'number_unit' => '', 'number_min' => null, 'number_max' => null, 'allow_decimal' => 0, 'allow_other' => 0, 'nonresponse_policy' => 'none', 'choices' => []]; ?>
-                <div class="admin-survey-question-row">
-                    <div class="admin-survey-question-row-header">
-                        <strong>문항 <?php echo sr_e((string) ($index + 1)); ?></strong>
-                        <span class="admin-summary-meta">비워두면 저장 시 제외됩니다.</span>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label class="form-label" for="question_key_<?php echo sr_e((string) $index); ?>">문항 key</label>
-                            <input id="question_key_<?php echo sr_e((string) $index); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input>
+        <section class="admin-card admin-list-card card admin-list-form admin-survey-question-list-card">
+            <div class="card-header">
+                <h2 class="card-title admin-form-label-help"><?php echo $surveyHelpButtonHtml('문항 관리', $surveyHelp['questions']['id']); ?><span>문항</span></h2>
+                <div class="card-actions">
+                    <?php if ($firstEmptyQuestionIndex !== null): ?>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="survey-question-modal-<?php echo sr_e((string) $firstEmptyQuestionIndex); ?>" data-overlay="#survey-question-modal-<?php echo sr_e((string) $firstEmptyQuestionIndex); ?>">문항 등록</button>
+                    <?php else: ?>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled>문항 등록</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="table admin-survey-question-table">
+                    <thead class="ui-table-head">
+                        <tr>
+                            <th>순서</th>
+                            <th>Key</th>
+                            <th>문항</th>
+                            <th>유형</th>
+                            <th>필수</th>
+                            <th>선택지</th>
+                            <th class="text-end">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($questionSlots as $index => $question): ?>
+                            <?php
+                            $questionKey = trim((string) ($question['question_key'] ?? ''));
+                            $questionPrompt = trim((string) ($question['prompt'] ?? ''));
+                            $questionRegistered = $questionKey !== '' || $questionPrompt !== '';
+                            $questionChoices = array_values(array_filter((array) ($question['choices'] ?? []), static fn (array $choice): bool => (int) ($choice['is_other'] ?? 0) !== 1 && (int) ($choice['is_nonresponse'] ?? 0) !== 1));
+                            $questionModalId = 'survey-question-modal-' . (string) $index;
+                            ?>
+                            <tr>
+                                <td class="admin-table-nowrap"><?php echo sr_e((string) ($index + 1)); ?></td>
+                                <td class="admin-table-nowrap"><?php echo $questionKey !== '' ? '<code>' . sr_e($questionKey) . '</code>' : '<span class="admin-summary-meta">미등록</span>'; ?></td>
+                                <td class="admin-table-break"><strong><?php echo sr_e($questionPrompt !== '' ? $questionPrompt : '문항 없음'); ?></strong></td>
+                                <td class="admin-table-nowrap"><?php echo sr_e(sr_survey_question_type_label((string) ($question['question_type'] ?? 'single_choice'))); ?></td>
+                                <td class="admin-table-nowrap"><span class="admin-status <?php echo (int) ($question['required'] ?? 1) === 1 ? 'is-normal' : 'is-left'; ?>"><?php echo (int) ($question['required'] ?? 1) === 1 ? '필수' : '선택'; ?></span></td>
+                                <td class="admin-table-nowrap"><?php echo sr_e(number_format(count($questionChoices))); ?></td>
+                                <td class="admin-table-actions-cell">
+                                    <div class="admin-row-actions">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo $questionRegistered ? '문항 수정' : '문항 등록'; ?>" title="<?php echo $questionRegistered ? '수정' : '등록'; ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($questionModalId); ?>" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo sr_material_icon_html($questionRegistered ? 'edit' : 'add'); ?></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <?php foreach ($questionSlots as $index => $question): ?>
+            <?php
+            $questionModalId = 'survey-question-modal-' . (string) $index;
+            $questionKey = trim((string) ($question['question_key'] ?? ''));
+            $questionPrompt = trim((string) ($question['prompt'] ?? ''));
+            $questionRegistered = $questionKey !== '' || $questionPrompt !== '';
+            $choiceLines = array_map(static fn (array $choice): string => (string) ($choice['label'] ?? ''), array_values(array_filter((array) ($question['choices'] ?? []), static fn (array $choice): bool => (int) ($choice['is_other'] ?? 0) !== 1 && (int) ($choice['is_nonresponse'] ?? 0) !== 1)));
+            ?>
+            <div id="<?php echo sr_e($questionModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($questionModalId); ?>-label" aria-hidden="true" inert>
+                <div class="modal-dialog modal-dialog-lg">
+                    <div class="modal-content ui-form-theme">
+                        <div class="modal-header">
+                            <h3 id="<?php echo sr_e($questionModalId); ?>-label" class="modal-title admin-form-label-help"><?php echo $surveyHelpButtonHtml('문항 관리', $surveyHelp['questions']['id']); ?><span><?php echo $questionRegistered ? '문항 ' . sr_e((string) ($index + 1)) . ' 수정' : '문항 등록'; ?></span></h3>
+                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
-                        <div class="form-field">
-                            <label class="form-label" for="question_type_<?php echo sr_e((string) $index); ?>">유형</label>
-                            <select id="question_type_<?php echo sr_e((string) $index); ?>" name="question_type[]" class="form-select">
-                                <?php foreach (sr_survey_question_types() as $type): ?>
-                                    <option value="<?php echo sr_e($type); ?>"<?php echo (string) ($question['question_type'] ?? '') === $type ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_question_type_label($type)); ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="modal-body">
+                            <div class="admin-form-row">
+                                <?php echo sr_admin_form_label_help_html('question_type_' . (string) $index, '유형', $surveyHelp['question_type']['id'], $surveyHelpOpenLabel); ?>
+                                <div class="admin-form-field">
+                                    <select id="question_type_<?php echo sr_e((string) $index); ?>" name="question_type[]" class="form-select">
+                                        <?php foreach (sr_survey_question_types() as $type): ?>
+                                            <option value="<?php echo sr_e($type); ?>"<?php echo (string) ($question['question_type'] ?? '') === $type ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_question_type_label($type)); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <?php echo sr_admin_form_label_help_html('question_key_' . (string) $index, '문항 key', $surveyHelp['question_key']['id'], $surveyHelpOpenLabel); ?>
+                                <div class="admin-form-field">
+                                    <input id="question_key_<?php echo sr_e((string) $index); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-overlay-focus>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="question_prompt_<?php echo sr_e((string) $index); ?>">문항 내용</label>
+                                <div class="admin-form-field">
+                                    <textarea id="question_prompt_<?php echo sr_e((string) $index); ?>" name="question_prompt[]" class="form-textarea" rows="3"><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="question_analysis_note_<?php echo sr_e((string) $index); ?>">분석 메모</label>
+                                <div class="admin-form-field">
+                                    <textarea id="question_analysis_note_<?php echo sr_e((string) $index); ?>" name="question_analysis_note[]" class="form-textarea" rows="3"><?php echo sr_e((string) ($question['analysis_note'] ?? '')); ?></textarea>
+                                    <p class="admin-form-help">분석 코드북이나 품질 판정에 참고할 내부 메모입니다.</p>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <span class="form-label">검증 옵션</span>
+                                <div class="admin-form-field admin-survey-question-option-grid">
+                                    <label class="admin-form-check form-label" for="question_required_<?php echo sr_e((string) $index); ?>">
+                                        <input id="question_required_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_required[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['required'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                                        필수
+                                    </label>
+                                    <label class="admin-form-check form-label" for="question_allow_decimal_<?php echo sr_e((string) $index); ?>">
+                                        <input id="question_allow_decimal_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_decimal[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                        소수 허용
+                                    </label>
+                                    <label class="admin-form-check form-label" for="question_allow_other_<?php echo sr_e((string) $index); ?>">
+                                        <input id="question_allow_other_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_other[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_other'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                        기타 답변 허용
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <span class="form-label">수치/선택 범위</span>
+                                <div class="admin-form-field admin-survey-question-option-grid">
+                                    <input id="question_min_choices_<?php echo sr_e((string) $index); ?>" type="number" name="question_min_choices[]" value="<?php echo sr_e((string) ($question['min_choices'] ?? '')); ?>" class="form-input" min="0" placeholder="최소 선택 수">
+                                    <input id="question_max_choices_<?php echo sr_e((string) $index); ?>" type="number" name="question_max_choices[]" value="<?php echo sr_e((string) ($question['max_choices'] ?? '')); ?>" class="form-input" min="0" placeholder="최대 선택 수">
+                                    <input id="question_scale_points_<?php echo sr_e((string) $index); ?>" type="number" name="question_scale_points[]" value="<?php echo sr_e((string) ($question['scale_points'] ?? '')); ?>" class="form-input" min="2" max="11" placeholder="척도 단계">
+                                    <input id="question_number_min_<?php echo sr_e((string) $index); ?>" type="number" name="question_number_min[]" value="<?php echo sr_e((string) ($question['number_min'] ?? '')); ?>" class="form-input" step="any" placeholder="최소값">
+                                    <input id="question_number_max_<?php echo sr_e((string) $index); ?>" type="number" name="question_number_max[]" value="<?php echo sr_e((string) ($question['number_max'] ?? '')); ?>" class="form-input" step="any" placeholder="최대값">
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <span class="form-label">표시 라벨</span>
+                                <div class="admin-form-field admin-survey-question-option-grid">
+                                    <input id="question_scale_min_label_<?php echo sr_e((string) $index); ?>" type="text" name="question_scale_min_label[]" value="<?php echo sr_e((string) ($question['scale_min_label'] ?? '')); ?>" class="form-input" maxlength="120" placeholder="낮은 값 라벨">
+                                    <input id="question_scale_max_label_<?php echo sr_e((string) $index); ?>" type="text" name="question_scale_max_label[]" value="<?php echo sr_e((string) ($question['scale_max_label'] ?? '')); ?>" class="form-input" maxlength="120" placeholder="높은 값 라벨">
+                                    <input id="question_number_unit_<?php echo sr_e((string) $index); ?>" type="text" name="question_number_unit[]" value="<?php echo sr_e((string) ($question['number_unit'] ?? '')); ?>" class="form-input" maxlength="60" placeholder="숫자 단위">
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="question_nonresponse_policy_<?php echo sr_e((string) $index); ?>">무응답 옵션</label>
+                                <div class="admin-form-field">
+                                    <select id="question_nonresponse_policy_<?php echo sr_e((string) $index); ?>" name="question_nonresponse_policy[]" class="form-select">
+                                        <option value="none"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'none' ? ' selected' : ''; ?>>없음</option>
+                                        <option value="allow_na"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_na' ? ' selected' : ''; ?>>해당 없음 허용</option>
+                                        <option value="allow_unknown"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_unknown' ? ' selected' : ''; ?>>모름 허용</option>
+                                        <option value="allow_refusal"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_refusal' ? ' selected' : ''; ?>>응답 거부 허용</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <span class="form-label admin-form-label-help"><?php echo $surveyHelpButtonHtml('선택지', $surveyHelp['choices']['id']); ?><span>선택지</span></span>
+                                <div class="admin-form-field">
+                                    <textarea id="choice_labels_<?php echo sr_e((string) $index); ?>" name="choice_labels[]" class="form-textarea" rows="6"><?php echo sr_e(implode("\n", $choiceLines)); ?></textarea>
+                                    <p class="admin-form-help">선택형 문항만 줄마다 하나씩 입력합니다.</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-field">
-                            <label class="admin-form-check form-label" for="question_required_<?php echo sr_e((string) $index); ?>">
-                                <input id="question_required_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_required[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['required'] ?? 1) === 1 ? ' checked' : ''; ?>>
-                                필수
-                            </label>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#<?php echo sr_e($questionModalId); ?>"><?php echo $questionRegistered ? '확인' : '등록'; ?></button>
                         </div>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label" for="question_prompt_<?php echo sr_e((string) $index); ?>">문항 내용</label>
-                        <textarea id="question_prompt_<?php echo sr_e((string) $index); ?>" name="question_prompt[]" class="form-textarea"><?php echo sr_e((string) ($question['prompt'] ?? '')); ?></textarea>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label" for="question_analysis_note_<?php echo sr_e((string) $index); ?>">분석 메모</label>
-                        <textarea id="question_analysis_note_<?php echo sr_e((string) $index); ?>" name="question_analysis_note[]" class="form-textarea"><?php echo sr_e((string) ($question['analysis_note'] ?? '')); ?></textarea>
-                        <p class="admin-form-help">분석 코드북이나 품질 판정에 참고할 내부 메모입니다.</p>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label class="form-label" for="question_min_choices_<?php echo sr_e((string) $index); ?>">최소 선택 수</label>
-                            <input id="question_min_choices_<?php echo sr_e((string) $index); ?>" type="number" name="question_min_choices[]" value="<?php echo sr_e((string) ($question['min_choices'] ?? '')); ?>" class="form-input" min="0">
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label" for="question_max_choices_<?php echo sr_e((string) $index); ?>">최대 선택 수</label>
-                            <input id="question_max_choices_<?php echo sr_e((string) $index); ?>" type="number" name="question_max_choices[]" value="<?php echo sr_e((string) ($question['max_choices'] ?? '')); ?>" class="form-input" min="0">
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label" for="question_scale_points_<?php echo sr_e((string) $index); ?>">척도 단계</label>
-                            <input id="question_scale_points_<?php echo sr_e((string) $index); ?>" type="number" name="question_scale_points[]" value="<?php echo sr_e((string) ($question['scale_points'] ?? '')); ?>" class="form-input" min="2" max="11">
-                        </div>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label class="form-label" for="question_scale_min_label_<?php echo sr_e((string) $index); ?>">낮은 값 라벨</label>
-                            <input id="question_scale_min_label_<?php echo sr_e((string) $index); ?>" type="text" name="question_scale_min_label[]" value="<?php echo sr_e((string) ($question['scale_min_label'] ?? '')); ?>" class="form-input" maxlength="120">
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label" for="question_scale_max_label_<?php echo sr_e((string) $index); ?>">높은 값 라벨</label>
-                            <input id="question_scale_max_label_<?php echo sr_e((string) $index); ?>" type="text" name="question_scale_max_label[]" value="<?php echo sr_e((string) ($question['scale_max_label'] ?? '')); ?>" class="form-input" maxlength="120">
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label" for="question_number_unit_<?php echo sr_e((string) $index); ?>">숫자 단위</label>
-                            <input id="question_number_unit_<?php echo sr_e((string) $index); ?>" type="text" name="question_number_unit[]" value="<?php echo sr_e((string) ($question['number_unit'] ?? '')); ?>" class="form-input" maxlength="60">
-                        </div>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label class="form-label" for="question_number_min_<?php echo sr_e((string) $index); ?>">최소값</label>
-                            <input id="question_number_min_<?php echo sr_e((string) $index); ?>" type="number" name="question_number_min[]" value="<?php echo sr_e((string) ($question['number_min'] ?? '')); ?>" class="form-input" step="any">
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label" for="question_number_max_<?php echo sr_e((string) $index); ?>">최대값</label>
-                            <input id="question_number_max_<?php echo sr_e((string) $index); ?>" type="number" name="question_number_max[]" value="<?php echo sr_e((string) ($question['number_max'] ?? '')); ?>" class="form-input" step="any">
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label" for="question_nonresponse_policy_<?php echo sr_e((string) $index); ?>">무응답 옵션</label>
-                            <select id="question_nonresponse_policy_<?php echo sr_e((string) $index); ?>" name="question_nonresponse_policy[]" class="form-select">
-                                <option value="none"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'none' ? ' selected' : ''; ?>>없음</option>
-                                <option value="allow_na"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_na' ? ' selected' : ''; ?>>해당 없음 허용</option>
-                                <option value="allow_unknown"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_unknown' ? ' selected' : ''; ?>>모름 허용</option>
-                                <option value="allow_refusal"<?php echo (string) ($question['nonresponse_policy'] ?? 'none') === 'allow_refusal' ? ' selected' : ''; ?>>응답 거부 허용</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label class="admin-form-check form-label" for="question_allow_decimal_<?php echo sr_e((string) $index); ?>">
-                                <input id="question_allow_decimal_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_decimal[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                소수 허용
-                            </label>
-                        </div>
-                        <div class="form-field">
-                            <label class="admin-form-check form-label" for="question_allow_other_<?php echo sr_e((string) $index); ?>">
-                                <input id="question_allow_other_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_other[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_other'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                기타 답변 허용
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label" for="choice_labels_<?php echo sr_e((string) $index); ?>">선택지</label>
-                        <?php $choiceLines = array_map(static fn (array $choice): string => (string) ($choice['label'] ?? ''), array_values(array_filter((array) ($question['choices'] ?? []), static fn (array $choice): bool => (int) ($choice['is_other'] ?? 0) !== 1 && (int) ($choice['is_nonresponse'] ?? 0) !== 1))); ?>
-                        <textarea id="choice_labels_<?php echo sr_e((string) $index); ?>" name="choice_labels[]" class="form-textarea"><?php echo sr_e(implode("\n", $choiceLines)); ?></textarea>
-                        <p class="admin-form-help">선택형 문항만 줄마다 하나씩 입력합니다.</p>
                     </div>
                 </div>
-            <?php endfor; ?>
-        </div>
+            </div>
+        <?php endforeach; ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
@@ -1325,6 +1491,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </form>
     <?php endif; ?>
+<?php endif; ?>
+<?php if (isset($surveyHelp) && is_array($surveyHelp)): ?>
+    <?php foreach ($surveyHelp as $surveyHelpModal): ?>
+        <?php echo sr_admin_help_modal_html((string) $surveyHelpModal['id'], (string) $surveyHelpModal['title'], (string) $surveyHelpModal['body_html']); ?>
+    <?php endforeach; ?>
 <?php endif; ?>
 <?php
 include SR_ROOT . '/modules/admin/views/layout-footer.php';

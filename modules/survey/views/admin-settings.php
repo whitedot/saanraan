@@ -1,57 +1,137 @@
 <?php
 include SR_ROOT . '/modules/admin/views/layout-header.php';
+
+$surveySettingsHelpOpenLabel = '설명 보기';
+$surveySettingsHelpBodyHtml = static function (array $items): string {
+    $html = '';
+    foreach ($items as $item) {
+        $html .= '<p>' . sr_e((string) $item) . '</p>';
+    }
+    return $html;
+};
+$surveySettingsHelp = [
+    'default_status' => [
+        'id' => 'survey-settings-help-default-status',
+        'title' => '기본 상태',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '새 설문을 만들 때 먼저 선택되어 있을 상태입니다.',
+            '바로 공개하지 않으려면 초안으로 두고, 문항과 QA 점검을 마친 뒤 수정 화면에서 공개로 바꿉니다.',
+        ]),
+    ],
+    'default_response_limit_policy' => [
+        'id' => 'survey-settings-help-default-response-limit-policy',
+        'title' => '기본 응답 제한',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '회원 또는 익명 응답자가 같은 설문에 다시 응답할 수 있는 기본 기준입니다.',
+            '기간당 1회를 선택하면 제한 기간을 초 단위로 함께 입력해야 합니다.',
+        ]),
+    ],
+    'default_response_limit_period_seconds' => [
+        'id' => 'survey-settings-help-default-response-limit-period',
+        'title' => '기본 제한 기간',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '기본 응답 제한이 기간당 1회일 때만 사용하는 초 단위 값입니다.',
+            '예를 들어 하루에 한 번만 응답하게 하려면 86400을 입력합니다.',
+        ]),
+    ],
+    'public_list_limit' => [
+        'id' => 'survey-settings-help-public-list-limit',
+        'title' => '공개 목록 노출 수',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '공개 설문 목록에서 한 번에 가져올 설문 수입니다.',
+            '관리자 목록과 응답 목록의 페이지 크기는 관리자 공통 페이징 설정을 계속 사용합니다.',
+        ]),
+    ],
+    'default_login_required' => [
+        'id' => 'survey-settings-help-default-login-required',
+        'title' => '로그인 필요',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '새 설문 생성 시 로그인 필요를 기본으로 켤지 정합니다.',
+            '보상 설문이나 회원 그룹 제한 설문은 저장 시점에 로그인 필요 상태가 강제됩니다.',
+        ]),
+    ],
+    'default_consent_required' => [
+        'id' => 'survey-settings-help-default-consent-required',
+        'title' => '참여 동의 필요',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '새 설문 생성 시 참여 동의 체크를 기본으로 켤지 정합니다.',
+            '동의가 필요한 설문은 저장할 때 동의 문구도 함께 입력해야 합니다.',
+        ]),
+    ],
+];
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
-<form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/settings')); ?>" class="admin-card card admin-form ui-form-theme">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
-    <div class="card-header"><h2 class="card-title">새 설문 기본값</h2></div>
-    <div class="card-body">
-        <div class="form-grid">
-            <div class="form-field">
-                <label class="form-label" for="survey_settings_default_status">기본 상태</label>
-                <select id="survey_settings_default_status" name="default_status" class="form-select">
-                    <?php foreach (sr_survey_statuses() as $status): ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($settings['default_status'] ?? 'draft') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
-                    <?php endforeach; ?>
-                </select>
+
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title">새 설문 기본값</h2>
+        </div>
+        <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_default_status', '기본 상태', $surveySettingsHelp['default_status']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <select id="survey_settings_default_status" name="default_status" class="form-select" required>
+                        <?php foreach (sr_survey_statuses() as $status): ?>
+                            <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($settings['default_status'] ?? 'draft') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_settings_response_limit_policy">기본 응답 제한</label>
-                <select id="survey_settings_response_limit_policy" name="default_response_limit_policy" class="form-select">
-                    <?php foreach (sr_survey_response_limit_policies() as $policy): ?>
-                        <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($settings['default_response_limit_policy'] ?? 'per_survey_once') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($policy)); ?></option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_policy', '기본 응답 제한', $surveySettingsHelp['default_response_limit_policy']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <select id="survey_settings_response_limit_policy" name="default_response_limit_policy" class="form-select" required>
+                        <?php foreach (sr_survey_response_limit_policies() as $policy): ?>
+                            <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($settings['default_response_limit_policy'] ?? 'per_survey_once') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($policy)); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_settings_response_limit_period">기본 제한 기간</label>
-                <input id="survey_settings_response_limit_period" type="number" name="default_response_limit_period_seconds" value="<?php echo sr_e((string) (int) ($settings['default_response_limit_period_seconds'] ?? 0)); ?>" class="form-input" min="0">
-                <p class="admin-form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_period', '기본 제한 기간', $surveySettingsHelp['default_response_limit_period_seconds']['id'], $surveySettingsHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <input id="survey_settings_response_limit_period" type="number" name="default_response_limit_period_seconds" value="<?php echo sr_e((string) (int) ($settings['default_response_limit_period_seconds'] ?? 0)); ?>" class="form-input" min="0">
+                    <p class="admin-form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+                </div>
             </div>
-            <div class="form-field">
-                <label class="form-label" for="survey_settings_public_list_limit">공개 목록 노출 수</label>
-                <input id="survey_settings_public_list_limit" type="number" name="public_list_limit" value="<?php echo sr_e((string) (int) ($settings['public_list_limit'] ?? 50)); ?>" class="form-input" min="1" max="100">
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_public_list_limit', '공개 목록 노출 수', $surveySettingsHelp['public_list_limit']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <input id="survey_settings_public_list_limit" type="number" name="public_list_limit" value="<?php echo sr_e((string) (int) ($settings['public_list_limit'] ?? 50)); ?>" class="form-input" min="1" max="100" required>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_login_required', '로그인 필요', $surveySettingsHelp['default_login_required']['id'], $surveySettingsHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="survey_settings_login_required">
+                        <input id="survey_settings_login_required" type="checkbox" name="default_login_required" value="1" class="form-checkbox"<?php echo (int) ($settings['default_login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                        새 설문에 기본 적용
+                    </label>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_consent_required', '참여 동의 필요', $surveySettingsHelp['default_consent_required']['id'], $surveySettingsHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="survey_settings_consent_required">
+                        <input id="survey_settings_consent_required" type="checkbox" name="default_consent_required" value="1" class="form-checkbox"<?php echo (int) ($settings['default_consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        새 설문에 기본 적용
+                    </label>
+                </div>
             </div>
         </div>
-        <div class="form-grid">
-            <div class="form-field">
-                <label class="admin-form-check form-label" for="survey_settings_login_required">
-                    <input id="survey_settings_login_required" type="checkbox" name="default_login_required" value="1" class="form-checkbox"<?php echo (int) ($settings['default_login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
-                    로그인 필요
-                </label>
-            </div>
-            <div class="form-field">
-                <label class="admin-form-check form-label" for="survey_settings_consent_required">
-                    <input id="survey_settings_consent_required" type="checkbox" name="default_consent_required" value="1" class="form-checkbox"<?php echo (int) ($settings['default_consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    참여 동의 필요
-                </label>
-            </div>
-        </div>
-    </div>
-    <div class="card-footer form-actions">
+    </section>
+
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+        <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">설문 목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
+
+<?php foreach ($surveySettingsHelp as $helpModal): ?>
+    <?php echo sr_admin_help_modal_html((string) $helpModal['id'], (string) $helpModal['title'], (string) $helpModal['body_html']); ?>
+<?php endforeach; ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

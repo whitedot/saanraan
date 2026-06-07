@@ -127,6 +127,47 @@
     border-bottom-width: 0;
 }
 
+.admin-survey-question-list-card {
+    margin-bottom: calc(var(--spacing) * 5);
+}
+
+.admin-survey-question-table .admin-status {
+    font-size: var(--type-caption-size);
+    line-height: 1;
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    border-radius: 999px;
+    justify-content: center;
+    align-items: center;
+    padding-block: .35rem;
+    padding-inline: .7rem;
+    display: inline-flex;
+}
+
+.admin-survey-question-table .admin-status.is-normal {
+    background: var(--color-default-50);
+    background: color-mix(in oklab, var(--color-success) 14%, var(--color-card));
+    color: var(--color-success-hover);
+}
+
+.admin-survey-question-table .admin-status.is-left {
+    background: var(--color-default-50);
+    background: color-mix(in oklab, var(--color-danger) 12%, var(--color-card));
+    color: var(--color-danger-hover);
+}
+
+.admin-survey-question-option-grid {
+    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: calc(var(--spacing) * 2);
+    width: 100%;
+}
+
+.admin-survey-question-option-grid .form-input {
+    width: 100%;
+}
+
 .admin-survey-form .form-field:has(> .admin-form-check.form-label:first-child) {
     display: flex;
     align-items: center;
