@@ -166,6 +166,7 @@ input:focus-visible + [class*=btn-choice-],[class*=btn-choice-]:has(> .form-choi
 .badge-list-label{font-weight:var(--font-weight-semibold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge-list-summary{color:var(--color-default-600);font-size:var(--text-xs);line-height:var(--text-xs--line-height);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .admin-select-badge-list{display:grid;gap:calc(var(--spacing) * 1.5);min-width:0}
+.admin-select-badge-list-control{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5);min-width:0}
 .admin-select-badge-list-select{max-width:24rem}
 .admin-select-badge-list-remove{flex:0 0 auto}
 .table-wrapper{width:100%;position:relative;overflow:auto}

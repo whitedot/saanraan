@@ -378,7 +378,8 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         return $html . '</div>';
     }
 
-    $html .= '<select id="' . sr_e($idBase . '_select') . '" class="form-select admin-select-badge-list-select" data-admin-select-badge-list-select>'
+    $html .= '<div class="admin-select-badge-list-control">'
+        . '<select id="' . sr_e($idBase . '_select') . '" class="form-select admin-select-badge-list-select" data-admin-select-badge-list-select>'
         . '<option value="">' . sr_e($placeholder) . '</option>';
     foreach ($options as $value => $option) {
         $value = (string) $value;
@@ -414,7 +415,9 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
             . sr_e($label)
             . '</option>';
     }
-    $html .= '</select><div class="badge-list" data-admin-select-badge-list-items>';
+    $html .= '</select>'
+        . '<button type="button" class="btn btn-icon btn-solid-light admin-select-badge-list-clear" data-admin-select-badge-clear aria-label="선택 항목 모두 제거" title="선택 항목 모두 제거" disabled>' . sr_material_icon_html('delete') . '</button>'
+        . '</div><div class="badge-list" data-admin-select-badge-list-items>';
 
     foreach ($options as $value => $option) {
         $value = (string) $value;
@@ -573,6 +576,10 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
             option.disabled = blocked;
         });
         select.value = "";
+        var clearButton = root.querySelector("[data-admin-select-badge-clear]");
+        if (clearButton) {
+            clearButton.disabled = Object.keys(values).length === 0;
+        }
     }
     function addItem(root, value, label, summary) {
         var items = root.querySelector("[data-admin-select-badge-list-items]");
@@ -622,6 +629,17 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
         addItem(root, select.value, optionLabel(option), optionSummary(option, root));
     });
     document.addEventListener("click", function (event) {
+        var clearButton = event.target && event.target.closest ? event.target.closest("[data-admin-select-badge-clear]") : null;
+        if (clearButton) {
+            var clearRoot = clearButton.closest("[data-admin-select-badge-list]");
+            if (clearRoot) {
+                clearRoot.querySelectorAll("[data-admin-select-badge-item]").forEach(function (item) {
+                    item.remove();
+                });
+                syncOptions(clearRoot);
+            }
+            return;
+        }
         var button = event.target && event.target.closest ? event.target.closest("[data-admin-select-badge-remove]") : null;
         if (!button) {
             return;
