@@ -17,12 +17,15 @@
 - 관리자 `/admin/surveys`에서 연구 목적, 대상자, 모집 방법, 프로젝트 개요, 의뢰/후원, 지역/언어, 실사 방식, 표본틀, 표본 추출, 목표 표본 수, 쿼터, 응답률 산정 기준, 분석/가중치/오차/방법론 공표, 윤리/민감정보/재연락/철회/외부 채널/초대 토큰 기준, QA 상태, 설문지 버전, 회원 그룹 제한, 공개/검색 정책, 로그인/익명 정책, 응답 제한, 보상 정책, 문항 품질 메모와 문항별 숫자/척도/선택 제한을 저장한다.
 - 관리자 설문 목록은 검색어, 상태, 응답 가능 여부 필터와 복사/미리보기 동선을 제공한다.
 - 공개 `/survey`와 `/survey/{survey_key}`에서 공개 설문 목록과 로그인/익명 응답 제출, 회원 그룹 제한, 동의 확인, 응답 제한, 공개 안내, `noindex` 정책을 처리한다. 일반 제출은 완료 화면으로 GET redirect하며 관리자 미리보기는 초안/기간 외 설문도 `noindex`로 열고 테스트 응답을 보상 없이 저장한다.
+- 완료 화면은 URL query의 보상 상태를 신뢰하지 않고, POST 처리 직후 확인된 결과가 있을 때만 보상 지급/확인 필요 문구를 표시한다.
 - 관리자 `/admin/surveys/responses`에서 raw 응답 스냅샷을 확인하고 품질 상태와 메모를 관리한다.
-- 관리자 `/admin/surveys/statistics`에서 테스트/제외 응답을 뺀 선택형/숫자형 통계를 확인하고, `/admin/surveys/export`에서 원본 CSV, 분석용 CSV, 코드북 CSV를 내려받는다. CSV 수식 주입 방지를 적용한다.
+- 관리자 `/admin/surveys/statistics`에서 테스트/제외 응답을 뺀 선택형/숫자형 통계를 확인하고, 선택형 통계는 문항/선택지 숫자 ID가 재생성되어도 유지되도록 `question_key`/`choice_key` 기준으로 집계한다. `/admin/surveys/export`에서 원본 CSV, 분석용 CSV, 코드북 CSV를 내려받는다. CSV 수식 주입 방지를 적용한다.
 - 관리자 `/admin/surveys/settings`, `/admin/surveys/manual`, `/survey/ui-kit`을 추가했다.
-- 개인정보 export/cleanup 계약, 쿠폰 정의 읽기 참조 계약, 회원 그룹 읽기 참조 계약, 공개 레이아웃 계약, 초기화면 후보 계약을 추가했다.
+- 개인정보 export/cleanup 계약, 쿠폰 정의 읽기 참조 계약, 회원 그룹 읽기 참조 계약, 공개 레이아웃 계약, 초기화면 후보 계약을 추가했다. 개인정보 사본에는 응답 스냅샷과 안정 key 기반 답변 행을 함께 포함하며, 탈퇴/익명화 정리에서는 설문/퀴즈 보상 grant의 `dedupe_key`도 익명화한다.
 - 응답 보상은 `ledger_asset`과 `coupon`을 지원하고, 지급 직전 provider 상태를 다시 확인한다.
 - 설문 sitemap은 공개 목록 노출, 로그인 필요 여부, robots 정책을 반영한다.
+- 익명 응답의 중복 제한은 현재 요청의 IP/user-agent 해시와 `account_id NULL` 응답을 함께 비교한다.
+- 설문지가 잠긴 상태에서는 서버가 문항 구조 변경을 거부하고, 수정/삭제 대상 설문이 없으면 하위 row를 만들거나 삭제를 완료하지 않는다.
 
 ## 기존 모듈 확장 점검
 
@@ -34,6 +37,6 @@
 
 ## 검증
 
-- `php .tools/bin/check.php`: 통과. 통합 점검 안에 `check-reward-abuse-standards.php`가 포함된다.
+- `php .tools/bin/check.php`: 통과. 통합 점검 안에 `check-reward-abuse-standards.php`와 `check-survey-consistency.php`가 포함된다.
 - 변경 PHP 파일 `php -l`: 통과
 - HTTP 스모크: 로컬 `config/config.php` 권한 거부로 전체 동적 라우트가 500을 반환해 완료하지 못했다. 서버 로그의 공통 원인은 `include(/home/lab/www/saanraan/config/config.php): Failed to open stream: Permission denied`다.

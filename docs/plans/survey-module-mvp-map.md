@@ -8,7 +8,7 @@
 - 문항 유형: 단일 선택, 복수 선택, 주관식
 - 문항 품질 옵션: 최소/최대 선택 수, 숫자/척도 범위, 기타 선택지, 무응답 선택지, 분석 메모
 - 응답 저장: `sr_survey_responses`, `sr_survey_response_answers`
-- 기본 응답 제한: 회원별 설문 1회
+- 기본 응답 제한: 회원별 설문 1회, 익명 응답은 IP/user-agent 해시 기준 중복 제한
 - 참여 대상 제한: 로그인 필요 설문에서 활성 회원 그룹 지정
 - 조사 설계 메타데이터: 프로젝트 개요, 실사 방식, 표본틀, 쿼터, 분석/가중치, 방법론 공표, 윤리/철회/민감정보, 외부 채널 기준
 - 공개 전 점검: QA 상태, 설문지 버전, 관리자 미리보기, 테스트 응답
@@ -37,3 +37,5 @@
 설문 보상 로그는 퀴즈와 같은 이름의 `reward_provider`, `reward_module`, `reward_code`, `dedupe_scope`, `dedupe_key`, provider reference 필드를 사용한다. `dedupe_key`는 회원 ID, 설문 ID, 정책 ID, 공급자, 모듈, 응답 scope를 포함한다. 지급 실행 직전에는 자산 거래 함수 또는 쿠폰 정의 활성 상태를 다시 확인한다.
 
 관리자 미리보기와 테스트 제출은 `sr_survey_responses.is_test = 1`로 저장하고 실제 보상을 지급하지 않는다. 통계와 분석 CSV는 테스트 응답과 제외 응답을 기본 집계에서 뺀다.
+
+선택형 통계는 숫자 ID가 아니라 `question_key`/`choice_key` 기준으로 집계한다. 개인정보 사본 제공은 응답 스냅샷과 `sr_survey_response_answers`의 안정 key 기반 답변 행을 함께 포함하며, 탈퇴/익명화 cleanup은 설문/퀴즈 보상 grant의 `dedupe_key`를 익명화한다. 설문 완료 화면은 URL query의 보상 상태를 신뢰하지 않는다.
