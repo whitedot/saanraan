@@ -497,6 +497,42 @@ function sr_survey_replace_questions(PDO $pdo, int $surveyId, array $questions, 
                 'updated_at' => $now,
             ]);
         }
+        $extraSortOrder = count((array) $question['choices']);
+        if ((int) ($question['allow_other'] ?? 0) === 1 && in_array((string) $question['question_type'], ['single_choice', 'multiple_choice'], true)) {
+            $pdo->prepare(
+                'INSERT INTO sr_survey_choices
+                    (question_id, choice_key, label, is_other, sort_order, created_at, updated_at)
+                 VALUES
+                    (:question_id, \'other\', \'기타\', 1, :sort_order, :created_at, :updated_at)'
+            )->execute([
+                'question_id' => $questionId,
+                'sort_order' => $extraSortOrder,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $extraSortOrder++;
+        }
+        $nonresponseLabels = [
+            'allow_na' => '해당 없음',
+            'allow_unknown' => '모름',
+            'allow_refusal' => '응답하지 않음',
+        ];
+        $nonresponsePolicy = (string) ($question['nonresponse_policy'] ?? 'none');
+        if (isset($nonresponseLabels[$nonresponsePolicy]) && in_array((string) $question['question_type'], ['single_choice', 'multiple_choice'], true)) {
+            $pdo->prepare(
+                'INSERT INTO sr_survey_choices
+                    (question_id, choice_key, label, is_nonresponse, sort_order, created_at, updated_at)
+                 VALUES
+                    (:question_id, :choice_key, :label, 1, :sort_order, :created_at, :updated_at)'
+            )->execute([
+                'question_id' => $questionId,
+                'choice_key' => str_replace('allow_', '', $nonresponsePolicy),
+                'label' => $nonresponseLabels[$nonresponsePolicy],
+                'sort_order' => $extraSortOrder,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
     }
 }
 
@@ -1111,7 +1147,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <div class="form-field">
                         <label class="form-label" for="choice_labels_<?php echo sr_e((string) $index); ?>">선택지</label>
-                        <?php $choiceLines = array_map(static fn (array $choice): string => (string) ($choice['label'] ?? ''), (array) ($question['choices'] ?? [])); ?>
+                        <?php $choiceLines = array_map(static fn (array $choice): string => (string) ($choice['label'] ?? ''), array_values(array_filter((array) ($question['choices'] ?? []), static fn (array $choice): bool => (int) ($choice['is_other'] ?? 0) !== 1 && (int) ($choice['is_nonresponse'] ?? 0) !== 1))); ?>
                         <textarea id="choice_labels_<?php echo sr_e((string) $index); ?>" name="choice_labels[]" class="form-textarea"><?php echo sr_e(implode("\n", $choiceLines)); ?></textarea>
                         <p class="admin-form-help">선택형 문항만 줄마다 하나씩 입력합니다.</p>
                     </div>

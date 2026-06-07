@@ -697,10 +697,19 @@ function sr_survey_validate_answer(array $question, mixed $answer): void
     if (in_array($type, ['single_choice', 'multiple_choice'], true) && is_array($answer) && $answer !== []) {
         $validChoiceIds = array_map(static fn (array $choice): int => (int) ($choice['id'] ?? 0), (array) ($question['choices'] ?? []));
         $validChoiceIds = array_values(array_filter($validChoiceIds, static fn (int $choiceId): bool => $choiceId > 0));
+        $nonresponseChoiceIds = [];
+        foreach ((array) ($question['choices'] ?? []) as $choice) {
+            if ((int) ($choice['is_nonresponse'] ?? 0) === 1) {
+                $nonresponseChoiceIds[] = (int) ($choice['id'] ?? 0);
+            }
+        }
         foreach ($answer as $choiceId) {
             if (!in_array((int) $choiceId, $validChoiceIds, true)) {
                 throw new RuntimeException('선택지 값을 확인해 주세요.');
             }
+        }
+        if ($type === 'multiple_choice' && count($answer) > 1 && array_intersect(array_map('intval', $answer), $nonresponseChoiceIds) !== []) {
+            throw new RuntimeException('무응답 선택지는 다른 선택지와 함께 고를 수 없습니다.');
         }
     }
     if ($type === 'multiple_choice') {
