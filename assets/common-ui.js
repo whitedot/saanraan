@@ -989,15 +989,43 @@
     overlay._overlayBackdropHandler = null;
   };
 
-  var showOverlay = function showOverlay(overlay) {
-    if (!overlay || overlay.classList.contains(ACTIVE_CLASS)) {
+  var cancelHideFinalize = function cancelHideFinalize(overlay) {
+    if (!overlay) {
       return;
     }
 
+    if (overlay._overlayFinalizeTimer) {
+      clearTimeout(overlay._overlayFinalizeTimer);
+      overlay._overlayFinalizeTimer = null;
+    }
+
+    if (overlay._overlayFinalizeHandler) {
+      overlay.removeEventListener('transitionend', overlay._overlayFinalizeHandler);
+      overlay._overlayFinalizeHandler = null;
+    }
+  };
+
+  var showOverlay = function showOverlay(overlay) {
+    if (!overlay) {
+      return;
+    }
+
+    cancelHideFinalize(overlay);
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden', 'false');
     overlay.classList.remove(HIDDEN_CLASS);
     overlay.classList.remove(DISABLED_CLASS);
+
+    if (overlay.classList.contains(ACTIVE_CLASS)) {
+      overlay.classList.remove(FADE_CLASS);
+      attachBackdropHandler(overlay);
+      setOverlayTriggersExpanded(overlay, true);
+      if (overlayStack.indexOf(overlay) === -1) {
+        overlayStack.push(overlay);
+      }
+      lockBodyScroll();
+      return;
+    }
 
     requestAnimationFrame(function () {
       overlay.classList.remove(FADE_CLASS);
@@ -1049,10 +1077,13 @@
 
       overlay.classList.add(HIDDEN_CLASS);
       overlay.removeEventListener('transitionend', finalize);
+      overlay._overlayFinalizeHandler = null;
+      overlay._overlayFinalizeTimer = null;
     };
 
+    overlay._overlayFinalizeHandler = finalize;
     overlay.addEventListener('transitionend', finalize);
-    setTimeout(finalize, 400);
+    overlay._overlayFinalizeTimer = setTimeout(finalize, 400);
 
     detachBackdropHandler(overlay);
     setOverlayTriggersExpanded(overlay, false);

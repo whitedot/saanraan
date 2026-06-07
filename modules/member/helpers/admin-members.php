@@ -175,8 +175,11 @@ function sr_admin_member_account_id_from_lookup(PDO $pdo, array $config, string 
         }
 
         $loginIdHash = sr_hmac_hash($loginId, $config);
-        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE login_id_hash = :login_id_hash OR account_identifier_hash = :login_id_hash LIMIT 1');
-        $stmt->execute(['login_id_hash' => $loginIdHash]);
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE login_id_hash = :login_id_hash OR account_identifier_hash = :account_identifier_hash LIMIT 1');
+        $stmt->execute([
+            'login_id_hash' => $loginIdHash,
+            'account_identifier_hash' => $loginIdHash,
+        ]);
         $row = $stmt->fetch();
         return is_array($row) ? (int) $row['id'] : 0;
     }
@@ -266,12 +269,13 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
             $where[] = "a.email LIKE :keyword_like ESCAPE '\\\\'";
             $params['keyword_like'] = $like;
         } elseif ($field === 'name') {
-            $nameClauses = ["a.display_name LIKE :keyword_like ESCAPE '\\\\'", "n.nickname LIKE :keyword_like ESCAPE '\\\\'"];
+            $nameClauses = ["a.display_name LIKE :keyword_display_name_like ESCAPE '\\\\'", "n.nickname LIKE :keyword_nickname_like ESCAPE '\\\\'"];
             if ($matchesWithdrawnLabel) {
                 $nameClauses[] = "a.status = 'anonymized'";
             }
             $where[] = '(' . implode(' OR ', $nameClauses) . ')';
-            $params['keyword_like'] = $like;
+            $params['keyword_display_name_like'] = $like;
+            $params['keyword_nickname_like'] = $like;
         } else {
             $clauses = ["a.email LIKE :keyword_email_like ESCAPE '\\\\'", "a.display_name LIKE :keyword_name_like ESCAPE '\\\\'", "n.nickname LIKE :keyword_nickname_like ESCAPE '\\\\'"];
             $params['keyword_email_like'] = $like;
@@ -470,8 +474,11 @@ function sr_admin_handle_member_create_post(PDO $pdo, array $account, array $sit
 
     if ($errors === [] && $loginId !== '') {
         $loginIdHash = sr_hmac_hash($loginId, $runtimeConfig);
-        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE account_identifier_hash = :login_id_hash OR login_id_hash = :login_id_hash LIMIT 1');
-        $stmt->execute(['login_id_hash' => $loginIdHash]);
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE account_identifier_hash = :account_identifier_hash OR login_id_hash = :login_id_hash LIMIT 1');
+        $stmt->execute([
+            'account_identifier_hash' => $loginIdHash,
+            'login_id_hash' => $loginIdHash,
+        ]);
         if (is_array($stmt->fetch())) {
             $errors[] = sr_t('member::action.admin.login_id_duplicate');
         }
@@ -933,12 +940,13 @@ function sr_admin_member_query_parts(array $statusFilter, array $searchFilter = 
             $where[] = 'a.email LIKE :keyword_like';
             $params['keyword_like'] = $like;
         } elseif ($field === 'name') {
-            $nameClauses = ['a.display_name LIKE :keyword_like', 'n.nickname LIKE :keyword_like'];
+            $nameClauses = ['a.display_name LIKE :keyword_display_name_like', 'n.nickname LIKE :keyword_nickname_like'];
             if ($matchesWithdrawnLabel) {
                 $nameClauses[] = "a.status = 'anonymized'";
             }
             $where[] = '(' . implode(' OR ', $nameClauses) . ')';
-            $params['keyword_like'] = $like;
+            $params['keyword_display_name_like'] = $like;
+            $params['keyword_nickname_like'] = $like;
         } else {
             $clauses = ['a.email LIKE :keyword_email_like', 'a.display_name LIKE :keyword_name_like', 'n.nickname LIKE :keyword_nickname_like'];
             $params['keyword_email_like'] = $like;
