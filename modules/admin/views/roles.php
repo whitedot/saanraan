@@ -188,7 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2 class="card-title">권한 보유 회원</h2>
         <p class="admin-dashboard-meta">소유자이거나 메뉴별 권한이 추가된 회원만 표시됩니다.</p>
     </div>
-    <button type="button" class="btn btn-icon btn-outline-secondary" aria-label="권한 추가" title="권한 추가" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-add-modal" data-overlay="#admin-permission-add-modal" data-admin-permission-add-new><?php echo sr_material_icon_html('add'); ?></button>
+    <button type="button" class="btn btn-outline-secondary" aria-label="권한 추가" title="권한 추가" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-permission-add-modal" data-overlay="#admin-permission-add-modal" data-admin-permission-add-new>권한 추가</button>
 </div>
 <div class="admin-list-summary-row">
     <?php if (empty($accountSort['is_default'])) { ?>
@@ -235,7 +235,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php if (empty($adminAccount['is_owner']) && (string) $adminAccount['status'] === 'active') { ?>
                             <button
                                 type="button"
-                                class="btn btn-sm btn-icon btn-outline-secondary"
+                                class="btn btn-sm btn-outline-secondary"
                                 aria-label="권한 추가"
                                 title="권한 추가"
                                 aria-haspopup="dialog"
@@ -247,7 +247,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 data-account-identifier="<?php echo sr_e((string) $adminAccount['account_public_hash']); ?>"
                                 data-account-label="<?php echo sr_e((string) $adminAccount['account_public_hash'] . ' · ' . sr_admin_member_email_display($adminAccount) . ' · ' . sr_admin_member_display_name_preview($adminAccount)); ?>"
                                 data-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>"
-                            ><?php echo sr_material_icon_html('add'); ?></button>
+                            >권한 추가</button>
                         <?php } ?>
                         <?php if (empty($adminAccount['is_owner'])) { ?>
                             <form method="post" action="<?php echo sr_e($permissionFormAction); ?>">
