@@ -72,6 +72,8 @@
 - [회원 마이그레이션 계획](plans/member-migration-plan.md)
 - [결제 플러그인 계획](plans/payment-plugin-plan.md)
 - [마일스톤 13 읽기 참조 계약 계획](plans/read-reference-contract-plan.md)
+- [보상 부정 수급 공통 기준 초안](plans/reward-abuse-common-standards.md)
+- [설문 모듈 MVP/의존성 지도](plans/survey-module-mvp-map.md)
 
 ## 점검 기록
 
@@ -87,6 +89,7 @@
 - [마일스톤 10 기능 테스트 결과 기록 - 2026-06-02](records/milestone-10-test-results-2026-06-02.md)
 - [마일스톤 11 정합성 테스트 결과 기록 - 2026-06-02](records/milestone-11-consistency-test-results-2026-06-02.md)
 - [마일스톤 16 운영 항목 복사 구현 기록 - 2026-06-04](records/milestone-16-operational-copy-2026-06-04.md)
+- [마일스톤 18-20 보상·퀴즈·설문 구현 기록 - 2026-06-07](records/milestone-18-20-reward-quiz-survey-2026-06-07.md)
 - [이슈 #210 CKEditor 업로드 파일 관리 정책 점검 기록 - 2026-06-05](records/issue-210-ckeditor-upload-policy-2026-06-05.md)
 
 ## Wiki로 충분한 문서

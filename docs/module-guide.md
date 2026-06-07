@@ -1092,7 +1092,8 @@ return [
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `coupon-references.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
 | `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
-| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php` | `member-assets.php` |
+| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php`, `sitemap.php` | `member-assets.php` |
+| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php` | `member-assets.php` |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:
