@@ -879,18 +879,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         ];
     }
     ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-card card admin-form admin-survey-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save">
         <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
         <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
         <div class="card-body">
             <div class="form-field">
-                <label class="form-label" for="survey_key">설문 key <span class="required">(필수)</span></label>
+                <label class="form-label" for="survey_key">설문 key <span class="sr-required-label">(필수)</span></label>
                 <input id="survey_key" type="text" name="survey_key" value="<?php echo sr_e((string) ($values['survey_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input>
             </div>
             <div class="form-field">
-                <label class="form-label" for="survey_title">제목 <span class="required">(필수)</span></label>
+                <label class="form-label" for="survey_title">제목 <span class="sr-required-label">(필수)</span></label>
                 <input id="survey_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="190">
             </div>
             <div class="form-field">
@@ -974,7 +974,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-field">
-                <label class="form-label" for="survey_status">상태 <span class="required">(필수)</span></label>
+                <label class="form-label" for="survey_status">상태 <span class="sr-required-label">(필수)</span></label>
                 <select id="survey_status" name="status" class="form-select">
                     <?php foreach (sr_survey_statuses() as $status): ?>
                         <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
@@ -1203,6 +1203,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php for ($index = 0; $index < 10; $index++): ?>
                 <?php $question = is_array($editQuestions[$index] ?? null) ? $editQuestions[$index] : ['question_key' => '', 'question_type' => 'single_choice', 'prompt' => '', 'analysis_note' => '', 'required' => 1, 'min_choices' => null, 'max_choices' => null, 'scale_points' => null, 'scale_min_label' => '', 'scale_max_label' => '', 'number_unit' => '', 'number_min' => null, 'number_max' => null, 'allow_decimal' => 0, 'allow_other' => 0, 'nonresponse_policy' => 'none', 'choices' => []]; ?>
                 <div class="admin-survey-question-row">
+                    <div class="admin-survey-question-row-header">
+                        <strong>문항 <?php echo sr_e((string) ($index + 1)); ?></strong>
+                        <span class="admin-summary-meta">비워두면 저장 시 제외됩니다.</span>
+                    </div>
                     <div class="form-grid">
                         <div class="form-field">
                             <label class="form-label" for="question_key_<?php echo sr_e((string) $index); ?>">문항 key</label>
@@ -1302,17 +1306,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php endfor; ?>
         </div>
-        <div class="card-footer form-actions">
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">목록</a>
             <button type="submit" class="btn btn-solid-primary">저장</button>
-            <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">목록</a>
         </div>
     </form>
     <?php if ((int) ($values['id'] ?? 0) > 0): ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-card card admin-form">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-card card admin-survey-delete-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="delete">
             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
-            <button type="submit" class="btn btn-outline-danger">삭제</button>
+            <div class="card-header">
+                <h2 class="card-title">삭제</h2>
+            </div>
+            <div class="card-body">
+                <p class="admin-form-help">설문은 목록에서 숨겨지지만 기존 응답과 보상 이력은 보관됩니다.</p>
+                <button type="submit" class="btn btn-outline-danger" data-confirm="<?php echo sr_e('설문을 삭제할까요? 기존 응답과 보상 이력은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?>삭제</button>
+            </div>
         </form>
     <?php endif; ?>
 <?php endif; ?>

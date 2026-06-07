@@ -1,9 +1,98 @@
+.admin-survey-form {
+    display: block;
+}
+
+.admin-survey-form > .card-header {
+    margin-top: calc(var(--spacing) * 5);
+    padding: calc(var(--spacing) * 3.75) calc(var(--spacing) * 5);
+    border: 1px solid var(--color-default-300);
+    border-bottom: 0;
+    border-radius: var(--radius-card, 8px) var(--radius-card, 8px) 0 0;
+    background: var(--color-card);
+}
+
+.admin-survey-form > input + .card-header {
+    margin-top: 0;
+}
+
+.admin-survey-form > .card-body {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    margin-bottom: calc(var(--spacing) * 5);
+    padding: calc(var(--spacing) * 5);
+    border: 1px solid var(--color-default-300);
+    border-radius: 0 0 var(--radius-card, 8px) var(--radius-card, 8px);
+    background: var(--color-card);
+}
+
+.admin-survey-form .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+    gap: calc(var(--spacing) * 4);
+}
+
+.admin-survey-form .form-field {
+    min-width: 0;
+}
+
+.admin-survey-form .form-label {
+    color: var(--color-default-700);
+    font-weight: var(--font-weight-semibold);
+}
+
 .admin-survey-form textarea {
-    min-height: 8rem;
+    min-height: 7.5rem;
+}
+
+.admin-survey-form .admin-checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+}
+
+.admin-survey-form .admin-checkbox-list .admin-form-check {
+    min-height: calc(var(--spacing) * 9);
+    padding: 0 calc(var(--spacing) * 3);
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius-control, 8px);
+    background: var(--color-default-50);
 }
 
 .admin-survey-question-row {
-    border-top: 1px solid var(--color-default-200, #e5e7eb);
-    padding-top: 1rem;
-    margin-top: 1rem;
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    margin-top: calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 4);
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius-card, 8px);
+    background: var(--color-default-50);
+}
+
+.admin-survey-question-row:first-child {
+    margin-top: 0;
+}
+
+.admin-survey-question-row-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
+    padding-bottom: calc(var(--spacing) * 3);
+    border-bottom: 1px solid var(--color-default-200);
+}
+
+.admin-survey-delete-form {
+    margin-top: calc(var(--spacing) * 5);
+}
+
+.admin-survey-delete-form .card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
+    flex-wrap: wrap;
+}
+
+.admin-survey-delete-form .admin-form-help {
+    margin: 0;
 }
