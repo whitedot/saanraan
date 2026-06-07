@@ -231,6 +231,50 @@ function sr_quiz_reward_grant_status_label(string $status): string
     ][$status] ?? $status;
 }
 
+function sr_quiz_admin_status_class(string $status): string
+{
+    return match ($status) {
+        'active', 'submitted', 'scored', 'rewarded', 'granted' => 'is-normal',
+        'draft', 'paused', 'pending' => 'is-blocked',
+        default => 'is-left',
+    };
+}
+
+function sr_quiz_admin_request_array(string $name): array
+{
+    $value = $_GET[$name] ?? [];
+    if (is_string($value)) {
+        $value = trim($value) === '' ? [] : [$value];
+    }
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $values = [];
+    foreach ($value as $item) {
+        $item = trim((string) $item);
+        if ($item !== '') {
+            $values[$item] = true;
+        }
+    }
+
+    return array_keys($values);
+}
+
+function sr_quiz_admin_filter_values(array $values, array $allowedValues): array
+{
+    $allowed = array_fill_keys(array_map('strval', $allowedValues), true);
+    $filtered = [];
+    foreach ($values as $value) {
+        $value = (string) $value;
+        if (isset($allowed[$value])) {
+            $filtered[$value] = true;
+        }
+    }
+
+    return array_keys($filtered);
+}
+
 function sr_quiz_member_group_keys_from_value(mixed $value): array
 {
     if (is_string($value)) {
@@ -1177,9 +1221,106 @@ function sr_quiz_mark_reward_grant_failed(PDO $pdo, int $grantId, string $messag
     return is_array($row) ? $row : [];
 }
 
-function sr_quiz_admin_quizzes(PDO $pdo): array
+function sr_quiz_admin_quiz_filters_from_request(): array
 {
-    $stmt = $pdo->query(
+    $rewardEnabled = sr_get_string('reward_enabled', 20);
+    if (!in_array($rewardEnabled, ['enabled', 'disabled'], true)) {
+        $rewardEnabled = '';
+    }
+
+    return [
+        'q' => sr_quiz_clean_single_line(sr_get_string('q', 120), 120),
+        'status' => sr_quiz_admin_filter_values(sr_quiz_admin_request_array('status'), sr_quiz_statuses()),
+        'quiz_mode' => sr_quiz_admin_filter_values(sr_quiz_admin_request_array('quiz_mode'), sr_quiz_modes()),
+        'reward_enabled' => $rewardEnabled,
+    ];
+}
+
+function sr_quiz_admin_quiz_sort_options(): array
+{
+    return [
+        'quiz_key' => ['columns' => ['q.quiz_key', 'q.id']],
+        'title' => ['columns' => ['q.title', 'q.id']],
+        'status' => ['columns' => ['q.status', 'q.id']],
+        'question_count' => ['columns' => ['question_count', 'q.id']],
+        'source_count' => ['columns' => ['source_count', 'q.id']],
+        'reward_enabled' => ['columns' => ['q.reward_enabled', 'q.id']],
+        'updated_at' => ['columns' => ['q.updated_at', 'q.id']],
+    ];
+}
+
+function sr_quiz_admin_quiz_default_sort(): array
+{
+    return sr_admin_sort_default('updated_at', 'desc');
+}
+
+function sr_quiz_admin_quiz_where_sql(array $filters, array &$params): string
+{
+    $where = ['q.deleted_at IS NULL'];
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $where[] = '(q.quiz_key LIKE :quiz_q OR q.title LIKE :quiz_q OR q.description LIKE :quiz_q)';
+        $params['quiz_q'] = '%' . $keyword . '%';
+    }
+
+    $statuses = sr_quiz_admin_filter_values((array) ($filters['status'] ?? []), sr_quiz_statuses());
+    if ($statuses !== []) {
+        $placeholders = [];
+        foreach ($statuses as $index => $status) {
+            $key = 'quiz_status_' . (string) $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $status;
+        }
+        $where[] = 'q.status IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $quizModes = sr_quiz_admin_filter_values((array) ($filters['quiz_mode'] ?? []), sr_quiz_modes());
+    if ($quizModes !== []) {
+        $placeholders = [];
+        foreach ($quizModes as $index => $quizMode) {
+            $key = 'quiz_mode_' . (string) $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $quizMode;
+        }
+        $where[] = 'q.quiz_mode IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $rewardEnabled = (string) ($filters['reward_enabled'] ?? '');
+    if ($rewardEnabled === 'enabled') {
+        $where[] = 'q.reward_enabled = 1';
+    } elseif ($rewardEnabled === 'disabled') {
+        $where[] = 'q.reward_enabled = 0';
+    }
+
+    return ' WHERE ' . implode(' AND ', $where);
+}
+
+function sr_quiz_admin_quiz_count(PDO $pdo, array $filters = []): int
+{
+    $params = [];
+    $whereSql = sr_quiz_admin_quiz_where_sql($filters, $params);
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_quiz_sets q' . $whereSql);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, int $offset = 0, array $sort = []): array
+{
+    $params = [];
+    $whereSql = sr_quiz_admin_quiz_where_sql($filters, $params);
+    $sortOptions = sr_quiz_admin_quiz_sort_options();
+    $defaultSort = sr_quiz_admin_quiz_default_sort();
+    $orderSql = sr_admin_sort_order_sql($sortOptions, $sort !== [] ? $sort : $defaultSort, $defaultSort);
+    if ($orderSql === '') {
+        $orderSql = ' ORDER BY q.updated_at DESC, q.id DESC';
+    } else {
+        $orderSql .= ', q.id DESC';
+    }
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+
+    $stmt = $pdo->prepare(
         'SELECT q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                 q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
                 q.member_group_keys_json, q.reward_enabled, q.updated_at,
@@ -1190,13 +1331,162 @@ function sr_quiz_admin_quizzes(PDO $pdo): array
          LEFT JOIN sr_quiz_questions qs ON qs.quiz_id = q.id
          LEFT JOIN sr_quiz_reward_policies rp ON rp.quiz_id = q.id AND rp.status = \'active\'
          LEFT JOIN sr_quiz_sources src ON src.quiz_id = q.id AND src.status = \'active\'
-         WHERE q.deleted_at IS NULL
+         ' . $whereSql . '
          GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                   q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
                   q.member_group_keys_json, q.reward_enabled, q.updated_at
-         ORDER BY q.updated_at DESC, q.id DESC
-         LIMIT 100'
+         ' . $orderSql . '
+         LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset
     );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_quiz_admin_attempt_filters_from_request(): array
+{
+    $passed = sr_get_string('passed', 20);
+    if (!in_array($passed, ['yes', 'no'], true)) {
+        $passed = '';
+    }
+
+    return [
+        'q' => sr_quiz_clean_single_line(sr_get_string('q', 120), 120),
+        'status' => sr_quiz_admin_filter_values(sr_quiz_admin_request_array('status'), ['submitted', 'scored', 'rewarded', 'failed']),
+        'grant_status' => sr_quiz_admin_filter_values(sr_quiz_admin_request_array('grant_status'), ['none', 'pending', 'granted', 'failed']),
+        'passed' => $passed,
+    ];
+}
+
+function sr_quiz_admin_attempt_sort_options(): array
+{
+    return [
+        'updated_at' => ['columns' => ['a.updated_at', 'a.id']],
+        'submitted_at' => ['columns' => ['a.submitted_at', 'a.id']],
+        'quiz' => ['columns' => ['q.title', 'q.quiz_key', 'a.id']],
+        'account_id' => ['columns' => ['a.account_id', 'a.id']],
+        'status' => ['columns' => ['a.status', 'a.id']],
+        'total_score' => ['columns' => ['a.total_score', 'a.id']],
+        'reward' => ['columns' => ['reward_status_text', 'a.id']],
+    ];
+}
+
+function sr_quiz_admin_attempt_default_sort(): array
+{
+    return sr_admin_sort_default('updated_at', 'desc');
+}
+
+function sr_quiz_admin_attempt_where_sql(array $filters, array &$params): string
+{
+    $where = ['1 = 1'];
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $where[] = '(q.quiz_key LIKE :attempt_q OR q.title LIKE :attempt_q OR a.source_title_snapshot LIKE :attempt_q OR CAST(a.id AS CHAR) LIKE :attempt_q OR CAST(a.account_id AS CHAR) LIKE :attempt_q)';
+        $params['attempt_q'] = '%' . $keyword . '%';
+    }
+
+    $statuses = sr_quiz_admin_filter_values((array) ($filters['status'] ?? []), ['submitted', 'scored', 'rewarded', 'failed']);
+    if ($statuses !== []) {
+        $placeholders = [];
+        foreach ($statuses as $index => $status) {
+            $key = 'attempt_status_' . (string) $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $status;
+        }
+        $where[] = 'a.status IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $grantStatuses = sr_quiz_admin_filter_values((array) ($filters['grant_status'] ?? []), ['none', 'pending', 'granted', 'failed']);
+    if ($grantStatuses !== []) {
+        $grantWhere = [];
+        foreach ($grantStatuses as $grantStatus) {
+            if ($grantStatus === 'none') {
+                $grantWhere[] = 'COALESCE(rg.grant_count, 0) = 0';
+                continue;
+            }
+            $grantWhere[] = 'COALESCE(rg.' . $grantStatus . '_count, 0) > 0';
+        }
+        $where[] = '(' . implode(' OR ', $grantWhere) . ')';
+    }
+
+    $passed = (string) ($filters['passed'] ?? '');
+    if ($passed === 'yes') {
+        $where[] = 'a.passed = 1';
+    } elseif ($passed === 'no') {
+        $where[] = '(a.passed IS NULL OR a.passed = 0)';
+    }
+
+    return ' WHERE ' . implode(' AND ', $where);
+}
+
+function sr_quiz_admin_attempt_reward_join_sql(): string
+{
+    return ' LEFT JOIN (
+                SELECT attempt_id,
+                       COUNT(*) AS grant_count,
+                       SUM(CASE WHEN status = \'pending\' THEN 1 ELSE 0 END) AS pending_count,
+                       SUM(CASE WHEN status = \'granted\' THEN 1 ELSE 0 END) AS granted_count,
+                       SUM(CASE WHEN status = \'failed\' THEN 1 ELSE 0 END) AS failed_count,
+                       GROUP_CONCAT(DISTINCT reward_module ORDER BY reward_module SEPARATOR \', \') AS reward_modules,
+                       SUM(COALESCE(reward_amount, 0)) AS reward_amount_total,
+                       MAX(error_message) AS error_message,
+                       MAX(granted_at) AS granted_at,
+                       MAX(failed_at) AS failed_at,
+                       GROUP_CONCAT(DISTINCT status ORDER BY status SEPARATOR \',\') AS reward_status_text
+                FROM sr_quiz_reward_grants
+                GROUP BY attempt_id
+            ) rg ON rg.attempt_id = a.id';
+}
+
+function sr_quiz_admin_attempt_count(PDO $pdo, array $filters = []): int
+{
+    $params = [];
+    $whereSql = sr_quiz_admin_attempt_where_sql($filters, $params);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_quiz_attempts a
+         INNER JOIN sr_quiz_sets q ON q.id = a.quiz_id'
+         . sr_quiz_admin_attempt_reward_join_sql()
+         . $whereSql
+    );
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_quiz_admin_attempts(PDO $pdo, array $filters = [], int $limit = 100, int $offset = 0, array $sort = []): array
+{
+    $params = [];
+    $whereSql = sr_quiz_admin_attempt_where_sql($filters, $params);
+    $sortOptions = sr_quiz_admin_attempt_sort_options();
+    $defaultSort = sr_quiz_admin_attempt_default_sort();
+    $orderSql = sr_admin_sort_order_sql($sortOptions, $sort !== [] ? $sort : $defaultSort, $defaultSort);
+    if ($orderSql === '') {
+        $orderSql = ' ORDER BY a.updated_at DESC, a.id DESC';
+    } else {
+        $orderSql .= ', a.id DESC';
+    }
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+
+    $stmt = $pdo->prepare(
+        'SELECT a.id, a.status, a.account_id, a.source_module, a.source_type, a.source_id,
+                a.source_title_snapshot, a.total_score, a.passed, a.submitted_at, a.updated_at,
+                q.quiz_key, q.title,
+                COALESCE(rg.grant_count, 0) AS grant_count,
+                COALESCE(rg.pending_count, 0) AS pending_count,
+                COALESCE(rg.granted_count, 0) AS granted_count,
+                COALESCE(rg.failed_count, 0) AS failed_count,
+                rg.reward_modules, rg.reward_amount_total, rg.error_message, rg.granted_at, rg.failed_at,
+                COALESCE(rg.reward_status_text, \'\') AS reward_status_text
+         FROM sr_quiz_attempts a
+         INNER JOIN sr_quiz_sets q ON q.id = a.quiz_id'
+         . sr_quiz_admin_attempt_reward_join_sql()
+         . $whereSql
+         . $orderSql . '
+         LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset
+    );
+    $stmt->execute($params);
 
     return $stmt->fetchAll();
 }

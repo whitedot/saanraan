@@ -102,60 +102,116 @@ $values = is_array($sessionValues) && $sessionValues !== []
     ? $sessionValues
     : (is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values());
 
+$adminPageTitle = $mode === 'list' ? '퀴즈 관리' : ($mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성');
+include SR_ROOT . '/modules/admin/views/layout-header.php';
+
 if ($mode === 'list') {
-    $quizzes = sr_quiz_admin_quizzes($pdo);
+    $quizFilters = sr_quiz_admin_quiz_filters_from_request();
+    $quizSortOptions = sr_quiz_admin_quiz_sort_options();
+    $quizDefaultSort = sr_quiz_admin_quiz_default_sort();
+    $quizSort = sr_admin_sort_from_request($quizSortOptions, $quizDefaultSort);
+    $quizTotal = sr_quiz_admin_quiz_count($pdo, $quizFilters);
+    $quizPagination = sr_admin_pagination_from_total($pdo, $quizTotal);
+    $quizzes = sr_quiz_admin_quizzes($pdo, $quizFilters, (int) $quizPagination['per_page'], sr_admin_pagination_offset($quizPagination), $quizSort);
+    $quizDetailFilterOpen = (array) ($quizFilters['status'] ?? []) !== [] || (array) ($quizFilters['quiz_mode'] ?? []) !== [] || (string) ($quizFilters['reward_enabled'] ?? '') !== '';
+    $quizStatusOptions = [];
+    foreach (sr_quiz_statuses() as $status) {
+        $quizStatusOptions[$status] = sr_quiz_status_label($status);
+    }
+    $quizModeOptions = [];
+    foreach (sr_quiz_modes() as $quizMode) {
+        $quizModeOptions[$quizMode] = sr_quiz_mode_label($quizMode);
+    }
     ?>
-    <div class="admin-card">
-        <div class="admin-card-header">
-            <h2>퀴즈 관리</h2>
+    <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
+
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="filtering-form admin-quiz-filter ui-form-theme">
+        <div class="filtering filtering-card<?php echo $quizDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+            <div class="filtering-fields">
+                <div class="filtering-field filtering-field-fill admin-quiz-filter-keyword">
+                    <label for="quiz_keyword_filter" class="filtering-label">검색어</label>
+                    <input id="quiz_keyword_filter" type="text" name="q" value="<?php echo sr_e((string) ($quizFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="퀴즈 키, 제목, 설명">
+                </div>
+            </div>
+            <div id="quiz_detail_filters" class="filtering-body" data-filtering-body<?php echo $quizDetailFilterOpen ? '' : ' hidden'; ?>>
+                <div class="filtering-field">
+                    <span class="filtering-label">상태</span>
+                    <?php echo sr_admin_filter_toggle_group_html('quiz_status_filter', 'status', $quizStatusOptions, (array) ($quizFilters['status'] ?? []), '전체'); ?>
+                </div>
+                <div class="filtering-field">
+                    <span class="filtering-label">모드</span>
+                    <?php echo sr_admin_filter_toggle_group_html('quiz_mode_filter', 'quiz_mode', $quizModeOptions, (array) ($quizFilters['quiz_mode'] ?? []), '전체'); ?>
+                </div>
+                <div class="filtering-field">
+                    <span class="filtering-label">보상</span>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('quiz_reward_filter', 'reward_enabled', ['enabled' => '사용', 'disabled' => '미사용'], [(string) ($quizFilters['reward_enabled'] ?? '')], '전체'); ?>
+                </div>
+            </div>
+            <div class="filtering-actions">
+                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $quizDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="quiz_detail_filters">상세검색</button>
+                <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
+                <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+            </div>
+        </div>
+    </form>
+
+    <section class="admin-card admin-list-card card admin-list-form">
+        <div class="card-header">
+            <h2 class="card-title">퀴즈 목록</h2>
             <div class="card-actions">
                 <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=new')); ?>">새 퀴즈</a>
             </div>
         </div>
-        <div class="admin-card-body">
-            <?php if ($notice !== '') { ?>
-                <div class="admin-notice"><?php echo sr_e($notice); ?></div>
+        <div class="admin-list-summary-row">
+            <?php if (empty($quizSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url($quizSortOptions, $quizDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="퀴즈 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
-            <?php if ($errors !== []) { ?>
-                <div class="admin-error">
-                    <?php foreach ($errors as $error) { ?>
-                        <p><?php echo sr_e((string) $error); ?></p>
-                    <?php } ?>
-                </div>
-            <?php } ?>
-            <?php if ($quizzes === []) { ?>
-                <p class="admin-empty">등록된 퀴즈가 없습니다.</p>
-            <?php } else { ?>
-                <table class="admin-table">
-                    <thead>
+            <?php echo sr_admin_pagination_summary_html($quizPagination); ?>
+        </div>
+        <div class="table-wrapper">
+            <table class="table admin-quiz-table">
+                <thead class="ui-table-head">
+                    <tr>
+                        <th<?php echo sr_admin_sort_aria('quiz_key', $quizSort); ?>><?php echo sr_admin_sort_header_html('Key', 'quiz_key', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('title', $quizSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('status', $quizSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('question_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('문제', 'question_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('source_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('연결', 'source_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th>응시</th>
+                        <th<?php echo sr_admin_sort_aria('reward_enabled', $quizSort); ?>><?php echo sr_admin_sort_header_html('보상', 'reward_enabled', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('updated_at', $quizSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th class="text-end">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($quizzes === []) { ?>
                         <tr>
-                            <th>Key</th>
-                            <th>제목</th>
-                            <th>상태</th>
-                            <th>문제</th>
-                            <th>연결</th>
-	                            <th>통과</th>
-	                            <th>응시 제한</th>
-	                            <th>회원 조건</th>
-	                            <th>보상</th>
-                            <th>수정일</th>
-                            <th>관리</th>
+                            <td colspan="9" class="admin-empty-state">조건에 맞는 퀴즈가 없습니다.</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($quizzes as $quiz) { ?>
-                            <tr>
-                                <td><code><?php echo sr_e((string) $quiz['quiz_key']); ?></code></td>
-                                <td><?php echo sr_e((string) $quiz['title']); ?></td>
-                                <td><?php echo sr_e(sr_quiz_status_label((string) $quiz['status'])); ?></td>
-                                <td><?php echo sr_e((string) (int) ($quiz['question_count'] ?? 0)); ?></td>
-                                <td><?php echo sr_e((string) (int) ($quiz['source_count'] ?? 0)); ?></td>
-	                                <td><?php echo sr_e((string) ($quiz['pass_score'] ?? '')); ?></td>
-	                                <td><?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?></td>
-	                                <td><?php echo sr_e((string) count(sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''))); ?></td>
-	                                <td><?php echo ((int) ($quiz['reward_enabled'] ?? 0) === 1) ? '사용' : '미사용'; ?></td>
-                                <td><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
-                                <td class="admin-table-actions">
+                    <?php } ?>
+                    <?php foreach ($quizzes as $quiz) { ?>
+                        <?php
+                        $quizStatus = (string) ($quiz['status'] ?? '');
+                        $memberGroupCount = count(sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''));
+                        $rewardEnabled = (int) ($quiz['reward_enabled'] ?? 0) === 1;
+                        ?>
+                        <tr>
+                            <td class="admin-table-nowrap"><code><?php echo sr_e((string) $quiz['quiz_key']); ?></code></td>
+                            <td class="admin-table-break">
+                                <strong><?php echo sr_e((string) $quiz['title']); ?></strong><br>
+                                <span class="admin-summary-meta"><?php echo sr_e(sr_quiz_mode_label((string) ($quiz['quiz_mode'] ?? ''))); ?> · <?php echo sr_e(sr_quiz_scoring_model_label((string) ($quiz['scoring_model'] ?? ''))); ?></span>
+                            </td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e(sr_quiz_status_label($quizStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['source_count'] ?? 0))); ?></td>
+                            <td class="admin-table-break">
+                                <?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?><br>
+                                <span class="admin-summary-meta">통과 <?php echo sr_e((string) ($quiz['pass_score'] ?? '-')); ?> · 회원 조건 <?php echo sr_e(number_format($memberGroupCount)); ?>개</span>
+                            </td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '미사용'; ?></span></td>
+                            <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
                                     <a class="btn btn-sm btn-icon btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/quiz?mode=edit&id=' . (string) (int) $quiz['id'])); ?>" aria-label="퀴즈 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-inline-form">
                                         <?php echo sr_csrf_field(); ?>
@@ -163,14 +219,16 @@ if ($mode === 'list') {
                                         <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) $quiz['id']); ?>">
                                         <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="퀴즈 삭제" title="삭제" data-confirm="<?php echo sr_e('퀴즈를 삭제할까요? 기존 기록은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                     </form>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            <?php } ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
         </div>
-    </div>
+    </section>
+    <?php echo sr_admin_pagination_html($quizPagination, '퀴즈 목록 페이지'); ?>
+    <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
     <?php
     return;
 }
@@ -492,3 +550,4 @@ for ($extraIndex = 0; $extraIndex < 2; $extraIndex++) {
     syncAttemptPeriodRequired();
 })();
 </script>
+<?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
