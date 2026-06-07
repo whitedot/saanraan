@@ -83,6 +83,24 @@ if ($layoutPdo instanceof PDO) {
 if ($layoutPrimaryNavigationHtml !== '' || $layoutFooterNavigationHtml !== []) {
     $layoutStylesheets[] = '/modules/site_menu/assets/public.css';
 }
+$layoutNotificationEnabled = false;
+$layoutNotificationHasAccount = false;
+$layoutNotificationSummary = ['unread' => 0, 'items' => []];
+if (
+    $layoutPdo instanceof PDO
+    && sr_module_enabled($layoutPdo, 'notification')
+    && is_file(SR_ROOT . '/modules/member/helpers.php')
+    && is_file(SR_ROOT . '/modules/notification/helpers.php')
+) {
+    $layoutNotificationEnabled = true;
+    require_once SR_ROOT . '/modules/member/helpers.php';
+    require_once SR_ROOT . '/modules/notification/helpers.php';
+    $layoutCurrentAccount = sr_member_current_account($layoutPdo);
+    if (is_array($layoutCurrentAccount)) {
+        $layoutNotificationSummary = sr_notification_public_header_summary($layoutPdo, (int) $layoutCurrentAccount['id'], 5);
+        $layoutNotificationHasAccount = true;
+    }
+}
 $layoutCopyrightYear = date('Y');
 ?>
 <!doctype html>
@@ -109,9 +127,58 @@ $layoutCopyrightYear = date('Y');
             <?php echo $layoutPrimaryNavigationHtml; ?>
         </nav>
         <div class="community-layout-actions">
-            <a class="community-layout-icon-button" href="<?php echo sr_e(sr_url('/community')); ?>" aria-label="<?php echo sr_e('커뮤니티'); ?>">
-                <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>local_mall</span>
-            </a>
+            <?php if ($layoutNotificationEnabled) { ?>
+                <details class="community-layout-notification-menu">
+                    <summary class="community-layout-icon-button community-layout-notification-button" aria-label="<?php echo sr_e('알림'); ?>">
+                        <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>notifications</span>
+                        <?php if ((int) $layoutNotificationSummary['unread'] > 0) { ?>
+                            <span class="community-layout-notification-badge"><?php echo sr_e((int) $layoutNotificationSummary['unread'] > 99 ? '99+' : (string) (int) $layoutNotificationSummary['unread']); ?></span>
+                        <?php } ?>
+                    </summary>
+                    <div class="community-layout-notification-dropdown">
+                        <div class="community-layout-notification-header">
+                            <strong><?php echo sr_e('알림'); ?></strong>
+                            <?php if ($layoutNotificationHasAccount) { ?>
+                                <a href="<?php echo sr_e(sr_url('/account/notifications')); ?>"><?php echo sr_e('전체'); ?></a>
+                            <?php } else { ?>
+                                <a href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e('로그인'); ?></a>
+                            <?php } ?>
+                        </div>
+                        <?php if (!$layoutNotificationHasAccount) { ?>
+                            <p class="community-layout-notification-empty"><?php echo sr_e('로그인 후 알림을 확인할 수 있습니다.'); ?></p>
+                        <?php } elseif ($layoutNotificationSummary['items'] === []) { ?>
+                            <p class="community-layout-notification-empty"><?php echo sr_e('새 알림이 없습니다.'); ?></p>
+                        <?php } else { ?>
+                            <div class="community-layout-notification-list">
+                                <?php foreach ($layoutNotificationSummary['items'] as $layoutNotification) { ?>
+                                    <?php
+                                    $layoutNotificationLinkAttributes = sr_notification_item_link_attributes($layoutNotification, (int) ($layoutCurrentAccount['id'] ?? 0), true);
+                                    $layoutNotificationBody = trim(strip_tags((string) ($layoutNotification['body_text'] ?? '')));
+                                    $layoutNotificationClass = (string) ($layoutNotification['status'] ?? '') === 'unread'
+                                        ? 'community-layout-notification-item is-unread'
+                                        : 'community-layout-notification-item';
+                                    ?>
+                                    <?php if ($layoutNotificationLinkAttributes !== '') { ?>
+                                        <a class="<?php echo sr_e($layoutNotificationClass); ?>"<?php echo $layoutNotificationLinkAttributes; ?>>
+                                    <?php } else { ?>
+                                        <div class="<?php echo sr_e($layoutNotificationClass); ?>">
+                                    <?php } ?>
+                                        <span class="community-layout-notification-title"><?php echo sr_e((string) ($layoutNotification['title'] ?? '알림')); ?></span>
+                                        <?php if ($layoutNotificationBody !== '') { ?>
+                                            <span class="community-layout-notification-text"><?php echo sr_e(sr_notification_clean_single_line($layoutNotificationBody, 80)); ?></span>
+                                        <?php } ?>
+                                        <span class="community-layout-notification-date"><?php echo sr_notification_time_html((string) ($layoutNotification['created_at'] ?? '')); ?></span>
+                                    <?php if ($layoutNotificationLinkAttributes !== '') { ?>
+                                        </a>
+                                    <?php } else { ?>
+                                        </div>
+                                    <?php } ?>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </details>
+            <?php } ?>
             <a class="community-layout-icon-button" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e('회원'); ?>">
                 <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
             </a>

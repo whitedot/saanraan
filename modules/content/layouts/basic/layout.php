@@ -167,7 +167,7 @@ $layoutCopyrightYear = date('Y');
                                         <?php if ($layoutNotificationBody !== '') { ?>
                                             <span class="content-layout-notification-text"><?php echo sr_e(sr_notification_clean_single_line($layoutNotificationBody, 80)); ?></span>
                                         <?php } ?>
-                                        <span class="content-layout-notification-date"><?php echo sr_e((string) ($layoutNotification['created_at'] ?? '')); ?></span>
+                                        <span class="content-layout-notification-date"><?php echo sr_notification_time_html((string) ($layoutNotification['created_at'] ?? '')); ?></span>
                                     <?php if ($layoutNotificationLinkAttributes !== '') { ?>
                                         </a>
                                     <?php } else { ?>
