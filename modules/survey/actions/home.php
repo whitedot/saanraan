@@ -2,7 +2,8 @@
 
 require_once __DIR__ . '/../helpers.php';
 
-$surveys = sr_survey_public_forms($pdo, 50);
+$settings = sr_survey_settings($pdo);
+$surveys = sr_survey_public_forms($pdo, (int) ($settings['public_list_limit'] ?? 50));
 $seo = [
     'title' => '설문',
     'canonical' => '/survey',

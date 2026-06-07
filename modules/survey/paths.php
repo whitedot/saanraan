@@ -2,6 +2,7 @@
 
 return [
     'GET /survey' => 'actions/home.php',
+    'GET /survey/ui-kit' => 'actions/ui-kit.php',
     'GET /survey/*' => 'actions/view.php',
     'POST /survey/*' => 'actions/view.php',
     'GET /admin/surveys' => 'actions/admin-surveys.php',
@@ -10,4 +11,7 @@ return [
     'POST /admin/surveys/responses' => 'actions/admin-responses.php',
     'GET /admin/surveys/statistics' => 'actions/admin-statistics.php',
     'GET /admin/surveys/export' => 'actions/admin-export.php',
+    'GET /admin/surveys/settings' => 'actions/admin-settings.php',
+    'POST /admin/surveys/settings' => 'actions/admin-settings.php',
+    'GET /admin/surveys/manual' => 'actions/admin-manual.php',
 ];

@@ -90,6 +90,93 @@ function sr_survey_quality_status_label(string $status): string
     ][$status] ?? $status;
 }
 
+function sr_survey_default_settings(): array
+{
+    return [
+        'default_status' => 'draft',
+        'default_login_required' => 1,
+        'default_consent_required' => 0,
+        'default_response_limit_policy' => 'per_survey_once',
+        'default_response_limit_period_seconds' => 0,
+        'public_list_limit' => 50,
+    ];
+}
+
+function sr_survey_normalize_settings(array $settings): array
+{
+    $defaults = sr_survey_default_settings();
+    $normalized = array_merge($defaults, $settings);
+    $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_survey_statuses(), true) ? (string) $normalized['default_status'] : (string) $defaults['default_status'];
+    $normalized['default_login_required'] = !empty($normalized['default_login_required']) ? 1 : 0;
+    $normalized['default_consent_required'] = !empty($normalized['default_consent_required']) ? 1 : 0;
+    $normalized['default_response_limit_policy'] = in_array((string) $normalized['default_response_limit_policy'], sr_survey_response_limit_policies(), true) ? (string) $normalized['default_response_limit_policy'] : (string) $defaults['default_response_limit_policy'];
+    $normalized['default_response_limit_period_seconds'] = max(0, (int) $normalized['default_response_limit_period_seconds']);
+    $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
+
+    return $normalized;
+}
+
+function sr_survey_settings(PDO $pdo): array
+{
+    return sr_survey_normalize_settings(sr_module_settings($pdo, 'survey'));
+}
+
+function sr_survey_settings_from_post(): array
+{
+    return sr_survey_normalize_settings([
+        'default_status' => sr_post_string('default_status', 20),
+        'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
+        'default_consent_required' => ($_POST['default_consent_required'] ?? '') === '1',
+        'default_response_limit_policy' => sr_survey_clean_key(sr_post_string('default_response_limit_policy', 30), 30),
+        'default_response_limit_period_seconds' => sr_post_string('default_response_limit_period_seconds', 20),
+        'public_list_limit' => sr_post_string('public_list_limit', 20),
+    ]);
+}
+
+function sr_survey_settings_validation_errors(array $settings): array
+{
+    $errors = [];
+    if ((string) ($settings['default_response_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_response_limit_period_seconds'] ?? 0) < 1) {
+        $errors[] = '기본 응답 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
+    }
+
+    return $errors;
+}
+
+function sr_survey_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'survey' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('Survey module was not found.');
+    }
+    $settings = sr_survey_normalize_settings($settings);
+    $now = sr_now();
+    $save = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    foreach ($settings as $key => $value) {
+        $valueType = is_int($value) ? 'int' : 'string';
+        $save->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $key,
+            'setting_value' => (string) $value,
+            'value_type' => $valueType,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    sr_clear_module_settings_cache('survey');
+}
+
 function sr_survey_reward_providers(): array
 {
     return ['ledger_asset', 'coupon'];

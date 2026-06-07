@@ -19,5 +19,15 @@ return [
             'path' => '/admin/surveys/statistics',
             'order' => 30,
         ],
+        [
+            'label' => '환경설정',
+            'path' => '/admin/surveys/settings',
+            'order' => 40,
+        ],
+        [
+            'label' => '매뉴얼',
+            'path' => '/admin/surveys/manual',
+            'order' => 50,
+        ],
     ],
 ];

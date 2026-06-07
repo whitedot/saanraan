@@ -42,6 +42,12 @@ if (sr_module_record_entry($pdo, 'quiz') !== null && is_file(SR_ROOT . '/modules
         'path' => '/quiz/ui-kit',
     ];
 }
+if (sr_module_record_entry($pdo, 'survey') !== null && is_file(SR_ROOT . '/modules/survey/actions/ui-kit.php')) {
+    $publicUiKitLinks[] = [
+        'label' => '설문 UI Kit',
+        'path' => '/survey/ui-kit',
+    ];
+}
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

@@ -23,10 +23,10 @@ return [
     ],
     'settings' => [
         'default_status' => 'draft',
-        'default_reward_provider' => 'ledger_asset',
-        'default_reward_module' => '',
-        'default_reward_amount' => '',
-        'default_reward_dedupe_scope' => 'per_survey',
+        'default_login_required' => 1,
+        'default_consent_required' => 0,
+        'default_response_limit_policy' => 'per_survey_once',
+        'default_response_limit_period_seconds' => 0,
         'public_list_limit' => 50,
     ],
     'contracts' => [
@@ -35,6 +35,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
+            'privacy-cleanup.php',
             'sitemap.php',
         ],
         'consumes' => [

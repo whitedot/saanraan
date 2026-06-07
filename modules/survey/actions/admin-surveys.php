@@ -463,6 +463,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php else: ?>
     <?php
     $values = is_array($editSurvey) ? $editSurvey : [
+        ...sr_survey_settings($pdo),
         'id' => 0,
         'survey_key' => '',
         'title' => '',
@@ -473,18 +474,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'estimated_minutes' => '',
         'organizer_name' => '',
         'contact_text' => '',
-        'consent_required' => 0,
+        'consent_required' => (int) sr_survey_settings($pdo)['default_consent_required'],
         'consent_text' => '',
         'privacy_notice' => '',
         'anonymous_allowed' => 0,
-        'login_required' => 1,
+        'login_required' => (int) sr_survey_settings($pdo)['default_login_required'],
         'public_listed' => 1,
         'robots_policy' => 'auto',
-        'status' => 'draft',
+        'status' => (string) sr_survey_settings($pdo)['default_status'],
         'starts_at' => '',
         'ends_at' => '',
-        'response_limit_policy' => 'per_survey_once',
-        'response_limit_period_seconds' => '',
+        'response_limit_policy' => (string) sr_survey_settings($pdo)['default_response_limit_policy'],
+        'response_limit_period_seconds' => (string) sr_survey_settings($pdo)['default_response_limit_period_seconds'],
         'reward_enabled' => 0,
     ];
     if ($editQuestions === []) {
