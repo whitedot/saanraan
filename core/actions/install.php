@@ -70,6 +70,12 @@ $optionalModules = [
         'label' => 'CKEditor',
         'description' => '관리자와 모듈 입력 화면에 CKEditor 5 편집기 선택지를 설치합니다.',
     ],
+    'embed_manager' => [
+        'name' => '임베드 매니저',
+        'version' => '2026.06.001',
+        'label' => '임베드 매니저',
+        'description' => '본문 임베드 참조 점검과 legacy 링크 카드 호환 helper를 설치합니다.',
+    ],
     'point' => [
         'name' => '포인트',
         'version' => '2026.04.001',
