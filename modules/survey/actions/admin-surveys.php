@@ -26,6 +26,9 @@ if (sr_request_method() === 'POST') {
     if ($intent === 'delete') {
         sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'delete');
         $surveyId = (int) sr_post_string('survey_id', 20);
+        if ($surveyId < 1 || !is_array(sr_survey_by_id($pdo, $surveyId))) {
+            sr_admin_redirect_with_result(sr_admin_action_result(['삭제할 설문을 찾을 수 없습니다.'], ''), '/admin/surveys');
+        }
         $pdo->prepare('UPDATE sr_survey_forms SET deleted_at = :deleted_at, updated_at = :updated_at, updated_by_account_id = :account_id WHERE id = :id')->execute([
             'deleted_at' => sr_now(),
             'updated_at' => sr_now(),
@@ -111,6 +114,7 @@ if (sr_request_method() === 'POST') {
     $rewardCouponDefinitionId = (int) sr_post_string('reward_coupon_definition_id', 20);
     $rewardAmount = (int) sr_post_string('reward_amount', 20);
     $rewardDedupeScope = sr_survey_clean_key(sr_post_string('reward_dedupe_scope', 20), 20);
+    $existingSurveyForSave = $surveyId > 0 ? sr_survey_by_id($pdo, $surveyId) : null;
 
     if (!sr_survey_key_is_valid($surveyKey)) {
         $errors[] = '설문 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -123,6 +127,9 @@ if (sr_request_method() === 'POST') {
     }
     if ($title === '') {
         $errors[] = '설문 제목을 입력하세요.';
+    }
+    if ($surveyId > 0 && !is_array($existingSurveyForSave)) {
+        $errors[] = '수정할 설문을 찾을 수 없습니다.';
     }
     if (!in_array($status, sr_survey_statuses(), true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';
@@ -254,13 +261,20 @@ if (sr_request_method() === 'POST') {
             $errors[] = '숫자/척도 문항 ' . (string) ($index + 1) . '의 최대값은 최소값 이상이어야 합니다.';
         }
     }
+    if (is_array($existingSurveyForSave) && (int) ($existingSurveyForSave['revision_locked'] ?? 0) === 1) {
+        $existingQuestionSignature = sr_survey_admin_question_signature(sr_survey_questions_with_choices($pdo, $surveyId));
+        $postedQuestionSignature = sr_survey_admin_question_signature($questions);
+        if ($existingQuestionSignature !== $postedQuestionSignature) {
+            $errors[] = '설문지 잠금 상태에서는 문항을 수정할 수 없습니다.';
+        }
+    }
 
     if ($errors === []) {
         $now = sr_now();
         $pdo->beginTransaction();
         try {
             if ($surveyId > 0) {
-                $existingSurvey = sr_survey_by_id($pdo, $surveyId);
+                $existingSurvey = is_array($existingSurveyForSave) ? $existingSurveyForSave : sr_survey_by_id($pdo, $surveyId);
                 $nextQuestionnaireVersion = max(1, (int) ($existingSurvey['questionnaire_version'] ?? 1)) + 1;
                 $pdo->prepare(
                     'UPDATE sr_survey_forms
@@ -534,6 +548,57 @@ function sr_survey_replace_questions(PDO $pdo, int $surveyId, array $questions, 
             ]);
         }
     }
+}
+
+function sr_survey_admin_question_signature(array $questions): string
+{
+    $signature = [];
+    foreach ($questions as $question) {
+        $choices = [];
+        foreach ((array) ($question['choices'] ?? []) as $choice) {
+            if ((int) ($choice['is_other'] ?? 0) === 1 || (int) ($choice['is_nonresponse'] ?? 0) === 1) {
+                continue;
+            }
+            $choices[] = [
+                'choice_key' => (string) ($choice['choice_key'] ?? ''),
+                'label' => (string) ($choice['label'] ?? ''),
+            ];
+        }
+        $signature[] = [
+            'question_key' => (string) ($question['question_key'] ?? ''),
+            'question_type' => (string) ($question['question_type'] ?? ''),
+            'prompt' => (string) ($question['prompt'] ?? ''),
+            'analysis_note' => (string) ($question['analysis_note'] ?? ''),
+            'required' => (int) ($question['required'] ?? 0),
+            'min_choices' => $question['min_choices'] === null ? null : (int) $question['min_choices'],
+            'max_choices' => $question['max_choices'] === null ? null : (int) $question['max_choices'],
+            'scale_points' => $question['scale_points'] === null ? null : (int) $question['scale_points'],
+            'scale_min_label' => (string) ($question['scale_min_label'] ?? ''),
+            'scale_max_label' => (string) ($question['scale_max_label'] ?? ''),
+            'number_unit' => (string) ($question['number_unit'] ?? ''),
+            'number_min' => sr_survey_admin_number_signature_value($question['number_min'] ?? null),
+            'number_max' => sr_survey_admin_number_signature_value($question['number_max'] ?? null),
+            'allow_decimal' => (int) ($question['allow_decimal'] ?? 0),
+            'allow_other' => (int) ($question['allow_other'] ?? 0),
+            'nonresponse_policy' => (string) ($question['nonresponse_policy'] ?? 'none'),
+            'choices' => $choices,
+        ];
+    }
+    $json = json_encode($signature, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    return is_string($json) ? $json : '';
+}
+
+function sr_survey_admin_number_signature_value(mixed $value): ?string
+{
+    if ($value === null || trim((string) $value) === '') {
+        return null;
+    }
+    if (!is_numeric((string) $value)) {
+        return (string) $value;
+    }
+
+    return rtrim(rtrim(number_format((float) $value, 6, '.', ''), '0'), '.');
 }
 
 function sr_survey_replace_reward_policy(PDO $pdo, int $surveyId, bool $enabled, string $provider, string $module, int $couponDefinitionId, int $amount, string $scope, string $now): void
