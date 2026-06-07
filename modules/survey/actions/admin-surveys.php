@@ -941,7 +941,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'body_html' => $surveyHelpBodyHtml([
                 '문항 표에서 등록된 문항의 key, 유형, 필수 여부, 선택지 수를 확인합니다.',
                 '문항 등록과 수정은 모달에서 처리하고, 저장 시 서버가 key, 내용, 선택지, 범위를 다시 검증합니다.',
-                '저장된 문항은 개수 제한 없이 모두 표시하고, 새 문항 등록용 빈 행을 하나 더 제공합니다.',
+                '저장된 문항은 개수 제한 없이 모두 표시하고, 새 문항은 문항 등록 버튼으로 여는 모달에서 추가합니다.',
             ]),
         ],
         'question_key' => [
@@ -983,8 +983,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             $questionSlots[] = array_merge($emptyQuestionSlot, $questionSlot);
         }
     }
-    $firstEmptyQuestionIndex = count($questionSlots);
-    $questionSlots[] = $emptyQuestionSlot;
+    $newQuestionIndex = count($questionSlots);
+    $questionModalSlots = $questionSlots;
+    $questionModalSlots[$newQuestionIndex] = $emptyQuestionSlot;
     ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
@@ -1315,11 +1316,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="card-header">
                 <h2 class="card-title admin-form-label-help"><?php echo $surveyHelpButtonHtml('문항 관리', $surveyHelp['questions']['id']); ?><span>문항</span></h2>
                 <div class="card-actions">
-                    <?php if ($firstEmptyQuestionIndex !== null): ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="survey-question-modal-<?php echo sr_e((string) $firstEmptyQuestionIndex); ?>" data-overlay="#survey-question-modal-<?php echo sr_e((string) $firstEmptyQuestionIndex); ?>">문항 등록</button>
-                    <?php else: ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled>문항 등록</button>
-                    <?php endif; ?>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="survey-question-modal-<?php echo sr_e((string) $newQuestionIndex); ?>" data-overlay="#survey-question-modal-<?php echo sr_e((string) $newQuestionIndex); ?>">문항 등록</button>
                 </div>
             </div>
             <div class="table-wrapper">
@@ -1336,6 +1333,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php if ($questionSlots === []): ?>
+                            <tr><td colspan="7" class="admin-empty-state">등록된 문항이 없습니다.</td></tr>
+                        <?php endif; ?>
                         <?php foreach ($questionSlots as $index => $question): ?>
                             <?php
                             $questionKey = trim((string) ($question['question_key'] ?? ''));
@@ -1363,7 +1363,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
 
-        <?php foreach ($questionSlots as $index => $question): ?>
+        <?php foreach ($questionModalSlots as $index => $question): ?>
             <?php
             $questionModalId = 'survey-question-modal-' . (string) $index;
             $questionKey = trim((string) ($question['question_key'] ?? ''));
