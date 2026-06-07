@@ -121,7 +121,7 @@ function sr_admin_code_label(string $value, string $context = ''): string
             'failed' => '실패',
             'canceled' => '취소',
         ],
-        'content_embed_status' => [
+        'embed_manager_status' => [
             'active' => '정상',
             'removed' => '제거됨',
             'broken' => '깨짐',

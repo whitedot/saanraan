@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-function sr_content_embed_marker_pattern(): string
+function sr_embed_manager_marker_pattern(): string
 {
-    return '/<span\b(?=[^>]*\bsr-content-embed-marker\b)(?=[^>]*\bdata-sr-content-embed-ref=(["\'])([^"\']+)\\1)[^>]*><\/span>/iu';
+    return '/<span\b(?=[^>]*\bsr-embed-manager-marker\b)(?=[^>]*\bdata-sr-embed-manager-ref=(["\'])([^"\']+)\\1)[^>]*><\/span>/iu';
 }
 
-function sr_content_embed_extract_marker_refs(string $bodyHtml): array
+function sr_embed_manager_extract_marker_refs(string $bodyHtml): array
 {
     if ($bodyHtml === '') {
         return [];
     }
 
-    if (preg_match_all(sr_content_embed_marker_pattern(), $bodyHtml, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
+    if (preg_match_all(sr_embed_manager_marker_pattern(), $bodyHtml, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) < 1) {
         return [];
     }
 
     $refs = [];
     $position = 0;
     foreach ($matches as $match) {
-        $refKey = sr_content_embed_clean_ref_key((string) ($match[2][0] ?? ''));
+        $refKey = sr_embed_manager_clean_ref_key((string) ($match[2][0] ?? ''));
         if ($refKey === '') {
             continue;
         }
@@ -36,18 +36,18 @@ function sr_content_embed_extract_marker_refs(string $bodyHtml): array
     return $refs;
 }
 
-function sr_content_embed_clean_ref_key(string $value): string
+function sr_embed_manager_clean_ref_key(string $value): string
 {
     $value = trim($value);
-    return preg_match('/\Ace_[a-z0-9_]{6,70}\z/', $value) === 1 ? $value : '';
+    return preg_match('/\Aem_[a-z0-9_]{6,70}\z/', $value) === 1 ? $value : '';
 }
 
-function sr_content_embed_allowed_statuses(): array
+function sr_embed_manager_allowed_statuses(): array
 {
     return ['active', 'removed', 'broken', 'private', 'deleted'];
 }
 
-function sr_content_embed_table_exists(PDO $pdo): bool
+function sr_embed_manager_table_exists(PDO $pdo): bool
 {
     static $exists = null;
     if ($exists !== null) {
@@ -55,7 +55,7 @@ function sr_content_embed_table_exists(PDO $pdo): bool
     }
 
     try {
-        $pdo->query('SELECT 1 FROM sr_content_embed_refs LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_embed_manager_refs LIMIT 1');
         $exists = true;
     } catch (Throwable $exception) {
         $exists = false;
@@ -64,9 +64,9 @@ function sr_content_embed_table_exists(PDO $pdo): bool
     return $exists;
 }
 
-function sr_content_embed_admin_refs(PDO $pdo, array $filters, int $limit = 100): array
+function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100): array
 {
-    if (!sr_content_embed_table_exists($pdo)) {
+    if (!sr_embed_manager_table_exists($pdo)) {
         return [];
     }
 
@@ -76,7 +76,7 @@ function sr_content_embed_admin_refs(PDO $pdo, array $filters, int $limit = 100)
 
     $statusValues = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
     $status = $statusValues === [] ? '' : (string) $statusValues[0];
-    if ($status !== '' && in_array($status, sr_content_embed_allowed_statuses(), true)) {
+    if ($status !== '' && in_array($status, sr_embed_manager_allowed_statuses(), true)) {
         $where[] = 'status = :status';
         $params['status'] = $status;
     }
@@ -89,7 +89,7 @@ function sr_content_embed_admin_refs(PDO $pdo, array $filters, int $limit = 100)
     }
 
     $sql = 'SELECT *
-            FROM sr_content_embed_refs'
+            FROM sr_embed_manager_refs'
         . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
         . ' ORDER BY updated_at DESC, id DESC
             LIMIT ' . $limit;

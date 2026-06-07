@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS sr_content_embed_refs (
+CREATE TABLE IF NOT EXISTS sr_embed_manager_refs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ref_key VARCHAR(80) NOT NULL,
     owner_module VARCHAR(60) NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS sr_content_embed_refs (
     created_by_account_id BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
-    UNIQUE KEY uq_sr_content_embed_ref_key (ref_key),
-    KEY idx_sr_content_embed_owner (owner_module, owner_type, owner_id, owner_field, status, sort_order),
-    KEY idx_sr_content_embed_target (target_module, target_type, target_id, status)
+    UNIQUE KEY uq_sr_embed_manager_ref_key (ref_key),
+    KEY idx_sr_embed_manager_owner (owner_module, owner_type, owner_id, owner_field, status, sort_order),
+    KEY idx_sr_embed_manager_target (target_module, target_type, target_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

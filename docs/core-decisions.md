@@ -100,7 +100,7 @@
 
 코어에 두는 것을 기본값으로 삼지 않는다. 여러 모듈에서 반복되더라도 데이터 모델이나 업무 규칙의 모양을 강하게 유도한다면 코어 primitive가 아니라 공유 도메인 패턴이다.
 
-현재 공유 도메인 패턴은 코어 밖 공식 선택 모듈로 이동한다. `asset_ledger`는 자산 원장 primitive, `content_embed`는 본문 임베드 참조와 legacy 링크 카드 호환 처리를 소유한다.
+현재 공유 도메인 패턴은 코어 밖 공식 선택 모듈로 이동한다. `asset_ledger`는 자산 원장 primitive, `embed_manager`는 본문 임베드 참조와 legacy 링크 카드 호환 처리를 소유한다.
 
 회원 자산 모듈은 하나의 `sr_member_ledgers` 같은 통합 원장으로 합치지 않고 `point`, `reward`, `deposit`이 각자 balance/transaction 테이블을 소유한다. 세 모듈은 모양이 비슷하지만 운영 의미가 다르다. 포인트는 활동 보상과 차감 정책, 적립금은 구매 보상/만료, 예치금은 현금성 충전/환불/정산 같은 정책을 가질 수 있으므로 단일 테이블로 합치면 코어 또는 공유 모듈이 자산 정책을 소유하게 된다. 반복되는 원자적 잔액 갱신과 거래 insert만 `asset_ledger` 공식 선택 모듈의 helper로 줄이고, 정책/권한/UI/보관 기준은 각 모듈에 둔다. 콘텐츠와 커뮤니티가 사용할 금액성 자산 후보는 고정 배열이 아니라 활성 자산 모듈의 `member-assets.php` 계약에서 읽고, 회원 탈퇴 시 정리 대상은 `member-withdrawal-assets.php` 계약에서 읽는다.
 
@@ -121,20 +121,20 @@
 - 원장 조회 UI, 정산, 만료, 지급 정책, 통계, 외부 결제 연동은 코어에 넣지 않는다.
 - `point`는 만료와 소비 매핑 정책 때문에 `asset_ledger`의 공통 transaction helper를 쓰지 않는다. `sr_ledger_nullable_positive_int()` 같은 작은 입력 보정만 공유할 수 있다.
 
-`content_embed` 유지 조건:
+`embed_manager` 유지 조건:
 
-- 내부 키는 `content_embed`, 운영자 표시명과 메뉴명은 `콘텐츠 임베드`다.
+- 내부 키는 `embed_manager`, 운영자 표시명과 메뉴명은 `임베드 매니저`다.
 - 관리자 사이드메뉴는 `service` 카테고리의 마지막 쪽에 둔다. 기본값은 `category_order=30`, `menu_order=990`이고, 운영자 메뉴 오버라이드는 기존 정책대로 최종 적용한다.
-- CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `content_embed`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
-- 현재 1.0 정책은 검색 결과를 일반 HTML 또는 텍스트 링크로 삽입하고 별도 참조 점검 화면을 요구하지 않는 것이다. `content_embed`는 이 정책의 변경 후보로, 본문 안의 제한된 marker와 `sr_content_embed_refs`를 함께 사용한다.
-- 본문 marker는 예를 들어 `<span class="sr-content-embed-marker" data-sr-content-embed-ref="ce_8f3k2"></span>`처럼 sanitizer가 허용하는 제한된 마크업만 사용한다.
+- CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `embed_manager`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
+- 현재 1.0 정책은 검색 결과를 일반 HTML 또는 텍스트 링크로 삽입하고 별도 참조 점검 화면을 요구하지 않는 것이다. `embed_manager`는 이 정책의 변경 후보로, 본문 안의 제한된 marker와 `sr_embed_manager_refs`를 함께 사용한다.
+- 본문 marker는 예를 들어 `<span class="sr-embed-manager-marker" data-sr-embed-manager-ref="em_8f3k2"></span>`처럼 sanitizer가 허용하는 제한된 마크업만 사용한다.
 - refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니라 임베드 렌더링과 관리자 점검을 위한 명시적 참조다. 대상 삭제나 비활성화는 기본적으로 refs 때문에 자동 차단하지 않고, 공개 렌더링에서 broken/private/deleted 상태로 표시하며 관리자 점검 화면에서 다룬다.
 - 저장 검증은 본문 marker 목록과 POST된 refs payload를 같은 transaction에서 검증/동기화해야 한다. 본문에 없는 refs, refs 없는 marker, 중복 marker, 다른 owner의 ref_key, 비활성 대상 모듈 ref를 서버에서 처리한다.
 - 복사 시 기존 refs를 공유하지 않고 새 owner 기준으로 복제하며, ref_key가 바뀌면 본문 marker도 함께 rewrite한다.
-- 대상 모듈은 `content-embed-targets.php` 계약으로 검색 후보, target id 검증, 공개 URL, snapshot, broken/private/deleted 상태, 허용 variant, 공개 열람 가능 여부를 제공한다.
-- `content_embed`는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
+- 대상 모듈은 `embed-manager-targets.php` 계약으로 검색 후보, target id 검증, 공개 URL, snapshot, broken/private/deleted 상태, 허용 variant, 공개 열람 가능 여부를 제공한다.
+- `embed_manager`는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
 - 개인정보가 포함될 수 있는 snapshot이나 클릭/노출 로그를 저장하는 확장을 추가하면 `privacy-export.php`, `privacy-cleanup.php`, 보존 기간 정책을 함께 설계한다.
-- legacy 링크 카드 토큰 감지/거부와 `sr_content_link_refs`, `sr_community_link_refs` 비움 helper는 `content_embed`의 호환 범위다. 이 legacy refs 테이블은 1.0 호환을 위해 남기되 신규 저장과 운영 복사/삭제 차단에서는 참조 원장으로 쓰지 않는다.
+- legacy 링크 카드 토큰 감지/거부와 `sr_content_link_refs`, `sr_community_link_refs` 비움 helper는 `embed_manager`의 호환 범위다. 이 legacy refs 테이블은 1.0 호환을 위해 남기되 신규 저장과 운영 복사/삭제 차단에서는 참조 원장으로 쓰지 않는다.
 
 퇴출 또는 이동 기준:
 

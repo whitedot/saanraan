@@ -1,10 +1,10 @@
 <?php
 
 return [
-    'name' => '콘텐츠 임베드',
+    'name' => '임베드 매니저',
     'version' => '2026.06.001',
     'type' => 'module',
-    'description' => '본문 안에 여러 모듈 대상을 marker와 참조 행으로 연결하는 콘텐츠 임베드 기반 모듈입니다.',
+    'description' => '본문 안에 여러 모듈 대상을 marker와 참조 행으로 연결하는 임베드 매니저 기반 모듈입니다.',
     'admin' => [
         'category' => 'service',
         'category_label' => '서비스',
@@ -26,7 +26,7 @@ return [
             'admin-menu.php',
         ],
         'consumes' => [
-            'content-embed-targets.php',
+            'embed-manager-targets.php',
         ],
     ],
 ];
