@@ -95,6 +95,34 @@ sr_reward_check_file('modules/coupon/helpers.php', [
     'sr_coupon_revoke_consumer_access',
 ]);
 
+sr_reward_check_file('modules/point/helpers.php', [
+    'reference_type',
+    'reference_id',
+    'sr_point_refunded_amount_for_reference_locked',
+    'Point refund amount exceeds remaining reference amount.',
+    'FOR UPDATE',
+]);
+sr_reward_check_file('modules/reward/helpers.php', [
+    'reference_type',
+    'reference_id',
+    'sr_reward_account_can_request_withdrawal',
+    'sr_reward_complete_withdrawal_request',
+    'FOR UPDATE',
+]);
+sr_reward_check_file('modules/deposit/helpers.php', [
+    'reference_type',
+    'reference_id',
+    'sr_deposit_account_can_request_refund',
+    'sr_deposit_complete_refund_request',
+    'FOR UPDATE',
+]);
+sr_reward_check_file('modules/asset_exchange/helpers.php', [
+    'exchange_group_id',
+    'SELECT * FROM sr_asset_exchange_logs WHERE exchange_group_id = :exchange_group_id LIMIT 1 FOR UPDATE',
+    'reference_type',
+    'reference_id',
+]);
+
 sr_reward_check_file('modules/content/install.sql', [
     'CREATE TABLE IF NOT EXISTS sr_content_access_entitlements',
     'CREATE TABLE IF NOT EXISTS sr_content_asset_access_logs',
