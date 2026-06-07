@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/asset_ledger/helpers.php';
+
 function sr_reward_balance(PDO $pdo, int $accountId): int
 {
     if ($accountId <= 0) {

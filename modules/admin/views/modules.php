@@ -16,6 +16,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-section-heading">
     <h2><?php echo sr_e(sr_t('admin::ui.text.2d01e6b6')); ?></h2>
+    <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url($showFoundationModules ? '/admin/modules' : '/admin/modules?show_foundations=1')); ?>">
+        <?php echo sr_e($showFoundationModules ? '기반 모듈 숨기기' : '기반 모듈 보기'); ?>
+    </a>
     <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal" hidden>
         <?php echo sr_material_icon_html('upload'); ?>
         <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
@@ -192,6 +195,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php $moduleModalId = 'module-detail-' . $moduleKey; ?>
         <?php $moduleStatusModalId = 'module-status-' . $moduleKey; ?>
         <?php $isRequired = in_array($moduleKey, $requiredModules, true); ?>
+        <?php $foundationDependents = isset($module['foundation_dependents']) && is_array($module['foundation_dependents']) ? $module['foundation_dependents'] : []; ?>
+        <?php $statusLocked = $isRequired || $foundationDependents !== []; ?>
         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
         <?php $moduleStatus = (string) $module['status']; ?>
         <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-normal' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-left' : 'is-blocked'); ?>
@@ -282,7 +287,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </form>
                     </details>
                 <?php } else { ?>
-                    <button type="button" class="btn btn-sm btn-solid-primary"<?php echo $isRequired ? ' disabled aria-disabled="true"' : ''; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleStatusModalId); ?>" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
+                    <button type="button" class="btn btn-sm btn-solid-primary"<?php echo $statusLocked ? ' disabled aria-disabled="true"' : ''; ?> aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleStatusModalId); ?>" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>">
                         <?php echo sr_e(sr_t('admin::ui.status.22916f6e')); ?>
                     </button>
                 <?php } ?>
@@ -350,6 +355,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.06834fc9')); ?></dt>
                             <dd><?php echo sr_e(!empty($module['is_bundled']) ? sr_t('admin::ui.text.2eb73fba') : sr_t('admin::ui.text.4c490f1c')); ?></dd>
+                            <dt><?php echo sr_e('기반 모듈'); ?></dt>
+                            <dd>
+                                <?php echo !empty($module['is_foundation']) ? sr_e('예') : sr_e('아니오'); ?>
+                                <?php if ($foundationDependents !== []) { ?>
+                                    <br><?php echo sr_e('사용 중인 자산 모듈: ' . implode(', ', array_map('strval', $foundationDependents))); ?>
+                                <?php } ?>
+                            </dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.dd537afa')); ?></dt>
                             <dd><?php echo sr_e((string) ($module['installed_at'] ?? '')); ?></dd>
                             <dt><?php echo sr_e(sr_t('admin::ui.text.8c3f651d')); ?></dt>
@@ -376,6 +388,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="modal-body">
                                 <?php if ($isRequired) { ?>
                                     <p class="admin-form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.required.status.22c14e16')); ?></p>
+                                <?php } elseif ($foundationDependents !== []) { ?>
+                                    <p class="admin-form-help admin-module-status-help"><?php echo sr_e('활성 자산 모듈(' . implode(', ', array_map('strval', $foundationDependents)) . ')이 사용하는 기반 모듈은 비활성화할 수 없습니다.'); ?></p>
                                 <?php } else { ?>
                                     <p class="admin-form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.status.f9873f1e')); ?></p>
                                 <?php } ?>
@@ -412,7 +426,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($moduleStatusModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
-                                <button type="submit" class="btn btn-solid-primary modal-action"<?php echo $isRequired ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('admin::ui.status.save.e0adaad1')); ?></button>
+                                <button type="submit" class="btn btn-solid-primary modal-action"<?php echo $statusLocked ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('admin::ui.status.save.e0adaad1')); ?></button>
                             </div>
                         </form>
                     </div>

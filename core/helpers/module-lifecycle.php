@@ -289,6 +289,68 @@ function sr_file_only_module_version_drifts(array $moduleVersionDrifts): array
     return $fileOnlyDrifts;
 }
 
+function sr_foundation_module_keys(): array
+{
+    return ['asset_ledger'];
+}
+
+function sr_asset_module_keys(): array
+{
+    return ['point', 'reward', 'deposit'];
+}
+
+function sr_module_foundation_dependencies(string $moduleKey): array
+{
+    return in_array($moduleKey, sr_asset_module_keys(), true) ? ['asset_ledger'] : [];
+}
+
+function sr_module_is_foundation(string $moduleKey): bool
+{
+    return in_array($moduleKey, sr_foundation_module_keys(), true);
+}
+
+function sr_enabled_asset_modules_requiring_foundation(PDO $pdo, string $foundationModuleKey): array
+{
+    if ($foundationModuleKey !== 'asset_ledger') {
+        return [];
+    }
+
+    $placeholders = implode(', ', array_fill(0, count(sr_asset_module_keys()), '?'));
+    $stmt = $pdo->prepare(
+        "SELECT module_key FROM sr_modules
+         WHERE module_key IN (" . $placeholders . ")
+           AND status = 'enabled'
+         ORDER BY module_key ASC"
+    );
+    $stmt->execute(sr_asset_module_keys());
+
+    $moduleKeys = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $moduleKey = (string) ($row['module_key'] ?? '');
+        if (sr_is_safe_module_key($moduleKey)) {
+            $moduleKeys[] = $moduleKey;
+        }
+    }
+
+    return $moduleKeys;
+}
+
+function sr_module_disable_errors(PDO $pdo, string $moduleKey): array
+{
+    if (!sr_module_is_foundation($moduleKey)) {
+        return [];
+    }
+
+    $dependentModules = sr_enabled_asset_modules_requiring_foundation($pdo, $moduleKey);
+    if ($dependentModules === []) {
+        return [];
+    }
+
+    return [
+        $moduleKey . ' 기반 모듈은 활성 자산 모듈(' . implode(', ', $dependentModules) . ')이 사용하는 동안 비활성화할 수 없습니다.',
+    ];
+}
+
 function sr_install_module(PDO $pdo, string $moduleKey, string $status, bool $isBundled = false): array
 {
     if (!sr_is_safe_module_key($moduleKey)) {
@@ -422,6 +484,13 @@ function sr_update_module_status(PDO $pdo, string $moduleKey, string $status): a
     }
 
     $beforeStatus = (string) $module['status'];
+    if ($status !== 'enabled') {
+        $disableErrors = sr_module_disable_errors($pdo, $moduleKey);
+        if ($disableErrors !== []) {
+            throw new RuntimeException(implode(' ', $disableErrors));
+        }
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_modules
          SET status = :status, updated_at = :updated_at

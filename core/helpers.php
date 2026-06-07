@@ -11,6 +11,5 @@ require_once SR_ROOT . '/core/helpers/upload.php';
 require_once SR_ROOT . '/core/helpers/storage.php';
 require_once SR_ROOT . '/core/helpers/sql.php';
 require_once SR_ROOT . '/core/helpers/module-lifecycle.php';
-require_once SR_ROOT . '/core/helpers/ledger.php';
 require_once SR_ROOT . '/core/helpers/ops.php';
 require_once SR_ROOT . '/core/helpers/link-card.php';

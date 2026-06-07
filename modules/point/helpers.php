@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/asset_ledger/helpers.php';
+
 function sr_point_default_settings(): array
 {
     return [

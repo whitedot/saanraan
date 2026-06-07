@@ -58,6 +58,10 @@ function sr_admin_handle_modules_post(
         if (in_array($moduleKey, $requiredModules, true) && $status !== 'enabled') {
             $errors[] = '기본 모듈은 비활성화할 수 없습니다.';
         }
+
+        if ($status !== 'enabled') {
+            $errors = array_merge($errors, sr_module_disable_errors($pdo, $moduleKey));
+        }
     } elseif ($intent === 'install') {
         $status = sr_post_string('status', 30);
         if (!in_array($status, $allowedInstallStatuses, true)) {
@@ -82,6 +86,12 @@ function sr_admin_handle_modules_post(
 
         if ($errors === [] && $intent === 'status' && in_array((string) $module['status'], ['failed', 'installing'], true)) {
             $errors[] = '설치가 완료되지 않은 모듈은 재설치를 먼저 실행하세요.';
+        }
+    }
+
+    if ($errors === [] && in_array($intent, ['install', 'status'], true) && $status === 'enabled') {
+        foreach (sr_admin_prepare_module_foundations($pdo, $account, $moduleKey) as $preparedFoundation) {
+            $notice .= ($notice !== '' ? ' ' : '') . $preparedFoundation['module_key'] . ' 기반 모듈이 함께 준비되었습니다.';
         }
     }
 
@@ -218,7 +228,7 @@ function sr_admin_handle_modules_post(
                 ],
             ]);
 
-            $notice = '모듈을 설치했습니다.';
+            $notice .= ($notice !== '' ? ' ' : '') . '모듈을 설치했습니다.';
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'module_install_failed');
             $errors[] = '모듈 설치 중 오류가 발생했습니다.';
@@ -277,6 +287,56 @@ function sr_admin_module_route_conflict_errors(PDO $pdo, string $candidateModule
 function sr_admin_module_route_map(string $moduleKey): array
 {
     return sr_module_route_map($moduleKey);
+}
+
+function sr_admin_prepare_module_foundations(PDO $pdo, array $account, string $moduleKey): array
+{
+    $prepared = [];
+    foreach (sr_module_foundation_dependencies($moduleKey) as $foundationModuleKey) {
+        $foundation = sr_module_record_entry($pdo, $foundationModuleKey);
+        if (is_array($foundation) && (string) ($foundation['status'] ?? '') === 'enabled') {
+            continue;
+        }
+
+        if (is_array($foundation)) {
+            $statusChange = sr_update_module_status($pdo, $foundationModuleKey, 'enabled');
+            $prepared[] = ['module_key' => $foundationModuleKey, 'action' => 'enabled'];
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'module.foundation.enabled',
+                'target_type' => 'module',
+                'target_id' => $foundationModuleKey,
+                'result' => 'success',
+                'message' => 'Foundation module enabled automatically.',
+                'metadata' => [
+                    'requested_module_key' => $moduleKey,
+                    'before_status' => (string) $statusChange['before_status'],
+                    'after_status' => (string) $statusChange['after_status'],
+                ],
+            ]);
+            continue;
+        }
+
+        $installedModule = sr_install_module($pdo, $foundationModuleKey, 'enabled');
+        $prepared[] = ['module_key' => $foundationModuleKey, 'action' => 'installed'];
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'module.foundation.installed',
+            'target_type' => 'module',
+            'target_id' => $foundationModuleKey,
+            'result' => 'success',
+            'message' => 'Foundation module installed automatically.',
+            'metadata' => [
+                'requested_module_key' => $moduleKey,
+                'status' => (string) $installedModule['status'],
+                'version' => (string) $installedModule['version'],
+            ],
+        ]);
+    }
+
+    return $prepared;
 }
 
 function sr_admin_module_source_reauth_errors(PDO $pdo, array $account, string $intent): array
@@ -356,6 +416,8 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
             : (is_string($saanraanTestedWith) ? $saanraanTestedWith : '');
         $row['saanraan_module_contract'] = is_string($saanraanMetadata['module_contract'] ?? null) ? (string) $saanraanMetadata['module_contract'] : '';
         $row['metadata_errors'] = $metadataErrors;
+        $row['is_foundation'] = sr_module_is_foundation((string) $row['module_key']);
+        $row['foundation_dependents'] = sr_enabled_asset_modules_requiring_foundation($pdo, (string) $row['module_key']);
         $row['pending_update_count'] = (int) ($pendingUpdateCounts[(string) $row['module_key']] ?? 0);
         $row['version_state'] = 'unknown';
         if ((string) $row['code_version'] !== '' && (string) $row['version'] !== '') {
@@ -372,7 +434,9 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
         $row['lifecycle_state'] = (string) $lifecycle['state'];
         $row['lifecycle_label'] = (string) $lifecycle['label'];
         $row['lifecycle_action'] = (string) $lifecycle['action'];
-        $modules[] = $row;
+        if (!sr_admin_module_should_hide_in_management($row)) {
+            $modules[] = $row;
+        }
     }
 
     $installableModules = [];
@@ -402,7 +466,7 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
                 $metadataErrors[] = 'install.sql 파일이 필요합니다.';
             }
 
-            $installableModules[] = [
+            $installableModule = [
                 'module_key' => $moduleKey,
                 'name' => is_string($metadata['name'] ?? null) ? (string) $metadata['name'] : $moduleKey,
                 'version' => is_string($metadata['version'] ?? null) ? (string) $metadata['version'] : '',
@@ -418,11 +482,30 @@ function sr_admin_load_module_management_view_data(PDO $pdo): array
                 'lifecycle_label' => $metadataErrors === [] ? '미설치' : '설치 차단',
                 'lifecycle_action' => $metadataErrors === [] ? '설치 가능' : '모듈 파일 확인',
             ];
+            $installableModule['is_foundation'] = sr_module_is_foundation($moduleKey);
+            if (!sr_admin_module_should_hide_in_management($installableModule)) {
+                $installableModules[] = $installableModule;
+            }
         }
     }
 
     return [
         'modules' => $modules,
         'installable_modules' => $installableModules,
+        'show_foundation_modules' => sr_admin_show_foundation_modules(),
     ];
+}
+
+function sr_admin_module_should_hide_in_management(array $module): bool
+{
+    if (sr_admin_show_foundation_modules()) {
+        return false;
+    }
+
+    return !empty($module['is_foundation']);
+}
+
+function sr_admin_show_foundation_modules(): bool
+{
+    return (string) ($_GET['show_foundations'] ?? '') === '1';
 }
