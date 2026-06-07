@@ -236,7 +236,7 @@ php .tools/bin/smoke-community-auth.php
 ```text
 선택 모듈 체크 후 설치 완료
 서비스 도메인 모듈 카드에서 초기화면으로 설정 체크를 선택한 경우 site.home_path가 저장되고 / 접속 시 해당 경로로 이동
-/admin/settings 화면 섹션에서 기본 홈페이지 / 접속, 커뮤니티 홈/퀴즈 메인/공개 콘텐츠/콘텐츠 그룹 초기화면 선택과 fallback 확인
+/admin/settings 화면 섹션에서 기본 홈페이지 / 접속, 콘텐츠 메인/커뮤니티 홈/퀴즈 메인 초기화면 선택과 fallback 확인
 선택 모듈 관리자 메뉴 노출
 선택 모듈의 GET 관리자 path가 500 없이 열림
 ```

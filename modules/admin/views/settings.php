@@ -232,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_home_path', sr_t('admin::ui.text.214b5fb8'), $siteSettingsHelp['home_path']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="admin_settings_home_path" name="home_path" class="form-select form-control-full">
+                <select id="admin_settings_home_path" name="home_path" class="form-select">
                     <?php foreach ($homepageCandidates as $candidate) { ?>
                         <?php $candidatePath = (string) ($candidate['path'] ?? ''); ?>
                         <?php $candidateSelected = (string) ($values['home_path'] ?? '/') === $candidatePath; ?>

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'): array
 {
+    $serviceMainCandidates = [];
+    $homepageModuleKeys = ['content', 'community', 'quiz'];
     $candidates = [
         '/' => [
             'module_key' => 'core',
@@ -14,7 +16,11 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
         ],
     ];
 
-    foreach (sr_enabled_module_keys($pdo) as $moduleKey) {
+    foreach ($homepageModuleKeys as $moduleKey) {
+        if (!sr_module_enabled($pdo, $moduleKey)) {
+            continue;
+        }
+
         $metadata = sr_module_metadata($moduleKey);
         $serviceDomain = is_array($metadata['service_domain'] ?? null) ? $metadata['service_domain'] : [];
         $mainPage = is_array($serviceDomain['main_page'] ?? null) ? $serviceDomain['main_page'] : [];
@@ -23,16 +29,34 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
             continue;
         }
 
-        $candidates[$path] = [
+        $adminMetadata = is_array($metadata['admin'] ?? null) ? $metadata['admin'] : [];
+        $serviceMainCandidates[] = [
             'module_key' => $moduleKey,
             'label' => (string) ($mainPage['label'] ?? ($metadata['name'] ?? $moduleKey)),
             'path' => $path,
             'detail' => sr_admin_module_name_label((string) ($metadata['name'] ?? $moduleKey)),
             'available' => sr_site_home_path_is_available($pdo, $path),
+            '_category_order' => (int) ($adminMetadata['category_order'] ?? 999),
+            '_menu_order' => (int) ($adminMetadata['menu_order'] ?? 999),
         ];
     }
 
-    foreach (sr_admin_homepage_contract_candidates($pdo) as $candidate) {
+    usort($serviceMainCandidates, static function (array $left, array $right): int {
+        return [
+            (int) ($left['_category_order'] ?? 999),
+            (int) ($left['_menu_order'] ?? 999),
+            (string) ($left['label'] ?? ''),
+            (string) ($left['path'] ?? ''),
+        ] <=> [
+            (int) ($right['_category_order'] ?? 999),
+            (int) ($right['_menu_order'] ?? 999),
+            (string) ($right['label'] ?? ''),
+            (string) ($right['path'] ?? ''),
+        ];
+    });
+
+    foreach ($serviceMainCandidates as $candidate) {
+        unset($candidate['_category_order'], $candidate['_menu_order']);
         $path = (string) ($candidate['path'] ?? '');
         if ($path !== '') {
             $candidates[$path] = $candidate;
@@ -47,41 +71,6 @@ function sr_admin_homepage_candidate_options(PDO $pdo, string $currentPath = '/'
             'detail' => sr_t('admin::homepage.current.detail'),
             'available' => false,
         ];
-    }
-
-    return $candidates;
-}
-
-function sr_admin_homepage_contract_candidates(PDO $pdo): array
-{
-    $candidates = [];
-    foreach (sr_enabled_module_contract_files($pdo, 'homepage-candidates.php') as $moduleKey => $file) {
-        $contract = sr_module_homepage_contract($moduleKey, $file);
-        $candidatesFunction = $contract['candidates_function'] ?? null;
-        if (!is_callable($candidatesFunction)) {
-            continue;
-        }
-
-        try {
-            $moduleCandidates = $candidatesFunction($pdo);
-        } catch (Throwable) {
-            $moduleCandidates = [];
-        }
-
-        if (!is_array($moduleCandidates)) {
-            continue;
-        }
-
-        foreach ($moduleCandidates as $candidate) {
-            if (!is_array($candidate)) {
-                continue;
-            }
-
-            if ((string) ($candidate['module_key'] ?? '') === '') {
-                $candidate['module_key'] = $moduleKey;
-            }
-            $candidates[] = $candidate;
-        }
     }
 
     return $candidates;
