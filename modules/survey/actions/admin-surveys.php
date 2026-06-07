@@ -941,6 +941,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'body_html' => $surveyHelpBodyHtml([
                 '문항 표에서 등록된 문항의 key, 유형, 필수 여부, 선택지 수를 확인합니다.',
                 '문항 등록과 수정은 모달에서 처리하고, 저장 시 서버가 key, 내용, 선택지, 범위를 다시 검증합니다.',
+                '저장된 문항은 개수 제한 없이 모두 표시하고, 새 문항 등록용 빈 행을 하나 더 제공합니다.',
             ]),
         ],
         'question_key' => [
@@ -975,19 +976,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             . sr_material_icon_html('help')
             . '</button>';
     };
+    $emptyQuestionSlot = ['question_key' => '', 'question_type' => 'single_choice', 'prompt' => '', 'analysis_note' => '', 'required' => 1, 'min_choices' => null, 'max_choices' => null, 'scale_points' => null, 'scale_min_label' => '', 'scale_max_label' => '', 'number_unit' => '', 'number_min' => null, 'number_max' => null, 'allow_decimal' => 0, 'allow_other' => 0, 'nonresponse_policy' => 'none', 'choices' => []];
     $questionSlots = [];
-    for ($slotIndex = 0; $slotIndex < 10; $slotIndex++) {
-        $questionSlots[$slotIndex] = is_array($editQuestions[$slotIndex] ?? null)
-            ? $editQuestions[$slotIndex]
-            : ['question_key' => '', 'question_type' => 'single_choice', 'prompt' => '', 'analysis_note' => '', 'required' => 1, 'min_choices' => null, 'max_choices' => null, 'scale_points' => null, 'scale_min_label' => '', 'scale_max_label' => '', 'number_unit' => '', 'number_min' => null, 'number_max' => null, 'allow_decimal' => 0, 'allow_other' => 0, 'nonresponse_policy' => 'none', 'choices' => []];
-    }
-    $firstEmptyQuestionIndex = null;
-    foreach ($questionSlots as $slotIndex => $questionSlot) {
-        if (trim((string) ($questionSlot['question_key'] ?? '')) === '' && trim((string) ($questionSlot['prompt'] ?? '')) === '') {
-            $firstEmptyQuestionIndex = $slotIndex;
-            break;
+    foreach ($editQuestions as $questionSlot) {
+        if (is_array($questionSlot)) {
+            $questionSlots[] = array_merge($emptyQuestionSlot, $questionSlot);
         }
     }
+    $firstEmptyQuestionIndex = count($questionSlots);
+    $questionSlots[] = $emptyQuestionSlot;
     ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
