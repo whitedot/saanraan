@@ -117,6 +117,21 @@ sr_output_helper_assert(
     'Download filename should fall back when no safe characters remain.'
 );
 sr_output_helper_assert(
+    sr_plain_text_html('See https://example.com/path?x=1, then <b>', true)
+        === 'See <a href="https://example.com/path?x=1" rel="nofollow noopener noreferrer">https://example.com/path?x=1</a>, then &lt;b&gt;',
+    'Plain text URL linkification should link safe HTTP URLs and escape surrounding text.'
+);
+sr_output_helper_assert(
+    sr_plain_text_html('See https://example.com/path?x=1, then <b>', false)
+        === 'See https://example.com/path?x=1, then &lt;b&gt;',
+    'Plain text URL linkification should stay disabled by default.'
+);
+sr_output_helper_assert(
+    sr_plain_text_html("Line 1\nhttps://example.com/a.", true)
+        === 'Line 1<br>' . "\n" . '<a href="https://example.com/a" rel="nofollow noopener noreferrer">https://example.com/a</a>.',
+    'Plain text URL linkification should preserve line breaks and trailing punctuation.'
+);
+sr_output_helper_assert(
     sr_public_layout_key(['public_layout_key' => 'basic']) === 'common.basic',
     'Legacy public layout key should normalize to the namespaced common layout key.'
 );
