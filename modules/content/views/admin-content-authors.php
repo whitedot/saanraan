@@ -40,21 +40,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-actions"><button type="submit" class="btn btn-solid-primary">저장</button></div>
     </form>
 </section>
-<section class="admin-card card">
-    <h2>승인 목록</h2>
-    <table class="table">
-        <thead><tr><th>회원</th><th>상태</th><th>검수</th><th>메모</th><th>수정일</th></tr></thead>
-        <tbody>
-            <?php foreach ($contentAuthorPermissions as $permission) { ?>
-                <tr>
-                    <td>#<?php echo sr_e((string) (int) $permission['account_id']); ?><br><?php echo sr_e((string) (($permission['display_name'] ?? '') ?: ($permission['email'] ?? ''))); ?></td>
-                    <td><?php echo sr_e(sr_content_author_permission_status_label((string) $permission['status'])); ?></td>
-                    <td><?php echo sr_e(sr_content_author_review_override_label((string) $permission['review_required_override'])); ?></td>
-                    <td><?php echo sr_e((string) ($permission['note'] ?? '')); ?></td>
-                    <td><?php echo sr_content_time_html((string) ($permission['updated_at'] ?? '')); ?></td>
-                </tr>
-            <?php } ?>
-        </tbody>
-    </table>
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">승인 목록</h2>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <caption class="sr-only">콘텐츠 작성자 승인 목록</caption>
+            <thead class="ui-table-head">
+                <tr><th>회원</th><th>상태</th><th>검수</th><th>메모</th><th>수정일</th></tr>
+            </thead>
+            <tbody>
+                <?php if ($contentAuthorPermissions === []) { ?>
+                    <tr><td colspan="5" class="admin-empty-state">콘텐츠 작성자 승인이 없습니다.</td></tr>
+                <?php } else { ?>
+                    <?php foreach ($contentAuthorPermissions as $permission) { ?>
+                        <tr>
+                            <td class="admin-table-break">#<?php echo sr_e((string) (int) $permission['account_id']); ?><br><?php echo sr_e((string) (($permission['display_name'] ?? '') ?: ($permission['email'] ?? ''))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_content_author_permission_status_label((string) $permission['status'])); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_content_author_review_override_label((string) $permission['review_required_override'])); ?></td>
+                            <td class="admin-table-break"><?php echo sr_e((string) ($permission['note'] ?? '')); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) ($permission['updated_at'] ?? '')); ?></td>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
 </section>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
