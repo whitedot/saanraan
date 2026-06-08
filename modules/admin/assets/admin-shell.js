@@ -33,6 +33,7 @@ window.AdminShell = {
         const menuResetConfirmedInput = document.querySelector('[data-admin-menu-reset-confirmed]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
         const tabRoot = document.querySelector('[data-admin-tabs]');
+        const sectionNavRoots = Array.prototype.slice.call(document.querySelectorAll('[data-admin-section-nav]'));
         const memberRuleDefinitions = Array.prototype.slice.call(document.querySelectorAll('[data-member-rule-definition]'));
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
         const dashboardSectionsRoot = document.querySelector('[data-admin-dashboard-sections]');
@@ -1549,6 +1550,63 @@ window.AdminShell = {
                 activateTab(selectedButton.dataset.adminTabTarget || '');
             }
         }
+
+        sectionNavRoots.forEach(sectionNavRoot => {
+            const links = Array.prototype.slice.call(sectionNavRoot.querySelectorAll('a[href^="#"]'));
+            const entries = links.map(link => {
+                let id = (link.getAttribute('href') || '').slice(1);
+                try {
+                    id = decodeURIComponent(id);
+                } catch (error) {}
+                const target = id ? document.getElementById(id) : null;
+                return { link, target };
+            }).filter(entry => !!entry.target);
+
+            if (entries.length === 0) {
+                return;
+            }
+
+            const setActive = activeEntry => {
+                entries.forEach(entry => {
+                    const active = entry === activeEntry;
+                    entry.link.classList.toggle('active', active);
+                    if (active) {
+                        entry.link.setAttribute('aria-current', 'location');
+                    } else {
+                        entry.link.removeAttribute('aria-current');
+                    }
+                });
+            };
+            const targetOffset = () => {
+                const shellHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--admin-shell-bar-height')) || 68;
+                const navHeight = sectionNavRoot.getBoundingClientRect().height || 0;
+                return shellHeight + navHeight + 16;
+            };
+            const updateActive = () => {
+                const offset = targetOffset();
+                const currentEntry = entries.reduce((selected, entry) => {
+                    const top = entry.target.getBoundingClientRect().top - offset;
+                    if (top <= 1) {
+                        return entry;
+                    }
+                    return selected;
+                }, entries[0]);
+                setActive(currentEntry);
+            };
+
+            links.forEach(link => {
+                link.addEventListener('click', () => {
+                    const entry = entries.find(candidate => candidate.link === link);
+                    if (entry) {
+                        setActive(entry);
+                    }
+                });
+            });
+
+            window.addEventListener('scroll', updateActive, { passive: true });
+            window.addEventListener('resize', updateActive);
+            updateActive();
+        });
 
         memberRuleDefinitions.forEach(memberRuleDefinition => {
             const root = memberRuleDefinition.closest('form') || document;

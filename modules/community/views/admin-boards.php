@@ -196,6 +196,22 @@ $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     : '';
 $communityBoardManagerPermissions = sr_community_board_manager_permission_options();
 $communityBoardManagers = $communityBoardsPage === 'edit' ? sr_community_board_managers($pdo, (int) ($formBoard['id'] ?? 0)) : [];
+$communityBoardSectionNavItems = [
+    'community-board-section-basic' => '기본 정보',
+    'community-board-section-seo' => 'SEO/OG',
+    'community-board-section-policy' => '접근/작성',
+    'community-board-section-banner' => '배너',
+    'community-board-section-popup' => '팝업',
+    'community-board-section-assets' => '포인트/금액',
+    'community-board-section-order' => '정렬',
+];
+if ($communityBoardsPage === 'edit') {
+    $communityBoardSectionNavItems += [
+        'community-board-section-danger' => '위험 작업',
+        'community-board-section-managers' => '관리권한',
+        'community-board-section-categories' => '카테고리',
+    ];
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -368,8 +384,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
     <?php } ?>
 <?php } else { ?>
+    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="게시판 설정 섹션" data-admin-section-nav>
+        <?php $communityBoardSectionNavIndex = 0; ?>
+        <?php foreach ($communityBoardSectionNavItems as $sectionId => $sectionLabel) { ?>
+            <a href="#<?php echo sr_e((string) $sectionId); ?>" class="tab-trigger-underline-justified<?php echo $communityBoardSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $communityBoardSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+                <?php echo sr_e((string) $sectionLabel); ?>
+            </a>
+            <?php $communityBoardSectionNavIndex++; ?>
+        <?php } ?>
+    </nav>
+
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
+        <section id="community-board-section-basic" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.e92ca332') : sr_t('community::ui.text.713b7a18')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardsPage === 'edit') { ?>
@@ -458,7 +484,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-section-seo" class="admin-card card" data-admin-section-anchor>
             <h2>SEO/OG 메타</h2>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_seo_title">SEO 제목</label>
@@ -500,7 +526,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-section-policy" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('community::ui.text.533748da')); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_boards_read_policy', sr_t('community::ui.text.0b6c5dfd'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true); ?>
@@ -666,7 +692,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-section-banner" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('community::ui.banner.63182d60')); ?></span>
                 <?php if (sr_module_enabled($pdo, 'banner')) { ?>
@@ -692,7 +718,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-section-popup" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('community::ui.text.1063d585')); ?></span>
                 <?php if (sr_module_enabled($pdo, 'popup_layer')) { ?>
@@ -718,7 +744,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-section-assets" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('community::ui.member.415a098e')); ?></span>
                 <?php if ($communityBoardAssetAuditUrl !== '') { ?>
@@ -847,7 +873,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-section-order" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('community::ui.text.3788952d')); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_boards_sort_order', sr_t('community::ui.text.7d2dc215'), $communityBoardHelp['sort_order']['id'], $communityBoardHelpOpenLabel, true); ?>
@@ -877,7 +903,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'rollback_limited' => true,
         ]); ?>
         <?php $boardDeleteConfirmText = '삭제 ' . (string) ($formBoard['board_key'] ?? ''); ?>
-        <section class="admin-card card">
+        <section id="community-board-section-danger" class="admin-card card" data-admin-section-anchor>
             <h2>위험 작업</h2>
             <p class="admin-form-help">
                 게시판을 삭제하면 게시판 설정, 설정 소스, 카테고리가 함께 삭제됩니다.
@@ -913,7 +939,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </section>
 
-        <section class="admin-card admin-list-card card admin-list-form">
+        <section id="community-board-section-managers" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor>
             <div class="card-header">
                 <h2 class="card-title">관리권한</h2>
                 <div class="admin-row-actions">
@@ -1050,7 +1076,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
 
-        <section class="admin-card admin-list-card card admin-list-form">
+        <section id="community-board-section-categories" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor>
             <?php $boardCategories = is_array($formBoard['categories'] ?? null) ? $formBoard['categories'] : []; ?>
             <div class="card-header">
                 <h2 class="card-title">게시판 카테고리</h2>
