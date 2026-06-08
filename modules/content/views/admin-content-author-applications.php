@@ -17,36 +17,46 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="submit" class="btn btn-solid-primary">검색</button>
     </form>
 </section>
-<section class="admin-card card">
-    <h2>신청 목록</h2>
-    <table class="table">
-        <thead><tr><th>회원</th><th>상태</th><th>신청 사유</th><th>검토</th><th>신청일</th></tr></thead>
-        <tbody>
-            <?php if (($contentAuthorApplications ?? []) === []) { ?>
-                <tr><td colspan="5" class="text-muted">콘텐츠 등록자 신청이 없습니다.</td></tr>
-            <?php } ?>
-            <?php foreach ($contentAuthorApplications as $application) { ?>
-                <tr>
-                    <td>#<?php echo sr_e((string) (int) $application['account_id']); ?><br><?php echo sr_e((string) (($application['display_name'] ?? '') ?: ($application['email'] ?? ''))); ?></td>
-                    <td><?php echo sr_e(sr_content_author_application_status_label((string) $application['status'])); ?></td>
-                    <td><?php echo nl2br(sr_e((string) ($application['application_note'] ?? ''))); ?></td>
-                    <td>
-                        <?php if ((string) ($application['status'] ?? '') === 'pending') { ?>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/content/author-applications')); ?>" class="admin-form-actions">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="application_id" value="<?php echo sr_e((string) (int) $application['id']); ?>">
-                                <input type="text" name="note" value="" class="form-input" placeholder="검토 메모">
-                                <button type="submit" name="intent" value="approve" class="btn btn-sm btn-solid-primary">승인</button>
-                                <button type="submit" name="intent" value="reject" class="btn btn-sm btn-outline-danger">반려</button>
-                            </form>
-                        <?php } else { ?>
-                            <?php echo sr_e((string) ($application['review_note'] ?? '')); ?>
-                        <?php } ?>
-                    </td>
-                    <td><?php echo sr_content_time_html((string) ($application['created_at'] ?? '')); ?></td>
-                </tr>
-            <?php } ?>
-        </tbody>
-    </table>
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">신청 목록</h2>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <caption class="sr-only">콘텐츠 등록자 신청 목록</caption>
+            <thead class="ui-table-head">
+                <tr><th>회원</th><th>상태</th><th>신청 사유</th><th>검토</th><th>신청일</th></tr>
+            </thead>
+            <tbody>
+                <?php if (($contentAuthorApplications ?? []) === []) { ?>
+                    <tr><td colspan="5" class="admin-empty-state">콘텐츠 등록자 신청이 없습니다.</td></tr>
+                <?php } else { ?>
+                    <?php foreach ($contentAuthorApplications as $application) { ?>
+                        <tr>
+                            <td class="admin-table-break">#<?php echo sr_e((string) (int) $application['account_id']); ?><br><?php echo sr_e((string) (($application['display_name'] ?? '') ?: ($application['email'] ?? ''))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(sr_content_author_application_status_label((string) $application['status'])); ?></td>
+                            <td class="admin-table-break"><?php echo nl2br(sr_e((string) ($application['application_note'] ?? ''))); ?></td>
+                            <td>
+                                <?php if ((string) ($application['status'] ?? '') === 'pending') { ?>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/content/author-applications')); ?>" class="admin-form-actions">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="application_id" value="<?php echo sr_e((string) (int) $application['id']); ?>">
+                                        <input type="text" name="note" value="" class="form-input" placeholder="검토 메모">
+                                        <button type="submit" name="intent" value="approve" class="btn btn-sm btn-solid-primary">승인</button>
+                                        <button type="submit" name="intent" value="reject" class="btn btn-sm btn-outline-danger">반려</button>
+                                    </form>
+                                <?php } else { ?>
+                                    <?php echo sr_e((string) ($application['review_note'] ?? '')); ?>
+                                <?php } ?>
+                            </td>
+                            <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) ($application['created_at'] ?? '')); ?></td>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
 </section>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
