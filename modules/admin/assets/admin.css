@@ -869,44 +869,10 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     margin-top: calc(var(--spacing) * 4);
 }
 
-.filtering-form > .filtering-fields.admin-audit-search-grid,
-.admin-audit-filter .filtering-card > .filtering-fields.admin-audit-search-grid {
-    align-items: end;
-    display: grid;
-    gap: .875rem;
-    grid-template-columns: max-content minmax(0, 1fr);
-    justify-content: stretch;
-}
-
-.admin-audit-search-grid .filtering-field {
-    min-width: 0;
-    width: 100%;
-}
-
-.admin-audit-search-grid .filtering-input,
-.admin-audit-search-grid .form-input,
-.admin-audit-search-grid .form-select {
-    width: 100%;
-}
-
-.admin-audit-filter-keyword {
-    margin-left: 0;
-    min-width: 0;
-}
-
-.admin-audit-search-grid .filtering-submit {
-    flex: 0 0 auto;
-    min-height: calc(var(--spacing) * 9.25);
-    min-width: 5rem;
-    white-space: nowrap;
-    width: fit-content;
-}
-
 .filtering-form > .filtering-fields.filtering-fields-fit,
 .filtering-card > .filtering-fields.filtering-fields-fit,
 .filtering-form > .filtering-fields[class*="-search-grid"].filtering-fields-fit,
-.filtering-form > .filtering-fields[class*="-filter-grid"].filtering-fields-fit,
-.admin-audit-filter .filtering-card > .filtering-fields.admin-audit-search-grid.filtering-fields-fit {
+.filtering-form > .filtering-fields[class*="-filter-grid"].filtering-fields-fit {
     align-items: end;
     display: flex;
     flex-wrap: wrap;
@@ -1185,15 +1151,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 @media (max-width: 1279px) {
-    .admin-audit-filter-keyword {
-        margin-left: 0;
-    }
-
-    .admin-audit-search-grid .filtering-submit {
-        justify-content: center;
-        width: 100%;
-    }
-
     .admin-dashboard-sections {
         grid-template-columns: repeat(6, minmax(0, 1fr));
     }
@@ -1219,23 +1176,13 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
 }
 
 @media (max-width: 1023px) {
-    .filtering-form > .filtering-fields,
-    .filtering-form > .filtering-fields.admin-audit-search-grid {
+    .filtering-form > .filtering-fields {
         grid-template-columns: 1fr;
     }
 
     .filtering-submit {
         justify-content: center;
         width: 100%;
-    }
-
-    .admin-audit-search-grid .filtering-submit {
-        justify-content: center;
-        width: 100%;
-    }
-
-    .admin-audit-filter-keyword {
-        margin-left: 0;
     }
 
     .admin-role-search-grid .filtering-field:nth-child(-n+3) .filtering-input {
