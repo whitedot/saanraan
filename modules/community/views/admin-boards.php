@@ -886,6 +886,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 첨부 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['attachments'] ?? 0)); ?>건,
                 시리즈 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['series'] ?? 0)); ?>건,
                 외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardDeleteCheck['external_references'] ?? null) ? $boardDeleteCheck['external_references'] : []))); ?>건.
+                위 게시판 저장 버튼으로 작성 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
             </p>
             <dl class="admin-meta-list">
                 <dt><?php echo sr_e('부하 등급'); ?></dt>
@@ -919,7 +920,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-grant-modal" data-overlay="#community-board-manager-grant-modal">관리권한 부여</button>
                 </div>
             </div>
-            <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업 권한을 부여합니다. 이 권한은 게시글 본문 수정 권한으로 확대되지 않습니다.</p>
+            <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업 권한을 부여합니다. 이 권한은 게시글 본문 수정 권한으로 확대되지 않습니다. 권한 부여와 회수는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
             <div class="table-wrapper">
                 <table class="table">
                     <caption class="sr-only">게시판 관리권한 목록</caption>
@@ -981,6 +982,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input type="hidden" name="intent" value="board_manager_grant">
                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                             <input type="hidden" name="account_id" value="" data-community-board-manager-account-id>
+                            <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 관리권한만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                             <div class="admin-form-row">
                                 <label class="form-label" for="community_board_manager_account_identifier">회원 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
@@ -1056,7 +1058,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-category-create-modal" data-overlay="#community-category-create-modal">카테고리 추가</button>
                 </div>
             </div>
-            <p class="admin-form-help">게시글 작성자가 선택할 게시판 안의 분류를 관리합니다.</p>
+            <p class="admin-form-help">게시글 작성자가 선택할 게시판 안의 분류를 관리합니다. 카테고리 추가, 수정, 삭제는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
             <div class="table-wrapper">
                 <table class="table">
                     <caption class="sr-only">게시판 카테고리 목록</caption>
@@ -1115,6 +1117,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="category_create">
                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                            <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 새 카테고리만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                             <div class="admin-form-row">
                                 <label class="form-label" for="community_category_key_new">key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
@@ -1170,6 +1173,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="intent" value="category_update">
                                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                                 <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
+                                <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 이 카테고리만 수정합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                                 <div class="admin-form-row">
                                     <span class="form-label">key</span>
                                     <div class="admin-form-field">

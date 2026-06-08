@@ -42,6 +42,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <div class="admin-form-secondary-actions">
+            <small class="admin-form-help"><?php echo sr_e('수동 만료 실행은 만료 대상 포인트를 바로 처리하며, 위 환경설정 입력값은 함께 저장하지 않습니다.'); ?></small>
             <button type="submit" name="intent" value="expire_due" class="btn btn-solid-light" formnovalidate><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></button>
         </div>
         <button type="submit" name="intent" value="save_settings" class="btn btn-solid-primary"><?php echo sr_e(sr_t('point::ui.settings.save')); ?></button>

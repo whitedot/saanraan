@@ -312,89 +312,93 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
     </section>
-    <div id="admin-icon-key-settings-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-icon-key-settings-modal-title" aria-hidden="true" inert data-overlay-stack="true">
-        <div class="modal-dialog modal-dialog-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="admin-icon-key-settings-modal-title" class="modal-title">공용 아이콘 설정</h3>
-                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-icon-key-settings-modal">
-                        <?php echo sr_material_icon_html('close'); ?>
-                    </button>
-                </div>
-                <div class="modal-body admin-icon-key-modal-body">
-                    <div class="admin-icon-key-list" data-admin-icon-key-list>
-                        <?php foreach ($adminIconRows as $adminIconRow) { ?>
-                            <?php
-                            $iconSymbolName = (string) ($adminIconRow['key'] ?? '');
-                            $iconDefaultMaterialName = (string) ($adminIconRow['default_material_name'] ?? $iconSymbolName);
-                            $iconIsDefault = !empty($adminIconRow['is_default']);
-                            $iconCustom = is_array($adminIconOverrides[$iconSymbolName] ?? null) ? $adminIconOverrides[$iconSymbolName] : [];
-                            $iconType = (string) ($iconCustom['type'] ?? 'material');
-                            if (!in_array($iconType, ['material', 'image'], true)) {
-                                $iconType = 'material';
-                            }
-                            $iconMaterialName = $iconType === 'material'
-                                ? sr_material_icon_name((string) ($iconCustom['material_name'] ?? $iconDefaultMaterialName))
-                                : sr_material_icon_name((string) $iconDefaultMaterialName);
-                            $iconStorageReference = $iconType === 'image' ? (string) ($iconCustom['storage_reference'] ?? '') : '';
-                            $iconHasImage = $iconStorageReference !== '' && sr_admin_icon_image_storage_reference($iconStorageReference) !== null;
-                            $iconInputIdSuffix = preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $iconSymbolName);
-                            $iconTypeInputId = 'admin_icon_key_type_' . $iconInputIdSuffix;
-                            $iconMaterialInputId = 'admin_icon_key_material_' . $iconInputIdSuffix;
-                            $iconImageInputId = 'admin_settings_icon_image_' . $iconInputIdSuffix;
-                            ?>
-                            <div class="admin-icon-key-item" data-admin-icon-key-item data-admin-icon-key-default="<?php echo sr_e((string) $iconDefaultMaterialName); ?>">
-                                <?php if ($iconIsDefault) { ?>
-                                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-icon-key-reset" aria-label="<?php echo sr_e((string) $iconSymbolName); ?> 초기화" title="초기화" data-admin-icon-key-reset>
-                                        <?php echo sr_material_icon_html('restart_alt'); ?>
-                                    </button>
-                                <?php } else { ?>
-                                    <label class="btn btn-icon-xs btn-ghost-default admin-icon-key-delete" aria-label="<?php echo sr_e((string) $iconSymbolName); ?> 제거" title="제거">
-                                        <input type="checkbox" name="icon_key_delete[<?php echo sr_e((string) $iconSymbolName); ?>]" value="1" data-admin-icon-key-delete>
-                                        <?php echo sr_material_icon_html('delete'); ?>
-                                    </label>
-                                <?php } ?>
-                                <span class="admin-icon-key-name"><?php echo sr_e((string) $iconSymbolName); ?></span>
-                                <span class="admin-icon-key-preview" data-admin-icon-key-preview>
-                                    <?php if ($iconHasImage) { ?>
-                                        <img src="<?php echo sr_e(sr_url('/admin/icon-image?file=' . rawurlencode($iconStorageReference))); ?>" alt="">
-                                    <?php } else { ?>
-                                        <?php echo sr_material_icon_html($iconMaterialName); ?>
-                                    <?php } ?>
-                                </span>
-                                <label class="sr-only" for="<?php echo sr_e($iconTypeInputId); ?>">표시 방식</label>
-                                <select id="<?php echo sr_e($iconTypeInputId); ?>" name="icon_key_type[<?php echo sr_e((string) $iconSymbolName); ?>]" class="form-select form-select-sm" data-admin-icon-key-type>
-                                    <option value="material"<?php echo $iconType === 'material' ? ' selected' : ''; ?>>Material</option>
-                                    <option value="image"<?php echo $iconType === 'image' ? ' selected' : ''; ?>>이미지</option>
-                                </select>
-                                <label class="sr-only" for="<?php echo sr_e($iconMaterialInputId); ?>">Material 이름</label>
-                                <input id="<?php echo sr_e($iconMaterialInputId); ?>" type="text" name="icon_key_material_name[<?php echo sr_e((string) $iconSymbolName); ?>]" value="<?php echo sr_e($iconMaterialName); ?>" class="form-input form-input-sm" maxlength="80" pattern="[a-z0-9_]+" data-admin-key-input data-admin-icon-key-material>
-                                <label class="sr-only" for="<?php echo sr_e($iconImageInputId); ?>">이미지 파일</label>
-                                <input id="<?php echo sr_e($iconImageInputId); ?>" type="file" name="icon_key_image_<?php echo sr_e((string) $iconSymbolName); ?>" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input form-input-sm admin-icon-key-file" data-admin-icon-key-file>
-                                <span class="admin-icon-key-file-name" data-admin-icon-key-file-name></span>
-                                <?php if ($iconHasImage) { ?>
-                                    <?php echo sr_admin_checkbox_toggle_html('admin_icon_key_remove_image_' . $iconInputIdSuffix, 'icon_key_remove_image[' . (string) $iconSymbolName . ']', '1', false, '제거', ' data-admin-icon-key-remove'); ?>
-                                <?php } ?>
-                            </div>
-                        <?php } ?>
-                    </div>
-                    <div class="admin-icon-key-add">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-icon-key-add><?php echo sr_material_icon_html('add'); ?>키 추가</button>
-                    </div>
-                    <p class="admin-form-help">Material 이름은 Google Material Symbols의 ligature 이름입니다. 이미지 업로드는 JPG, PNG, GIF, WebP / 최대 <?php echo sr_e(sr_admin_icon_format_bytes(sr_admin_icon_upload_max_bytes())); ?> / 512px 이하만 허용합니다.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-icon-key-settings-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
         <a href="<?php echo sr_e(sr_url('/')); ?>" class="btn btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('admin::ui.text.b47e1675')); ?></a>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
     </div>
 </form>
+
+<div id="admin-icon-key-settings-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-icon-key-settings-modal-title" aria-hidden="true" inert data-overlay-stack="true">
+    <div class="modal-dialog modal-dialog-lg">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="modal-content ui-form-theme" enctype="multipart/form-data">
+            <div class="modal-header">
+                <h3 id="admin-icon-key-settings-modal-title" class="modal-title">공용 아이콘 설정</h3>
+                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-icon-key-settings-modal">
+                    <?php echo sr_material_icon_html('close'); ?>
+                </button>
+            </div>
+            <div class="modal-body admin-icon-key-modal-body">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="icon_settings">
+                <p class="admin-form-help">이 모달의 저장 버튼은 공용 아이콘 설정만 바로 저장합니다. 위 사이트 설정 form에 작성 중인 값은 함께 저장되지 않습니다.</p>
+                <div class="admin-icon-key-list" data-admin-icon-key-list>
+                    <?php foreach ($adminIconRows as $adminIconRow) { ?>
+                        <?php
+                        $iconSymbolName = (string) ($adminIconRow['key'] ?? '');
+                        $iconDefaultMaterialName = (string) ($adminIconRow['default_material_name'] ?? $iconSymbolName);
+                        $iconIsDefault = !empty($adminIconRow['is_default']);
+                        $iconCustom = is_array($adminIconOverrides[$iconSymbolName] ?? null) ? $adminIconOverrides[$iconSymbolName] : [];
+                        $iconType = (string) ($iconCustom['type'] ?? 'material');
+                        if (!in_array($iconType, ['material', 'image'], true)) {
+                            $iconType = 'material';
+                        }
+                        $iconMaterialName = $iconType === 'material'
+                            ? sr_material_icon_name((string) ($iconCustom['material_name'] ?? $iconDefaultMaterialName))
+                            : sr_material_icon_name((string) $iconDefaultMaterialName);
+                        $iconStorageReference = $iconType === 'image' ? (string) ($iconCustom['storage_reference'] ?? '') : '';
+                        $iconHasImage = $iconStorageReference !== '' && sr_admin_icon_image_storage_reference($iconStorageReference) !== null;
+                        $iconInputIdSuffix = preg_replace('/[^A-Za-z0-9_]+/', '_', (string) $iconSymbolName);
+                        $iconTypeInputId = 'admin_icon_key_type_' . $iconInputIdSuffix;
+                        $iconMaterialInputId = 'admin_icon_key_material_' . $iconInputIdSuffix;
+                        $iconImageInputId = 'admin_settings_icon_image_' . $iconInputIdSuffix;
+                        ?>
+                        <div class="admin-icon-key-item" data-admin-icon-key-item data-admin-icon-key-default="<?php echo sr_e((string) $iconDefaultMaterialName); ?>">
+                            <?php if ($iconIsDefault) { ?>
+                                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-icon-key-reset" aria-label="<?php echo sr_e((string) $iconSymbolName); ?> 초기화" title="초기화" data-admin-icon-key-reset>
+                                    <?php echo sr_material_icon_html('restart_alt'); ?>
+                                </button>
+                            <?php } else { ?>
+                                <label class="btn btn-icon-xs btn-ghost-default admin-icon-key-delete" aria-label="<?php echo sr_e((string) $iconSymbolName); ?> 제거" title="제거">
+                                    <input type="checkbox" name="icon_key_delete[<?php echo sr_e((string) $iconSymbolName); ?>]" value="1" data-admin-icon-key-delete>
+                                    <?php echo sr_material_icon_html('delete'); ?>
+                                </label>
+                            <?php } ?>
+                            <span class="admin-icon-key-name"><?php echo sr_e((string) $iconSymbolName); ?></span>
+                            <span class="admin-icon-key-preview" data-admin-icon-key-preview>
+                                <?php if ($iconHasImage) { ?>
+                                    <img src="<?php echo sr_e(sr_url('/admin/icon-image?file=' . rawurlencode($iconStorageReference))); ?>" alt="">
+                                <?php } else { ?>
+                                    <?php echo sr_material_icon_html($iconMaterialName); ?>
+                                <?php } ?>
+                            </span>
+                            <label class="sr-only" for="<?php echo sr_e($iconTypeInputId); ?>">표시 방식</label>
+                            <select id="<?php echo sr_e($iconTypeInputId); ?>" name="icon_key_type[<?php echo sr_e((string) $iconSymbolName); ?>]" class="form-select form-select-sm" data-admin-icon-key-type>
+                                <option value="material"<?php echo $iconType === 'material' ? ' selected' : ''; ?>>Material</option>
+                                <option value="image"<?php echo $iconType === 'image' ? ' selected' : ''; ?>>이미지</option>
+                            </select>
+                            <label class="sr-only" for="<?php echo sr_e($iconMaterialInputId); ?>">Material 이름</label>
+                            <input id="<?php echo sr_e($iconMaterialInputId); ?>" type="text" name="icon_key_material_name[<?php echo sr_e((string) $iconSymbolName); ?>]" value="<?php echo sr_e($iconMaterialName); ?>" class="form-input form-input-sm" maxlength="80" pattern="[a-z0-9_]+" data-admin-key-input data-admin-icon-key-material>
+                            <label class="sr-only" for="<?php echo sr_e($iconImageInputId); ?>">이미지 파일</label>
+                            <input id="<?php echo sr_e($iconImageInputId); ?>" type="file" name="icon_key_image_<?php echo sr_e((string) $iconSymbolName); ?>" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input form-input-sm admin-icon-key-file" data-admin-icon-key-file>
+                            <span class="admin-icon-key-file-name" data-admin-icon-key-file-name></span>
+                            <?php if ($iconHasImage) { ?>
+                                <?php echo sr_admin_checkbox_toggle_html('admin_icon_key_remove_image_' . $iconInputIdSuffix, 'icon_key_remove_image[' . (string) $iconSymbolName . ']', '1', false, '제거', ' data-admin-icon-key-remove'); ?>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+                </div>
+                <div class="admin-icon-key-add">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-icon-key-add><?php echo sr_material_icon_html('add'); ?>키 추가</button>
+                </div>
+                <p class="admin-form-help">Material 이름은 Google Material Symbols의 ligature 이름입니다. 이미지 업로드는 JPG, PNG, GIF, WebP / 최대 <?php echo sr_e(sr_admin_icon_format_bytes(sr_admin_icon_upload_max_bytes())); ?> / 512px 이하만 허용합니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-icon-key-settings-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.save.5fb92622')); ?></button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 (function () {
