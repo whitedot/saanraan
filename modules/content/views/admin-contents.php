@@ -439,8 +439,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_content_cover_image_html(['cover_image_url' => $contentCoverImageUrl, 'title' => (string) ($values['title'] ?? '')], 'admin-content-cover-preview-image', '커버 이미지'); ?>
                         </div>
                     <?php } ?>
-                    <input id="content_admin_contents_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e($contentCoverImageUrl); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
-                    <input id="content_admin_contents_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
+                    <div class="admin-content-cover-inputs">
+                        <div class="admin-content-cover-input-row">
+                            <label class="filtering-label" for="content_admin_contents_cover_image_url">URL 입력</label>
+                            <input id="content_admin_contents_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e($contentCoverImageUrl); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                        </div>
+                        <div class="admin-content-cover-input-row">
+                            <label class="filtering-label" for="content_admin_contents_cover_image_upload">파일 업로드</label>
+                            <input id="content_admin_contents_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
+                        </div>
+                    </div>
                     <?php if ($contentCoverImageUrl !== '') { ?>
                         <?php echo sr_admin_checkbox_toggle_html('content_admin_contents_cover_image_delete', 'cover_image_delete', '1', (int) ($values['cover_image_delete'] ?? 0) === 1, '현재 커버 이미지 삭제'); ?>
                     <?php } ?>

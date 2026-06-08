@@ -62,6 +62,8 @@
 .admin-content-file-charge-control>.admin-form-help{margin-top:calc(var(--spacing) * 1.5)}
 .admin-content-cover-preview{border:1px solid var(--color-border);display:flex;min-height:9rem;max-width:18rem;overflow:hidden;width:100%}
 .admin-content-cover-preview-image{aspect-ratio:16/9;display:block;object-fit:cover;width:100%}
+.admin-content-cover-inputs{display:grid;gap:calc(var(--spacing) * 2.5);width:100%}
+.admin-content-cover-input-row{display:grid;gap:calc(var(--spacing) * 1.25);width:100%}
 .admin-content-cover-delete{margin-top:calc(var(--spacing) * 1)}
 .admin-content-embed-picker-controls{grid-template-columns:1fr auto auto}
 .admin-content-embed-picker-controls>[data-link-card-search]{grid-column:1 / -1;width:100%}
