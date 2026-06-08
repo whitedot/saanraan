@@ -189,7 +189,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_default_locale', sr_t('admin::ui.locale.c7cd39b4'), $siteSettingsHelp['default_locale']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="admin_settings_default_locale" name="default_locale" class="form-select" required>
+                <select id="admin_settings_default_locale" name="default_locale" class="form-select" required data-admin-default-locale-select>
                     <?php foreach ($localeOptions as $localeOption) { ?>
                         <option value="<?php echo sr_e($localeOption); ?>"<?php echo $values['default_locale'] === $localeOption ? ' selected' : ''; ?>>
                             <?php echo sr_e($localeOption); ?>
@@ -202,8 +202,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('admin_settings_supported_locales', sr_t('admin::ui.locale.list.51d8e798'), $siteSettingsHelp['supported_locales']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
-                <div data-admin-required-checkbox-group data-admin-required-checkbox-message="지원 locale 목록은 최소 한 개 이상 선택하세요.">
-                    <?php echo sr_admin_checkbox_list_html('admin_settings_supported_locales', 'supported_locales', array_combine($localeOptions, $localeOptions) ?: [], $selectedSupportedLocales, sr_t('admin::ui.locale.9d745a6e')); ?>
+                <?php $selectedSupportedLocaleMap = array_fill_keys($selectedSupportedLocales, true); ?>
+                <div data-admin-required-checkbox-group data-admin-required-checkbox-message="지원 locale 목록은 최소 한 개 이상 선택하세요." data-admin-supported-locales>
+                    <div id="admin_settings_supported_locales" class="admin-check-list" role="group">
+                        <?php if ($localeOptions === []) { ?>
+                            <span class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.locale.9d745a6e')); ?></span>
+                        <?php } ?>
+                        <?php foreach ($localeOptions as $localeIndex => $localeOption) { ?>
+                            <?php
+                            $localeOption = (string) $localeOption;
+                            $localeInputId = 'admin_settings_supported_locales_' . (string) $localeIndex;
+                            $localeIsDefault = $localeOption === (string) $values['default_locale'];
+                            ?>
+                            <label class="admin-form-check form-label" for="<?php echo sr_e($localeInputId); ?>">
+                                <input id="<?php echo sr_e($localeInputId); ?>" type="checkbox" name="supported_locales[]" value="<?php echo sr_e($localeOption); ?>" class="form-checkbox"<?php echo isset($selectedSupportedLocaleMap[$localeOption]) ? ' checked' : ''; ?><?php echo $localeIsDefault ? ' disabled' : ''; ?> data-admin-supported-locale-option>
+                                <?php echo sr_admin_choice_label_html($localeOption); ?>
+                            </label>
+                        <?php } ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -399,6 +415,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             updateRequiredCheckboxGroup(root);
         });
     });
+
+    var defaultLocaleSelect = document.querySelector('[data-admin-default-locale-select]');
+    var supportedLocalesRoot = document.querySelector('[data-admin-supported-locales]');
+
+    function syncDefaultSupportedLocale() {
+        if (!defaultLocaleSelect || !supportedLocalesRoot) {
+            return;
+        }
+
+        var defaultLocale = defaultLocaleSelect.value;
+        supportedLocalesRoot.querySelectorAll('[data-admin-supported-locale-option]').forEach(function (checkbox) {
+            var isDefault = checkbox.value === defaultLocale;
+            checkbox.disabled = isDefault;
+            if (isDefault) {
+                checkbox.checked = true;
+            }
+        });
+        updateRequiredCheckboxGroup(supportedLocalesRoot);
+    }
+
+    if (defaultLocaleSelect && supportedLocalesRoot) {
+        syncDefaultSupportedLocale();
+        defaultLocaleSelect.addEventListener('change', syncDefaultSupportedLocale);
+    }
 
     function bindAdminIconKeyFile(input) {
         var item = input.closest('[data-admin-icon-key-item]');

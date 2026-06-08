@@ -685,13 +685,13 @@ function sr_admin_validate_supported_locales(array &$values, array &$errors): vo
         $supportedLocales[$locale] = $locale;
     }
 
+    if (!isset($supportedLocales[$values['default_locale']])) {
+        $supportedLocales[$values['default_locale']] = $values['default_locale'];
+    }
+
     if ($supportedLocales === []) {
         $errors[] = '지원 locale 목록은 최소 한 개 이상 선택하세요.';
         return;
-    }
-
-    if (!isset($supportedLocales[$values['default_locale']])) {
-        $supportedLocales[$values['default_locale']] = $values['default_locale'];
     }
 
     $values['supported_locales'] = implode(',', array_values($supportedLocales));
