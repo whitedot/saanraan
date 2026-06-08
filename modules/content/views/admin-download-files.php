@@ -116,27 +116,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <?php
     $selectedDownloadFileStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
+    $selectedDownloadFileStatus = (string) ($selectedDownloadFileStatuses[0] ?? '');
     ?>
-    <?php $downloadFileDetailFilterOpen = $selectedDownloadFileStatuses !== []; ?>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="filtering-form admin-content-download-file-filter ui-form-theme">
-        <div class="filtering filtering-card<?php echo $downloadFileDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
-            <div class="filtering-fields admin-content-download-file-search-grid">
-                <div class="filtering-field filtering-field-fill admin-content-download-file-filter-keyword">
-                    <label for="content_download_file_filter_q" class="filtering-label">검색</label>
-                    <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
-                </div>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="filtering-form filtering filtering-plain admin-content-download-file-filter ui-form-theme">
+        <div class="filtering-fields admin-content-download-file-search-grid">
+            <label class="filtering-field admin-content-download-file-filter-status" for="content_download_file_filter_status">
+                <span class="filtering-label">상태</span>
+                <select id="content_download_file_filter_status" name="status" class="form-select filtering-input">
+                    <option value="">전체 상태</option>
+                    <option value="active"<?php echo $selectedDownloadFileStatus === 'active' ? ' selected' : ''; ?>>사용</option>
+                    <option value="hidden"<?php echo $selectedDownloadFileStatus === 'hidden' ? ' selected' : ''; ?>>숨김</option>
+                </select>
+            </label>
+            <div class="filtering-field filtering-field-fill admin-content-download-file-filter-keyword">
+                <label for="content_download_file_filter_q" class="filtering-label">검색</label>
+                <input id="content_download_file_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="파일 제목, 원본 파일명">
             </div>
-            <div id="content_download_file_detail_filters" class="filtering-body" data-filtering-body<?php echo $downloadFileDetailFilterOpen ? '' : ' hidden'; ?>>
-                <div class="filtering-field admin-content-download-file-filter-status">
-                    <span class="filtering-label">상태</span>
-                    <?php echo sr_admin_filter_radio_toggle_group_html('content_download_file_filter_status', 'status', ['active' => '사용', 'hidden' => '숨김'], $selectedDownloadFileStatuses, '전체'); ?>
-                </div>
-            </div>
-            <div class="filtering-actions">
-                <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $downloadFileDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="content_download_file_detail_filters">상세검색</button>
-                <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span><?php echo sr_e(sr_t('ui.text.893f3d94')); ?></button>
-                <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
-            </div>
+            <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('content::ui.search.4b8d541e')); ?></button>
         </div>
     </form>
 
