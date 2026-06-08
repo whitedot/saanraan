@@ -35,8 +35,8 @@
 | 1 | 콘텐츠 그룹 관리 | `modules/content/views/admin-content-groups.php` | 저장소 정리 재시도 | `retry_storage_cleanup_failure` | 실행 작업 | 삭제 후 남은 파일 정리 | 목록 영역 중심 | CSRF, delete 권한 | 중간. 운영 실행 안내 필요 |
 | 2 | 사이트 메뉴 | `modules/site_menu/views/admin-site-menus.php` | 메뉴/항목 저장 modal form, 순서 저장 form | `save_menu`, `save_item`, `save_item_order` | 보조 저장 | 메뉴 정보, 항목 정보, 목록 정렬 | 같은 관리 화면 | CSRF, edit 권한, intent 검증 | 높음. 모달 저장과 순서 적용이 서로의 입력값을 함께 저장하지 않음을 안내 필요 |
 | 2 | 회원 그룹 관리 | `modules/member/views/admin-groups.php` | 그룹 저장 form | `save_group` | 기본 저장 | 회원 그룹 | 목록/모달 계열 | CSRF, edit 권한, intent 검증 | 기준 form |
-| 2 | 회원 그룹 관리 | `modules/member/views/admin-groups.php` | 수동 배정/해제 form | `grant_manual`, `revoke_manual` | 보조 저장/삭제 | 회원 그룹 membership | 그룹 화면과 함께 노출 | CSRF, edit/delete 권한 | 높음. 그룹 저장과 배정 작업 분리 안내 필요 |
-| 2 | 회원 그룹 관리 | `modules/member/views/admin-groups.php` | 규칙 저장/평가 form | `save_rule`, `evaluate_group` | 보조 저장/실행 작업 | 그룹 규칙, 평가 실행 | 규칙 화면 계열 | CSRF, edit 권한 | 중간. 저장과 평가 실행 분리 안내 필요 |
+| 2 | 회원 그룹 관리 | `modules/member/views/admin-groups.php` | 수동 배정/해제 form | `grant_manual`, `revoke_manual` | 보조 저장/삭제 | 회원 그룹 membership | 그룹 화면과 함께 노출 | CSRF, edit/delete 권한 | 높음. 그룹 저장과 배정 작업 분리 안내 반영 |
+| 2 | 회원 그룹 관리 | `modules/member/views/admin-groups.php` | 규칙 저장/평가 form | `save_rule`, `evaluate_group` | 보조 저장/실행 작업 | 그룹 규칙, 평가 실행 | 규칙 화면 계열 | CSRF, edit 권한 | 높음. 저장된 규칙 기준으로 평가하고 작성 중인 규칙 입력값은 함께 저장하지 않음을 안내 반영 |
 | 2 | 커뮤니티 레벨 설정 | `modules/community/views/admin-settings.php` | 레벨 최소 점수 저장/회원 레벨 재계산 | `save_level_definitions`, `recalculate_levels` | 보조 저장/실행 작업 | 레벨 최소 점수, 회원 레벨 재계산 | 같은 레벨 설정 화면 | CSRF, edit 권한, 확인문 | 높음. 재계산이 작성 중인 최소 점수 입력값을 함께 저장하지 않음을 안내 필요 |
 | 2 | 관리자 권한 | `modules/admin/views/roles.php` | 권한 추가/회수 form | `add_permission`, `revoke_permission` | 보조 저장/삭제 | 관리자 권한 | 권한 화면에서 모달/인라인 노출 | owner 권한, CSRF | 중간. 기본 저장 form은 없으나 독립 작업 안내 필요 |
 
@@ -100,6 +100,13 @@
 2026-06-08 4차 구현에서 다음 안내를 반영했다.
 
 - 사이트 메뉴 화면의 메뉴/항목 저장 모달과 순서 적용 form에 각 저장 버튼이 자기 대상만 저장하며 다른 입력값은 함께 저장하지 않는다는 안내를 추가했다.
+
+## 5차 구현 반영
+
+2026-06-08 5차 구현에서 다음 안내를 반영했다.
+
+- 회원 그룹 수동 배정 모달에 회원 그룹 정보 저장과 별도로 회원 배정만 바로 반영하며 열려 있는 그룹 등록/수정 모달 입력값은 함께 저장되지 않는다는 안내를 추가했다.
+- 회원 그룹 규칙 평가 모달에 저장된 규칙 기준으로 평가하며 열려 있는 규칙 등록/수정 모달 입력값은 함께 저장되지 않는다는 안내를 추가했다.
 - 공통 미저장 변경 JavaScript는 도입하지 않았다.
 
 ## 검증 계획
@@ -113,4 +120,4 @@
 관리자 안내 패턴이 구현되어 Wiki를 함께 갱신했다.
 
 - `관리자-화면-개발-가이드.md`: 기본 저장 form과 독립 POST action이 함께 보일 때 보조 action의 저장 범위를 안내하고, modal form을 기본 form과 실제로 분리하는 기준을 추가했다.
-- `관리자-화면별-항목-설명서.md`: 사이트 공용 아이콘 설정, 사이트 메뉴 저장 범위, 콘텐츠 복사, 커뮤니티 레벨 재계산, 게시판 관리권한/카테고리 안내 기준을 반영했다.
+- `관리자-화면별-항목-설명서.md`: 사이트 공용 아이콘 설정, 사이트 메뉴 저장 범위, 회원 그룹 수동 배정/규칙 평가, 콘텐츠 복사, 커뮤니티 레벨 재계산, 게시판 관리권한/카테고리 안내 기준을 반영했다.
