@@ -993,12 +993,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-row">
                                 <span class="form-label">권한 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                                 <div class="admin-form-field">
-                                    <?php foreach ($communityBoardManagerPermissions as $permissionKey => $permissionLabel) { ?>
-                                        <label class="admin-form-check form-label" for="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>">
-                                            <input id="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e((string) $permissionKey); ?>" class="form-checkbox">
-                                            <?php echo sr_admin_choice_label_html((string) $permissionLabel); ?>
-                                        </label>
-                                    <?php } ?>
+                                    <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
+                                        <?php $boardManagerPermissionIndex = 0; ?>
+                                        <?php $boardManagerPermissionLastIndex = max(0, count($communityBoardManagerPermissions) - 1); ?>
+                                        <?php foreach ($communityBoardManagerPermissions as $permissionKey => $permissionLabel) { ?>
+                                            <?php $permissionInputId = 'community_board_manager_permission_' . (string) $permissionKey; ?>
+                                            <?php $permissionGroupClass = $boardManagerPermissionIndex === 0 ? 'btn-group-start' : ($boardManagerPermissionIndex === $boardManagerPermissionLastIndex ? 'btn-group-end' : 'btn-group-middle'); ?>
+                                            <span class="filtering-toggle-item">
+                                                <input id="<?php echo sr_e($permissionInputId); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e((string) $permissionKey); ?>" class="form-choice-toggle-input sr-only">
+                                                <label for="<?php echo sr_e($permissionInputId); ?>" class="btn btn-choice-light <?php echo sr_e($permissionGroupClass); ?>"><?php echo sr_admin_choice_label_html((string) $permissionLabel); ?></label>
+                                            </span>
+                                            <?php $boardManagerPermissionIndex++; ?>
+                                        <?php } ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>

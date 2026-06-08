@@ -485,19 +485,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-row">
                                 <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.7313e7a0')); ?></span>
                                 <div class="admin-form-field">
-                                    <label class="admin-form-check form-label" for="modules_admin_modules_confirm_file_replace">
-                                                                            <input id="modules_admin_modules_confirm_file_replace" type="checkbox" name="confirm_file_replace" value="1" class="form-checkbox">
-                                                                            <?php echo sr_admin_choice_label_html(sr_t('admin::ui.text.7313e7a0')); ?>
-                                                                        </label>
+                                    <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
+                                        <span class="filtering-toggle-item">
+                                            <input id="modules_admin_modules_confirm_file_replace" type="checkbox" name="confirm_file_replace" value="1" class="form-choice-toggle-input sr-only">
+                                            <label for="modules_admin_modules_confirm_file_replace" class="btn btn-choice-light"><?php echo sr_admin_choice_label_html(sr_t('admin::ui.text.7313e7a0')); ?></label>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="admin-form-row">
                                 <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.ab7807a7')); ?></span>
                                 <div class="admin-form-field">
-                                    <label class="admin-form-check form-label" for="modules_admin_modules_allow_downgrade">
-                                                                            <input id="modules_admin_modules_allow_downgrade" type="checkbox" name="allow_downgrade" value="1" class="form-checkbox">
-                                                                            <?php echo sr_admin_choice_label_html(sr_t('admin::ui.text.ab7807a7')); ?>
-                                                                        </label>
+                                    <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
+                                        <span class="filtering-toggle-item">
+                                            <input id="modules_admin_modules_allow_downgrade" type="checkbox" name="allow_downgrade" value="1" class="form-choice-toggle-input sr-only">
+                                            <label for="modules_admin_modules_allow_downgrade" class="btn btn-choice-light"><?php echo sr_admin_choice_label_html(sr_t('admin::ui.text.ab7807a7')); ?></label>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

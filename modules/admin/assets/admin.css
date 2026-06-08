@@ -369,6 +369,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-permission-picker-grid{display:grid;gap:calc(var(--spacing) * 2.5);grid-template-columns:1fr}
 .admin-permission-picker-control{display:grid;gap:calc(var(--spacing) * 1);min-width:0}
 .admin-permission-action-group{border:0;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);margin:0;padding:0}
+.admin-permission-action-group.filtering-toggle-group{gap:0}
 .admin-permission-action-group .admin-form-check{min-height:calc(var(--spacing) * 8)}
 .admin-permission-selected-list{border-top:1px solid var(--color-default-200);display:grid;flex-basis:100%;width:100%}
 .admin-permission-selected-head,
@@ -378,7 +379,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-permission-selected-title{display:grid;gap:calc(var(--spacing) * .75);min-width:0}
 .admin-permission-selected-title strong{color:var(--text-strong);font-size:var(--type-small-size);line-height:var(--type-small-line-height);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .admin-permission-selected-title span{color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);overflow-wrap:anywhere}
-.admin-permission-action-cell{justify-content:center;min-height:calc(var(--spacing) * 8);white-space:nowrap}
+.admin-permission-action-cell{align-items:center;display:flex;justify-content:center;min-height:calc(var(--spacing) * 8);white-space:nowrap}
+.admin-permission-action-cell>.btn{min-width:0}
 .admin-permission-action-cell span{font-size:var(--type-meta-size);line-height:var(--type-meta-line-height)}
 .admin-permission-empty{margin:0}
 .admin-form .admin-form-label,
@@ -1228,6 +1230,10 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     .admin-permission-action-group {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .admin-permission-action-group.filtering-toggle-group {
+        flex-direction: row;
     }
 
     .admin-permission-action-cell {

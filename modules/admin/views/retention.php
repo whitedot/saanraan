@@ -286,10 +286,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <span class="form-label"><?php echo sr_e(sr_t('admin::ui.delete.b5dd39cf')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
                         <div class="admin-form-field">
-                            <label class="admin-form-check form-label" for="modules_admin_retention_cleanup_confirmed">
-                                                            <input id="modules_admin_retention_cleanup_confirmed" type="checkbox" name="cleanup_confirmed" value="1" class="form-checkbox" required data-overlay-focus>
-                                                            <?php echo sr_admin_choice_label_html(sr_t('admin::ui.delete.ec013040')); ?>
-                                                        </label>
+                            <?php echo sr_admin_checkbox_toggle_html('modules_admin_retention_cleanup_confirmed', 'cleanup_confirmed', '1', false, sr_t('admin::ui.delete.ec013040'), ' required data-overlay-focus'); ?>
                         </div>
                     </div>
                     <div class="admin-form-row">

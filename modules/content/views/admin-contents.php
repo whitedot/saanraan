@@ -202,10 +202,7 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                             <div class="admin-form-row">
                                 <span class="form-label"><?php echo sr_e('시리즈'); ?></span>
                                 <div class="admin-form-field">
-                                    <label class="admin-form-check form-label" for="<?php echo sr_e($modalId); ?>-copy-series">
-                                        <input id="<?php echo sr_e($modalId); ?>-copy-series" type="checkbox" name="copy_series" value="1" class="form-checkbox" data-copy-series-toggle>
-                                        <?php echo sr_admin_choice_label_html('시리즈도 새 사본으로 복사'); ?>
-                                    </label>
+                                    <?php echo sr_admin_checkbox_toggle_html($modalId . '-copy-series', 'copy_series', '1', false, '시리즈도 새 사본으로 복사', ' data-copy-series-toggle'); ?>
                                     <p class="admin-form-help"><?php echo sr_e('원본 시리즈에 섞지 않고 새 시리즈 사본을 만들며, 현재 콘텐츠 항목만 새 콘텐츠로 연결합니다.'); ?></p>
                                     <?php foreach ($seriesSuggestions as $seriesSuggestion) { ?>
                                         <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>
@@ -445,10 +442,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input id="content_admin_contents_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e($contentCoverImageUrl); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
                     <input id="content_admin_contents_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
                     <?php if ($contentCoverImageUrl !== '') { ?>
-                        <label class="admin-form-check form-label admin-content-cover-delete" for="content_admin_contents_cover_image_delete">
-                            <input id="content_admin_contents_cover_image_delete" type="checkbox" name="cover_image_delete" value="1" class="form-checkbox"<?php echo (int) ($values['cover_image_delete'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                            <span>현재 커버 이미지 삭제</span>
-                        </label>
+                        <?php echo sr_admin_checkbox_toggle_html('content_admin_contents_cover_image_delete', 'cover_image_delete', '1', (int) ($values['cover_image_delete'] ?? 0) === 1, '현재 커버 이미지 삭제'); ?>
                     <?php } ?>
                     <p class="admin-form-help">홈과 목록에서 쓰는 대표 이미지입니다. 파일 업로드가 있으면 URL 입력값보다 업로드 이미지가 우선됩니다.</p>
                 </div>

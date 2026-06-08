@@ -92,10 +92,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label"><?php echo sr_e('시리즈'); ?></span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="community_board_copy_series">
-                        <input id="community_board_copy_series" type="checkbox" name="copy_series" value="1" class="form-checkbox"<?php echo !empty($values['copy_series']) ? ' checked' : ''; ?> data-copy-series-toggle>
-                        <?php echo sr_admin_choice_label_html('게시글 포함 복사 시 시리즈도 새 사본으로 복사'); ?>
-                    </label>
+                    <?php echo sr_admin_checkbox_toggle_html('community_board_copy_series', 'copy_series', '1', !empty($values['copy_series']), '게시글 포함 복사 시 시리즈도 새 사본으로 복사', ' data-copy-series-toggle'); ?>
                     <p class="admin-form-help"><?php echo sr_e('설정만 복사에서는 적용되지 않습니다. 원본 시리즈에 사본 글을 섞지 않고 새 게시판 안에 새 시리즈를 만듭니다.'); ?></p>
                     <?php foreach ($communityBoardCopySeriesSuggestions as $seriesSuggestion) { ?>
                         <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>

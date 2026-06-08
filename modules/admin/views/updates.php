@@ -119,10 +119,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="apply_updates">
             <p>
-                <label class="admin-form-check form-label" for="modules_admin_updates_backup_confirmed">
-                    <input id="modules_admin_updates_backup_confirmed" type="checkbox" name="backup_confirmed" value="1" class="form-checkbox" required>
-                    <?php echo sr_admin_choice_label_html(sr_t('admin::ui.text.863749e6')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span>
-                </label>
+                <span class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
+                    <span class="filtering-toggle-item">
+                        <input id="modules_admin_updates_backup_confirmed" type="checkbox" name="backup_confirmed" value="1" class="form-choice-toggle-input sr-only" required>
+                        <label for="modules_admin_updates_backup_confirmed" class="btn btn-choice-light"><?php echo sr_admin_choice_label_html(sr_t('admin::ui.text.863749e6')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                    </span>
+                </span>
             </p>
             <div class="admin-list-actions">
                 <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.3da662af')); ?></button>

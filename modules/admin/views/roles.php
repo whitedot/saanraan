@@ -296,10 +296,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
                     </span>
                     <div class="admin-form-field">
-                        <label class="admin-form-check form-label" for="admin-permission-add-owner">
-                            <input id="admin-permission-add-owner" type="checkbox" name="is_owner" value="1" class="form-checkbox">
-                            <span><?php echo sr_e(sr_t('admin::ui.text.7258c171')); ?></span>
-                        </label>
+                        <?php echo sr_admin_checkbox_toggle_html('admin-permission-add-owner', 'is_owner', '1', false, sr_t('admin::ui.text.7258c171')); ?>
                         <p class="admin-form-help">소유자 권한을 선택하면 메뉴별 권한은 따로 저장하지 않습니다.</p>
                     </div>
                 </div>
@@ -336,14 +333,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span>권한</span>
                     </span>
                     <div class="admin-form-field">
-                        <fieldset class="admin-permission-action-group">
+                        <fieldset class="admin-permission-action-group filtering-toggle-group admin-checkbox-toggle-group">
                             <legend class="sr-only">권한</legend>
+                            <?php $permissionActionIndex = 0; ?>
+                            <?php $permissionActionLastIndex = max(0, count($permissionActions) - 1); ?>
                             <?php foreach ($permissionActions as $actionKey) { ?>
                                 <?php $pickerActionId = 'admin-permission-add-picker-' . (string) $actionKey; ?>
-                                <label class="admin-form-check form-label" for="<?php echo sr_e($pickerActionId); ?>">
-                                    <input id="<?php echo sr_e($pickerActionId); ?>" type="checkbox" value="<?php echo sr_e((string) $actionKey); ?>" class="form-checkbox" data-admin-permission-action>
-                                    <span><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></span>
-                                </label>
+                                <?php $permissionActionGroupClass = $permissionActionIndex === 0 ? 'btn-group-start' : ($permissionActionIndex === $permissionActionLastIndex ? 'btn-group-end' : 'btn-group-middle'); ?>
+                                <span class="filtering-toggle-item">
+                                    <input id="<?php echo sr_e($pickerActionId); ?>" type="checkbox" value="<?php echo sr_e((string) $actionKey); ?>" class="form-choice-toggle-input sr-only" data-admin-permission-action>
+                                    <label for="<?php echo sr_e($pickerActionId); ?>" class="btn btn-choice-light <?php echo sr_e($permissionActionGroupClass); ?>"><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></label>
+                                </span>
+                                <?php $permissionActionIndex++; ?>
                             <?php } ?>
                         </fieldset>
                     </div>
@@ -434,10 +435,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span><?php echo sr_e(sr_admin_code_label('owner', 'role')); ?></span>
                             </span>
                             <div class="admin-form-field">
-                                <label class="admin-form-check form-label" for="<?php echo sr_e($permissionModalId); ?>-owner">
-                                    <input id="<?php echo sr_e($permissionModalId); ?>-owner" type="checkbox" name="is_owner" value="1" class="form-checkbox"<?php echo !empty($adminAccount['is_owner']) ? ' checked' : ''; ?> data-overlay-focus>
-                                    <span><?php echo sr_e(sr_t('admin::ui.text.7258c171')); ?></span>
-                                </label>
+                                <?php echo sr_admin_checkbox_toggle_html($permissionModalId . '-owner', 'is_owner', '1', !empty($adminAccount['is_owner']), sr_t('admin::ui.text.7258c171'), ' data-overlay-focus'); ?>
                                 <p class="admin-form-help">소유자 권한을 선택하면 메뉴별 권한은 저장 대상에서 제외됩니다.</p>
                             </div>
                         </div>
@@ -474,10 +472,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 $permissionToken = sr_admin_permission_token($selectedPath, (string) $actionKey);
                                                 $permissionInputId = $permissionModalId . '-permission-' . preg_replace('/[^a-z0-9_-]+/', '-', strtolower($permissionToken));
                                                 ?>
-                                                <label class="admin-permission-action-cell admin-form-check form-label" for="<?php echo sr_e($permissionInputId); ?>">
-                                                    <input id="<?php echo sr_e($permissionInputId); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e($permissionToken); ?>" class="form-checkbox"<?php echo isset($selectedActions[$actionKey]) ? ' checked' : ''; ?>>
-                                                    <span><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></span>
-                                                </label>
+                                                <span class="admin-permission-action-cell">
+                                                    <input id="<?php echo sr_e($permissionInputId); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e($permissionToken); ?>" class="form-choice-toggle-input sr-only"<?php echo isset($selectedActions[$actionKey]) ? ' checked' : ''; ?>>
+                                                    <label for="<?php echo sr_e($permissionInputId); ?>" class="btn btn-choice-light"><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></label>
+                                                </span>
                                             <?php } ?>
                                             <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-admin-permission-remove aria-label="삭제" title="삭제"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </div>

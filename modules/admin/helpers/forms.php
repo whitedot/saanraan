@@ -384,6 +384,19 @@ function sr_admin_radio_toggle_group_html(string $idBase, string $name, array $o
     return $html . '</div>';
 }
 
+function sr_admin_checkbox_toggle_html(string $id, string $name, string $value, bool $checked, string $label, string $inputAttributes = ''): string
+{
+    $inputId = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
+    $inputId = is_string($inputId) && $inputId !== '' ? $inputId : 'admin_checkbox_toggle';
+
+    return '<div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">'
+        . '<span class="filtering-toggle-item">'
+        . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-choice-toggle-input sr-only"' . $inputAttributes . ($checked ? ' checked' : '') . '>'
+        . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light">' . sr_admin_choice_label_html($label) . '</label>'
+        . '</span>'
+        . '</div>';
+}
+
 function sr_admin_switch_html(string $id, string $name, string $value, bool $checked, string $label, string $uncheckedValue = '', string $inputAttributes = ''): string
 {
     $inputId = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));

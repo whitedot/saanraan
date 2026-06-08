@@ -353,10 +353,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="<?php echo sr_e($iconImageInputId); ?>" type="file" name="icon_key_image_<?php echo sr_e((string) $iconSymbolName); ?>" accept="image/jpeg,image/png,image/gif,image/webp" class="form-input form-input-sm admin-icon-key-file" data-admin-icon-key-file>
                                 <span class="admin-icon-key-file-name" data-admin-icon-key-file-name></span>
                                 <?php if ($iconHasImage) { ?>
-                                    <label class="admin-form-check form-label admin-icon-key-remove">
-                                        <input type="checkbox" name="icon_key_remove_image[<?php echo sr_e((string) $iconSymbolName); ?>]" value="1" class="form-checkbox" data-admin-icon-key-remove>
-                                        <span>제거</span>
-                                    </label>
+                                    <?php echo sr_admin_checkbox_toggle_html('admin_icon_key_remove_image_' . $iconInputIdSuffix, 'icon_key_remove_image[' . (string) $iconSymbolName . ']', '1', false, '제거', ' data-admin-icon-key-remove'); ?>
                                 <?php } ?>
                             </div>
                         <?php } ?>
