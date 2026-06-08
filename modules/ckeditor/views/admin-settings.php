@@ -16,11 +16,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="ckeditor_admin_asset_mode">에셋 로딩 방식 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <select id="ckeditor_admin_asset_mode" name="asset_mode" class="form-select" required>
-                    <?php foreach ($assetModeOptions as $assetMode => $assetModeLabel) { ?>
-                        <option value="<?php echo sr_e((string) $assetMode); ?>"<?php echo (string) $settings['asset_mode'] === (string) $assetMode ? ' selected' : ''; ?>><?php echo sr_e((string) $assetModeLabel); ?></option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('ckeditor_admin_asset_mode', 'asset_mode', $assetModeOptions, (string) $settings['asset_mode'], true); ?>
                 <p class="admin-form-help">직접 호스팅은 modules/ckeditor/vendor/ckeditor5/에 포함된 CKEditor 5 배포 파일을 사용합니다.</p>
             </div>
         </div>

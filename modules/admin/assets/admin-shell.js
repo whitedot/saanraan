@@ -28,7 +28,7 @@ window.AdminShell = {
         const navRoot = document.getElementById('adminNavList');
         const scrollTopButton = document.querySelector('.admin-footer-scroll-top');
         const toastStack = document.querySelector('[data-admin-toast-stack]');
-        const colorSchemeSelect = document.querySelector('[data-admin-color-scheme-select]');
+        const colorSchemeControls = Array.prototype.slice.call(document.querySelectorAll('[data-admin-color-scheme-select]'));
         const menuResetButton = document.querySelector('[data-admin-menu-reset-confirm]');
         const menuResetConfirmedInput = document.querySelector('[data-admin-menu-reset-confirmed]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
@@ -777,9 +777,13 @@ window.AdminShell = {
                 const csrfToken = themeToggle.getAttribute('data-admin-theme-csrf') || '';
 
                 applyColorScheme(nextScheme);
-                if (colorSchemeSelect) {
-                    colorSchemeSelect.value = nextScheme;
-                }
+                colorSchemeControls.forEach(control => {
+                    if (control.type === 'radio') {
+                        control.checked = control.value === nextScheme;
+                    } else {
+                        control.value = nextScheme;
+                    }
+                });
 
                 if (!endpoint || !csrfToken || !window.fetch) {
                     return;
@@ -809,14 +813,22 @@ window.AdminShell = {
                 }).then(payload => {
                     const savedScheme = payload && payload.ui_color_scheme ? payload.ui_color_scheme : nextScheme;
                     applyColorScheme(savedScheme);
-                    if (colorSchemeSelect) {
-                        colorSchemeSelect.value = savedScheme;
-                    }
+                    colorSchemeControls.forEach(control => {
+                        if (control.type === 'radio') {
+                            control.checked = control.value === savedScheme;
+                        } else {
+                            control.value = savedScheme;
+                        }
+                    });
                 }).catch(() => {
                     applyColorScheme(previousScheme);
-                    if (colorSchemeSelect) {
-                        colorSchemeSelect.value = previousScheme;
-                    }
+                    colorSchemeControls.forEach(control => {
+                        if (control.type === 'radio') {
+                            control.checked = control.value === previousScheme;
+                        } else {
+                            control.value = previousScheme;
+                        }
+                    });
                 }).finally(() => {
                     themeSaving = false;
                     syncThemeUI();
@@ -824,11 +836,14 @@ window.AdminShell = {
             });
         }
 
-        if (colorSchemeSelect) {
-            colorSchemeSelect.addEventListener('change', () => {
-                applyColorScheme(colorSchemeSelect.value);
+        colorSchemeControls.forEach(control => {
+            control.addEventListener('change', () => {
+                if (control.type === 'radio' && !control.checked) {
+                    return;
+                }
+                applyColorScheme(control.value);
             });
-        }
+        });
 
         if (systemColorSchemeQuery) {
             const syncSystemColorScheme = () => {

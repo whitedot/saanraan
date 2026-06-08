@@ -62,13 +62,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="content_admin_settings_editor">에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <select id="content_admin_settings_editor" name="editor" class="form-select" required>
-                    <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
-                        <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo (string) ($settings['editor'] ?? 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $editorLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_editor', 'editor', $editorOptions, (string) ($settings['editor'] ?? 'textarea'), true); ?>
             </div>
         </div>
     </section>
@@ -107,13 +101,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('content_admin_settings_once_history_policy', '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpId, '설명 보기', true); ?>
             <div class="admin-form-field">
-                <select id="content_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
-                    <?php foreach (sr_content_once_history_policy_values() as $policyKey => $policyLabel) { ?>
-                        <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($settings['once_history_policy'] ?? 'all_access') === (string) $policyKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $policyLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_once_history_policy', 'once_history_policy', sr_content_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>
                 <p class="admin-form-help">과금 방식을 최초 1회로 운영할 때 예전에 이용한 회원을 다시 결제시킬지 정합니다. 기존 원장 거래와 쿠폰 사용 로그는 자동 환불하거나 추가 차감하지 않습니다.</p>
             </div>
         </div>

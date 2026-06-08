@@ -288,21 +288,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('asset_exchange_status', '상태', $assetExchangeHelp['status']['id'], $assetExchangeHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="asset_exchange_status" name="status" class="form-select" required>
-                            <?php foreach ($policyStatusLabels as $value => $label) { ?>
-                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['status'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                            <?php } ?>
-                        </select>
+                        <?php echo sr_admin_radio_toggle_group_html('asset_exchange_status', 'status', $policyStatusLabels, (string) $policyForm['status'], true); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('asset_exchange_rounding_mode', '반올림', $assetExchangeHelp['rounding']['id'], $assetExchangeHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="asset_exchange_rounding_mode" name="rounding_mode" class="form-select" required>
-                            <?php foreach ($roundingModeLabels as $value => $label) { ?>
-                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['rounding_mode'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                            <?php } ?>
-                        </select>
+                        <?php echo sr_admin_radio_toggle_group_html('asset_exchange_rounding_mode', 'rounding_mode', $roundingModeLabels, (string) $policyForm['rounding_mode'], true); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -328,31 +320,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo sr_admin_form_label_help_html('asset_exchange_fee_trigger', '수수료 적용', $assetExchangeHelp['fee_trigger']['id'], $assetExchangeHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="asset_exchange_fee_trigger" name="fee_trigger" class="form-select" required>
-                            <?php foreach ($feeTriggerLabels as $value => $label) { ?>
-                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_trigger'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                            <?php } ?>
-                        </select>
+                        <?php echo sr_admin_radio_toggle_group_html('asset_exchange_fee_trigger', 'fee_trigger', $feeTriggerLabels, (string) $policyForm['fee_trigger'], true); ?>
                     </div>
                 </div>
                 <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="rate">
                     <?php echo sr_admin_form_label_help_html('asset_exchange_fee_basis', '수수료 기준', $assetExchangeHelp['fee_basis']['id'], $assetExchangeHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="asset_exchange_fee_basis" name="fee_basis" class="form-select" required>
-                            <?php foreach ($feeBasisLabels as $value => $label) { ?>
-                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_basis'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                            <?php } ?>
-                        </select>
+                        <?php echo sr_admin_radio_toggle_group_html('asset_exchange_fee_basis', 'fee_basis', $feeBasisLabels, (string) $policyForm['fee_basis'], true); ?>
                     </div>
                 </div>
                 <div class="admin-form-row" data-asset-exchange-fee-setting>
                     <?php echo sr_admin_form_label_help_html('asset_exchange_fee_type', '수수료 방식', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="asset_exchange_fee_type" name="fee_type" class="form-select" required>
-                            <?php foreach ($feeTypeLabels as $value => $label) { ?>
-                                <option value="<?php echo sr_e($value); ?>"<?php echo (string) $policyForm['fee_type'] === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
-                            <?php } ?>
-                        </select>
+                        <?php echo sr_admin_radio_toggle_group_html('asset_exchange_fee_type', 'fee_type', $feeTypeLabels, (string) $policyForm['fee_type'], true); ?>
                     </div>
                 </div>
                 <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="rate">
@@ -410,9 +390,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return;
     }
 
-    var trigger = form.querySelector('#asset_exchange_fee_trigger');
-    var type = form.querySelector('#asset_exchange_fee_type');
+    var triggerControls = form.querySelectorAll('input[name="fee_trigger"]');
+    var typeControls = form.querySelectorAll('input[name="fee_type"]');
     var settings = form.querySelectorAll('[data-asset-exchange-fee-setting]');
+
+    function checkedValue(name, fallback) {
+        var checked = form.querySelector('input[name="' + name + '"]:checked, select[name="' + name + '"]');
+        return checked ? checked.value : fallback;
+    }
 
     function setControls(row, enabled) {
         row.querySelectorAll('input, select, textarea').forEach(function (control) {
@@ -424,8 +409,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     }
 
     function syncFeeFields() {
-        var usesFee = trigger && trigger.value !== 'none';
-        var feeType = type ? type.value : 'rate';
+        var usesFee = checkedValue('fee_trigger', 'none') !== 'none';
+        var feeType = checkedValue('fee_type', 'rate');
 
         settings.forEach(function (row) {
             var rowType = row.getAttribute('data-asset-exchange-fee-type');
@@ -435,12 +420,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         });
     }
 
-    if (trigger) {
-        trigger.addEventListener('change', syncFeeFields);
-    }
-    if (type) {
-        type.addEventListener('change', syncFeeFields);
-    }
+    triggerControls.forEach(function (control) {
+        control.addEventListener('change', syncFeeFields);
+    });
+    typeControls.forEach(function (control) {
+        control.addEventListener('change', syncFeeFields);
+    });
     syncFeeFields();
 })();
 </script>

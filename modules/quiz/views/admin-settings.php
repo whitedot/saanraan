@@ -265,32 +265,38 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_status', '기본 상태', $quizSettingsHelp['default_status']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="quiz_settings_default_status" name="default_status" class="form-select" required>
-                        <?php foreach (sr_quiz_statuses() as $status) { ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($settings['default_status'] ?? 'draft') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_status_label($status)); ?></option>
-                        <?php } ?>
-                    </select>
+                    <?php
+                    $quizStatusToggleOptions = [];
+                    foreach (sr_quiz_statuses() as $status) {
+                        $quizStatusToggleOptions[$status] = sr_quiz_status_label($status);
+                    }
+                    echo sr_admin_radio_toggle_group_html('quiz_settings_default_status', 'default_status', $quizStatusToggleOptions, (string) ($settings['default_status'] ?? 'draft'), true);
+                    ?>
                     <p class="admin-form-help">새 퀴즈 생성 화면의 기본 상태입니다. 복사본 기본 상태는 항상 초안입니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_quiz_mode', '기본 모드', $quizSettingsHelp['default_quiz_mode']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="quiz_settings_default_quiz_mode" name="default_quiz_mode" class="form-select" required>
-                        <?php foreach (sr_quiz_modes() as $quizMode) { ?>
-                            <option value="<?php echo sr_e($quizMode); ?>"<?php echo (string) ($settings['default_quiz_mode'] ?? 'scored') === $quizMode ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_mode_label($quizMode)); ?></option>
-                        <?php } ?>
-                    </select>
+                    <?php
+                    $quizModeToggleOptions = [];
+                    foreach (sr_quiz_modes() as $quizMode) {
+                        $quizModeToggleOptions[$quizMode] = sr_quiz_mode_label($quizMode);
+                    }
+                    echo sr_admin_radio_toggle_group_html('quiz_settings_default_quiz_mode', 'default_quiz_mode', $quizModeToggleOptions, (string) ($settings['default_quiz_mode'] ?? 'scored'), true);
+                    ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_scoring_model', '기본 채점 모델', $quizSettingsHelp['default_scoring_model']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="quiz_settings_default_scoring_model" name="default_scoring_model" class="form-select" required>
-                        <?php foreach (sr_quiz_scoring_models() as $scoringModel) { ?>
-                            <option value="<?php echo sr_e($scoringModel); ?>"<?php echo (string) ($settings['default_scoring_model'] ?? 'correct_answer') === $scoringModel ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_scoring_model_label($scoringModel)); ?></option>
-                        <?php } ?>
-                    </select>
+                    <?php
+                    $quizScoringToggleOptions = [];
+                    foreach (sr_quiz_scoring_models() as $scoringModel) {
+                        $quizScoringToggleOptions[$scoringModel] = sr_quiz_scoring_model_label($scoringModel);
+                    }
+                    echo sr_admin_radio_toggle_group_html('quiz_settings_default_scoring_model', 'default_scoring_model', $quizScoringToggleOptions, (string) ($settings['default_scoring_model'] ?? 'correct_answer'), true);
+                    ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -314,11 +320,13 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_attempt_limit_policy', '기본 응시 제한', $quizSettingsHelp['default_attempt_limit_policy']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="quiz_settings_default_attempt_limit_policy" name="default_attempt_limit_policy" class="form-select" required data-quiz-settings-attempt-policy>
-                        <?php foreach (sr_quiz_attempt_limit_policies() as $policy) { ?>
-                            <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($settings['default_attempt_limit_policy'] ?? 'unlimited') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_attempt_limit_policy_label($policy)); ?></option>
-                        <?php } ?>
-                    </select>
+                    <?php
+                    $quizAttemptPolicyToggleOptions = [];
+                    foreach (sr_quiz_attempt_limit_policies() as $policy) {
+                        $quizAttemptPolicyToggleOptions[$policy] = sr_quiz_attempt_limit_policy_label($policy);
+                    }
+                    echo sr_admin_radio_toggle_group_html('quiz_settings_default_attempt_limit_policy', 'default_attempt_limit_policy', $quizAttemptPolicyToggleOptions, (string) ($settings['default_attempt_limit_policy'] ?? 'unlimited'), true, ' data-quiz-settings-attempt-policy');
+                    ?>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -342,11 +350,13 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
             <div class="admin-form-row" data-quiz-settings-reward-row>
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_reward_provider', '기본 보상 종류', $quizSettingsHelp['default_reward_provider']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="quiz_settings_default_reward_provider" name="default_reward_provider" class="form-select" required data-quiz-settings-reward-provider>
-                        <?php foreach (sr_quiz_reward_providers() as $provider) { ?>
-                            <option value="<?php echo sr_e($provider); ?>"<?php echo (string) ($settings['default_reward_provider'] ?? 'ledger_asset') === $provider ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_reward_provider_label($provider)); ?></option>
-                        <?php } ?>
-                    </select>
+                    <?php
+                    $quizRewardProviderToggleOptions = [];
+                    foreach (sr_quiz_reward_providers() as $provider) {
+                        $quizRewardProviderToggleOptions[$provider] = sr_quiz_reward_provider_label($provider);
+                    }
+                    echo sr_admin_radio_toggle_group_html('quiz_settings_default_reward_provider', 'default_reward_provider', $quizRewardProviderToggleOptions, (string) ($settings['default_reward_provider'] ?? 'ledger_asset'), true, ' data-quiz-settings-reward-provider');
+                    ?>
                 </div>
             </div>
             <div class="admin-form-row" data-quiz-settings-reward-row data-quiz-settings-reward-ledger-row>
@@ -393,11 +403,13 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
             <div class="admin-form-row" data-quiz-settings-reward-row>
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_reward_dedupe_scope', '기본 중복 지급 기준', $quizSettingsHelp['default_reward_dedupe_scope']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="quiz_settings_default_reward_dedupe_scope" name="default_reward_dedupe_scope" class="form-select" required data-quiz-settings-reward-control>
-                        <?php foreach (sr_quiz_reward_dedupe_scopes() as $scope) { ?>
-                            <option value="<?php echo sr_e($scope); ?>"<?php echo (string) ($settings['default_reward_dedupe_scope'] ?? 'per_quiz') === $scope ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_reward_dedupe_scope_label($scope)); ?></option>
-                        <?php } ?>
-                    </select>
+                    <?php
+                    $quizRewardDedupeToggleOptions = [];
+                    foreach (sr_quiz_reward_dedupe_scopes() as $scope) {
+                        $quizRewardDedupeToggleOptions[$scope] = sr_quiz_reward_dedupe_scope_label($scope);
+                    }
+                    echo sr_admin_radio_toggle_group_html('quiz_settings_default_reward_dedupe_scope', 'default_reward_dedupe_scope', $quizRewardDedupeToggleOptions, (string) ($settings['default_reward_dedupe_scope'] ?? 'per_quiz'), true, ' data-quiz-settings-reward-control');
+                    ?>
                 </div>
             </div>
         </div>
@@ -432,25 +444,31 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
 
 <script>
 (function () {
-    var attemptPolicy = document.querySelector('[data-quiz-settings-attempt-policy]');
+    var attemptPolicyControls = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-attempt-policy]'));
     var attemptPeriod = document.querySelector('[data-quiz-settings-attempt-period]');
     var attemptPeriodLabel = document.querySelector('[data-quiz-settings-attempt-period-required]');
+    function checkedValue(name, fallback) {
+        var checked = document.querySelector('input[name="' + name + '"]:checked, select[name="' + name + '"]');
+        return checked ? checked.value : fallback;
+    }
     function syncAttemptPeriod() {
-        if (!attemptPolicy || !attemptPeriod) {
+        if (attemptPolicyControls.length === 0 || !attemptPeriod) {
             return;
         }
-        var required = attemptPolicy.value === 'per_period';
+        var required = checkedValue('default_attempt_limit_policy', 'unlimited') === 'per_period';
         attemptPeriod.required = required;
         if (attemptPeriodLabel) {
             attemptPeriodLabel.hidden = !required;
         }
     }
-    if (attemptPolicy) {
-        attemptPolicy.addEventListener('change', syncAttemptPeriod);
+    if (attemptPolicyControls.length > 0) {
+        attemptPolicyControls.forEach(function (control) {
+            control.addEventListener('change', syncAttemptPeriod);
+        });
         syncAttemptPeriod();
     }
 
-    var rewardProvider = document.querySelector('[data-quiz-settings-reward-provider]');
+    var rewardProviderControls = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-provider]'));
     var rewardRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-row]'));
     var ledgerRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-ledger-row]'));
     var couponRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-coupon-row]'));
@@ -480,23 +498,28 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
         });
     }
     function syncReward() {
-        if (!rewardProvider) {
+        if (rewardProviderControls.length === 0) {
             return;
         }
-        var ledgerSelected = rewardProvider.value === 'ledger_asset';
-        var couponSelected = rewardProvider.value === 'coupon';
+        var rewardProvider = checkedValue('default_reward_provider', 'ledger_asset');
+        var ledgerSelected = rewardProvider === 'ledger_asset';
+        var couponSelected = rewardProvider === 'coupon';
         setRowsHidden(rewardRows, false);
         setRowsHidden(ledgerRows, !ledgerSelected);
         setRowsHidden(couponRows, !couponSelected);
-        rewardProvider.disabled = false;
+        rewardProviderControls.forEach(function (control) {
+            control.disabled = false;
+        });
         setControlsEnabled(rewardControls, true);
         setControlsEnabled(ledgerControls, ledgerSelected);
         setControlsEnabled(couponControls, couponSelected);
         setControlsRequired(ledgerControls, ledgerSelected);
         setControlsRequired(couponControls, couponSelected);
     }
-    if (rewardProvider) {
-        rewardProvider.addEventListener('change', syncReward);
+    if (rewardProviderControls.length > 0) {
+        rewardProviderControls.forEach(function (control) {
+            control.addEventListener('change', syncReward);
+        });
         syncReward();
     }
 })();

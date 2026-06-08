@@ -200,11 +200,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_policy', sr_t('community::ui.text.31edcf4a'), $communitySettingsHelp['message_policy']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="admin-form-field">
-                <select id="community_admin_settings_message_write_policy" name="message_write_policy" class="form-select" data-community-message-policy>
-                                    <?php foreach (sr_community_message_write_policy_values() as $policy) { ?>
-                                        <option value="<?php echo sr_e($policy); ?>"<?php echo $policy === (string) $settings['message_write_policy'] ? ' selected' : ''; ?>><?php echo sr_e((string) ($messageWritePolicyLabels[$policy] ?? sr_admin_code_label($policy, 'policy'))); ?></option>
-                                    <?php } ?>
-                                </select>
+                <?php
+                $messagePolicyToggleOptions = [];
+                foreach (sr_community_message_write_policy_values() as $policy) {
+                    $messagePolicyToggleOptions[$policy] = (string) ($messageWritePolicyLabels[$policy] ?? sr_admin_code_label($policy, 'policy'));
+                }
+                echo sr_admin_radio_toggle_group_html('community_admin_settings_message_write_policy', 'message_write_policy', $messagePolicyToggleOptions, (string) $settings['message_write_policy'], false, ' data-community-message-policy');
+                ?>
                 <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.message_policy.help')); ?></p>
             </div>
         </div>
@@ -278,20 +280,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="modules_community_admin_settings_paid_read_charge_policy"><?php echo sr_e(sr_t('community::ui.text.05ead7ab')); ?></label>
                         <div class="admin-form-field">
-                            <select id="modules_community_admin_settings_paid_read_charge_policy" name="paid_read_charge_policy" class="form-select">
-                                <option value="once"<?php echo (string) ($settings['paid_read_charge_policy'] ?? 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                <option value="every_view"<?php echo (string) ($settings['paid_read_charge_policy'] ?? 'once') === 'every_view' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.53e8d077')); ?></option>
-                            </select>
+                            <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_paid_read_charge_policy', 'paid_read_charge_policy', ['once' => sr_t('community::ui.text.6eb4fe4e'), 'every_view' => sr_t('community::ui.text.53e8d077')], (string) ($settings['paid_read_charge_policy'] ?? 'once')); ?>
                         </div>
                     </div>
                 <?php } elseif ($assetPrefix === 'paid_attachment_download') { ?>
                     <div class="admin-form-row">
                         <label class="form-label" for="modules_community_admin_settings_paid_attachment_download_charge_policy"><?php echo sr_e(sr_t('community::ui.text.978f8b2e')); ?></label>
                         <div class="admin-form-field">
-                            <select id="modules_community_admin_settings_paid_attachment_download_charge_policy" name="paid_attachment_download_charge_policy" class="form-select">
-                                <option value="once"<?php echo (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once') === 'once' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.6eb4fe4e')); ?></option>
-                                <option value="every_download"<?php echo (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once') === 'every_download' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('community::ui.text.e9d14df2')); ?></option>
-                            </select>
+                            <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_paid_attachment_download_charge_policy', 'paid_attachment_download_charge_policy', ['once' => sr_t('community::ui.text.6eb4fe4e'), 'every_download' => sr_t('community::ui.text.e9d14df2')], (string) ($settings['paid_attachment_download_charge_policy'] ?? 'once')); ?>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -347,13 +343,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="modules_community_admin_settings_once_history_policy" name="once_history_policy" class="form-select" required>
-                        <?php foreach (sr_community_once_history_policy_values() as $policyKey => $policyLabel) { ?>
-                            <option value="<?php echo sr_e((string) $policyKey); ?>"<?php echo (string) ($settings['once_history_policy'] ?? 'all_access') === (string) $policyKey ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $policyLabel); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
+                    <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_once_history_policy', 'once_history_policy', sr_community_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
                 </div>
             </div>
@@ -389,13 +379,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <select id="community_admin_settings_post_editor" name="post_editor" class="form-select" required>
-                    <?php foreach ($editorOptions as $editorKey => $editorLabel) { ?>
-                        <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo (string) ($settings['post_editor'] ?? 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $editorLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
                 <p class="admin-form-help">새 게시판 그룹과 새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
             </div>
         </div>

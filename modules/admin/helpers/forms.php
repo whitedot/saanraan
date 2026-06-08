@@ -288,7 +288,7 @@ function sr_admin_filter_toggle_group_html(string $id, string $name, array $opti
         $optionValue = (string) $value;
 
         $groupClass = $index === $lastIndex ? 'btn-group-end' : 'btn-group-middle';
-        $inputId = $idBase . '_' . (string) $index;
+        $inputId = $index === 0 ? $idBase : $idBase . '_' . (string) $index;
         $html .= '<span class="filtering-toggle-item">'
             . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($optionValue) . '" class="form-choice-toggle-input sr-only" data-filtering-toggle-choice' . (isset($selectedMap[$optionValue]) ? ' checked' : '') . '>'
             . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light ' . $groupClass . '">' . sr_e((string) $label) . '</label>'
@@ -360,6 +360,28 @@ function sr_admin_code_label_options(array $values, string $type): array
     }
 
     return $options;
+}
+
+function sr_admin_radio_toggle_group_html(string $idBase, string $name, array $options, string $selectedValue, bool $required = false, string $inputAttributes = ''): string
+{
+    $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($idBase));
+    $idBase = is_string($idBase) && $idBase !== '' ? $idBase : 'admin_radio_toggle';
+    $html = '<div class="filtering-toggle-group admin-radio-toggle-group" role="radiogroup">';
+    $index = 0;
+    $lastIndex = max(0, count($options) - 1);
+
+    foreach ($options as $value => $label) {
+        $optionValue = (string) $value;
+        $groupClass = $index === 0 ? 'btn-group-start' : ($index === $lastIndex ? 'btn-group-end' : 'btn-group-middle');
+        $inputId = $index === 0 ? $idBase : $idBase . '_' . (string) $index;
+        $html .= '<span class="filtering-toggle-item">'
+            . '<input id="' . sr_e($inputId) . '" type="radio" name="' . sr_e($name) . '" value="' . sr_e($optionValue) . '" class="form-choice-toggle-input sr-only"' . ($required ? ' required' : '') . $inputAttributes . ($selectedValue === $optionValue ? ' checked' : '') . '>'
+            . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light ' . $groupClass . '">' . sr_e((string) $label) . '</label>'
+            . '</span>';
+        $index++;
+    }
+
+    return $html . '</div>';
 }
 
 function sr_admin_select_badge_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음', string $placeholder = '선택', string $rootAttributes = ''): string

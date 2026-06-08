@@ -208,10 +208,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_status', sr_t('admin::ui.status.e4163930'), $siteSettingsHelp['status']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="admin_settings_status" name="status" class="form-select">
-                                    <option value="active"<?php echo $values['status'] === 'active' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('admin::ui.text.0928a1b8')); ?></option>
-                                    <option value="maintenance"<?php echo $values['status'] === 'maintenance' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('admin::ui.text.4fd02e48')); ?></option>
-                                </select>
+                <?php echo sr_admin_radio_toggle_group_html('admin_settings_status', 'status', ['active' => sr_t('admin::ui.text.0928a1b8'), 'maintenance' => sr_t('admin::ui.text.4fd02e48')], (string) $values['status'], true); ?>
             </div>
         </div>
     </section>
@@ -252,13 +249,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_admin_color_scheme', sr_t('admin::ui.ui.cf6c41c6'), $siteSettingsHelp['admin_color_scheme']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="admin_settings_admin_color_scheme" name="admin_color_scheme" class="form-select" data-admin-color-scheme-select>
-                    <?php foreach (sr_color_scheme_options() as $colorScheme => $colorSchemeLabel) { ?>
-                        <option value="<?php echo sr_e((string) $colorScheme); ?>"<?php echo $values['admin_color_scheme'] === (string) $colorScheme ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $colorSchemeLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('admin_settings_admin_color_scheme', 'admin_color_scheme', sr_color_scheme_options(), (string) $values['admin_color_scheme'], true, ' data-admin-color-scheme-select'); ?>
             </div>
         </div>
         <div class="admin-form-row">
@@ -285,13 +276,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="admin_settings_admin_editor">관리자 화면 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
             <div class="admin-form-field">
-                <select id="admin_settings_admin_editor" name="admin_editor" class="form-select" required>
-                    <?php foreach ($adminEditorOptions as $editorKey => $editorLabel) { ?>
-                        <option value="<?php echo sr_e((string) $editorKey); ?>"<?php echo (string) ($values['admin_editor'] ?? 'textarea') === (string) $editorKey ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $editorLabel); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('admin_settings_admin_editor', 'admin_editor', $adminEditorOptions, (string) ($values['admin_editor'] ?? 'textarea'), true); ?>
                 <p class="admin-form-help">알림 등록처럼 관리자에서 긴 본문을 작성하는 화면에 적용됩니다.</p>
             </div>
         </div>

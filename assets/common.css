@@ -396,12 +396,15 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .btn-icon-lg :is(svg,.sr-icon){font-size:1.35rem}
 .btn-glass-inverse{border-color:transparent;background-color:color-mix(in oklab,var(--color-white) 18%,transparent);color:var(--color-white)}
 @media (hover:hover){.btn-glass-inverse:hover{background-color:color-mix(in oklab,var(--color-white) 28%,transparent);color:var(--color-white)}}
-.btn-group{align-items:stretch;display:inline-flex;gap:0;max-width:100%;vertical-align:middle}
+.btn-group,.filtering-toggle-group{align-items:stretch;display:inline-flex;gap:0;max-width:100%;vertical-align:middle}
+.filtering-toggle-group{overflow-x:auto}
+.filtering-toggle-item{display:inline-flex;min-width:0}
+.filtering-toggle-item>.btn{min-width:0}
 .btn-group-start{border-start-end-radius:0!important;border-end-end-radius:0!important}
-.btn-group-middle{border-radius:0!important;margin-inline-start:-1px}
-.btn-group-end{border-start-start-radius:0!important;border-end-start-radius:0!important;margin-inline-start:-1px}
+.btn-group-middle{border-inline-start-width:0!important;border-radius:0!important}
+.btn-group-end{border-inline-start-width:0!important;border-start-start-radius:0!important;border-end-start-radius:0!important}
 .btn-group-top{border-end-start-radius:0!important;border-end-end-radius:0!important}
-.btn-group-bottom{border-start-start-radius:0!important;border-start-end-radius:0!important;margin-block-start:-1px}
+.btn-group-bottom{border-block-start-width:0!important;border-start-start-radius:0!important;border-start-end-radius:0!important}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom){--btn-group-state-bg:var(--color-default-100);--btn-group-state-color:inherit}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-soft-default,.btn-soft-light,.btn-solid-light){--btn-group-state-bg:color-mix(in oklab,var(--color-default-500) 24%,var(--color-card));--btn-group-state-color:var(--color-default-950)}
 :is(.btn-group-start,.btn-group-middle,.btn-group-end,.btn-group-top,.btn-group-bottom):is(.btn-soft-primary,.btn-ghost-primary){--btn-group-state-bg:color-mix(in oklab,var(--color-primary) 24%,transparent);--btn-group-state-color:var(--color-primary)}

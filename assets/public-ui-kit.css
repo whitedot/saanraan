@@ -399,7 +399,10 @@
 .btn-choice-dark { --btn-choice-color: var(--color-dark); --btn-choice-hover-bg: color-mix(in oklab, var(--btn-choice-color) 12%, transparent); border-color: var(--btn-choice-color); color: var(--btn-choice-color); background-color: transparent; --btn-focus-color: var(--btn-choice-color); }
 .btn-choice-light { --btn-choice-color: var(--color-default-600); --btn-choice-hover-bg: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); background-color: var(--color-white); --btn-focus-color: var(--color-default-500); }
 .btn-choice-light:where([data-theme=dark], [data-theme=dark] *) { --btn-choice-hover-bg: var(--color-default-200); background-color: var(--color-default-100); border-color: var(--color-default-300); color: var(--color-default-700); }
-.btn-group { align-items: stretch; display: inline-flex; gap: 0; max-width: 100%; vertical-align: middle; }
+.btn-group, .filtering-toggle-group { align-items: stretch; display: inline-flex; gap: 0; max-width: 100%; vertical-align: middle; }
+.filtering-toggle-group { overflow-x: auto; }
+.filtering-toggle-item { display: inline-flex; min-width: 0; }
+.filtering-toggle-item > .btn { min-width: 0; }
 [class*=btn-choice-]:is(.btn-group-middle, .btn-group-end) { border-inline-start-color: var(--btn-choice-border-color, var(--btn-choice-color, currentColor)); }
 .btn-choice-light:is(.btn-group-middle, .btn-group-end) { --btn-choice-border-color: var(--color-default-300); }
 @media (hover: hover) {

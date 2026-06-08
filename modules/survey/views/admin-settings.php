@@ -73,21 +73,25 @@ $surveySettingsHelp = [
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_default_status', '기본 상태', $surveySettingsHelp['default_status']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="survey_settings_default_status" name="default_status" class="form-select" required>
-                        <?php foreach (sr_survey_statuses() as $status): ?>
-                            <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($settings['default_status'] ?? 'draft') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?php
+                    $surveyStatusToggleOptions = [];
+                    foreach (sr_survey_statuses() as $status) {
+                        $surveyStatusToggleOptions[$status] = sr_survey_status_label($status);
+                    }
+                    echo sr_admin_radio_toggle_group_html('survey_settings_default_status', 'default_status', $surveyStatusToggleOptions, (string) ($settings['default_status'] ?? 'draft'), true);
+                    ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_policy', '기본 응답 제한', $surveySettingsHelp['default_response_limit_policy']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="survey_settings_response_limit_policy" name="default_response_limit_policy" class="form-select" required>
-                        <?php foreach (sr_survey_response_limit_policies() as $policy): ?>
-                            <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($settings['default_response_limit_policy'] ?? 'per_survey_once') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($policy)); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?php
+                    $surveyLimitPolicyToggleOptions = [];
+                    foreach (sr_survey_response_limit_policies() as $policy) {
+                        $surveyLimitPolicyToggleOptions[$policy] = sr_survey_response_limit_policy_label($policy);
+                    }
+                    echo sr_admin_radio_toggle_group_html('survey_settings_response_limit_policy', 'default_response_limit_policy', $surveyLimitPolicyToggleOptions, (string) ($settings['default_response_limit_policy'] ?? 'per_survey_once'), true);
+                    ?>
                 </div>
             </div>
             <div class="admin-form-row">

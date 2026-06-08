@@ -66,13 +66,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_status', sr_t('banner::settings.default_status'), $bannerSettingsHelp['default_status']['id'], $bannerHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="banner_admin_banner_settings_default_status" name="banner_default_status" class="form-select" required>
-                    <?php foreach ($allowedStatuses as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"<?php echo $bannerDefaultStatus === $status ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('banner_admin_banner_settings_default_status', 'banner_default_status', sr_admin_code_label_options($allowedStatuses, 'content_status'), (string) $bannerDefaultStatus, true); ?>
                 <p class="admin-form-help"><?php echo sr_e(sr_t('banner::settings.help.default_status.inline')); ?></p>
             </div>
         </div>
@@ -96,13 +90,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_match_type', sr_t('banner::settings.default_match_type'), $bannerSettingsHelp['default_match_type']['id'], $bannerHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="banner_admin_banner_settings_default_match_type" name="banner_default_match_type" class="form-select" required>
-                    <?php foreach ($allowedMatchTypes as $matchType) { ?>
-                        <option value="<?php echo sr_e($matchType); ?>"<?php echo $bannerDefaultMatchType === $matchType ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_admin_code_label($matchType, 'match_type')); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+                <?php echo sr_admin_radio_toggle_group_html('banner_admin_banner_settings_default_match_type', 'banner_default_match_type', sr_admin_code_label_options($allowedMatchTypes, 'match_type'), (string) $bannerDefaultMatchType, true); ?>
                 <p class="admin-form-help"><?php echo sr_e(sr_t('banner::settings.help.default_match_type.inline')); ?></p>
             </div>
         </div>
