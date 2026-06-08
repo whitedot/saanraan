@@ -2176,8 +2176,8 @@ window.AdminShell = {
         window.requestAnimationFrame(clearSidebarRestoring);
         syncThemeUI();
         document.querySelectorAll('.table-wrapper').forEach(wrapper => {
-            if (!wrapper.hasAttribute('tabindex')) {
-                wrapper.setAttribute('tabindex', '0');
+            if (wrapper.getAttribute('tabindex') === '0') {
+                wrapper.removeAttribute('tabindex');
             }
             if (!wrapper.hasAttribute('aria-label') && !wrapper.hasAttribute('aria-labelledby')) {
                 wrapper.setAttribute('aria-label', 'Scrollable table');
