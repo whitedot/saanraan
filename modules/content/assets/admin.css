@@ -65,8 +65,6 @@
 .admin-content-cover-inputs{display:grid;gap:calc(var(--spacing) * 2.5);width:100%}
 .admin-content-cover-input-row{display:grid;gap:calc(var(--spacing) * 1.25);width:100%}
 .admin-content-cover-delete{margin-top:calc(var(--spacing) * 1)}
-.admin-content-embed-picker-controls{grid-template-columns:1fr auto auto}
-.admin-content-embed-picker-controls>[data-link-card-search]{grid-column:1 / -1;width:100%}
 @media (max-width:1023px){
     .admin-content-list .admin-content-filter .filtering-submit,.admin-content-group-list .admin-content-group-filter .filtering-submit,.admin-content-series-list .admin-content-series-filter .filtering-submit,.admin-content-download-files .admin-content-download-file-filter .filtering-submit,.admin-content-file-downloads .admin-content-file-download-filter .filtering-submit{grid-column:1 / -1;width:100%}
     .admin-content-list .admin-content-filter .filtering-actions .filtering-submit,.admin-content-group-list .admin-content-group-filter .filtering-actions .filtering-submit,.admin-content-series-list .admin-content-series-filter .filtering-actions .filtering-submit,.admin-content-download-files .admin-content-download-file-filter .filtering-actions .filtering-submit,.admin-content-file-downloads .admin-content-file-download-filter .filtering-actions .filtering-submit{grid-column:auto;width:auto}
