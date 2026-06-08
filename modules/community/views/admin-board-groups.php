@@ -404,7 +404,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo $memberGroupAccessLabelHtml('community_admin_board_groups_group_read_group_keys', sr_t('community::ui.member.ecf858a4')); ?>
                     <div class="admin-form-field">
-                        <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_read_group_keys', 'group_read_group_keys', $groupKeysSettingValue($formGroupSettings, 'read_group_keys'), $enabledMemberGroups); ?>
+                        <?php echo sr_admin_member_group_key_badge_select_html('community_admin_board_groups_group_read_group_keys', 'group_read_group_keys', $groupKeysSettingValue($formGroupSettings, 'read_group_keys'), $enabledMemberGroups); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -426,7 +426,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo $memberGroupAccessLabelHtml('community_admin_board_groups_group_write_group_keys', sr_t('community::ui.member.e99a3ed2')); ?>
                     <div class="admin-form-field">
-                        <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_write_group_keys', 'group_write_group_keys', $groupKeysSettingValue($formGroupSettings, 'write_group_keys'), $enabledMemberGroups); ?>
+                        <?php echo sr_admin_member_group_key_badge_select_html('community_admin_board_groups_group_write_group_keys', 'group_write_group_keys', $groupKeysSettingValue($formGroupSettings, 'write_group_keys'), $enabledMemberGroups); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -448,7 +448,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <?php echo $memberGroupAccessLabelHtml('community_admin_board_groups_group_comment_group_keys', sr_t('community::ui.member.11859d69')); ?>
                     <div class="admin-form-field">
-                        <?php echo sr_admin_member_group_key_select_html('community_admin_board_groups_group_comment_group_keys', 'group_comment_group_keys', $groupKeysSettingValue($formGroupSettings, 'comment_group_keys'), $enabledMemberGroups); ?>
+                        <?php echo sr_admin_member_group_key_badge_select_html('community_admin_board_groups_group_comment_group_keys', 'group_comment_group_keys', $groupKeysSettingValue($formGroupSettings, 'comment_group_keys'), $enabledMemberGroups); ?>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -712,10 +712,51 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (!policy || !group) {
             return;
         }
-        var first = group.querySelector('input[type="checkbox"]');
+        var first = group.querySelector('[data-admin-select-badge-value]');
         if (first && typeof first.setCustomValidity === 'function') {
             first.setCustomValidity('');
         }
+    }
+
+    function selectedGroupValues(group) {
+        var values = {};
+        if (!group) {
+            return values;
+        }
+        Array.prototype.slice.call(group.querySelectorAll('[data-admin-select-badge-value]')).forEach(function (input) {
+            if (input.value) {
+                values[input.value] = true;
+            }
+        });
+        return values;
+    }
+
+    function addGroupValue(group, value) {
+        var select = group ? group.querySelector('[data-admin-select-badge-list-select]') : null;
+        if (!select || !value || selectedGroupValues(group)[value]) {
+            return;
+        }
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function removeGroupValue(group, value) {
+        if (!group || !value) {
+            return;
+        }
+        Array.prototype.slice.call(group.querySelectorAll('[data-admin-select-badge-value]')).forEach(function (input) {
+            if (input.value === value) {
+                var item = input.closest('[data-admin-select-badge-item]');
+                if (item) {
+                    var button = item.querySelector('[data-admin-select-badge-remove]');
+                    if (button) {
+                        button.click();
+                    } else {
+                        item.remove();
+                    }
+                }
+            }
+        });
     }
 
     function mirrorSelectedGroupsToRead(kind) {
@@ -725,12 +766,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
-        Array.prototype.slice.call(sourceGroup.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (sourceCheck) {
-            Array.prototype.slice.call(readGroup.querySelectorAll('input[type="checkbox"]')).forEach(function (readCheck) {
-                if (readCheck.value === sourceCheck.value) {
-                    readCheck.checked = true;
-                }
-            });
+        Object.keys(selectedGroupValues(sourceGroup)).forEach(function (value) {
+            addGroupValue(readGroup, value);
         });
     }
 
@@ -740,18 +777,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
-        var readable = {};
-        Array.prototype.slice.call(readGroup.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (readCheck) {
-            readable[readCheck.value] = true;
-        });
+        var readable = selectedGroupValues(readGroup);
         ['write', 'comment'].forEach(function (kind) {
             var group = document.getElementById('community_admin_board_groups_group_' + kind + '_group_keys');
             if (!group) {
                 return;
             }
-            Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]:checked')).forEach(function (check) {
-                if (!readable[check.value]) {
-                    check.checked = false;
+            Object.keys(selectedGroupValues(group)).forEach(function (value) {
+                if (!readable[value]) {
+                    removeGroupValue(group, value);
                 }
             });
         });
@@ -786,6 +820,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 }
                 syncPolicy(kind);
                 syncPolicy('read');
+            });
+            group.addEventListener('click', function (event) {
+                var changedSelection = event.target && event.target.closest
+                    ? event.target.closest('[data-admin-select-badge-remove], [data-admin-select-badge-clear]')
+                    : null;
+                if (!changedSelection) {
+                    return;
+                }
+                window.setTimeout(function () {
+                    if (kind === 'read') {
+                        syncWritableGroupsFromRead();
+                    }
+                    syncPolicy(kind);
+                    syncPolicy('read');
+                }, 0);
             });
         }
         syncPolicy(kind);
