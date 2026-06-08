@@ -113,6 +113,18 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 return;
             }
 
+            $uploadProvided = sr_admin_icon_upload_was_provided($file);
+            if ($removeImage && !$uploadProvided) {
+                $materialName = sr_material_icon_name($materialNameInput !== '' ? $materialNameInput : $defaultMaterialName);
+                if (!$isDefault || $materialName !== (string) $defaultMaterialName) {
+                    $postedIconOverrides[$symbolName] = [
+                        'type' => 'material',
+                        'material_name' => $materialName,
+                    ];
+                }
+                return;
+            }
+
             $storageReference = '';
             if (!$removeImage && (string) ($existing['type'] ?? '') === 'image') {
                 $existingReference = (string) ($existing['storage_reference'] ?? '');
@@ -121,7 +133,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 }
             }
 
-            if (sr_admin_icon_upload_was_provided($file)) {
+            if ($uploadProvided) {
                 try {
                     $uploaded = sr_admin_icon_upload_image($file);
                     $storageReference = (string) ($uploaded['storage_reference'] ?? '');

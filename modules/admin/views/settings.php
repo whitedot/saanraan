@@ -465,6 +465,46 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     document.querySelectorAll('[data-admin-icon-key-file]').forEach(bindAdminIconKeyFile);
 
+    document.querySelectorAll('[data-admin-icon-key-remove]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            var item = input.closest('[data-admin-icon-key-item]');
+            if (!item || !input.checked) {
+                return;
+            }
+
+            var fileInput = item.querySelector('[data-admin-icon-key-file]');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                return;
+            }
+
+            var defaultMaterialName = item.getAttribute('data-admin-icon-key-default') || 'folder';
+            var typeSelect = item.querySelector('[data-admin-icon-key-type]');
+            var materialInput = item.querySelector('[data-admin-icon-key-material]');
+            var preview = item.querySelector('[data-admin-icon-key-preview]');
+
+            if (typeSelect) {
+                typeSelect.value = 'material';
+            }
+
+            if (materialInput && materialInput.value.trim() === '') {
+                materialInput.value = defaultMaterialName;
+            }
+
+            if (preview) {
+                if (preview.dataset.previewUrl) {
+                    URL.revokeObjectURL(preview.dataset.previewUrl);
+                    delete preview.dataset.previewUrl;
+                }
+                var icon = document.createElement('span');
+                icon.className = 'sr-icon material-symbols-outlined';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.setAttribute('data-sr-material-icon', '1');
+                icon.textContent = materialInput ? materialInput.value : defaultMaterialName;
+                preview.replaceChildren(icon);
+            }
+        });
+    });
+
     document.querySelectorAll('[data-admin-icon-key-delete]').forEach(function (input) {
         input.addEventListener('change', function () {
             var item = input.closest('[data-admin-icon-key-item]');
