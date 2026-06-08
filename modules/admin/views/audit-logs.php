@@ -52,8 +52,15 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
                 </select>
             </div>
             <div class="filtering-field">
-                <span class="filtering-label">대상 유형</span>
-                <?php echo sr_admin_filter_radio_toggle_group_html('modules_admin_audit_logs_target_type', 'target_type', $auditTargetTypeOptions, [(string) ($filters['target_type'] ?? '')], '전체'); ?>
+                <label for="modules_admin_audit_logs_target_type" class="filtering-label">대상 유형</label>
+                <select id="modules_admin_audit_logs_target_type" name="target_type" class="form-select">
+                    <option value="">전체</option>
+                    <?php foreach ($auditTargetTypeOptions as $targetType => $targetTypeLabel) { ?>
+                        <option value="<?php echo sr_e((string) $targetType); ?>"<?php echo (string) ($filters['target_type'] ?? '') === (string) $targetType ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $targetTypeLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
             <div class="filtering-field">
                 <label for="modules_admin_audit_logs_target_id" class="filtering-label">대상 식별값</label>
