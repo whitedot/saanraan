@@ -256,14 +256,14 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 }
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.admin-form-help{flex-basis:100%;margin-top:0}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.form-control-full{flex:1 1 18rem;width:auto}
-.admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline){align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)}
-.admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-asset-setting-scope-inline{margin-left:auto;order:2}
+.admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline){align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)}
+.admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-asset-setting-scope-inline{align-self:flex-start;margin-left:auto;order:2}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-form-help{flex-basis:100%;margin-top:0;order:3}
-.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field{align-items:center;display:flex;flex-direction:row;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);min-height:calc(var(--spacing) * 9.25)}
-.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-setting-source-options,
-.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-asset-setting-scope-inline{align-self:center;justify-content:flex-end;margin-left:auto;min-height:auto;order:2}
+.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field{align-items:flex-start;display:flex;flex-direction:row;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);min-height:calc(var(--spacing) * 9.25)}
+.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-setting-source-options{align-self:flex-start;justify-content:flex-end;margin-left:auto;min-height:auto;order:2}
+.admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-asset-setting-scope-inline{align-self:flex-start;justify-content:flex-end;margin-left:auto;min-height:auto;order:2}
 .admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-asset-setting-scope-inline>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
-.admin-form .admin-policy-set-field>.admin-check-list{align-self:center;justify-content:flex-start;margin-top:0;order:1}
+.admin-form .admin-policy-set-field>.admin-check-list{align-self:flex-start;justify-content:flex-start;margin-top:0;order:1}
 .admin-form .admin-policy-set-field>.admin-form-help{flex-basis:100%;margin-top:0;order:3;text-align:left}
 .admin-form .admin-policy-set-field>.admin-select-badge-list{flex:1 1 22rem;order:1}
 .admin-site-name-reference-action{display:flex;justify-content:flex-start;margin-top:calc(var(--spacing) * 2)}
@@ -288,22 +288,22 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-page-file-charge-assets>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
 .admin-page-file-charge-amount{width:10rem}
 .admin-page-file-charge-policy{width:auto}
-.admin-asset-setting-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
+.admin-asset-setting-line{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
 .admin-form .admin-form-row>.admin-form-field>.admin-asset-setting-line{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-setting-source-options{margin-left:0}
 .admin-asset-setting-control{display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1.25);min-width:min(100%,18rem)}
 .admin-asset-setting-control-full{flex:1 1 32rem;min-width:min(100%,28rem)}
-.admin-asset-setting-primary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
+.admin-asset-setting-primary{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
 .admin-asset-setting-primary>.admin-form-check{min-height:auto}
 .admin-asset-setting-target{min-width:0;--admin-asset-amount-width:7rem}
-.admin-asset-setting-target>.admin-check-list{align-items:center;margin-top:0;min-height:calc(var(--spacing) * 9.25)}
+.admin-asset-setting-target>.admin-check-list{align-items:flex-start;margin-top:0;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-target>.form-select{min-width:8rem}
-.admin-asset-single-setting-target{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
+.admin-asset-single-setting-target{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
 .admin-asset-single-setting-target>.form-select{min-width:8rem;width:auto}
 .admin-asset-single-amount-group{width:auto}
 .admin-asset-setting-amount{text-align:right;width:var(--admin-asset-amount-width, 6rem)}
-.admin-asset-setting-secondary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
+.admin-asset-setting-secondary{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
 .admin-asset-amount-grid{display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));width:100%}
 .admin-asset-amount-field{display:grid;gap:calc(var(--spacing) * 1)}
 .admin-asset-amount-field span{font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);color:var(--text-muted)}
@@ -319,7 +319,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-single-amount-group>.admin-asset-setting-amount,
 .admin-asset-setting-target .admin-asset-grouped-input-group>.admin-asset-setting-amount{flex:0 0 var(--admin-asset-amount-width, 6rem);min-width:0;width:var(--admin-asset-amount-width, 6rem)}
 .admin-asset-setting-policy{width:10rem}
-.admin-asset-setting-scope{align-items:center;display:flex;flex:0 1 16rem;justify-content:flex-end;margin-left:auto;min-height:calc(var(--spacing) * 9.25)}
+.admin-asset-setting-scope{align-items:flex-start;display:flex;flex:0 1 16rem;justify-content:flex-end;margin-left:auto;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-scope>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
 .admin-asset-setting-scope-inline{flex:0 1 auto;justify-content:flex-end;margin-left:auto;min-height:auto}
 .admin-asset-setting-scope-inline>.admin-setting-source-options{justify-content:flex-end;margin-left:0}

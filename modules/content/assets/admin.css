@@ -54,7 +54,7 @@
 .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter-keyword .filtering-input{width:100%}
 .admin-content-asset-policy-sets .admin-content-asset-policy-set-filter .filtering-submit{justify-content:center;width:fit-content}
 .admin-content-file-charge-control{width:100%}
-.admin-content-file-charge-main{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);width:100%}
+.admin-content-file-charge-main{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);width:100%}
 .admin-content-file-charge-main>.admin-form-check{min-height:calc(var(--spacing) * 9)}
 .admin-content-file-charge-assets>.admin-check-list{margin-top:0}
 .admin-content-file-charge-amount{width:8rem}
