@@ -3183,6 +3183,7 @@ function sr_content_link_card_search_content_targets(PDO $pdo, string $keyword, 
             'title' => (string) ($row['title'] ?? ''),
             'summary' => (string) ($row['summary'] ?? ''),
             'url' => sr_content_path((string) ($row['slug'] ?? '')),
+            'embed' => sr_embed_manager_search_payload('content', 'content', $contentId, (string) ($row['title'] ?? ''), 'card'),
             'status' => (string) ($row['status'] ?? ''),
             'meta' => '콘텐츠 #' . $contentId . ' / slug: ' . (string) ($row['slug'] ?? ''),
         ];
@@ -3850,8 +3851,10 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                     'id' => $pageId,
                 ]);
             }
+            sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $pageId, 'body', (string) ($values['body_text'] ?? ''), $accountId);
         } else {
             sr_content_cleanup_unreferenced_body_files($pdo, $pageId, '');
+            sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
         }
         sr_link_card_clear_legacy_refs($pdo, 'sr_content_link_refs', 'content_id', $pageId);
         sr_content_record_revision($pdo, $pageId, $values, $accountId, $now);
@@ -4049,6 +4052,21 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'updated_at' => $now,
         ]);
         $newContentId = (int) $pdo->lastInsertId();
+        if ((string) ($copy['body_format'] ?? 'plain') === 'html') {
+            $rewrittenBodyText = sr_embed_manager_rewrite_body_refs_for_copy($pdo, 'content', 'content', $sourceContentId, 'body', 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
+            if ($rewrittenBodyText !== (string) ($copy['body_text'] ?? '')) {
+                $copy['body_text'] = $rewrittenBodyText;
+                $pdo->prepare('UPDATE sr_content_items SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
+                    'body_text' => $rewrittenBodyText,
+                    'updated_at' => $now,
+                    'id' => $newContentId,
+                ]);
+            } else {
+                sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
+            }
+        } else {
+            sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $newContentId, 'body', '', $accountId);
+        }
 
         $stmt = $pdo->prepare(
             'INSERT INTO sr_content_setting_sources (content_id, setting_key, source, created_at, updated_at)

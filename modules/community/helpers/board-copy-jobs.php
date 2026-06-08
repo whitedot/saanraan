@@ -508,13 +508,18 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             $newPostId = (int) $pdo->lastInsertId();
             if ((string) ($post['body_format'] ?? 'plain') === 'html') {
                 $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text'], $createdBodyFiles);
+                $bodyText = sr_embed_manager_rewrite_body_refs_for_copy($pdo, 'community', 'post', (int) $post['id'], 'body', 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
                 if ($bodyText !== (string) $post['body_text']) {
                     $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                         'body_text' => $bodyText,
                         'updated_at' => (string) $post['updated_at'],
                         'id' => $newPostId,
                     ]);
+                } else {
+                    sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
                 }
+            } else {
+                sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $newPostId, 'body', '', (int) $post['author_account_id']);
             }
             sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newPostId, 'copied');
             $pdo->commit();

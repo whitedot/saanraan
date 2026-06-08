@@ -91,7 +91,8 @@
       'ImageCaption',
       'ImageStyle',
       'ImageResize',
-      'FileRepository'
+      'FileRepository',
+      'GeneralHtmlSupport'
     ];
     var plugins = [];
 
@@ -108,6 +109,22 @@
       link: {
         addTargetToExternalLinks: true,
         defaultProtocol: 'https://'
+      },
+      htmlSupport: {
+        allow: [
+          {
+            name: 'span',
+            classes: ['sr-embed-manager-marker'],
+            attributes: [
+              'data-sr-embed-manager-ref',
+              'data-sr-embed-manager-target-module',
+              'data-sr-embed-manager-target-type',
+              'data-sr-embed-manager-target-id',
+              'data-sr-embed-manager-variant',
+              'data-sr-embed-manager-label'
+            ]
+          }
+        ]
       }
     };
 

@@ -105,7 +105,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <button type="button" class="btn btn-solid-light" data-link-card-search-trigger><?php echo sr_e('검색'); ?></button>
                         <button type="button" class="btn btn-solid-primary" data-link-card-insert><?php echo sr_e('본문에 삽입'); ?></button>
                     </div>
-                    <div class="sr-link-card-picker-results" data-link-card-results><?php echo sr_e('콘텐츠를 검색해 본문에 HTML 또는 텍스트 링크로 삽입합니다.'); ?></div>
+                    <div class="sr-link-card-picker-results" data-link-card-results><?php echo sr_e('콘텐츠를 검색해 본문에 임베드 참조로 삽입합니다.'); ?></div>
                 </div>
             <?php } ?>
             <fieldset>

@@ -583,6 +583,36 @@
     return '';
   }
 
+  function safeToken(value, pattern, fallback) {
+    var text = String(value || '').trim();
+    return pattern.test(text) ? text : fallback;
+  }
+
+  function buildEmbedMarker(item) {
+    var embed = item && item.embed ? item.embed : null;
+    if (!embed) {
+      return '';
+    }
+
+    var refKey = safeToken(embed.ref_key, /^em_[a-z0-9_]{6,70}$/, '');
+    var targetModule = safeToken(embed.target_module, /^[a-z][a-z0-9_]{1,59}$/, '');
+    var targetType = safeToken(embed.target_type, /^[a-z][a-z0-9_]{1,59}$/, '');
+    var targetId = safeToken(embed.target_id, /^[1-9][0-9]{0,19}$/, '');
+    var variant = safeToken(embed.variant, /^[a-z][a-z0-9_]{1,59}$/, 'card');
+    var label = String(embed.label || item.title || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+    if (refKey === '' || targetModule === '' || targetType === '' || targetId === '') {
+      return '';
+    }
+
+    return '<span class="sr-embed-manager-marker"'
+      + ' data-sr-embed-manager-ref="' + escapeHtml(refKey) + '"'
+      + ' data-sr-embed-manager-target-module="' + escapeHtml(targetModule) + '"'
+      + ' data-sr-embed-manager-target-type="' + escapeHtml(targetType) + '"'
+      + ' data-sr-embed-manager-target-id="' + escapeHtml(targetId) + '"'
+      + ' data-sr-embed-manager-variant="' + escapeHtml(variant) + '"'
+      + ' data-sr-embed-manager-label="' + escapeHtml(label) + '"></span>';
+  }
+
   function buildInsertContent(item) {
     var title = String(item.title || '(제목 없음)').trim();
     var summary = String(item.summary || '').trim();
@@ -602,7 +632,8 @@
     var titleHtml = url !== ''
       ? '<a href="' + escapeHtml(url) + '">' + escapeHtml(title) + '</a>'
       : escapeHtml(title);
-    var html = '<blockquote><p><strong>' + titleHtml + '</strong></p>';
+    var marker = buildEmbedMarker(item);
+    var html = '<blockquote>' + marker + '<p><strong>' + titleHtml + '</strong></p>';
     if (summary !== '') {
       html += '<p>' + escapeHtml(summary) + '</p>';
     } else if (meta !== '') {

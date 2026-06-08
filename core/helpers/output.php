@@ -190,6 +190,7 @@ function sr_rich_text_allowed_html_tags(): array
         'a' => ['href'],
         'h2' => [],
         'h3' => [],
+        'span' => ['class', 'data-sr-embed-manager-ref', 'data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-target-id', 'data-sr-embed-manager-variant', 'data-sr-embed-manager-label'],
         'img' => ['src', 'alt', 'width', 'height'],
     ];
 }
@@ -287,6 +288,33 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
             }
         } elseif ($attributeName === 'alt') {
             $value = function_exists('mb_substr') ? mb_substr($value, 0, 160) : substr($value, 0, 160);
+        } elseif ($tagName === 'span' && $attributeName === 'class') {
+            $classes = preg_split('/\s+/', $value) ?: [];
+            $allowedClasses = [];
+            foreach ($classes as $className) {
+                if ($className === 'sr-embed-manager-marker') {
+                    $allowedClasses[] = $className;
+                }
+            }
+            if ($allowedClasses === []) {
+                continue;
+            }
+            $value = implode(' ', $allowedClasses);
+        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-ref') {
+            if (preg_match('/\Aem_[a-z0-9_]{6,70}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($tagName === 'span' && in_array($attributeName, ['data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-variant'], true)) {
+            if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-target-id') {
+            if (preg_match('/\A[1-9][0-9]{0,19}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-label') {
+            $value = preg_replace('/\s+/', ' ', $value) ?? '';
+            $value = function_exists('mb_substr') ? mb_substr($value, 0, 120) : substr($value, 0, 120);
         } else {
             continue;
         }

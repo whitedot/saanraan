@@ -661,6 +661,7 @@ function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, i
             'title' => (string) ($row['title'] ?? ''),
             'summary' => $summary,
             'url' => '/community/post?id=' . rawurlencode($postId),
+            'embed' => sr_embed_manager_search_payload('community', 'post', $postId, (string) ($row['title'] ?? ''), 'card'),
             'status' => (string) ($row['status'] ?? ''),
             'meta' => '게시글 #' . $postId . ' / 게시판: ' . (string) ($row['board_title'] ?? '') . ' (' . (string) ($row['board_key'] ?? '') . ')',
         ];
@@ -756,6 +757,11 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
         }
         $stmt->execute($params);
+        if ($bodyFormat === 'html') {
+            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', $bodyText, $accountId > 0 ? $accountId : null);
+        } else {
+            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
+        }
         sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
     } catch (Throwable $exception) {
@@ -1313,12 +1319,16 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         if ($bodyFormat === 'html') {
             $finalBodyText = sr_community_finalize_body_files($pdo, $postId, $bodyText, $authorAccountId, true, $createdBodyFiles, $finalizedTmpFiles);
             if ($finalBodyText !== $bodyText) {
+                $bodyText = $finalBodyText;
                 $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                     'body_text' => $finalBodyText,
                     'updated_at' => $now,
                     'id' => $postId,
                 ]);
             }
+            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', $bodyText, $authorAccountId);
+        } else {
+            sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', $authorAccountId);
         }
         sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
@@ -1641,6 +1651,7 @@ function sr_community_allowed_post_html_tags(): array
         'a' => ['href'],
         'h2' => [],
         'h3' => [],
+        'span' => ['class', 'data-sr-embed-manager-ref', 'data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-target-id', 'data-sr-embed-manager-variant', 'data-sr-embed-manager-label'],
         'img' => ['src', 'alt', 'width', 'height'],
     ];
 }
@@ -1738,6 +1749,33 @@ function sr_community_sanitize_post_html_attributes(DOMElement $node, string $ta
             }
         } elseif ($attributeName === 'alt') {
             $value = function_exists('mb_substr') ? mb_substr($value, 0, 160) : substr($value, 0, 160);
+        } elseif ($tagName === 'span' && $attributeName === 'class') {
+            $classes = preg_split('/\s+/', $value) ?: [];
+            $allowedClasses = [];
+            foreach ($classes as $className) {
+                if ($className === 'sr-embed-manager-marker') {
+                    $allowedClasses[] = $className;
+                }
+            }
+            if ($allowedClasses === []) {
+                continue;
+            }
+            $value = implode(' ', $allowedClasses);
+        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-ref') {
+            if (preg_match('/\Aem_[a-z0-9_]{6,70}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($tagName === 'span' && in_array($attributeName, ['data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-variant'], true)) {
+            if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-target-id') {
+            if (preg_match('/\A[1-9][0-9]{0,19}\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-label') {
+            $value = preg_replace('/\s+/', ' ', $value) ?? '';
+            $value = function_exists('mb_substr') ? mb_substr($value, 0, 120) : substr($value, 0, 120);
         }
 
         $attributes .= ' ' . $attributeName . '="' . sr_e($value) . '"';

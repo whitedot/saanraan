@@ -47,10 +47,8 @@ CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type =>
 - 다른 모듈이 이 모듈을 활용할 때는 양방향 공유 테이블보다 안정 식별자 기반의 단방향 참조나 명시적 계약 파일을 우선한다.
 - 파일 업로드, 메일 운영 화면, 백업, healthcheck처럼 공통으로 보이지만 정책 판단이 들어가는 기능은 먼저 선택 모듈 후보로 검토한다.
 
-모듈 간 본문 연결의 1.0 정책은 본문 저장값을 참조 원장으로 쓰지 않는 것이다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, 시스템 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 작성 편의를 위한 보조 기능으로만 동작하고, 선택한 대상은 CKEditor에서는 허용 HTML 조각으로, 일반 textarea에서는 제목과 URL 중심의 텍스트로 삽입한다.
-검색 삽입 UI는 대상 모듈이 제공하는 공개 대상 검색 helper를 JSON action으로 감싼다. 검색 결과는 현재 공개 링크로 안내할 수 있는 대상만 반환해야 하며, 저장 이후의 본문은 일반 링크/인용 HTML 또는 텍스트이므로 별도 링크 카드 참조 점검 화면을 요구하지 않는다.
-
-`embed_manager` 공식 선택 모듈은 이 결정을 바꾸는 후보 설계다. 에디토리얼 위치 보존이 필요한 화면은 본문에 제한된 marker를 두고 `sr_embed_manager_refs`를 임베드 렌더링과 관리자 점검의 명시적 참조로 사용할 수 있다. refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니며, broken/private/deleted 상태 표시는 렌더링 정책과 점검 화면으로 처리한다. 실제 저장 연동은 marker sanitizer, 저장 transaction, refs 동기화, 복사 시 ref_key 재발급과 본문 rewrite, 비활성화 fallback을 함께 구현해야 한다.
+모듈 간 본문 연결은 `embed_manager`의 제한된 marker와 `sr_embed_manager_refs`를 사용한다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, legacy 링크 카드 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 대상 모듈이 제공하는 공개 대상 검색 helper를 JSON action으로 감싸고, CKEditor 본문에는 `sr-embed-manager-marker` span과 안전한 인용 HTML을 삽입한다. 일반 textarea fallback은 텍스트 링크만 삽입하므로 refs 동기화 대상이 아니다.
+저장 action은 최종 정화 HTML에 남은 marker만 기준으로 ref_key, target module/type/id, variant, label을 검증하고, 소유 문서 저장 transaction 안에서 refs를 upsert한다. refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니며, broken/private/deleted/removed 상태 표시는 렌더링 정책과 점검 화면으로 처리한다. 복사 흐름은 ref_key를 새로 발급해 본문을 rewrite하고 refs를 새 소유 대상으로 복사해야 한다.
 
 코어에 넣지 않는다:
 
