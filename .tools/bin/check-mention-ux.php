@@ -8,6 +8,7 @@ define('SR_ROOT', $root);
 
 require_once $root . '/core/version.php';
 require_once $root . '/core/helpers/runtime.php';
+require_once $root . '/core/helpers/output.php';
 require_once $root . '/modules/member/helpers/nicknames.php';
 
 $errors = [];
@@ -41,6 +42,14 @@ sr_mention_check_assert(
     sr_member_mention_prefix_length_for_hashes($hashes, $hashes[0], 6) === 8,
     'prefix length should grow when the default 6 characters collide.'
 );
+
+$mentionHtml = sr_member_mention_plain_text_html("Hello <b> @foo#bar#a18f3c\n@홍길동");
+sr_mention_check_assert(str_contains($mentionHtml, '<span class="sr-mention">'), 'mention renderer should wrap hash prefix tokens.');
+sr_mention_check_assert(str_contains($mentionHtml, '@foo#bar'), 'mention renderer should keep names with hash characters visible.');
+sr_mention_check_assert(str_contains($mentionHtml, '#a18f3c'), 'mention renderer should keep hash prefixes visible.');
+sr_mention_check_assert(str_contains($mentionHtml, '&lt;b&gt;'), 'mention renderer should escape non-mention HTML.');
+sr_mention_check_assert(str_contains($mentionHtml, '<br>'), 'mention renderer should preserve plain text line breaks.');
+sr_mention_check_assert(!str_contains($mentionHtml, '<span class="sr-mention"><span class="sr-mention-name">@홍길동'), 'mention renderer should not style ambiguous bare mentions.');
 
 $memberPaths = include $root . '/modules/member/paths.php';
 sr_mention_check_assert(isset($memberPaths['GET /member/mention-search']), 'member mention search route should be registered.');
@@ -77,7 +86,11 @@ foreach ([
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, 'data-sr-mention-input'), 'comment view should enable mention input: ' . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, '/member/mention-search'), 'comment view should point to member mention search: ' . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, 'sr_member_mention_plain_text_html'), 'comment view should render mention tokens through the shared renderer: ' . $viewPath);
 }
+
+$foundationCss = file_get_contents($root . '/assets/public-foundation.css');
+sr_mention_check_assert(is_string($foundationCss) && str_contains($foundationCss, '.sr-mention'), 'public foundation CSS should define rendered mention styles.');
 
 if ($errors !== []) {
     fwrite(STDERR, "saanraan mention UX checks failed:\n");

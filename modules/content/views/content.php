@@ -294,7 +294,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                     <?php } ?>
                                 </div>
                                 <?php if ($contentCommentCanViewBody) { ?>
-                                    <p><?php echo nl2br(sr_e((string) $contentComment['body_text'])); ?></p>
+                                    <p><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
                                 <?php } else { ?>
                                     <p class="content-comment-secret">비밀 댓글입니다.</p>
                                 <?php } ?>

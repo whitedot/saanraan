@@ -297,7 +297,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <?php } ?>
                             </p>
                             <?php if ($communityCommentCanViewBody) { ?>
-                                <p><?php echo sr_community_plain_text_html((string) $comment['body_text']); ?></p>
+                                <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
                             <?php } else { ?>
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
                             <?php } ?>

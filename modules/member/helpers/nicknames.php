@@ -325,6 +325,48 @@ function sr_member_mention_token_rows(string $bodyText): array
     return array_values($rows);
 }
 
+function sr_member_mention_plain_text_html(string $bodyText): string
+{
+    if ($bodyText === '') {
+        return '';
+    }
+
+    if (!preg_match_all('/@([^\s@:,.;!?()\[\]{}<>]{2,160})/u', $bodyText, $matches, PREG_OFFSET_CAPTURE)) {
+        return nl2br(sr_e($bodyText), false);
+    }
+
+    $html = '';
+    $offset = 0;
+    foreach ($matches[0] as $index => $match) {
+        $fullToken = (string) $match[0];
+        $matchOffset = (int) $match[1];
+        $rawToken = isset($matches[1][$index][0]) ? (string) $matches[1][$index][0] : '';
+        $token = trim($rawToken);
+        $name = $token;
+        $hashPrefix = '';
+        $hashPosition = strrpos($token, '#');
+        if ($hashPosition !== false) {
+            $suffix = strtolower(substr($token, $hashPosition + 1));
+            if (preg_match('/\A[a-f0-9]{6,32}\z/', $suffix) === 1) {
+                $name = trim(substr($token, 0, $hashPosition));
+                $hashPrefix = $suffix;
+            }
+        }
+
+        $html .= sr_e(substr($bodyText, $offset, $matchOffset - $offset));
+        if ($name !== '' && $hashPrefix !== '') {
+            $html .= '<span class="sr-mention"><span class="sr-mention-name">@' . sr_e($name) . '</span><span class="sr-mention-prefix">#' . sr_e($hashPrefix) . '</span></span>';
+        } else {
+            $html .= sr_e($fullToken);
+        }
+        $offset = $matchOffset + strlen($fullToken);
+    }
+
+    $html .= sr_e(substr($bodyText, $offset));
+
+    return nl2br($html, false);
+}
+
 function sr_member_mention_candidate_rows_by_public_name(PDO $pdo, string $publicName): array
 {
     $publicName = trim($publicName);
