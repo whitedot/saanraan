@@ -912,46 +912,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
 
         <section class="admin-card card">
-            <h2>위임 관리권한</h2>
-            <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업을 위임합니다. 위임 권한은 게시글 본문 수정 권한으로 확대되지 않습니다.</p>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-form-inline ui-form-theme">
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="intent" value="board_manager_grant">
-                <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_board_manager_account_identifier">회원 식별자 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
-                        <div class="input-group">
-                            <select name="account_identifier_field" class="form-select" aria-label="회원 검색 조건">
-                                <option value="all">전체</option>
-                                <option value="id">ID</option>
-                                <option value="login_id">로그인 ID</option>
-                                <option value="email">이메일</option>
-                                <option value="display_name">표시 이름</option>
-                                <option value="nickname">닉네임</option>
-                            </select>
-                            <input id="community_board_manager_account_identifier" type="text" name="account_identifier" maxlength="120" required class="form-input" placeholder="회원 ID, 로그인 ID, 이메일, 표시 이름">
-                        </div>
-                    </div>
+            <div class="card-header">
+                <div>
+                    <h2>관리권한</h2>
+                    <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업 권한을 부여합니다. 이 권한은 게시글 본문 수정 권한으로 확대되지 않습니다.</p>
                 </div>
-                <div class="admin-form-row">
-                    <span class="form-label">권한 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <div class="admin-form-field">
-                        <?php foreach ($communityBoardManagerPermissions as $permissionKey => $permissionLabel) { ?>
-                            <label class="admin-form-check form-label" for="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>">
-                                <input id="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e((string) $permissionKey); ?>" class="form-checkbox">
-                                <?php echo sr_admin_choice_label_html((string) $permissionLabel); ?>
-                            </label>
-                        <?php } ?>
-                    </div>
-                </div>
-                <div class="admin-form-actions">
-                    <button type="submit" class="btn btn-solid-primary">권한 부여</button>
-                </div>
-            </form>
+                <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-grant-modal" data-overlay="#community-board-manager-grant-modal">관리권한 부여</button>
+            </div>
             <div class="table-wrapper">
                 <table class="table">
-                    <caption class="sr-only">게시판 위임 관리권한 목록</caption>
+                    <caption class="sr-only">게시판 관리권한 목록</caption>
                     <thead class="ui-table-head">
                         <tr>
                             <th>회원</th>
@@ -963,7 +933,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tbody>
                         <?php if ($communityBoardManagers === []) { ?>
                             <tr>
-                                <td colspan="4" class="admin-empty-state">위임된 관리권한이 없습니다.</td>
+                                <td colspan="4" class="admin-empty-state">부여된 관리권한이 없습니다.</td>
                             </tr>
                         <?php } ?>
                         <?php foreach ($communityBoardManagers as $manager) { ?>
@@ -996,96 +966,216 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </tbody>
                 </table>
             </div>
+            <div id="community-board-manager-grant-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-board-manager-grant-modal-label" aria-hidden="true" inert>
+                <div class="modal-dialog modal-dialog-lg">
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
+                        <div class="modal-header">
+                            <h3 id="community-board-manager-grant-modal-label" class="modal-title">관리권한 부여</h3>
+                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-board-manager-grant-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                        </div>
+                        <div class="modal-body">
+                            <?php echo sr_csrf_field(); ?>
+                            <input type="hidden" name="intent" value="board_manager_grant">
+                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                            <div class="admin-form-row">
+                                <label class="form-label" for="community_board_manager_account_identifier">회원 식별자 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <div class="admin-form-field">
+                                    <div class="input-group">
+                                        <select name="account_identifier_field" class="form-select" aria-label="회원 검색 조건">
+                                            <option value="all">전체</option>
+                                            <option value="id">ID</option>
+                                            <option value="login_id">로그인 ID</option>
+                                            <option value="email">이메일</option>
+                                            <option value="display_name">표시 이름</option>
+                                            <option value="nickname">닉네임</option>
+                                        </select>
+                                        <input id="community_board_manager_account_identifier" type="text" name="account_identifier" maxlength="120" required class="form-input" placeholder="회원 ID, 로그인 ID, 이메일, 표시 이름" data-overlay-focus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <span class="form-label">권한 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                <div class="admin-form-field">
+                                    <?php foreach ($communityBoardManagerPermissions as $permissionKey => $permissionLabel) { ?>
+                                        <label class="admin-form-check form-label" for="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>">
+                                            <input id="<?php echo sr_e('community_board_manager_permission_' . (string) $permissionKey); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e((string) $permissionKey); ?>" class="form-checkbox">
+                                            <?php echo sr_admin_choice_label_html((string) $permissionLabel); ?>
+                                        </label>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-board-manager-grant-modal">닫기</button>
+                            <button type="submit" class="btn btn-solid-primary modal-action">권한 부여</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </section>
 
         <section class="admin-card card">
-            <h2>게시판 카테고리</h2>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-form-inline ui-form-theme">
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="intent" value="category_create">
-                <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_category_key_new">key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
-                        <input id="community_category_key_new" type="text" name="category_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input class="form-input">
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_category_title_new">이름 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
-                        <input id="community_category_title_new" type="text" name="category_title" maxlength="120" required class="form-input">
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_category_description_new">설명</label>
-                    <div class="admin-form-field">
-                        <textarea id="community_category_description_new" name="category_description" rows="2" cols="60" class="form-textarea"></textarea>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_category_status_new">상태 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
-                        <select id="community_category_status_new" name="category_status" class="form-select" required>
-                            <option value="enabled">enabled</option>
-                            <option value="disabled">disabled</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_category_sort_new">정렬 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
-                        <input id="community_category_sort_new" type="number" name="category_sort_order" min="0" max="1000000" value="0" required class="form-input">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-solid-primary">카테고리 추가</button>
-            </form>
-
             <?php $boardCategories = is_array($formBoard['categories'] ?? null) ? $formBoard['categories'] : []; ?>
-            <?php if ($boardCategories === []) { ?>
-                <p class="admin-empty">등록된 카테고리가 없습니다.</p>
-            <?php } else { ?>
-                <div class="table-wrapper">
-                    <table class="table">
-                        <thead>
+            <div class="card-header">
+                <div>
+                    <h2>게시판 카테고리</h2>
+                    <p class="admin-form-help">게시글 작성자가 선택할 게시판 안의 분류를 관리합니다.</p>
+                </div>
+                <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-category-create-modal" data-overlay="#community-category-create-modal">카테고리 추가</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <caption class="sr-only">게시판 카테고리 목록</caption>
+                    <thead class="ui-table-head">
+                        <tr>
+                            <th>key</th>
+                            <th>이름</th>
+                            <th>상태</th>
+                            <th>정렬</th>
+                            <th class="text-end">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($boardCategories === []) { ?>
                             <tr>
-                                <th>key</th>
-                                <th>이름</th>
-                                <th>상태</th>
-                                <th>정렬</th>
-                                <th class="text-end">관리</th>
+                                <td colspan="5" class="admin-empty-state">등록된 카테고리가 없습니다.</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($boardCategories as $category) { ?>
-                                <tr>
-                                    <td><code><?php echo sr_e((string) $category['category_key']); ?></code></td>
-                                    <td colspan="4">
-                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form ui-form-theme">
-                                            <?php echo sr_csrf_field(); ?>
-                                            <input type="hidden" name="intent" value="category_update">
-                                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                                            <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
-                                            <input type="text" name="category_title" maxlength="120" value="<?php echo sr_e((string) $category['title']); ?>" required class="form-input">
-                                            <input type="text" name="category_description" maxlength="2000" value="<?php echo sr_e((string) ($category['description'] ?? '')); ?>" class="form-input">
-                                            <select name="category_status" class="form-select" required>
-                                                <option value="enabled"<?php echo (string) $category['status'] === 'enabled' ? ' selected' : ''; ?>>enabled</option>
-                                                <option value="disabled"<?php echo (string) $category['status'] === 'disabled' ? ' selected' : ''; ?>>disabled</option>
-                                            </select>
-                                            <input type="number" name="category_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) $category['sort_order']); ?>" required class="form-input">
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary">수정</button>
-                                        </form>
+                        <?php } ?>
+                        <?php foreach ($boardCategories as $category) { ?>
+                            <?php $categoryModalId = 'community-category-edit-modal-' . (string) (int) ($category['id'] ?? 0); ?>
+                            <tr>
+                                <td><code><?php echo sr_e((string) $category['category_key']); ?></code></td>
+                                <td class="admin-table-break">
+                                    <strong><?php echo sr_e((string) $category['title']); ?></strong>
+                                    <?php if (trim((string) ($category['description'] ?? '')) !== '') { ?>
+                                        <span class="admin-summary-meta"><?php echo sr_e((string) $category['description']); ?></span>
+                                    <?php } ?>
+                                </td>
+                                <td class="admin-table-nowrap"><span class="admin-status <?php echo (string) ($category['status'] ?? '') === 'enabled' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e((string) $category['status']); ?></span></td>
+                                <td class="admin-table-nowrap"><?php echo sr_e((string) $category['sort_order']); ?></td>
+                                <td class="admin-table-actions-cell">
+                                    <div class="admin-row-actions">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="카테고리 수정" title="수정" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($categoryModalId); ?>" data-overlay="#<?php echo sr_e($categoryModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
                                         <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form">
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="category_delete">
                                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                                             <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="카테고리 삭제" title="삭제" onclick="return confirm('이 카테고리를 삭제할까요? 참조 중인 게시글이 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+            <div id="community-category-create-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-category-create-modal-label" aria-hidden="true" inert>
+                <div class="modal-dialog modal-dialog-lg">
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
+                        <div class="modal-header">
+                            <h3 id="community-category-create-modal-label" class="modal-title">카테고리 추가</h3>
+                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-category-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                        </div>
+                        <div class="modal-body">
+                            <?php echo sr_csrf_field(); ?>
+                            <input type="hidden" name="intent" value="category_create">
+                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                            <div class="admin-form-row">
+                                <label class="form-label" for="community_category_key_new">key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <div class="admin-form-field">
+                                    <input id="community_category_key_new" type="text" name="category_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-overlay-focus class="form-input">
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="community_category_title_new">이름 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <div class="admin-form-field">
+                                    <input id="community_category_title_new" type="text" name="category_title" maxlength="120" required class="form-input">
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="community_category_description_new">설명</label>
+                                <div class="admin-form-field">
+                                    <textarea id="community_category_description_new" name="category_description" rows="2" cols="60" class="form-textarea"></textarea>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="community_category_status_new">상태 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <div class="admin-form-field">
+                                    <select id="community_category_status_new" name="category_status" class="form-select" required>
+                                        <option value="enabled">enabled</option>
+                                        <option value="disabled">disabled</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label class="form-label" for="community_category_sort_new">정렬 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <div class="admin-form-field">
+                                    <input id="community_category_sort_new" type="number" name="category_sort_order" min="0" max="1000000" value="0" required class="form-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-category-create-modal">닫기</button>
+                            <button type="submit" class="btn btn-solid-primary modal-action">카테고리 추가</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <?php foreach ($boardCategories as $category) { ?>
+                <?php $categoryModalId = 'community-category-edit-modal-' . (string) (int) ($category['id'] ?? 0); ?>
+                <div id="<?php echo sr_e($categoryModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($categoryModalId); ?>-label" aria-hidden="true" inert>
+                    <div class="modal-dialog modal-dialog-lg">
+                        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
+                            <div class="modal-header">
+                                <h3 id="<?php echo sr_e($categoryModalId); ?>-label" class="modal-title">카테고리 수정</h3>
+                                <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($categoryModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                            </div>
+                            <div class="modal-body">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="intent" value="category_update">
+                                <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                                <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
+                                <div class="admin-form-row">
+                                    <span class="form-label">key</span>
+                                    <div class="admin-form-field">
+                                        <code><?php echo sr_e((string) $category['category_key']); ?></code>
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-title">이름 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                    <div class="admin-form-field">
+                                        <input id="<?php echo sr_e($categoryModalId); ?>-title" type="text" name="category_title" maxlength="120" value="<?php echo sr_e((string) $category['title']); ?>" required class="form-input" data-overlay-focus>
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-description">설명</label>
+                                    <div class="admin-form-field">
+                                        <textarea id="<?php echo sr_e($categoryModalId); ?>-description" name="category_description" rows="2" cols="60" maxlength="2000" class="form-textarea"><?php echo sr_e((string) ($category['description'] ?? '')); ?></textarea>
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-status">상태 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                    <div class="admin-form-field">
+                                        <select id="<?php echo sr_e($categoryModalId); ?>-status" name="category_status" class="form-select" required>
+                                            <option value="enabled"<?php echo (string) $category['status'] === 'enabled' ? ' selected' : ''; ?>>enabled</option>
+                                            <option value="disabled"<?php echo (string) $category['status'] === 'disabled' ? ' selected' : ''; ?>>disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-sort">정렬 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                    <div class="admin-form-field">
+                                        <input id="<?php echo sr_e($categoryModalId); ?>-sort" type="number" name="category_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) $category['sort_order']); ?>" required class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($categoryModalId); ?>">닫기</button>
+                                <button type="submit" class="btn btn-solid-primary modal-action">수정</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             <?php } ?>
         </section>
