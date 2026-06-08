@@ -290,8 +290,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-row>.admin-form-field>.admin-asset-setting-line{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-setting-source-options{margin-left:0}
-.admin-asset-setting-control{display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1.25);min-width:18rem}
-.admin-asset-setting-control-full{flex:1 1 auto}
+.admin-asset-setting-control{display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1.25);min-width:min(100%,18rem)}
+.admin-asset-setting-control-full{flex:1 1 32rem;min-width:min(100%,28rem)}
 .admin-asset-setting-primary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
 .admin-asset-setting-primary>.admin-form-check{min-height:auto}
 .admin-asset-setting-target{min-width:0;--admin-asset-amount-width:7rem}
@@ -317,7 +317,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-asset-single-amount-group>.admin-asset-setting-amount,
 .admin-asset-setting-target .admin-asset-grouped-input-group>.admin-asset-setting-amount{flex:0 0 var(--admin-asset-amount-width, 6rem);min-width:0;width:var(--admin-asset-amount-width, 6rem)}
 .admin-asset-setting-policy{width:10rem}
-.admin-asset-setting-scope{align-items:center;display:flex;flex:1 1 13rem;justify-content:flex-end;min-height:calc(var(--spacing) * 9.25)}
+.admin-asset-setting-scope{align-items:center;display:flex;flex:0 1 16rem;justify-content:flex-end;margin-left:auto;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-scope>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
 .admin-asset-setting-scope-inline{flex:0 1 auto;justify-content:flex-end;margin-left:auto;min-height:auto}
 .admin-asset-setting-scope-inline>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
