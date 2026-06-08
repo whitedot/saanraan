@@ -86,39 +86,6 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
             <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('admin::ui.text.f8d240bf')); ?></button>
         </div>
     </div>
-    <?php if (($filters['event_type'] ?? '') !== '' || ($filters['target_type'] ?? '') !== '' || ($filters['target_id'] ?? '') !== '' || $auditResultFilters !== [] || $auditActorTypeFilters !== [] || ($filters['ip_address'] ?? '') !== '' || ($filters['date_from'] ?? '') !== '' || ($filters['date_to'] ?? '') !== '') { ?>
-        <div class="admin-summary-stats">
-            <?php if (($filters['event_type'] ?? '') !== '') { ?>
-                <span class="admin-summary-meta">이벤트 <strong><?php echo sr_e((string) $filters['event_type']); ?></strong></span>
-            <?php } ?>
-            <?php if (($filters['target_type'] ?? '') !== '') { ?>
-                <span class="admin-summary-meta">대상 유형 <strong><?php echo sr_e(sr_admin_code_label((string) $filters['target_type'], 'target_type')); ?></strong></span>
-            <?php } ?>
-            <?php if ($auditResultFilters !== []) { ?>
-                <span class="admin-summary-meta">결과 <strong><?php echo sr_e(implode(', ', array_map(function (string $result): string {
-                    return sr_admin_code_label($result, 'result');
-                }, $auditResultFilters))); ?></strong></span>
-            <?php } ?>
-            <?php if ($auditActorTypeFilters !== []) { ?>
-                <span class="admin-summary-meta">처리자 유형 <strong><?php echo sr_e(implode(', ', array_map(function (string $actorType): string {
-                    return sr_admin_code_label($actorType, 'actor_type');
-                }, $auditActorTypeFilters))); ?></strong></span>
-            <?php } ?>
-            <?php if (($filters['ip_address'] ?? '') !== '') { ?>
-                <span class="admin-summary-meta">IP <strong><?php echo sr_e((string) $filters['ip_address']); ?></strong></span>
-            <?php } ?>
-            <?php if (($filters['date_from'] ?? '') !== '' || ($filters['date_to'] ?? '') !== '') { ?>
-                <?php
-                $auditDateFrom = (string) ($filters['date_from'] ?? '');
-                $auditDateTo = (string) ($filters['date_to'] ?? '');
-                $auditDateLabel = $auditDateFrom !== '' && $auditDateTo !== ''
-                    ? $auditDateFrom . ' ~ ' . $auditDateTo
-                    : ($auditDateFrom !== '' ? $auditDateFrom . '부터' : $auditDateTo . '까지');
-                ?>
-                <span class="admin-summary-meta">기간 <strong><?php echo sr_e($auditDateLabel); ?></strong></span>
-            <?php } ?>
-        </div>
-    <?php } ?>
 </form>
 
 <div class="admin-card admin-list-card card admin-list-form">
