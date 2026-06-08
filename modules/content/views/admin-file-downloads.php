@@ -22,7 +22,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
 <form method="get" action="<?php echo sr_e(sr_url('/admin/content/file-downloads')); ?>" class="filtering-form admin-content-file-download-filter ui-form-theme">
     <div class="filtering-fields admin-content-file-download-search-grid admin-content-filter-stack">
         <div class="filtering filtering-card<?php echo $downloadLogDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
-            <div class="filtering-fields">
+            <div class="filtering-fields filtering-fields-fit">
                 <div class="filtering-field">
                     <span class="filtering-label">구분</span>
                     <?php echo sr_admin_filter_radio_toggle_group_html('content_file_download_filter_type', 'download_type', ['free' => '무료', 'paid' => '유료'], $selectedDownloadTypes, '전체'); ?>
@@ -37,7 +37,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                     <input id="content_file_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="콘텐츠, 파일, 회원">
                 </label>
             </div>
-            <div id="content_file_download_detail_filters" class="filtering-body" data-filtering-body<?php echo $downloadLogDetailFilterOpen ? '' : ' hidden'; ?>>
+            <div id="content_file_download_detail_filters" class="filtering-body filtering-body-fit" data-filtering-body<?php echo $downloadLogDetailFilterOpen ? '' : ' hidden'; ?>>
                 <label class="filtering-field" for="content_file_download_filter_content_id">
                     <span class="filtering-label">콘텐츠 ID</span>
                     <input id="content_file_download_filter_content_id" type="number" min="1" name="content_id" value="<?php echo (int) ($filters['content_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['content_id']) : ''; ?>" class="form-input filtering-input">

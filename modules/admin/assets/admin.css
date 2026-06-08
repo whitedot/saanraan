@@ -902,6 +902,50 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: fit-content;
 }
 
+.filtering-form > .filtering-fields.filtering-fields-fit,
+.filtering-card > .filtering-fields.filtering-fields-fit,
+.filtering-form > .filtering-fields[class*="-search-grid"].filtering-fields-fit,
+.filtering-form > .filtering-fields[class*="-filter-grid"].filtering-fields-fit,
+.admin-audit-filter .filtering-card > .filtering-fields.admin-audit-search-grid.filtering-fields-fit {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.filtering-fields-fit .filtering-field {
+    min-width: 0;
+    width: fit-content;
+}
+
+.filtering-fields-fit .filtering-field-fill {
+    flex: 1 1 18rem;
+    min-width: min(18rem, 100%);
+    width: auto;
+}
+
+.filtering-fields-fit :is(.form-select, .filtering-input) {
+    max-width: min(18rem, 100%);
+}
+
+.filtering-fields-fit .filtering-field-fill :is(.form-input, .filtering-input) {
+    max-width: 100%;
+    width: 100%;
+}
+
+.filtering-body.filtering-body-fit {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.filtering-body.filtering-body-fit > .filtering-field {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: min(12rem, 100%);
+    width: fit-content;
+}
+
 .admin-asset-member-search-grid {
     grid-template-columns: max-content minmax(0, 1fr) auto;
     justify-content: start;

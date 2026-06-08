@@ -23,7 +23,7 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $filters['target_id']); ?>">
     <?php } ?>
     <div class="filtering filtering-card<?php echo $auditDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
-        <div class="filtering-fields admin-audit-search-grid">
+        <div class="filtering-fields admin-audit-search-grid filtering-fields-fit">
             <div class="filtering-field admin-audit-filter-field">
                 <label for="modules_admin_audit_logs_field" class="filtering-label">검색조건</label>
                 <select id="modules_admin_audit_logs_field" name="field" class="form-select filtering-input">
@@ -39,7 +39,7 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
                 <input id="modules_admin_audit_logs_keyword" type="text" name="q" value="<?php echo sr_e($filters['q']); ?>" class="form-input filtering-input" maxlength="80" placeholder="<?php echo sr_e(sr_t('admin::ui.id.f8d506bd')); ?>">
             </div>
         </div>
-        <div id="admin_audit_detail_filters" class="filtering-body" data-filtering-body<?php echo $auditDetailFilterOpen ? '' : ' hidden'; ?>>
+        <div id="admin_audit_detail_filters" class="filtering-body filtering-body-fit" data-filtering-body<?php echo $auditDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-audit-filter-result">
                 <span class="filtering-label"><?php echo sr_e(sr_t('admin::ui.text.109383e3')); ?></span>
                 <?php echo sr_admin_filter_toggle_group_html('modules_admin_audit_logs_result', 'result', ['success' => sr_t('admin::ui.text.b4f76a33'), 'failure' => sr_t('admin::ui.text.2743911f')], $auditResultFilters, '전체'); ?>
@@ -67,7 +67,7 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
             <button type="submit" class="btn btn-solid-primary filtering-submit"><?php echo sr_e(sr_t('admin::ui.text.f8d240bf')); ?></button>
         </div>
     </div>
-    <?php if (($filters['event_type'] ?? '') !== '' || ($filters['target_type'] ?? '') !== '' || ($filters['target_id'] ?? '') !== '' || $auditResultFilters !== [] || $auditActorTypeFilters !== [] || ($filters['ip_address'] ?? '') !== '') { ?>
+    <?php if (($filters['event_type'] ?? '') !== '' || ($filters['target_type'] ?? '') !== '' || ($filters['target_id'] ?? '') !== '' || $auditResultFilters !== [] || $auditActorTypeFilters !== [] || ($filters['ip_address'] ?? '') !== '' || ($filters['date_from'] ?? '') !== '' || ($filters['date_to'] ?? '') !== '') { ?>
         <div class="admin-summary-stats">
             <?php if (($filters['event_type'] ?? '') !== '') { ?>
                 <span class="admin-summary-meta">이벤트 <strong><?php echo sr_e((string) $filters['event_type']); ?></strong></span>
@@ -87,6 +87,16 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
             <?php } ?>
             <?php if (($filters['ip_address'] ?? '') !== '') { ?>
                 <span class="admin-summary-meta">IP <strong><?php echo sr_e((string) $filters['ip_address']); ?></strong></span>
+            <?php } ?>
+            <?php if (($filters['date_from'] ?? '') !== '' || ($filters['date_to'] ?? '') !== '') { ?>
+                <?php
+                $auditDateFrom = (string) ($filters['date_from'] ?? '');
+                $auditDateTo = (string) ($filters['date_to'] ?? '');
+                $auditDateLabel = $auditDateFrom !== '' && $auditDateTo !== ''
+                    ? $auditDateFrom . ' ~ ' . $auditDateTo
+                    : ($auditDateFrom !== '' ? $auditDateFrom . '부터' : $auditDateTo . '까지');
+                ?>
+                <span class="admin-summary-meta">기간 <strong><?php echo sr_e($auditDateLabel); ?></strong></span>
             <?php } ?>
             <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-summary-meta">필터 해제</a>
         </div>
