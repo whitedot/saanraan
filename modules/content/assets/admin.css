@@ -44,6 +44,7 @@
 .admin-content-download-files .admin-content-download-file-search-grid{align-items:end;grid-template-columns:max-content minmax(14rem,20rem) max-content;justify-content:start;width:fit-content;max-width:100%}
 .admin-content-file-downloads .admin-content-file-download-search-grid{align-items:stretch;grid-template-columns:minmax(0,1fr);justify-content:stretch;width:100%;max-width:100%}
 .admin-content-download-files .admin-content-download-file-filter .filtering-field,.admin-content-file-downloads .admin-content-file-download-filter .filtering-field{min-width:0}
+.admin-content-download-files .admin-content-download-file-filter-status .form-select{font-weight:var(--font-weight-normal)}
 .admin-content-file-downloads .admin-content-file-download-detail-stack{align-items:stretch;display:grid;gap:calc(var(--spacing) * 3);grid-template-columns:minmax(0,1fr)}
 .admin-content-file-downloads .admin-content-file-download-detail-stack>.filtering-field{width:100%}
 .admin-content-file-downloads .admin-content-file-download-detail-stack>.filtering-field>.filtering-input{max-width:min(36rem,100%);width:100%}
