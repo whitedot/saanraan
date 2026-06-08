@@ -149,6 +149,8 @@ function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100)
         $params['keyword'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
     }
 
+    sr_embed_manager_refresh_known_ref_statuses($pdo);
+
     $sql = 'SELECT *
             FROM sr_embed_manager_refs'
         . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
@@ -158,6 +160,60 @@ function sr_embed_manager_admin_refs(PDO $pdo, array $filters, int $limit = 100)
     $stmt->execute($params);
 
     return $stmt->fetchAll();
+}
+
+function sr_embed_manager_refresh_known_ref_statuses(PDO $pdo, int $limit = 300): void
+{
+    if (!sr_embed_manager_table_exists($pdo)) {
+        return;
+    }
+
+    $limit = max(1, min(1000, $limit));
+    $stmt = $pdo->query(
+        'SELECT ref_key, target_module, target_type, target_id, label_snapshot, image_snapshot, status
+         FROM sr_embed_manager_refs
+         WHERE status <> \'removed\'
+         ORDER BY updated_at DESC, id DESC
+         LIMIT ' . $limit
+    );
+    $refs = $stmt->fetchAll();
+    if ($refs === []) {
+        return;
+    }
+
+    $update = $pdo->prepare(
+        'UPDATE sr_embed_manager_refs
+         SET label_snapshot = :label_snapshot,
+             image_snapshot = :image_snapshot,
+             status = :status,
+             updated_at = :updated_at
+         WHERE ref_key = :ref_key'
+    );
+    $now = sr_now();
+    foreach ($refs as $ref) {
+        $target = sr_embed_manager_resolve_target($pdo, (string) ($ref['target_module'] ?? ''), (string) ($ref['target_type'] ?? ''), (string) ($ref['target_id'] ?? ''));
+        if ($target === null) {
+            continue;
+        }
+
+        $labelSnapshot = (string) ($target['label_snapshot'] ?? '');
+        $imageSnapshot = (string) ($target['image_snapshot'] ?? '');
+        $status = (string) ($target['status'] ?? 'active');
+        if ($labelSnapshot === (string) ($ref['label_snapshot'] ?? '')
+            && $imageSnapshot === (string) ($ref['image_snapshot'] ?? '')
+            && $status === (string) ($ref['status'] ?? '')
+        ) {
+            continue;
+        }
+
+        $update->execute([
+            'label_snapshot' => $labelSnapshot,
+            'image_snapshot' => $imageSnapshot,
+            'status' => $status,
+            'updated_at' => $now,
+            'ref_key' => (string) ($ref['ref_key'] ?? ''),
+        ]);
+    }
 }
 
 function sr_embed_manager_sync_body_refs(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId, string $ownerField, string $bodyHtml, ?int $accountId = null): void
