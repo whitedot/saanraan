@@ -456,7 +456,10 @@ function sr_embed_manager_rewrite_body_refs_for_copy(PDO $pdo, string $sourceOwn
             return (string) ($matches[0] ?? '');
         }
 
-        return preg_replace('/\bdata-sr-embed-manager-ref=(["\'])[^"\']+\\1/iu', 'data-sr-embed-manager-ref="${1}' . $map[$oldKey] . '${1}', (string) ($matches[0] ?? '')) ?? (string) ($matches[0] ?? '');
+        return preg_replace_callback('/\bdata-sr-embed-manager-ref=(["\'])[^"\']+\\1/iu', static function (array $attributeMatches) use ($map, $oldKey): string {
+            $quote = (string) ($attributeMatches[1] ?? '"');
+            return 'data-sr-embed-manager-ref=' . $quote . $map[$oldKey] . $quote;
+        }, (string) ($matches[0] ?? '')) ?? (string) ($matches[0] ?? '');
     }, $bodyHtml) ?? $bodyHtml;
 
     $now = sr_now();
