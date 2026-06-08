@@ -899,6 +899,24 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: 100%;
 }
 
+.admin-audit-filter-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+}
+
+.admin-audit-filter-stack > .filtering-field {
+    width: 100%;
+}
+
+.admin-audit-filter-stack .filtering-field-fill {
+    flex: initial;
+}
+
+.admin-audit-filter-stack .filtering-field-fill :is(.form-input, .filtering-input) {
+    width: 100%;
+}
+
 .filtering-body.filtering-body-fit {
     align-items: end;
     display: flex;
