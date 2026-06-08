@@ -425,6 +425,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </div>
+        </section>
+        <section class="admin-card card">
+            <h2><?php echo sr_e('본문과 대표 이미지'); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_summary', sr_t('content::ui.text.50f30154'), $contentHelp['summary']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
@@ -473,6 +476,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </div>
             </div>
+        </section>
+        <section class="admin-card card">
+            <h2><?php echo sr_e('공개와 SEO'); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_title', sr_t('content::ui.seo.f66e126a'), $contentHelp['seo_title']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
