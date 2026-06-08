@@ -15,11 +15,12 @@
 
 ## 번들 모듈
 
-현재 저장소에는 다음 18개 모듈 또는 플러그인이 포함되어 있다.
+현재 저장소에는 다음 21개 모듈 또는 플러그인이 포함되어 있다.
 
 | 분류 | key | 성격 |
 | --- | --- | --- |
 | 시스템 | `admin` | 관리자 대시보드, 설정, 메뉴, 모듈, 업데이트, 권한 |
+| 시스템 | `asset_ledger` | 숨김 기반 잔액 처리 primitive, 자산 모듈 자동 준비 |
 | 회원 | `member` | 계정, 인증, 프로필, 그룹, 탈퇴 |
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
@@ -33,7 +34,9 @@
 | 사이트 | `seo` | robots, sitemap, SEO 보조 |
 | 서비스 | `content` | 콘텐츠 작성, 공개 URL, 콘텐츠 그룹 |
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지 |
-| 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠 연계 보상 기반 |
+| 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계 보상 기반 |
+| 서비스 | `survey` | 설문 작성, 응답, 통계, CSV, 보상 기반 |
+| 서비스 | `embed_manager` | 본문 임베드 참조 점검과 marker/refs 모델 후보 |
 | 운영 | `notification` | 사이트 알림, 이메일 delivery queue |
 | 운영 | `privacy` | 개인정보 요청과 사본 제공 조정 |
 | 플러그인 | `ckeditor` | textarea 에디터 강화 |
@@ -52,9 +55,11 @@
 | 커뮤니티 | `/community`, `/community/board`, `/community/post`, `/community/write`, `/community/edit`, `/community/series`, `/community/comment`, `/community/report`, `/community/scraps`, `/community/messages` |
 | 커뮤니티 관리자 | `/admin/community/settings`, `/admin/community/boards`, `/admin/community/board-copy-jobs`, `/admin/community/board-groups`, `/admin/community/series`, `/admin/community/posts`, `/admin/community/comments`, `/admin/community/reports` |
 | 퀴즈 | `/quiz`, `GET/POST /quiz/*`, `GET/POST /admin/quiz`, `/admin/quiz/settings`, `/admin/quiz/manual`, `/admin/quiz/attempts` |
+| 설문 | `/survey`, `GET/POST /survey/*`, `/survey/ui-kit`, `/admin/surveys`, `/admin/surveys/responses`, `/admin/surveys/statistics`, `/admin/surveys/export`, `/admin/surveys/settings`, `/admin/surveys/manual` |
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/asset-exchange`, `/account/coupons` |
 | 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/rewards/settings`, `/admin/deposits`, `/admin/deposits/settings`, `/admin/asset-exchange`, `/admin/asset-exchange/settings`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
+| 임베드 | `/admin/embed-manager` |
 | 알림/개인정보 | `/account/notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests`, `/admin/privacy-requests` |
 
 ## 주요 DB 테이블
@@ -67,11 +72,13 @@
 | 관리자 | `sr_admin_account_permissions`, `sr_admin_account_roles`, `sr_admin_menu_overrides` |
 | 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_nicknames`, `sr_member_sessions`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
 | 개인정보 | `sr_privacy_requests` |
-| 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_comments`, `sr_content_link_refs`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs` |
-| 커뮤니티 | `sr_community_boards`, `sr_community_board_groups`, `sr_community_board_settings`, `sr_community_board_group_settings`, `sr_community_board_setting_sources`, `sr_community_board_copy_jobs`, `sr_community_board_copy_job_maps`, `sr_community_asset_policy_sets`, `sr_community_categories`, `sr_community_series`, `sr_community_series_items`, `sr_community_series_scraps`, `sr_community_posts`, `sr_community_comments`, `sr_community_link_refs`, `sr_community_attachments`, `sr_community_reports`, `sr_community_scraps`, `sr_community_messages`, `sr_community_levels`, `sr_community_account_levels`, `sr_community_level_logs`, `sr_community_asset_logs`, `sr_community_access_entitlements` |
+| 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_comments`, `sr_content_link_refs`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs`, `sr_content_author_applications`, `sr_content_author_permissions`, `sr_content_submissions`, `sr_content_author_reward_logs`, `sr_content_storage_cleanup_failures` |
+| 커뮤니티 | `sr_community_boards`, `sr_community_board_groups`, `sr_community_board_settings`, `sr_community_board_group_settings`, `sr_community_board_setting_sources`, `sr_community_board_copy_jobs`, `sr_community_board_copy_job_maps`, `sr_community_board_managers`, `sr_community_asset_policy_sets`, `sr_community_categories`, `sr_community_series`, `sr_community_series_items`, `sr_community_series_scraps`, `sr_community_posts`, `sr_community_comments`, `sr_community_link_refs`, `sr_community_attachments`, `sr_community_reports`, `sr_community_scraps`, `sr_community_messages`, `sr_community_levels`, `sr_community_account_levels`, `sr_community_level_logs`, `sr_community_asset_logs`, `sr_community_publisher_reward_logs`, `sr_community_access_entitlements`, `sr_community_storage_cleanup_failures` |
 | 퀴즈 | `sr_quiz_sets`, `sr_quiz_sources`, `sr_quiz_questions`, `sr_quiz_choices`, `sr_quiz_results`, `sr_quiz_result_rules`, `sr_quiz_reward_policies`, `sr_quiz_attempts`, `sr_quiz_attempt_answers`, `sr_quiz_attempt_result_scores`, `sr_quiz_reward_grants` |
-| 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_point_expiration_consumptions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
+| 설문 | `sr_survey_forms`, `sr_survey_questions`, `sr_survey_choices`, `sr_survey_responses`, `sr_survey_response_answers`, `sr_survey_reward_policies`, `sr_survey_reward_grants` |
+| 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_point_expiration_consumptions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_reward_withdrawal_requests`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_deposit_refund_requests`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
 | 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_logos`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
+| 임베드 | `sr_embed_manager_refs` |
 | 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates` |
 
 상세 컬럼과 인덱스는 설치 SQL과 Wiki DB 명세를 정본으로 본다. 이 문서는 1.0 전 구현 표면을 빠르게 확인하기 위한 보조 문서다.

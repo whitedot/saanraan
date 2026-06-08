@@ -62,18 +62,18 @@
 - [content README](../modules/content/README.md)
 - [ckeditor README](../modules/ckeditor/README.md)
 
-## 임시 보관 계획 문서
+## 계획/정합성 문서
 
-아직 구현하지 않은 기능 계획은 구현 전까지 `docs/plans/`에 보관한다.
+구현 전 계획, 구현 후에도 유지할 정합성 기준, 후속 범위를 분리해 둔 문서는 `docs/plans/`에 보관한다. 구현이 완료되어 현재 기준으로 굳어진 내용은 관련 유지 문서나 모듈 README로 옮기고, 계획 문서에는 남은 판단 기준이나 후속 범위만 남긴다.
 
-현재 계획 문서:
+현재 계획/정합성 문서:
 
 - [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md)
 - [회원 마이그레이션 계획](plans/member-migration-plan.md)
 - [결제 플러그인 계획](plans/payment-plugin-plan.md)
 - [마일스톤 13 읽기 참조 계약 계획](plans/read-reference-contract-plan.md)
 - [보상 부정 수급 공통 기준 초안](plans/reward-abuse-common-standards.md)
-- [설문 모듈 MVP/의존성 지도](plans/survey-module-mvp-map.md)
+- [설문 모듈 MVP/의존성 지도](plans/survey-module-mvp-map.md): 구현 완료 후에도 설문 보상/통계/개인정보 정합성 기준을 빠르게 확인하기 위해 유지
 
 ## 점검 기록
 
