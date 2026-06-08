@@ -221,6 +221,16 @@ function sr_embed_manager_target_filters_from_value(string $value): array
     return array_values($filters);
 }
 
+function sr_embed_manager_search_result_limit(int $limit, array $filterMap): int
+{
+    $limit = max(1, min(30, $limit));
+    if ($filterMap === []) {
+        return $limit;
+    }
+
+    return min(90, $limit * max(1, count($filterMap)));
+}
+
 function sr_embed_manager_normalize_target_result(array $row, string $targetModule, string $targetType, array $definition): ?array
 {
     $targetId = sr_embed_manager_clean_target_id((string) ($row['target_id'] ?? $row['entity_id'] ?? $row['id'] ?? ''));
@@ -307,7 +317,7 @@ function sr_embed_manager_search_targets(PDO $pdo, string $keyword, int $limit, 
         }
     }
 
-    return array_slice($items, 0, $limit);
+    return array_slice($items, 0, sr_embed_manager_search_result_limit($limit, $filterMap));
 }
 
 function sr_embed_manager_clean_summary(string $value): string

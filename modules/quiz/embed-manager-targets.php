@@ -14,11 +14,8 @@ return [
             'allowed_variants' => ['card', 'button', 'compact'],
             'default_variant' => 'card',
             'search' => static function (PDO $pdo, array $context): array {
-                $keyword = sr_quiz_clean_key((string) ($context['keyword'] ?? ''), 120);
-                if ($keyword === '') {
-                    $keyword = trim(preg_replace('/\s+/', ' ', (string) ($context['keyword'] ?? '')) ?? '');
-                    $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
-                }
+                $keyword = trim(preg_replace('/\s+/', ' ', (string) ($context['keyword'] ?? '')) ?? '');
+                $keyword = function_exists('mb_substr') ? mb_substr($keyword, 0, 120) : substr($keyword, 0, 120);
                 $limit = max(1, min(20, (int) ($context['limit'] ?? 10)));
                 $mode = (string) ($context['context'] ?? 'public');
                 $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_like ESCAPE '\\\\' OR quiz_key LIKE :keyword_like ESCAPE '\\\\')";
