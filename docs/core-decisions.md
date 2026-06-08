@@ -570,6 +570,8 @@ module -> point -> slot -> subject
 
 읽기 참조 계약은 공유 대상을 소유한 모듈이 소비 모듈의 정책 테이블을 직접 수정하지 않고 영향 범위를 확인하기 위한 역방향 조회 계약입니다. 대상별 계약 파일은 `coupon-references.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `site-setting-references.php`이며, 공통 helper는 활성 모듈의 계약만 읽어 row를 정규화하고 destructive/admin-sensitive POST에서 계약 오류를 차단 사유로 돌려줍니다. 소유 모듈은 참조 대상 자동 치환, 소비 정책 삭제, 비활성 모듈 잔여 데이터 스캔을 하지 않습니다.
 
+배포판은 모듈 소유권과 경계를 유지하지만, 실제 운영 사이트는 관리자 업무 흐름에 맞춰 배포판 파일을 직접 수정하거나 별도 모듈/계약 파일로 화면을 조합할 수 있습니다. 문서는 이런 변경을 금지 목록으로 다루기보다 업데이트 때 발생할 수 있는 충돌과 병합 비용을 설명합니다. 장기 운영에서 병합 비용을 줄이고 싶다면 화면 소유 모듈에는 활성 모듈의 계약을 읽는 작은 지점만 두고, 실제 도메인 요약과 쿼리는 제공 모듈의 계약 파일에 둡니다. 예를 들어 회원 목록은 `account_id[]`를 제공하고 커뮤니티/콘텐츠 같은 활성 모듈의 회원 요약 계약을 배치 조회로 읽을 수 있지만, 회원 모듈이 서비스 모듈 테이블 구조를 직접 소유하지는 않습니다.
+
 회원 공개 닉네임은 member 모듈이 소유합니다. `sr_member_nicknames`가 표시용 닉네임과 lowercase lookup 값을 저장하고, member 설정의 `nickname_enabled`가 가입, 계정 수정, 관리자 저장, 공개 이름 표시, 멘션 lookup 기준을 결정합니다. 닉네임 사용이 켜져 있으면 닉네임 입력은 필수입니다. community/content 같은 서비스 모듈은 닉네임 테이블을 직접 조회하지 않고 `sr_member_public_name*`와 공개 이름/멘션 helper를 사용합니다. 댓글 멘션 자동완성은 로그인 회원에게만 공개 이름 후보와 public account hash prefix를 반환하고, `@공개이름#prefix`는 현재 공개 이름과 prefix가 함께 단일 활성 회원에 일치할 때만 확정 멘션으로 처리합니다. `@공개이름`만으로 여러 활성 회원이 일치하면 모호한 멘션으로 보고 알림을 만들지 않습니다. 기존 커뮤니티 닉네임 데이터와 설정은 community 업데이트 경로에서 member 소유 테이블/설정으로 이관합니다.
 
 커뮤니티 게시글/댓글과 콘텐츠 댓글은 작성자 연결을 `author_account_id`로 유지하되, 작성 당시 공개 이름은 `author_public_name_snapshot`에 함께 저장합니다. 새 행의 snapshot은 작성 시점의 member 공개 이름 정책에 따라 닉네임 또는 이름으로 채우며, 화면 표시는 탈퇴/익명화 계정이면 탈퇴 회원 라벨을 우선하고 그 외에는 snapshot을 우선 사용합니다. snapshot은 개인정보로 취급해 privacy export에 포함하고 탈퇴/익명화 cleanup에서 비웁니다.
