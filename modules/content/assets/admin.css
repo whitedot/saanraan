@@ -63,6 +63,8 @@
 .admin-content-cover-preview{border:1px solid var(--color-border);display:flex;min-height:9rem;max-width:18rem;overflow:hidden;width:100%}
 .admin-content-cover-preview-image{aspect-ratio:16/9;display:block;object-fit:cover;width:100%}
 .admin-content-cover-delete{margin-top:calc(var(--spacing) * 1)}
+.admin-content-embed-picker-controls{grid-template-columns:1fr auto auto}
+.admin-content-embed-picker-controls>[data-link-card-search]{grid-column:1 / -1;width:100%}
 @media (max-width:1023px){
     .admin-content-list .admin-content-filter .filtering-submit,.admin-content-group-list .admin-content-group-filter .filtering-submit,.admin-content-series-list .admin-content-series-filter .filtering-submit,.admin-content-download-files .admin-content-download-file-filter .filtering-submit,.admin-content-file-downloads .admin-content-file-download-filter .filtering-submit{grid-column:1 / -1;width:100%}
     .admin-content-list .admin-content-filter .filtering-actions .filtering-submit,.admin-content-group-list .admin-content-group-filter .filtering-actions .filtering-submit,.admin-content-series-list .admin-content-series-filter .filtering-actions .filtering-submit,.admin-content-download-files .admin-content-download-file-filter .filtering-actions .filtering-submit,.admin-content-file-downloads .admin-content-file-download-filter .filtering-actions .filtering-submit{grid-column:auto;width:auto}

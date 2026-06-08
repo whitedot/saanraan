@@ -455,7 +455,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small><?php echo sr_e($contentEditorKey === 'ckeditor' ? 'CKEditor 제출은 허용된 HTML만 정화해 저장합니다.' : sr_t('content::ui.content.plain.save.723dab58')); ?></small>
                     <?php if (sr_module_enabled($pdo, 'community')) { ?>
                         <div class="sr-link-card-picker" data-link-card-picker data-endpoint="<?php echo sr_e(sr_url('/admin/content/link-card-targets')); ?>" data-target="community_post" data-textarea="content_admin_contents_body_text">
-                            <div class="sr-link-card-picker-controls">
+                            <div class="sr-link-card-picker-controls admin-content-embed-picker-controls">
                                 <input type="search" class="form-input" data-link-card-search placeholder="<?php echo sr_e('커뮤니티 게시글 제목, 게시판, ID 검색'); ?>">
                                 <button type="button" class="btn btn-solid-light" data-link-card-search-trigger><?php echo sr_e('검색'); ?></button>
                                 <button type="button" class="btn btn-solid-primary" data-link-card-insert><?php echo sr_e('본문에 삽입'); ?></button>
