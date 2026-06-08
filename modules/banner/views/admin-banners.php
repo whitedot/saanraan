@@ -193,7 +193,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="banner_admin_banners_use_image"><?php echo sr_e(sr_t('banner::ui.use_image')); ?></label>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label">
-                        <input id="banner_admin_banners_use_image" type="checkbox" name="use_image" value="1" class="form-switch" data-admin-banner-use-image<?php echo $bannerUseImage ? ' checked' : ''; ?>>
+                        <input id="banner_admin_banners_use_image" type="checkbox" name="use_image" value="1" class="form-switch form-choice-dark" data-admin-banner-use-image<?php echo $bannerUseImage ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('banner::ui.use_image.choice')); ?>
                     </label>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.use_image.help')); ?></p>

@@ -68,7 +68,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="logo_manager_use_as_public_symbol">
-                            <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch" data-logo-manager-public-symbol-switch>
+                            <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-choice-dark" data-logo-manager-public-symbol-switch>
                             <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.public_symbol.label')); ?>
                         </label>
                         <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
@@ -84,7 +84,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></span>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="logo_manager_status_enabled">
-                            <input id="logo_manager_status_enabled" type="checkbox" name="status_enabled" value="1" class="form-switch" checked>
+                            <input id="logo_manager_status_enabled" type="checkbox" name="status_enabled" value="1" class="form-switch form-choice-dark" checked>
                             <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.active.93c558d7')); ?>
                         </label>
                         <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
