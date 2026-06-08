@@ -45,6 +45,7 @@ return [
     'GET /admin/community/boards/new' => 'actions/admin-board-new.php',
     'POST /admin/community/boards/create' => 'actions/admin-board-create.php',
     'GET /admin/community/boards/edit' => 'actions/admin-board-edit.php',
+    'GET /admin/community/boards/member-search' => 'actions/admin-board-member-search.php',
     'GET /admin/community/boards/copy' => 'actions/admin-board-copy.php',
     'POST /admin/community/boards/copy' => 'actions/admin-board-copy.php',
     'GET /admin/community/board-copy-jobs' => 'actions/admin-board-copy-jobs.php',

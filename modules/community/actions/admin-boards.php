@@ -103,12 +103,16 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($intent === 'board_manager_grant') {
+            $targetAccountIdValue = sr_post_string('account_id', 20);
+            $targetAccountId = preg_match('/\A[1-9][0-9]*\z/', $targetAccountIdValue) === 1 ? (int) $targetAccountIdValue : 0;
             $accountIdentifier = sr_post_string('account_identifier', 120);
             $accountField = sr_post_string('account_identifier_field', 20);
             if (!in_array($accountField, ['all', 'id', 'email', 'login_id', 'display_name', 'nickname'], true)) {
                 $accountField = 'all';
             }
-            $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, sr_runtime_config(), $accountField, $accountIdentifier);
+            if ($targetAccountId < 1) {
+                $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, sr_runtime_config(), $accountField, $accountIdentifier);
+            }
             $permissionKeys = [];
             $permissionInput = $_POST['permission_keys'] ?? [];
             if (is_array($permissionInput)) {

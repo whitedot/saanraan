@@ -67,6 +67,7 @@ $boardArrayValue = static function (array $board, string $key): string {
 $boardField = static function (array $board, string $key, string $default = ''): string {
     return (string) ($board[$key] ?? $default);
 };
+$memberSearchUrl = sr_url('/admin/community/boards/member-search');
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
@@ -911,14 +912,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </section>
 
-        <section class="admin-card card">
+        <section class="admin-card admin-list-card card admin-list-form">
             <div class="card-header">
-                <div>
-                    <h2>관리권한</h2>
-                    <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업 권한을 부여합니다. 이 권한은 게시글 본문 수정 권한으로 확대되지 않습니다.</p>
+                <h2 class="card-title">관리권한</h2>
+                <div class="admin-row-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-grant-modal" data-overlay="#community-board-manager-grant-modal">관리권한 부여</button>
                 </div>
-                <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-grant-modal" data-overlay="#community-board-manager-grant-modal">관리권한 부여</button>
             </div>
+            <p class="admin-form-help">특정 회원에게 이 게시판에 한정된 관리 작업 권한을 부여합니다. 이 권한은 게시글 본문 수정 권한으로 확대되지 않습니다.</p>
             <div class="table-wrapper">
                 <table class="table">
                     <caption class="sr-only">게시판 관리권한 목록</caption>
@@ -953,13 +954,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e((string) ($communityBoardManagerPermissions[(string) ($manager['permission_key'] ?? '')] ?? (string) ($manager['permission_key'] ?? ''))); ?></td>
                                 <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($manager['created_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="intent" value="board_manager_revoke">
-                                        <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                                        <input type="hidden" name="manager_id" value="<?php echo sr_e((string) (int) ($manager['id'] ?? 0)); ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">회수</button>
-                                    </form>
+                                    <div class="admin-row-actions">
+                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="intent" value="board_manager_revoke">
+                                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                                            <input type="hidden" name="manager_id" value="<?php echo sr_e((string) (int) ($manager['id'] ?? 0)); ?>">
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="관리권한 회수" title="회수"><?php echo sr_material_icon_html('delete'); ?></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -968,7 +971,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div id="community-board-manager-grant-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-board-manager-grant-modal-label" aria-hidden="true" inert>
                 <div class="modal-dialog modal-dialog-lg">
-                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme" data-community-board-manager-grant-form>
                         <div class="modal-header">
                             <h3 id="community-board-manager-grant-modal-label" class="modal-title">관리권한 부여</h3>
                             <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-board-manager-grant-modal"><?php echo sr_material_icon_html('close'); ?></button>
@@ -977,19 +980,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="board_manager_grant">
                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
+                            <input type="hidden" name="account_id" value="" data-community-board-manager-account-id>
                             <div class="admin-form-row">
-                                <label class="form-label" for="community_board_manager_account_identifier">회원 식별자 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <label class="form-label" for="community_board_manager_account_identifier">회원 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
-                                    <div class="input-group">
-                                        <select name="account_identifier_field" class="form-select" aria-label="회원 검색 조건">
-                                            <option value="all">전체</option>
-                                            <option value="id">ID</option>
-                                            <option value="login_id">로그인 ID</option>
-                                            <option value="email">이메일</option>
-                                            <option value="display_name">표시 이름</option>
-                                            <option value="nickname">닉네임</option>
-                                        </select>
-                                        <input id="community_board_manager_account_identifier" type="text" name="account_identifier" maxlength="120" required class="form-input" placeholder="회원 ID, 로그인 ID, 이메일, 표시 이름" data-overlay-focus>
+                                    <div class="admin-lookup-control">
+                                        <input id="community_board_manager_account_identifier" type="text" value="" class="form-input" maxlength="120" readonly required data-community-board-manager-selected-member data-overlay-focus placeholder="회원을 검색해 선택하세요.">
+                                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-member-lookup-modal" data-overlay="#community-board-manager-member-lookup-modal" data-community-board-manager-member-lookup-open data-target="#community_board_manager_account_identifier">회원 검색</button>
                                     </div>
                                 </div>
                             </div>
@@ -1012,17 +1009,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </form>
                 </div>
             </div>
+            <div id="community-board-manager-member-lookup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-board-manager-member-lookup-modal-label" aria-hidden="true" inert data-admin-return-overlay="#community-board-manager-grant-modal">
+                <div class="modal-dialog admin-lookup-dialog">
+                    <div class="modal-content ui-form-theme">
+                        <div class="modal-header">
+                            <h3 id="community-board-manager-member-lookup-modal-label" class="modal-title">회원 검색</h3>
+                            <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-board-manager-member-lookup-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                        </div>
+                        <div class="modal-body">
+                            <form class="admin-lookup-search-form" data-community-board-manager-member-search data-search-url="<?php echo sr_e($memberSearchUrl); ?>">
+                                <select name="field" class="form-select" aria-label="회원 검색 조건" data-community-board-manager-member-field>
+                                    <option value="all">전체</option>
+                                    <option value="hash">해시 ID</option>
+                                    <option value="email">이메일</option>
+                                    <option value="login_id">로그인 ID</option>
+                                    <option value="name">이름</option>
+                                </select>
+                                <input type="text" name="q" maxlength="120" class="form-input" placeholder="이메일, 로그인 ID, 이름" data-community-board-manager-member-keyword data-overlay-focus>
+                                <button type="submit" class="btn btn-solid-primary" data-community-board-manager-member-search-button>검색</button>
+                            </form>
+                            <div class="admin-lookup-results" data-community-board-manager-member-results>
+                                <p class="admin-empty-state admin-lookup-empty">검색어를 입력해 회원을 찾으세요.</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#community-board-manager-grant-modal" data-community-board-manager-return>권한 부여로 돌아가기</button>
+                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-board-manager-member-lookup-modal">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <section class="admin-card card">
+        <section class="admin-card admin-list-card card admin-list-form">
             <?php $boardCategories = is_array($formBoard['categories'] ?? null) ? $formBoard['categories'] : []; ?>
             <div class="card-header">
-                <div>
-                    <h2>게시판 카테고리</h2>
-                    <p class="admin-form-help">게시글 작성자가 선택할 게시판 안의 분류를 관리합니다.</p>
+                <h2 class="card-title">게시판 카테고리</h2>
+                <div class="admin-row-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-category-create-modal" data-overlay="#community-category-create-modal">카테고리 추가</button>
                 </div>
-                <button type="button" class="btn btn-sm btn-solid-primary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-category-create-modal" data-overlay="#community-category-create-modal">카테고리 추가</button>
             </div>
+            <p class="admin-form-help">게시글 작성자가 선택할 게시판 안의 분류를 관리합니다.</p>
             <div class="table-wrapper">
                 <table class="table">
                     <caption class="sr-only">게시판 카테고리 목록</caption>
@@ -1051,7 +1078,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <span class="admin-summary-meta"><?php echo sr_e((string) $category['description']); ?></span>
                                     <?php } ?>
                                 </td>
-                                <td class="admin-table-nowrap"><span class="admin-status <?php echo (string) ($category['status'] ?? '') === 'enabled' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e((string) $category['status']); ?></span></td>
+                                <td class="admin-table-nowrap"><span class="admin-status <?php echo (string) ($category['status'] ?? '') === 'enabled' ? 'is-normal' : 'is-blocked'; ?>"><?php echo sr_e(sr_admin_code_label((string) $category['status'], 'content_status')); ?></span></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) $category['sort_order']); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
@@ -1324,6 +1351,119 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
+    function boardManagerMemberSummary(item) {
+        var parts = [];
+        if (item.account_public_hash) {
+            parts.push(item.account_public_hash);
+        }
+        if (item.email) {
+            parts.push(item.email);
+        }
+        if (item.display_name) {
+            parts.push(item.display_name);
+        }
+        return parts.join(' · ');
+    }
+
+    function boardManagerMemberResultsRoot(searchRoot) {
+        var modal = searchRoot && searchRoot.closest ? searchRoot.closest('.modal-overlay') : null;
+        return modal ? modal.querySelector('[data-community-board-manager-member-results]') : null;
+    }
+
+    function renderBoardManagerMemberResults(searchRoot, items) {
+        var results = boardManagerMemberResultsRoot(searchRoot);
+        if (!results) {
+            return;
+        }
+
+        results.innerHTML = '';
+        if (!Array.isArray(items) || items.length === 0) {
+            var empty = document.createElement('p');
+            empty.className = 'admin-empty-state admin-lookup-empty';
+            empty.textContent = '검색 결과가 없습니다.';
+            results.appendChild(empty);
+            return;
+        }
+
+        var list = document.createElement('div');
+        list.className = 'admin-lookup-results-list';
+        items.forEach(function (item) {
+            var summary = boardManagerMemberSummary(item) || (item.account_public_hash || ('#' + item.id));
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'admin-lookup-result-button';
+            button.setAttribute('data-community-board-manager-member-pick', '');
+            button.setAttribute('data-account-id', item.id || '');
+            button.setAttribute('data-account-label', summary);
+            button.setAttribute('data-account-status', item.status || '');
+
+            var title = document.createElement('strong');
+            title.textContent = item.display_name || item.account_public_hash || ('#' + item.id);
+            button.appendChild(title);
+
+            var meta = document.createElement('div');
+            meta.className = 'admin-lookup-result-meta';
+            [item.email || '', item.status || '', item.account_public_hash || ''].forEach(function (value) {
+                if (value === '') {
+                    return;
+                }
+                var span = document.createElement('span');
+                span.textContent = value;
+                meta.appendChild(span);
+            });
+            button.appendChild(meta);
+
+            list.appendChild(button);
+        });
+        results.appendChild(list);
+    }
+
+    function runBoardManagerMemberSearch(searchRoot) {
+        var url = searchRoot ? (searchRoot.getAttribute('data-search-url') || '') : '';
+        var field = searchRoot ? searchRoot.querySelector('[data-community-board-manager-member-field]') : null;
+        var keyword = searchRoot ? searchRoot.querySelector('[data-community-board-manager-member-keyword]') : null;
+        var results = boardManagerMemberResultsRoot(searchRoot);
+        if (url === '' || !field || !keyword || !results) {
+            return;
+        }
+
+        results.innerHTML = '<p class="admin-empty-state admin-lookup-empty">검색 중입니다.</p>';
+        var params = new URLSearchParams();
+        params.set('field', field.value || 'all');
+        params.set('q', keyword.value || '');
+        params.set('limit', '10');
+
+        fetch(url + '?' + params.toString(), {
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(function (response) {
+            return response.ok ? response.json() : {items: []};
+        }).then(function (payload) {
+            renderBoardManagerMemberResults(searchRoot, payload.items || []);
+        }).catch(function () {
+            results.innerHTML = '<p class="admin-empty-state admin-lookup-empty">회원 검색 중 오류가 발생했습니다.</p>';
+        });
+    }
+
+    function setBoardManagerMember(source) {
+        var form = document.querySelector('[data-community-board-manager-grant-form]');
+        if (!form || !source) {
+            return;
+        }
+
+        var accountId = form.querySelector('[data-community-board-manager-account-id]');
+        var selectedMember = form.querySelector('[data-community-board-manager-selected-member]');
+        if (accountId) {
+            accountId.value = source.getAttribute('data-account-id') || '';
+        }
+        if (selectedMember) {
+            selectedMember.value = source.getAttribute('data-account-label') || '';
+            selectedMember.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
     ['read', 'write', 'comment'].forEach(function (kind) {
         var policy = document.querySelector('[data-community-policy="' + kind + '"]');
         var group = document.getElementById('community_admin_boards_' + kind + '_group_keys');
@@ -1388,6 +1528,63 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         enabled.addEventListener('change', syncFileExtensions);
     }
     syncFileExtensions();
+
+    document.addEventListener('submit', function (event) {
+        var searchForm = event.target.closest && event.target.closest('[data-community-board-manager-member-search]');
+        if (!searchForm) {
+            return;
+        }
+
+        event.preventDefault();
+        runBoardManagerMemberSearch(searchForm);
+    });
+
+    document.addEventListener('click', function (event) {
+        var searchButton = event.target.closest && event.target.closest('[data-community-board-manager-member-search-button]');
+        if (searchButton) {
+            event.preventDefault();
+            var searchRoot = searchButton.closest('[data-community-board-manager-member-search]');
+            if (searchRoot) {
+                runBoardManagerMemberSearch(searchRoot);
+            }
+            return;
+        }
+
+        var pickButton = event.target.closest && event.target.closest('[data-community-board-manager-member-pick]');
+        if (pickButton) {
+            setBoardManagerMember(pickButton);
+            var returnButton = document.querySelector('[data-community-board-manager-return]');
+            if (returnButton) {
+                returnButton.click();
+            }
+            return;
+        }
+
+        var lookupOpen = event.target.closest && event.target.closest('[data-community-board-manager-member-lookup-open]');
+        if (lookupOpen) {
+            var target = document.querySelector(lookupOpen.getAttribute('data-target') || '');
+            var modal = document.querySelector(lookupOpen.getAttribute('data-overlay') || '');
+            if (target && modal) {
+                var query = modal.querySelector('[data-community-board-manager-member-keyword]');
+                if (query && query.value === '') {
+                    query.value = target.value;
+                }
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        var keyword = event.target.closest && event.target.closest('[data-community-board-manager-member-keyword]');
+        if (!keyword || event.key !== 'Enter') {
+            return;
+        }
+
+        event.preventDefault();
+        var searchRoot = keyword.closest('[data-community-board-manager-member-search]');
+        if (searchRoot) {
+            runBoardManagerMemberSearch(searchRoot);
+        }
+    });
 })();
 </script>
 <?php } ?>
