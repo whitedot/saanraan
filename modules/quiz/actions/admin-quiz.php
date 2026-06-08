@@ -752,7 +752,7 @@ $quizHelp = [
                     <div class="admin-form-row">
                         <label class="form-label" for="quiz_result_rule_key_new">결과 Key <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
-                            <input id="quiz_result_rule_key_new" type="text" name="result_rule_key[]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-overlay-focus>
+                            <input id="quiz_result_rule_key_new" type="text" name="result_rule_key[]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-admin-key-suggest-source="#quiz_result_rule_title_new" data-admin-key-suggest-fallback="result_rule_<?php echo sr_e((string) (count($resultRules) + 1)); ?>" data-overlay-focus>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -962,7 +962,7 @@ $quizHelp = [
                                                 <?php $choiceRequired = $choiceIndex < $savedChoiceCount; ?>
                                                 <tr>
                                                     <td class="admin-table-nowrap"><input type="checkbox" name="correct_choice[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) $choiceIndex); ?>" class="form-checkbox"<?php echo (int) ($choice['is_correct'] ?? 0) === 1 ? ' checked' : ''; ?>></td>
-                                                    <td><input type="text" name="choice_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}"<?php echo $choiceRequired ? ' required' : ''; ?> data-admin-key-input></td>
+                                                    <td><input type="text" name="choice_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}"<?php echo $choiceRequired ? ' required' : ''; ?> data-admin-key-input data-admin-key-suggest-scope="tr" data-admin-key-suggest-source='input[name^="choice_label["]' data-admin-key-suggest-fallback="choice_<?php echo sr_e((string) ($choiceIndex + 1)); ?>"></td>
                                                     <td><input type="text" name="choice_label[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['label'] ?? '')); ?>" class="form-input form-control-full" maxlength="255"<?php echo $choiceRequired ? ' required' : ''; ?>></td>
                                                     <td><input type="text" name="choice_category_key[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) ($choice['category_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
                                                     <td><input type="number" name="choice_category_weight[<?php echo sr_e($questionUid); ?>][]" value="<?php echo sr_e((string) (int) ($choice['category_weight'] ?? 0)); ?>" class="form-input" step="1"></td>
@@ -1014,7 +1014,7 @@ $quizHelp = [
                     <div class="admin-form-row">
                         <?php echo sr_admin_form_label_help_html('quiz_question_key_new', '문제 Key', $quizHelp['question_key']['id'], $quizHelpOpenLabel, true); ?>
                         <div class="admin-form-field">
-                            <input id="quiz_question_key_new" type="text" name="question_key[]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-overlay-focus>
+                            <input id="quiz_question_key_new" type="text" name="question_key[]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-admin-key-suggest-source="#quiz_question_prompt_new" data-admin-key-suggest-fallback="question_<?php echo sr_e((string) ($newQuestionIndex + 1)); ?>" data-overlay-focus>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -1047,7 +1047,7 @@ $quizHelp = [
                                         <?php foreach ($newQuestionChoices as $choiceIndex => $choice) { ?>
                                             <tr>
                                                 <td class="admin-table-nowrap"><input type="checkbox" name="correct_choice[<?php echo sr_e($newQuestionUid); ?>][]" value="<?php echo sr_e((string) $choiceIndex); ?>" class="form-checkbox"<?php echo (int) ($choice['is_correct'] ?? 0) === 1 ? ' checked' : ''; ?>></td>
-                                                <td><input type="text" name="choice_key[<?php echo sr_e($newQuestionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
+                                                <td><input type="text" name="choice_key[<?php echo sr_e($newQuestionUid); ?>][]" value="<?php echo sr_e((string) ($choice['choice_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-admin-key-suggest-scope="tr" data-admin-key-suggest-source='input[name^="choice_label["]' data-admin-key-suggest-fallback="choice_<?php echo sr_e((string) ($choiceIndex + 1)); ?>"></td>
                                                 <td><input type="text" name="choice_label[<?php echo sr_e($newQuestionUid); ?>][]" value="" class="form-input form-control-full" maxlength="255"></td>
                                                 <td><input type="text" name="choice_category_key[<?php echo sr_e($newQuestionUid); ?>][]" value="" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input></td>
                                                 <td><input type="number" name="choice_category_weight[<?php echo sr_e($newQuestionUid); ?>][]" value="0" class="form-input" step="1"></td>

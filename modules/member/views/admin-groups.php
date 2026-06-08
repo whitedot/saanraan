@@ -137,7 +137,7 @@ $memberGroupFormFields = static function (?array $formGroup, string $fieldPrefix
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html($groupKeyId, sr_t('member::ui.key.1057ecca'), $memberGroupHelp['group_key']['id'], $memberGroupHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <input id="<?php echo sr_e($groupKeyId); ?>" type="text" name="group_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" value="<?php echo sr_e(is_array($formGroup) ? (string) ($formGroup['group_key'] ?? '') : ''); ?>" required class="form-input"<?php echo $focusAttr; ?> data-admin-key-input>
+                <input id="<?php echo sr_e($groupKeyId); ?>" type="text" name="group_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" value="<?php echo sr_e(is_array($formGroup) ? (string) ($formGroup['group_key'] ?? '') : ''); ?>" required class="form-input"<?php echo $focusAttr; ?> data-admin-key-input data-admin-key-suggest-source="#<?php echo sr_e($titleId); ?>" data-admin-key-suggest-fallback="member_group">
             </div>
         </div>
     <?php } ?>

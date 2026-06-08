@@ -1118,7 +1118,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-row">
                                 <label class="form-label" for="community_category_key_new">key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
-                                    <input id="community_category_key_new" type="text" name="category_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-overlay-focus class="form-input">
+                                    <input id="community_category_key_new" type="text" name="category_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#community_category_title_new" data-admin-key-suggest-fallback="category_<?php echo sr_e((string) (count($categories ?? []) + 1)); ?>" data-overlay-focus class="form-input">
                                 </div>
                             </div>
                             <div class="admin-form-row">

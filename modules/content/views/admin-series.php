@@ -207,7 +207,7 @@ $seriesVisibilities = sr_content_series_visibility_values();
                 <div class="admin-form-row">
                     <label class="form-label" for="content_series_key_new">key <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
-                        <input id="content_series_key_new" name="series_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" value="<?php echo sr_e((string) ($seriesFormValues['series_key'] ?? '')); ?>" required data-admin-key-input data-overlay-focus class="form-input">
+                        <input id="content_series_key_new" name="series_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" value="<?php echo sr_e((string) ($seriesFormValues['series_key'] ?? '')); ?>" required data-admin-key-input data-admin-key-suggest-source="#content_series_title_new" data-admin-key-suggest-fallback="series" data-overlay-focus class="form-input">
                     </div>
                 </div>
                 <div class="admin-form-row">

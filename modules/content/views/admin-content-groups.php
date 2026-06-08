@@ -230,7 +230,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php if ($editing) { ?>
                         <code><?php echo sr_e((string) ($values['group_key'] ?? '')); ?></code>
                     <?php } else { ?>
-                        <input id="content_admin_groups_group_key" type="text" name="group_key" value="<?php echo sr_e((string) ($values['group_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input>
+                        <input id="content_admin_groups_group_key" type="text" name="group_key" value="<?php echo sr_e((string) ($values['group_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#content_admin_groups_title" data-admin-key-suggest-fallback="content_group">
                         <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.active.bd86f3a1')); ?></p>
                     <?php } ?>
                 </div>

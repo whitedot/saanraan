@@ -1392,7 +1392,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-row">
                                 <?php echo sr_admin_form_label_help_html('question_key_' . (string) $index, '문항 key', $surveyHelp['question_key']['id'], $surveyHelpOpenLabel); ?>
                                 <div class="admin-form-field">
-                                    <input id="question_key_<?php echo sr_e((string) $index); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-overlay-focus>
+                                    <input id="question_key_<?php echo sr_e((string) $index); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-admin-key-suggest-source="#question_prompt_<?php echo sr_e((string) $index); ?>" data-admin-key-suggest-fallback="question_<?php echo sr_e((string) ($index + 1)); ?>" data-overlay-focus>
                                 </div>
                             </div>
                             <div class="admin-form-row">

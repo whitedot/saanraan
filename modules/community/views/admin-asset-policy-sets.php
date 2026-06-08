@@ -116,7 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_policy_set_key">Key <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
-                    <input id="community_policy_set_key" type="text" name="set_key" value="<?php echo sr_e((string) ($values['set_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" required data-admin-key-input>
+                    <input id="community_policy_set_key" type="text" name="set_key" value="<?php echo sr_e((string) ($values['set_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" required data-admin-key-input data-admin-key-suggest-source="#community_policy_set_title" data-admin-key-suggest-fallback="community_policy_set">
                 </div>
             </div>
             <div class="admin-form-row">

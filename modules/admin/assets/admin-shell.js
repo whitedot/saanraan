@@ -49,6 +49,43 @@ window.AdminShell = {
             return digits === '' ? '' : digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         };
 
+        const keySuggestionScope = input => {
+            const scopeSelector = input ? input.getAttribute('data-admin-key-suggest-scope') || '' : '';
+            return scopeSelector ? input.closest(scopeSelector) : document;
+        };
+
+        const keySuggestionSource = input => {
+            const sourceSelector = input ? input.getAttribute('data-admin-key-suggest-source') || '' : '';
+            const scope = keySuggestionScope(input);
+            return sourceSelector && scope ? scope.querySelector(sourceSelector) : null;
+        };
+
+        const keySuggestionValue = input => {
+            const source = keySuggestionSource(input);
+            const sourceValue = source ? normalizeKeyInputValue(source.value || '') : '';
+            const fallback = normalizeKeyInputValue(input.getAttribute('data-admin-key-suggest-fallback') || '');
+            return sourceValue !== '' ? sourceValue : fallback;
+        };
+
+        const applyKeySuggestion = input => {
+            if (!input || input.disabled || input.readOnly || input.getAttribute('data-admin-key-touched') === '1') {
+                return;
+            }
+
+            if (input.value !== '' && input.getAttribute('data-admin-key-suggested') !== '1') {
+                return;
+            }
+
+            const nextValue = keySuggestionValue(input);
+            if (nextValue === '') {
+                return;
+            }
+
+            input.value = nextValue.slice(0, input.maxLength > 0 ? input.maxLength : nextValue.length);
+            syncKeyInputValue(input);
+            input.setAttribute('data-admin-key-suggested', '1');
+        };
+
         const syncAssetAmountInputValue = input => {
             if (!input || input.readOnly || input.disabled) {
                 return;
@@ -955,6 +992,10 @@ window.AdminShell = {
                 ? event.target.closest('[data-admin-key-input], [data-admin-login-id-input]')
                 : null;
             if (keyInput) {
+                if (keyInput.hasAttribute('data-admin-key-suggest-source')) {
+                    keyInput.setAttribute('data-admin-key-touched', '1');
+                    keyInput.removeAttribute('data-admin-key-suggested');
+                }
                 syncKeyInputValue(keyInput);
                 return;
             }
@@ -970,6 +1011,15 @@ window.AdminShell = {
         document.querySelectorAll('[data-admin-login-id-input]').forEach(syncKeyInputValue);
         document.querySelectorAll('[data-admin-slug-input]').forEach(syncSlugInputValue);
         document.querySelectorAll('[data-admin-asset-amount-input]').forEach(syncAssetAmountInputValue);
+        document.querySelectorAll('[data-admin-key-input][data-admin-key-suggest-source]').forEach(input => {
+            const source = keySuggestionSource(input);
+            if (!source) {
+                return;
+            }
+
+            source.addEventListener('input', () => applyKeySuggestion(input));
+            source.addEventListener('change', () => applyKeySuggestion(input));
+        });
 
         document.addEventListener('focusin', event => {
             const control = assetEnableControl(event.target);
