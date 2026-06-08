@@ -204,7 +204,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php $selectedSupportedLocales = sr_supported_locales($values); ?>
                 <?php $selectedSupportedLocaleMap = array_fill_keys($selectedSupportedLocales, true); ?>
                 <div data-admin-required-checkbox-group data-admin-required-checkbox-message="지원 locale 목록은 최소 한 개 이상 선택하세요." data-admin-supported-locales>
-                    <div id="admin_settings_supported_locales" class="admin-check-list" role="group">
+                    <div id="admin_settings_supported_locales" class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                         <?php if ($localeOptions === []) { ?>
                             <span class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.locale.9d745a6e')); ?></span>
                         <?php } ?>
@@ -214,10 +214,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             $localeInputId = 'admin_settings_supported_locales_' . (string) $localeIndex;
                             $localeIsDefault = $localeOption === (string) $values['default_locale'];
                             ?>
-                            <label class="admin-form-check form-label" for="<?php echo sr_e($localeInputId); ?>">
-                                <input id="<?php echo sr_e($localeInputId); ?>" type="checkbox" name="supported_locales[]" value="<?php echo sr_e($localeOption); ?>" class="form-checkbox"<?php echo isset($selectedSupportedLocaleMap[$localeOption]) ? ' checked' : ''; ?><?php echo $localeIsDefault ? ' disabled' : ''; ?> data-admin-supported-locale-option>
-                                <?php echo sr_admin_choice_label_html($localeOption); ?>
-                            </label>
+                            <span class="filtering-toggle-item">
+                                <input id="<?php echo sr_e($localeInputId); ?>" type="checkbox" name="supported_locales[]" value="<?php echo sr_e($localeOption); ?>" class="form-choice-toggle-input sr-only"<?php echo isset($selectedSupportedLocaleMap[$localeOption]) ? ' checked' : ''; ?><?php echo $localeIsDefault ? ' disabled' : ''; ?> data-admin-supported-locale-option>
+                                <label for="<?php echo sr_e($localeInputId); ?>" class="btn btn-choice-light"><?php echo sr_admin_choice_label_html($localeOption); ?></label>
+                            </span>
                         <?php } ?>
                     </div>
                 </div>
