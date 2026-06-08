@@ -34,6 +34,14 @@ $access = $canPreviewAsAdmin
 $submitResult = null;
 $errors = [];
 $submittedScreen = sr_get_string('submitted', 5) === '1';
+$surveyCommentsEnabled = (int) ($survey['comments_enabled'] ?? 0) === 1 && sr_survey_comments_table_exists($pdo);
+$surveyComments = $surveyCommentsEnabled ? sr_survey_comments($pdo, (int) ($survey['id'] ?? 0)) : [];
+$surveyCommentNotice = (string) ($_SESSION['sr_survey_comment_notice'] ?? '');
+$surveyCommentErrors = (array) ($_SESSION['sr_survey_comment_errors'] ?? []);
+$surveyCommentBody = (string) ($_SESSION['sr_survey_comment_body'] ?? '');
+$surveyCommentIsSecret = !empty($_SESSION['sr_survey_comment_is_secret']);
+unset($_SESSION['sr_survey_comment_notice'], $_SESSION['sr_survey_comment_errors'], $_SESSION['sr_survey_comment_body'], $_SESSION['sr_survey_comment_is_secret']);
+$surveyCommentLoginUrl = '/login?next=' . rawurlencode('/survey/' . (string) ($survey['survey_key'] ?? '') . '#survey-comments');
 
 if (sr_request_method() === 'POST') {
     $isPreviewTestSubmit = $canPreviewAsAdmin && ($_POST['test_submit'] ?? '') === '1';
@@ -226,6 +234,98 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <button type="submit" class="btn btn-solid-primary">제출</button>
                     </form>
                 <?php endif; ?>
+            <?php endif; ?>
+            <?php if ($surveyCommentsEnabled): ?>
+                <section id="survey-comments" class="sr-survey-comments">
+                    <div class="sr-survey-comments-panel-header">
+                        <h2>댓글</h2>
+                    </div>
+                    <?php if ($surveyCommentNotice !== ''): ?>
+                        <div class="sr-survey-comment-notice">
+                            <p><?php echo sr_e($surveyCommentNotice); ?></p>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($surveyCommentErrors !== []): ?>
+                        <div class="sr-form-errors">
+                            <?php foreach ($surveyCommentErrors as $error): ?>
+                                <p><?php echo sr_e((string) $error); ?></p>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($surveyComments === []): ?>
+                        <p>아직 작성된 댓글이 없습니다.</p>
+                    <?php else: ?>
+                        <ul class="sr-survey-comment-list">
+                            <?php foreach ($surveyComments as $surveyComment): ?>
+                                <?php
+                                $surveyCommentId = (int) ($surveyComment['id'] ?? 0);
+                                $surveyCommentEditId = 'survey_comment_edit_' . (string) $surveyCommentId;
+                                $surveyCommentCanViewBody = sr_survey_account_can_view_comment_body($surveyComment, is_array($currentAccount) ? $currentAccount : null, $pdo);
+                                $surveyCommentCanEdit = is_array($currentAccount) && sr_survey_account_can_edit_comment($surveyComment, $currentAccount);
+                                $surveyCommentCanDelete = is_array($currentAccount) && sr_survey_account_can_delete_comment($surveyComment, $currentAccount, $pdo);
+                                ?>
+                                <li>
+                                    <div class="sr-survey-comment-meta">
+                                        <strong><?php echo sr_e((string) ($surveyComment['author_public_name'] ?? $surveyComment['author_public_name_snapshot'] ?? '회원')); ?></strong>
+                                        <?php echo sr_survey_time_html((string) ($surveyComment['created_at'] ?? '')); ?>
+                                        <?php if ((int) ($surveyComment['is_secret'] ?? 0) === 1): ?>
+                                            <span class="sr-survey-comment-secret">비밀 댓글</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($surveyCommentCanViewBody): ?>
+                                        <p><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
+                                    <?php else: ?>
+                                        <p>비밀 댓글입니다.</p>
+                                    <?php endif; ?>
+                                    <?php if ($surveyCommentCanEdit || $surveyCommentCanDelete): ?>
+                                        <div class="sr-survey-comment-actions">
+                                            <?php if ($surveyCommentCanEdit): ?>
+                                                <details>
+                                                    <summary class="btn btn-solid-light">수정</summary>
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/survey/comment/edit')); ?>">
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
+                                                        <label class="sr-only" for="<?php echo sr_e($surveyCommentEditId); ?>">댓글 본문</label>
+                                                        <textarea id="<?php echo sr_e($surveyCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($surveyComment['body_text'] ?? '')); ?></textarea>
+                                                        <label class="sr-survey-comment-secret-toggle">
+                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                            비밀 댓글
+                                                        </label>
+                                                        <button type="submit" class="btn btn-solid-primary">저장</button>
+                                                    </form>
+                                                </details>
+                                            <?php endif; ?>
+                                            <?php if ($surveyCommentCanDelete): ?>
+                                                <form method="post" action="<?php echo sr_e(sr_url('/survey/comment/delete')); ?>">
+                                                    <?php echo sr_csrf_field(); ?>
+                                                    <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
+                                                    <button type="submit" class="btn btn-solid-light">삭제</button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                    <?php if ($canPreviewAsAdmin): ?>
+                        <p>관리자 미리보기에서는 댓글을 작성할 수 없습니다.</p>
+                    <?php elseif (is_array($currentAccount)): ?>
+                        <form method="post" action="<?php echo sr_e(sr_url('/survey/comment')); ?>" class="sr-survey-comment-form">
+                            <?php echo sr_csrf_field(); ?>
+                            <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($survey['id'] ?? 0)); ?>">
+                            <label class="sr-only" for="survey_comment_body">댓글 본문</label>
+                            <textarea id="survey_comment_body" name="body_text" rows="4" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e($surveyCommentBody); ?></textarea>
+                            <label class="sr-survey-comment-secret-toggle">
+                                <input type="checkbox" name="is_secret" value="1"<?php echo $surveyCommentIsSecret ? ' checked' : ''; ?>>
+                                비밀 댓글
+                            </label>
+                            <button type="submit" class="btn btn-solid-primary">댓글 작성</button>
+                        </form>
+                    <?php else: ?>
+                        <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url($surveyCommentLoginUrl)); ?>" target="_top">로그인 후 댓글 작성</a></p>
+                    <?php endif; ?>
+                </section>
             <?php endif; ?>
         </div>
     </section>

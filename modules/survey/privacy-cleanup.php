@@ -32,10 +32,28 @@ return static function (PDO $pdo, int $accountId): array {
         'account_id' => $accountId,
         'updated_at' => sr_now(),
     ]);
+    $commentCount = 0;
+    try {
+        $commentStmt = $pdo->prepare(
+            'UPDATE sr_survey_comments
+             SET author_account_id = NULL,
+                 author_public_name_snapshot = \'\',
+                 updated_at = :updated_at
+             WHERE author_account_id = :account_id'
+        );
+        $commentStmt->execute([
+            'account_id' => $accountId,
+            'updated_at' => sr_now(),
+        ]);
+        $commentCount = $commentStmt->rowCount();
+    } catch (Throwable $exception) {
+        $commentCount = 0;
+    }
 
     return [
         'cleaned' => true,
         'survey_response_anonymized_count' => $responseCount,
         'survey_reward_grant_anonymized_count' => $grantStmt->rowCount(),
+        'survey_comment_anonymized_count' => $commentCount,
     ];
 };

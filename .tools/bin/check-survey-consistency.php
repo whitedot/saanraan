@@ -48,6 +48,21 @@ sr_survey_check_contains(
 );
 sr_survey_check_contains(
     'modules/survey/install.sql',
+    'CREATE TABLE IF NOT EXISTS sr_survey_comments',
+    'Survey comments table must exist'
+);
+sr_survey_check_contains(
+    'modules/survey/install.sql',
+    'comments_enabled TINYINT(1)',
+    'Survey forms must expose comments_enabled'
+);
+sr_survey_check_contains(
+    'modules/survey/updates/2026.06.005.sql',
+    'CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}survey_comments',
+    'Survey comments update must create comments table'
+);
+sr_survey_check_contains(
+    'modules/survey/install.sql',
     'account_id BIGINT UNSIGNED NULL',
     'Survey reward grants account_id must allow privacy cleanup nulling'
 );
@@ -79,6 +94,20 @@ foreach (['answer_snapshot_json', 'consent_snapshot_json', 'metadata_snapshot_js
         'modules/survey/privacy-export.php',
         $needle,
         'Survey privacy export must include response snapshots and answer rows'
+    );
+}
+foreach (['sr_survey_comments', 'survey.comments', 'body_text'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/privacy-export.php',
+        $needle,
+        'Survey privacy export must include authored comments'
+    );
+}
+foreach (['UPDATE sr_survey_comments', 'author_account_id = NULL', 'survey_comment_anonymized_count'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/privacy-cleanup.php',
+        $needle,
+        'Survey privacy cleanup must anonymize authored comments'
     );
 }
 
@@ -122,16 +151,67 @@ foreach (['other_answers[', 'sr-survey-other-input'] as $needle) {
         'Survey public form must collect text for selected other choices'
     );
 }
+foreach (['survey-comments', 'sr_survey_comments', 'sr_member_mention_plain_text_html', 'data-sr-mention-input'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/view.php',
+        $needle,
+        'Survey public page must render comment mentions and mention input'
+    );
+}
 
 foreach ([
     'sr_survey_admin_question_signature',
     '설문지 잠금 상태에서는 문항을 수정할 수 없습니다.',
     '수정할 설문을 찾을 수 없습니다.',
+    'comments_enabled',
+    'sr_survey_key_is_reserved',
 ] as $needle) {
     sr_survey_check_contains(
         'modules/survey/actions/admin-surveys.php',
         $needle,
         'Survey admin save/delete validation must remain enforced'
+    );
+}
+foreach (['POST /survey/comment', 'POST /survey/comment/edit', 'POST /survey/comment/delete', 'GET /admin/surveys/comments'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/paths.php',
+        $needle,
+        'Survey comment paths must be registered before wildcard public path'
+    );
+}
+foreach (['/admin/surveys/comments', '댓글 관리'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/admin-menu.php',
+        $needle,
+        'Survey admin comments menu must be registered'
+    );
+}
+foreach (['sr_survey_create_comment', 'sr_survey_create_comment_mention_notifications', 'sr_survey_public_window_is_open'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/comment.php',
+        $needle,
+        'Survey comment create action must validate and notify mentions'
+    );
+}
+foreach (['sr_survey_update_comment_content', 'sr_survey_create_comment_mention_notifications', 'sr_survey_account_can_edit_comment'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/comment-edit.php',
+        $needle,
+        'Survey comment edit action must validate ownership and mention changes'
+    );
+}
+foreach (['sr_survey_update_comment_status', 'sr_survey_account_can_delete_comment'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/comment-delete.php',
+        $needle,
+        'Survey comment delete action must validate ownership or manager permission'
+    );
+}
+foreach (['/admin/surveys/comments', 'sr_survey_admin_comments', 'sr_survey_update_comment_status', 'sr_member_mention_plain_text_html'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/admin-comments.php',
+        $needle,
+        'Survey admin comments action must list and moderate comments'
     );
 }
 

@@ -7,6 +7,11 @@ function sr_survey_key_is_valid(string $key): bool
     return preg_match('/\A[a-z][a-z0-9_]{1,63}\z/', $key) === 1;
 }
 
+function sr_survey_key_is_reserved(string $key): bool
+{
+    return in_array($key, ['comment', 'ui_kit', 'admin'], true);
+}
+
 function sr_survey_clean_key(string $value, int $maxLength = 64): string
 {
     $value = strtolower(trim($value));
@@ -507,6 +512,352 @@ function sr_survey_by_id(PDO $pdo, int $surveyId): ?array
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_survey_comments_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_survey_comments LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_survey_comment_statuses(): array
+{
+    return ['published', 'hidden', 'deleted'];
+}
+
+function sr_survey_comment_status_label(string $status): string
+{
+    return [
+        'published' => '게시',
+        'hidden' => '숨김',
+        'deleted' => '삭제',
+    ][$status] ?? $status;
+}
+
+function sr_survey_comment_author_public_name_snapshot(PDO $pdo, int $accountId): string
+{
+    $name = trim(sr_member_public_name_for_account_id($pdo, $accountId, '회원'));
+
+    return function_exists('mb_substr') ? mb_substr($name, 0, 120) : substr($name, 0, 120);
+}
+
+function sr_survey_comments(PDO $pdo, int $surveyId, int $limit = 100): array
+{
+    if ($surveyId < 1 || !sr_survey_comments_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT c.*, a.display_name AS author_display_name, a.status AS author_account_status
+         FROM sr_survey_comments c
+         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+         WHERE c.survey_id = :survey_id
+           AND c.status = 'published'
+         ORDER BY c.id ASC
+         LIMIT :limit_value"
+    );
+    $stmt->bindValue('survey_id', $surveyId, PDO::PARAM_INT);
+    $stmt->bindValue('limit_value', max(1, min(200, $limit)), PDO::PARAM_INT);
+    $stmt->execute();
+
+    $settings = sr_member_settings($pdo);
+    $comments = [];
+    foreach ($stmt->fetchAll() as $comment) {
+        $snapshot = trim((string) ($comment['author_public_name_snapshot'] ?? ''));
+        $comment['author_public_name'] = !in_array((string) ($comment['author_account_status'] ?? ''), ['withdrawn', 'anonymized'], true) && $snapshot !== ''
+            ? $snapshot
+            : sr_member_public_name([
+                'display_name' => (string) ($comment['author_display_name'] ?? ''),
+                'status' => (string) ($comment['author_account_status'] ?? ''),
+            ], $settings, '회원');
+        $comments[] = $comment;
+    }
+
+    return $comments;
+}
+
+function sr_survey_comment_input_values(): array
+{
+    return [
+        'body_text' => sr_survey_clean_text(sr_post_string('body_text', 4000), 4000),
+        'is_secret' => ($_POST['is_secret'] ?? '') === '1' ? 1 : 0,
+    ];
+}
+
+function sr_survey_validate_comment_input(array $values): array
+{
+    $errors = [];
+    $bodyText = trim((string) ($values['body_text'] ?? ''));
+    if ($bodyText === '') {
+        $errors[] = '댓글 내용을 입력하세요.';
+    }
+    if ((function_exists('mb_strlen') ? mb_strlen($bodyText) : strlen($bodyText)) > 4000) {
+        $errors[] = '댓글은 4000자 이내로 입력하세요.';
+    }
+
+    return $errors;
+}
+
+function sr_survey_create_comment(PDO $pdo, int $surveyId, int $accountId, array $values): int
+{
+    if ($surveyId < 1 || $accountId < 1 || !sr_survey_comments_table_exists($pdo)) {
+        throw new RuntimeException('Survey comment cannot be created.');
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_survey_comments
+            (survey_id, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
+         VALUES
+            (:survey_id, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, \'published\', :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'survey_id' => $surveyId,
+        'author_account_id' => $accountId,
+        'author_public_name_snapshot' => sr_survey_comment_author_public_name_snapshot($pdo, $accountId),
+        'body_text' => (string) ($values['body_text'] ?? ''),
+        'is_secret' => (int) ($values['is_secret'] ?? 0),
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_survey_comment_by_id(PDO $pdo, int $commentId): ?array
+{
+    if ($commentId < 1 || !sr_survey_comments_table_exists($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_survey_comments WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $commentId]);
+    $comment = $stmt->fetch();
+
+    return is_array($comment) ? $comment : null;
+}
+
+function sr_survey_account_can_edit_comment(array $comment, array $account): bool
+{
+    return (string) ($comment['status'] ?? '') === 'published'
+        && (int) ($comment['author_account_id'] ?? 0) > 0
+        && (int) ($comment['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
+}
+
+function sr_survey_account_can_manage_comments(PDO $pdo, int $accountId): bool
+{
+    return $accountId > 0
+        && function_exists('sr_admin_has_permission')
+        && (
+            sr_admin_has_permission($pdo, $accountId, '/admin/surveys/comments', 'view')
+            || sr_admin_has_permission($pdo, $accountId, '/admin/surveys', 'edit')
+        );
+}
+
+function sr_survey_account_can_view_comment_body(array $comment, ?array $account, PDO $pdo): bool
+{
+    if ((int) ($comment['is_secret'] ?? 0) !== 1) {
+        return true;
+    }
+    if (!is_array($account)) {
+        return false;
+    }
+    $accountId = (int) ($account['id'] ?? 0);
+
+    return $accountId > 0
+        && (
+            $accountId === (int) ($comment['author_account_id'] ?? 0)
+            || sr_survey_account_can_manage_comments($pdo, $accountId)
+        );
+}
+
+function sr_survey_account_can_delete_comment(array $comment, array $account, PDO $pdo): bool
+{
+    if (!in_array((string) ($comment['status'] ?? ''), ['published', 'hidden'], true)) {
+        return false;
+    }
+    if (sr_survey_account_can_edit_comment($comment, $account)) {
+        return true;
+    }
+
+    return sr_survey_account_can_manage_comments($pdo, (int) ($account['id'] ?? 0));
+}
+
+function sr_survey_update_comment_content(PDO $pdo, int $commentId, array $values): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE sr_survey_comments
+         SET body_text = :body_text,
+             is_secret = :is_secret,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = \'published\''
+    );
+    $stmt->execute([
+        'body_text' => (string) ($values['body_text'] ?? ''),
+        'is_secret' => (int) ($values['is_secret'] ?? 0),
+        'updated_at' => sr_now(),
+        'id' => $commentId,
+    ]);
+}
+
+function sr_survey_update_comment_status(PDO $pdo, int $commentId, string $status): void
+{
+    if (!in_array($status, sr_survey_comment_statuses(), true)) {
+        throw new RuntimeException('Invalid survey comment status.');
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_survey_comments
+         SET status = :status,
+             deleted_at = CASE WHEN :deleted_status = \'deleted\' THEN :deleted_at ELSE deleted_at END,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $now = sr_now();
+    $stmt->execute([
+        'status' => $status,
+        'deleted_status' => $status,
+        'deleted_at' => $now,
+        'updated_at' => $now,
+        'id' => $commentId,
+    ]);
+}
+
+function sr_survey_notification_event_function(PDO $pdo): ?string
+{
+    return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
+}
+
+function sr_survey_create_account_event_notification(PDO $pdo, int $accountId, string $eventKey, array $metadata, ?int $createdByAccountId = null): bool
+{
+    if ($accountId < 1) {
+        return false;
+    }
+    $function = sr_survey_notification_event_function($pdo);
+    if ($function === null || !function_exists($function)) {
+        return false;
+    }
+
+    $notificationId = $function($pdo, [
+        'account_id' => $accountId,
+        'module_key' => 'survey',
+        'event_key' => $eventKey,
+        'metadata' => $metadata,
+        'created_by_account_id' => $createdByAccountId,
+    ]);
+
+    return (int) $notificationId > 0;
+}
+
+function sr_survey_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array
+{
+    if (!function_exists('sr_member_mention_account_ids')) {
+        return [];
+    }
+
+    return sr_member_mention_account_ids($pdo, sr_runtime_config(), $bodyText, $excludeAccountIds);
+}
+
+function sr_survey_create_comment_mention_notifications(
+    PDO $pdo,
+    array $survey,
+    int $commentId,
+    string $bodyText,
+    int $createdByAccountId,
+    array $excludeAccountIds = [],
+    string $previousBodyText = ''
+): array {
+    $surveyId = (int) ($survey['id'] ?? 0);
+    $mentionedAccountIds = sr_survey_mentioned_account_ids($pdo, $bodyText, $excludeAccountIds);
+    if ($previousBodyText !== '') {
+        $previousAccountIds = sr_survey_mentioned_account_ids($pdo, $previousBodyText, $excludeAccountIds);
+        $mentionedAccountIds = array_values(array_diff($mentionedAccountIds, $previousAccountIds));
+    }
+    $result = [
+        'mention_candidate_count' => count($mentionedAccountIds),
+        'mention_notification_count' => 0,
+        'mention_account_hashes' => [],
+    ];
+    if ($mentionedAccountIds === []) {
+        return $result;
+    }
+
+    $config = sr_runtime_config();
+    $metadata = [
+        'survey_id' => $surveyId,
+        'comment_id' => $commentId,
+        'member_name' => sr_member_public_name_for_account_id($pdo, $createdByAccountId, '회원'),
+        'link_url' => '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '#survey-comments',
+        'created_at' => sr_now(),
+    ];
+    foreach ($mentionedAccountIds as $accountId) {
+        $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
+    }
+    foreach ($mentionedAccountIds as $accountId) {
+        if (sr_survey_create_account_event_notification($pdo, (int) $accountId, 'comment.mention', $metadata, $createdByAccountId)) {
+            $result['mention_notification_count']++;
+        }
+    }
+
+    return $result;
+}
+
+function sr_survey_admin_comment_filters_from_request(): array
+{
+    return [
+        'q' => sr_survey_clean_single_line(sr_get_string('q', 120), 120),
+        'status' => sr_survey_clean_key(sr_get_string('status', 20), 20),
+        'secret' => sr_survey_clean_key(sr_get_string('secret', 10), 10),
+    ];
+}
+
+function sr_survey_admin_comments(PDO $pdo, array $filters = [], int $limit = 100): array
+{
+    if (!sr_survey_comments_table_exists($pdo)) {
+        return [];
+    }
+
+    $where = ['1 = 1'];
+    $params = [];
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $where[] = '(s.survey_key LIKE :keyword OR s.title LIKE :keyword OR c.body_text LIKE :keyword OR c.author_public_name_snapshot LIKE :keyword)';
+        $params['keyword'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+    }
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '' && in_array($status, sr_survey_comment_statuses(), true)) {
+        $where[] = 'c.status = :status';
+        $params['status'] = $status;
+    }
+    $secret = (string) ($filters['secret'] ?? '');
+    if ($secret === 'yes' || $secret === 'no') {
+        $where[] = 'c.is_secret = :is_secret';
+        $params['is_secret'] = $secret === 'yes' ? 1 : 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT c.*, s.survey_key, s.title AS survey_title
+         FROM sr_survey_comments c
+         INNER JOIN sr_survey_forms s ON s.id = c.survey_id
+         WHERE ' . implode(' AND ', $where) . '
+         ORDER BY c.created_at DESC, c.id DESC
+         LIMIT ' . (string) max(1, min(200, $limit))
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
 }
 
 function sr_survey_questions_with_choices(PDO $pdo, int $surveyId): array

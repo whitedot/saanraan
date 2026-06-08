@@ -180,6 +180,112 @@
     box-shadow: var(--shadow);
 }
 
+.sr-survey-comments {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 18px;
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    background: var(--color-card);
+    box-shadow: var(--shadow);
+}
+
+.sr-survey-comments-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: -18px -18px 0;
+    padding: 16px 18px 14px;
+    border-bottom: 1px solid var(--color-default-300);
+}
+
+.sr-survey-comment-list {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sr-survey-comment-list > li {
+    display: grid;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-default-300);
+}
+
+.sr-survey-comment-list > li:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.sr-survey-comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted, var(--color-default-600));
+    font-size: var(--type-meta-size);
+    line-height: 1.45;
+}
+
+.sr-survey-comment-meta strong {
+    color: var(--text-strong, var(--color-default-900));
+}
+
+.sr-survey-comment-secret,
+.sr-survey-comment-notice {
+    color: var(--text-muted, var(--color-default-600));
+}
+
+.sr-survey-comment-notice {
+    padding: 12px 14px;
+    border: 1px solid color-mix(in oklab, var(--color-success) 24%, transparent);
+    border-radius: var(--radius);
+    background: color-mix(in oklab, var(--color-success) 9%, transparent);
+}
+
+.sr-survey-comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.sr-survey-comment-actions details,
+.sr-survey-comment-actions form,
+.sr-survey-comment-form {
+    display: grid;
+    gap: 10px;
+}
+
+.sr-survey-comment-actions summary {
+    list-style: none;
+}
+
+.sr-survey-comment-actions summary::-webkit-details-marker {
+    display: none;
+}
+
+.sr-survey-comments textarea {
+    width: 100%;
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius);
+    color: var(--text-strong, var(--color-default-900));
+    line-height: 1.5;
+    padding: 12px;
+}
+
+.sr-survey-comment-secret-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-strong, var(--color-default-900));
+}
+
 .sr-survey-page .sr-form-errors {
     border: 1px solid color-mix(in oklab, var(--color-danger) 28%, transparent);
     background: color-mix(in oklab, var(--color-danger) 10%, transparent);

@@ -53,6 +53,22 @@ return static function (PDO $pdo, int $accountId): array {
         }
     }
 
+    $comments = [];
+    try {
+        $commentStmt = $pdo->prepare(
+            'SELECT c.id, c.survey_id, s.survey_key, s.title, c.author_public_name_snapshot,
+                    c.body_text, c.is_secret, c.status, c.created_at, c.updated_at, c.deleted_at
+             FROM sr_survey_comments c
+             INNER JOIN sr_survey_forms s ON s.id = c.survey_id
+             WHERE c.author_account_id = :account_id
+             ORDER BY c.id ASC'
+        );
+        $commentStmt->execute(['account_id' => $accountId]);
+        $comments = $commentStmt->fetchAll();
+    } catch (Throwable $exception) {
+        $comments = [];
+    }
+
     return [
         [
             'key' => 'survey.responses',
@@ -75,6 +91,25 @@ return static function (PDO $pdo, int $accountId): array {
                     'rewarded_at' => (string) ($row['rewarded_at'] ?? ''),
                 ];
             }, $responses),
+        ],
+        [
+            'key' => 'survey.comments',
+            'label' => '설문 댓글',
+            'rows' => array_map(static function (array $row): array {
+                return [
+                    'id' => (int) ($row['id'] ?? 0),
+                    'survey_id' => (int) ($row['survey_id'] ?? 0),
+                    'survey_key' => (string) ($row['survey_key'] ?? ''),
+                    'survey_title' => (string) ($row['title'] ?? ''),
+                    'author_public_name_snapshot' => (string) ($row['author_public_name_snapshot'] ?? ''),
+                    'body_text' => (string) ($row['body_text'] ?? ''),
+                    'is_secret' => (int) ($row['is_secret'] ?? 0) === 1,
+                    'status' => (string) ($row['status'] ?? ''),
+                    'created_at' => (string) ($row['created_at'] ?? ''),
+                    'updated_at' => (string) ($row['updated_at'] ?? ''),
+                    'deleted_at' => $row['deleted_at'] === null ? null : (string) $row['deleted_at'],
+                ];
+            }, $comments),
         ],
     ];
 };

@@ -108,6 +108,7 @@ if (sr_request_method() === 'POST') {
     }
     $responseLimitPeriodSeconds = max(0, (int) sr_post_string('response_limit_period_seconds', 20));
     $memberGroupKeys = sr_survey_normalize_member_group_keys($_POST['member_group_keys'] ?? []);
+    $commentsEnabled = ($_POST['comments_enabled'] ?? '') === '1';
     $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
     $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
     $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);
@@ -118,6 +119,8 @@ if (sr_request_method() === 'POST') {
 
     if (!sr_survey_key_is_valid($surveyKey)) {
         $errors[] = '설문 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+    } elseif (sr_survey_key_is_reserved($surveyKey)) {
+        $errors[] = '예약된 설문 key입니다.';
     } else {
         $stmt = $pdo->prepare('SELECT id FROM sr_survey_forms WHERE survey_key = :survey_key AND id <> :id LIMIT 1');
         $stmt->execute(['survey_key' => $surveyKey, 'id' => $surveyId]);
@@ -292,7 +295,7 @@ if (sr_request_method() === 'POST') {
                          anonymous_allowed = :anonymous_allowed, login_required = :login_required, public_listed = :public_listed, robots_policy = :robots_policy,
                          status = :status, starts_at = :starts_at, ends_at = :ends_at,
                          response_limit_policy = :response_limit_policy, response_limit_period_seconds = :response_limit_period_seconds, member_group_keys_json = :member_group_keys_json,
-                         reward_enabled = :reward_enabled,
+                         comments_enabled = :comments_enabled, reward_enabled = :reward_enabled,
                          updated_by_account_id = :updated_by_account_id, updated_at = :updated_at
                      WHERE id = :id AND deleted_at IS NULL'
                 )->execute([
@@ -343,6 +346,7 @@ if (sr_request_method() === 'POST') {
                     'response_limit_policy' => $responseLimitPolicy,
                     'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
                     'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
+                    'comments_enabled' => $commentsEnabled ? 1 : 0,
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_at' => $now,
@@ -357,7 +361,7 @@ if (sr_request_method() === 'POST') {
                          sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
                          qa_status, qa_note, questionnaire_version, revision_locked,
                          organizer_name, contact_text, consent_required, consent_text, privacy_notice, anonymous_allowed, login_required,
-                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, reward_enabled,
+                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
                         (:survey_key, :title, :description, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
@@ -366,7 +370,7 @@ if (sr_request_method() === 'POST') {
                          :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
                          :qa_status, :qa_note, 1, :revision_locked,
                          :organizer_name, :contact_text, :consent_required, :consent_text, :privacy_notice, :anonymous_allowed, :login_required,
-                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :reward_enabled,
+                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :comments_enabled, :reward_enabled,
                          :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
                 )->execute([
                     'survey_key' => $surveyKey,
@@ -415,6 +419,7 @@ if (sr_request_method() === 'POST') {
                     'response_limit_policy' => $responseLimitPolicy,
                     'response_limit_period_seconds' => $responseLimitPolicy === 'per_period' ? $responseLimitPeriodSeconds : null,
                     'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
+                    'comments_enabled' => $commentsEnabled ? 1 : 0,
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'created_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
@@ -438,6 +443,7 @@ if (sr_request_method() === 'POST') {
                     'status' => $status,
                     'qa_status' => $qaStatus,
                     'member_group_keys' => $memberGroupKeys,
+                    'comments_enabled' => $commentsEnabled,
                     'reward_enabled' => $rewardEnabled,
                 ],
             ]);
@@ -852,6 +858,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'ends_at' => '',
         'response_limit_policy' => (string) sr_survey_settings($pdo)['default_response_limit_policy'],
         'response_limit_period_seconds' => (string) sr_survey_settings($pdo)['default_response_limit_period_seconds'],
+        'comments_enabled' => 0,
         'reward_enabled' => 0,
     ];
     $selectedMemberGroupKeys = sr_survey_member_group_keys_from_json($values['member_group_keys_json'] ?? '[]');
@@ -917,6 +924,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'body_html' => $surveyHelpBodyHtml([
                 '선택한 활성 회원 그룹에 속한 로그인 회원만 참여할 수 있습니다.',
                 '그룹을 선택하지 않으면 로그인 조건에 맞는 전체 회원이 참여할 수 있습니다.',
+            ]),
+        ],
+        'comments' => [
+            'id' => 'survey-help-comments-modal',
+            'title' => '댓글',
+            'body_html' => $surveyHelpBodyHtml([
+                '공개 설문 화면에서 로그인 회원이 댓글을 작성할 수 있게 합니다.',
+                '비밀 댓글은 작성자와 댓글 관리 권한이 있는 관리자만 본문을 볼 수 있습니다.',
+                '댓글 본문의 @닉네임 멘션은 회원 알림과 표시 스타일에 연결됩니다.',
             ]),
         ],
         'consent' => [
@@ -1135,6 +1151,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php endforeach; ?>
                 </div>
                 <p class="admin-form-help">선택하면 해당 그룹에 속한 로그인 회원만 참여할 수 있습니다.</p>
+            </div>
+            <div class="form-field">
+                <?php echo sr_admin_form_label_help_html('survey_comments_enabled', '댓글', $surveyHelp['comments']['id'], $surveyHelpOpenLabel); ?>
+                <label class="admin-form-check form-label" for="survey_comments_enabled">
+                    <input id="survey_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                    공개 댓글 사용
+                </label>
+                <p class="admin-form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
             </div>
             <div class="form-grid">
                 <div class="form-field">

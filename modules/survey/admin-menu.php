@@ -20,6 +20,11 @@ return [
             'order' => 30,
         ],
         [
+            'label' => '댓글 관리',
+            'path' => '/admin/surveys/comments',
+            'order' => 35,
+        ],
+        [
             'label' => '환경설정',
             'path' => '/admin/surveys/settings',
             'order' => 40,
