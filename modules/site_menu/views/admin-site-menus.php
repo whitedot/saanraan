@@ -177,6 +177,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="save_menu">
                     <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e($menuKey) : ''; ?>">
+                    <p class="admin-form-help">이 모달의 저장 버튼은 메뉴 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key"><?php echo sr_e(sr_t('site_menu::ui.menu.key.20cd5d6a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
@@ -237,6 +238,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <input type="hidden" name="intent" value="save_item">
                     <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
                     <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $itemMenuId); ?>">
+                    <p class="admin-form-help">이 모달의 저장 버튼은 메뉴 항목 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_module"><?php echo sr_e(sr_t('site_menu::ui.text.06aff97f')); ?></label>
                         <div class="admin-form-field">
@@ -450,6 +452,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
     <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="admin-form-actions admin-form-sticky-actions admin-site-menu-form-actions">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_item_order">
+        <p class="admin-form-help">순서 적용하기는 목록의 정렬 값만 저장합니다. 열려 있는 메뉴/항목 모달 입력값은 함께 저장되지 않습니다.</p>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('site_menu::ui.save.cc86610d')); ?></button>
     </form>
 </section>
