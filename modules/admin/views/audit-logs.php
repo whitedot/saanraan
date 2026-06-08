@@ -9,19 +9,10 @@ $auditMetadataModals = [];
 $auditActorMemberModalId = 'admin-audit-actor-member-modal';
 $auditResultFilters = is_array($filters['result'] ?? null) ? $filters['result'] : [];
 $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['actor_type'] : [];
-$auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !== [] || (string) ($filters['ip_address'] ?? '') !== '' || (string) ($filters['date_from'] ?? '') !== '' || (string) ($filters['date_to'] ?? '') !== '';
+$auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (string) ($filters['target_type'] ?? '') !== '' || (string) ($filters['target_id'] ?? '') !== '' || $auditResultFilters !== [] || $auditActorTypeFilters !== [] || (string) ($filters['ip_address'] ?? '') !== '' || (string) ($filters['date_from'] ?? '') !== '' || (string) ($filters['date_to'] ?? '') !== '';
 ?>
 
 <form method="get" action="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="filtering-form admin-audit-filter ui-form-theme">
-    <?php if (($filters['event_type'] ?? '') !== '') { ?>
-        <input type="hidden" name="event_type" value="<?php echo sr_e((string) $filters['event_type']); ?>">
-    <?php } ?>
-    <?php if (($filters['target_type'] ?? '') !== '') { ?>
-        <input type="hidden" name="target_type" value="<?php echo sr_e((string) $filters['target_type']); ?>">
-    <?php } ?>
-    <?php if (($filters['target_id'] ?? '') !== '') { ?>
-        <input type="hidden" name="target_id" value="<?php echo sr_e((string) $filters['target_id']); ?>">
-    <?php } ?>
     <div class="filtering filtering-card<?php echo $auditDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
         <div class="filtering-fields filtering-fields-fit admin-audit-filter-main">
             <div class="filtering-field">
@@ -40,6 +31,18 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
             </div>
         </div>
         <div id="admin_audit_detail_filters" class="filtering-body admin-audit-detail-stack" data-filtering-body<?php echo $auditDetailFilterOpen ? '' : ' hidden'; ?>>
+            <div class="filtering-field">
+                <label for="modules_admin_audit_logs_event_type" class="filtering-label">이벤트</label>
+                <input id="modules_admin_audit_logs_event_type" type="text" name="event_type" value="<?php echo sr_e((string) ($filters['event_type'] ?? '')); ?>" class="form-input" maxlength="80" placeholder="member.login.success">
+            </div>
+            <div class="filtering-field">
+                <label for="modules_admin_audit_logs_target_type" class="filtering-label">대상 유형</label>
+                <input id="modules_admin_audit_logs_target_type" type="text" name="target_type" value="<?php echo sr_e((string) ($filters['target_type'] ?? '')); ?>" class="form-input" maxlength="60" placeholder="member_account">
+            </div>
+            <div class="filtering-field">
+                <label for="modules_admin_audit_logs_target_id" class="filtering-label">대상 식별값</label>
+                <input id="modules_admin_audit_logs_target_id" type="text" name="target_id" value="<?php echo sr_e((string) ($filters['target_id'] ?? '')); ?>" class="form-input" maxlength="80" placeholder="123">
+            </div>
             <div class="filtering-field">
                 <span class="filtering-label"><?php echo sr_e(sr_t('admin::ui.text.109383e3')); ?></span>
                 <?php echo sr_admin_filter_toggle_group_html('modules_admin_audit_logs_result', 'result', ['success' => sr_t('admin::ui.text.b4f76a33'), 'failure' => sr_t('admin::ui.text.2743911f')], $auditResultFilters, '전체'); ?>
@@ -98,7 +101,6 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
                 ?>
                 <span class="admin-summary-meta">기간 <strong><?php echo sr_e($auditDateLabel); ?></strong></span>
             <?php } ?>
-            <a href="<?php echo sr_e(sr_url('/admin/audit-logs')); ?>" class="admin-summary-meta">필터 해제</a>
         </div>
     <?php } ?>
 </form>
