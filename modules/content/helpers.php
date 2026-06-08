@@ -2576,6 +2576,38 @@ function sr_content_optional_table_exists(PDO $pdo, string $tableName): bool
     return $cache[$tableName];
 }
 
+function sr_content_optional_column_exists(PDO $pdo, string $tableName, string $columnName): bool
+{
+    static $cache = [];
+    if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName) || !preg_match('/\A[a-zA-Z0-9_]+\z/', $columnName)) {
+        return false;
+    }
+
+    $cacheKey = $tableName . '.' . $columnName;
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => $tableName,
+            'column_name' => $columnName,
+        ]);
+        $cache[$cacheKey] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable) {
+        $cache[$cacheKey] = false;
+    }
+
+    return $cache[$cacheKey];
+}
+
 function sr_content_optional_count(PDO $pdo, string $tableName, string $whereSql, array $params = []): int
 {
     if (!sr_content_optional_table_exists($pdo, $tableName)) {
@@ -3267,7 +3299,17 @@ function sr_content_popup_layer_reference_rows(PDO $pdo, array $target, array $c
 
 function sr_content_display_reference_item_rows(PDO $pdo, string $kind, int $targetId, array $labels): array
 {
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_items')) {
+        return [];
+    }
+
     $columns = $kind === 'banner' ? array_keys(sr_content_public_banner_setting_labels()) : array_keys(sr_content_public_popup_layer_setting_labels());
+    foreach (array_merge(['id', 'title', 'status', 'updated_at'], $columns) as $column) {
+        if (!sr_content_optional_column_exists($pdo, 'sr_content_items', $column)) {
+            return [];
+        }
+    }
+
     $conditions = [];
     $params = ['target_id' => $targetId];
     foreach ($columns as $column) {
@@ -3307,8 +3349,19 @@ function sr_content_display_reference_item_rows(PDO $pdo, string $kind, int $tar
 
 function sr_content_display_reference_group_setting_rows(PDO $pdo, string $kind, int $targetId, array $labels): array
 {
-    if (!sr_content_group_settings_table_exists($pdo)) {
+    if (!sr_content_group_settings_table_exists($pdo) || !sr_content_groups_table_exists($pdo)) {
         return [];
+    }
+
+    foreach (['group_id', 'setting_key', 'setting_value', 'updated_at'] as $column) {
+        if (!sr_content_optional_column_exists($pdo, 'sr_content_group_settings', $column)) {
+            return [];
+        }
+    }
+    foreach (['id', 'title', 'status'] as $column) {
+        if (!sr_content_optional_column_exists($pdo, 'sr_content_groups', $column)) {
+            return [];
+        }
     }
 
     $settingKeys = $kind === 'banner' ? array_keys(sr_content_public_banner_setting_labels()) : array_keys(sr_content_public_popup_layer_setting_labels());
@@ -3382,6 +3435,16 @@ function sr_content_member_group_reference_count(PDO $pdo, array $target, array 
 
 function sr_content_member_group_reference_rows(PDO $pdo, array $target, array $context): array
 {
+    if (!sr_content_optional_table_exists($pdo, 'sr_content_items')) {
+        return [];
+    }
+
+    foreach (['id', 'title', 'status', 'updated_at', 'asset_access_group_policies_json', 'asset_action_group_policies_json'] as $column) {
+        if (!sr_content_optional_column_exists($pdo, 'sr_content_items', $column)) {
+            return [];
+        }
+    }
+
     $groupKey = (string) ($target['target_key'] ?? '');
     if ($groupKey === '') {
         return [];
