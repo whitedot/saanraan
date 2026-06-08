@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-function sr_admin_code_label(string $value, string $context = ''): string
+function sr_admin_code_label_context_options(): array
 {
-    $contextLabels = [
+    return [
         'member_status' => [
             'active' => '정상',
             'pending' => '대기',
@@ -219,6 +219,11 @@ function sr_admin_code_label(string $value, string $context = ''): string
             '1' => '예',
         ],
     ];
+}
+
+function sr_admin_code_label(string $value, string $context = ''): string
+{
+    $contextLabels = sr_admin_code_label_context_options();
 
     if (isset($contextLabels[$context][$value])) {
         return $contextLabels[$context][$value];
@@ -233,9 +238,9 @@ function sr_admin_code_label(string $value, string $context = ''): string
     return $value;
 }
 
-function sr_admin_event_type_label(string $eventType): string
+function sr_admin_event_type_label_options(): array
 {
-    $labels = [
+    return [
         'member.account.created' => '회원 계정 생성',
         'member.nickname.updated' => '회원 닉네임 변경',
         'member.sessions.revoked' => '회원 세션 폐기',
@@ -269,6 +274,11 @@ function sr_admin_event_type_label(string $eventType): string
         'retention.cleanup.completed' => '보관 정리 완료',
         'retention.auto_cleanup.completed' => '요청 기반 자동 정리 완료',
     ];
+}
+
+function sr_admin_event_type_label(string $eventType): string
+{
+    $labels = sr_admin_event_type_label_options();
     if (isset($labels[$eventType])) {
         return $labels[$eventType];
     }

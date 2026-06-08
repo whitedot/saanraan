@@ -6,8 +6,8 @@ function sr_admin_audit_log_filters(): array
 {
     $field = sr_admin_audit_log_search_field(sr_get_string('field', 30));
     $keyword = sr_get_string('q', 80);
-    $eventType = sr_admin_audit_log_identifier_filter(sr_get_string('event_type', 80), 80);
-    $targetType = sr_admin_audit_log_identifier_filter(sr_get_string('target_type', 60), 60);
+    $eventType = sr_admin_audit_log_event_type_filter(sr_get_string('event_type', 80));
+    $targetType = sr_admin_audit_log_target_type_filter(sr_get_string('target_type', 60));
     $targetId = sr_admin_audit_log_target_id_filter(sr_get_string('target_id', 80), 80);
     $actorTypes = sr_admin_audit_log_actor_type_filters($_GET['actor_type'] ?? []);
     $ipAddress = sr_admin_audit_log_ip_filter(sr_get_string('ip_address', 45));
@@ -74,6 +74,37 @@ function sr_admin_audit_log_identifier_filter(string $value, int $maxLength): st
     }
 
     return preg_match('/\A[a-z][a-z0-9_.-]*\z/', $value) === 1 ? $value : '';
+}
+
+function sr_admin_audit_log_code_label_filter(string $value, array $options, int $maxLength): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (isset($options[$value])) {
+        return strlen($value) <= $maxLength ? $value : '';
+    }
+
+    foreach ($options as $code => $label) {
+        if ($value === (string) $label && strlen((string) $code) <= $maxLength) {
+            return (string) $code;
+        }
+    }
+
+    return sr_admin_audit_log_identifier_filter($value, $maxLength);
+}
+
+function sr_admin_audit_log_event_type_filter(string $value): string
+{
+    return sr_admin_audit_log_code_label_filter($value, sr_admin_event_type_label_options(), 80);
+}
+
+function sr_admin_audit_log_target_type_filter(string $value): string
+{
+    $options = sr_admin_code_label_context_options()['target_type'] ?? [];
+    return sr_admin_audit_log_code_label_filter($value, is_array($options) ? $options : [], 60);
 }
 
 function sr_admin_audit_log_target_id_filter(string $value, int $maxLength): string
@@ -500,8 +531,8 @@ function sr_admin_audit_log_query_parts(array &$filters): array
     $params = [];
     $filters['field'] = sr_admin_audit_log_search_field((string) ($filters['field'] ?? 'event_type'));
     $filters['q'] = trim((string) ($filters['q'] ?? ''));
-    $filters['event_type'] = sr_admin_audit_log_identifier_filter((string) ($filters['event_type'] ?? ''), 80);
-    $filters['target_type'] = sr_admin_audit_log_identifier_filter((string) ($filters['target_type'] ?? ''), 60);
+    $filters['event_type'] = sr_admin_audit_log_event_type_filter((string) ($filters['event_type'] ?? ''));
+    $filters['target_type'] = sr_admin_audit_log_target_type_filter((string) ($filters['target_type'] ?? ''));
     $filters['target_id'] = sr_admin_audit_log_target_id_filter((string) ($filters['target_id'] ?? ''), 80);
     $filters['actor_type'] = sr_admin_audit_log_actor_type_filters($filters['actor_type'] ?? []);
     $filters['ip_address'] = sr_admin_audit_log_ip_filter((string) ($filters['ip_address'] ?? ''));
@@ -511,13 +542,13 @@ function sr_admin_audit_log_query_parts(array &$filters): array
 
     if ($filters['q'] !== '') {
         if ($filters['field'] === 'event_type') {
-            $filters['q'] = sr_admin_audit_log_identifier_filter($filters['q'], 80);
+            $filters['q'] = sr_admin_audit_log_event_type_filter($filters['q']);
             if ($filters['q'] !== '') {
                 $where[] = 'event_type = :audit_keyword';
                 $params['audit_keyword'] = $filters['q'];
             }
         } elseif ($filters['field'] === 'target_type') {
-            $filters['q'] = sr_admin_audit_log_identifier_filter($filters['q'], 60);
+            $filters['q'] = sr_admin_audit_log_target_type_filter($filters['q']);
             if ($filters['q'] !== '') {
                 $where[] = 'target_type = :audit_keyword';
                 $params['audit_keyword'] = $filters['q'];

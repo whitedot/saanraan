@@ -9,6 +9,15 @@ $auditMetadataModals = [];
 $auditActorMemberModalId = 'admin-audit-actor-member-modal';
 $auditResultFilters = is_array($filters['result'] ?? null) ? $filters['result'] : [];
 $auditActorTypeFilters = is_array($filters['actor_type'] ?? null) ? $filters['actor_type'] : [];
+$auditEventTypeOptions = sr_admin_event_type_label_options();
+$auditTargetTypeOptions = sr_admin_code_label_context_options()['target_type'] ?? [];
+$auditTargetTypeOptions = is_array($auditTargetTypeOptions) ? $auditTargetTypeOptions : [];
+if ((string) ($filters['event_type'] ?? '') !== '' && !isset($auditEventTypeOptions[(string) $filters['event_type']])) {
+    $auditEventTypeOptions[(string) $filters['event_type']] = sr_admin_event_type_label((string) $filters['event_type']);
+}
+if ((string) ($filters['target_type'] ?? '') !== '' && !isset($auditTargetTypeOptions[(string) $filters['target_type']])) {
+    $auditTargetTypeOptions[(string) $filters['target_type']] = sr_admin_code_label((string) $filters['target_type'], 'target_type');
+}
 $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (string) ($filters['target_type'] ?? '') !== '' || (string) ($filters['target_id'] ?? '') !== '' || $auditResultFilters !== [] || $auditActorTypeFilters !== [] || (string) ($filters['ip_address'] ?? '') !== '' || (string) ($filters['date_from'] ?? '') !== '' || (string) ($filters['date_to'] ?? '') !== '';
 ?>
 
@@ -33,11 +42,18 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
         <div id="admin_audit_detail_filters" class="filtering-body admin-audit-detail-stack" data-filtering-body<?php echo $auditDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field">
                 <label for="modules_admin_audit_logs_event_type" class="filtering-label">이벤트</label>
-                <input id="modules_admin_audit_logs_event_type" type="text" name="event_type" value="<?php echo sr_e((string) ($filters['event_type'] ?? '')); ?>" class="form-input" maxlength="80" placeholder="member.login.success">
+                <select id="modules_admin_audit_logs_event_type" name="event_type" class="form-select">
+                    <option value="">전체</option>
+                    <?php foreach ($auditEventTypeOptions as $eventType => $eventLabel) { ?>
+                        <option value="<?php echo sr_e((string) $eventType); ?>"<?php echo (string) ($filters['event_type'] ?? '') === (string) $eventType ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $eventLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
             <div class="filtering-field">
-                <label for="modules_admin_audit_logs_target_type" class="filtering-label">대상 유형</label>
-                <input id="modules_admin_audit_logs_target_type" type="text" name="target_type" value="<?php echo sr_e((string) ($filters['target_type'] ?? '')); ?>" class="form-input" maxlength="60" placeholder="member_account">
+                <span class="filtering-label">대상 유형</span>
+                <?php echo sr_admin_filter_radio_toggle_group_html('modules_admin_audit_logs_target_type', 'target_type', $auditTargetTypeOptions, [(string) ($filters['target_type'] ?? '')], '전체'); ?>
             </div>
             <div class="filtering-field">
                 <label for="modules_admin_audit_logs_target_id" class="filtering-label">대상 식별값</label>
