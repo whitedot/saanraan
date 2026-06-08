@@ -14,10 +14,17 @@ $keyword = sr_get_string('q', 120);
 $limitInput = sr_get_string('limit', 10);
 $limit = preg_match('/\A[1-9][0-9]*\z/', $limitInput) === 1 ? (int) $limitInput : 10;
 $items = [];
+$linkCardSite = isset($site) && is_array($site) ? $site : ['base_url' => sr_current_base_url()];
+$linkCardAbsoluteUrl = static function (string $url) use ($linkCardSite): string {
+    return sr_is_http_url($url) ? $url : sr_absolute_url($linkCardSite, $url);
+};
 
 if ($target === 'community_post' && sr_module_enabled($pdo, 'community') && is_file(SR_ROOT . '/modules/community/helpers.php')) {
     require_once SR_ROOT . '/modules/community/helpers.php';
     $items = sr_community_link_card_search_post_targets($pdo, $keyword, $limit);
+    foreach ($items as $itemIndex => $item) {
+        $items[$itemIndex]['url'] = $linkCardAbsoluteUrl((string) ($item['url'] ?? ''));
+    }
 }
 
 header('Content-Type: application/json; charset=utf-8');
