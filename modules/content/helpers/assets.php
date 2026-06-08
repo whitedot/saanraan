@@ -203,7 +203,7 @@ function sr_content_asset_option_unit_label(array $assetModuleOptions, string $a
     return isset($assetModuleOptions[$assetModule]) ? (string) ($assetModuleOptions[$assetModule]['unit_label'] ?? '') : '';
 }
 
-function sr_content_asset_single_amount_input_group_html(string $fieldName, int $amount, array $assetModuleOptions, string $assetModule, string $label, string $id = '', bool $hidden = false, string $sourceFieldName = ''): string
+function sr_content_asset_single_amount_input_group_html(string $fieldName, int $amount, array $assetModuleOptions, string $assetModule, string $label, string $id = '', bool $hidden = false, string $sourceFieldName = '', string $inputAttributes = ''): string
 {
     $unitLabel = sr_content_asset_option_unit_label($assetModuleOptions, $assetModule);
     $idAttribute = $id !== '' ? ' id="' . sr_e($id) . '"' : '';
@@ -218,7 +218,7 @@ function sr_content_asset_single_amount_input_group_html(string $fieldName, int 
         : '';
 
     return '<div class="input-group admin-asset-single-amount-group" data-admin-asset-unit-group' . $unitSourceAttribute . $unitOptionsAttribute . $hiddenAttribute . '>'
-        . '<input' . $idAttribute . ' type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '" value="' . sr_e((string) max(0, $amount)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($label) . '" data-admin-asset-amount-input>'
+        . '<input' . $idAttribute . ' type="text" inputmode="numeric" pattern="[0-9,]*" name="' . sr_e($fieldName) . '" value="' . sr_e((string) max(0, $amount)) . '" class="form-input admin-asset-setting-amount" aria-label="' . sr_e($label) . '" data-admin-asset-amount-input' . $inputAttributes . '>'
         . '<span class="input-group-text" data-admin-asset-unit-label>' . sr_e($unitLabel) . '</span>'
         . '</div>';
 }

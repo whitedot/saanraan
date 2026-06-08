@@ -31,6 +31,7 @@ if (sr_request_method() === 'POST') {
     $postedEditorInput = sr_post_string('editor', 30);
     $postedOnceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
     $postedAuthorRewardEnabled = sr_post_string('member_submission_author_reward_enabled', 1) === '1';
+    $postedAuthorRewardAssetModule = sr_content_clean_slug(sr_post_string('member_submission_author_reward_asset_module', 30));
     $postedAuthorRewardAmount = sr_admin_post_int_in_range('member_submission_author_reward_amount', 0, 999999999);
     $postedSettings = [
         'editor' => sr_editor_normalize_key($postedEditorInput),
@@ -45,8 +46,8 @@ if (sr_request_method() === 'POST') {
         'member_submission_enabled' => sr_post_string('member_submission_enabled', 1) === '1',
         'member_submission_default_review_required' => sr_post_string('member_submission_default_review_required', 1) === '1',
         'member_submission_author_reward_enabled' => $postedAuthorRewardEnabled,
-        'member_submission_author_reward_asset_module' => sr_content_clean_slug(sr_post_string('member_submission_author_reward_asset_module', 30)),
-        'member_submission_author_reward_amount' => $postedAuthorRewardAmount ?? 0,
+        'member_submission_author_reward_asset_module' => $postedAuthorRewardAssetModule,
+        'member_submission_author_reward_amount' => $postedAuthorRewardAssetModule !== '' ? ($postedAuthorRewardAmount ?? 0) : 0,
     ];
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
@@ -65,13 +66,15 @@ if (sr_request_method() === 'POST') {
             break;
         }
     }
-    if (!empty($postedSettings['member_submission_author_reward_enabled'])) {
-        if ((string) $postedSettings['member_submission_author_reward_asset_module'] === '' || !isset($assetModuleOptions[(string) $postedSettings['member_submission_author_reward_asset_module']])) {
-            $errors[] = '작성자 리워드 자산 항목이 올바르지 않습니다.';
+    if ((string) $postedSettings['member_submission_author_reward_asset_module'] !== '') {
+        if (!isset($assetModuleOptions[(string) $postedSettings['member_submission_author_reward_asset_module']])) {
+            $errors[] = '작성자 리워드 포인트/금액 항목이 올바르지 않습니다.';
         }
         if ($postedAuthorRewardAmount === null || (int) $postedSettings['member_submission_author_reward_amount'] < 1) {
             $errors[] = '작성자 리워드 금액은 1 이상으로 입력하세요.';
         }
+    } elseif (!empty($postedSettings['member_submission_author_reward_enabled'])) {
+        $errors[] = '작성자 리워드 포인트/금액 항목을 선택하세요.';
     }
 
     if ($errors === []) {

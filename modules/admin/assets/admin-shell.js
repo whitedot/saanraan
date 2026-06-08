@@ -522,6 +522,28 @@ window.AdminShell = {
             });
         };
 
+        const syncConditionalSelectSection = root => {
+            if (!root || !root.getAttribute) {
+                return;
+            }
+
+            const selector = root.getAttribute('data-admin-visible-when-select') || '';
+            const form = root.closest('form') || document;
+            const source = selector !== '' ? form.querySelector(selector) || document.querySelector(selector) : null;
+            const visible = !!(source && source.value);
+            root.hidden = !visible;
+            Array.prototype.slice.call(root.querySelectorAll('[data-admin-required-when-visible]')).forEach(control => {
+                control.required = visible;
+                if (!visible && control.getAttribute('data-admin-clear-when-hidden') === '1') {
+                    control.value = '0';
+                    syncAssetAmountInputValue(control);
+                }
+            });
+            Array.prototype.slice.call(root.querySelectorAll('[data-admin-required-label-when-visible]')).forEach(label => {
+                label.hidden = !visible;
+            });
+        };
+
         const syncRestrictedInputValue = (input, normalizeValue) => {
             if (!input || input.readOnly || input.disabled) {
                 return;
@@ -1061,11 +1083,13 @@ window.AdminShell = {
             markAssetEnableTargetTouched(event.target);
             syncAssetAmountGroupsNear(event.target);
             syncAssetUnitGroupsNear(event.target);
+            document.querySelectorAll('[data-admin-visible-when-select]').forEach(syncConditionalSelectSection);
         });
 
         document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(root => syncAssetAmountGroup(root));
         document.querySelectorAll('[data-admin-asset-unit-group]').forEach(syncAssetUnitGroup);
         document.querySelectorAll('[data-admin-setting-source-group]').forEach(syncSettingSourceGroup);
+        document.querySelectorAll('[data-admin-visible-when-select]').forEach(syncConditionalSelectSection);
 
         document.addEventListener('submit', event => {
             if (!confirmAssetEnableSubmit(event.target)) {
