@@ -104,7 +104,7 @@ code{color:var(--color-rose-400)}
 .btn-choice-light:is(.btn-group-middle,.btn-group-end){--btn-choice-border-color:var(--color-default-300)}
 @media (hover:hover){[class*=btn-choice-]:hover{background-color:var(--btn-choice-hover-bg);color:var(--btn-choice-color)}}
 [class*=btn-choice-]:is(:focus,:focus-visible,:active){background-color:var(--btn-choice-hover-bg);color:var(--btn-choice-color)}
-input.form-choice-toggle-input[type=checkbox] + [class*=btn-choice-],input.form-choice-toggle-input[type=radio] + [class*=btn-choice-]{align-items:center;gap:calc(var(--spacing) * 1.25)}
+input.form-choice-toggle-input[type=checkbox] + [class*=btn-choice-],input.form-choice-toggle-input[type=radio] + [class*=btn-choice-]{align-items:center;gap:calc(var(--spacing) * 1.25);padding-inline:calc(var(--spacing) * 2.25)}
 input.form-choice-toggle-input[type=checkbox] + [class*=btn-choice-]::before,input.form-choice-toggle-input[type=radio] + [class*=btn-choice-]::before{align-items:center;background-color:color-mix(in oklab,currentColor 8%,transparent);border:1.25px solid currentColor;box-sizing:border-box;content:"";display:inline-flex;flex:0 0 auto;height:.6875rem;justify-content:center;line-height:1;opacity:.78;width:.6875rem}
 input.form-choice-toggle-input[type=checkbox] + [class*=btn-choice-]::before{border-radius:calc(var(--radius) * .35);font-size:.5625rem;font-weight:var(--font-weight-bold)}
 input.form-choice-toggle-input[type=radio] + [class*=btn-choice-]::before{border-radius:9999px}
