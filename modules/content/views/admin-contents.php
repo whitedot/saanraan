@@ -363,8 +363,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($pageAdminPage === 'form') { ?>
+    <?php
+    $contentSectionNavItems = [
+        'content-section-basic' => '기본 정보',
+        'content-section-body' => '본문/이미지',
+        'content-section-public' => '공개 설정',
+        'content-section-seo' => 'SEO',
+        'content-section-access-asset' => '유료 열람',
+        'content-section-action-asset' => '완료 버튼',
+        'content-section-display' => '배너/팝업',
+        'content-section-files' => '파일',
+    ];
+    ?>
+    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="콘텐츠 설정 섹션" data-admin-section-nav>
+        <?php $contentSectionNavIndex = 0; ?>
+        <?php foreach ($contentSectionNavItems as $contentSectionId => $contentSectionLabel) { ?>
+            <a href="#<?php echo sr_e((string) $contentSectionId); ?>" class="tab-trigger-underline-justified<?php echo $contentSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $contentSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+                <?php echo sr_e((string) $contentSectionLabel); ?>
+            </a>
+            <?php $contentSectionNavIndex++; ?>
+        <?php } ?>
+    </nav>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/save')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
-        <section class="admin-card card">
+        <section id="content-section-basic" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="content_id" value="<?php echo $editing ? sr_e((string) $editPage['id']) : '0'; ?>">
@@ -427,7 +448,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-section-body" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e('본문과 대표 이미지'); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_summary', sr_t('content::ui.text.50f30154'), $contentHelp['summary']['id'], $contentHelpOpenLabel); ?>
@@ -478,7 +499,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-section-public" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e('공개 설정'); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_status', sr_t('content::ui.status.e10195a1'), $contentHelp['status']['id'], $contentHelpOpenLabel, true); ?>
@@ -516,7 +537,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-section-seo" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e('SEO 설정'); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_title', sr_t('content::ui.seo.f66e126a'), $contentHelp['seo_title']['id'], $contentHelpOpenLabel); ?>
@@ -531,7 +552,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-section-access-asset" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?></span>
                 <?php if ($contentAssetAuditUrl !== '') { ?>
@@ -593,7 +614,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-section-action-asset" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></span>
                 <?php if ($contentAssetAuditUrl !== '') { ?>
@@ -662,7 +683,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-section-display" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.a052b2f6')); ?></span>
                 <span class="admin-form-actions">
@@ -733,7 +754,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php } ?>
         </section>
-        <section class="admin-card card">
+        <section id="content-section-files" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.c7c88adc')); ?></span>
                 <span class="admin-form-actions">

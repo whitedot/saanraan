@@ -1577,20 +1577,23 @@ window.AdminShell = {
                     }
                 });
             };
-            const targetOffset = () => {
-                const shellHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--admin-shell-bar-height')) || 68;
-                const navHeight = sectionNavRoot.getBoundingClientRect().height || 0;
-                return shellHeight + navHeight + 16;
-            };
             const updateActive = () => {
-                const offset = targetOffset();
-                const currentEntry = entries.reduce((selected, entry) => {
-                    const top = entry.target.getBoundingClientRect().top - offset;
-                    if (top <= 1) {
-                        return entry;
-                    }
-                    return selected;
+                const navRect = sectionNavRoot.getBoundingClientRect();
+                const activationY = Math.min(window.innerHeight - 1, navRect.bottom + 8);
+                const leadY = Math.min(window.innerHeight - 1, activationY + Math.max(48, sectionNavRoot.offsetHeight));
+                const leadingEntry = entries.reduce((selected, entry) => {
+                    const rect = entry.target.getBoundingClientRect();
+                    return rect.top <= leadY && rect.bottom > activationY ? entry : selected;
+                }, null);
+                const nextVisibleEntry = entries.find(entry => {
+                    const rect = entry.target.getBoundingClientRect();
+                    return rect.top > activationY && rect.top < window.innerHeight;
+                });
+                const previousEntry = entries.reduce((selected, entry) => {
+                    const rect = entry.target.getBoundingClientRect();
+                    return rect.top <= activationY ? entry : selected;
                 }, entries[0]);
+                const currentEntry = leadingEntry || nextVisibleEntry || previousEntry;
                 setActive(currentEntry);
             };
 
@@ -1599,12 +1602,14 @@ window.AdminShell = {
                     const entry = entries.find(candidate => candidate.link === link);
                     if (entry) {
                         setActive(entry);
+                        window.requestAnimationFrame(updateActive);
                     }
                 });
             });
 
             window.addEventListener('scroll', updateActive, { passive: true });
             window.addEventListener('resize', updateActive);
+            window.addEventListener('hashchange', () => window.requestAnimationFrame(updateActive));
             updateActive();
         });
 

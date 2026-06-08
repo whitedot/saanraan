@@ -325,8 +325,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
     <?php echo sr_admin_pagination_html($boardGroupPagination, '게시판 그룹 목록 페이지'); ?>
 <?php } else { ?>
+    <?php
+    $communityBoardGroupSectionNavItems = [
+        'community-board-group-section-basic' => '기본 정보',
+        'community-board-group-section-defaults' => '작성 기본값',
+        'community-board-group-section-banner' => '배너',
+        'community-board-group-section-popup' => '팝업',
+        'community-board-group-section-assets' => '포인트/금액',
+    ];
+    if ($communityBoardGroupsPage === 'edit') {
+        $communityBoardGroupSectionNavItems['community-board-group-section-danger'] = '위험 작업';
+    }
+    ?>
+    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="게시판 그룹 설정 섹션" data-admin-section-nav>
+        <?php $communityBoardGroupSectionNavIndex = 0; ?>
+        <?php foreach ($communityBoardGroupSectionNavItems as $communityBoardGroupSectionId => $communityBoardGroupSectionLabel) { ?>
+            <a href="#<?php echo sr_e((string) $communityBoardGroupSectionId); ?>" class="tab-trigger-underline-justified<?php echo $communityBoardGroupSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $communityBoardGroupSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+                <?php echo sr_e((string) $communityBoardGroupSectionLabel); ?>
+            </a>
+            <?php $communityBoardGroupSectionNavIndex++; ?>
+        <?php } ?>
+    </nav>
     <form method="post" action="<?php echo sr_e(sr_url($communityBoardGroupsPage === 'edit' ? '/admin/community/board-groups/update' : '/admin/community/board-groups/create')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
+        <section id="community-board-group-section-basic" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.edit.669f4ac3') : sr_t('community::ui.text.08aafae8')); ?></h2>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
@@ -375,7 +396,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-group-section-defaults" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('community::ui.settings.021ed27a')); ?></h2>
                 <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.group_defaults_help')); ?></p>
                 <div class="admin-form-row">
@@ -526,7 +547,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-group-section-banner" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('community::ui.banner.ca341bdf')); ?></h2>
             <?php foreach (sr_community_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
                 <div class="admin-form-row">
@@ -545,7 +566,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-group-section-popup" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('community::ui.text.63ba6fa3')); ?></h2>
             <?php foreach (sr_community_public_popup_layer_setting_labels() as $popupLayerSettingKey => $popupLayerSettingLabel) { ?>
                 <div class="admin-form-row">
@@ -564,7 +585,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </section>
 
-        <section class="admin-card card">
+        <section id="community-board-group-section-assets" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('community::ui.member.4eda7ba7')); ?></span>
                 <?php if ($communityBoardGroupAssetAuditUrl !== '') { ?>
@@ -681,7 +702,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     <?php if ($communityBoardGroupsPage === 'edit') { ?>
         <?php $boardGroupDeleteCheck = sr_community_can_delete_board_group($pdo, (int) ($formBoardGroup['id'] ?? 0)); ?>
-        <section class="admin-card card">
+        <section id="community-board-group-section-danger" class="admin-card card" data-admin-section-anchor>
             <h2>위험 작업</h2>
             <p class="admin-form-help">
                 게시판 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.

@@ -217,8 +217,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
     <?php } ?>
 <?php } else { ?>
+    <?php
+    $contentGroupSectionNavItems = [
+        'content-group-section-basic' => '기본 정보',
+        'content-group-section-defaults' => '작성 기본값',
+        'content-group-section-display' => '배너/팝업',
+        'content-group-section-access-asset' => '유료 열람',
+        'content-group-section-action-asset' => '완료 버튼',
+        'content-group-section-file-asset' => '파일',
+        'content-group-section-submission' => '회원 제출',
+    ];
+    if ($editing) {
+        $contentGroupSectionNavItems['content-group-section-danger'] = '위험 작업';
+    }
+    ?>
+    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="콘텐츠 그룹 설정 섹션" data-admin-section-nav>
+        <?php $contentGroupSectionNavIndex = 0; ?>
+        <?php foreach ($contentGroupSectionNavItems as $contentGroupSectionId => $contentGroupSectionLabel) { ?>
+            <a href="#<?php echo sr_e((string) $contentGroupSectionId); ?>" class="tab-trigger-underline-justified<?php echo $contentGroupSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $contentGroupSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+                <?php echo sr_e((string) $contentGroupSectionLabel); ?>
+            </a>
+            <?php $contentGroupSectionNavIndex++; ?>
+        <?php } ?>
+    </nav>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form ui-form-theme">
-        <section class="admin-card card">
+        <section id="content-group-section-basic" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e($editing ? sr_t('content::ui.content.edit.700b7706') : sr_t('content::ui.content.5a50b240')); ?></h2>
             <p class="admin-form-help"><?php echo sr_e('콘텐츠 그룹은 목록 페이지, 메뉴 후보, 새 콘텐츠 기본값, 그룹/전체 복사 범위를 위한 운영 단위입니다. 독자가 순서대로 읽는 연재 흐름은 콘텐츠 시리즈를 사용하세요.'); ?></p>
             <?php echo sr_csrf_field(); ?>
@@ -266,7 +289,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-group-section-defaults" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('content::ui.content.settings.c384599a')); ?></h2>
             <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.group_defaults_help')); ?></p>
             <div class="admin-form-row">
@@ -294,7 +317,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-group-section-display" class="admin-card card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('content::ui.text.0d968d36')); ?></h2>
             <?php foreach (sr_content_public_banner_setting_labels() as $bannerSettingKey => $bannerSettingLabel) { ?>
                 <div class="admin-form-row">
@@ -327,7 +350,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             <?php } ?>
         </section>
-        <section class="admin-card card">
+        <section id="content-group-section-access-asset" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.member.4eda7ba7')); ?></span>
                 <?php if ($contentGroupAssetAuditUrl !== '') { ?>
@@ -375,7 +398,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-group-section-action-asset" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?></span>
                 <?php if ($contentGroupAssetAuditUrl !== '') { ?>
@@ -430,7 +453,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-group-section-file-asset" class="admin-card card" data-admin-section-anchor>
             <h2>
                 <span><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?></span>
                 <?php if ($contentGroupAssetAuditUrl !== '') { ?>
@@ -478,7 +501,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
-        <section class="admin-card card">
+        <section id="content-group-section-submission" class="admin-card card" data-admin-section-anchor>
             <h2>회원 콘텐츠 제출</h2>
             <div class="admin-form-row">
                 <span class="form-label">회원 제출</span>
@@ -523,7 +546,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
     <?php if ($editing) { ?>
         <?php $contentGroupDeleteCheck = sr_content_can_delete_group($pdo, (int) ($editPageGroup['id'] ?? 0)); ?>
-        <section class="admin-card card">
+        <section id="content-group-section-danger" class="admin-card card" data-admin-section-anchor>
             <h2>위험 작업</h2>
             <p class="admin-form-help">
                 콘텐츠 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.

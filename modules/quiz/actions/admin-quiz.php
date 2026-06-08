@@ -552,12 +552,32 @@ $quizHelp = [
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$quizSectionNavItems = [
+    'quiz-section-basic' => '기본 정보',
+    'quiz-section-result' => '채점/결과',
+    'quiz-section-result-rules' => '결과 규칙',
+    'quiz-section-access' => '공개/응시',
+    'quiz-section-questions' => '문제 목록',
+    'quiz-section-reward' => '보상 정책',
+    'quiz-section-links' => '연결 대상',
+];
+?>
+<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="퀴즈 설정 섹션" data-admin-section-nav>
+    <?php $quizSectionNavIndex = 0; ?>
+    <?php foreach ($quizSectionNavItems as $quizSectionId => $quizSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $quizSectionId); ?>" class="tab-trigger-underline-justified<?php echo $quizSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $quizSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $quizSectionLabel); ?>
+        </a>
+        <?php $quizSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save">
     <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
 
-    <section class="admin-card card">
+    <section id="quiz-section-basic" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">기본 정보</h2>
         </div>
@@ -593,7 +613,7 @@ $quizHelp = [
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="quiz-section-result" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">채점/결과</h2>
         </div>
@@ -627,7 +647,7 @@ $quizHelp = [
         </div>
     </section>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section id="quiz-section-result-rules" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">결과 규칙</h2>
             <div class="card-actions">
@@ -799,7 +819,7 @@ $quizHelp = [
         </div>
     </div>
 
-    <section class="admin-card card">
+    <section id="quiz-section-access" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">공개/응시 조건</h2>
         </div>
@@ -843,7 +863,7 @@ $quizHelp = [
         </div>
     </section>
 
-    <section class="admin-card admin-list-card card admin-list-form">
+    <section id="quiz-section-questions" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">문제 목록</h2>
             <div class="card-actions">
@@ -1066,7 +1086,7 @@ $quizHelp = [
         </div>
     </div>
 
-    <section class="admin-card card">
+    <section id="quiz-section-reward" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">보상 정책</h2>
         </div>
@@ -1163,7 +1183,7 @@ $quizHelp = [
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="quiz-section-links" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">연결 대상</h2>
         </div>

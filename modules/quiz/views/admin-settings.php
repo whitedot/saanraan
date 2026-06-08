@@ -208,10 +208,27 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$quizSettingsSectionNavItems = [
+    'quiz-settings-section-display' => '공개 화면',
+    'quiz-settings-section-defaults' => '새 퀴즈',
+    'quiz-settings-section-reward' => '기본 보상',
+    'quiz-settings-section-links' => '목록/연결',
+];
+?>
+<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="퀴즈 설정 섹션" data-admin-section-nav>
+    <?php $quizSettingsSectionNavIndex = 0; ?>
+    <?php foreach ($quizSettingsSectionNavItems as $quizSettingsSectionId => $quizSettingsSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $quizSettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $quizSettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $quizSettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $quizSettingsSectionLabel); ?>
+        </a>
+        <?php $quizSettingsSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
-    <section class="admin-card card">
+    <section id="quiz-settings-section-display" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">공개 화면 구성</h2>
         </div>
@@ -257,7 +274,7 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="quiz-settings-section-defaults" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">새 퀴즈 기본값</h2>
         </div>
@@ -342,7 +359,7 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="quiz-settings-section-reward" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">기본 보상</h2>
         </div>
@@ -415,7 +432,7 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="quiz-settings-section-links" class="admin-card card" data-admin-section-anchor>
         <div class="card-header">
             <h2 class="card-title">공개 목록/연결</h2>
         </div>

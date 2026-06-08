@@ -9,11 +9,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$notificationSettingsSectionNavItems = [
+    'notification-settings-section-email' => '메일 환경',
+    'notification-settings-section-smtp' => 'SMTP',
+    'notification-settings-section-http-api' => 'HTTP API',
+];
+?>
+<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="알림 설정 섹션" data-admin-section-nav>
+    <?php $notificationSettingsSectionNavIndex = 0; ?>
+    <?php foreach ($notificationSettingsSectionNavItems as $notificationSettingsSectionId => $notificationSettingsSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $notificationSettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $notificationSettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $notificationSettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $notificationSettingsSectionLabel); ?>
+        </a>
+        <?php $notificationSettingsSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/settings')); ?>" class="admin-form ui-form-theme" data-notification-settings-form>
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
 
-    <section class="admin-card card">
+    <section id="notification-settings-section-email" class="admin-card card" data-admin-section-anchor>
         <h2>메일 발송 환경</h2>
         <div class="admin-form-row">
             <span class="form-label">이메일 채널</span>
@@ -57,7 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="notification-settings-section-smtp" class="admin-card card" data-admin-section-anchor>
         <h2>SMTP</h2>
         <div class="admin-form-row">
             <label class="form-label" for="notification_admin_settings_email_smtp_host">호스트 <span class="sr-required-label" data-notification-smtp-host-required hidden>(필수)</span></label>
@@ -98,7 +114,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="notification-settings-section-http-api" class="admin-card card" data-admin-section-anchor>
         <h2>메일 HTTP API</h2>
         <div class="admin-form-row">
             <label class="form-label" for="notification_admin_settings_email_http_api_endpoint">Endpoint <span class="sr-required-label" data-notification-http-api-endpoint-required hidden>(필수)</span></label>

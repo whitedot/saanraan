@@ -73,10 +73,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$memberSettingsSectionNavItems = [
+    'member-settings-section-registration' => '가입/인증',
+    'member-settings-section-skin' => '스킨',
+    'member-settings-section-profile' => '프로필',
+    'member-settings-section-login' => '로그인 제한',
+    'member-settings-section-register-limit' => '가입 제한',
+    'member-settings-section-password' => '비밀번호',
+    'member-settings-section-email' => '이메일',
+];
+?>
+<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="회원 설정 섹션" data-admin-section-nav>
+    <?php $memberSettingsSectionNavIndex = 0; ?>
+    <?php foreach ($memberSettingsSectionNavItems as $memberSettingsSectionId => $memberSettingsSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $memberSettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $memberSettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $memberSettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $memberSettingsSectionLabel); ?>
+        </a>
+        <?php $memberSettingsSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
-    <section class="admin-card card">
+    <section id="member-settings-section-registration" class="admin-card card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.text.564c3c84')); ?></h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
@@ -108,7 +128,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="member-settings-section-skin" class="admin-card card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.text.b5361f64')); ?></h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('member_admin_settings_member_skin_key', sr_t('member::ui.member.3b335eb1'), $memberSettingsHelp['member_skin']['id'], $memberSettingsHelpOpenLabel, true); ?>
@@ -124,7 +144,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="member-settings-section-profile" class="admin-card card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.select.da5d4203')); ?></h2>
         <div class="admin-form-grid">
         <?php foreach (sr_member_profile_field_definitions() as $definition) { ?>
@@ -146,7 +166,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="member-settings-section-login" class="admin-card card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.login.b726ae4b')); ?></h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('member_admin_settings_login_throttle_window_seconds', sr_t('member::ui.text.c7f70c10'), $memberSettingsHelp['throttle_window']['id'], $memberSettingsHelpOpenLabel, true); ?>
@@ -171,7 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="member-settings-section-register-limit" class="admin-card card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.member.52394c42')); ?></h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('member_admin_settings_register_throttle_window_seconds', sr_t('member::ui.text.c7f70c10'), $memberSettingsHelp['throttle_window']['id'], $memberSettingsHelpOpenLabel, true); ?>
@@ -190,7 +210,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="member-settings-section-password" class="admin-card card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.password.settings.be683f9d')); ?></h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('member_admin_settings_password_reset_throttle_window_seconds', sr_t('member::ui.text.c7f70c10'), $memberSettingsHelp['throttle_window']['id'], $memberSettingsHelpOpenLabel, true); ?>
@@ -215,7 +235,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="member-settings-section-email" class="admin-card card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.email.2fbad242')); ?></h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('member_admin_settings_email_verification_throttle_window_seconds', sr_t('member::ui.text.c7f70c10'), $memberSettingsHelp['throttle_window']['id'], $memberSettingsHelpOpenLabel, true); ?>

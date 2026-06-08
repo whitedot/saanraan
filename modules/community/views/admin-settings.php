@@ -146,13 +146,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($communitySettingsPage === 'settings') { ?>
+<?php
+$communitySettingsSectionNavItems = [
+    'community-settings-section-level' => '레벨 기본값',
+    'community-settings-section-message' => '쪽지 정책',
+    'community-settings-section-assets' => '자산/과금',
+    'community-settings-section-display' => '공개 화면',
+];
+?>
+<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="커뮤니티 설정 섹션" data-admin-section-nav>
+    <?php $communitySettingsSectionNavIndex = 0; ?>
+    <?php foreach ($communitySettingsSectionNavItems as $communitySettingsSectionId => $communitySettingsSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $communitySettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $communitySettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $communitySettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $communitySettingsSectionLabel); ?>
+        </a>
+        <?php $communitySettingsSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form ui-form-theme" data-community-settings-form>
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
     <input type="hidden" name="level_max_change_confirmed" value="0" data-community-settings-level-max-confirmed>
     <input type="hidden" name="level_max_change_confirm_text" value="" data-community-settings-level-max-confirm-text>
 
-    <section class="admin-card card">
+    <section id="community-settings-section-level" class="admin-card card" data-admin-section-anchor>
         <h2>레벨 기본값</h2>
         <div class="admin-form-grid">
             <div class="admin-form-row">
@@ -195,7 +212,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="community-settings-section-message" class="admin-card card" data-admin-section-anchor>
         <h2>쪽지 정책</h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_message_write_policy', sr_t('community::ui.text.31edcf4a'), $communitySettingsHelp['message_policy']['id'], $communitySettingsHelpOpenLabel); ?>
@@ -230,7 +247,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="community-settings-section-assets" class="admin-card card" data-admin-section-anchor>
         <h2>
             <span>자산/과금</span>
             <span class="admin-form-actions">
@@ -350,7 +367,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="admin-card card">
+    <section id="community-settings-section-display" class="admin-card card" data-admin-section-anchor>
         <h2>공개 화면 구성</h2>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
