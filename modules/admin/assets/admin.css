@@ -384,7 +384,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-label,
 .admin-form .admin-form-row>.form-label{align-items:center;color:var(--color-default-700);display:flex;font-weight:var(--font-weight-semibold);min-height:calc(var(--spacing) * 9.25);padding-top:0}
 .admin-form .admin-form-field{grid-column:auto;min-width:0}
-.admin-form .admin-form-field label{margin:0}
+.admin-form .admin-form-field label{font-weight:var(--font-weight-normal);margin:0}
 .admin-form .admin-form-field .admin-form-help,
 .admin-form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--text-muted);font-size:var(--type-caption-size);line-height:var(--type-caption-line-height)}
 .admin-form .admin-form-field>.admin-form-help:first-child{margin-top:0}
