@@ -6,17 +6,20 @@ $adminContainerClass = 'admin-page-content-submissions admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
-<section class="admin-card card">
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/content/submissions')); ?>" class="filtering-form filtering filtering-plain ui-form-theme">
-        <select name="status" class="form-select">
-            <option value="">전체 상태</option>
-            <?php foreach (sr_content_submission_statuses() as $status) { ?>
-                <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($submissionStatus ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_submission_status_label($status)); ?></option>
-            <?php } ?>
-        </select>
-        <button type="submit" class="btn btn-solid-primary">검색</button>
-    </form>
-</section>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/content/submissions')); ?>" class="filtering-form filtering filtering-plain ui-form-theme">
+    <div class="filtering-fields filtering-fields-fit">
+        <div class="filtering-field">
+            <label for="content_submission_filter_status" class="filtering-label">상태</label>
+            <select id="content_submission_filter_status" name="status" class="form-select filtering-input">
+                <option value="">전체 상태</option>
+                <?php foreach (sr_content_submission_statuses() as $status) { ?>
+                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($submissionStatus ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_submission_status_label($status)); ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+    </div>
+</form>
 <section class="admin-card card">
     <h2>제출 목록</h2>
     <table class="table">
