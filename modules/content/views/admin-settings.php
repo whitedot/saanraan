@@ -65,6 +65,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_editor', 'editor', $editorOptions, (string) ($settings['editor'] ?? 'textarea'), true); ?>
             </div>
         </div>
+        <div class="admin-form-row">
+            <span class="form-label">본문 URL 자동 링크</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), 'plain text 본문 안의 http/https URL을 링크로 변환'); ?>
+                <p class="admin-form-help">textarea로 저장된 plain text 본문에만 적용합니다. HTML 본문은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
+            </div>
+        </div>
     </section>
 
     <section class="admin-card card">

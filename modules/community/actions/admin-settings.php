@@ -57,6 +57,7 @@ if (sr_request_method() === 'POST') {
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);
+        $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
         $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
@@ -220,6 +221,7 @@ if (sr_request_method() === 'POST') {
                 ['layout_quaternary_menu_key', $layoutQuaternaryMenuKey, 'string'],
                 ['layout_quinary_menu_key', $layoutQuinaryMenuKey, 'string'],
                 ['post_editor', $postEditor, 'string'],
+                ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
                 ['post_reward_asset_module', (string) $assetSettings['post_reward_asset_module'], 'string'],
                 ['post_reward_amount', (string) $assetSettings['post_reward_amount'], 'int'],
@@ -317,6 +319,7 @@ if (sr_request_method() === 'POST') {
                         'layout_quaternary_menu_key' => $layoutQuaternaryMenuKey,
                         'layout_quinary_menu_key' => $layoutQuinaryMenuKey,
                         'post_editor' => $postEditor,
+                        'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
                         'once_history_policy' => $onceHistoryPolicy,
                         'asset_settings' => $assetSettings,
                     ],

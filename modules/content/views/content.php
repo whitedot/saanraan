@@ -98,7 +98,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <p class="content-access-notice">쿠폰으로 열람했습니다.</p>
             <?php } ?>
             <div class="content-body">
-                <?php echo sr_content_body_html($page); ?>
+                <?php echo sr_content_body_html($page, $settings ?? null); ?>
             </div>
             <?php if (is_array($contentQuizLinks ?? null) && $contentQuizLinks !== []) { ?>
                 <section class="content-quiz-links">

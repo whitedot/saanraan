@@ -136,7 +136,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             </article>
             <?php } else { ?>
             <div class="community-post-body">
-                <?php echo sr_community_post_body_html($post); ?>
+                <?php echo sr_community_post_body_html($post, $communityLayoutSettings); ?>
             </div>
 
             <?php if (is_array($communityQuizQuizzes ?? null) && $communityQuizQuizzes !== []) { ?>

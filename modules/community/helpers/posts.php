@@ -1518,18 +1518,19 @@ function sr_community_public_author_label(PDO $pdo, int $accountId, bool $showId
     return sr_community_member_label_with_identifier($label, $runtimeConfig, $accountId, $showIdentifier);
 }
 
-function sr_community_plain_text_html(string $value): string
+function sr_community_plain_text_html(string $value, bool $linkUrls = false): string
 {
-    return nl2br(sr_e($value), false);
+    return sr_plain_text_html($value, $linkUrls);
 }
 
-function sr_community_post_body_html(array $post): string
+function sr_community_post_body_html(array $post, ?array $settings = null): string
 {
     $bodyText = (string) ($post['body_text'] ?? '');
     if ((string) ($post['body_format'] ?? 'plain') === 'html') {
         $html = sr_community_sanitize_post_html($bodyText);
     } else {
-        $html = sr_community_plain_text_html($bodyText);
+        $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
+        $html = sr_community_plain_text_html($bodyText, $linkUrls);
     }
 
     return $html;

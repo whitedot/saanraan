@@ -23,6 +23,7 @@ return [
     ],
     'settings' => [
         'editor' => 'textarea',
+        'plain_text_auto_link_urls' => false,
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
         'layout_primary_menu_key' => 'header',

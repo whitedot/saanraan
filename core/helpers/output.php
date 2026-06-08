@@ -169,8 +169,48 @@ function sr_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function sr_plain_text_html(string $value): string
+function sr_linkify_plain_text_urls(string $value): string
 {
+    if ($value === '') {
+        return '';
+    }
+
+    $pattern = '~https?://[^\s<>"\']+~iu';
+    if (preg_match_all($pattern, $value, $matches, PREG_OFFSET_CAPTURE) < 1) {
+        return sr_e($value);
+    }
+
+    $html = '';
+    $offset = 0;
+    foreach ($matches[0] as $match) {
+        $url = (string) $match[0];
+        $matchOffset = (int) $match[1];
+        $trailing = '';
+        while ($url !== '' && preg_match('/[.,!?;:\)\]\}]\z/u', $url) === 1) {
+            $trailing = substr($url, -1) . $trailing;
+            $url = substr($url, 0, -1);
+        }
+
+        $html .= sr_e(substr($value, $offset, $matchOffset - $offset));
+        if ($url !== '' && sr_is_http_url($url)) {
+            $escapedUrl = sr_e($url);
+            $html .= '<a href="' . $escapedUrl . '" rel="nofollow noopener noreferrer">' . $escapedUrl . '</a>';
+            $html .= sr_e($trailing);
+        } else {
+            $html .= sr_e((string) $match[0]);
+        }
+        $offset = $matchOffset + strlen((string) $match[0]);
+    }
+
+    return $html . sr_e(substr($value, $offset));
+}
+
+function sr_plain_text_html(string $value, bool $linkUrls = false): string
+{
+    if ($linkUrls) {
+        return nl2br(sr_linkify_plain_text_urls($value), false);
+    }
+
     return nl2br(sr_e($value), false);
 }
 
@@ -329,14 +369,14 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
     return $attributes;
 }
 
-function sr_body_text_html(array $record): string
+function sr_body_text_html(array $record, bool $linkPlainUrls = false): string
 {
     $bodyText = (string) ($record['body_text'] ?? '');
     if ((string) ($record['body_format'] ?? 'plain') === 'html') {
         return sr_sanitize_rich_text_html($bodyText);
     }
 
-    return sr_plain_text_html($bodyText);
+    return sr_plain_text_html($bodyText, $linkPlainUrls);
 }
 
 function sr_body_text_is_empty(string $bodyText, string $bodyFormat): bool

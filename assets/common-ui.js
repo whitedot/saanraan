@@ -583,6 +583,22 @@
     return '';
   }
 
+  function absoluteUrl(value) {
+    var url = safeUrl(value);
+    if (url === '') {
+      return '';
+    }
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+
+    try {
+      return new URL(url, window.location.origin).toString();
+    } catch (error) {
+      return url;
+    }
+  }
+
   function safeToken(value, pattern, fallback) {
     var text = String(value || '').trim();
     return pattern.test(text) ? text : fallback;
@@ -631,10 +647,11 @@
     var summary = String(item.summary || '').trim();
     var meta = String(item.meta || '').trim();
     var url = safeUrl(item.url || '');
+    var textUrl = absoluteUrl(url);
     var textParts = [title];
 
-    if (url !== '') {
-      textParts.push(url);
+    if (textUrl !== '') {
+      textParts.push(textUrl);
     }
     if (summary !== '') {
       textParts.push(summary);

@@ -383,6 +383,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-form-help">새 게시판 그룹과 새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
             </div>
         </div>
+        <div class="admin-form-row">
+            <span class="form-label">본문 URL 자동 링크</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), 'plain text 게시글 안의 http/https URL을 링크로 변환'); ?>
+                <p class="admin-form-help">textarea로 저장된 plain text 게시글에만 적용합니다. HTML 게시글은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
+            </div>
+        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">

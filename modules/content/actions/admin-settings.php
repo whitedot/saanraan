@@ -34,6 +34,7 @@ if (sr_request_method() === 'POST') {
     $postedAuthorRewardAmount = sr_admin_post_int_in_range('member_submission_author_reward_amount', 0, 999999999);
     $postedSettings = [
         'editor' => sr_editor_normalize_key($postedEditorInput),
+        'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'layout_primary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),

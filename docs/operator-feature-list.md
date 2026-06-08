@@ -245,7 +245,8 @@
 | 저장 fallback | 에디터가 비활성화되거나 로딩에 실패해도 textarea 제출 흐름이 유지되어 본문 저장 자체가 막히지 않는다. | 성공 시 HTML 저장, 비활성/실패 시 plain textarea 저장 |
 | 모듈별 저장 정책 | 콘텐츠와 커뮤니티가 각자 본문 저장과 출력 정책을 소유해 에디터는 입력 경험만 제공하고 도메인 정책을 침범하지 않는다. | 화면 소유 모듈 저장 정책, 서버 측 HTML sanitizer |
 | 본문 이미지 업로드 | 콘텐츠, 커뮤니티, 팝업레이어처럼 화면을 소유한 모듈이 업로드 endpoint와 저장소 정리 정책을 넘기고 CKEditor는 adapter 연결만 맡는다. | `data-sr-editor-upload-*`, 모듈별 body-file upload, CSRF, 저장소 key |
-| 검색 링크 삽입 | CKEditor 본문에는 허용 HTML 링크 조각을, 일반 textarea에는 제목과 URL 텍스트를 넣어 복사와 외부 붙여넣기에서도 의미가 남게 한다. | 검색 대상 삽입, 허용 HTML 저장, plain text 저장 |
+| 검색 링크 삽입 | CKEditor 본문에는 허용 HTML 링크 조각을, 일반 textarea에는 제목과 절대 URL 텍스트를 넣어 복사와 외부 붙여넣기에서도 의미가 남게 한다. | 검색 대상 삽입, 허용 HTML 저장, plain text 저장, 절대 URL |
+| Plain URL 자동 링크 | 콘텐츠/커뮤니티 환경설정에서 textarea로 저장된 plain text 본문의 http/https URL을 공개 화면 링크로 변환할지 정한다. | 본문 URL 자동 링크, HTML 본문 제외, nofollow 링크 |
 
 ## 보안과 안정성
 
