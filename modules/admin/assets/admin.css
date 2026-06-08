@@ -266,7 +266,9 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-policy-set-field>.admin-check-list{align-self:flex-start;justify-content:flex-start;margin-top:0;order:1}
 .admin-form .admin-policy-set-field>.admin-form-help{flex-basis:100%;margin-top:0;order:3;text-align:left}
 .admin-form .admin-policy-set-field>.admin-select-badge-list{flex:1 1 22rem;order:1}
-.admin-site-name-reference-action{display:flex;justify-content:flex-start;margin-top:calc(var(--spacing) * 2)}
+.admin-site-name-reference-line{align-items:end;display:flex;gap:calc(var(--spacing) * 2);max-width:100%;width:100%}
+.admin-site-name-reference-line>.form-input{flex:0 1 auto;min-width:0;width:fit-content}
+.admin-site-name-reference-action{display:flex;flex:0 0 auto;justify-content:flex-start;margin-top:0}
 .admin-site-name-reference-action>.btn-icon{height:calc(var(--spacing) * 9.25);width:calc(var(--spacing) * 9.25)}
 .admin-setting-source-options{align-items:center;display:inline-flex;flex:0 0 auto;gap:calc(var(--spacing) * 2.5);justify-content:flex-end;margin-left:auto;white-space:nowrap}
 .admin-setting-source-options>.admin-form-check{color:var(--admin-muted-text);font-size:var(--type-small-size);line-height:var(--type-small-line-height);min-height:calc(var(--spacing) * 9.25)}
