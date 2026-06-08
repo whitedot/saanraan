@@ -12,6 +12,8 @@
 | `coupon` | `issue.created`, `issue.status_updated`, `redemption.redeemed`, `redemption.refunded` | 회원 | `site` | 쿠폰·이용권 발급/상태 변경/사용/환불 알림 |
 | `content` | `comment.created`, `comment.mention` | 콘텐츠 작성자, 멘션 회원 | `site` | 콘텐츠 댓글 작성자 알림, 콘텐츠 댓글 멘션 알림 |
 | `community` | `comment.created`, `comment.mention` | 게시글 작성자, 멘션 회원 | `site` | 게시글 댓글 작성자 알림, 커뮤니티 댓글 멘션 알림 |
+| `quiz` | `comment.mention` | 멘션 회원 | `site` | 퀴즈 댓글 멘션 알림 |
+| `survey` | `comment.mention` | 멘션 회원 | `site` | 설문 댓글 멘션 알림 |
 
 반복 이벤트는 `sr_notification_event_templates`의 DB 템플릿을 사용한다. 알림 모듈이 비활성화되었거나 템플릿이 누락되면 소비 모듈 작업은 실패하지 않고 no-op으로 처리한다.
 
@@ -27,8 +29,9 @@
 ## 1차 구현 결정
 
 - `module_key=content/community`, `event_key=comment.created/comment.mention` 기본 템플릿을 알림 모듈 설치 SQL과 `2026.06.002` 업데이트 SQL에 추가한다.
+- `module_key=quiz/survey`, `event_key=comment.mention` 기본 템플릿은 퀴즈/설문 댓글 작성 기능과 함께 알림 모듈 설치 SQL과 `2026.06.004` 업데이트 SQL에 추가한다.
 - 콘텐츠/커뮤니티 댓글 알림 생성은 `notification-events.php`의 `create_account_event_function` 계약으로 전환한다.
-- 자기 알림은 제외한다. 멘션 알림은 댓글 작성자와 글/콘텐츠 작성자를 대상에서 제외한다.
+- 자기 알림은 제외한다. 멘션 알림은 댓글 작성자와 글/콘텐츠 작성자를 대상에서 제외한다. 퀴즈/설문 댓글은 작성자 자신을 제외하고, 비밀 댓글은 멘션 알림을 만들지 않는다.
 - 댓글 작성자 알림과 멘션 알림은 알림 모듈 비활성화 또는 템플릿 누락 시 no-op으로 처리하고 댓글 저장을 실패시키지 않는다.
 
 ## 후속 분리

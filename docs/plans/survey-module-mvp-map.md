@@ -16,12 +16,14 @@
 - 보상 중복 방지: `sr_survey_reward_grants.dedupe_key`
 - sitemap, 공개 레이아웃, 초기화면 후보, 개인정보 export/cleanup, 쿠폰 정의 참조, 회원 그룹 참조 계약
 - 통계와 CSV: 원본, 분석용 row-per-answer, 코드북 CSV
+- 공개 설문 댓글: `comments_enabled`가 켜진 설문에서 로그인 회원 댓글, 비밀 댓글, 댓글 멘션 알림
 
 ## 의존성
 
 - 필수 모듈: `member`, `admin`
 - 선택 보상 공급자: `point`, `reward`, `deposit` 같은 `member-assets.php` 제공 모듈
 - 선택 쿠폰 보상: `coupon`
+- 선택 댓글 멘션 알림: `notification`
 - 선택 sitemap 노출: `seo`
 
 ## 비범위 또는 후속
@@ -38,4 +40,4 @@
 
 관리자 미리보기와 테스트 제출은 `sr_survey_responses.is_test = 1`로 저장하고 실제 보상을 지급하지 않는다. 통계와 분석 CSV는 테스트 응답과 제외 응답을 기본 집계에서 뺀다.
 
-선택형 통계는 숫자 ID가 아니라 `question_key`/`choice_key` 기준으로 집계한다. 기타 선택지 텍스트는 `sr_survey_response_answers.other_text`에 저장한다. 개인정보 사본 제공은 응답 스냅샷과 `sr_survey_response_answers`의 안정 key 기반 답변 행을 함께 포함하며, 탈퇴/익명화 cleanup은 설문/퀴즈 보상 grant의 `dedupe_key`를 익명화한다. 설문 완료 화면은 URL query의 보상 상태를 신뢰하지 않는다.
+선택형 통계는 숫자 ID가 아니라 `question_key`/`choice_key` 기준으로 집계한다. 기타 선택지 텍스트는 `sr_survey_response_answers.other_text`에 저장한다. 개인정보 사본 제공은 응답 스냅샷, `sr_survey_response_answers`의 안정 key 기반 답변 행, 작성 댓글을 함께 포함하며, 탈퇴/익명화 cleanup은 설문/퀴즈 보상 grant의 `dedupe_key`를 익명화하고 설문 댓글 작성자 연결과 snapshot을 비운다. 설문 완료 화면은 URL query의 보상 상태를 신뢰하지 않는다.

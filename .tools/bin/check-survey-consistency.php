@@ -144,6 +144,14 @@ foreach ([
     );
 }
 
+foreach (['member-assets.php', 'notification-events.php'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/module.php',
+        $needle,
+        'Survey module metadata must declare consumed contracts'
+    );
+}
+
 foreach (['other_answers[', 'sr-survey-other-input'] as $needle) {
     sr_survey_check_contains(
         'modules/survey/actions/view.php',

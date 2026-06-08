@@ -172,6 +172,10 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_refresh_reward_grant_for_retry',
         'reference_type\' => \'quiz_reward',
     ]);
+    sr_quiz_check_file_contains('modules/quiz/module.php', [
+        'member-assets.php',
+        'notification-events.php',
+    ]);
     sr_quiz_check_file_contains('modules/quiz/actions/admin-quiz.php', [
         'sr_require_csrf()',
         'sr_quiz_admin_quizzes',

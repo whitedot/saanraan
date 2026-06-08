@@ -44,6 +44,7 @@ return [
         ],
         'consumes' => [
             'member-assets.php',
+            'notification-events.php',
         ],
     ],
     'service_domain' => [

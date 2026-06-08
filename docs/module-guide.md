@@ -982,7 +982,7 @@ return [
 - 알림 모듈 폴더 기준 `helpers`, `create_function`, `create_account_event_function`을 제공한다.
 - 소비 모듈은 알림 모듈이 활성화되어 있고 계약 파일이 loadable일 때만 helper를 로드한다.
 - 알림 제목, 본문, 링크, 채널, delivery queue 정책은 알림 모듈의 템플릿과 설정이 소유한다.
-- 자산, 쿠폰, 콘텐츠/커뮤니티 댓글 작성자 알림과 댓글 멘션처럼 템플릿 기반 알림을 쓰는 모듈은 `module_key`, `event_key`, `metadata`만 넘긴다.
+- 자산, 쿠폰, 콘텐츠/커뮤니티 댓글 작성자 알림과 댓글 멘션, 퀴즈/설문 댓글 멘션처럼 템플릿 기반 알림을 쓰는 모듈은 `module_key`, `event_key`, `metadata`만 넘긴다.
 - 댓글 멘션 대상 해석은 member 공개 이름/멘션 helper를 사용한다. `@공개이름#prefix`는 현재 공개 이름과 public account hash prefix가 함께 단일 활성 회원에 일치할 때만 확정하고, 동명이인에게 `@공개이름`만 입력한 모호한 멘션은 알림 대상으로 확정하지 않는다.
 - 쪽지, 신고, 운영 조치처럼 아직 템플릿화하지 않은 알림도 계약의 일반 생성 함수만 호출하며 알림 저장 테이블을 직접 쓰지 않는다.
 - 후속 `notification-catalog.php`가 도입되더라도 1차 역할은 이벤트 seed/default 후보와 설정 UI metadata 선언으로 제한하고, 런타임 권한 정책이나 알림 저장 정책은 이 계약에 숨기지 않는다. 관리자 운영 알림 드롭다운의 권한 재검증은 별도 `notification-permissions.php` 같은 좁은 계약으로 분리한다.
@@ -1073,7 +1073,7 @@ return [
 | `member-group-references.php` | `member` 모듈 | 회원 그룹 비활성/보관/key 변경 전 | 회원 그룹 ID/key를 저장한 모듈 정책 역방향 참조 조회 |
 | `site-setting-references.php` | `admin` 모듈 | 사이트명 변경 전 | 사이트명을 복사 저장한 모듈 설정 역방향 참조 조회 |
 | `logo-positions.php` | `logo_manager` 모듈 | 로고 배치 생성 화면 | 모듈별 로고 용도 후보 |
-| `notification-events.php` | `point`, `reward`, `deposit`, `coupon`, `content`, `community` 모듈 | 거래/쿠폰 상태 변경 성공 뒤, 댓글 작성자/멘션/쪽지/신고/운영 조치 알림 생성 시 | 선택 알림 모듈의 계정 알림 생성 함수 |
+| `notification-events.php` | `point`, `reward`, `deposit`, `coupon`, `content`, `community`, `quiz`, `survey` 모듈 | 거래/쿠폰 상태 변경 성공 뒤, 댓글 작성자/멘션/쪽지/신고/운영 조치 알림 생성 시 | 선택 알림 모듈의 계정 알림 생성 함수 |
 
 읽기 참조 계약의 `count_function`은 `rows_function`이 반환할 row 수와 같은 기준이어야 한다. 번들 계약 검사는 `count_function` 함수 본문 전체가 대응 `rows_function($pdo, $target, $context)` 결과를 직접 세는 단일 반환문인지 확인한다.
 
@@ -1097,8 +1097,8 @@ return [
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `coupon-references.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
 | `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
-| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php`, `sitemap.php` | `member-assets.php` |
-| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php` | `member-assets.php` |
+| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php`, `sitemap.php` | `member-assets.php`, `notification-events.php` |
+| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `layout-options.php`, `coupon-references.php`, `member-group-references.php` | `member-assets.php`, `notification-events.php` |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:

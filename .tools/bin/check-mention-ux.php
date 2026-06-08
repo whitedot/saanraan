@@ -82,12 +82,22 @@ foreach ([
 foreach ([
     '/modules/community/skins/basic/view.php',
     '/modules/content/views/content.php',
+    '/modules/quiz/actions/view.php',
+    '/modules/survey/actions/view.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, 'data-sr-mention-input'), 'comment view should enable mention input: ' . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, '/member/mention-search'), 'comment view should point to member mention search: ' . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, 'sr_member_mention_plain_text_html'), 'comment view should render mention tokens through the shared renderer: ' . $viewPath);
 }
+
+$notificationInstallSql = file_get_contents($root . '/modules/notification/install.sql');
+sr_mention_check_assert(is_string($notificationInstallSql) && str_contains($notificationInstallSql, "('quiz', 'comment.mention'"), 'notification install SQL should seed quiz comment mention template.');
+sr_mention_check_assert(is_string($notificationInstallSql) && str_contains($notificationInstallSql, "('survey', 'comment.mention'"), 'notification install SQL should seed survey comment mention template.');
+
+$notificationUpdateSql = file_get_contents($root . '/modules/notification/updates/2026.06.004.sql');
+sr_mention_check_assert(is_string($notificationUpdateSql) && str_contains($notificationUpdateSql, "('quiz', 'comment.mention'"), 'notification update SQL should seed quiz comment mention template.');
+sr_mention_check_assert(is_string($notificationUpdateSql) && str_contains($notificationUpdateSql, "('survey', 'comment.mention'"), 'notification update SQL should seed survey comment mention template.');
 
 $foundationCss = file_get_contents($root . '/assets/public-foundation.css');
 sr_mention_check_assert(is_string($foundationCss) && str_contains($foundationCss, '.sr-mention'), 'public foundation CSS should define rendered mention styles.');
