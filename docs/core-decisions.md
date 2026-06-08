@@ -126,10 +126,10 @@
 - 내부 키는 `embed_manager`, 운영자 표시명과 메뉴명은 `임베드 매니저`다.
 - 관리자 사이드메뉴는 `service` 카테고리의 마지막 쪽에 둔다. 기본값은 `category_order=30`, `menu_order=990`이고, 운영자 메뉴 오버라이드는 기존 정책대로 최종 적용한다.
 - CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `embed_manager`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
-- 현재 1.0 정책은 검색 결과를 일반 HTML 또는 텍스트 링크로 삽입하고 별도 참조 점검 화면을 요구하지 않는 것이다. `embed_manager`는 이 정책의 변경 후보로, 본문 안의 제한된 marker와 `sr_embed_manager_refs`를 함께 사용한다.
-- 본문 marker는 예를 들어 `<span class="sr-embed-manager-marker" data-sr-embed-manager-ref="em_8f3k2"></span>`처럼 sanitizer가 허용하는 제한된 마크업만 사용한다.
+- 콘텐츠/커뮤니티 CKEditor 검색 삽입은 본문 안의 제한된 marker와 `sr_embed_manager_refs`를 함께 사용한다. 일반 textarea fallback은 텍스트 링크만 삽입하므로 refs 동기화 대상이 아니다.
+- 본문 marker는 예를 들어 `<span class="sr-embed-manager-marker" data-sr-embed-manager-ref="em_8f3k2" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="1"></span>`처럼 sanitizer가 허용하는 제한된 마크업만 사용한다.
 - refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니라 임베드 렌더링과 관리자 점검을 위한 명시적 참조다. 대상 삭제나 비활성화는 기본적으로 refs 때문에 자동 차단하지 않고, 공개 렌더링에서 broken/private/deleted 상태로 표시하며 관리자 점검 화면에서 다룬다.
-- 저장 검증은 본문 marker 목록과 POST된 refs payload를 같은 transaction에서 검증/동기화해야 한다. 본문에 없는 refs, refs 없는 marker, 중복 marker, 다른 owner의 ref_key, 비활성 대상 모듈 ref를 서버에서 처리한다.
+- 저장 검증은 최종 본문 marker 목록을 같은 transaction에서 검증/동기화해야 한다. 본문에 없는 기존 refs, 대상 정보 없는 신규 marker, 중복 marker, 다른 owner의 ref_key, 비활성 대상 모듈 ref를 서버에서 처리한다.
 - 복사 시 기존 refs를 공유하지 않고 새 owner 기준으로 복제하며, ref_key가 바뀌면 본문 marker도 함께 rewrite한다.
 - 대상 모듈은 `embed-manager-targets.php` 계약으로 검색 후보, target id 검증, 공개 URL, snapshot, broken/private/deleted 상태, 허용 variant, 공개 열람 가능 여부를 제공한다.
 - `embed_manager`는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.

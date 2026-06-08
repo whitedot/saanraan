@@ -36,7 +36,7 @@
 | 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지 |
 | 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계 보상 기반 |
 | 서비스 | `survey` | 설문 작성, 응답, 통계, CSV, 보상 기반 |
-| 서비스 | `embed_manager` | 본문 임베드 참조 점검과 marker/refs 모델 후보 |
+| 서비스 | `embed_manager` | 본문 임베드 참조 점검과 marker/refs 동기화 |
 | 운영 | `notification` | 사이트 알림, 이메일 delivery queue |
 | 운영 | `privacy` | 개인정보 요청과 사본 제공 조정 |
 | 플러그인 | `ckeditor` | textarea 에디터 강화 |
