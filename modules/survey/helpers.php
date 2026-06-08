@@ -12,6 +12,20 @@ function sr_survey_key_is_reserved(string $key): bool
     return in_array($key, ['comment', 'ui_kit', 'admin'], true);
 }
 
+function sr_survey_internal_return_path(string $value): string
+{
+    $value = trim($value);
+    if ($value === '' || $value[0] !== '/' || str_starts_with($value, '//')) {
+        return '';
+    }
+
+    if (preg_match('/[\r\n]/', $value) === 1) {
+        return '';
+    }
+
+    return substr($value, 0, 255);
+}
+
 function sr_survey_clean_key(string $value, int $maxLength = 64): string
 {
     $value = strtolower(trim($value));

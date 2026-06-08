@@ -307,11 +307,16 @@ function sr_content_html_body_enabled(PDO $pdo): bool
     return sr_content_editor_key($pdo) === 'ckeditor';
 }
 
-function sr_content_body_html(array $page, ?array $settings = null): string
+function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = null): string
 {
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
 
-    return sr_body_text_html($page, $linkPlainUrls);
+    $html = sr_body_text_html($page, $linkPlainUrls);
+    if ($pdo instanceof PDO && (string) ($page['body_format'] ?? 'plain') === 'html') {
+        $html = sr_embed_manager_render_body_html($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
+    }
+
+    return $html;
 }
 
 function sr_content_link_card_resolve_many(PDO $pdo, array $types): array

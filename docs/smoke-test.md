@@ -21,9 +21,11 @@ SQL 파일 비어 있음 여부
 보상/설문 정합성 회귀 점검
 ```
 
-현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`가 확인하며 둘 다 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
+현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`, 임베드 매니저 계약 구조 기준은 `.tools/bin/check-embed-manager-contracts.php`가 확인하며 모두 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
 
 설문 모듈을 확인할 때는 기타 선택지를 고른 공개 응답이 기타 텍스트를 요구하고, 분석 CSV와 개인정보 사본의 `other_text`에 저장되는지 함께 본다.
+
+본문 임베드 변경을 확인할 때는 콘텐츠 관리자 화면에서 커뮤니티 게시글/퀴즈/설문 검색 결과를 CKEditor 본문에 삽입하고 저장 후 `sr_embed_manager_refs`가 동기화되는지 확인한다. 커뮤니티 작성 화면에서는 콘텐츠/퀴즈/설문 검색 후보가 공개 후보만 노출되는지 확인한다. 공개 콘텐츠/게시글 화면은 marker fallback blockquote가 카드/CTA로 치환되고, 퀴즈·설문 완료 후 `return_to` 링크로 원래 화면에 돌아갈 수 있어야 한다. 가능하면 브라우저 QA로 CKEditor 삽입까지 확인하고, 불가능하면 로컬 수동 smoke 결과와 미실행 사유를 기록한다.
 
 1.0 릴리스 후보에서는 정적 점검 통과만으로 완료 판정하지 않는다. [1.0 범위 잠금 기준](1.0-scope.md)의 포함 모듈을 기준으로 HTTP 스모크와 필요한 브라우저 수동 점검을 함께 기록한다.
 

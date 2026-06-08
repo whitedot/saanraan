@@ -108,6 +108,228 @@ function sr_embed_manager_allowed_statuses(): array
     return ['active', 'removed', 'broken', 'private', 'deleted'];
 }
 
+function sr_embed_manager_normalize_contract_target(array $definition): array
+{
+    $targetModule = sr_embed_manager_clean_identifier((string) ($definition['target_module'] ?? ''));
+    $targetType = sr_embed_manager_clean_identifier((string) ($definition['target_type'] ?? ''));
+    if ($targetModule === '' || $targetType === '') {
+        return [];
+    }
+
+    $variants = [];
+    foreach ((array) ($definition['allowed_variants'] ?? ['card']) as $variant) {
+        $variant = sr_embed_manager_clean_identifier((string) $variant);
+        if ($variant !== '') {
+            $variants[$variant] = true;
+        }
+    }
+    if ($variants === []) {
+        $variants['card'] = true;
+    }
+
+    foreach (['search', 'resolve'] as $callableKey) {
+        if (!is_callable($definition[$callableKey] ?? null)) {
+            return [];
+        }
+    }
+
+    $definition['target_module'] = $targetModule;
+    $definition['target_type'] = $targetType;
+    $definition['allowed_variants'] = array_keys($variants);
+    $definition['default_variant'] = in_array((string) ($definition['default_variant'] ?? 'card'), $definition['allowed_variants'], true)
+        ? (string) ($definition['default_variant'] ?? 'card')
+        : $definition['allowed_variants'][0];
+
+    return $definition;
+}
+
+function sr_embed_manager_contract_targets(PDO $pdo): array
+{
+    $targets = [];
+    foreach (sr_enabled_module_contract_files($pdo, 'embed-manager-targets.php', ['embed_manager']) as $moduleKey => $file) {
+        $contract = sr_load_module_contract_file($moduleKey, $file);
+        if (!is_array($contract)) {
+            continue;
+        }
+
+        foreach ((array) ($contract['targets'] ?? []) as $definition) {
+            if (!is_array($definition)) {
+                continue;
+            }
+
+            $definition = sr_embed_manager_normalize_contract_target($definition);
+            if ($definition === []) {
+                continue;
+            }
+
+            $targets[(string) $definition['target_module']][(string) $definition['target_type']] = $definition;
+        }
+    }
+
+    return $targets;
+}
+
+function sr_embed_manager_contract_target(PDO $pdo, string $targetModule, string $targetType): ?array
+{
+    $targetModule = sr_embed_manager_clean_identifier($targetModule);
+    $targetType = sr_embed_manager_clean_identifier($targetType);
+    if ($targetModule === '' || $targetType === '') {
+        return null;
+    }
+
+    $targets = sr_embed_manager_contract_targets($pdo);
+    return isset($targets[$targetModule][$targetType]) && is_array($targets[$targetModule][$targetType])
+        ? $targets[$targetModule][$targetType]
+        : null;
+}
+
+function sr_embed_manager_normalize_target_filter(string $target): array
+{
+    $target = trim($target);
+    $legacy = [
+        'content' => ['content', 'content'],
+        'community_post' => ['community', 'post'],
+        'post' => ['community', 'post'],
+        'quiz_set' => ['quiz', 'quiz_set'],
+        'survey_form' => ['survey', 'survey_form'],
+    ];
+    if (isset($legacy[$target])) {
+        return [$legacy[$target]];
+    }
+
+    foreach ([':', '/', '.'] as $separator) {
+        if (str_contains($target, $separator)) {
+            [$module, $type] = array_pad(explode($separator, $target, 2), 2, '');
+            $module = sr_embed_manager_clean_identifier($module);
+            $type = sr_embed_manager_clean_identifier($type);
+            return $module !== '' && $type !== '' ? [[$module, $type]] : [];
+        }
+    }
+
+    return [];
+}
+
+function sr_embed_manager_target_filters_from_value(string $value): array
+{
+    $filters = [];
+    foreach (preg_split('/\s*,\s*/', $value) ?: [] as $target) {
+        foreach (sr_embed_manager_normalize_target_filter((string) $target) as $filter) {
+            $filters[implode(':', $filter)] = $filter;
+        }
+    }
+
+    return array_values($filters);
+}
+
+function sr_embed_manager_normalize_target_result(array $row, string $targetModule, string $targetType, array $definition): ?array
+{
+    $targetId = sr_embed_manager_clean_target_id((string) ($row['target_id'] ?? $row['entity_id'] ?? $row['id'] ?? ''));
+    if ($targetId === '') {
+        return null;
+    }
+
+    $label = sr_embed_manager_clean_label((string) ($row['label_snapshot'] ?? $row['title'] ?? ''));
+    if ($label === '') {
+        $label = $targetModule . ' #' . $targetId;
+    }
+
+    $status = (string) ($row['status'] ?? 'active');
+    if (!in_array($status, sr_embed_manager_allowed_statuses(), true)) {
+        $status = 'broken';
+    }
+
+    $variant = (string) ($row['variant'] ?? $definition['default_variant'] ?? 'card');
+    if (!in_array($variant, (array) ($definition['allowed_variants'] ?? ['card']), true)) {
+        $variant = (string) ($definition['default_variant'] ?? 'card');
+    }
+
+    $publicUrl = sr_embed_manager_safe_url((string) ($row['public_url'] ?? $row['url'] ?? ''));
+    $adminUrl = sr_embed_manager_safe_url((string) ($row['admin_url'] ?? ''));
+
+    return [
+        'module' => $targetModule,
+        'entity_type' => $targetType,
+        'entity_id' => $targetId,
+        'title' => $label,
+        'summary' => sr_embed_manager_clean_summary((string) ($row['summary'] ?? '')),
+        'url' => $publicUrl,
+        'admin_url' => $adminUrl,
+        'status' => $status,
+        'meta' => sr_embed_manager_clean_summary((string) ($row['meta'] ?? '')),
+        'embed' => sr_embed_manager_search_payload($targetModule, $targetType, $targetId, $label, $variant),
+    ];
+}
+
+function sr_embed_manager_search_targets(PDO $pdo, string $keyword, int $limit, array $context = []): array
+{
+    $limit = max(1, min(30, $limit));
+    $filters = sr_embed_manager_target_filters_from_value((string) ($context['targets'] ?? $context['target'] ?? ''));
+    $filterMap = [];
+    foreach ($filters as $filter) {
+        $filterMap[implode(':', $filter)] = true;
+    }
+
+    $items = [];
+    foreach (sr_embed_manager_contract_targets($pdo) as $targetModule => $types) {
+        foreach ($types as $targetType => $definition) {
+            if ($filterMap !== [] && !isset($filterMap[$targetModule . ':' . $targetType])) {
+                continue;
+            }
+
+            $search = $definition['search'] ?? null;
+            if (!is_callable($search)) {
+                continue;
+            }
+
+            try {
+                $rows = $search($pdo, [
+                    'keyword' => $keyword,
+                    'limit' => $limit,
+                    'context' => (string) ($context['context'] ?? 'public'),
+                    'viewer_account_id' => (int) ($context['viewer_account_id'] ?? 0),
+                    'owner_module' => (string) ($context['owner_module'] ?? ''),
+                    'owner_type' => (string) ($context['owner_type'] ?? ''),
+                ]);
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'embed_manager_search_failed_' . $targetModule . '_' . $targetType);
+                continue;
+            }
+
+            foreach ((array) $rows as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $item = sr_embed_manager_normalize_target_result($row, (string) $targetModule, (string) $targetType, $definition);
+                if (is_array($item)) {
+                    $items[] = $item;
+                }
+            }
+        }
+    }
+
+    return array_slice($items, 0, $limit);
+}
+
+function sr_embed_manager_clean_summary(string $value): string
+{
+    $value = trim(preg_replace('/\s+/', ' ', strip_tags($value)) ?? '');
+    return function_exists('mb_substr') ? mb_substr($value, 0, 240) : substr($value, 0, 240);
+}
+
+function sr_embed_manager_safe_url(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (sr_is_safe_relative_url($value) || (sr_is_http_url($value) && strtolower((string) parse_url($value, PHP_URL_SCHEME)) === 'https')) {
+        return $value;
+    }
+
+    return '';
+}
+
 function sr_embed_manager_table_exists(PDO $pdo): bool
 {
     static $exists = null;
@@ -275,6 +497,13 @@ function sr_embed_manager_sync_body_refs(PDO $pdo, string $ownerModule, string $
         if ($target === null) {
             throw new InvalidArgumentException('본문 임베드 대상이 올바르지 않습니다.');
         }
+        $allowedVariants = (array) ($target['allowed_variants'] ?? ['card']);
+        if ($variant === '') {
+            $variant = (string) ($target['default_variant'] ?? 'card');
+        }
+        if (!in_array($variant, $allowedVariants, true)) {
+            throw new InvalidArgumentException('본문 임베드 표시 방식이 지원되지 않습니다.');
+        }
         if ($label === '') {
             $label = (string) ($target['label_snapshot'] ?? '');
         }
@@ -337,7 +566,7 @@ function sr_embed_manager_ref_by_key(PDO $pdo, string $refKey): ?array
     return is_array($row) ? $row : null;
 }
 
-function sr_embed_manager_resolve_target(PDO $pdo, string $targetModule, string $targetType, string $targetId): ?array
+function sr_embed_manager_resolve_target(PDO $pdo, string $targetModule, string $targetType, string $targetId, array $context = []): ?array
 {
     $targetModule = sr_embed_manager_clean_identifier($targetModule);
     $targetType = sr_embed_manager_clean_identifier($targetType);
@@ -346,14 +575,234 @@ function sr_embed_manager_resolve_target(PDO $pdo, string $targetModule, string 
         return null;
     }
 
-    if ($targetModule === 'content' && $targetType === 'content') {
-        return sr_embed_manager_resolve_content_target($pdo, (int) $targetId);
-    }
-    if ($targetModule === 'community' && $targetType === 'post') {
-        return sr_embed_manager_resolve_community_post_target($pdo, (int) $targetId);
+    $definition = sr_embed_manager_contract_target($pdo, $targetModule, $targetType);
+    if (!is_array($definition) || !is_callable($definition['resolve'] ?? null)) {
+        return null;
     }
 
-    return null;
+    try {
+        $target = $definition['resolve']($pdo, array_merge($context, ['target_id' => $targetId]));
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'embed_manager_resolve_failed_' . $targetModule . '_' . $targetType);
+        return null;
+    }
+
+    if (!is_array($target)) {
+        return null;
+    }
+
+    $target['target_module'] = $targetModule;
+    $target['target_type'] = $targetType;
+    $target['target_id'] = $targetId;
+    $target['label_snapshot'] = sr_embed_manager_clean_label((string) ($target['label_snapshot'] ?? $target['title'] ?? ''));
+    $target['summary'] = sr_embed_manager_clean_summary((string) ($target['summary'] ?? ''));
+    $target['image_snapshot'] = sr_embed_manager_safe_url((string) ($target['image_snapshot'] ?? ''));
+    $target['public_url'] = sr_embed_manager_safe_url((string) ($target['public_url'] ?? $target['url'] ?? ''));
+    $target['admin_url'] = sr_embed_manager_safe_url((string) ($target['admin_url'] ?? ''));
+    $target['status'] = in_array((string) ($target['status'] ?? 'active'), sr_embed_manager_allowed_statuses(), true) ? (string) $target['status'] : 'broken';
+    $target['allowed_variants'] = (array) ($definition['allowed_variants'] ?? ['card']);
+    $target['default_variant'] = (string) ($definition['default_variant'] ?? 'card');
+
+    if ((string) $target['label_snapshot'] === '') {
+        $target['label_snapshot'] = $targetModule . ' #' . $targetId;
+    }
+
+    return $target;
+}
+
+function sr_embed_manager_owner_public_url(PDO $pdo, string $ownerModule, string $ownerType, int $ownerId): string
+{
+    if ($ownerModule === 'content' && $ownerType === 'content' && $ownerId > 0) {
+        $stmt = $pdo->prepare('SELECT slug FROM sr_content_items WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $ownerId]);
+        $row = $stmt->fetch();
+        if (is_array($row) && function_exists('sr_content_path')) {
+            return sr_content_path((string) ($row['slug'] ?? ''));
+        }
+    }
+
+    if ($ownerModule === 'community' && $ownerType === 'post' && $ownerId > 0) {
+        return '/community/post?id=' . rawurlencode((string) $ownerId);
+    }
+
+    return '';
+}
+
+function sr_embed_manager_quiz_source_context_for_owner(PDO $pdo, int $quizId, string $ownerModule, string $ownerType, int $ownerId): array
+{
+    $sourceModule = '';
+    $sourceType = '';
+    if ($ownerModule === 'content' && $ownerType === 'content') {
+        $sourceModule = 'content';
+        $sourceType = 'content_item';
+    } elseif ($ownerModule === 'community' && $ownerType === 'post') {
+        $sourceModule = 'community';
+        $sourceType = 'community_post';
+    }
+
+    if ($quizId < 1 || $sourceModule === '' || $ownerId < 1) {
+        return [];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT id
+             FROM sr_quiz_sources
+             WHERE quiz_id = :quiz_id
+               AND source_module = :source_module
+               AND source_type = :source_type
+               AND source_id = :source_id
+               AND status = \'active\'
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'quiz_id' => $quizId,
+            'source_module' => $sourceModule,
+            'source_type' => $sourceType,
+            'source_id' => $ownerId,
+        ]);
+    } catch (Throwable $exception) {
+        return [];
+    }
+
+    return is_array($stmt->fetch()) ? [
+        'source_module' => $sourceModule,
+        'source_type' => $sourceType,
+        'source_id' => (string) $ownerId,
+    ] : [];
+}
+
+function sr_embed_manager_target_url(PDO $pdo, array $ref, array $target, array $context): string
+{
+    $url = sr_embed_manager_safe_url((string) ($target['public_url'] ?? ''));
+    if ($url === '') {
+        return '';
+    }
+
+    $ownerModule = (string) ($context['owner_module'] ?? '');
+    $ownerType = (string) ($context['owner_type'] ?? '');
+    $ownerId = (int) ($context['owner_id'] ?? 0);
+    $returnTo = sr_embed_manager_safe_url((string) ($context['return_to'] ?? ''));
+    if ($returnTo === '') {
+        $returnTo = sr_embed_manager_owner_public_url($pdo, $ownerModule, $ownerType, $ownerId);
+    }
+
+    $query = [];
+    if ($returnTo !== '') {
+        $query['return_to'] = $returnTo;
+    }
+    if ((string) ($ref['target_module'] ?? '') === 'quiz') {
+        $source = sr_embed_manager_quiz_source_context_for_owner($pdo, (int) ($ref['target_id'] ?? 0), $ownerModule, $ownerType, $ownerId);
+        $query = array_merge($query, $source);
+    }
+
+    if ($query === []) {
+        return $url;
+    }
+
+    return $url . (str_contains($url, '?') ? '&' : '?') . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+}
+
+function sr_embed_manager_render_target_card(PDO $pdo, array $ref, array $target, array $context): string
+{
+    $status = (string) ($target['status'] ?? 'broken');
+    $mode = (string) ($context['mode'] ?? 'public');
+    if ($mode === 'public' && $status !== 'active') {
+        return '';
+    }
+
+    $url = sr_embed_manager_target_url($pdo, $ref, $target, $context);
+    $title = (string) ($target['label_snapshot'] ?? $ref['label_snapshot'] ?? '');
+    $summary = (string) ($target['summary'] ?? '');
+    $variant = (string) ($ref['variant'] ?? 'card');
+    $statusLabel = $status === 'active' ? '' : ' (' . $status . ')';
+    $class = 'sr-embed-manager-card sr-embed-manager-card-' . sr_e($variant);
+
+    $html = '<aside class="' . $class . '" data-sr-embed-manager-rendered="1">';
+    $html .= '<strong>';
+    if ($url !== '' && $status === 'active') {
+        $html .= '<a href="' . sr_e($url) . '">' . sr_e($title) . '</a>';
+    } else {
+        $html .= sr_e($title);
+    }
+    $html .= sr_e($statusLabel) . '</strong>';
+    if ($summary !== '' && $variant !== 'button') {
+        $html .= '<p>' . sr_e($summary) . '</p>';
+    }
+    if ($url !== '' && $status === 'active') {
+        $label = (string) ($ref['target_module'] ?? '') === 'survey' ? '설문 참여' : ((string) ($ref['target_module'] ?? '') === 'quiz' ? '퀴즈 풀기' : '열기');
+        $html .= '<p><a class="btn btn-solid-primary" href="' . sr_e($url) . '">' . sr_e($label) . '</a></p>';
+    } elseif ($mode !== 'public' && (string) ($target['admin_url'] ?? '') !== '') {
+        $html .= '<p><a class="btn btn-solid-light" href="' . sr_e((string) $target['admin_url']) . '">관리 화면</a></p>';
+    }
+
+    return $html . '</aside>';
+}
+
+function sr_embed_manager_render_body_html(PDO $pdo, string $bodyHtml, string $ownerModule, string $ownerType, int $ownerId, string $ownerField = 'body', array $context = []): string
+{
+    if ($bodyHtml === '' || $ownerId < 1 || !sr_embed_manager_table_exists($pdo)) {
+        return $bodyHtml;
+    }
+
+    $ownerModule = sr_embed_manager_clean_identifier($ownerModule);
+    $ownerType = sr_embed_manager_clean_identifier($ownerType);
+    $ownerField = sr_embed_manager_clean_identifier($ownerField) ?: 'body';
+    $refs = sr_embed_manager_owner_refs_by_key($pdo, $ownerModule, $ownerType, $ownerId, $ownerField);
+    if ($refs === []) {
+        return $bodyHtml;
+    }
+
+    $context = array_merge($context, [
+        'owner_module' => $ownerModule,
+        'owner_type' => $ownerType,
+        'owner_id' => $ownerId,
+        'owner_field' => $ownerField,
+    ]);
+    if ((int) ($context['viewer_account_id'] ?? 0) < 1 && function_exists('sr_member_current_account')) {
+        $viewerAccount = sr_member_current_account($pdo);
+        if (is_array($viewerAccount)) {
+            $context['viewer_account_id'] = (int) ($viewerAccount['id'] ?? 0);
+        }
+    }
+
+    $renderMarker = function (string $markerHtml) use ($pdo, $refs, $context): string {
+        $attributes = sr_embed_manager_marker_attributes($markerHtml);
+        $refKey = sr_embed_manager_clean_ref_key((string) ($attributes['data-sr-embed-manager-ref'] ?? ''));
+        $ref = $refs[$refKey] ?? null;
+        if (!is_array($ref) || (string) ($ref['status'] ?? '') === 'removed') {
+            return '';
+        }
+
+        try {
+            $target = sr_embed_manager_resolve_target($pdo, (string) ($ref['target_module'] ?? ''), (string) ($ref['target_type'] ?? ''), (string) ($ref['target_id'] ?? ''), $context);
+            if (!is_array($target)) {
+                $target = ['label_snapshot' => (string) ($ref['label_snapshot'] ?? ''), 'status' => 'broken'];
+            }
+
+            return sr_embed_manager_render_target_card($pdo, $ref, $target, $context);
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'embed_manager_render_failed');
+            return '';
+        }
+    };
+
+    $bodyHtml = preg_replace_callback('/<blockquote\b[^>]*>.*?' . sr_embed_manager_marker_pattern_fragment() . '.*?<\/blockquote>/isu', static function (array $matches) use ($renderMarker): string {
+        if (preg_match(sr_embed_manager_marker_pattern(), (string) ($matches[0] ?? ''), $markerMatches) !== 1) {
+            return '';
+        }
+
+        return $renderMarker((string) ($markerMatches[0] ?? ''));
+    }, $bodyHtml) ?? $bodyHtml;
+
+    return preg_replace_callback(sr_embed_manager_marker_pattern(), static function (array $matches) use ($renderMarker): string {
+        return $renderMarker((string) ($matches[0] ?? ''));
+    }, $bodyHtml) ?? $bodyHtml;
+}
+
+function sr_embed_manager_marker_pattern_fragment(): string
+{
+    return '<span\b(?=[^>]*\bsr-embed-manager-marker\b)(?=[^>]*\bdata-sr-embed-manager-ref=(["\'])([^"\']+)\1)[^>]*><\/span>';
 }
 
 function sr_embed_manager_resolve_content_target(PDO $pdo, int $contentId): ?array
@@ -377,45 +826,6 @@ function sr_embed_manager_resolve_content_target(PDO $pdo, int $contentId): ?arr
         'label_snapshot' => (string) ($row['title'] ?? ('콘텐츠 #' . (string) $contentId)),
         'image_snapshot' => (string) ($row['cover_image_url'] ?? ''),
         'status' => (string) ($row['status'] ?? '') === 'published' ? 'active' : 'private',
-    ];
-}
-
-function sr_embed_manager_resolve_community_post_target(PDO $pdo, int $postId): ?array
-{
-    if ($postId < 1) {
-        return null;
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.status, b.status AS board_status, b.read_policy
-         FROM sr_community_posts p
-         INNER JOIN sr_community_boards b ON b.id = p.board_id
-         WHERE p.id = :id
-         LIMIT 1'
-    );
-    $stmt->execute(['id' => $postId]);
-    $row = $stmt->fetch();
-    if (!is_array($row)) {
-        return [
-            'label_snapshot' => '게시글 #' . (string) $postId,
-            'image_snapshot' => '',
-            'status' => 'broken',
-        ];
-    }
-
-    $postStatus = (string) ($row['status'] ?? '');
-    if ($postStatus === 'deleted') {
-        $status = 'deleted';
-    } elseif ($postStatus === 'published' && (string) ($row['board_status'] ?? '') === 'enabled' && (string) ($row['read_policy'] ?? 'public') === 'public') {
-        $status = 'active';
-    } else {
-        $status = 'private';
-    }
-
-    return [
-        'label_snapshot' => (string) ($row['title'] ?? ('게시글 #' . (string) $postId)),
-        'image_snapshot' => '',
-        'status' => $status,
     ];
 }
 

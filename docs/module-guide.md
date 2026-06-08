@@ -47,8 +47,8 @@ CKEditor 같은 에디터 연동은 플러그인이다. 플러그인은 `type =>
 - 다른 모듈이 이 모듈을 활용할 때는 양방향 공유 테이블보다 안정 식별자 기반의 단방향 참조나 명시적 계약 파일을 우선한다.
 - 파일 업로드, 메일 운영 화면, 백업, healthcheck처럼 공통으로 보이지만 정책 판단이 들어가는 기능은 먼저 선택 모듈 후보로 검토한다.
 
-모듈 간 본문 연결은 `embed_manager`의 제한된 marker와 `sr_embed_manager_refs`를 사용한다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, legacy 링크 카드 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 대상 모듈이 제공하는 공개 대상 검색 helper를 JSON action으로 감싸고, CKEditor 본문에는 `sr-embed-manager-marker` span과 안전한 인용 HTML을 삽입한다. 일반 textarea fallback은 텍스트 링크만 삽입하므로 refs 동기화 대상이 아니다.
-저장 action은 최종 정화 HTML에 남은 marker만 기준으로 ref_key, target module/type/id, variant, label을 검증하고, 소유 문서 저장 transaction 안에서 refs를 upsert한다. refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니며, broken/private/deleted/removed 상태 표시는 렌더링 정책과 점검 화면으로 처리한다. 복사 흐름은 ref_key를 새로 발급해 본문을 rewrite하고 refs를 새 소유 대상으로 복사해야 한다.
+모듈 간 본문 연결은 `embed_manager`의 제한된 marker와 `sr_embed_manager_refs`를 사용한다. 콘텐츠와 커뮤니티의 본문에는 사용자가 작성한 plain text 또는 허용된 HTML만 저장해야 하며, legacy 링크 카드 토큰이나 hidden 참조 목록을 저장 진실원으로 삼지 않는다. 대상 검색 UI는 활성 모듈의 `embed-manager-targets.php` 계약을 `embed_manager`가 읽어 구성하고, CKEditor 본문에는 `sr-embed-manager-marker` span과 안전한 인용 HTML을 삽입한다. 일반 textarea fallback은 텍스트 링크만 삽입하므로 refs 동기화 대상이 아니다.
+저장 action은 최종 정화 HTML에 남은 marker만 기준으로 ref_key, target module/type/id, variant, label을 검증하고, 소유 문서 저장 transaction 안에서 refs를 upsert한다. 계약의 허용 variant가 아닌 marker는 저장 실패로 처리한다. refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니며, broken/private/deleted/removed 상태 표시는 공개 렌더링 정책과 점검 화면으로 처리한다. 복사 흐름은 ref_key를 새로 발급해 본문을 rewrite하고 refs를 새 소유 대상으로 복사해야 한다.
 
 코어에 넣지 않는다:
 
@@ -1086,7 +1086,7 @@ return [
 | `privacy` | `paths.php`, `admin-menu.php`, `menu-links.php` | `privacy-export.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php`, `site-setting-references.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `layout-options.php` | `member-assets.php`, `notification-events.php` |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `sitemap.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `layout-options.php`, `embed-manager-targets.php` | `member-assets.php`, `notification-events.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php`, `site-setting-references.php` | `logo-positions.php` |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `coupon-targets.php`, `banner-references.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `dashboard.php` | `extension-points.php`, `popup-layer-references.php` |
@@ -1096,9 +1096,9 @@ return [
 | `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-group-references.php` | `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `member-withdrawal-assets.php`, `coupon-references.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
-| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php`, `sitemap.php` | `member-assets.php`, `notification-events.php` |
-| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `layout-options.php`, `coupon-references.php`, `member-group-references.php` | `member-assets.php`, `notification-events.php` |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `embed-manager-targets.php` | `member-assets.php`, `notification-events.php`, `output-slots.php`는 core helper 경유, member 그룹/공개 이름 helper |
+| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `coupon-references.php`, `sitemap.php`, `embed-manager-targets.php` | `member-assets.php`, `notification-events.php` |
+| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `layout-options.php`, `coupon-references.php`, `member-group-references.php`, `embed-manager-targets.php` | `member-assets.php`, `notification-events.php` |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | `플러그인` 분류에서 설정 화면 제공, 적용 대상은 화면 소유 모듈 설정이 결정 |
 
 모듈 메타데이터 작성 기준:

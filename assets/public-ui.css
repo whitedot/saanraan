@@ -157,3 +157,35 @@
         background: var(--sr-danger-bg, color-mix(in oklab, var(--color-danger) 10%, transparent));
     }
 }
+.sr-embed-manager-card {
+  border: 1px solid var(--sr-border-subtle, #d8dee8);
+  border-radius: 8px;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.sr-embed-manager-card strong {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.sr-embed-manager-card p {
+  margin: .65rem 0 0;
+}
+
+.sr-embed-manager-card-button {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  justify-content: space-between;
+}
+
+.sr-embed-manager-card-button p {
+  margin: 0;
+}
+
+.sr-embed-manager-card-compact {
+  padding: .75rem;
+}

@@ -1523,7 +1523,7 @@ function sr_community_plain_text_html(string $value, bool $linkUrls = false): st
     return sr_plain_text_html($value, $linkUrls);
 }
 
-function sr_community_post_body_html(array $post, ?array $settings = null): string
+function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO $pdo = null): string
 {
     $bodyText = (string) ($post['body_text'] ?? '');
     if ((string) ($post['body_format'] ?? 'plain') === 'html') {
@@ -1531,6 +1531,10 @@ function sr_community_post_body_html(array $post, ?array $settings = null): stri
     } else {
         $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
         $html = sr_community_plain_text_html($bodyText, $linkUrls);
+    }
+
+    if ($pdo instanceof PDO && (string) ($post['body_format'] ?? 'plain') === 'html') {
+        $html = sr_embed_manager_render_body_html($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public']);
     }
 
     return $html;

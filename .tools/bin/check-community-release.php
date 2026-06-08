@@ -179,6 +179,7 @@ $requiredPackageEntries = [
     'assets',
     'banner-references.php',
     'dashboard.php',
+    'embed-manager-targets.php',
     'extension-points.php',
     'helpers',
     'helpers.php',
@@ -228,6 +229,7 @@ $requiredContracts = [
     'banner-references.php',
     'popup-layer-references.php',
     'member-group-references.php',
+    'embed-manager-targets.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))

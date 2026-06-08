@@ -34,6 +34,16 @@ $access = $canPreviewAsAdmin
 $submitResult = null;
 $errors = [];
 $submittedScreen = sr_get_string('submitted', 5) === '1';
+$returnTo = sr_survey_internal_return_path(sr_get_string('return_to', 255));
+if ($returnTo === '' && sr_request_method() === 'POST') {
+    $returnTo = sr_survey_internal_return_path(sr_post_string('return_to', 255));
+}
+$surveySelfUrl = '/survey/' . (string) ($survey['survey_key'] ?? '');
+$surveyQuery = [];
+if ($returnTo !== '') {
+    $surveyQuery['return_to'] = $returnTo;
+}
+$surveyNextUrl = $surveySelfUrl . ($surveyQuery === [] ? '' : '?' . http_build_query($surveyQuery, '', '&', PHP_QUERY_RFC3986));
 $surveyCommentsEnabled = (int) ($survey['comments_enabled'] ?? 0) === 1 && sr_survey_comments_table_exists($pdo);
 $surveyComments = $surveyCommentsEnabled ? sr_survey_comments($pdo, (int) ($survey['id'] ?? 0)) : [];
 $surveyCommentNotice = (string) ($_SESSION['sr_survey_comment_notice'] ?? '');
@@ -62,7 +72,11 @@ if (sr_request_method() === 'POST') {
         );
         $currentAccount = $account;
         if (!$isPreviewTestSubmit) {
-            sr_redirect('/survey/' . (string) $survey['survey_key'] . '?submitted=1');
+            $redirectQuery = ['submitted' => '1'];
+            if ($returnTo !== '') {
+                $redirectQuery['return_to'] = $returnTo;
+            }
+            sr_redirect('/survey/' . (string) $survey['survey_key'] . '?' . http_build_query($redirectQuery, '', '&', PHP_QUERY_RFC3986));
         }
         $access = ['allowed' => true, 'message' => ''];
     } catch (RuntimeException $exception) {
@@ -171,6 +185,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php elseif (is_array($grant) && (string) ($grant['status'] ?? '') === 'failed'): ?>
                         <p>보상 지급을 확인해야 합니다.</p>
                     <?php endif; ?>
+                    <?php if ($returnTo !== ''): ?>
+                        <p><a class="btn btn-solid-light" href="<?php echo sr_e(sr_url($returnTo)); ?>">이전 화면으로 돌아가기</a></p>
+                    <?php endif; ?>
                 </section>
             <?php elseif ($errors !== []): ?>
                 <div class="sr-form-errors">
@@ -182,14 +199,21 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php if ($submitResult === null && !$submittedScreen): ?>
                 <?php if ((int) ($survey['login_required'] ?? 1) === 1 && !is_array($currentAccount)): ?>
                     <p>로그인 후 설문에 참여할 수 있습니다.</p>
-                    <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode('/survey/' . (string) $survey['survey_key']))); ?>">로그인</a></p>
+                    <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($surveyNextUrl))); ?>">로그인</a></p>
                 <?php elseif (empty($access['allowed'])): ?>
                     <p><?php echo sr_e((string) ($access['message'] ?? '현재 참여할 수 없는 설문입니다.')); ?></p>
                 <?php elseif ($questions === []): ?>
                     <p>응답 가능한 문항이 없습니다.</p>
                 <?php else: ?>
-                    <form method="post" action="<?php echo sr_e(sr_url('/survey/' . (string) $survey['survey_key'] . ($canPreviewAsAdmin ? '?preview=admin' : ''))); ?>" class="sr-survey-form">
+                    <?php
+                    $surveyFormQuery = $canPreviewAsAdmin ? ['preview' => 'admin'] : [];
+                    if ($returnTo !== '') {
+                        $surveyFormQuery['return_to'] = $returnTo;
+                    }
+                    ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/survey/' . (string) $survey['survey_key'] . ($surveyFormQuery === [] ? '' : '?' . http_build_query($surveyFormQuery, '', '&', PHP_QUERY_RFC3986)))); ?>" class="sr-survey-form">
                         <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
                         <?php if ($canPreviewAsAdmin): ?>
                             <input type="hidden" name="test_submit" value="1">
                         <?php endif; ?>
