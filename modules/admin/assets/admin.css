@@ -901,21 +901,24 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     width: 100%;
 }
 
-.admin-audit-filter-stack {
+.admin-audit-filter-main .filtering-field-fill {
+    min-width: min(20rem, 100%);
+}
+
+.admin-audit-detail-stack {
+    align-items: stretch;
     display: grid;
+    gap: calc(var(--spacing) * 3);
     grid-template-columns: minmax(0, 1fr);
+}
+
+.admin-audit-detail-stack > .filtering-field {
+    min-width: 0;
     width: 100%;
 }
 
-.admin-audit-filter-stack > .filtering-field {
-    width: 100%;
-}
-
-.admin-audit-filter-stack .filtering-field-fill {
-    flex: initial;
-}
-
-.admin-audit-filter-stack .filtering-field-fill :is(.form-input, .filtering-input) {
+.admin-audit-detail-stack > .filtering-field > :is(.form-input,.form-select,.filtering-input,.filtering-toggle-group) {
+    max-width: min(36rem, 100%);
     width: 100%;
 }
 

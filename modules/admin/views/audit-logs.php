@@ -23,7 +23,7 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
         <input type="hidden" name="target_id" value="<?php echo sr_e((string) $filters['target_id']); ?>">
     <?php } ?>
     <div class="filtering filtering-card<?php echo $auditDetailFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
-        <div class="filtering-fields admin-audit-filter-stack">
+        <div class="filtering-fields filtering-fields-fit admin-audit-filter-main">
             <div class="filtering-field">
                 <label for="modules_admin_audit_logs_field" class="filtering-label">검색조건</label>
                 <select id="modules_admin_audit_logs_field" name="field" class="form-select filtering-input">
@@ -39,7 +39,7 @@ $auditDetailFilterOpen = $auditResultFilters !== [] || $auditActorTypeFilters !=
                 <input id="modules_admin_audit_logs_keyword" type="text" name="q" value="<?php echo sr_e($filters['q']); ?>" class="form-input filtering-input" maxlength="80" placeholder="<?php echo sr_e(sr_t('admin::ui.id.f8d506bd')); ?>">
             </div>
         </div>
-        <div id="admin_audit_detail_filters" class="filtering-body" data-filtering-body<?php echo $auditDetailFilterOpen ? '' : ' hidden'; ?>>
+        <div id="admin_audit_detail_filters" class="filtering-body admin-audit-detail-stack" data-filtering-body<?php echo $auditDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field">
                 <span class="filtering-label"><?php echo sr_e(sr_t('admin::ui.text.109383e3')); ?></span>
                 <?php echo sr_admin_filter_toggle_group_html('modules_admin_audit_logs_result', 'result', ['success' => sr_t('admin::ui.text.b4f76a33'), 'failure' => sr_t('admin::ui.text.2743911f')], $auditResultFilters, '전체'); ?>
