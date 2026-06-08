@@ -55,12 +55,27 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$stmt = $pdo->query(
-    'SELECT p.*, a.email, a.display_name, a.status AS account_status
-     FROM sr_content_author_permissions p
-     LEFT JOIN sr_member_accounts a ON a.id = p.account_id
-     ORDER BY p.id DESC
-     LIMIT 200'
-);
-$contentAuthorPermissions = $stmt->fetchAll();
+$authorStatusInput = $_GET['status'] ?? [];
+$authorStatusValues = is_array($authorStatusInput) ? $authorStatusInput : [$authorStatusInput];
+$authorStatuses = [];
+foreach ($authorStatusValues as $authorStatusValue) {
+    $authorStatus = sr_content_clean_slug((string) $authorStatusValue);
+    if (in_array($authorStatus, ['allowed', 'blocked'], true)) {
+        $authorStatuses[] = $authorStatus;
+    }
+}
+$authorStatuses = array_values(array_unique($authorStatuses));
+
+$authorReviewInput = $_GET['review_required_override'] ?? [];
+$authorReviewValues = is_array($authorReviewInput) ? $authorReviewInput : [$authorReviewInput];
+$authorReviewOverrides = [];
+foreach ($authorReviewValues as $authorReviewValue) {
+    $authorReviewOverride = sr_content_clean_slug((string) $authorReviewValue);
+    if (in_array($authorReviewOverride, ['inherit', 'required', 'exempt'], true)) {
+        $authorReviewOverrides[] = $authorReviewOverride;
+    }
+}
+$authorReviewOverrides = array_values(array_unique($authorReviewOverrides));
+
+$contentAuthorPermissions = sr_content_author_permissions($pdo, $authorStatuses, $authorReviewOverrides);
 include SR_ROOT . '/modules/content/views/admin-content-authors.php';

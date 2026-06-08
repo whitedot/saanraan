@@ -1886,7 +1886,7 @@ function sr_content_author_application_by_id(PDO $pdo, int $applicationId): ?arr
     return is_array($row) ? $row : null;
 }
 
-function sr_content_author_applications(PDO $pdo, string $status = 'pending'): array
+function sr_content_author_applications(PDO $pdo, $statuses = 'pending'): array
 {
     if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
         return [];
@@ -1894,9 +1894,23 @@ function sr_content_author_applications(PDO $pdo, string $status = 'pending'): a
 
     $params = [];
     $where = '';
-    if (in_array($status, sr_content_author_application_statuses(), true)) {
-        $where = 'WHERE a.status = :status';
-        $params['status'] = $status;
+    $statusValues = is_array($statuses) ? $statuses : [$statuses];
+    $selectedStatuses = [];
+    foreach ($statusValues as $status) {
+        $status = (string) $status;
+        if (in_array($status, sr_content_author_application_statuses(), true)) {
+            $selectedStatuses[] = $status;
+        }
+    }
+    $selectedStatuses = array_values(array_unique($selectedStatuses));
+    if ($selectedStatuses !== []) {
+        $statusPlaceholders = [];
+        foreach ($selectedStatuses as $index => $status) {
+            $placeholder = 'status_' . (string) $index;
+            $statusPlaceholders[] = ':' . $placeholder;
+            $params[$placeholder] = $status;
+        }
+        $where = 'WHERE a.status IN (' . implode(', ', $statusPlaceholders) . ')';
     }
     $stmt = $pdo->prepare(
         'SELECT a.*, m.email, m.display_name, m.status AS account_status
@@ -1904,6 +1918,61 @@ function sr_content_author_applications(PDO $pdo, string $status = 'pending'): a
          LEFT JOIN sr_member_accounts m ON m.id = a.account_id
          ' . $where . '
          ORDER BY a.id DESC
+         LIMIT 200'
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_content_author_permissions(PDO $pdo, array $statuses = [], array $reviewOverrides = []): array
+{
+    $params = [];
+    $whereParts = [];
+
+    $selectedStatuses = [];
+    foreach ($statuses as $status) {
+        $status = (string) $status;
+        if (in_array($status, ['allowed', 'blocked'], true)) {
+            $selectedStatuses[] = $status;
+        }
+    }
+    $selectedStatuses = array_values(array_unique($selectedStatuses));
+    if ($selectedStatuses !== []) {
+        $statusPlaceholders = [];
+        foreach ($selectedStatuses as $index => $status) {
+            $placeholder = 'status_' . (string) $index;
+            $statusPlaceholders[] = ':' . $placeholder;
+            $params[$placeholder] = $status;
+        }
+        $whereParts[] = 'p.status IN (' . implode(', ', $statusPlaceholders) . ')';
+    }
+
+    $selectedReviewOverrides = [];
+    foreach ($reviewOverrides as $reviewOverride) {
+        $reviewOverride = (string) $reviewOverride;
+        if (in_array($reviewOverride, ['inherit', 'required', 'exempt'], true)) {
+            $selectedReviewOverrides[] = $reviewOverride;
+        }
+    }
+    $selectedReviewOverrides = array_values(array_unique($selectedReviewOverrides));
+    if ($selectedReviewOverrides !== []) {
+        $reviewPlaceholders = [];
+        foreach ($selectedReviewOverrides as $index => $reviewOverride) {
+            $placeholder = 'review_required_override_' . (string) $index;
+            $reviewPlaceholders[] = ':' . $placeholder;
+            $params[$placeholder] = $reviewOverride;
+        }
+        $whereParts[] = 'p.review_required_override IN (' . implode(', ', $reviewPlaceholders) . ')';
+    }
+
+    $where = $whereParts !== [] ? 'WHERE ' . implode(' AND ', $whereParts) : '';
+    $stmt = $pdo->prepare(
+        'SELECT p.*, a.email, a.display_name, a.status AS account_status
+         FROM sr_content_author_permissions p
+         LEFT JOIN sr_member_accounts a ON a.id = p.account_id
+         ' . $where . '
+         ORDER BY p.id DESC
          LIMIT 200'
     );
     $stmt->execute($params);
@@ -2242,13 +2311,27 @@ function sr_content_member_submissions(PDO $pdo, int $accountId): array
     return $stmt->fetchAll();
 }
 
-function sr_content_admin_submissions(PDO $pdo, string $status = ''): array
+function sr_content_admin_submissions(PDO $pdo, $statuses = ''): array
 {
     $params = [];
     $where = '';
-    if (in_array($status, sr_content_submission_statuses(), true)) {
-        $where = 'WHERE s.review_status = :status';
-        $params['status'] = $status;
+    $statusValues = is_array($statuses) ? $statuses : [$statuses];
+    $selectedStatuses = [];
+    foreach ($statusValues as $status) {
+        $status = (string) $status;
+        if (in_array($status, sr_content_submission_statuses(), true)) {
+            $selectedStatuses[] = $status;
+        }
+    }
+    $selectedStatuses = array_values(array_unique($selectedStatuses));
+    if ($selectedStatuses !== []) {
+        $statusPlaceholders = [];
+        foreach ($selectedStatuses as $index => $status) {
+            $placeholder = 'status_' . (string) $index;
+            $statusPlaceholders[] = ':' . $placeholder;
+            $params[$placeholder] = $status;
+        }
+        $where = 'WHERE s.review_status IN (' . implode(', ', $statusPlaceholders) . ')';
     }
     $stmt = $pdo->prepare(
         'SELECT s.*, g.title AS group_title, a.email AS author_email, a.display_name AS author_display_name

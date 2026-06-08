@@ -68,6 +68,15 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$submissionStatus = sr_get_string('status', 30);
-$adminSubmissions = sr_content_admin_submissions($pdo, $submissionStatus);
+$submissionStatusInput = $_GET['status'] ?? [];
+$submissionStatusValues = is_array($submissionStatusInput) ? $submissionStatusInput : [$submissionStatusInput];
+$submissionStatuses = [];
+foreach ($submissionStatusValues as $submissionStatusValue) {
+    $submissionStatus = sr_content_clean_slug((string) $submissionStatusValue);
+    if (in_array($submissionStatus, sr_content_submission_statuses(), true)) {
+        $submissionStatuses[] = $submissionStatus;
+    }
+}
+$submissionStatuses = array_values(array_unique($submissionStatuses));
+$adminSubmissions = sr_content_admin_submissions($pdo, $submissionStatuses);
 include SR_ROOT . '/modules/content/views/admin-content-submissions.php';

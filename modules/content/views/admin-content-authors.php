@@ -6,6 +6,19 @@ $adminContainerClass = 'admin-page-content-authors admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/content/authors')); ?>" class="filtering-form filtering filtering-plain ui-form-theme">
+    <div class="filtering-fields filtering-fields-fit">
+        <div class="filtering-field">
+            <span class="filtering-label">상태</span>
+            <?php echo sr_admin_filter_toggle_group_html('content_author_filter_status', 'status', ['allowed' => sr_content_author_permission_status_label('allowed'), 'blocked' => sr_content_author_permission_status_label('blocked')], $authorStatuses ?? [], '전체 상태'); ?>
+        </div>
+        <div class="filtering-field">
+            <span class="filtering-label">검수</span>
+            <?php echo sr_admin_filter_toggle_group_html('content_author_filter_review_required_override', 'review_required_override', ['inherit' => sr_content_author_review_override_label('inherit'), 'required' => sr_content_author_review_override_label('required'), 'exempt' => sr_content_author_review_override_label('exempt')], $authorReviewOverrides ?? [], '전체 검수'); ?>
+        </div>
+        <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+    </div>
+</form>
 <section class="admin-card card">
     <h2>작성자 승인 추가/수정</h2>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/authors')); ?>" class="admin-form ui-form-theme">

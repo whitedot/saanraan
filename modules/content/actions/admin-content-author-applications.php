@@ -28,6 +28,18 @@ if (sr_request_method() === 'POST') {
     }
 }
 
-$applicationStatus = sr_get_string('status', 30);
-$contentAuthorApplications = sr_content_author_applications($pdo, $applicationStatus !== '' ? $applicationStatus : 'pending');
+$applicationStatusInput = array_key_exists('filter', $_GET) ? ($_GET['status'] ?? []) : ($_GET['status'] ?? ['pending']);
+$applicationStatusValues = is_array($applicationStatusInput) ? $applicationStatusInput : [$applicationStatusInput];
+$applicationStatuses = [];
+foreach ($applicationStatusValues as $applicationStatusValue) {
+    $applicationStatus = sr_content_clean_slug((string) $applicationStatusValue);
+    if (in_array($applicationStatus, sr_content_author_application_statuses(), true)) {
+        $applicationStatuses[] = $applicationStatus;
+    }
+}
+$applicationStatuses = array_values(array_unique($applicationStatuses));
+if ($applicationStatusInput === [] || $applicationStatusInput === '') {
+    $applicationStatuses = [];
+}
+$contentAuthorApplications = sr_content_author_applications($pdo, $applicationStatuses);
 include SR_ROOT . '/modules/content/views/admin-content-author-applications.php';

@@ -8,13 +8,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 <section class="admin-card card">
     <form method="get" action="<?php echo sr_e(sr_url('/admin/content/author-applications')); ?>" class="filtering-form filtering filtering-plain ui-form-theme">
-        <select name="status" class="form-select">
-            <option value="">대기 신청</option>
-            <?php foreach (sr_content_author_application_statuses() as $statusOption) { ?>
-                <option value="<?php echo sr_e($statusOption); ?>"<?php echo (string) ($applicationStatus ?? 'pending') === $statusOption ? ' selected' : ''; ?>><?php echo sr_e(sr_content_author_application_status_label($statusOption)); ?></option>
-            <?php } ?>
-        </select>
-        <button type="submit" class="btn btn-solid-primary">검색</button>
+        <input type="hidden" name="filter" value="1">
+        <div class="filtering-fields filtering-fields-fit">
+            <div class="filtering-field">
+                <span class="filtering-label">상태</span>
+                <?php echo sr_admin_filter_toggle_group_html('content_author_application_filter_status', 'status', array_combine(sr_content_author_application_statuses(), array_map('sr_content_author_application_status_label', sr_content_author_application_statuses())), $applicationStatuses ?? ['pending'], '전체 신청'); ?>
+            </div>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
     </form>
 </section>
 <section class="admin-card admin-list-card card admin-list-form">
