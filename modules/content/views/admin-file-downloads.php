@@ -37,7 +37,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                     <input id="content_file_download_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($filters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="콘텐츠, 파일, 회원">
                 </label>
             </div>
-            <div id="content_file_download_detail_filters" class="filtering-body filtering-body-fit" data-filtering-body<?php echo $downloadLogDetailFilterOpen ? '' : ' hidden'; ?>>
+            <div id="content_file_download_detail_filters" class="filtering-body admin-content-file-download-detail-stack" data-filtering-body<?php echo $downloadLogDetailFilterOpen ? '' : ' hidden'; ?>>
                 <label class="filtering-field" for="content_file_download_filter_content_id">
                     <span class="filtering-label">콘텐츠 ID</span>
                     <input id="content_file_download_filter_content_id" type="number" min="1" name="content_id" value="<?php echo (int) ($filters['content_id'] ?? 0) > 0 ? sr_e((string) (int) $filters['content_id']) : ''; ?>" class="form-input filtering-input">
