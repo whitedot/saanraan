@@ -5,6 +5,11 @@ function sr_quiz_key_is_valid(string $key): bool
     return preg_match('/\A[a-z][a-z0-9_]{1,63}\z/', $key) === 1;
 }
 
+function sr_quiz_key_is_reserved(string $key): bool
+{
+    return in_array($key, ['comment', 'ui_kit', 'admin'], true);
+}
+
 function sr_quiz_clean_key(string $value, int $maxLength = 64): string
 {
     $value = strtolower(trim($value));
@@ -727,6 +732,364 @@ function sr_quiz_by_key(PDO $pdo, string $quizKey): ?array
     $row = $stmt->fetch();
 
     return is_array($row) ? $row : null;
+}
+
+function sr_quiz_by_id(PDO $pdo, int $quizId): ?array
+{
+    if ($quizId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_quiz_sets
+         WHERE id = :id
+           AND deleted_at IS NULL
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $quizId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_quiz_comments_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_quiz_comments LIMIT 1');
+        $exists = true;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_quiz_comment_statuses(): array
+{
+    return ['published', 'hidden', 'deleted'];
+}
+
+function sr_quiz_comment_status_label(string $status): string
+{
+    return [
+        'published' => '게시',
+        'hidden' => '숨김',
+        'deleted' => '삭제',
+    ][$status] ?? $status;
+}
+
+function sr_quiz_comment_author_public_name_snapshot(PDO $pdo, int $accountId): string
+{
+    $name = trim(sr_member_public_name_for_account_id($pdo, $accountId, '회원'));
+
+    return function_exists('mb_substr') ? mb_substr($name, 0, 120) : substr($name, 0, 120);
+}
+
+function sr_quiz_comments(PDO $pdo, int $quizId, int $limit = 100): array
+{
+    if ($quizId < 1 || !sr_quiz_comments_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT c.*, a.display_name AS author_display_name, a.status AS author_account_status
+         FROM sr_quiz_comments c
+         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+         WHERE c.quiz_id = :quiz_id
+           AND c.status = 'published'
+         ORDER BY c.id ASC
+         LIMIT :limit_value"
+    );
+    $stmt->bindValue('quiz_id', $quizId, PDO::PARAM_INT);
+    $stmt->bindValue('limit_value', max(1, min(200, $limit)), PDO::PARAM_INT);
+    $stmt->execute();
+
+    $comments = [];
+    foreach ($stmt->fetchAll() as $comment) {
+        $snapshot = trim((string) ($comment['author_public_name_snapshot'] ?? ''));
+        $comment['author_public_name'] = !in_array((string) ($comment['author_account_status'] ?? ''), ['withdrawn', 'anonymized'], true) && $snapshot !== ''
+            ? $snapshot
+            : sr_member_public_name([
+                'display_name' => (string) ($comment['author_display_name'] ?? ''),
+                'status' => (string) ($comment['author_account_status'] ?? ''),
+            ], sr_member_settings($pdo), '회원');
+        $comments[] = $comment;
+    }
+
+    return $comments;
+}
+
+function sr_quiz_comment_input_values(): array
+{
+    return [
+        'body_text' => sr_post_string_without_truncation('body_text', 5000),
+        'is_secret' => sr_post_string('is_secret', 10) === '1' ? 1 : 0,
+    ];
+}
+
+function sr_quiz_validate_comment_input(array $values): array
+{
+    if (!is_string($values['body_text'] ?? null)) {
+        return ['댓글은 5000자 이하로 입력해 주세요.'];
+    }
+    if (trim((string) $values['body_text']) === '') {
+        return ['댓글 내용을 입력하세요.'];
+    }
+
+    return [];
+}
+
+function sr_quiz_create_comment(PDO $pdo, int $quizId, int $authorAccountId, array $values): int
+{
+    if (!sr_quiz_comments_table_exists($pdo)) {
+        throw new RuntimeException('quiz_comments_not_installed');
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_quiz_comments
+            (quiz_id, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
+         VALUES
+            (:quiz_id, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, :status, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'quiz_id' => $quizId,
+        'author_account_id' => $authorAccountId,
+        'author_public_name_snapshot' => sr_quiz_comment_author_public_name_snapshot($pdo, $authorAccountId),
+        'body_text' => trim((string) $values['body_text']),
+        'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
+        'status' => 'published',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_quiz_comment_by_id(PDO $pdo, int $commentId): ?array
+{
+    if ($commentId < 1 || !sr_quiz_comments_table_exists($pdo)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_quiz_comments
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $commentId]);
+    $comment = $stmt->fetch();
+
+    return is_array($comment) ? $comment : null;
+}
+
+function sr_quiz_account_can_edit_comment(array $comment, array $account): bool
+{
+    return (int) ($account['id'] ?? 0) > 0
+        && (int) ($comment['author_account_id'] ?? 0) === (int) $account['id']
+        && (string) ($comment['status'] ?? '') === 'published';
+}
+
+function sr_quiz_account_can_manage_comments(PDO $pdo, ?array $account): bool
+{
+    return is_array($account)
+        && (int) ($account['id'] ?? 0) > 0
+        && function_exists('sr_admin_has_permission')
+        && (sr_admin_has_permission($pdo, (int) $account['id'], '/admin/quiz/comments', 'view')
+            || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/quiz', 'edit'));
+}
+
+function sr_quiz_account_can_view_comment_body(array $comment, ?array $account, PDO $pdo): bool
+{
+    if ((int) ($comment['is_secret'] ?? 0) !== 1) {
+        return true;
+    }
+    if (!is_array($account)) {
+        return false;
+    }
+
+    return (int) ($account['id'] ?? 0) === (int) ($comment['author_account_id'] ?? 0)
+        || sr_quiz_account_can_manage_comments($pdo, $account);
+}
+
+function sr_quiz_account_can_delete_comment(array $comment, array $account, PDO $pdo): bool
+{
+    return sr_quiz_account_can_edit_comment($comment, $account) || sr_quiz_account_can_manage_comments($pdo, $account);
+}
+
+function sr_quiz_update_comment_content(PDO $pdo, int $commentId, array $values): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE sr_quiz_comments
+         SET body_text = :body_text,
+             is_secret = :is_secret,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'body_text' => trim((string) $values['body_text']),
+        'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
+        'updated_at' => sr_now(),
+        'id' => $commentId,
+    ]);
+}
+
+function sr_quiz_update_comment_status(PDO $pdo, int $commentId, string $status): void
+{
+    if (!in_array($status, sr_quiz_comment_statuses(), true)) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_quiz_comments
+         SET status = :status,
+             deleted_at = CASE WHEN :status_deleted = \'deleted\' THEN :deleted_at ELSE deleted_at END,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $now = sr_now();
+    $stmt->execute([
+        'status' => $status,
+        'status_deleted' => $status,
+        'deleted_at' => $now,
+        'updated_at' => $now,
+        'id' => $commentId,
+    ]);
+}
+
+function sr_quiz_notification_event_function(PDO $pdo): string
+{
+    return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
+}
+
+function sr_quiz_create_account_event_notification(PDO $pdo, int $accountId, string $eventKey, array $metadata, ?int $createdByAccountId = null): bool
+{
+    $createAccountEventFunction = sr_quiz_notification_event_function($pdo);
+    if ($accountId < 1 || $createAccountEventFunction === '') {
+        return false;
+    }
+
+    try {
+        return $createAccountEventFunction($pdo, [
+            'account_id' => $accountId,
+            'module_key' => 'quiz',
+            'event_key' => $eventKey,
+            'created_by_account_id' => $createdByAccountId,
+            'metadata' => $metadata,
+        ]) !== null;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'quiz_notification_event_create');
+    }
+
+    return false;
+}
+
+function sr_quiz_mentioned_account_ids(PDO $pdo, string $bodyText, array $excludeAccountIds = []): array
+{
+    return sr_member_mention_account_ids($pdo, sr_runtime_config(), $bodyText, $excludeAccountIds);
+}
+
+function sr_quiz_create_comment_mention_notifications(
+    PDO $pdo,
+    array $quiz,
+    int $commentId,
+    string $bodyText,
+    int $createdByAccountId,
+    array $excludeAccountIds = [],
+    ?string $previousBodyText = null
+): array {
+    $result = [
+        'mention_candidate_count' => 0,
+        'mention_notification_count' => 0,
+        'mention_account_hashes' => [],
+    ];
+    $quizId = (int) ($quiz['id'] ?? 0);
+    if ($quizId < 1 || $commentId < 1) {
+        return $result;
+    }
+
+    $excludeAccountIds[] = $createdByAccountId;
+    $mentionedAccountIds = sr_quiz_mentioned_account_ids($pdo, $bodyText, $excludeAccountIds);
+    if ($previousBodyText !== null) {
+        $previousAccountIds = sr_quiz_mentioned_account_ids($pdo, $previousBodyText, $excludeAccountIds);
+        $previousMap = array_fill_keys(array_map('intval', $previousAccountIds), true);
+        $mentionedAccountIds = array_values(array_filter($mentionedAccountIds, static function (int $accountId) use ($previousMap): bool {
+            return !isset($previousMap[$accountId]);
+        }));
+    }
+
+    $result['mention_candidate_count'] = count($mentionedAccountIds);
+    $config = sr_runtime_config();
+    $metadata = [
+        'quiz_id' => $quizId,
+        'comment_id' => $commentId,
+        'member_name' => sr_member_public_name_for_account_id($pdo, $createdByAccountId, '회원'),
+        'link_url' => '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '#quiz-comments',
+        'created_at' => sr_now(),
+    ];
+    foreach ($mentionedAccountIds as $accountId) {
+        $result['mention_account_hashes'][] = sr_member_public_account_hash($config, (int) $accountId);
+    }
+    foreach ($mentionedAccountIds as $accountId) {
+        if (sr_quiz_create_account_event_notification($pdo, (int) $accountId, 'comment.mention', $metadata, $createdByAccountId)) {
+            $result['mention_notification_count']++;
+        }
+    }
+
+    return $result;
+}
+
+function sr_quiz_admin_comment_filters_from_request(): array
+{
+    return [
+        'q' => sr_quiz_clean_single_line(sr_get_string('q', 120), 120),
+        'status' => sr_quiz_clean_key(sr_get_string('status', 20), 20),
+        'secret' => sr_quiz_clean_key(sr_get_string('secret', 10), 10),
+    ];
+}
+
+function sr_quiz_admin_comments(PDO $pdo, array $filters = [], int $limit = 100): array
+{
+    if (!sr_quiz_comments_table_exists($pdo)) {
+        return [];
+    }
+
+    $where = ['1 = 1'];
+    $params = [];
+    $keyword = trim((string) ($filters['q'] ?? ''));
+    if ($keyword !== '') {
+        $where[] = '(q.quiz_key LIKE :keyword OR q.title LIKE :keyword OR c.body_text LIKE :keyword OR c.author_public_name_snapshot LIKE :keyword)';
+        $params['keyword'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+    }
+    $status = (string) ($filters['status'] ?? '');
+    if ($status !== '' && in_array($status, sr_quiz_comment_statuses(), true)) {
+        $where[] = 'c.status = :status';
+        $params['status'] = $status;
+    }
+    $secret = (string) ($filters['secret'] ?? '');
+    if ($secret === 'yes' || $secret === 'no') {
+        $where[] = 'c.is_secret = :is_secret';
+        $params['is_secret'] = $secret === 'yes' ? 1 : 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT c.*, q.quiz_key, q.title AS quiz_title
+         FROM sr_quiz_comments c
+         INNER JOIN sr_quiz_sets q ON q.id = c.quiz_id
+         WHERE ' . implode(' AND ', $where) . '
+         ORDER BY c.created_at DESC, c.id DESC
+         LIMIT ' . (string) max(1, min(200, $limit))
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
 }
 
 function sr_quiz_questions_with_choices(PDO $pdo, int $quizId): array
@@ -1902,6 +2265,7 @@ function sr_quiz_default_admin_values(?array $settings = null): array
         'attempt_limit_policy' => (string) $settings['default_attempt_limit_policy'],
         'attempt_limit_period_seconds' => (string) $settings['default_attempt_limit_period_seconds'],
         'member_group_keys' => [],
+        'comments_enabled' => 0,
         'reward_enabled' => !empty($settings['default_reward_enabled']) ? 1 : 0,
         'reward_provider' => (string) $settings['default_reward_provider'],
         'reward_module' => (string) $settings['default_reward_module'],
@@ -1984,6 +2348,7 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'attempt_limit_policy' => (string) ($quiz['attempt_limit_policy'] ?? 'unlimited'),
         'attempt_limit_period_seconds' => (string) ($quiz['attempt_limit_period_seconds'] ?? ''),
         'member_group_keys' => sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''),
+        'comments_enabled' => (int) ($quiz['comments_enabled'] ?? 0),
         'reward_enabled' => (int) ($quiz['reward_enabled'] ?? 0),
         'reward_provider' => (string) ($policy['reward_provider'] ?? 'ledger_asset'),
         'reward_module' => (string) ($policy['reward_module'] ?? ''),
@@ -2123,6 +2488,7 @@ function sr_quiz_admin_values_from_post(): array
         'attempt_limit_policy' => sr_post_string('attempt_limit_policy', 30),
         'attempt_limit_period_seconds' => sr_post_string('attempt_limit_period_seconds', 20),
         'member_group_keys' => sr_quiz_member_group_keys_from_value($memberGroupKeys),
+        'comments_enabled' => ($_POST['comments_enabled'] ?? '') === '1' ? 1 : 0,
         'reward_enabled' => ($_POST['reward_enabled'] ?? '') === '1' ? 1 : 0,
         'reward_provider' => sr_quiz_clean_key(sr_post_string('reward_provider', 30), 30),
         'reward_module' => sr_quiz_clean_key(sr_post_string('reward_module', 40), 40),
@@ -2319,6 +2685,8 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     $quizKey = (string) ($values['quiz_key'] ?? '');
     if (!sr_quiz_key_is_valid($quizKey)) {
         $errors[] = '퀴즈 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+    } elseif (sr_quiz_key_is_reserved($quizKey)) {
+        $errors[] = '예약된 퀴즈 key는 사용할 수 없습니다.';
     } elseif (sr_quiz_key_exists($pdo, $quizKey, $quizId)) {
         $errors[] = '이미 사용 중인 퀴즈 key입니다.';
     }
@@ -2610,11 +2978,11 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
         $insertQuiz = $pdo->prepare(
             'INSERT INTO sr_quiz_sets
                 (quiz_key, title, description, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
-                 attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, reward_enabled,
+                 attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, reward_enabled,
                  created_by_account_id, updated_by_account_id, created_at, updated_at)
              VALUES
                 (:quiz_key, :title, :description, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
-                 :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :reward_enabled,
+                 :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :reward_enabled,
                  :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
         );
         $memberGroupKeysJson = json_encode(array_values($memberGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -2631,6 +2999,7 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
             'attempt_limit_policy' => (string) ($sourceQuiz['attempt_limit_policy'] ?? 'unlimited'),
             'attempt_limit_period_seconds' => $sourceQuiz['attempt_limit_period_seconds'] ?? null,
             'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
+            'comments_enabled' => (int) ($sourceQuiz['comments_enabled'] ?? 0),
             'reward_enabled' => is_array($rewardPolicy) ? 1 : 0,
             'created_by_account_id' => $accountId,
             'updated_by_account_id' => $accountId,
@@ -2869,6 +3238,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
         ? max(1, (int) ($values['attempt_limit_period_seconds'] ?? 0))
         : null;
     $memberGroupKeysJson = json_encode(sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $commentsEnabled = !empty($values['comments_enabled']) ? 1 : 0;
     $settings = sr_quiz_settings($pdo);
     $defaultCtaLabel = (string) ($settings['default_cta_label'] ?? '퀴즈 풀기');
 
@@ -2902,6 +3272,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                      attempt_limit_policy = :attempt_limit_policy,
                      attempt_limit_period_seconds = :attempt_limit_period_seconds,
                      member_group_keys_json = :member_group_keys_json,
+                     comments_enabled = :comments_enabled,
                      reward_enabled = :reward_enabled,
                      updated_by_account_id = :updated_by_account_id,
                      updated_at = :updated_at
@@ -2921,6 +3292,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'attempt_limit_policy' => $attemptLimitPolicy,
                 'attempt_limit_period_seconds' => $attemptLimitPeriodSeconds,
                 'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
+                'comments_enabled' => $commentsEnabled,
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'updated_by_account_id' => $accountId,
                 'updated_at' => $now,
@@ -2930,11 +3302,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_quiz_sets
                     (quiz_key, title, description, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
-                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, reward_enabled,
+                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, reward_enabled,
                      created_by_account_id, updated_by_account_id, created_at, updated_at)
                  VALUES
                     (:quiz_key, :title, :description, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
-                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :reward_enabled,
+                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :reward_enabled,
                      :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
             );
             $stmt->execute([
@@ -2950,6 +3322,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'attempt_limit_policy' => $attemptLimitPolicy,
                 'attempt_limit_period_seconds' => $attemptLimitPeriodSeconds,
                 'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
+                'comments_enabled' => $commentsEnabled,
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'created_by_account_id' => $accountId,
                 'updated_by_account_id' => $accountId,

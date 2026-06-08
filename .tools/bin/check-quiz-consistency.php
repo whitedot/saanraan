@@ -62,11 +62,13 @@ function sr_quiz_check_schema(): void
         'CREATE TABLE IF NOT EXISTS sr_quiz_attempt_answers',
         'CREATE TABLE IF NOT EXISTS sr_quiz_attempt_result_scores',
         'CREATE TABLE IF NOT EXISTS sr_quiz_reward_grants',
+        'CREATE TABLE IF NOT EXISTS sr_quiz_comments',
         'UNIQUE KEY uq_sr_quiz_reward_grants_dedupe',
         'starts_at DATETIME',
         'ends_at DATETIME',
         'attempt_limit_policy VARCHAR(30)',
         'member_group_keys_json LONGTEXT',
+        'comments_enabled TINYINT(1)',
         'return_url VARCHAR(255)',
         'source_module VARCHAR(40)',
         'source_type VARCHAR(60)',
@@ -112,14 +114,20 @@ function sr_quiz_check_paths_and_admin(): void
     sr_quiz_check_file_contains('modules/quiz/paths.php', [
         'GET /quiz',
         'GET /quiz/*',
+        'POST /quiz/comment',
+        'POST /quiz/comment/edit',
+        'POST /quiz/comment/delete',
         'POST /quiz/*',
         'GET /admin/quiz',
         'POST /admin/quiz',
         'GET /admin/quiz/attempts',
+        'GET /admin/quiz/comments',
+        'POST /admin/quiz/comments',
     ]);
     sr_quiz_check_file_contains('modules/quiz/admin-menu.php', [
         '/admin/quiz',
         '/admin/quiz/attempts',
+        '/admin/quiz/comments',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/view.php', [
         'rawurldecode($quizKey)',
@@ -131,13 +139,19 @@ function sr_quiz_check_paths_and_admin(): void
         'source_type',
         'source_id',
         'target="_top"',
+        'quiz-comments',
+        'sr_quiz_comments',
+        'sr_member_mention_plain_text_html',
+        'data-sr-mention-input',
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [
         'deleted_at IS NULL',
         'sr_quiz_attempts',
         'sr_quiz_attempt_answers',
         'sr_quiz_reward_grants',
+        'sr_quiz_comments',
         'SELECT 1 FROM sr_quiz_sets WHERE quiz_key = :quiz_key',
+        'sr_quiz_key_is_reserved',
         'sr_quiz_valid_source_context',
         'sr_quiz_source_context_is_accessible',
         'sr_content_once_access_already_granted',
@@ -146,6 +160,9 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_lock_quiz_for_attempt',
         'sr_quiz_public_window_is_open',
         'member_group_keys_json',
+        'comments_enabled',
+        'sr_quiz_create_comment',
+        'sr_quiz_create_comment_mention_notifications',
         'attempt_limit_policy',
         'LIMIT 1 FOR UPDATE',
         'Quiz to update was not found.',
@@ -165,9 +182,30 @@ function sr_quiz_check_paths_and_admin(): void
         'starts_at',
         'ends_at',
         'member_group_keys',
+        'comments_enabled',
         'attempt_limit_policy',
         'reward_module',
         'content_source_ids',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/comment.php', [
+        'sr_quiz_create_comment',
+        'sr_quiz_create_comment_mention_notifications',
+        'sr_quiz_public_window_is_open',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/comment-edit.php', [
+        'sr_quiz_update_comment_content',
+        'sr_quiz_create_comment_mention_notifications',
+        'sr_quiz_account_can_edit_comment',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/comment-delete.php', [
+        'sr_quiz_update_comment_status',
+        'sr_quiz_account_can_delete_comment',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/admin-comments.php', [
+        '/admin/quiz/comments',
+        'sr_quiz_admin_comments',
+        'sr_quiz_update_comment_status',
+        'sr_member_mention_plain_text_html',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/admin-attempts.php', [
         'sr_quiz_reward_grants',
@@ -207,11 +245,13 @@ function sr_quiz_check_privacy_contracts(): void
         'scoring_snapshot_json',
         'sr_quiz_attempt_result_scores',
         'sr_quiz_reward_grants',
+        'sr_quiz_comments',
         'account_id = :account_id',
     ]);
     sr_quiz_check_file_contains('modules/quiz/privacy-cleanup.php', [
         'UPDATE sr_quiz_attempts',
         'UPDATE sr_quiz_reward_grants',
+        'UPDATE sr_quiz_comments',
         'account_id = NULL',
         'user_agent_hash = NULL',
         'ip_hash = NULL',

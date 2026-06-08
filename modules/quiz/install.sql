@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     attempt_limit_policy VARCHAR(30) NOT NULL DEFAULT 'unlimited',
     attempt_limit_period_seconds INT UNSIGNED NULL,
     member_group_keys_json LONGTEXT NULL,
+    comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_scope VARCHAR(20) NOT NULL DEFAULT 'per_quiz',
     created_by_account_id BIGINT UNSIGNED NULL,
@@ -26,6 +27,23 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     KEY idx_sr_quiz_sets_status_dates (status, starts_at, ends_at),
     KEY idx_sr_quiz_sets_mode_model (quiz_mode, scoring_model),
     KEY idx_sr_quiz_sets_reward (reward_enabled)
+);
+
+CREATE TABLE IF NOT EXISTS sr_quiz_comments (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    quiz_id BIGINT UNSIGNED NOT NULL,
+    author_account_id BIGINT UNSIGNED NULL,
+    author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
+    body_text TEXT NOT NULL,
+    is_secret TINYINT(1) NOT NULL DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'published',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_sr_quiz_comments_quiz_status_id (quiz_id, status, id),
+    KEY idx_sr_quiz_comments_author_id (author_account_id, id),
+    KEY idx_sr_quiz_comments_created (created_at, id)
 );
 
 CREATE TABLE IF NOT EXISTS sr_quiz_sources (

@@ -15,4 +15,15 @@ return static function (PDO $pdo, int $accountId): void {
              dedupe_key = CONCAT(\'anonymized:quiz_reward:\', id)
          WHERE account_id = :account_id'
     )->execute(['account_id' => $accountId]);
+
+    try {
+        $pdo->prepare(
+            'UPDATE sr_quiz_comments
+             SET author_account_id = NULL,
+                 author_public_name_snapshot = \'\'
+             WHERE author_account_id = :account_id'
+        )->execute(['account_id' => $accountId]);
+    } catch (Throwable $exception) {
+        // Older installations may not have quiz comments yet.
+    }
 };

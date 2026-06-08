@@ -33,9 +33,24 @@ return static function (PDO $pdo, int $accountId): array {
     $scoreStmt->execute(['account_id' => $accountId]);
     $resultScores = $scoreStmt->fetchAll();
 
+    $comments = [];
+    try {
+        $commentStmt = $pdo->prepare(
+            'SELECT id, quiz_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at
+             FROM sr_quiz_comments
+             WHERE author_account_id = :account_id
+             ORDER BY id ASC'
+        );
+        $commentStmt->execute(['account_id' => $accountId]);
+        $comments = $commentStmt->fetchAll();
+    } catch (Throwable $exception) {
+        $comments = [];
+    }
+
     return [
         'quiz_attempts' => $attempts,
         'quiz_attempt_result_scores' => $resultScores,
         'quiz_reward_grants' => $grants,
+        'quiz_comments' => $comments,
     ];
 };

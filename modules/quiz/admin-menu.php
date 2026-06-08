@@ -15,6 +15,11 @@ return [
             'order' => 20,
         ],
         [
+            'label' => '댓글 관리',
+            'path' => '/admin/quiz/comments',
+            'order' => 25,
+        ],
+        [
             'label' => '퀴즈 환경설정',
             'path' => '/admin/quiz/settings',
             'order' => 30,

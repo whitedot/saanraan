@@ -448,6 +448,15 @@ $quizHelp = [
             '회원 그룹 조건은 퀴즈 진입과 제출 직전에 다시 확인합니다.',
         ]),
     ],
+    'comments' => [
+        'id' => 'quiz-help-comments-modal',
+        'title' => '댓글',
+        'body_html' => $quizHelpBodyHtml([
+            '공개 퀴즈 화면에서 로그인 회원이 댓글을 작성할 수 있게 합니다.',
+            '비밀 댓글은 작성자와 댓글 관리 권한이 있는 관리자만 본문을 볼 수 있습니다.',
+            '댓글 본문의 @닉네임 멘션은 회원 알림과 표시 스타일에 연결됩니다.',
+        ]),
+    ],
     'question_type' => [
         'id' => 'quiz-help-question-type-modal',
         'title' => '문제 유형',
@@ -858,6 +867,16 @@ $quizSectionNavItems = [
                 <div class="admin-form-field">
                     <?php echo sr_admin_member_group_key_badge_select_html('quiz_member_group_keys', 'member_group_keys', sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), $memberGroups); ?>
                     <p class="admin-form-help">선택하지 않으면 로그인 회원 전체가 응시할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('quiz_comments_enabled', '댓글', $quizHelp['comments']['id'], $quizHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="quiz_comments_enabled">
+                        <input id="quiz_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        공개 댓글 사용
+                    </label>
+                    <p class="admin-form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
                 </div>
             </div>
         </div>
