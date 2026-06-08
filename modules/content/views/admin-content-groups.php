@@ -340,7 +340,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label"><?php echo sr_e(sr_t('content::ui.member.4eda7ba7')); ?> 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_group_asset_access_enabled">
-                        <input id="content_group_asset_access_enabled" type="checkbox" name="group_asset_access_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_access_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <input id="content_group_asset_access_enabled" type="checkbox" name="group_asset_access_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($groupSettings, 'asset_access_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.923da40e')); ?>
                     </label>
                 </div>
@@ -388,7 +388,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?> 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_group_asset_action_enabled">
-                        <input id="content_group_asset_action_enabled" type="checkbox" name="group_asset_action_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'asset_action_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <input id="content_group_asset_action_enabled" type="checkbox" name="group_asset_action_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($groupSettings, 'asset_action_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.904d506b')); ?>
                     </label>
                 </div>
@@ -443,7 +443,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label"><?php echo sr_e(sr_t('content::ui.text.b065b16b')); ?> 사용</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_group_file_asset_download_enabled">
-                        <input id="content_group_file_asset_download_enabled" type="checkbox" name="group_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'file_asset_download_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <input id="content_group_file_asset_download_enabled" type="checkbox" name="group_file_asset_download_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($groupSettings, 'file_asset_download_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('content::ui.text.d07eab27')); ?>
                     </label>
                 </div>
@@ -484,7 +484,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <span class="form-label">회원 제출</span>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="content_group_member_submission_enabled">
-                        <input id="content_group_member_submission_enabled" type="checkbox" name="group_member_submission_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($groupSettings, 'member_submission_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                        <input id="content_group_member_submission_enabled" type="checkbox" name="group_member_submission_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($groupSettings, 'member_submission_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('이 콘텐츠 그룹에 회원 제출 허용'); ?>
                     </label>
                 </div>

@@ -154,7 +154,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </span>
             <div class="admin-form-field">
                 <label class="admin-form-check form-label" for="modules_admin_retention_auto_cleanup_enabled">
-                                    <input id="modules_admin_retention_auto_cleanup_enabled" type="checkbox" name="auto_cleanup_enabled" value="1" class="form-checkbox"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
+                                    <input id="modules_admin_retention_auto_cleanup_enabled" type="checkbox" name="auto_cleanup_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
                                     <?php echo sr_admin_choice_label_html(sr_t('admin::ui.active.93c558d7')); ?>
                                 </label>
             </div>

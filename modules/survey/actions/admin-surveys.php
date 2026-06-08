@@ -1102,20 +1102,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-grid">
                 <div class="form-field">
                     <label class="admin-form-check form-label" for="survey_login_required">
-                        <input id="survey_login_required" type="checkbox" name="login_required" value="1" class="form-checkbox"<?php echo (int) ($values['login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                        <input id="survey_login_required" type="checkbox" name="login_required" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
                         로그인 필요
                     </label>
                     <p class="admin-form-help">보상 설문은 로그인 필요 상태에서만 저장됩니다.</p>
                 </div>
                 <div class="form-field">
                     <label class="admin-form-check form-label" for="survey_anonymous_allowed">
-                        <input id="survey_anonymous_allowed" type="checkbox" name="anonymous_allowed" value="1" class="form-checkbox"<?php echo (int) ($values['anonymous_allowed'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        <input id="survey_anonymous_allowed" type="checkbox" name="anonymous_allowed" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['anonymous_allowed'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         익명 응답 허용
                     </label>
                 </div>
                 <div class="form-field">
                     <label class="admin-form-check form-label" for="survey_public_listed">
-                        <input id="survey_public_listed" type="checkbox" name="public_listed" value="1" class="form-checkbox"<?php echo (int) ($values['public_listed'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                        <input id="survey_public_listed" type="checkbox" name="public_listed" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['public_listed'] ?? 1) === 1 ? ' checked' : ''; ?>>
                         공개 목록 노출
                     </label>
                 </div>
@@ -1234,7 +1234,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="form-field">
                     <label class="admin-form-check form-label" for="survey_revision_locked">
-                        <input id="survey_revision_locked" type="checkbox" name="revision_locked" value="1" class="form-checkbox"<?php echo (int) ($values['revision_locked'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        <input id="survey_revision_locked" type="checkbox" name="revision_locked" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['revision_locked'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         설문지 잠금
                     </label>
                 </div>
@@ -1249,7 +1249,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <div class="form-label admin-form-label-help"><?php echo $surveyHelpButtonHtml('참여 동의', $surveyHelp['consent']['id']); ?><span>동의 필요</span></div>
                 <label class="admin-form-check form-label" for="survey_consent_required">
-                    <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-checkbox"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                    <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
                     참여자 동의 확인
                 </label>
             </div>
@@ -1267,7 +1267,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <div class="form-label admin-form-label-help"><?php echo $surveyHelpButtonHtml('보상', $surveyHelp['reward']['id']); ?><span>보상 사용</span></div>
                 <label class="admin-form-check form-label" for="survey_reward_enabled">
-                    <input id="survey_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                    <input id="survey_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                     제출 완료 후 보상 지급
                 </label>
             </div>
@@ -1412,15 +1412,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span class="form-label">검증 옵션</span>
                                 <div class="admin-form-field admin-survey-question-option-grid">
                                     <label class="admin-form-check form-label" for="question_required_<?php echo sr_e((string) $index); ?>">
-                                        <input id="question_required_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_required[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['required'] ?? 1) === 1 ? ' checked' : ''; ?>>
+                                        <input id="question_required_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_required[]" value="<?php echo sr_e((string) $index); ?>" class="form-switch form-choice-dark"<?php echo (int) ($question['required'] ?? 1) === 1 ? ' checked' : ''; ?>>
                                         필수
                                     </label>
                                     <label class="admin-form-check form-label" for="question_allow_decimal_<?php echo sr_e((string) $index); ?>">
-                                        <input id="question_allow_decimal_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_decimal[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                        <input id="question_allow_decimal_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_decimal[]" value="<?php echo sr_e((string) $index); ?>" class="form-switch form-choice-dark"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                         소수 허용
                                     </label>
                                     <label class="admin-form-check form-label" for="question_allow_other_<?php echo sr_e((string) $index); ?>">
-                                        <input id="question_allow_other_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_other[]" value="<?php echo sr_e((string) $index); ?>" class="form-checkbox"<?php echo (int) ($question['allow_other'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                        <input id="question_allow_other_<?php echo sr_e((string) $index); ?>" type="checkbox" name="question_allow_other[]" value="<?php echo sr_e((string) $index); ?>" class="form-switch form-choice-dark"<?php echo (int) ($question['allow_other'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                         기타 답변 허용
                                     </label>
                                 </div>

@@ -66,10 +66,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label">유료 다운로드 사용</span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="content_download_file_asset_download_enabled">
-                        <input id="content_download_file_asset_download_enabled" type="checkbox" name="new_content_file_asset_download_enabled" value="1" class="form-checkbox"<?php echo (int) ($formValues['asset_download_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html('사용'); ?>
-                    </label>
+                    <?php echo sr_admin_switch_html('content_download_file_asset_download_enabled', 'new_content_file_asset_download_enabled', '1', (int) ($formValues['asset_download_enabled'] ?? 0) === 1, '사용'); ?>
                 </div>
             </div>
             <div class="admin-form-row">

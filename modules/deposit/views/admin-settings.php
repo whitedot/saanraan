@@ -73,18 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('deposit_refund_requests_enabled', '환불 신청 사용', (string) $depositSettingsHelp['refund_requests_enabled']['id'], $depositSettingsHelpOpenLabel); ?>
             <div class="admin-form-field">
-                <label class="admin-form-check form-label" for="deposit_refund_requests_enabled">
-                    <input
-                        id="deposit_refund_requests_enabled"
-                        type="checkbox"
-                        name="refund_requests_enabled"
-                        value="1"
-                        class="form-checkbox"
-                        data-deposit-refund-enabled
-                        <?php echo $refundRequestsEnabled ? 'checked' : ''; ?>
-                    >
-                    사용
-                </label>
+                <?php echo sr_admin_switch_html('deposit_refund_requests_enabled', 'refund_requests_enabled', '1', $refundRequestsEnabled, '사용', '', ' data-deposit-refund-enabled'); ?>
                 <p class="admin-form-help">사용하지 않으면 회원 화면에서 예치금 환불 신청 폼을 숨기고 직접 신청 POST도 거부합니다.</p>
             </div>
         </div>

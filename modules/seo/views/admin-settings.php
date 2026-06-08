@@ -60,10 +60,7 @@ if (sr_is_http_url($defaultOgImage)) {
             <div class="admin-form-row">
                 <span class="form-label"><?php echo sr_e(sr_t('seo::ui.url.51ecf74b')); ?></span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_seo_admin_settings_sitemap_include_home">
-                                            <input id="modules_seo_admin_settings_sitemap_include_home" type="checkbox" name="sitemap_include_home" value="1" class="form-checkbox"<?php echo !empty($settings['sitemap_include_home']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html(sr_t('seo::ui.url.51ecf74b')); ?>
-                                        </label>
+                    <?php echo sr_admin_switch_html('modules_seo_admin_settings_sitemap_include_home', 'sitemap_include_home', '1', !empty($settings['sitemap_include_home']), sr_t('seo::ui.url.51ecf74b')); ?>
                 </div>
             </div>
         </div>

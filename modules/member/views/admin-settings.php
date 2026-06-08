@@ -82,28 +82,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.member.8df81cb2'), $memberSettingsHelp['allow_registration']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.member.8df81cb2')); ?></span></span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_member_admin_settings_allow_registration">
-                                            <input id="modules_member_admin_settings_allow_registration" type="checkbox" name="allow_registration" value="1" class="form-checkbox"<?php echo !empty($settings['allow_registration']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html(sr_t('member::ui.member.8df81cb2')); ?>
-                                        </label>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_allow_registration', 'allow_registration', '1', !empty($settings['allow_registration']), sr_t('member::ui.member.8df81cb2')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.active.f166bfe8'), $memberSettingsHelp['email_verification']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.active.f166bfe8')); ?></span></span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_member_admin_settings_email_verification_enabled">
-                                            <input id="modules_member_admin_settings_email_verification_enabled" type="checkbox" name="email_verification_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['email_verification_enabled']) ? ' checked' : ''; ?>>
-                                            <?php echo sr_admin_choice_label_html(sr_t('member::ui.email.active.f166bfe8')); ?>
-                                        </label>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_email_verification_enabled', 'email_verification_enabled', '1', !empty($settings['email_verification_enabled']), sr_t('member::ui.email.active.f166bfe8')); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="modules_member_admin_settings_nickname_enabled"><?php echo sr_e(sr_t('member::ui.nickname')); ?></label>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="modules_member_admin_settings_nickname_enabled">
-                        <input id="modules_member_admin_settings_nickname_enabled" type="checkbox" name="nickname_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['nickname_enabled']) ? ' checked' : ''; ?>>
-                        <?php echo sr_admin_choice_label_html(sr_t('member::settings.nickname.enabled')); ?>
-                    </label>
+                    <?php echo sr_admin_switch_html('modules_member_admin_settings_nickname_enabled', 'nickname_enabled', '1', !empty($settings['nickname_enabled']), sr_t('member::settings.nickname.enabled')); ?>
                     <small class="admin-form-help"><?php echo sr_e(sr_t('member::settings.nickname.help')); ?></small>
                 </div>
             </div>
@@ -147,14 +138,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <span class="form-label admin-form-label-help"><?php echo sr_member_admin_help_button_html($label, $memberSettingsHelp['profile_field']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e($label); ?></span></span>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="<?php echo sr_e($enabledFieldId); ?>">
-                                            <input id="<?php echo sr_e($enabledFieldId); ?>" type="checkbox" name="<?php echo sr_e($enabledKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$enabledKey]) ? ' checked' : ''; ?> data-member-profile-visible data-member-profile-required-target="<?php echo sr_e('#' . $requiredFieldId); ?>">
-                                            <?php echo sr_admin_choice_label_html((string) $label . sr_t('member::ui.text.dc690320')); ?>
-                                        </label>
-                                        <label class="admin-form-check form-label" for="<?php echo sr_e($requiredFieldId); ?>">
-                                            <input id="<?php echo sr_e($requiredFieldId); ?>" type="checkbox" name="<?php echo sr_e($requiredKey); ?>" class="form-checkbox" value="1"<?php echo !empty($settings[$requiredKey]) ? ' checked' : ''; ?> data-member-profile-required data-member-profile-visible-target="<?php echo sr_e('#' . $enabledFieldId); ?>">
-                                            <?php echo sr_admin_choice_label_html((string) $label . sr_t('member::ui.required.800c5ae5')); ?>
-                                        </label>
+                    <?php echo sr_admin_switch_html($enabledFieldId, $enabledKey, '1', !empty($settings[$enabledKey]), (string) $label . sr_t('member::ui.text.dc690320'), '', ' data-member-profile-visible data-member-profile-required-target="' . sr_e('#' . $requiredFieldId) . '"'); ?>
+                    <?php echo sr_admin_switch_html($requiredFieldId, $requiredKey, '1', !empty($settings[$requiredKey]), (string) $label . sr_t('member::ui.required.800c5ae5'), '', ' data-member-profile-required data-member-profile-visible-target="' . sr_e('#' . $enabledFieldId) . '"'); ?>
                 </div>
             </div>
         <?php } ?>

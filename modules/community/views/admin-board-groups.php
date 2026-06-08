@@ -473,7 +473,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml(sr_t('community::ui.text.c3bd14cb'), $communityBoardGroupHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.c3bd14cb')); ?></span></div>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="modules_community_admin_board_groups_group_image_uploads_enabled">
-                                                    <input id="modules_community_admin_board_groups_group_image_uploads_enabled" type="checkbox" name="group_image_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, 'image_uploads_enabled', '1'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                                    <input id="modules_community_admin_board_groups_group_image_uploads_enabled" type="checkbox" name="group_image_uploads_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, 'image_uploads_enabled', '1'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                                     <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.c3bd14cb')); ?>
                                                 </label>
                     </div>
@@ -497,7 +497,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml(sr_t('community::ui.text.fe95ead0'), $communityBoardGroupHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.fe95ead0')); ?></span></div>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="modules_community_admin_board_groups_group_file_uploads_enabled">
-                                                    <input id="modules_community_admin_board_groups_group_file_uploads_enabled" type="checkbox" name="group_file_uploads_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                                    <input id="modules_community_admin_board_groups_group_file_uploads_enabled" type="checkbox" name="group_file_uploads_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                                     <?php echo sr_admin_choice_label_html(sr_t('community::ui.text.fe95ead0')); ?>
                                                 </label>
                     </div>
@@ -591,7 +591,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml($assetLabel, $communityBoardGroupHelp['asset_settings']['id']); ?><span><?php echo sr_e($assetLabel); ?> 사용</span></div>
                             <div class="admin-form-field">
                                 <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
-                                    <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                    <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e('group_' . (string) $assetPrefix); ?>_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, $assetPrefix . '_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
                                     <?php echo sr_admin_choice_label_html($assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                 </label>
                                 <?php if ($usesGroupedAssetAmounts) { ?>
@@ -655,7 +655,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span class="form-label">게시자 리워드</span>
                                 <div class="admin-form-field">
                                     <label class="admin-form-check form-label" for="community_board_group_paid_attachment_download_publisher_reward_enabled">
-                                        <input id="community_board_group_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="group_paid_attachment_download_publisher_reward_enabled" value="1" class="form-checkbox"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_publisher_reward_enabled', '0') === '1' ? ' checked' : ''; ?>>
+                                        <input id="community_board_group_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="group_paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo $groupSettingValue($formGroupSettings, 'paid_attachment_download_publisher_reward_enabled', '0') === '1' ? ' checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
                                     </label>
                                 </div>

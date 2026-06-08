@@ -532,7 +532,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.923da40e'), $contentHelp['asset_access_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.c9b3e6f0')); ?> 사용</span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_access_enabled">
-                        <input id="modules_content_admin_contents_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        <input id="modules_content_admin_contents_asset_access_enabled" type="checkbox" name="asset_access_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['asset_access_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.923da40e')); ?>
                     </label>
                     <?php echo $pageSettingSourceRadioHtml('source_asset_access_enabled', $pageSettingSource($values, 'asset_access_enabled')); ?>
@@ -594,7 +594,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label admin-form-label-help"><?php echo $contentHelpButtonHtml(sr_t('content::ui.active.8bcecbe7'), $contentHelp['asset_action_enabled']['id']); ?><span><?php echo sr_e(sr_t('content::ui.text.76faa117')); ?> 사용</span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_content_admin_contents_asset_action_enabled">
-                                            <input id="modules_content_admin_contents_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                            <input id="modules_content_admin_contents_asset_action_enabled" type="checkbox" name="asset_action_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['asset_action_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                             <?php echo sr_admin_choice_label_html(sr_t('content::ui.active.904d506b')); ?>
                                         </label>
                                         <?php echo $pageSettingSourceRadioHtml('source_asset_action_enabled', $pageSettingSource($values, 'asset_action_enabled')); ?>

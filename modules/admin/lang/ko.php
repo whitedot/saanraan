@@ -272,7 +272,7 @@ return [
                                     버튼',
     'ui.browser.defaults.8abc599f' => '브라우저 기본값 (Browser Defaults)',
     'ui.card.with.tabs.07403201' => '탭이 있는 카드 (Card with Tabs)',
-    'ui.checkbox.toggle.50291b0c' => '체크박스 토글 (Checkbox Toggle)',
+    'ui.checkbox.toggle.50291b0c' => '체크박스 토글 그룹 (Checkbox Toggle Group)',
     'ui.checkboxes.3f234b18' => '체크박스 (Checkboxes)',
     'ui.checks.radios.and.switches.2bcc4c3e' => '체크박스, 라디오 및 스위치 (Checks, Radios and Switches)',
     'ui.city.68649934' => '도시 (City)',

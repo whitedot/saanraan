@@ -18,10 +18,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <span class="form-label">이메일 채널</span>
             <div class="admin-form-field">
-                <label class="admin-form-check form-label" for="notification_admin_settings_email_channel_enabled">
-                    <input id="notification_admin_settings_email_channel_enabled" type="checkbox" name="email_channel_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['email_channel_enabled']) ? ' checked' : ''; ?> data-notification-email-enabled>
-                    <?php echo sr_admin_choice_label_html('알림 등록에서 이메일 채널 사용'); ?>
-                </label>
+                <?php echo sr_admin_switch_html('notification_admin_settings_email_channel_enabled', 'email_channel_enabled', '1', !empty($settings['email_channel_enabled']), '알림 등록에서 이메일 채널 사용', '', ' data-notification-email-enabled'); ?>
                 <small class="admin-form-help">끄면 알림 등록 화면에서 이메일 채널을 선택할 수 없습니다.</small>
             </div>
         </div>

@@ -110,19 +110,13 @@ $surveySettingsHelp = [
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_login_required', '로그인 필요', $surveySettingsHelp['default_login_required']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="survey_settings_login_required">
-                        <input id="survey_settings_login_required" type="checkbox" name="default_login_required" value="1" class="form-checkbox"<?php echo (int) ($settings['default_login_required'] ?? 1) === 1 ? ' checked' : ''; ?>>
-                        새 설문에 기본 적용
-                    </label>
+                    <?php echo sr_admin_switch_html('survey_settings_login_required', 'default_login_required', '1', (int) ($settings['default_login_required'] ?? 1) === 1, '새 설문에 기본 적용'); ?>
                 </div>
             </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_consent_required', '참여 동의 필요', $surveySettingsHelp['default_consent_required']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="admin-form-field">
-                    <label class="admin-form-check form-label" for="survey_settings_consent_required">
-                        <input id="survey_settings_consent_required" type="checkbox" name="default_consent_required" value="1" class="form-checkbox"<?php echo (int) ($settings['default_consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                        새 설문에 기본 적용
-                    </label>
+                    <?php echo sr_admin_switch_html('survey_settings_consent_required', 'default_consent_required', '1', (int) ($settings['default_consent_required'] ?? 0) === 1, '새 설문에 기본 적용'); ?>
                 </div>
             </div>
         </div>

@@ -73,18 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('reward_withdrawal_requests_enabled', '출금 신청 사용', (string) $rewardSettingsHelp['withdrawal_requests_enabled']['id'], $rewardSettingsHelpOpenLabel); ?>
             <div class="admin-form-field">
-                <label class="admin-form-check form-label" for="reward_withdrawal_requests_enabled">
-                    <input
-                        id="reward_withdrawal_requests_enabled"
-                        type="checkbox"
-                        name="withdrawal_requests_enabled"
-                        value="1"
-                        class="form-checkbox"
-                        data-reward-withdrawal-enabled
-                        <?php echo $withdrawalRequestsEnabled ? 'checked' : ''; ?>
-                    >
-                    사용
-                </label>
+                <?php echo sr_admin_switch_html('reward_withdrawal_requests_enabled', 'withdrawal_requests_enabled', '1', $withdrawalRequestsEnabled, '사용', '', ' data-reward-withdrawal-enabled'); ?>
                 <p class="admin-form-help">사용하지 않으면 회원 화면에서 적립금 출금 신청 폼을 숨기고 직접 신청 POST도 거부합니다.</p>
             </div>
         </div>

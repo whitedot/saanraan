@@ -1075,7 +1075,7 @@ $quizHelp = [
                 <?php echo sr_admin_form_label_help_html('quiz_reward_enabled', '보상 사용', $quizHelp['reward']['id'], $quizHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="quiz_reward_enabled">
-                        <input id="quiz_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-checkbox"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?> data-quiz-reward-enabled>
+                        <input id="quiz_reward_enabled" type="checkbox" name="reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['reward_enabled'] ?? 0) === 1 ? ' checked' : ''; ?> data-quiz-reward-enabled>
                         <?php echo sr_admin_choice_label_html('자동 채점 통과 시 지급'); ?>
                     </label>
                     <p class="admin-form-help">켜면 회원이 퀴즈 통과 조건을 만족했을 때 아래 보상 정책으로 지급을 시도합니다.</p>

@@ -1218,13 +1218,6 @@
                                             </div>
 
                                             <div class="ui-kit-stack-3 ui-kit-column-lg-2">
-                                                <!-- Single Toggle -->
-                                                <div>
-                                                    <input type="checkbox" id="toggleSingle" class="form-choice-toggle-input sample-hidden" />
-                                                    <label for="toggleSingle"
-                                                        class="btn btn-choice-primary"><?php echo sr_e(sr_t('admin::ui.text.07a1a20f')); ?></label>
-                                                </div>
-
                                                 <!-- Group Toggle -->
                                                 <div class="ui-kit-cluster">
                                                     <div>
@@ -1250,14 +1243,21 @@
 
                                         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-1-5 ui-kit-grid-lg-3 ui-kit-gap-lg-9">
                                             <div>
-                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 토글 색상</label>
+                                                <label class="form-label ui-kit-block-pad-2 ui-kit-space-after-0">체크박스 토글 그룹 색상</label>
                                             </div>
 
                                             <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2 ui-kit-column-lg-2">
                                                 <?php foreach (['primary' => 'Primary', 'secondary' => 'Secondary', 'success' => 'Success', 'info' => 'Info', 'warning' => 'Warning', 'danger' => 'Danger', 'dark' => 'Dark', 'light' => 'Light'] as $choiceColor => $choiceLabel) { ?>
-                                                    <div>
-                                                        <input type="checkbox" id="toggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="form-choice-toggle-input sample-hidden" checked />
-                                                        <label for="toggleColor<?php echo sr_e(ucfirst($choiceColor)); ?>" class="btn btn-choice-<?php echo sr_e($choiceColor); ?>"><?php echo sr_e($choiceLabel); ?></label>
+                                                    <?php $choiceColorId = 'toggleColor' . ucfirst($choiceColor); ?>
+                                                    <div class="ui-kit-cluster">
+                                                        <div>
+                                                            <input type="checkbox" id="<?php echo sr_e($choiceColorId); ?>A" class="form-choice-toggle-input sample-hidden" checked />
+                                                            <label for="<?php echo sr_e($choiceColorId); ?>A" class="btn btn-choice-<?php echo sr_e($choiceColor); ?> btn-group-start"><?php echo sr_e($choiceLabel); ?></label>
+                                                        </div>
+                                                        <div>
+                                                            <input type="checkbox" id="<?php echo sr_e($choiceColorId); ?>B" class="form-choice-toggle-input sample-hidden" />
+                                                            <label for="<?php echo sr_e($choiceColorId); ?>B" class="btn btn-choice-<?php echo sr_e($choiceColor); ?> btn-group-end">Alt</label>
+                                                        </div>
                                                     </div>
                                                 <?php } ?>
                                             </div>

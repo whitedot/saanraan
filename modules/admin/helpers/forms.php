@@ -384,6 +384,24 @@ function sr_admin_radio_toggle_group_html(string $idBase, string $name, array $o
     return $html . '</div>';
 }
 
+function sr_admin_switch_html(string $id, string $name, string $value, bool $checked, string $label, string $uncheckedValue = '', string $inputAttributes = ''): string
+{
+    $inputId = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($id));
+    $inputId = is_string($inputId) && $inputId !== '' ? $inputId : 'admin_switch';
+    $html = '';
+
+    if ($uncheckedValue !== '') {
+        $html .= '<input type="hidden" name="' . sr_e($name) . '" value="' . sr_e($uncheckedValue) . '">';
+    }
+
+    $html .= '<label class="admin-form-check form-label" for="' . sr_e($inputId) . '">'
+        . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-switch form-choice-dark"' . $inputAttributes . ($checked ? ' checked' : '') . '>'
+        . sr_admin_choice_label_html($label)
+        . '</label>';
+
+    return $html;
+}
+
 function sr_admin_select_badge_list_html(string $id, string $name, array $options, array $selectedValues, string $emptyLabel = '선택 항목 없음', string $placeholder = '선택', string $rootAttributes = ''): string
 {
     $selectedMap = [];

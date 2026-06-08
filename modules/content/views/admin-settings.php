@@ -111,29 +111,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <span class="form-label">회원 제출 기능</span>
             <div class="admin-form-field">
-                <label class="admin-form-check form-label" for="content_admin_settings_member_submission_enabled">
-                    <input id="content_admin_settings_member_submission_enabled" type="checkbox" name="member_submission_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['member_submission_enabled']) ? ' checked' : ''; ?>>
-                    <?php echo sr_admin_choice_label_html('승인 회원 또는 허용 그룹의 콘텐츠 제출 사용'); ?>
-                </label>
+                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_enabled', 'member_submission_enabled', '1', !empty($settings['member_submission_enabled']), '승인 회원 또는 허용 그룹의 콘텐츠 제출 사용'); ?>
                 <p class="admin-form-help">콘텐츠 그룹별 제출 허용과 작성자 승인/회원 그룹 조건을 함께 만족해야 합니다.</p>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label">기본 검수</span>
             <div class="admin-form-field">
-                <label class="admin-form-check form-label" for="content_admin_settings_member_submission_default_review_required">
-                    <input id="content_admin_settings_member_submission_default_review_required" type="checkbox" name="member_submission_default_review_required" value="1" class="form-checkbox"<?php echo !empty($settings['member_submission_default_review_required']) ? ' checked' : ''; ?>>
-                    <?php echo sr_admin_choice_label_html('회원 제출 콘텐츠는 기본적으로 검수 후 공개'); ?>
-                </label>
+                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_default_review_required', 'member_submission_default_review_required', '1', !empty($settings['member_submission_default_review_required']), '회원 제출 콘텐츠는 기본적으로 검수 후 공개'); ?>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label">작성자 리워드</span>
             <div class="admin-form-field">
-                <label class="admin-form-check form-label" for="content_admin_settings_member_submission_author_reward_enabled">
-                    <input id="content_admin_settings_member_submission_author_reward_enabled" type="checkbox" name="member_submission_author_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['member_submission_author_reward_enabled']) ? ' checked' : ''; ?>>
-                    <?php echo sr_admin_choice_label_html('회원 제출 콘텐츠 승인 시 작성자에게 리워드 지급'); ?>
-                </label>
+                <?php echo sr_admin_switch_html('content_admin_settings_member_submission_author_reward_enabled', 'member_submission_author_reward_enabled', '1', !empty($settings['member_submission_author_reward_enabled']), '회원 제출 콘텐츠 승인 시 작성자에게 리워드 지급'); ?>
                 <p class="admin-form-help">제출본이 승인되어 콘텐츠로 공개될 때 제출 회원에게 한 번만 지급합니다. 지급 실패는 로그에 남기고 승인 처리는 유지합니다.</p>
             </div>
         </div>

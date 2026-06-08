@@ -159,7 +159,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.7d97b5a5'), $communitySettingsHelp['level_feature']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.7d97b5a5')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_level_enabled">
-                        <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
+                        <input id="modules_community_admin_settings_level_enabled" type="checkbox" name="level_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_enabled']) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                     </label>
                 </div>
@@ -168,7 +168,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label admin-form-label-help"><?php echo $communitySettingsHelpButtonHtml(sr_t('community::ui.text.f9447e05'), $communitySettingsHelp['level_auto_recalculate']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.f9447e05')); ?></span></div>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="modules_community_admin_settings_level_auto_recalculate">
-                        <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-checkbox"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?> data-community-level-auto-toggle>
+                        <input id="modules_community_admin_settings_level_auto_recalculate" type="checkbox" name="level_auto_recalculate" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['level_auto_recalculate']) ? ' checked' : ''; ?> data-community-level-auto-toggle>
                         <?php echo sr_admin_choice_label_html(sr_t('community::ui.active.3ed52f4b')); ?>
                     </label>
                 </div>
@@ -257,7 +257,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-asset-setting-control">
                                 <div class="admin-asset-setting-primary">
                                     <label class="admin-form-check form-label" for="<?php echo sr_e($assetEnabledId); ?>">
-                                        <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-checkbox"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
+                                        <input id="<?php echo sr_e($assetEnabledId); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings[$assetPrefix . '_enabled']) ? ' checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html($isRewardAsset ? ($assetPrefix === 'post_reward' ? sr_t('community::ui.active.3ed52f4b') : sr_t('community::ui.active.1549f7df')) : $assetLabel . sr_t('community::ui.active.d11d5dbb')); ?>
                                     </label>
                                 </div>
@@ -270,7 +270,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="form-label"><?php echo sr_e($assetLabel . ' 회수'); ?></span>
                         <div class="admin-form-field">
                             <label class="admin-form-check form-label" for="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>">
-                                <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-checkbox"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
+                                <input id="<?php echo sr_e('modules_community_admin_settings_' . (string) $assetPrefix . '_reversal_enabled'); ?>" type="checkbox" name="<?php echo sr_e((string) $assetPrefix); ?>_reversal_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings[$assetPrefix . '_reversal_enabled']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html(sr_t('community::ui.delete.5cd8f702')); ?>
                             </label>
                         </div>
@@ -294,7 +294,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <span class="form-label">게시자 리워드</span>
                         <div class="admin-form-field">
                             <label class="admin-form-check form-label" for="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled">
-                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-checkbox"<?php echo !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? ' checked' : ''; ?>>
+                                <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_enabled" type="checkbox" name="paid_attachment_download_publisher_reward_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['paid_attachment_download_publisher_reward_enabled']) ? ' checked' : ''; ?>>
                                 <?php echo sr_admin_choice_label_html('첨부 다운로드 차감 성공 시 게시자에게 리워드 지급'); ?>
                             </label>
                         </div>
