@@ -613,6 +613,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_e(sr_t('community::ui.level_recalculate_notice_change')); ?><br>
             <?php echo sr_e(sr_t('community::ui.level_recalculate_notice_load')); ?>
         </p>
+        <p class="admin-form-help">레벨 설정 저장은 최소 점수만 저장합니다. 회원 레벨 재계산은 저장과 별도로 실행되며, 작성 중인 최소 점수 입력값을 함께 저장하지 않습니다.</p>
         <div class="table-wrapper">
             <table class="table">
                 <thead class="ui-table-head">
@@ -685,6 +686,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div data-community-level-recalculate-step="notice">
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_1')); ?></p>
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_2')); ?></p>
+                    <p class="admin-form-help">재계산 실행은 현재 저장된 레벨 기준으로 회원 레벨을 다시 계산합니다. 레벨 설정 form의 작성 중인 최소 점수 입력값은 함께 저장되지 않습니다.</p>
                     <dl class="admin-meta-list">
                         <dt><?php echo sr_e('부하 등급'); ?></dt>
                         <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['label']); ?></dd>
