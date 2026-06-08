@@ -561,7 +561,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_module', sr_t('content::ui.text.c9b3e6f0') . ' 자산 설정', $contentHelp['asset_module']['id'], $contentHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_module', sr_t('content::ui.text.c9b3e6f0') . ' 포인트/금액 설정', $contentHelp['asset_module']['id'], $contentHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php $selectedAccessAssetModules = sr_content_asset_module_keys_from_value($values['asset_module'] ?? ''); ?>
                     <div class="admin-asset-setting-line" data-admin-setting-source-group>
