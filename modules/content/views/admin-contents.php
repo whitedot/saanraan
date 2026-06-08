@@ -478,19 +478,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </section>
         <section class="admin-card card">
-            <h2><?php echo sr_e('공개와 SEO'); ?></h2>
-            <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_title', sr_t('content::ui.seo.f66e126a'), $contentHelp['seo_title']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <input id="content_admin_contents_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_description', sr_t('content::ui.seo.b6187d8d'), $contentHelp['seo_description']['id'], $contentHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <input id="content_admin_contents_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
-                </div>
-            </div>
+            <h2><?php echo sr_e('공개 설정'); ?></h2>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_status', sr_t('content::ui.status.e10195a1'), $contentHelp['status']['id'], $contentHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
@@ -524,6 +512,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             </select>
                     <?php echo $pageSettingSourceRadioHtml('source_layout_key', $pageSettingSource($values, 'layout_key')); ?>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.content.05b39bf1')); ?></p>
+                </div>
+            </div>
+        </section>
+        <section class="admin-card card">
+            <h2><?php echo sr_e('SEO 설정'); ?></h2>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_title', sr_t('content::ui.seo.f66e126a'), $contentHelp['seo_title']['id'], $contentHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <input id="content_admin_contents_seo_title" type="text" name="seo_title" value="<?php echo sr_e((string) ($values['seo_title'] ?? '')); ?>" class="form-input form-control-full" maxlength="160">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_seo_description', sr_t('content::ui.seo.b6187d8d'), $contentHelp['seo_description']['id'], $contentHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <input id="content_admin_contents_seo_description" type="text" name="seo_description" value="<?php echo sr_e((string) ($values['seo_description'] ?? '')); ?>" class="form-input form-control-full" maxlength="255">
                 </div>
             </div>
         </section>
