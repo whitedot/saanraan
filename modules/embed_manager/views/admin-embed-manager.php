@@ -43,26 +43,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e('임베드 참조'); ?></h2>
         </div>
         <div class="admin-list-summary-row">
-            <span class="admin-summary-meta"><?php echo sr_e('표시'); ?> <strong><?php echo sr_e((string) count($refs)); ?><?php echo sr_e('건'); ?></strong></span>
+            <div class="admin-list-summary">
+                <span><?php echo sr_e('표시'); ?> <strong><?php echo sr_e((string) count($refs)); ?></strong><?php echo sr_e('건'); ?></span>
+            </div>
         </div>
         <div class="table-wrapper">
-        <table class="table admin-embed-manager-table">
-            <caption class="sr-only"><?php echo sr_e('임베드 매니저 참조 목록'); ?></caption>
-            <thead>
-                <tr>
-                    <th><?php echo sr_e('참조'); ?></th>
-                    <th><?php echo sr_e('소유 대상'); ?></th>
-                    <th><?php echo sr_e('임베드 대상'); ?></th>
-                    <th><?php echo sr_e('상태'); ?></th>
-                    <th><?php echo sr_e('수정일'); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($refs === []) { ?>
+            <table class="table admin-embed-manager-table">
+                <caption class="sr-only"><?php echo sr_e('임베드 매니저 참조 목록'); ?></caption>
+                <thead class="ui-table-head">
                     <tr>
-                        <td colspan="5" class="admin-empty-state"><?php echo sr_e('조건에 맞는 임베드 참조가 없습니다.'); ?></td>
+                        <th><?php echo sr_e('참조'); ?></th>
+                        <th><?php echo sr_e('소유 대상'); ?></th>
+                        <th><?php echo sr_e('임베드 대상'); ?></th>
+                        <th><?php echo sr_e('상태'); ?></th>
+                        <th><?php echo sr_e('수정일'); ?></th>
                     </tr>
-                <?php } else { ?>
+                </thead>
+                <tbody>
+                    <?php if ($refs === []) { ?>
+                        <tr>
+                            <td colspan="5" class="admin-empty-state"><?php echo sr_e('조건에 맞는 임베드 참조가 없습니다.'); ?></td>
+                        </tr>
+                    <?php } ?>
                     <?php foreach ($refs as $ref) { ?>
                         <tr>
                             <td class="admin-table-break">
@@ -80,9 +82,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap"><?php echo sr_e((string) ($ref['updated_at'] ?? '')); ?></td>
                         </tr>
                     <?php } ?>
-                <?php } ?>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
         </div>
     </section>
 <?php } ?>
