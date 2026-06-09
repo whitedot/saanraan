@@ -282,12 +282,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></span>
+                        <label class="form-label" for="logo_manager_edit_status_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <label class="admin-form-check form-label" for="logo_manager_edit_status_enabled_<?php echo sr_e((string) (int) $logo['id']); ?>">
-                                <input id="logo_manager_edit_status_enabled_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="status_enabled" value="1" class="form-switch form-choice-dark"<?php echo (string) $logo['status'] === 'active' ? ' checked' : ''; ?>>
-                                <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.active.93c558d7')); ?>
-                            </label>
+                            <select id="logo_manager_edit_status_<?php echo sr_e((string) (int) $logo['id']); ?>" name="status" class="form-select" required>
+                                <?php foreach ($logoStatuses as $logoStatus) { ?>
+                                    <option value="<?php echo sr_e($logoStatus); ?>"<?php echo (string) $logo['status'] === $logoStatus ? ' selected' : ''; ?>><?php echo sr_e(sr_logo_manager_status_label($logoStatus)); ?></option>
+                                <?php } ?>
+                            </select>
                             <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
                         </div>
                     </div>

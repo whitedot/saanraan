@@ -35,7 +35,7 @@ if (sr_request_method() === 'POST') {
         $linkUrlRaw = sr_post_string('link_url', 255);
         $linkUrl = sr_logo_manager_clean_url($linkUrlRaw);
         $useAsPublicSymbol = sr_logo_manager_use_as_public_symbol_value($positionKey, sr_post_string('use_as_public_symbol', 1));
-        $status = sr_post_string('status_enabled', 10) === '1' ? 'active' : 'disabled';
+        $status = sr_post_string('status', 30);
         $startsAtInput = sr_post_string('starts_at', 30);
         $endsAtInput = sr_post_string('ends_at', 30);
         $startsAt = sr_logo_manager_clean_admin_datetime($startsAtInput);
@@ -49,6 +49,9 @@ if (sr_request_method() === 'POST') {
         }
         if ($title === '') {
             $errors[] = '로고 이름을 입력하세요.';
+        }
+        if (!in_array($status, $logoStatuses, true)) {
+            $errors[] = '로고 상태 값이 올바르지 않습니다.';
         }
         if ($linkUrlRaw !== '' && $linkUrl === '') {
             $errors[] = '링크 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
