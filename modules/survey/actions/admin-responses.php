@@ -39,7 +39,8 @@ if (sr_request_method() === 'POST') {
             'metadata' => ['quality_status' => $qualityStatus],
         ]);
     }
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $errors === [] ? '응답 품질 상태를 저장했습니다.' : ''), '/admin/surveys/responses');
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $errors === [] ? '응답 품질 상태를 저장했습니다.' : ''), '/admin/surveys/responses' . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
 }
 
 $surveyId = max(0, (int) sr_get_string('survey_id', 20));
@@ -98,6 +99,8 @@ $qualityFilterOptions = [];
 foreach (sr_survey_quality_statuses() as $status) {
     $qualityFilterOptions[$status] = sr_survey_quality_status_label($status);
 }
+$responseActionQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$responseActionSuffix = $responseActionQuery !== '' ? '?' . $responseActionQuery : '';
 
 function sr_survey_admin_preview_text(string $value, int $maxLength = 240): string
 {
@@ -183,18 +186,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class((string) ($response['quality_status'] ?? 'accepted'))); ?>"><?php echo sr_e(sr_survey_quality_status_label((string) ($response['quality_status'] ?? 'accepted'))); ?></span></td>
                         <td class="admin-table-break"><code><?php echo sr_e(sr_survey_admin_preview_text((string) ($response['answer_snapshot_json'] ?? ''))); ?></code></td>
                         <td>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/responses')); ?>" class="admin-inline-form">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/responses' . $responseActionSuffix)); ?>" class="admin-inline-form">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="response_id" value="<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>">
-                                <label class="sr-only" for="quality_status_<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>">품질 상태</label>
-                                <select id="quality_status_<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>" name="quality_status" class="form-select">
-                                    <?php foreach (sr_survey_quality_statuses() as $status): ?>
-                                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($response['quality_status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_quality_status_label($status)); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
                                 <label class="sr-only" for="quality_note_<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>">품질 메모</label>
                                 <input id="quality_note_<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>" type="text" name="quality_note" value="<?php echo sr_e((string) ($response['quality_note'] ?? '')); ?>" class="form-input" maxlength="1000" placeholder="메모">
-                                <button type="submit" class="btn btn-sm btn-solid-primary">저장</button>
+                                <?php foreach (sr_survey_quality_statuses() as $status): ?>
+                                    <?php if ((string) ($response['quality_status'] ?? '') === $status): ?>
+                                        <?php continue; ?>
+                                    <?php endif; ?>
+                                    <?php $statusLabel = sr_survey_quality_status_label($status); ?>
+                                    <button type="submit" name="quality_status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                <?php endforeach; ?>
                             </form>
                         </td>
                     </tr>

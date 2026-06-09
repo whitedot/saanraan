@@ -57,6 +57,8 @@ foreach ($seriesStatuses as $status) {
     $seriesStatusOptions[$status] = sr_content_series_status_label($status);
 }
 $seriesVisibilities = sr_content_series_visibility_values();
+$contentSeriesCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentSeriesCurrentQuery : '';
 ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>" class="filtering-form admin-content-series-filter ui-form-theme">
     <div class="filtering-fields admin-content-series-search-grid admin-content-filter-stack">
@@ -143,11 +145,13 @@ $seriesVisibilities = sr_content_series_visibility_values();
                     <?php $seriesUpdateFormId = 'content_series_update_' . (string) (int) $series['id']; ?>
                     <tr>
                         <td class="admin-table-nowrap">
-                            <form id="<?php echo sr_e($seriesUpdateFormId); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/content/series')); ?>">
+                            <form id="<?php echo sr_e($seriesUpdateFormId); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/content/series' . $contentSeriesActionSuffix)); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="update">
                                 <input type="hidden" name="series_id" value="<?php echo sr_e((string) $series['id']); ?>">
                                 <input type="hidden" name="series_key" value="<?php echo sr_e((string) $series['series_key']); ?>">
+                                <input type="hidden" name="status" value="<?php echo sr_e((string) $series['status']); ?>">
+                                <input type="hidden" name="visibility" value="<?php echo sr_e((string) $series['visibility']); ?>">
                             </form>
                             <code><?php echo sr_e((string) $series['series_key']); ?></code>
                         </td>
@@ -157,18 +161,27 @@ $seriesVisibilities = sr_content_series_visibility_values();
                         </td>
                         <td class="admin-table-nowrap">
                             <span class="admin-status <?php echo sr_e($seriesStatusClass((string) $series['status'])); ?>"><?php echo sr_e(sr_content_series_status_label((string) $series['status'])); ?></span>
-                            <select form="<?php echo sr_e($seriesUpdateFormId); ?>" name="status" class="form-select" aria-label="상태">
+                            <div class="admin-row-actions">
                                 <?php foreach (sr_content_series_statuses() as $status) { ?>
-                                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) $series['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_status_label($status)); ?></option>
+                                    <?php if ((string) $series['status'] === $status) { ?>
+                                        <?php continue; ?>
+                                    <?php } ?>
+                                    <?php $statusLabel = sr_content_series_status_label($status); ?>
+                                    <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                 <?php } ?>
-                            </select>
+                            </div>
                         </td>
                         <td class="admin-table-nowrap">
-                            <select form="<?php echo sr_e($seriesUpdateFormId); ?>" name="visibility" class="form-select" aria-label="공개 범위">
+                            <span class="admin-status <?php echo (string) $series['visibility'] === 'public' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_content_series_visibility_label((string) $series['visibility'])); ?></span>
+                            <div class="admin-row-actions">
                                 <?php foreach (sr_content_series_visibility_values() as $visibility) { ?>
-                                    <option value="<?php echo sr_e($visibility); ?>"<?php echo (string) $series['visibility'] === $visibility ? ' selected' : ''; ?>><?php echo sr_e(sr_content_series_visibility_label($visibility)); ?></option>
+                                    <?php if ((string) $series['visibility'] === $visibility) { ?>
+                                        <?php continue; ?>
+                                    <?php } ?>
+                                    <?php $visibilityLabel = sr_content_series_visibility_label($visibility); ?>
+                                    <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="visibility" value="<?php echo sr_e($visibility); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($visibility)); ?>"><?php echo sr_e($visibilityLabel); ?></button>
                                 <?php } ?>
-                            </select>
+                            </div>
                         </td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($series['active_item_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap">

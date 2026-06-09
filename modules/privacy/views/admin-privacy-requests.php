@@ -15,6 +15,8 @@ $allowedTypes = isset($allowedTypes) && is_array($allowedTypes) ? $allowedTypes 
 $selectedPrivacyRequestStatuses = is_array($privacyRequestListFilters['status'] ?? null) ? $privacyRequestListFilters['status'] : [];
 $selectedPrivacyRequestTypes = is_array($privacyRequestListFilters['request_type'] ?? null) ? $privacyRequestListFilters['request_type'] : [];
 $totalPrivacyRequests = (int) ($privacyRequestStatusCounts['total'] ?? count($requests ?? []));
+$privacyRequestCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$privacyRequestActionSuffix = $privacyRequestCurrentQuery !== '' ? '?' . $privacyRequestCurrentQuery : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -136,19 +138,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </form>
                             <details class="admin-inline-edit-details privacy-request-details">
                                 <summary class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('privacy::ui.status.22916f6e')); ?></summary>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="admin-inline-edit-form privacy-request-edit-form" data-privacy-request-form data-terminal-statuses="<?php echo sr_e(implode(',', sr_admin_privacy_request_terminal_statuses())); ?>" data-has-admin-note="<?php echo $storedAdminNote !== '' ? '1' : '0'; ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests' . $privacyRequestActionSuffix)); ?>" class="admin-inline-edit-form privacy-request-edit-form" data-privacy-request-form data-terminal-statuses="<?php echo sr_e(implode(',', sr_admin_privacy_request_terminal_statuses())); ?>" data-has-admin-note="<?php echo $storedAdminNote !== '' ? '1' : '0'; ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="request_id" value="<?php echo sr_e($requestId); ?>">
-                                    <label for="privacy_status_<?php echo sr_e($requestId); ?>">
-                                        <span><?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
-                                        <select name="status" id="privacy_status_<?php echo sr_e($requestId); ?>" class="form-select" required data-privacy-status>
+                                    <input type="hidden" name="status" value="<?php echo sr_e($requestStatus); ?>" data-privacy-status>
+                                    <div class="admin-row-actions" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?>">
+                                        <?php if (!in_array($requestStatus, sr_admin_privacy_request_terminal_statuses(), true)) { ?>
                                             <?php foreach ($allowedStatuses as $status) { ?>
-                                                <option value="<?php echo sr_e($status); ?>"<?php echo $request['status'] === $status ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e(sr_admin_code_label($status, 'privacy_request_status')); ?>
-                                                </option>
+                                                <?php if ($requestStatus === $status) { ?>
+                                                    <?php continue; ?>
+                                                <?php } ?>
+                                                <?php $statusLabel = sr_admin_code_label($status, 'privacy_request_status'); ?>
+                                                <?php $confirmMessage = sr_admin_row_action_confirm_message($status, $statusLabel); ?>
+                                                <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>" data-privacy-status-action<?php echo $confirmMessage !== '' ? ' data-confirm-message="' . sr_e($confirmMessage) . '"' : ''; ?>><?php echo sr_e($statusLabel); ?></button>
                                             <?php } ?>
-                                        </select>
-                                    </label>
+                                        <?php } ?>
+                                    </div>
                                     <label for="privacy_note_<?php echo sr_e($requestId); ?>">
                                         <span><?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?> <span class="sr-required-label" data-privacy-note-required<?php echo $noteRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                                         <textarea name="admin_note" id="privacy_note_<?php echo sr_e($requestId); ?>" class="form-textarea" rows="3" cols="30" placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>" data-privacy-note<?php echo $noteRequired ? ' required' : ''; ?>></textarea>
@@ -167,7 +172,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <label for="modules_privacy_admin_privacy_requests_action_confirmed_<?php echo sr_e($requestId); ?>" class="btn btn-choice-light btn-group-end"><?php echo sr_e(sr_t('privacy::ui.admin.5a81e50f')); ?> <span class="sr-required-label" data-privacy-completed-required<?php echo $completedRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
                                         </span>
                                     </div>
-                                    <button type="submit" class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('privacy::ui.save.5fb92622')); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('privacy::ui.save.5fb92622')); ?></button>
                                 </form>
                             </details>
                         </div>
@@ -211,6 +216,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (event.target && event.target.matches('[data-privacy-status]')) {
                 syncPrivacyRequestForm(form);
             }
+        });
+        form.querySelectorAll('[data-privacy-status-action]').forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                var confirmMessage = button.getAttribute('data-confirm-message') || '';
+                if (confirmMessage !== '' && !window.confirm(confirmMessage)) {
+                    event.preventDefault();
+                    return;
+                }
+                var status = form.querySelector('[data-privacy-status]');
+                if (status) {
+                    status.value = button.value;
+                    syncPrivacyRequestForm(form);
+                }
+            });
         });
     });
 })();

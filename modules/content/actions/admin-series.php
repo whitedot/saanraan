@@ -26,6 +26,8 @@ $seriesFormValues = [
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    $seriesRedirectPath = '/admin/content/series' . ($redirectQuery !== '' ? '?' . $redirectQuery : '');
     $intent = sr_post_string('intent', 40);
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/series', $intent === 'delete' ? 'delete' : 'edit');
     $seriesId = (int) sr_post_string('series_id', 20);
@@ -55,7 +57,7 @@ if (sr_request_method() === 'POST') {
             }
         }
 
-        sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/content/series');
+        sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $seriesRedirectPath);
     }
 
     $description = sr_post_string_without_truncation('description', 2000);
@@ -116,7 +118,7 @@ if (sr_request_method() === 'POST') {
         }
     }
 
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/content/series');
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $seriesRedirectPath);
 }
 
 $seriesFilters = sr_content_admin_series_filters();

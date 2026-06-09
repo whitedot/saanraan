@@ -52,7 +52,8 @@ if (sr_request_method() === 'POST') {
         $notice = '시리즈 상태를 저장했습니다.';
     }
 
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/community/series');
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/community/series' . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
 }
 
 $seriesFilters = sr_community_admin_series_filters();

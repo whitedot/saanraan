@@ -41,7 +41,8 @@ if (sr_request_method() === 'POST') {
     ]);
 
     $_SESSION['sr_quiz_admin_comment_notice'] = '댓글 상태를 변경했습니다.';
-    sr_redirect('/admin/quiz/comments?' . http_build_query(sr_quiz_admin_comment_filters_from_request()));
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    sr_redirect('/admin/quiz/comments' . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
 }
 
 $commentFilters = sr_quiz_admin_comment_filters_from_request();
@@ -54,6 +55,8 @@ $commentNotice = (string) ($_SESSION['sr_quiz_admin_comment_notice'] ?? '');
 unset($_SESSION['sr_quiz_admin_comment_notice']);
 $commentDetailFilterOpen = (string) ($commentFilters['status'] ?? '') !== '' || (string) ($commentFilters['secret'] ?? '') !== '';
 $canEditComments = sr_admin_has_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz/comments', 'edit');
+$commentActionQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$commentActionSuffix = $commentActionQuery !== '' ? '?' . $commentActionQuery : '';
 
 $adminPageTitle = '퀴즈 댓글 관리';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -137,15 +140,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($currentStatus)); ?>"><?php echo sr_e(sr_quiz_comment_status_label($currentStatus)); ?></span></td>
                         <td class="admin-table-actions-cell text-end">
                             <?php if ($canEditComments) { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/comments?' . http_build_query($commentFilters))); ?>" class="admin-row-actions">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/comments' . $commentActionSuffix)); ?>" class="admin-row-actions">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>">
-                                    <select name="status" class="form-select">
-                                        <?php foreach ($commentStatusOptions as $status => $label) { ?>
-                                            <option value="<?php echo sr_e($status); ?>"<?php echo $currentStatus === $status ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                                    <?php foreach ($commentStatusOptions as $status => $label) { ?>
+                                        <?php if ($currentStatus === $status) { ?>
+                                            <?php continue; ?>
                                         <?php } ?>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-solid-primary">변경</button>
+                                        <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class((string) $status)); ?>"<?php echo sr_admin_row_action_confirm_attr((string) $status, (string) $label); ?>><?php echo sr_e((string) $label); ?></button>
+                                    <?php } ?>
                                 </form>
                             <?php } else { ?>
                                 <span class="admin-summary-meta">권한 없음</span>

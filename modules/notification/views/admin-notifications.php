@@ -25,6 +25,8 @@ $allowedNotificationStatuses = isset($allowedNotificationStatuses) && is_array($
 $allowedDeliveryChannels = isset($allowedDeliveryChannels) && is_array($allowedDeliveryChannels) ? $allowedDeliveryChannels : ['email'];
 $totalNotifications = (int) ($notificationStatusCounts['total'] ?? count($notifications ?? []));
 $totalDeliveries = (int) ($deliveryStatusCounts['total'] ?? count($deliveries ?? []));
+$notificationCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$notificationActionSuffix = $notificationCurrentQuery !== '' ? '?' . $notificationCurrentQuery : '';
 $notificationCreateModalId = 'notification-create-modal';
 $notificationCreateAccountInputId = 'notification_admin_notifications_account_identifier';
 $notificationCreateMemberLookupPrefix = 'notification_create';
@@ -154,18 +156,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap admin-notification-delivery-date-cell"><?php echo sr_notification_time_html((string) $delivery['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries/status')); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries/status' . $notificationActionSuffix)); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="delivery_id" value="<?php echo sr_e((string) $delivery['id']); ?>">
-                                    <label class="sr-only" for="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
-                                    <select name="status" id="delivery_status_<?php echo sr_e((string) $delivery['id']); ?>" class="form-select" required>
-                                                <?php foreach ($allowedDeliveryStatuses as $status) { ?>
-                                                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) $delivery['status'] === $status ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e(sr_admin_code_label($status, 'delivery_status')); ?>
-                                                    </option>
-                                                <?php } ?>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('notification::ui.save.5fb92622')); ?></button>
+                                    <?php foreach ($allowedDeliveryStatuses as $status) { ?>
+                                        <?php if ((string) $delivery['status'] === $status) { ?>
+                                            <?php continue; ?>
+                                        <?php } ?>
+                                        <?php $statusLabel = sr_admin_code_label($status, 'delivery_status'); ?>
+                                        <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                    <?php } ?>
                                 </form>
                                 </div>
                             </td>

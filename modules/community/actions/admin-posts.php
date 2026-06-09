@@ -494,7 +494,9 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('community::action.error.intent_invalid');
     }
 
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $communityPostsPage === 'comments' ? '/admin/community/comments' : '/admin/community/posts');
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    $redirectPath = $communityPostsPage === 'comments' ? '/admin/community/comments' : '/admin/community/posts';
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $redirectPath . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
 }
 
 $postStatusCounts = ['total' => 0];

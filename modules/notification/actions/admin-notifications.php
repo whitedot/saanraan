@@ -444,7 +444,9 @@ if (sr_request_method() === 'POST') {
     }
 
     sr_admin_flash_result(sr_admin_action_result($errors, $notice));
-    sr_redirect($notificationAdminPage === 'deliveries' ? '/admin/notification-deliveries' : '/admin/notifications');
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    $redirectPath = $notificationAdminPage === 'deliveries' ? '/admin/notification-deliveries' : '/admin/notifications';
+    sr_redirect($redirectPath . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
 }
 
 $notificationStatusCounts = sr_notification_admin_status_counts($pdo, $allowedNotificationStatuses);

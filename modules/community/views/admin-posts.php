@@ -15,6 +15,8 @@ $commentStatusCounts = isset($commentStatusCounts) && is_array($commentStatusCou
 $totalComments = (int) ($commentStatusCounts['total'] ?? count($comments ?? []));
 $selectedPostStatuses = is_array($postListFilters['status'] ?? null) ? $postListFilters['status'] : [];
 $selectedCommentStatuses = is_array($commentListFilters['status'] ?? null) ? $commentListFilters['status'] : [];
+$communityPostsCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$communityPostsActionSuffix = $communityPostsCurrentQuery !== '' ? '?' . $communityPostsCurrentQuery : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -144,7 +146,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         'hidden' => 'is-left',
                         default => 'is-left',
                     };
-                    $postStatusSelectId = 'community_admin_post_status_' . (string) $post['id'];
                     ?>
                     <tr>
                         <td class="community-post-select-cell">
@@ -173,17 +174,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap admin-community-post-date-cell"><?php echo sr_community_time_html((string) $post['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/posts' . $communityPostsActionSuffix)); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
                                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                                <label for="<?php echo sr_e($postStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                    <select id="<?php echo sr_e($postStatusSelectId); ?>" name="status" class="form-select">
-                                        <?php foreach ($allowedPostStatuses as $status) { ?>
-                                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $post['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
-                                        <?php } ?>
-                                    </select>
-                                <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
+                                <?php foreach ($allowedPostStatuses as $status) { ?>
+                                    <?php if ($status === $postStatus) { ?>
+                                        <?php continue; ?>
+                                    <?php } ?>
+                                    <?php $statusLabel = sr_admin_code_label($status, 'content_status'); ?>
+                                    <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                <?php } ?>
                             </form>
                             </div>
                         </td>
@@ -305,7 +306,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         'hidden' => 'is-left',
                         default => 'is-left',
                     };
-                    $commentStatusSelectId = 'community_admin_comment_status_' . (string) $comment['id'];
                     ?>
                     <tr>
                         <td class="community-comment-select-cell">
@@ -332,17 +332,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap admin-community-comment-date-cell"><?php echo sr_community_time_html((string) $comment['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>">
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/comments' . $communityPostsActionSuffix)); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="comment_status">
                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                    <label for="<?php echo sr_e($commentStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                    <select id="<?php echo sr_e($commentStatusSelectId); ?>" name="status" class="form-select">
-                                        <?php foreach ($allowedCommentStatuses as $status) { ?>
-                                            <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $comment['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
+                                    <?php foreach ($allowedCommentStatuses as $status) { ?>
+                                        <?php if ($status === $commentStatus) { ?>
+                                            <?php continue; ?>
                                         <?php } ?>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
+                                        <?php $statusLabel = sr_admin_code_label($status, 'content_status'); ?>
+                                        <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                    <?php } ?>
                                 </form>
                             </div>
                         </td>

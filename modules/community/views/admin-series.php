@@ -12,6 +12,8 @@ $seriesStatusCounts = isset($seriesStatusCounts) && is_array($seriesStatusCounts
 $totalSeries = (int) ($seriesStatusCounts['total'] ?? count($seriesList ?? []));
 $selectedSeriesStatuses = is_array($seriesFilters['status'] ?? null) ? $seriesFilters['status'] : [];
 $selectedSeriesVisibilities = is_array($seriesFilters['visibility'] ?? null) ? $seriesFilters['visibility'] : [];
+$communitySeriesCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$communitySeriesActionSuffix = $communitySeriesCurrentQuery !== '' ? '?' . $communitySeriesCurrentQuery : '';
 $seriesStatusClass = static function (string $status): string {
     return match ($status) {
         'active' => 'is-normal',
@@ -126,34 +128,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-break admin-community-series-title-cell">
                             <?php echo sr_e((string) $series['title']); ?>
-                            <form id="<?php echo sr_e($seriesUpdateFormId); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/community/series')); ?>">
+                            <form id="<?php echo sr_e($seriesUpdateFormId); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/community/series' . $communitySeriesActionSuffix)); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="series_id" value="<?php echo sr_e((string) $series['id']); ?>">
+                                <input type="hidden" name="status" value="<?php echo sr_e((string) $series['status']); ?>">
+                                <input type="hidden" name="visibility" value="<?php echo sr_e((string) $series['visibility']); ?>">
                             </form>
                         </td>
                         <td class="admin-table-break admin-community-series-board-cell"><?php echo sr_e((string) $series['board_title']); ?></td>
                         <td class="admin-table-break admin-community-series-owner-cell"><?php echo sr_e((string) ($series['owner_display_name'] ?? '')); ?></td>
                         <td class="admin-table-nowrap">
                             <span class="admin-status <?php echo sr_e($seriesStatusClass((string) $series['status'])); ?>"><?php echo sr_e(sr_community_series_status_label((string) $series['status'])); ?></span>
-                            <select form="<?php echo sr_e($seriesUpdateFormId); ?>" name="status" class="form-select" aria-label="상태">
+                            <div class="admin-row-actions">
                                 <?php foreach (sr_community_series_statuses() as $status) { ?>
-                                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) $series['status'] === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_community_series_status_label($status)); ?></option>
+                                    <?php if ((string) $series['status'] === $status) { ?>
+                                        <?php continue; ?>
+                                    <?php } ?>
+                                    <?php $statusLabel = sr_community_series_status_label($status); ?>
+                                    <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                 <?php } ?>
-                            </select>
+                            </div>
                         </td>
                         <td class="admin-table-nowrap">
-                            <select form="<?php echo sr_e($seriesUpdateFormId); ?>" name="visibility" class="form-select" aria-label="공개 범위">
+                            <span class="admin-status <?php echo (string) $series['visibility'] === 'public' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_community_series_visibility_label((string) $series['visibility'])); ?></span>
+                            <div class="admin-row-actions">
                                 <?php foreach (sr_community_series_visibility_values() as $visibility) { ?>
-                                    <option value="<?php echo sr_e($visibility); ?>"<?php echo (string) $series['visibility'] === $visibility ? ' selected' : ''; ?>><?php echo sr_e(sr_community_series_visibility_label($visibility)); ?></option>
+                                    <?php if ((string) $series['visibility'] === $visibility) { ?>
+                                        <?php continue; ?>
+                                    <?php } ?>
+                                    <?php $visibilityLabel = sr_community_series_visibility_label($visibility); ?>
+                                    <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="visibility" value="<?php echo sr_e($visibility); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($visibility)); ?>"><?php echo sr_e($visibilityLabel); ?></button>
                                 <?php } ?>
-                            </select>
+                            </div>
                         </td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($series['active_item_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap admin-community-series-date-cell"><?php echo sr_community_time_html((string) ($series['updated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions admin-community-series-actions">
                                 <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="text" name="admin_note" maxlength="2000" value="<?php echo sr_e((string) ($series['admin_note'] ?? '')); ?>" class="form-input admin-community-series-note-input" aria-label="관리자 메모">
-                                <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="커뮤니티 시리즈 저장" title="저장"><?php echo sr_material_icon_html('save'); ?></button>
+                                <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" class="btn btn-sm btn-solid-light" aria-label="커뮤니티 시리즈 메모 저장" title="메모 저장">메모 저장</button>
                             </div>
                         </td>
                     </tr>

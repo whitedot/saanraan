@@ -777,3 +777,36 @@ function sr_admin_member_group_key_badge_select_html(string $id, string $name, a
 
     return sr_admin_select_badge_list_html($id, $name, $options, $selectedKeys, '활성 회원 그룹 없음', '그룹 선택');
 }
+
+function sr_admin_row_action_button_class(string $status): string
+{
+    return match ($status) {
+        'published', 'active', 'accepted', 'sent', 'completed' => 'btn-solid-primary',
+        'pending', 'reviewing', 'queued', 'flagged', 'member' => 'btn-solid-light',
+        'hidden', 'archived', 'private', 'canceled' => 'btn-outline-secondary',
+        'deleted', 'rejected', 'cancelled', 'failed', 'excluded' => 'btn-outline-danger',
+        default => 'btn-solid-light',
+    };
+}
+
+function sr_admin_row_action_confirm_message(string $status, string $label): string
+{
+    return match ($status) {
+        'deleted' => $label . ' 상태로 변경할까요? 삭제 상태로 바뀐 항목은 사용자 화면에 노출되지 않습니다.',
+        'rejected' => $label . ' 상태로 변경할까요? 요청 거절 처리가 기록됩니다.',
+        'cancelled', 'canceled' => $label . ' 상태로 변경할까요? 취소 처리가 기록됩니다.',
+        'failed' => $label . ' 상태로 변경할까요? 실패 상태로 기록됩니다.',
+        'excluded' => $label . ' 상태로 변경할까요? 이 응답은 분석 대상에서 제외됩니다.',
+        default => '',
+    };
+}
+
+function sr_admin_row_action_confirm_attr(string $status, string $label): string
+{
+    $message = sr_admin_row_action_confirm_message($status, $label);
+    if ($message === '') {
+        return '';
+    }
+
+    return ' onclick="return confirm(\'' . sr_e($message) . '\');"';
+}

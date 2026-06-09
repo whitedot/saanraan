@@ -24,7 +24,8 @@ if (sr_request_method() === 'POST') {
     $postResult = sr_admin_handle_privacy_request_post($pdo, $account, $allowedStatuses);
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/privacy-requests');
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/privacy-requests' . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
 }
 
 $privacyRequestListFilters = sr_admin_privacy_request_filters($allowedStatuses, $allowedTypes);
