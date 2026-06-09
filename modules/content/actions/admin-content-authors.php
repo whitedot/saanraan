@@ -8,6 +8,7 @@ require_once SR_ROOT . '/modules/content/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/authors', 'view');
+$canEditContentAuthors = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content/authors', 'edit');
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
