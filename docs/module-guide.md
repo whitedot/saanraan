@@ -976,6 +976,7 @@ return [
 - `position_key`는 `module.area.name`처럼 점으로 구분한 소문자/숫자/underscore key를 사용한다.
 - 로고매니저는 이 계약을 로고 배치 생성 화면의 로고 용도 선택지로만 사용한다.
 - 앱아이콘 기본 용도 `public.favicon`은 `사용자 화면 심볼로 사용` 옵션을 저장할 수 있다. 이 값은 `sr_logo_manager_public_symbol_logo()` 또는 `sr_logo_manager_public_symbol_url()`을 호출하는 레이아웃/테마에서만 반영되며, 모든 공개 화면에 자동 출력되지 않는다.
+- `public.favicon` 용도 로고는 로컬 저장소의 PNG/JPEG/WebP 원본에서 16, 32, 48, 180, 192, 512 정사각 PNG 파생 아이콘을 생성할 수 있다. 활성 아이콘 세트가 있으면 `sr_logo_manager_favicon_link_tag()`가 사이즈별 `icon`/`apple-touch-icon` 링크를 출력하고, 생성된 세트가 없거나 생성할 수 없는 원본이면 기존 단일 favicon URL로 fallback한다. SVG 원본과 S3 원본은 공유호스팅 rasterize/다운로드 제약 때문에 현재 파생 생성 대상에서 제외한다.
 - 실제 출력은 화면 소유 모듈이나 레이아웃이 `sr_logo_manager_render_logo($pdo, $positionKey, ...)`를 명시적으로 호출해야 한다.
 
 `notification-events.php`:

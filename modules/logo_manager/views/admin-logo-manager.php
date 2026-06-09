@@ -8,6 +8,8 @@ $logoDefaultSort = sr_admin_logo_default_sort();
 $logoSort = isset($logoSort) && is_array($logoSort) ? $logoSort : $logoDefaultSort;
 $logoManagerCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $logoManagerActionSuffix = $logoManagerCurrentQuery !== '' ? '?' . $logoManagerCurrentQuery : '';
+$logoManagerIconSizeOptions = sr_logo_manager_icon_size_options();
+$logoManagerDefaultIconKeys = sr_logo_manager_default_icon_variant_keys();
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -200,6 +202,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-break">
                                 <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
                                 <?php echo sr_e((string) $logo['title']); ?>
+                                <?php $logoManagerIconVariants = is_array($iconVariantsByLogoId[(int) $logo['id']] ?? null) ? $iconVariantsByLogoId[(int) $logo['id']] : []; ?>
+                                <?php if ($logoManagerIconVariants !== []) { ?>
+                                    <div class="logo-manager-icon-preview-list" aria-label="활성 아이콘 세트">
+                                        <?php foreach ($logoManagerIconVariants as $variant) { ?>
+                                            <?php $variantUrl = sr_logo_manager_icon_variant_url($variant); ?>
+                                            <?php if ($variantUrl !== '') { ?>
+                                                <span class="logo-manager-icon-preview">
+                                                    <img src="<?php echo sr_e(sr_logo_manager_url_for_output($variantUrl)); ?>" alt="" loading="lazy" decoding="async">
+                                                    <small><?php echo sr_e((string) (int) $variant['width'] . 'x' . (string) (int) $variant['height']); ?></small>
+                                                </span>
+                                            <?php } ?>
+                                        <?php } ?>
+                                    </div>
+                                <?php } ?>
                             </td>
                             <td>
                                 <?php echo (string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key() && !empty($logo['use_as_public_symbol'])
@@ -214,7 +230,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
                                     <?php $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) (int) $logo['id']; ?>
+                                    <?php $logoManagerIconModalId = 'logo-manager-icon-modal-' . (string) (int) $logo['id']; ?>
                                     <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerEditModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>">수정</button>
+                                    <?php if ((string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key()) { ?>
+                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerIconModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>">아이콘 세트</button>
+                                    <?php } ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="logo_status">
@@ -346,6 +366,74 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </div>
     </div>
+    <?php if ($logoManagerEditPositionKey === sr_logo_manager_public_symbol_position_key()) { ?>
+        <?php $logoManagerIconModalId = 'logo-manager-icon-modal-' . (string) (int) $logo['id']; ?>
+        <div id="<?php echo sr_e($logoManagerIconModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($logoManagerIconModalId); ?>-label" aria-hidden="true" inert>
+            <div class="modal-dialog modal-dialog-lg">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="modal-content ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($logoManagerIconModalId); ?>-label" class="modal-title">파비콘/앱아이콘 세트</h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>">
+                            <?php echo sr_material_icon_html('close', '', sr_t('logo_manager::ui.close.1e8c1020')); ?>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="generate_icon_set">
+                        <input type="hidden" name="logo_id" value="<?php echo sr_e((string) (int) $logo['id']); ?>">
+                        <div class="admin-form-row">
+                            <span class="form-label">원본 로고</span>
+                            <div class="admin-form-field">
+                                <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
+                                <small class="admin-form-help"><?php echo sr_e((string) ($logo['width'] ?? 0) . 'x' . (string) ($logo['height'] ?? 0) . ' / ' . (string) ($logo['mime_type'] ?? '')); ?></small>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <span class="form-label">생성 크기 <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
+                            <div class="admin-form-field logo-manager-icon-size-grid">
+                                <?php foreach ($logoManagerIconSizeOptions as $variantKey => $variantOption) { ?>
+                                    <label class="admin-form-check form-label" for="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>">
+                                        <input id="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>" type="checkbox" name="icon_variant_keys[]" value="<?php echo sr_e($variantKey); ?>" class="form-checkbox" <?php echo in_array($variantKey, $logoManagerDefaultIconKeys, true) ? 'checked' : ''; ?>>
+                                        <?php echo sr_admin_choice_label_html((string) $variantOption['label']); ?>
+                                    </label>
+                                <?php } ?>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="logo_manager_icon_fit_<?php echo sr_e((string) (int) $logo['id']); ?>">맞춤 방식</label>
+                            <div class="admin-form-field">
+                                <select id="logo_manager_icon_fit_<?php echo sr_e((string) (int) $logo['id']); ?>" name="fit_mode" class="form-select">
+                                    <option value="contain">contain</option>
+                                    <option value="cover">cover</option>
+                                </select>
+                                <small class="admin-form-help">contain은 전체 로고를 맞추고, cover는 정사각형을 꽉 채웁니다.</small>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="logo_manager_icon_bg_<?php echo sr_e((string) (int) $logo['id']); ?>">배경색</label>
+                            <div class="admin-form-field">
+                                <input id="logo_manager_icon_bg_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="background_color" value="transparent" class="form-input" maxlength="20" pattern="transparent|#[0-9a-fA-F]{6}">
+                                <small class="admin-form-help">transparent 또는 #RRGGBB 형식으로 입력하세요.</small>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <span class="form-label">적용</span>
+                            <div class="admin-form-field">
+                                <label class="admin-form-check form-label" for="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>">
+                                    <input id="logo_manager_icon_activate_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="activate_icon_set" value="1" class="form-switch form-choice-dark" checked>
+                                    <?php echo sr_admin_choice_label_html('생성 후 바로 사용'); ?>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>"><?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?></button>
+                        <button type="submit" class="btn btn-solid-primary modal-action">아이콘 세트 생성</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php } ?>
 <?php } ?>
 
 <script>

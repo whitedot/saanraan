@@ -16,6 +16,7 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $logoTableExists = sr_logo_manager_table_exists($pdo);
+$iconVariantTableExists = sr_logo_manager_icon_variants_table_exists($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -274,6 +275,10 @@ if (sr_request_method() === 'POST') {
                 $sql .= ' WHERE id = :id';
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
+                if ($imageReplaced && $iconVariantTableExists) {
+                    $stale = $pdo->prepare("UPDATE sr_logo_manager_icon_variants SET status = 'stale', updated_at = :updated_at WHERE logo_id = :logo_id AND status = 'active'");
+                    $stale->execute(['updated_at' => $now, 'logo_id' => $logoId]);
+                }
 
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
@@ -299,6 +304,74 @@ if (sr_request_method() === 'POST') {
             } catch (Throwable $exception) {
                 sr_log_exception($exception, 'logo_manager_logo_update_failed');
                 $errors[] = '로고 수정 중 오류가 발생했습니다.';
+            }
+        }
+    } elseif ($intent === 'generate_icon_set') {
+        if (!$logoTableExists || !$iconVariantTableExists) {
+            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+        }
+
+        $logoId = (int) sr_post_string('logo_id', 20);
+        $logo = null;
+        if ($logoId > 0 && $logoTableExists) {
+            $stmt = $pdo->prepare('SELECT * FROM sr_logo_manager_logos WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $logoId]);
+            $row = $stmt->fetch();
+            $logo = is_array($row) ? $row : null;
+        }
+        if (!is_array($logo)) {
+            $errors[] = '아이콘 세트를 생성할 로고를 찾을 수 없습니다.';
+        } elseif ((string) ($logo['position_key'] ?? '') !== sr_logo_manager_public_symbol_position_key()) {
+            $errors[] = '파비콘 용도 로고에서만 아이콘 세트를 생성할 수 있습니다.';
+        }
+
+        $variantKeys = sr_logo_manager_icon_variant_keys_from_post($_POST['icon_variant_keys'] ?? []);
+        $fitMode = sr_post_string('fit_mode', 20);
+        $backgroundColor = sr_post_string('background_color', 20);
+        $normalizedBackgroundColor = sr_logo_manager_icon_background_color($backgroundColor);
+        $activate = sr_post_string('activate_icon_set', 1) === '1';
+        if ($variantKeys === []) {
+            $errors[] = '생성할 아이콘 크기를 선택하세요.';
+        }
+        if (!in_array($fitMode, ['contain', 'cover'], true)) {
+            $errors[] = '아이콘 맞춤 방식이 올바르지 않습니다.';
+        }
+        if ($normalizedBackgroundColor !== strtolower(trim($backgroundColor)) && strtolower(trim($backgroundColor)) !== 'transparent') {
+            $errors[] = '배경색은 transparent 또는 #RRGGBB 형식으로 입력하세요.';
+        }
+
+        if ($errors === [] && is_array($logo)) {
+            try {
+                $generated = sr_logo_manager_generate_icon_variants($pdo, $logo, $variantKeys, [
+                    'fit_mode' => $fitMode,
+                    'background_color' => $normalizedBackgroundColor,
+                ]);
+                $createdCount = sr_logo_manager_save_icon_variants($pdo, (int) $account['id'], $logoId, $generated, $activate);
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => $activate ? 'logo_manager.icon_set.activated' : 'logo_manager.icon_set.generated',
+                    'target_type' => 'logo_manager_logo',
+                    'target_id' => (string) $logoId,
+                    'result' => 'success',
+                    'message' => 'Logo icon set generated.',
+                    'metadata' => [
+                        'variant_keys' => $variantKeys,
+                        'variant_count' => $createdCount,
+                        'fit_mode' => $fitMode,
+                        'background_color' => $normalizedBackgroundColor,
+                        'activated' => $activate,
+                    ],
+                ]);
+
+                $notice = '아이콘 세트 ' . number_format($createdCount) . '개를 생성했습니다.';
+                if ($activate) {
+                    $notice .= ' 새 세트를 사용하도록 적용했습니다.';
+                }
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'logo_manager_icon_set_generate_failed');
+                $errors[] = $exception->getMessage();
             }
         }
     } elseif ($intent === 'logo_status') {
@@ -450,6 +523,7 @@ $logoSortOptions = sr_admin_logo_sort_options();
 $logoDefaultSort = sr_admin_logo_default_sort();
 $logoSort = sr_admin_sort_from_request($logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir');
 $logos = [];
+$iconVariantsByLogoId = [];
 if ($logoTableExists) {
     $stmt = $pdo->query('SELECT COUNT(*) AS count_value FROM sr_logo_manager_logos');
     $logoCountRow = $stmt->fetch();
@@ -464,6 +538,23 @@ if ($logoTableExists) {
          LIMIT ' . (int) $logoPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($logoPagination)
     );
     $logos = $stmt->fetchAll();
+    if ($iconVariantTableExists && $logos !== []) {
+        $logoIds = array_values(array_filter(array_map(static fn (array $logo): int => (int) ($logo['id'] ?? 0), $logos)));
+        if ($logoIds !== []) {
+            $placeholders = implode(', ', array_fill(0, count($logoIds), '?'));
+            $stmt = $pdo->prepare(
+                'SELECT *
+                 FROM sr_logo_manager_icon_variants
+                 WHERE logo_id IN (' . $placeholders . ')
+                   AND status = \'active\'
+                 ORDER BY logo_id ASC, purpose ASC, width ASC, id DESC'
+            );
+            $stmt->execute($logoIds);
+            foreach ($stmt->fetchAll() as $variant) {
+                $iconVariantsByLogoId[(int) ($variant['logo_id'] ?? 0)][] = $variant;
+            }
+        }
+    }
 } else {
     $logoPagination = sr_admin_pagination_from_total($pdo, 0, 'logo_page');
     if ($notice === '') {

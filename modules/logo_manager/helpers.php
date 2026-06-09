@@ -140,6 +140,24 @@ function sr_logo_manager_table_exists(PDO $pdo): bool
     return $cache[$cacheKey];
 }
 
+function sr_logo_manager_icon_variants_table_exists(PDO $pdo): bool
+{
+    static $cache = [];
+    $cacheKey = method_exists($pdo, 'srTablePrefix') ? $pdo->srTablePrefix() : 'sr_';
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_logo_manager_icon_variants LIMIT 1');
+        $cache[$cacheKey] = true;
+    } catch (Throwable) {
+        $cache[$cacheKey] = false;
+    }
+
+    return $cache[$cacheKey];
+}
+
 function sr_logo_manager_site_setting_reference_count(PDO $pdo, array $target, array $context): int
 {
     return count(sr_logo_manager_site_setting_reference_rows($pdo, $target, $context));
@@ -573,7 +591,8 @@ function sr_logo_manager_svg_dimension_value(string $value): int
 
 function sr_logo_manager_image_storage_key_is_valid(string $key): bool
 {
-    return preg_match('#\Alogo_manager/images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp|svg)\z#', $key) === 1;
+    return preg_match('#\Alogo_manager/images/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp|svg)\z#', $key) === 1
+        || preg_match('#\Alogo_manager/icon-variants/\d{4}/\d{2}/[a-f0-9]{32}\.png\z#', $key) === 1;
 }
 
 function sr_logo_manager_image_storage_reference(string $reference): ?array
@@ -690,6 +709,285 @@ function sr_logo_manager_duration_label(mixed $startsAt, mixed $endsAt): string
     }
 
     return implode(' ', array_slice($parts, 0, 2));
+}
+
+function sr_logo_manager_icon_size_options(): array
+{
+    return [
+        'favicon_16' => ['label' => 'Favicon 16x16', 'purpose' => 'favicon', 'width' => 16, 'height' => 16],
+        'favicon_32' => ['label' => 'Favicon 32x32', 'purpose' => 'favicon', 'width' => 32, 'height' => 32],
+        'favicon_48' => ['label' => 'Favicon 48x48', 'purpose' => 'favicon', 'width' => 48, 'height' => 48],
+        'apple_touch_180' => ['label' => 'Apple touch 180x180', 'purpose' => 'apple_touch', 'width' => 180, 'height' => 180],
+        'pwa_192' => ['label' => 'Android/PWA 192x192', 'purpose' => 'pwa', 'width' => 192, 'height' => 192],
+        'pwa_512' => ['label' => 'Android/PWA 512x512', 'purpose' => 'pwa', 'width' => 512, 'height' => 512],
+    ];
+}
+
+function sr_logo_manager_default_icon_variant_keys(): array
+{
+    return ['favicon_16', 'favicon_32', 'favicon_48', 'apple_touch_180', 'pwa_192', 'pwa_512'];
+}
+
+function sr_logo_manager_icon_variant_keys_from_post(mixed $rawKeys): array
+{
+    $options = sr_logo_manager_icon_size_options();
+    $keys = is_array($rawKeys) ? $rawKeys : [];
+    $selected = [];
+    foreach ($keys as $rawKey) {
+        $key = (string) $rawKey;
+        if (isset($options[$key])) {
+            $selected[$key] = true;
+        }
+    }
+
+    return array_keys($selected);
+}
+
+function sr_logo_manager_icon_variants_by_logo(PDO $pdo, int $logoId, string $status = 'active'): array
+{
+    if ($logoId < 1 || !sr_logo_manager_icon_variants_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_logo_manager_icon_variants
+         WHERE logo_id = :logo_id
+           AND status = :status
+         ORDER BY purpose ASC, width ASC, id DESC'
+    );
+    $stmt->execute([
+        'logo_id' => $logoId,
+        'status' => $status,
+    ]);
+
+    return $stmt->fetchAll();
+}
+
+function sr_logo_manager_icon_variant_url(array $variant): string
+{
+    $publicUrl = trim((string) ($variant['public_url'] ?? ''));
+    if ($publicUrl !== '' && (sr_is_safe_relative_url($publicUrl) || sr_is_http_url($publicUrl))) {
+        return $publicUrl;
+    }
+
+    $driver = (string) ($variant['storage_driver'] ?? 'local');
+    $key = (string) ($variant['storage_key'] ?? '');
+    if (!in_array($driver, ['local', 's3'], true) || !sr_logo_manager_image_storage_key_is_valid($key)) {
+        return '';
+    }
+
+    $publicUrl = sr_storage_public_url($driver, $key);
+    if ($publicUrl !== '') {
+        return $publicUrl;
+    }
+
+    return '/logo-manager/image?file=' . rawurlencode(sr_storage_reference($driver, $key));
+}
+
+function sr_logo_manager_generate_icon_variants(PDO $pdo, array $logo, array $variantKeys, array $options = []): array
+{
+    if (!sr_logo_manager_icon_variants_table_exists($pdo)) {
+        throw new RuntimeException('아이콘 세트 DB 업데이트를 먼저 적용하세요.');
+    }
+
+    $logoId = (int) ($logo['id'] ?? 0);
+    if ($logoId < 1 || (string) ($logo['position_key'] ?? '') !== sr_logo_manager_public_symbol_position_key()) {
+        throw new RuntimeException('파비콘 용도 로고에서만 아이콘 세트를 생성할 수 있습니다.');
+    }
+    if ((string) ($logo['mime_type'] ?? '') === 'image/svg+xml') {
+        throw new RuntimeException('SVG 원본은 공유호스팅 환경에서 PNG 파생 아이콘 생성을 지원하지 않습니다.');
+    }
+
+    $sourceDriver = (string) ($logo['storage_driver'] ?? 'local');
+    $sourceKey = (string) ($logo['storage_key'] ?? '');
+    if ($sourceDriver !== 'local') {
+        throw new RuntimeException('현재는 로컬 저장소의 원본 로고만 파생 아이콘 생성을 지원합니다.');
+    }
+
+    $sourcePath = sr_storage_local_path($sourceKey);
+    if (!is_string($sourcePath) || !is_file($sourcePath)) {
+        throw new RuntimeException('원본 로고 파일을 찾을 수 없습니다.');
+    }
+
+    $sizeOptions = sr_logo_manager_icon_size_options();
+    $variantKeys = array_values(array_filter($variantKeys, static fn (string $key): bool => isset($sizeOptions[$key])));
+    if ($variantKeys === []) {
+        throw new RuntimeException('생성할 아이콘 크기를 선택하세요.');
+    }
+
+    $fitMode = in_array((string) ($options['fit_mode'] ?? 'contain'), ['contain', 'cover'], true) ? (string) $options['fit_mode'] : 'contain';
+    $backgroundColor = sr_logo_manager_icon_background_color((string) ($options['background_color'] ?? 'transparent'));
+    $batchKey = bin2hex(random_bytes(12));
+    $datePath = date('Y/m');
+    $directory = SR_ROOT . '/storage/tmp/logo-manager-icons/' . $datePath;
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('아이콘 임시 디렉터리를 만들 수 없습니다.');
+    }
+
+    $generated = [];
+    foreach ($variantKeys as $variantKey) {
+        $variant = $sizeOptions[$variantKey];
+        $storedName = sr_upload_random_filename('png');
+        $targetPath = sr_upload_safe_target_path($directory, $storedName);
+        sr_upload_assert_target_path_writable($targetPath);
+
+        if (!sr_logo_manager_resize_icon_png($sourcePath, $targetPath, (int) $variant['width'], (int) $variant['height'], $fitMode, $backgroundColor)) {
+            @unlink($targetPath);
+            throw new RuntimeException('아이콘 이미지를 생성할 수 없습니다. GD 또는 Imagick 이미지 처리 확장을 확인하세요.');
+        }
+
+        $storageKey = 'logo_manager/icon-variants/' . $datePath . '/' . $storedName;
+        $stored = sr_storage_put_file($targetPath, $storageKey, ['content_type' => 'image/png']);
+        $checksum = hash_file('sha256', $targetPath);
+        $sizeBytes = filesize($targetPath);
+        @unlink($targetPath);
+
+        $storageReference = sr_storage_reference((string) $stored['driver'], $storageKey);
+        $publicUrl = (string) ($stored['url'] ?? '');
+        $generated[] = [
+            'logo_id' => $logoId,
+            'batch_key' => $batchKey,
+            'variant_key' => $variantKey,
+            'purpose' => (string) $variant['purpose'],
+            'width' => (int) $variant['width'],
+            'height' => (int) $variant['height'],
+            'storage_driver' => (string) $stored['driver'],
+            'storage_key' => $storageKey,
+            'public_url' => $publicUrl !== '' ? $publicUrl : '/logo-manager/image?file=' . rawurlencode($storageReference),
+            'mime_type' => 'image/png',
+            'size_bytes' => is_int($sizeBytes) ? $sizeBytes : 0,
+            'checksum_sha256' => is_string($checksum) ? $checksum : '',
+        ];
+    }
+
+    return $generated;
+}
+
+function sr_logo_manager_save_icon_variants(PDO $pdo, int $accountId, int $logoId, array $variants, bool $activate): int
+{
+    if ($variants === []) {
+        return 0;
+    }
+
+    $now = sr_now();
+    $pdo->beginTransaction();
+    try {
+        if ($activate) {
+            $disable = $pdo->prepare("UPDATE sr_logo_manager_icon_variants SET status = 'disabled', updated_at = :updated_at WHERE logo_id = :logo_id AND status = 'active'");
+            $disable->execute(['updated_at' => $now, 'logo_id' => $logoId]);
+        }
+
+        $insert = $pdo->prepare(
+            'INSERT INTO sr_logo_manager_icon_variants
+                (logo_id, batch_key, variant_key, purpose, width, height, storage_driver, storage_key, public_url, mime_type,
+                 size_bytes, checksum_sha256, status, created_by_account_id, created_at, updated_at)
+             VALUES
+                (:logo_id, :batch_key, :variant_key, :purpose, :width, :height, :storage_driver, :storage_key, :public_url, :mime_type,
+                 :size_bytes, :checksum_sha256, :status, :created_by_account_id, :created_at, :updated_at)'
+        );
+        foreach ($variants as $variant) {
+            $insert->execute([
+                'logo_id' => $logoId,
+                'batch_key' => (string) $variant['batch_key'],
+                'variant_key' => (string) $variant['variant_key'],
+                'purpose' => (string) $variant['purpose'],
+                'width' => (int) $variant['width'],
+                'height' => (int) $variant['height'],
+                'storage_driver' => (string) $variant['storage_driver'],
+                'storage_key' => (string) $variant['storage_key'],
+                'public_url' => (string) $variant['public_url'],
+                'mime_type' => (string) $variant['mime_type'],
+                'size_bytes' => (int) $variant['size_bytes'],
+                'checksum_sha256' => (string) $variant['checksum_sha256'],
+                'status' => $activate ? 'active' : 'disabled',
+                'created_by_account_id' => $accountId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return count($variants);
+}
+
+function sr_logo_manager_icon_background_color(string $value): string
+{
+    $value = strtolower(trim($value));
+    if ($value === '' || $value === 'transparent') {
+        return 'transparent';
+    }
+
+    return preg_match('/\A#[0-9a-f]{6}\z/', $value) === 1 ? $value : 'transparent';
+}
+
+function sr_logo_manager_resize_icon_png(string $sourcePath, string $targetPath, int $width, int $height, string $fitMode, string $backgroundColor): bool
+{
+    if (!extension_loaded('gd')) {
+        return false;
+    }
+
+    $info = @getimagesize($sourcePath);
+    if (!is_array($info)) {
+        return false;
+    }
+
+    $mime = strtolower((string) ($info['mime'] ?? ''));
+    if ($mime === 'image/jpeg' && function_exists('imagecreatefromjpeg')) {
+        $source = @imagecreatefromjpeg($sourcePath);
+    } elseif ($mime === 'image/png' && function_exists('imagecreatefrompng')) {
+        $source = @imagecreatefrompng($sourcePath);
+    } elseif ($mime === 'image/webp' && function_exists('imagecreatefromwebp')) {
+        $source = @imagecreatefromwebp($sourcePath);
+    } else {
+        return false;
+    }
+    if (!$source instanceof GdImage) {
+        return false;
+    }
+
+    $sourceWidth = max(1, (int) ($info[0] ?? 0));
+    $sourceHeight = max(1, (int) ($info[1] ?? 0));
+    $canvas = imagecreatetruecolor($width, $height);
+    if (!$canvas instanceof GdImage) {
+        imagedestroy($source);
+        return false;
+    }
+
+    imagealphablending($canvas, false);
+    imagesavealpha($canvas, true);
+    if ($backgroundColor === 'transparent') {
+        $fill = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+    } else {
+        $red = hexdec(substr($backgroundColor, 1, 2));
+        $green = hexdec(substr($backgroundColor, 3, 2));
+        $blue = hexdec(substr($backgroundColor, 5, 2));
+        $fill = imagecolorallocatealpha($canvas, $red, $green, $blue, 0);
+    }
+    imagefill($canvas, 0, 0, $fill);
+
+    $scale = $fitMode === 'cover'
+        ? max($width / $sourceWidth, $height / $sourceHeight)
+        : min($width / $sourceWidth, $height / $sourceHeight);
+    $targetWidth = max(1, (int) round($sourceWidth * $scale));
+    $targetHeight = max(1, (int) round($sourceHeight * $scale));
+    $targetX = (int) floor(($width - $targetWidth) / 2);
+    $targetY = (int) floor(($height - $targetHeight) / 2);
+
+    imagealphablending($canvas, true);
+    $copied = imagecopyresampled($canvas, $source, $targetX, $targetY, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
+    imagesavealpha($canvas, true);
+    $written = $copied && function_exists('imagepng') && imagepng($canvas, $targetPath);
+    imagedestroy($source);
+    imagedestroy($canvas);
+
+    return $written;
 }
 
 function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now = null): ?array
@@ -857,7 +1155,34 @@ function sr_logo_manager_public_symbol_url(PDO $pdo): string
 
 function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 {
-    $url = sr_logo_manager_active_url($pdo, 'public.favicon');
+    $logo = sr_logo_manager_active_logo($pdo, 'public.favicon');
+    if (!is_array($logo)) {
+        return '';
+    }
+
+    $variants = sr_logo_manager_icon_variants_by_logo($pdo, (int) ($logo['id'] ?? 0));
+    if ($variants !== []) {
+        $html = [];
+        foreach ($variants as $variant) {
+            $url = sr_logo_manager_icon_variant_url($variant);
+            if ($url === '') {
+                continue;
+            }
+            $purpose = (string) ($variant['purpose'] ?? '');
+            $sizes = (string) (int) ($variant['width'] ?? 0) . 'x' . (string) (int) ($variant['height'] ?? 0);
+            $href = sr_e(sr_logo_manager_url_for_output($url));
+            if ($purpose === 'apple_touch') {
+                $html[] = '<link rel="apple-touch-icon" sizes="' . sr_e($sizes) . '" href="' . $href . '">';
+            } else {
+                $html[] = '<link rel="icon" type="image/png" sizes="' . sr_e($sizes) . '" href="' . $href . '">';
+            }
+        }
+        if ($html !== []) {
+            return implode(PHP_EOL, $html);
+        }
+    }
+
+    $url = sr_logo_manager_logo_url($logo);
     if ($url === '') {
         return '';
     }

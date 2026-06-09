@@ -48,6 +48,37 @@
     margin-right: .5rem;
 }
 
+.logo-manager-icon-preview-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .375rem;
+    margin-top: .5rem;
+}
+
+.logo-manager-icon-preview {
+    align-items: center;
+    color: var(--text-muted);
+    display: inline-flex;
+    gap: .25rem;
+    min-height: 1.5rem;
+}
+
+.logo-manager-icon-preview img {
+    background: var(--color-default-100);
+    border: 1px solid var(--color-default-300);
+    border-radius: var(--radius-sm);
+    height: 1.5rem;
+    object-fit: contain;
+    padding: .125rem;
+    width: 1.5rem;
+}
+
+.logo-manager-icon-size-grid {
+    display: grid;
+    gap: .5rem .75rem;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
 .logo-manager-select-cell {
     text-align: center;
     width: 1%;
