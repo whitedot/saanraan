@@ -396,10 +396,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                         <div class="admin-form-row">
                             <span class="form-label">생성 크기 <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
-                            <div class="admin-form-field logo-manager-icon-size-grid">
+                            <div class="admin-form-field logo-manager-icon-size-grid" data-logo-manager-icon-size-group>
+                                <label class="admin-form-check form-label" for="logo_manager_icon_all_<?php echo sr_e((string) (int) $logo['id']); ?>">
+                                    <input id="logo_manager_icon_all_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" class="form-switch form-switch-light" data-logo-manager-icon-size-all>
+                                    <?php echo sr_admin_choice_label_html('전체 선택'); ?>
+                                </label>
                                 <?php foreach ($logoManagerIconSizeOptions as $variantKey => $variantOption) { ?>
                                     <label class="admin-form-check form-label" for="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>">
-                                        <input id="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>" type="checkbox" name="icon_variant_keys[]" value="<?php echo sr_e($variantKey); ?>" class="form-switch form-switch-light" <?php echo in_array($variantKey, $logoManagerDefaultIconKeys, true) ? 'checked' : ''; ?>>
+                                        <input id="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>" type="checkbox" name="icon_variant_keys[]" value="<?php echo sr_e($variantKey); ?>" class="form-switch form-switch-light" data-logo-manager-icon-size-choice <?php echo in_array($variantKey, $logoManagerDefaultIconKeys, true) ? 'checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html((string) $variantOption['label']); ?>
                                     </label>
                                 <?php } ?>
@@ -530,6 +534,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         };
         positionSelect.addEventListener('change', sync);
         sync();
+    });
+
+    Array.prototype.slice.call(document.querySelectorAll('[data-logo-manager-icon-size-group]')).forEach(function (group) {
+        var allSwitch = group.querySelector('[data-logo-manager-icon-size-all]');
+        var sizeSwitches = Array.prototype.slice.call(group.querySelectorAll('[data-logo-manager-icon-size-choice]'));
+        if (!allSwitch || sizeSwitches.length < 1) {
+            return;
+        }
+        var syncAllSwitch = function () {
+            var checkedCount = sizeSwitches.filter(function (input) {
+                return input.checked && !input.disabled;
+            }).length;
+            allSwitch.checked = checkedCount > 0 && checkedCount === sizeSwitches.length;
+            allSwitch.indeterminate = checkedCount > 0 && checkedCount < sizeSwitches.length;
+        };
+        allSwitch.addEventListener('change', function () {
+            sizeSwitches.forEach(function (input) {
+                if (!input.disabled) {
+                    input.checked = allSwitch.checked;
+                }
+            });
+            syncAllSwitch();
+        });
+        sizeSwitches.forEach(function (input) {
+            input.addEventListener('change', syncAllSwitch);
+        });
+        syncAllSwitch();
     });
 })();
 </script>
