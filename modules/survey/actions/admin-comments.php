@@ -59,6 +59,7 @@ $commentActionQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $commentActionSuffix = $commentActionQuery !== '' ? '?' . $commentActionQuery : '';
 
 $adminPageTitle = '설문 댓글 관리';
+$adminPageSubtitle = '댓글은 최대 200건까지 최신순으로 표시합니다.';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -97,9 +98,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">댓글 목록</h2>
-    </div>
-    <div class="admin-list-summary-row">
-        <p class="admin-summary-meta">최대 200건을 최신순으로 표시합니다.</p>
     </div>
     <div class="table-wrapper">
         <table class="table admin-survey-comment-table">
