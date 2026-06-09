@@ -362,6 +362,16 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = [], i
     $params = $queryParts['params'];
     $sql = 'SELECT r.id, r.target_type, r.target_id, r.reporter_account_id, r.reported_account_id, r.reason_key, r.memo_text,
                    r.status, r.reviewer_account_id, r.review_note, r.created_at, r.updated_at, r.reviewed_at,
+                   CASE
+                       WHEN r.target_type = \'post\' THEN target_post.title
+                       WHEN r.target_type = \'comment\' THEN target_comment_post.title
+                       ELSE \'\'
+                   END AS target_post_title,
+                   CASE
+                       WHEN r.target_type = \'post\' THEN target_post.id
+                       WHEN r.target_type = \'comment\' THEN target_comment_post.id
+                       ELSE NULL
+                   END AS target_post_id,
                    reporter.display_name AS reporter_display_name,
                    reporter_nickname.nickname AS reporter_nickname,
                    reporter.status AS reporter_account_status,
@@ -377,7 +387,10 @@ function sr_community_reports(PDO $pdo, int $limit = 100, array $filters = [], i
             LEFT JOIN sr_member_accounts reviewer ON reviewer.id = r.reviewer_account_id
             LEFT JOIN sr_member_nicknames reporter_nickname ON reporter_nickname.account_id = reporter.id
             LEFT JOIN sr_member_nicknames reported_nickname ON reported_nickname.account_id = reported.id
-            LEFT JOIN sr_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id';
+            LEFT JOIN sr_member_nicknames reviewer_nickname ON reviewer_nickname.account_id = reviewer.id
+            LEFT JOIN sr_community_posts target_post ON r.target_type = \'post\' AND target_post.id = r.target_id
+            LEFT JOIN sr_community_comments target_comment ON r.target_type = \'comment\' AND target_comment.id = r.target_id
+            LEFT JOIN sr_community_posts target_comment_post ON target_comment_post.id = target_comment.post_id';
     if ($where !== []) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }

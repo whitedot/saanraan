@@ -171,6 +171,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
                     $targetId = (int) ($report['target_id'] ?? 0);
                     $targetSummary = $targetType !== '' && $targetId > 0 ? $targetType . ' #' . (string) $targetId : '';
+                    $targetPostId = (int) ($report['target_post_id'] ?? 0);
+                    $targetPostTitle = trim((string) ($report['target_post_title'] ?? ''));
+                    $targetUrl = $targetPostId > 0 ? '/community/post?id=' . rawurlencode((string) $targetPostId) . ($targetType === 'comment' ? '#comments' : '') : '';
                     $reportProcessModalId = 'community-report-process-modal-' . (string) $report['id'];
                     ?>
                     <tr>
@@ -179,9 +182,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="community_report_bulk_select_<?php echo sr_e((string) (int) $report['id']); ?>" type="checkbox" name="selected_report_ids[]" value="<?php echo sr_e((string) (int) $report['id']); ?>" class="form-checkbox" form="community-report-bulk-status-form" data-community-report-row-select>
                         </td>
                         <td class="admin-table-nowrap admin-community-report-target-cell">
-                            <?php echo sr_e($targetLabel); ?>
-                            <?php if ($targetSummary !== '') { ?>
-                                <span class="admin-table-subtext"><?php echo sr_e($targetSummary); ?></span>
+                            <?php if ($targetUrl !== '') { ?>
+                                <a href="<?php echo sr_e(sr_url($targetUrl)); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e($targetLabel . ' 바로가기'); ?>" title="<?php echo sr_e($targetPostTitle); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                            <?php } else { ?>
+                                <span class="admin-table-subtext"><?php echo sr_e($targetSummary !== '' ? $targetSummary : '-'); ?></span>
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap admin-community-report-reason-cell"><?php echo sr_e(sr_community_report_reason_label((string) $report['reason_key'])); ?></td>
