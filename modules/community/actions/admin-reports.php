@@ -197,6 +197,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.report_status_invalid');
         }
 
+        $normalizedTargetAction = $targetAction === '' ? 'none' : $targetAction;
         if ($reviewNote === null) {
             $errors[] = sr_t('community::action.admin.review_note_too_long');
             $reviewNote = '';
@@ -204,12 +205,16 @@ if (sr_request_method() === 'POST') {
         if ($reviewNote !== null && trim((string) $reviewNote) === '') {
             $errors[] = '처리 메모를 입력하세요.';
         }
-        if (is_array($report) && !array_key_exists($targetAction === '' ? 'none' : $targetAction, sr_community_report_target_action_options((string) $report['target_type']))) {
+        if (is_array($report) && !array_key_exists($normalizedTargetAction, sr_community_report_target_action_options((string) $report['target_type']))) {
             $errors[] = '신고 대상 조치 값이 올바르지 않습니다.';
+        }
+        $targetActionPolicyError = sr_community_report_target_action_policy_error($status, $normalizedTargetAction);
+        if ($targetActionPolicyError !== '') {
+            $errors[] = $targetActionPolicyError;
         }
 
         if ($errors === []) {
-            $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $targetAction === '' ? 'none' : $targetAction, (int) $account['id']);
+            $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $normalizedTargetAction, (int) $account['id']);
             if (!empty($targetActionResult['error'])) {
                 $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
             }

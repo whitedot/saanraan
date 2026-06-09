@@ -13,6 +13,7 @@ $reportTargetLabels = [
     'comment' => sr_t('community::ui.text.c9fff683'),
     'message' => sr_t('community::ui.text.919bd592'),
 ];
+$reportStatusPolicyDescriptions = sr_community_report_status_policy_descriptions();
 $totalReports = (int) ($reportStatusCounts['total'] ?? count($reports ?? []));
 $selectedReportStatuses = is_array($reportListFilters['status'] ?? null) ? $reportListFilters['status'] : [];
 $selectedReportTargetTypes = is_array($reportListFilters['target_type'] ?? null) ? $reportListFilters['target_type'] : [];
@@ -113,6 +114,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                         <div class="modal-body">
                             <p class="admin-summary-meta"><strong data-community-report-bulk-modal-count>0</strong>개 신고를 <strong data-community-report-bulk-modal-status>선택한 상태</strong>(으)로 변경합니다.</p>
+                            <p class="admin-form-help">일괄 상태 변경은 검토 상태와 메모만 저장하며 게시글, 댓글, 쪽지, 피신고 회원 조치는 실행하지 않습니다.</p>
                             <div class="admin-form-row">
                                 <label for="community_report_bulk_review_note" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
@@ -147,7 +149,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th><?php echo sr_e(sr_t('community::ui.text.c8a14bcd')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.ebc9b96e')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.750086e9')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.text.73bb6cce')); ?></th>
+                <th>최근 검토</th>
                 <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.460f7d7a')); ?></th>
             </tr>
         </thead>
@@ -261,6 +263,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) ($report['status'] ?? '') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
                                     <?php } ?>
                                 </select>
+                                <small class="admin-form-help">
+                                    <?php foreach ($reportStatusPolicyDescriptions as $statusKey => $description) { ?>
+                                        <span data-community-report-status-help="<?php echo sr_e((string) $statusKey); ?>"<?php echo $statusKey === (string) ($report['status'] ?? '') ? '' : ' hidden'; ?>><?php echo sr_e((string) $description); ?></span>
+                                    <?php } ?>
+                                </small>
                             </div>
                         </div>
                         <div class="admin-form-row">
@@ -277,6 +284,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
                                     <?php } ?>
                                 </select>
+                                <small class="admin-form-help">대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행됩니다. 기각은 이미 적용된 게시글/댓글/회원 조치를 되돌리지 않습니다.</small>
                             </div>
                         </div>
                     </div>
@@ -388,6 +396,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     });
     syncBulkState();
+})();
+</script>
+
+<script>
+(function () {
+    document.querySelectorAll('[id^="community-report-process-modal-"]').forEach(function (modal) {
+        var status = modal.querySelector('select[name="status"]');
+        var targetAction = modal.querySelector('select[name="target_action"]');
+        if (!status || !targetAction) {
+            return;
+        }
+        var syncPolicyHelp = function () {
+            modal.querySelectorAll('[data-community-report-status-help]').forEach(function (help) {
+                help.hidden = help.getAttribute('data-community-report-status-help') !== status.value;
+            });
+            if (status.value !== 'resolved') {
+                targetAction.value = 'none';
+            }
+        };
+        status.addEventListener('change', syncPolicyHelp);
+        syncPolicyHelp();
+    });
 })();
 </script>
 

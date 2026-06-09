@@ -53,6 +53,29 @@ function sr_community_report_target_action_options(string $targetType): array
     return ['none' => '대상 조치 없음'];
 }
 
+function sr_community_report_status_policy_descriptions(): array
+{
+    return [
+        'open' => '신고가 접수된 상태입니다. 대상 조치는 실행하지 않습니다.',
+        'reviewing' => '운영자가 내용을 확인 중인 상태입니다. 대상 조치는 실행하지 않습니다.',
+        'resolved' => '검토를 마친 상태입니다. 필요한 경우 대상 조치를 함께 실행할 수 있습니다.',
+        'dismissed' => '제재 없이 기각한 상태입니다. 대상 조치는 실행하지 않으며 이미 적용된 조치를 되돌리지 않습니다.',
+    ];
+}
+
+function sr_community_report_target_action_policy_error(string $status, string $actionKey): string
+{
+    if ($actionKey === '' || $actionKey === 'none') {
+        return '';
+    }
+
+    if ($status !== 'resolved') {
+        return '대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행할 수 있습니다.';
+    }
+
+    return '';
+}
+
 function sr_community_report_account_label(?string $displayName, int $accountId, ?string $accountStatus = null, ?string $nickname = null, ?array $communitySettings = null): string
 {
     if (sr_community_nickname_status_blocks_identity((string) $accountStatus)) {
