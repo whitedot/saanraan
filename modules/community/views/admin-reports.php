@@ -113,8 +113,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-report-bulk-status-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
-                            <p class="admin-summary-meta"><strong data-community-report-bulk-modal-count>0</strong>개 신고를 <strong data-community-report-bulk-modal-status>선택한 상태</strong>(으)로 변경합니다.</p>
-                            <p class="admin-form-help">일괄 상태 변경은 검토 상태와 메모만 저장하며 게시글, 댓글, 쪽지, 피신고 회원 조치는 실행하지 않습니다.</p>
+                            <p class="admin-summary-meta"><strong data-community-report-bulk-modal-count>0</strong>개 신고를 <strong data-community-report-bulk-modal-status>선택한 상태</strong>(으)로 변경합니다. 대상 조치: <strong data-community-report-bulk-modal-action>대상 조치 없음</strong></p>
+                            <p class="admin-form-help">대상 조치를 선택하면 처리 완료 상태로 저장할 때 선택한 신고 대상에 함께 적용합니다.</p>
+                            <div class="admin-form-row">
+                                <label for="community_report_bulk_target_action" class="form-label">대상 조치</label>
+                                <div class="admin-form-field">
+                                    <select id="community_report_bulk_target_action" name="target_action" class="form-select" data-community-report-bulk-target-action>
+                                        <?php foreach (sr_community_report_batch_target_action_options() as $actionKey => $actionLabel) { ?>
+                                            <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                    <small class="admin-form-help">숨김/삭제는 게시글과 댓글 신고에만 적용할 수 있습니다. 쪽지 신고가 섞여 있으면 서버에서 거부됩니다.</small>
+                                </div>
+                            </div>
                             <div class="admin-form-row">
                                 <label for="community_report_bulk_review_note" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
@@ -275,12 +286,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label for="<?php echo sr_e($reportProcessReviewNoteId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                            <div class="admin-form-field">
-                                <textarea id="<?php echo sr_e($reportProcessReviewNoteId); ?>" name="review_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
                             <label for="<?php echo sr_e($reportProcessTargetActionId); ?>" class="form-label">대상 조치</label>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($reportProcessTargetActionId); ?>" name="target_action" class="form-select">
@@ -289,6 +294,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } ?>
                                 </select>
                                 <small class="admin-form-help">대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행됩니다. 기각은 이미 적용된 게시글/댓글/회원 조치를 되돌리지 않습니다.</small>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label for="<?php echo sr_e($reportProcessReviewNoteId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                            <div class="admin-form-field">
+                                <textarea id="<?php echo sr_e($reportProcessReviewNoteId); ?>" name="review_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
                             </div>
                         </div>
                     </div>
@@ -316,6 +327,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var targetStatusInput = document.querySelector('[data-community-report-bulk-target-status]');
     var modalCountNode = document.querySelector('[data-community-report-bulk-modal-count]');
     var modalStatusNode = document.querySelector('[data-community-report-bulk-modal-status]');
+    var modalActionNode = document.querySelector('[data-community-report-bulk-modal-action]');
+    var bulkTargetAction = document.querySelector('[data-community-report-bulk-target-action]');
     var selectAll = document.querySelector('[data-community-report-select-all]');
     var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-community-report-row-select]'));
 
@@ -377,8 +390,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (modalCountNode) {
                 modalCountNode.textContent = String(selectedCount);
             }
+            if (bulkTargetAction) {
+                bulkTargetAction.disabled = targetStatus !== 'resolved';
+                if (targetStatus !== 'resolved') {
+                    bulkTargetAction.value = 'none';
+                }
+                if (modalActionNode) {
+                    modalActionNode.textContent = bulkTargetAction.options[bulkTargetAction.selectedIndex] ? bulkTargetAction.options[bulkTargetAction.selectedIndex].text : '대상 조치 없음';
+                }
+            }
         });
     });
+    if (bulkTargetAction) {
+        bulkTargetAction.addEventListener('change', function () {
+            if (modalActionNode) {
+                modalActionNode.textContent = bulkTargetAction.options[bulkTargetAction.selectedIndex] ? bulkTargetAction.options[bulkTargetAction.selectedIndex].text : '대상 조치 없음';
+            }
+        });
+    }
     if (clear) {
         clear.addEventListener('click', function () {
             rowChecks.forEach(function (input) {

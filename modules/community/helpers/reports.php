@@ -53,6 +53,47 @@ function sr_community_report_target_action_options(string $targetType): array
     return ['none' => '대상 조치 없음'];
 }
 
+function sr_community_report_batch_target_action_options(): array
+{
+    return [
+        'none' => '대상 조치 없음',
+        'hide_target' => '게시글/댓글 숨김',
+        'delete_target' => '게시글/댓글 삭제',
+        'suspend_reported_account' => '피신고 회원 정지',
+    ];
+}
+
+function sr_community_report_batch_target_action_for_report(string $batchActionKey, string $targetType): string
+{
+    if ($batchActionKey === '' || $batchActionKey === 'none') {
+        return 'none';
+    }
+
+    if ($batchActionKey === 'suspend_reported_account') {
+        return 'suspend_reported_account';
+    }
+
+    if ($batchActionKey === 'hide_target') {
+        if ($targetType === 'post') {
+            return 'hide_post';
+        }
+        if ($targetType === 'comment') {
+            return 'hide_comment';
+        }
+    }
+
+    if ($batchActionKey === 'delete_target') {
+        if ($targetType === 'post') {
+            return 'delete_post';
+        }
+        if ($targetType === 'comment') {
+            return 'delete_comment';
+        }
+    }
+
+    return '';
+}
+
 function sr_community_report_status_policy_descriptions(): array
 {
     return [
