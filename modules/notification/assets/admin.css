@@ -53,9 +53,11 @@
 .admin-page-notification-list .admin-notification-filter .filtering-submit{justify-content:center;width:auto}
 .admin-page-notification-list .admin-notification-table{table-layout:auto}
 .admin-page-notification-list .admin-notification-table th,.admin-page-notification-list .admin-notification-table td{overflow:hidden;text-overflow:ellipsis}
-.admin-page-notification-list .admin-notification-table .admin-table-actions-cell{min-width:7rem;overflow:visible}
-.admin-page-notification-list .admin-notification-table th:nth-child(2),.admin-page-notification-list .admin-notification-table th:nth-child(3),.admin-page-notification-list .admin-notification-table th:nth-child(4),.admin-page-notification-list .admin-notification-table th:nth-child(5){width:1%}
+.admin-page-notification-list .admin-notification-table .notification-select-cell{padding-inline:calc(var(--spacing) * 3);text-align:center;white-space:nowrap;width:1%}
+.admin-page-notification-list .admin-notification-table .admin-table-actions-cell{min-width:0;overflow:visible;width:1%}
+.admin-page-notification-list .admin-notification-table th:nth-child(3),.admin-page-notification-list .admin-notification-table th:nth-child(4),.admin-page-notification-list .admin-notification-table th:nth-child(5),.admin-page-notification-list .admin-notification-table th:nth-child(6){width:1%}
 .admin-page-notification-list .admin-notification-title-cell,.admin-page-notification-list .admin-notification-audience-cell,.admin-page-notification-list .admin-notification-date-cell{overflow:hidden;text-overflow:ellipsis}
+.admin-page-notification-list .admin-notification-title-cell{overflow-wrap:anywhere}
 .admin-page-notification-list .admin-notification-audience-cell,.admin-page-notification-list .admin-notification-date-cell{white-space:nowrap}
 .admin-page-notification-list .admin-notification-table .admin-row-actions{gap:.5rem}
 .admin-page-notification-list .admin-notification-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
