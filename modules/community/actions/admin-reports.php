@@ -34,57 +34,198 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/reports', 'edit');
 
-    $reportIdValue = sr_post_string('report_id', 20);
-    $reportId = preg_match('/\A[1-9][0-9]*\z/', $reportIdValue) === 1 ? (int) $reportIdValue : 0;
-    $status = sr_post_string('status', 30);
-    $targetAction = sr_post_string('target_action', 40);
-    $reviewNote = sr_post_string_without_truncation('review_note', 1000);
-    $report = sr_community_report_by_id($pdo, $reportId);
+    $intent = sr_post_string('intent', 40);
 
-    if (!is_array($report)) {
-        $errors[] = sr_t('community::action.admin.report_not_found');
-    }
-
-    if (!in_array($status, $allowedStatuses, true)) {
-        $errors[] = sr_t('community::action.admin.report_status_invalid');
-    }
-
-    if ($reviewNote === null) {
-        $errors[] = sr_t('community::action.admin.review_note_too_long');
-        $reviewNote = '';
-    }
-    if (is_array($report) && !array_key_exists($targetAction === '' ? 'none' : $targetAction, sr_community_report_target_action_options((string) $report['target_type']))) {
-        $errors[] = '신고 대상 조치 값이 올바르지 않습니다.';
-    }
-
-    if ($errors === []) {
-        $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $targetAction === '' ? 'none' : $targetAction, (int) $account['id']);
-        if (!empty($targetActionResult['error'])) {
-            $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
+    if ($intent === 'batch_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $reviewNote = sr_post_string_without_truncation('review_note', 1000);
+        $rawSelectedIds = $_POST['selected_report_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
         }
-    }
+        $selectedIds = array_values($selectedIds);
 
-    if ($errors === []) {
-        sr_community_update_report_status($pdo, $reportId, $status, (int) $account['id'], (string) $reviewNote);
-        sr_audit_log($pdo, [
-            'actor_account_id' => (int) $account['id'],
-            'actor_type' => 'admin',
-            'event_type' => 'community.report.status_updated',
-            'target_type' => 'community_report',
-            'target_id' => (string) $reportId,
-            'result' => 'success',
-            'message' => 'Community report status updated.',
-            'metadata' => [
-                'before_status' => (string) $report['status'],
-                'after_status' => $status,
-                'review_note_present' => trim((string) $reviewNote) !== '',
-                'target_type' => (string) $report['target_type'],
-                'target_id' => (int) $report['target_id'],
-                'reported_account_id' => (int) $report['reported_account_id'],
-                'target_action' => $targetActionResult ?? ['action_key' => 'none', 'applied' => false],
-            ],
-        ]);
-        $notice = sr_t('community::action.admin.report_status_updated');
+        if ($operationKey !== 'community.report_set_status') {
+            $errors[] = '허용되지 않은 신고 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, $allowedStatuses, true)) {
+            $errors[] = sr_t('community::action.admin.report_status_invalid');
+        }
+        if ($selectedIds === []) {
+            $errors[] = '상태를 변경할 신고를 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $errors[] = '신고 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+        if ($reviewNote === null) {
+            $errors[] = sr_t('community::action.admin.review_note_too_long');
+            $reviewNote = '';
+        }
+
+        $selectedReports = [];
+        if ($errors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'report_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT id, status, target_type, target_id, reported_account_id
+                 FROM sr_community_reports
+                 WHERE id IN (' . implode(', ', $placeholders) . ')'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedReports[(int) $row['id']] = $row;
+            }
+            if (count($selectedReports) !== count($selectedIds)) {
+                $errors[] = '선택한 신고 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        if ($errors === [] && $selectedReports !== []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            $batchFailureMessage = '';
+            $reviewNoteValue = trim((string) $reviewNote);
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare(
+                    'UPDATE sr_community_reports
+                     SET status = :status,
+                         reviewer_account_id = :reviewer_account_id,
+                         review_note = CASE WHEN :review_note_set = 1 THEN :review_note ELSE review_note END,
+                         reviewed_at = :reviewed_at,
+                         updated_at = :updated_at
+                     WHERE id = :id
+                       AND status = :before_status'
+                );
+                foreach ($selectedIds as $selectedId) {
+                    $report = $selectedReports[$selectedId];
+                    $beforeStatus = (string) $report['status'];
+                    if ($beforeStatus === $targetStatus) {
+                        $skippedCount++;
+                        continue;
+                    }
+                    $now = sr_now();
+                    $stmt->execute([
+                        'status' => $targetStatus,
+                        'reviewer_account_id' => (int) $account['id'],
+                        'review_note_set' => $reviewNoteValue !== '' ? 1 : 0,
+                        'review_note' => $reviewNoteValue,
+                        'reviewed_at' => $now,
+                        'updated_at' => $now,
+                        'id' => $selectedId,
+                        'before_status' => $beforeStatus,
+                    ]);
+                    if ($stmt->rowCount() < 1) {
+                        $batchFailureMessage = '선택한 신고 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+                        throw new RuntimeException($batchFailureMessage);
+                    }
+                    $changedCount++;
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.report.bulk_status_updated',
+                    'target_type' => 'community_report',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Community report statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'review_note_present' => $reviewNoteValue !== '',
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $notice = '신고 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'report_status') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($batchFailureMessage !== '') {
+                    $errors[] = $batchFailureMessage;
+                } else {
+                    sr_log_exception($exception, 'community_report_batch_status_failed');
+                    $errors[] = '신고 상태 일괄 변경 중 오류가 발생했습니다.';
+                }
+            }
+        }
+    } else {
+        $reportIdValue = sr_post_string('report_id', 20);
+        $reportId = preg_match('/\A[1-9][0-9]*\z/', $reportIdValue) === 1 ? (int) $reportIdValue : 0;
+        $status = sr_post_string('status', 30);
+        $targetAction = sr_post_string('target_action', 40);
+        $reviewNote = sr_post_string_without_truncation('review_note', 1000);
+        $report = sr_community_report_by_id($pdo, $reportId);
+
+        if (!is_array($report)) {
+            $errors[] = sr_t('community::action.admin.report_not_found');
+        }
+
+        if (!in_array($status, $allowedStatuses, true)) {
+            $errors[] = sr_t('community::action.admin.report_status_invalid');
+        }
+
+        if ($reviewNote === null) {
+            $errors[] = sr_t('community::action.admin.review_note_too_long');
+            $reviewNote = '';
+        }
+        if (is_array($report) && !array_key_exists($targetAction === '' ? 'none' : $targetAction, sr_community_report_target_action_options((string) $report['target_type']))) {
+            $errors[] = '신고 대상 조치 값이 올바르지 않습니다.';
+        }
+
+        if ($errors === []) {
+            $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $targetAction === '' ? 'none' : $targetAction, (int) $account['id']);
+            if (!empty($targetActionResult['error'])) {
+                $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
+            }
+        }
+
+        if ($errors === []) {
+            sr_community_update_report_status($pdo, $reportId, $status, (int) $account['id'], (string) $reviewNote);
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.report.status_updated',
+                'target_type' => 'community_report',
+                'target_id' => (string) $reportId,
+                'result' => 'success',
+                'message' => 'Community report status updated.',
+                'metadata' => [
+                    'before_status' => (string) $report['status'],
+                    'after_status' => $status,
+                    'review_note_present' => trim((string) $reviewNote) !== '',
+                    'target_type' => (string) $report['target_type'],
+                    'target_id' => (int) $report['target_id'],
+                    'reported_account_id' => (int) $report['reported_account_id'],
+                    'target_action' => $targetActionResult ?? ['action_key' => 'none', 'applied' => false],
+                ],
+            ]);
+            $notice = sr_t('community::action.admin.report_status_updated');
+        }
     }
 
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/community/reports');
