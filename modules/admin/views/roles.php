@@ -472,21 +472,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span>권한</span>
                             </span>
                             <div class="admin-form-field">
-                                <fieldset class="admin-permission-action-group filtering-toggle-group admin-checkbox-toggle-group">
-                                    <legend class="sr-only">권한</legend>
-                                    <?php $permissionActionIndex = 0; ?>
-                                    <?php $permissionActionLastIndex = max(0, count($permissionActions) - 1); ?>
-                                    <?php foreach ($permissionActions as $actionKey) { ?>
-                                        <?php $pickerActionId = $permissionModalId . '-picker-' . (string) $actionKey; ?>
-                                        <?php $permissionActionGroupClass = $permissionActionIndex === 0 ? 'btn-group-start' : ($permissionActionIndex === $permissionActionLastIndex ? 'btn-group-end' : 'btn-group-middle'); ?>
-                                        <span class="filtering-toggle-item">
-                                            <input id="<?php echo sr_e($pickerActionId); ?>" type="checkbox" value="<?php echo sr_e((string) $actionKey); ?>" class="form-choice-toggle-input sr-only" data-admin-permission-action>
-                                            <label for="<?php echo sr_e($pickerActionId); ?>" class="btn btn-choice-light <?php echo sr_e($permissionActionGroupClass); ?>"><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></label>
-                                        </span>
-                                        <?php $permissionActionIndex++; ?>
-                                    <?php } ?>
-                                </fieldset>
-                                <button type="button" class="btn btn-solid-light admin-permission-picker-add" data-admin-permission-append>선택 권한 추가</button>
+                                <div class="admin-permission-action-picker-line">
+                                    <fieldset class="admin-permission-action-group filtering-toggle-group admin-checkbox-toggle-group">
+                                        <legend class="sr-only">권한</legend>
+                                        <?php $permissionActionIndex = 0; ?>
+                                        <?php $permissionActionLastIndex = max(0, count($permissionActions) - 1); ?>
+                                        <?php foreach ($permissionActions as $actionKey) { ?>
+                                            <?php $pickerActionId = $permissionModalId . '-picker-' . (string) $actionKey; ?>
+                                            <?php $permissionActionGroupClass = $permissionActionIndex === 0 ? 'btn-group-start' : ($permissionActionIndex === $permissionActionLastIndex ? 'btn-group-end' : 'btn-group-middle'); ?>
+                                            <span class="filtering-toggle-item">
+                                                <input id="<?php echo sr_e($pickerActionId); ?>" type="checkbox" value="<?php echo sr_e((string) $actionKey); ?>" class="form-choice-toggle-input sr-only" data-admin-permission-action>
+                                                <label for="<?php echo sr_e($pickerActionId); ?>" class="btn btn-choice-light <?php echo sr_e($permissionActionGroupClass); ?>"><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></label>
+                                            </span>
+                                            <?php $permissionActionIndex++; ?>
+                                        <?php } ?>
+                                    </fieldset>
+                                    <button type="button" class="btn btn-solid-light admin-permission-picker-add" data-admin-permission-append>선택 권한 추가</button>
+                                </div>
                             </div>
                         </div>
                         <div class="admin-form-row">
@@ -504,9 +506,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } else { ?>
                                         <div class="admin-permission-selected-head" data-admin-permission-selected-head aria-hidden="true">
                                             <span>메뉴</span>
-                                            <?php foreach ($permissionActions as $actionKey) { ?>
-                                                <span><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></span>
-                                            <?php } ?>
+                                            <span>권한</span>
                                             <span>관리</span>
                                         </div>
                                     <?php } ?>
@@ -517,17 +517,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <strong><?php echo sr_e((string) ($selectedOption['label'] ?? $selectedPath)); ?></strong>
                                                 <span><?php echo sr_e($selectedPath); ?></span>
                                             </div>
-                                            <?php foreach ($permissionActions as $actionKey) { ?>
-                                                <?php
-                                                $permissionToken = sr_admin_permission_token($selectedPath, (string) $actionKey);
-                                                $permissionInputId = $permissionModalId . '-permission-' . preg_replace('/[^a-z0-9_-]+/', '-', strtolower($permissionToken));
-                                                ?>
-                                                <span class="admin-permission-action-cell">
-                                                    <input id="<?php echo sr_e($permissionInputId); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e($permissionToken); ?>" class="form-choice-toggle-input sr-only"<?php echo isset($selectedActions[$actionKey]) ? ' checked' : ''; ?>>
-                                                    <label for="<?php echo sr_e($permissionInputId); ?>" class="btn btn-choice-light"><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></label>
-                                                </span>
-                                            <?php } ?>
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-admin-permission-remove aria-label="삭제" title="삭제"><?php echo sr_material_icon_html('delete'); ?></button>
+                                            <div class="admin-permission-action-cell">
+                                                <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group" aria-label="<?php echo sr_e((string) ($selectedOption['label'] ?? $selectedPath) . ' 권한'); ?>">
+                                                    <?php $selectedActionIndex = 0; ?>
+                                                    <?php $selectedActionLastIndex = max(0, count($permissionActions) - 1); ?>
+                                                    <?php foreach ($permissionActions as $actionKey) { ?>
+                                                        <?php
+                                                        $permissionToken = sr_admin_permission_token($selectedPath, (string) $actionKey);
+                                                        $permissionInputId = $permissionModalId . '-permission-' . preg_replace('/[^a-z0-9_-]+/', '-', strtolower($permissionToken));
+                                                        $permissionActionGroupClass = $selectedActionIndex === 0 ? 'btn-group-start' : ($selectedActionIndex === $selectedActionLastIndex ? 'btn-group-end' : 'btn-group-middle');
+                                                        ?>
+                                                        <span class="filtering-toggle-item">
+                                                            <input id="<?php echo sr_e($permissionInputId); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e($permissionToken); ?>" class="form-choice-toggle-input sr-only"<?php echo isset($selectedActions[$actionKey]) ? ' checked' : ''; ?>>
+                                                            <label for="<?php echo sr_e($permissionInputId); ?>" class="btn btn-choice-light <?php echo sr_e($permissionActionGroupClass); ?>"><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></label>
+                                                        </span>
+                                                        <?php $selectedActionIndex++; ?>
+                                                    <?php } ?>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger admin-permission-remove-button" data-admin-permission-remove aria-label="삭제" title="삭제"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </div>
                                     <?php } ?>
                                 </div>
@@ -659,11 +667,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var menuLabel = document.createElement('span');
         menuLabel.textContent = '메뉴';
         head.appendChild(menuLabel);
-        actions.forEach(function (actionKey) {
-            var actionLabel = document.createElement('span');
-            actionLabel.textContent = actionLabels[actionKey] || actionKey;
-            head.appendChild(actionLabel);
-        });
+        var permissionLabel = document.createElement('span');
+        permissionLabel.textContent = '권한';
+        head.appendChild(permissionLabel);
         var manageLabel = document.createElement('span');
         manageLabel.textContent = '관리';
         head.appendChild(manageLabel);
@@ -692,10 +698,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         title.appendChild(path);
         row.appendChild(title);
 
+        var actionCell = document.createElement('div');
+        actionCell.className = 'admin-permission-action-cell';
+        var actionGroup = document.createElement('div');
+        actionGroup.className = 'filtering-toggle-group admin-checkbox-toggle-group';
+        actionGroup.setAttribute('role', 'group');
+        actionGroup.setAttribute('aria-label', (item.label || item.path) + ' 권한');
         actions.forEach(function (actionKey) {
             var token = permissionToken(item.path, actionKey);
-            var cell = document.createElement('span');
-            cell.className = 'admin-permission-action-cell';
+            var itemWrap = document.createElement('span');
+            itemWrap.className = 'filtering-toggle-item';
             var input = document.createElement('input');
             input.id = 'admin-permission-dynamic-' + rowKey + '-' + safeIdPart(actionKey);
             input.type = 'checkbox';
@@ -704,16 +716,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             input.className = 'form-choice-toggle-input sr-only';
             var label = document.createElement('label');
             label.setAttribute('for', input.id);
-            label.className = 'btn btn-choice-light';
+            label.className = 'btn btn-choice-light ' + (actions.indexOf(actionKey) === 0 ? 'btn-group-start' : (actions.indexOf(actionKey) === actions.length - 1 ? 'btn-group-end' : 'btn-group-middle'));
             label.textContent = actionLabels[actionKey] || actionKey;
-            cell.appendChild(input);
-            cell.appendChild(label);
-            row.appendChild(cell);
+            itemWrap.appendChild(input);
+            itemWrap.appendChild(label);
+            actionGroup.appendChild(itemWrap);
         });
+        actionCell.appendChild(actionGroup);
+        row.appendChild(actionCell);
 
         var remove = document.createElement('button');
         remove.type = 'button';
-        remove.className = 'btn btn-sm btn-icon btn-outline-danger';
+        remove.className = 'btn btn-sm btn-icon btn-outline-danger admin-permission-remove-button';
         remove.setAttribute('data-admin-permission-remove', '');
         remove.setAttribute('aria-label', '삭제');
         remove.setAttribute('title', '삭제');

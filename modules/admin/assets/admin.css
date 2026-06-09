@@ -383,24 +383,29 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-permission-action-group{align-items:center;border:0;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-permission-action-group.filtering-toggle-group{gap:0}
 .admin-permission-action-group .admin-form-check{min-height:calc(var(--spacing) * 8)}
+.admin-permission-action-picker-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);min-height:calc(var(--spacing) * 9.25)}
+.admin-permission-action-picker-line>.admin-permission-action-group{align-self:center}
 .admin-permission-action-group .form-choice-toggle-input + .btn-choice-light,
 .admin-permission-action-cell .form-choice-toggle-input + .btn-choice-light{align-items:center;display:inline-flex;line-height:1;min-height:calc(var(--spacing) * 8);vertical-align:middle}
 .admin-permission-action-group .form-choice-toggle-input + .btn-choice-light::before,
 .admin-permission-action-cell .form-choice-toggle-input + .btn-choice-light::before{align-self:center;transform:translateY(0)}
 .admin-permission-picker-add{align-self:flex-start;min-height:calc(var(--spacing) * 8);padding-block:0}
+.admin-permission-action-picker-line>.admin-permission-picker-add{align-self:center;margin-top:0}
 .admin-permission-action-group + .admin-permission-picker-add{margin-top:calc(var(--spacing) * 2)}
+.admin-permission-action-picker-line>.admin-permission-action-group + .admin-permission-picker-add{align-self:center;margin-top:0}
 .admin-permission-selected-list{border-top:1px solid var(--color-default-200);display:grid;flex-basis:100%;width:100%}
 .admin-permission-selected-list:has(>[data-admin-permission-empty]:only-child){border-top:0}
 .admin-permission-selected-head,
-.admin-permission-selected-row{align-items:center;display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:minmax(13rem,1fr) repeat(3,minmax(4.75rem,auto)) minmax(2.5rem,auto);min-width:0}
+.admin-permission-selected-row{align-items:center;display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:minmax(13rem,1fr) minmax(14rem,auto) minmax(2.5rem,auto);min-width:0}
 .admin-permission-selected-head{border-bottom:1px solid var(--color-default-200);color:var(--text-muted);font-size:var(--type-meta-size);font-weight:var(--font-weight-semibold);line-height:var(--type-meta-line-height);padding:calc(var(--spacing) * 2) 0}
 .admin-permission-selected-row{border-bottom:1px solid var(--color-default-200);padding:calc(var(--spacing) * 2.5) 0}
 .admin-permission-selected-title{display:grid;gap:calc(var(--spacing) * .75);min-width:0}
 .admin-permission-selected-title strong{color:var(--text-strong);font-size:var(--type-small-size);line-height:var(--type-small-line-height);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .admin-permission-selected-title span{color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);overflow-wrap:anywhere}
-.admin-permission-action-cell{align-items:center;display:flex;justify-content:center;min-height:calc(var(--spacing) * 8);white-space:nowrap}
+.admin-permission-action-cell{align-items:center;display:flex;justify-content:flex-start;min-height:calc(var(--spacing) * 8);white-space:nowrap}
 .admin-permission-action-cell>.btn{min-width:0}
 .admin-permission-action-cell span{font-size:var(--type-meta-size);line-height:var(--type-meta-line-height)}
+.admin-permission-remove-button{justify-self:center}
 .admin-permission-empty{margin:0}
 .admin-form .admin-form-label,
 .admin-form .admin-form-row>.form-label{align-items:center;color:var(--color-default-700);display:flex;font-weight:var(--font-weight-semibold);min-height:calc(var(--spacing) * 9.25);padding-top:0}
