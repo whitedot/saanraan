@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     input.addEventListener('input', function () {
-        if (input.value === expectedPhrase) {
+        if (input.value.trim() === expectedPhrase) {
             clearPhraseError();
         } else if (errorNote && !errorNote.hidden) {
             showPhraseError();
@@ -369,8 +369,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     form.addEventListener('submit', function (event) {
-        if (input.value === '' || input.value === expectedPhrase) {
-            if (input.value === expectedPhrase) {
+        var normalizedValue = input.value.trim();
+        if (normalizedValue === '' || normalizedValue === expectedPhrase) {
+            if (normalizedValue === expectedPhrase) {
                 clearPhraseError();
             }
             return;
