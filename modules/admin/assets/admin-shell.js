@@ -570,6 +570,78 @@ window.AdminShell = {
         const syncKeyInputValue = input => syncRestrictedInputValue(input, normalizeKeyInputValue);
         const syncSlugInputValue = input => syncRestrictedInputValue(input, normalizeSlugInputValue);
 
+        const syncFilteringToggleGroup = group => {
+            if (!group || !group.querySelectorAll) {
+                return;
+            }
+
+            const allInput = group.querySelector('[data-filtering-toggle-all]');
+            const choiceInputs = Array.prototype.slice.call(group.querySelectorAll('[data-filtering-toggle-choice]'));
+            const checkedChoices = choiceInputs.filter(input => input.checked);
+            if (!allInput) {
+                return;
+            }
+
+            if (checkedChoices.length === 0) {
+                allInput.checked = true;
+                return;
+            }
+
+            if (choiceInputs.length > 0 && checkedChoices.length === choiceInputs.length) {
+                choiceInputs.forEach(input => {
+                    input.checked = false;
+                });
+                allInput.checked = true;
+                return;
+            }
+
+            allInput.checked = false;
+        };
+
+        const resetFilteringForm = form => {
+            if (!form || !form.querySelectorAll) {
+                return;
+            }
+
+            Array.prototype.slice.call(form.querySelectorAll('input, select, textarea')).forEach(control => {
+                if (control.disabled) {
+                    return;
+                }
+
+                if (control.matches('[data-filtering-toggle-all]')) {
+                    control.checked = true;
+                    return;
+                }
+
+                if (control.matches('[data-filtering-toggle-choice]')) {
+                    control.checked = false;
+                    return;
+                }
+
+                if (control.matches('[data-filtering-radio-toggle-choice]')) {
+                    control.checked = control.value === '';
+                    return;
+                }
+
+                if (control.type === 'hidden' || control.type === 'submit' || control.type === 'button' || control.type === 'reset') {
+                    return;
+                }
+
+                if (control.type === 'checkbox' || control.type === 'radio') {
+                    control.checked = false;
+                    return;
+                }
+
+                if (control.tagName === 'SELECT') {
+                    control.selectedIndex = 0;
+                    return;
+                }
+
+                control.value = '';
+            });
+            Array.prototype.slice.call(form.querySelectorAll('[data-filtering-toggle-group]')).forEach(syncFilteringToggleGroup);
+        };
+
         const isMobileViewport = () => mobileQuery.matches;
         const systemColorSchemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
@@ -728,6 +800,17 @@ window.AdminShell = {
         };
 
         document.addEventListener('click', event => {
+            const filteringReset = event.target && event.target.closest
+                ? event.target.closest('[data-filtering-reset]')
+                : null;
+            if (filteringReset) {
+                const form = filteringReset.closest('form');
+                if (form) {
+                    event.preventDefault();
+                    resetFilteringForm(form);
+                }
+            }
+
             const profileDropdown = document.querySelector('#tnb .admin-profile-dropdown[open]');
             if (profileDropdown && !profileDropdown.contains(event.target)) {
                 closeProfileDropdown();
@@ -1059,6 +1142,26 @@ window.AdminShell = {
         });
 
         document.addEventListener('change', event => {
+            const filteringToggleControl = event.target && event.target.closest
+                ? event.target.closest('[data-filtering-toggle-all], [data-filtering-toggle-choice]')
+                : null;
+            if (filteringToggleControl) {
+                const filteringToggleGroup = filteringToggleControl.closest('[data-filtering-toggle-group]');
+                if (filteringToggleGroup) {
+                    if (filteringToggleControl.matches('[data-filtering-toggle-all]') && filteringToggleControl.checked) {
+                        filteringToggleGroup.querySelectorAll('[data-filtering-toggle-choice]').forEach(input => {
+                            input.checked = false;
+                        });
+                    } else if (filteringToggleControl.matches('[data-filtering-toggle-choice]') && filteringToggleControl.checked) {
+                        const allInput = filteringToggleGroup.querySelector('[data-filtering-toggle-all]');
+                        if (allInput) {
+                            allInput.checked = false;
+                        }
+                    }
+                    syncFilteringToggleGroup(filteringToggleGroup);
+                }
+            }
+
             const control = assetEnableControl(event.target);
             if (control) {
                 confirmAssetEnableSelection(control);
@@ -1087,6 +1190,7 @@ window.AdminShell = {
             document.querySelectorAll('[data-admin-visible-when-select]').forEach(syncConditionalSelectSection);
         });
 
+        document.querySelectorAll('[data-filtering-toggle-group]').forEach(syncFilteringToggleGroup);
         document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(root => syncAssetAmountGroup(root));
         document.querySelectorAll('[data-admin-asset-unit-group]').forEach(syncAssetUnitGroup);
         document.querySelectorAll('[data-admin-setting-source-group]').forEach(syncSettingSourceGroup);

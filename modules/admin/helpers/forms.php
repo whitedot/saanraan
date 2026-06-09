@@ -288,7 +288,7 @@ function sr_admin_filter_toggle_group_html(string $id, string $name, array $opti
         $optionValue = (string) $value;
 
         $groupClass = $index === $lastIndex ? 'btn-group-end' : 'btn-group-middle';
-        $inputId = $index === 0 ? $idBase : $idBase . '_' . (string) $index;
+        $inputId = $idBase . '_' . (string) $index;
         $html .= '<span class="filtering-toggle-item">'
             . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '[]" value="' . sr_e($optionValue) . '" class="form-choice-toggle-input sr-only" data-filtering-toggle-choice' . (isset($selectedMap[$optionValue]) ? ' checked' : '') . '>'
             . '<label for="' . sr_e($inputId) . '" class="btn btn-choice-light ' . $groupClass . '">' . sr_e((string) $label) . '</label>'
