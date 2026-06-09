@@ -69,7 +69,7 @@ if (sr_is_http_url($defaultOgImage)) {
                 <span class="form-label"><?php echo sr_e(sr_t('seo::ui.text.2a5fd734')); ?></span>
                 <div class="admin-form-field">
                     <div class="seo-sitemap-actions">
-                        <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>"><?php echo sr_e(sr_t('seo::ui.sitemap.xml.f88f383f')); ?></a>
+                        <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('seo::ui.sitemap.xml.f88f383f')); ?></a>
                         <button type="button" class="btn btn-sm btn-solid-light" data-seo-copy-url="<?php echo sr_e($sitemapUrl); ?>" data-copy-label="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.1f43e9aa')); ?>" data-copy-success="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.success.9d96e6c2')); ?>" data-copy-fail="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.fail.54a85d2b')); ?>"><?php echo sr_e(sr_t('seo::ui.sitemap.copy.1f43e9aa')); ?></button>
                     </div>
                     <small class="admin-form-help seo-sitemap-url"><?php echo sr_e($sitemapUrl); ?></small>
@@ -81,7 +81,7 @@ if (sr_is_http_url($defaultOgImage)) {
     <section class="admin-card card">
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('seo::ui.settings.7ce8a229')); ?></h2>
-            <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/robots.txt')); ?>"><?php echo sr_e(sr_t('seo::ui.text.0d512314')); ?></a>
+            <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/robots.txt')); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('seo::ui.text.0d512314')); ?></a>
         </div>
         <div class="admin-form-row">
             <label class="form-label" for="seo_admin_settings_robots_disallow_paths"><?php echo sr_e(sr_t('seo::ui.text.553ea40a')); ?></label>
