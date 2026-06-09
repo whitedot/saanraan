@@ -61,7 +61,10 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $where .= " AND (p.title LIKE :title_keyword ESCAPE '\\\\' OR p.body_text LIKE :body_keyword ESCAPE '\\\\')";
+        $secretBodyCondition = sr_community_post_secret_column_exists($pdo)
+            ? "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '\\\\'"
+            : "p.body_text LIKE :body_keyword ESCAPE '\\\\'";
+        $where .= " AND (p.title LIKE :title_keyword ESCAPE '\\\\' OR (" . $secretBodyCondition . '))';
         $params['title_keyword'] = sr_community_like_pattern($keyword);
         $params['body_keyword'] = sr_community_like_pattern($keyword);
     }
@@ -107,7 +110,10 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
     $where = "board_id = :board_id AND status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $where .= " AND (title LIKE :title_keyword ESCAPE '\\\\' OR body_text LIKE :body_keyword ESCAPE '\\\\')";
+        $secretBodyCondition = sr_community_post_secret_column_exists($pdo)
+            ? "is_secret = 0 AND body_text LIKE :body_keyword ESCAPE '\\\\'"
+            : "body_text LIKE :body_keyword ESCAPE '\\\\'";
+        $where .= " AND (title LIKE :title_keyword ESCAPE '\\\\' OR (" . $secretBodyCondition . '))';
         $params['title_keyword'] = sr_community_like_pattern($keyword);
         $params['body_keyword'] = sr_community_like_pattern($keyword);
     }
@@ -1632,8 +1638,9 @@ function sr_community_link_card_resolve_many(PDO $pdo, array $types): array
     }
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $secretSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.title, p.body_text, p.status, b.status AS board_status, b.read_policy
+        'SELECT p.id, p.title, p.body_text, ' . $secretSelectSql . ' p.status, b.status AS board_status, b.read_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
          WHERE p.id IN (' . $placeholders . ')'
@@ -1645,7 +1652,8 @@ function sr_community_link_card_resolve_many(PDO $pdo, array $types): array
         $postId = (string) (int) ($row['id'] ?? 0);
         $isReadable = (string) ($row['status'] ?? '') === 'published'
             && (string) ($row['board_status'] ?? '') === 'enabled'
-            && (string) ($row['read_policy'] ?? 'public') === 'public';
+            && (string) ($row['read_policy'] ?? 'public') === 'public'
+            && (int) ($row['is_secret'] ?? 0) !== 1;
         $summary = trim(strip_tags((string) ($row['body_text'] ?? '')));
         $summary = preg_replace('/\s+/', ' ', $summary) ?? '';
         $summary = function_exists('mb_substr') ? mb_substr($summary, 0, 160) : substr($summary, 0, 160);
