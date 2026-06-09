@@ -68,27 +68,26 @@ if (sr_is_http_url($defaultOgImage)) {
             <div class="admin-form-row">
                 <span class="form-label"><?php echo sr_e(sr_t('seo::ui.text.2a5fd734')); ?></span>
                 <div class="admin-form-field">
-                    <a href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>"><?php echo sr_e(sr_t('seo::ui.sitemap.xml.f88f383f')); ?></a>
+                    <div class="seo-sitemap-actions">
+                        <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/sitemap.xml')); ?>"><?php echo sr_e(sr_t('seo::ui.sitemap.xml.f88f383f')); ?></a>
+                        <button type="button" class="btn btn-sm btn-solid-light" data-seo-copy-url="<?php echo sr_e($sitemapUrl); ?>" data-copy-label="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.1f43e9aa')); ?>" data-copy-success="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.success.9d96e6c2')); ?>" data-copy-fail="<?php echo sr_e(sr_t('seo::ui.sitemap.copy.fail.54a85d2b')); ?>"><?php echo sr_e(sr_t('seo::ui.sitemap.copy.1f43e9aa')); ?></button>
+                    </div>
+                    <small class="admin-form-help seo-sitemap-url"><?php echo sr_e($sitemapUrl); ?></small>
                 </div>
             </div>
         <?php } ?>
     </section>
 
     <section class="admin-card card">
-        <h2><?php echo sr_e(sr_t('seo::ui.settings.7ce8a229')); ?></h2>
-        <div class="seo-robots-table">
-            <div class="seo-robots-name">
-                <strong>robots.txt</strong>
-                <a href="<?php echo sr_e(sr_url('/robots.txt')); ?>"><?php echo sr_e(sr_t('seo::ui.text.0d512314')); ?></a>
-            </div>
-            <div class="seo-robots-content">
-                <div class="admin-form-row">
-                    <label class="form-label" for="seo_admin_settings_robots_disallow_paths"><?php echo sr_e(sr_t('seo::ui.text.553ea40a')); ?></label>
-                    <div class="admin-form-field">
-                        <textarea id="seo_admin_settings_robots_disallow_paths" name="robots_disallow_paths" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
-                    </div>
-                </div>
-                <pre><?php echo sr_e($robotsPreview); ?></pre>
+        <div class="card-header">
+            <h2 class="card-title"><?php echo sr_e(sr_t('seo::ui.settings.7ce8a229')); ?></h2>
+            <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/robots.txt')); ?>"><?php echo sr_e(sr_t('seo::ui.text.0d512314')); ?></a>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="seo_admin_settings_robots_disallow_paths"><?php echo sr_e(sr_t('seo::ui.text.553ea40a')); ?></label>
+            <div class="admin-form-field">
+                <textarea id="seo_admin_settings_robots_disallow_paths" name="robots_disallow_paths" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
+                <pre class="seo-robots-preview"><?php echo sr_e($robotsPreview); ?></pre>
             </div>
         </div>
     </section>
@@ -97,5 +96,51 @@ if (sr_is_http_url($defaultOgImage)) {
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('seo::ui.save.5fb92622')); ?></button>
     </div>
 </form>
+
+<script>
+(function () {
+    var copyButtons = Array.prototype.slice.call(document.querySelectorAll('[data-seo-copy-url]'));
+    var fallbackCopy = function (value) {
+        var textarea = document.createElement('textarea');
+        textarea.value = value;
+        textarea.setAttribute('readonly', 'readonly');
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            return document.execCommand('copy');
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    };
+    copyButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            var value = button.getAttribute('data-seo-copy-url') || '';
+            var label = button.getAttribute('data-copy-label') || button.textContent;
+            var success = button.getAttribute('data-copy-success') || label;
+            var fail = button.getAttribute('data-copy-fail') || label;
+            var setText = function (text) {
+                button.textContent = text;
+                window.setTimeout(function () {
+                    button.textContent = label;
+                }, 1600);
+            };
+            var done = function (ok) {
+                setText(ok ? success : fail);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(value).then(function () {
+                    done(true);
+                }).catch(function () {
+                    done(fallbackCopy(value));
+                });
+                return;
+            }
+            done(fallbackCopy(value));
+        });
+    });
+})();
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
