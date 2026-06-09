@@ -864,6 +864,133 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     return sr_admin_action_result($errors, $notice) + $resultExtra;
 }
 
+function sr_admin_handle_member_batch_revoke_sessions_post(PDO $pdo, array $account): array
+{
+    $errors = [];
+    $operationKey = sr_post_string('operation_key', 80);
+    $rawSelectedIds = $_POST['selected_account_ids'] ?? [];
+    $selectedIds = [];
+    if (is_array($rawSelectedIds)) {
+        foreach ($rawSelectedIds as $rawSelectedId) {
+            $selectedId = (int) $rawSelectedId;
+            if ($selectedId > 0) {
+                $selectedIds[$selectedId] = $selectedId;
+            }
+        }
+    }
+    $selectedIds = array_values($selectedIds);
+
+    if ($operationKey !== 'member.revoke_sessions') {
+        $errors[] = '허용되지 않은 일괄 작업입니다.';
+    }
+    if ($selectedIds === []) {
+        $errors[] = '세션을 회수할 회원을 선택하세요.';
+    }
+    if (count($selectedIds) > 100) {
+        $errors[] = '회원 세션 일괄 회수는 한 번에 100건 이하로 실행하세요.';
+    }
+    if (in_array((int) $account['id'], $selectedIds, true)) {
+        $errors[] = sr_t('member::action.admin.current_session_revoke_disallowed');
+    }
+
+    $selectedAccounts = [];
+    if ($errors === []) {
+        $placeholders = [];
+        $params = [];
+        foreach ($selectedIds as $index => $selectedId) {
+            $paramKey = 'account_id_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $params[$paramKey] = $selectedId;
+        }
+        $stmt = $pdo->prepare(
+            'SELECT id, status
+             FROM sr_member_accounts
+             WHERE id IN (' . implode(', ', $placeholders) . ')
+             ORDER BY id ASC'
+        );
+        foreach ($params as $paramKey => $selectedId) {
+            $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        foreach ($stmt->fetchAll() as $row) {
+            $selectedAccounts[(int) ($row['id'] ?? 0)] = $row;
+        }
+        if (count($selectedAccounts) !== count($selectedIds)) {
+            $errors[] = '선택한 회원 중 찾을 수 없는 계정이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+        }
+    }
+
+    if ($errors === []) {
+        $actorIsOwner = sr_admin_is_owner($pdo, (int) $account['id']);
+        $blockedOwnerIds = [];
+        foreach ($selectedIds as $selectedId) {
+            $targetRoles = sr_admin_current_roles($pdo, $selectedId);
+            if (in_array('owner', $targetRoles, true) && !$actorIsOwner) {
+                $blockedOwnerIds[] = $selectedId;
+            }
+        }
+        if ($blockedOwnerIds !== []) {
+            $errors[] = 'owner 권한 회원의 세션은 owner 관리자만 회수할 수 있습니다: ' . implode(', ', array_map('strval', $blockedOwnerIds));
+        }
+    }
+
+    if ($errors !== []) {
+        return sr_admin_action_result($errors, '');
+    }
+
+    $revokedCounts = [];
+    $revokedTotal = 0;
+    try {
+        $pdo->beginTransaction();
+        foreach ($selectedIds as $selectedId) {
+            $revokedCount = sr_member_revoke_account_sessions($pdo, $selectedId);
+            if ($revokedCount < 0) {
+                throw new RuntimeException('Member sessions could not be revoked.');
+            }
+            $revokedCounts[(string) $selectedId] = $revokedCount;
+            $revokedTotal += $revokedCount;
+        }
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'member.sessions.batch_revoked',
+            'target_type' => 'member_account',
+            'target_id' => 'batch',
+            'result' => 'failure',
+            'message' => 'Member sessions could not be revoked.',
+            'metadata' => [
+                'operation_key' => $operationKey,
+                'selected_ids' => $selectedIds,
+            ],
+        ]);
+
+        return sr_admin_action_result([sr_t('member::action.admin.session_revoke_failed')], '');
+    }
+
+    sr_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'admin',
+        'event_type' => 'member.sessions.batch_revoked',
+        'target_type' => 'member_account',
+        'target_id' => 'batch',
+        'result' => 'success',
+        'message' => 'Member sessions revoked.',
+        'metadata' => [
+            'operation_key' => $operationKey,
+            'selected_ids' => $selectedIds,
+            'revoked_counts' => $revokedCounts,
+            'revoked_total' => $revokedTotal,
+        ],
+    ]);
+
+    return sr_admin_action_result([], '선택한 회원 ' . (string) count($selectedIds) . '명의 세션을 회수했습니다. 회수된 세션: ' . (string) $revokedTotal . '건');
+}
+
 function sr_admin_member_status_filter(array $allowedStatuses): array
 {
     return sr_admin_get_allowed_array('status', $allowedStatuses, 30);

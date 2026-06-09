@@ -27,12 +27,25 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/members', 'edit');
 
-    $postResult = sr_admin_handle_members_post($pdo, $account, $allowedStatuses, is_array($site ?? null) ? $site : []);
+    $intent = sr_post_string('intent', 40);
+    if ($intent === 'batch_revoke_sessions') {
+        $postResult = sr_admin_handle_member_batch_revoke_sessions_post($pdo, $account);
+    } else {
+        $postResult = sr_admin_handle_members_post($pdo, $account, $allowedStatuses, is_array($site ?? null) ? $site : []);
+    }
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
     if ($errors === [] && (int) ($postResult['created_account_id'] ?? 0) > 0) {
         sr_admin_flash_result(sr_admin_action_result([], $notice));
         sr_redirect('/admin/members');
+    }
+    if ($errors === [] && $intent === 'batch_revoke_sessions') {
+        $returnTo = sr_post_string('return_to', 500);
+        if (!sr_is_safe_relative_url($returnTo)) {
+            $returnTo = '/admin/members';
+        }
+        sr_admin_flash_result(sr_admin_action_result([], $notice));
+        sr_redirect($returnTo);
     }
     if (isset($postResult['create_values']) && is_array($postResult['create_values'])) {
         $memberCreateValues = $postResult['create_values'];

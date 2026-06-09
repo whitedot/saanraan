@@ -303,11 +303,30 @@ foreach ($allowedStatuses as $status) {
         <?php echo sr_admin_pagination_summary_html($memberPagination); ?>
     </div>
     <?php $memberListShowNicknameColumn = !empty($memberSettings['nickname_enabled']); ?>
+    <form id="member-bulk-session-form" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-member-bulk-form" data-member-bulk-session-form>
+        <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="intent" value="batch_revoke_sessions">
+        <input type="hidden" name="operation_key" value="member.revoke_sessions">
+        <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/members')); ?>">
+        <div class="admin-list-actions admin-member-bulk-actions" hidden data-member-bulk-session-bar>
+            <div class="admin-member-bulk-summary" aria-live="polite">
+                <strong data-member-selected-count>0</strong>명 선택됨
+            </div>
+            <div class="admin-member-bulk-controls">
+                <button type="submit" class="btn btn-outline-danger" data-member-bulk-session-submit disabled>세션 회수</button>
+                <button type="button" class="btn btn-solid-light" data-member-bulk-session-clear>선택 해제</button>
+            </div>
+        </div>
+    </form>
     <div class="table-wrapper">
         <table class="table admin-member-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.5e737292')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
+                    <th class="admin-member-select-cell">
+                        <label class="sr-only" for="member_bulk_select_all">현재 페이지 회원 전체 선택</label>
+                        <input id="member_bulk_select_all" type="checkbox" class="form-checkbox" data-member-select-all<?php echo $members === [] ? ' disabled' : ''; ?>>
+                    </th>
                     <th<?php echo sr_admin_sort_aria('email', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.3b7dbc4c') . ' / ' . sr_t('member::ui.text.4ca2f9ab'), 'email', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('name', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.public_name'), 'name', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <?php if ($memberListShowNicknameColumn) { ?>
@@ -324,7 +343,7 @@ foreach ($allowedStatuses as $status) {
             <tbody>
                 <?php if ($members === []) { ?>
                     <tr>
-                        <td colspan="<?php echo $memberListShowNicknameColumn ? '9' : '8'; ?>" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
+                        <td colspan="<?php echo $memberListShowNicknameColumn ? '10' : '9'; ?>" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($members as $member) { ?>
@@ -337,6 +356,10 @@ foreach ($allowedStatuses as $status) {
                     };
                     ?>
                     <tr>
+                        <td class="admin-member-select-cell">
+                            <label class="sr-only" for="member_bulk_select_<?php echo sr_e((string) (int) $member['id']); ?>"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?> 선택</label>
+                            <input id="member_bulk_select_<?php echo sr_e((string) (int) $member['id']); ?>" type="checkbox" name="selected_account_ids[]" value="<?php echo sr_e((string) (int) $member['id']); ?>" class="form-checkbox" form="member-bulk-session-form" data-member-row-select>
+                        </td>
                         <td class="admin-table-break admin-member-email-cell">
                             <span class="admin-member-email-value"><?php echo sr_e(sr_admin_member_email_display($member)); ?></span>
                             <span class="admin-member-hash-value" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></span>
@@ -375,6 +398,78 @@ foreach ($allowedStatuses as $status) {
 </section>
 
 <?php echo sr_admin_pagination_html($memberPagination, '회원 목록 페이지'); ?>
+
+<script>
+(function () {
+    var form = document.querySelector('[data-member-bulk-session-form]');
+    if (!form) {
+        return;
+    }
+    var bar = document.querySelector('[data-member-bulk-session-bar]');
+    var countNode = document.querySelector('[data-member-selected-count]');
+    var submit = document.querySelector('[data-member-bulk-session-submit]');
+    var clear = document.querySelector('[data-member-bulk-session-clear]');
+    var selectAll = document.querySelector('[data-member-select-all]');
+    var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-member-row-select]'));
+
+    function checkedRows() {
+        return rowChecks.filter(function (input) {
+            return input.checked && !input.disabled;
+        });
+    }
+
+    function syncBulkState() {
+        var selectedCount = checkedRows().length;
+        if (countNode) {
+            countNode.textContent = String(selectedCount);
+        }
+        if (bar) {
+            bar.hidden = selectedCount < 1;
+        }
+        if (submit) {
+            submit.disabled = selectedCount < 1;
+        }
+        if (selectAll) {
+            selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+            selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+        }
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            rowChecks.forEach(function (input) {
+                if (!input.disabled) {
+                    input.checked = selectAll.checked;
+                }
+            });
+            syncBulkState();
+        });
+    }
+    rowChecks.forEach(function (input) {
+        input.addEventListener('change', syncBulkState);
+    });
+    if (clear) {
+        clear.addEventListener('click', function () {
+            rowChecks.forEach(function (input) {
+                input.checked = false;
+            });
+            syncBulkState();
+        });
+    }
+    form.addEventListener('submit', function (event) {
+        var selectedCount = checkedRows().length;
+        if (selectedCount < 1) {
+            event.preventDefault();
+            syncBulkState();
+            return;
+        }
+        if (!window.confirm('선택한 회원 ' + selectedCount + '명의 활성 세션을 회수합니다.')) {
+            event.preventDefault();
+        }
+    });
+    syncBulkState();
+}());
+</script>
 
 <div class="admin-notice">
     <span class="admin-notice-icon" aria-hidden="true">i</span>
