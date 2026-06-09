@@ -171,8 +171,10 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-section-nav .tab-trigger-underline-justified{color:var(--color-default-700);text-decoration:none;white-space:nowrap}
 .admin-section-nav .tab-trigger-underline-justified[aria-current=location]{border-width:1px;border-color:var(--color-default-300);border-bottom-color:#0000;background-color:var(--color-card);color:var(--color-primary)}
 .admin-form>section[id^=anc_],.admin-form>section[data-admin-section-anchor],#container>section[data-admin-section-anchor]{scroll-margin-top:calc(var(--admin-shell-bar-height) + var(--config-tabs-height,3.25rem) + .75rem)}
-.admin-form-sticky-actions{padding-inline:calc(var(--spacing) * 5);padding-top:calc(var(--spacing) * 4);padding-bottom:calc(var(--spacing) * 5);border-top:1px solid var(--color-default-300);background-color:var(--color-default-100);position:sticky;bottom:0;z-index:14}
-@supports (color:color-mix(in lab, red, red)){.admin-form-sticky-actions{background-color:color-mix(in oklab, var(--color-default-100) 88%, transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}}
+.admin-form-sticky-actions{padding-inline:calc(var(--spacing) * 5);padding-top:calc(var(--spacing) * 4);padding-bottom:calc(var(--spacing) * 5);background:transparent;border-top:0;bottom:0;isolation:isolate;position:sticky;z-index:14}
+.admin-form-sticky-actions::before{background:linear-gradient(to top,var(--color-default-100) 0%,var(--color-default-100) 45%,transparent 100%);content:"";inset:0;pointer-events:none;position:absolute;z-index:-1}
+@supports (color:color-mix(in lab, red, red)){.admin-form-sticky-actions::before{background:linear-gradient(to top,color-mix(in oklab,var(--color-default-100) 96%,transparent) 0%,color-mix(in oklab,var(--color-default-100) 78%,transparent) 58%,transparent 100%)}}
+.admin-form-sticky-actions>*{position:relative;z-index:1}
 .admin-form-actions{align-items:center;gap:calc(var(--spacing) * 2);flex-wrap:wrap;display:flex}
 .admin-form-actions-primary{justify-content:flex-end}
 .admin-form-actions-split>button[type=submit],.admin-form-actions-split>input[type=submit]{margin-left:auto}
