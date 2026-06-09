@@ -380,11 +380,17 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-permission-member-summary span{color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);overflow-wrap:anywhere}
 .admin-permission-picker-grid{display:grid;gap:calc(var(--spacing) * 2.5);grid-template-columns:1fr}
 .admin-permission-picker-control{display:grid;gap:calc(var(--spacing) * 1);min-width:0}
-.admin-permission-action-group{border:0;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);margin:0;padding:0}
+.admin-permission-action-group{align-items:center;border:0;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-permission-action-group.filtering-toggle-group{gap:0}
 .admin-permission-action-group .admin-form-check{min-height:calc(var(--spacing) * 8)}
-.admin-permission-picker-add{margin-top:calc(var(--spacing) * 2)}
+.admin-permission-action-group .form-choice-toggle-input + .btn-choice-light,
+.admin-permission-action-cell .form-choice-toggle-input + .btn-choice-light{align-items:center;display:inline-flex;line-height:1;min-height:calc(var(--spacing) * 8);vertical-align:middle}
+.admin-permission-action-group .form-choice-toggle-input + .btn-choice-light::before,
+.admin-permission-action-cell .form-choice-toggle-input + .btn-choice-light::before{align-self:center;transform:translateY(0)}
+.admin-permission-picker-add{align-self:flex-start;min-height:calc(var(--spacing) * 8);padding-block:0}
+.admin-permission-action-group + .admin-permission-picker-add{margin-top:calc(var(--spacing) * 2)}
 .admin-permission-selected-list{border-top:1px solid var(--color-default-200);display:grid;flex-basis:100%;width:100%}
+.admin-permission-selected-list:has(>[data-admin-permission-empty]:only-child){border-top:0}
 .admin-permission-selected-head,
 .admin-permission-selected-row{align-items:center;display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:minmax(13rem,1fr) repeat(3,minmax(4.75rem,auto)) minmax(2.5rem,auto);min-width:0}
 .admin-permission-selected-head{border-bottom:1px solid var(--color-default-200);color:var(--text-muted);font-size:var(--type-meta-size);font-weight:var(--font-weight-semibold);line-height:var(--type-meta-line-height);padding:calc(var(--spacing) * 2) 0}
