@@ -788,7 +788,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
 
     <?php if ($canEvaluateGroupRules) { ?>
     <div id="member-group-rule-evaluate-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="member_group_rule_evaluate_modal_title" aria-hidden="true" inert>
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-lg member-group-rule-evaluate-dialog">
             <form method="post" action="<?php echo sr_e(sr_url('/admin/member-group-evaluations/group')); ?>" class="modal-content ui-form-theme">
                 <div class="modal-header">
                     <h3 id="member_group_rule_evaluate_modal_title" class="modal-title"><?php echo sr_e(sr_t('member::ui.member.group_rule_evaluate.55daa57d')); ?></h3>
