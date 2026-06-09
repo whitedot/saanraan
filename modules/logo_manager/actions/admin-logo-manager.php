@@ -41,7 +41,7 @@ if (sr_request_method() === 'POST') {
         $endsAtInput = sr_post_string('ends_at', 30);
         $startsAt = sr_logo_manager_clean_admin_datetime($startsAtInput);
         $endsAt = sr_logo_manager_clean_admin_datetime($endsAtInput);
-        $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
+        $sortOrder = sr_logo_manager_clean_sort_order(sr_post_string('sort_order', 20));
         $uploadFile = $_FILES['logo_file'] ?? null;
         $uploadedImage = null;
 
@@ -62,6 +62,10 @@ if (sr_request_method() === 'POST') {
         }
         if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
             $errors[] = '종료 시각은 시작 시각 이후여야 합니다.';
+        }
+        if ($sortOrder === null) {
+            $errors[] = '정렬 값은 숫자로 입력하세요.';
+            $sortOrder = 0;
         }
         if (!sr_logo_manager_upload_was_provided($uploadFile)) {
             $errors[] = '업로드할 로고 이미지를 선택하세요.';
@@ -163,7 +167,7 @@ if (sr_request_method() === 'POST') {
         $endsAtInput = sr_post_string('ends_at', 30);
         $startsAt = sr_logo_manager_clean_admin_datetime($startsAtInput);
         $endsAt = sr_logo_manager_clean_admin_datetime($endsAtInput);
-        $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
+        $sortOrder = sr_logo_manager_clean_sort_order(sr_post_string('sort_order', 20));
         $uploadFile = $_FILES['logo_file'] ?? null;
         $uploadedImage = null;
 
@@ -187,6 +191,10 @@ if (sr_request_method() === 'POST') {
         }
         if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
             $errors[] = '종료 시각은 시작 시각 이후여야 합니다.';
+        }
+        if ($sortOrder === null) {
+            $errors[] = '정렬 값은 숫자로 입력하세요.';
+            $sortOrder = 0;
         }
 
         if ($errors === [] && sr_logo_manager_upload_was_provided($uploadFile) && is_array($uploadFile)) {

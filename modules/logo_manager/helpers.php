@@ -226,6 +226,19 @@ function sr_logo_manager_clean_url(string $value): string
     return '';
 }
 
+function sr_logo_manager_clean_sort_order(string $value): ?int
+{
+    $value = trim($value);
+    if ($value === '') {
+        return 0;
+    }
+    if (strlen($value) > 20 || preg_match('/\A-?[0-9]+\z/', $value) !== 1) {
+        return null;
+    }
+
+    return max(-100000, min(100000, (int) $value));
+}
+
 function sr_logo_manager_format_bytes(int $bytes): string
 {
     if ($bytes >= 1048576) {
