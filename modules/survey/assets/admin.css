@@ -172,7 +172,7 @@
     width: 100%;
 }
 
-.admin-survey-statistics-export-actions {
+.admin-survey-filter-export-actions {
     align-items: center;
     border-inline-start: 1px solid var(--color-default-200);
     display: flex;
@@ -228,14 +228,14 @@
         grid-column: 1;
     }
 
-    .admin-survey-statistics-export-actions {
+    .admin-survey-filter-export-actions {
         border-inline-start: 0;
         margin-inline-start: 0;
         padding-inline-start: 0;
         width: 100%;
     }
 
-    .admin-survey-statistics-export-actions .btn {
+    .admin-survey-filter-export-actions .btn {
         flex: 1 1 auto;
     }
 

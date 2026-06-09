@@ -102,7 +102,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
             <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
             <?php if (is_array($survey)): ?>
-                <div class="admin-survey-statistics-export-actions">
+                <div class="admin-survey-filter-export-actions">
                     <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>분석 CSV</a>
                     <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'codebook'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>코드북 CSV</a>
                 </div>

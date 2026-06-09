@@ -146,8 +146,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $responseDetailFilterOpen ? 'true' : 'false'; ?>" aria-controls="survey_response_detail_filters">상세검색</button>
             <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
             <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
-            <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'raw'], '', '&', PHP_QUERY_RFC3986))); ?>">원본 CSV</a>
-            <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>">분석 CSV</a>
+            <div class="admin-survey-filter-export-actions">
+                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'raw'], '', '&', PHP_QUERY_RFC3986))); ?>">원본 CSV</a>
+                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'quality_status' => $qualityFilter, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>">분석 CSV</a>
+            </div>
         </div>
     </div>
 </form>
