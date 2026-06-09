@@ -34,6 +34,10 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], $couponPermissionPath, 'edit');
 
     $intent = sr_post_string('intent', 40);
+    $returnTo = sr_post_string('return_to', 500);
+    if (!sr_is_safe_relative_url($returnTo)) {
+        $returnTo = $couponAdminPage === 'definitions' ? '/admin/coupons' : $requestPath;
+    }
     try {
         if ($intent === 'create_definition' && $couponAdminPage === 'definitions') {
             $definitionId = sr_coupon_create_definition($pdo, [
@@ -102,6 +106,147 @@ if (sr_request_method() === 'POST') {
             $notice = $issuedCount . '명에게 쿠폰을 지급했습니다.';
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons');
+        } elseif ($intent === 'batch_definition_status' && $couponAdminPage === 'definitions') {
+            $operationKey = sr_post_string('operation_key', 80);
+            $targetStatus = sr_post_string('target_status', 30);
+            $rawSelectedIds = $_POST['selected_definition_ids'] ?? [];
+            $selectedIds = [];
+            if (is_array($rawSelectedIds)) {
+                foreach ($rawSelectedIds as $rawSelectedId) {
+                    $selectedId = (int) $rawSelectedId;
+                    if ($selectedId > 0) {
+                        $selectedIds[$selectedId] = $selectedId;
+                    }
+                }
+            }
+            $selectedIds = array_values($selectedIds);
+
+            if ($operationKey !== 'coupon.definition_set_status') {
+                $errors[] = '허용되지 않은 일괄 작업입니다.';
+            }
+            if (!in_array($targetStatus, sr_coupon_statuses(), true)) {
+                $errors[] = '변경할 쿠폰 종류 상태가 올바르지 않습니다.';
+            }
+            if ($selectedIds === []) {
+                $errors[] = '상태를 변경할 쿠폰 종류를 선택하세요.';
+            }
+            if (count($selectedIds) > 100) {
+                $errors[] = '쿠폰 종류 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+            }
+
+            $selectedDefinitions = [];
+            if ($errors === []) {
+                $placeholders = [];
+                $params = [];
+                foreach ($selectedIds as $index => $selectedId) {
+                    $paramKey = 'definition_id_' . (string) $index;
+                    $placeholders[] = ':' . $paramKey;
+                    $params[$paramKey] = $selectedId;
+                }
+                $stmt = $pdo->prepare(
+                    'SELECT id, coupon_key, title, status
+                     FROM sr_coupon_definitions
+                     WHERE id IN (' . implode(', ', $placeholders) . ')
+                     ORDER BY id ASC'
+                );
+                foreach ($params as $paramKey => $selectedId) {
+                    $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+                }
+                $stmt->execute();
+                foreach ($stmt->fetchAll() as $row) {
+                    $selectedDefinitions[(int) ($row['id'] ?? 0)] = $row;
+                }
+                if (count($selectedDefinitions) !== count($selectedIds)) {
+                    $errors[] = '선택한 쿠폰 종류 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+                }
+            }
+
+            $blockedReferenceIds = [];
+            if ($errors === [] && $targetStatus === 'disabled') {
+                foreach ($selectedDefinitions as $selectedDefinition) {
+                    $selectedId = (int) ($selectedDefinition['id'] ?? 0);
+                    if ($selectedId < 1 || (string) ($selectedDefinition['status'] ?? '') !== 'active') {
+                        continue;
+                    }
+                    $referenceResult = sr_read_reference_collect($pdo, 'coupon-references.php', [
+                        'owner_module_key' => 'coupon',
+                        'target_type' => 'coupon_definition',
+                        'target_id' => $selectedId,
+                        'target_key' => (string) ($selectedDefinition['coupon_key'] ?? ''),
+                    ], [
+                        'definition' => $selectedDefinition,
+                        'coupon_key' => (string) ($selectedDefinition['coupon_key'] ?? ''),
+                    ]);
+                    if (($referenceResult['errors'] ?? []) !== []) {
+                        $errors[] = '쿠폰 정의 참조 계약 오류가 있어 일괄 비활성화할 수 없습니다.';
+                        break;
+                    }
+                    if (($referenceResult['rows'] ?? []) !== []) {
+                        $blockedReferenceIds[] = $selectedId;
+                    }
+                }
+                if ($errors === [] && $blockedReferenceIds !== []) {
+                    $errors[] = '발급/사용 이력 또는 운영 참조가 있는 쿠폰 종류가 있어 비활성화하지 않았습니다: ' . implode(', ', array_map('strval', $blockedReferenceIds));
+                }
+            }
+
+            if ($errors === []) {
+                $changedCount = 0;
+                $skippedCount = 0;
+                $pdo->beginTransaction();
+                try {
+                    $stmt = $pdo->prepare(
+                        'UPDATE sr_coupon_definitions
+                         SET status = :status,
+                             updated_at = :updated_at
+                         WHERE id = :id
+                           AND status <> :status'
+                    );
+                    $now = sr_now();
+                    foreach ($selectedIds as $selectedId) {
+                        $stmt->execute([
+                            'status' => $targetStatus,
+                            'updated_at' => $now,
+                            'id' => $selectedId,
+                        ]);
+                        if ($stmt->rowCount() > 0) {
+                            $changedCount++;
+                        } else {
+                            $skippedCount++;
+                        }
+                    }
+                    $pdo->commit();
+                } catch (Throwable $exception) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    throw $exception;
+                }
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'coupon.definition.batch_status_updated',
+                    'target_type' => 'coupon_definition',
+                    'target_id' => 'batch',
+                    'result' => 'success',
+                    'message' => 'Coupon definition statuses updated.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'selected_ids' => $selectedIds,
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                    ],
+                ]);
+
+                $notice = '쿠폰 종류 ' . (string) $changedCount . '건의 상태를 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . (string) $skippedCount . '건은 건너뛰었습니다.';
+                }
+                sr_admin_flash_result(sr_admin_action_result([], $notice));
+                sr_redirect($returnTo);
+            }
         } elseif ($intent === 'set_definition_status' && $couponAdminPage === 'definitions') {
             $definitionId = (int) sr_post_string('definition_id', 20);
             $status = sr_post_string('status', 30);

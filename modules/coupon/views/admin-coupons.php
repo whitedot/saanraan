@@ -133,10 +133,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 종류 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         </div>
     <?php } ?>
+    <form id="coupon-definition-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-coupon-definition-bulk-form" data-coupon-definition-bulk-form>
+        <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="intent" value="batch_definition_status">
+        <input type="hidden" name="operation_key" value="coupon.definition_set_status">
+        <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/coupons')); ?>">
+        <div class="admin-list-actions admin-coupon-definition-bulk-actions" hidden data-coupon-definition-bulk-bar>
+            <div class="admin-coupon-definition-bulk-summary" aria-live="polite">
+                <strong data-coupon-definition-selected-count>0</strong>개 선택됨
+            </div>
+            <div class="admin-coupon-definition-bulk-controls">
+                <select name="target_status" class="form-select" aria-label="변경할 쿠폰 종류 상태">
+                    <option value="active">사용 중</option>
+                    <option value="disabled">중지</option>
+                </select>
+                <button type="submit" class="btn btn-solid-primary" data-coupon-definition-bulk-submit disabled>상태 변경</button>
+                <button type="button" class="btn btn-solid-light" data-coupon-definition-bulk-clear>선택 해제</button>
+            </div>
+        </div>
+    </form>
     <div class="table-wrapper">
     <table class="table admin-coupon-definition-table">
         <thead>
             <tr>
+                <th class="admin-coupon-definition-select-cell">
+                    <label class="sr-only" for="coupon_definition_bulk_select_all">현재 페이지 쿠폰 종류 전체 선택</label>
+                    <input id="coupon_definition_bulk_select_all" type="checkbox" class="form-checkbox" data-coupon-definition-select-all<?php echo $definitions === [] ? ' disabled' : ''; ?>>
+                </th>
                 <th<?php echo sr_admin_sort_aria('coupon_key', $definitionSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'coupon_key', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('title', $definitionSort); ?>><?php echo sr_admin_sort_header_html('쿠폰 이름', 'title', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('target_type', $definitionSort); ?>><?php echo sr_admin_sort_header_html('사용처', 'target_type', $definitionSort, sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()); ?></th>
@@ -147,11 +170,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($definitions === []) { ?>
                 <tr>
-                    <td colspan="5" class="admin-empty-state">등록된 쿠폰 종류가 없습니다.</td>
+                    <td colspan="6" class="admin-empty-state">등록된 쿠폰 종류가 없습니다.</td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($definitions as $definition) { ?>
                     <tr>
+                        <td class="admin-coupon-definition-select-cell">
+                            <label class="sr-only" for="coupon_definition_bulk_select_<?php echo sr_e((string) (int) $definition['id']); ?>"><?php echo sr_e((string) $definition['title']); ?> 선택</label>
+                            <input id="coupon_definition_bulk_select_<?php echo sr_e((string) (int) $definition['id']); ?>" type="checkbox" name="selected_definition_ids[]" value="<?php echo sr_e((string) (int) $definition['id']); ?>" class="form-checkbox" form="coupon-definition-bulk-status-form" data-coupon-definition-row-select>
+                        </td>
                         <td><?php echo sr_e((string) $definition['coupon_key']); ?></td>
                         <td><?php echo sr_e((string) $definition['title']); ?></td>
                         <td><?php echo sr_e((string) ($targetTypes[(string) $definition['target_type']] ?? $definition['target_type'])); ?> <?php echo sr_e((string) $definition['target_id']); ?></td>
@@ -187,6 +214,80 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 
 <?php echo $couponDefinitionReferenceModals; ?>
+
+<script>
+(function () {
+    var form = document.querySelector('[data-coupon-definition-bulk-form]');
+    if (!form) {
+        return;
+    }
+    var bar = document.querySelector('[data-coupon-definition-bulk-bar]');
+    var countNode = document.querySelector('[data-coupon-definition-selected-count]');
+    var submit = document.querySelector('[data-coupon-definition-bulk-submit]');
+    var clear = document.querySelector('[data-coupon-definition-bulk-clear]');
+    var selectAll = document.querySelector('[data-coupon-definition-select-all]');
+    var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-coupon-definition-row-select]'));
+
+    function checkedRows() {
+        return rowChecks.filter(function (input) {
+            return input.checked && !input.disabled;
+        });
+    }
+
+    function syncBulkState() {
+        var selectedCount = checkedRows().length;
+        if (countNode) {
+            countNode.textContent = String(selectedCount);
+        }
+        if (bar) {
+            bar.hidden = selectedCount < 1;
+        }
+        if (submit) {
+            submit.disabled = selectedCount < 1;
+        }
+        if (selectAll) {
+            selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+            selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+        }
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            rowChecks.forEach(function (input) {
+                if (!input.disabled) {
+                    input.checked = selectAll.checked;
+                }
+            });
+            syncBulkState();
+        });
+    }
+    rowChecks.forEach(function (input) {
+        input.addEventListener('change', syncBulkState);
+    });
+    if (clear) {
+        clear.addEventListener('click', function () {
+            rowChecks.forEach(function (input) {
+                input.checked = false;
+            });
+            syncBulkState();
+        });
+    }
+    form.addEventListener('submit', function (event) {
+        var selectedCount = checkedRows().length;
+        if (selectedCount < 1) {
+            event.preventDefault();
+            syncBulkState();
+            return;
+        }
+        var status = form.querySelector('select[name="target_status"]');
+        var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+        if (!window.confirm('선택한 쿠폰 종류 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+            event.preventDefault();
+        }
+    });
+    syncBulkState();
+}());
+</script>
 
 <?php foreach ($definitions as $definition) { ?>
     <?php
