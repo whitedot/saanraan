@@ -7,7 +7,9 @@ require_once __DIR__ . '/../helpers.php';
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys/statistics', 'view');
 
-$surveyId = max(0, (int) sr_get_string('survey_id', 20));
+$requestedSurveyId = max(0, (int) sr_get_string('survey_id', 20));
+$surveyId = $requestedSurveyId;
+$surveyAutoSelected = false;
 $surveyOptions = $pdo->query('SELECT id, survey_key, title FROM sr_survey_forms WHERE deleted_at IS NULL ORDER BY updated_at DESC, id DESC LIMIT 300')->fetchAll();
 $survey = null;
 if ($surveyId > 0) {
@@ -18,6 +20,7 @@ if ($surveyId > 0) {
 }
 if (!is_array($survey) && is_array($surveyOptions[0] ?? null)) {
     $surveyId = (int) $surveyOptions[0]['id'];
+    $surveyAutoSelected = $requestedSurveyId < 1;
     $stmt = $pdo->prepare('SELECT * FROM sr_survey_forms WHERE id = :id AND deleted_at IS NULL LIMIT 1');
     $stmt->execute(['id' => $surveyId]);
     $row = $stmt->fetch();
@@ -80,6 +83,7 @@ if (is_array($survey)) {
 }
 
 $adminPageTitle = '설문 통계';
+$adminPageSubtitle = '선택한 설문의 응답 집계와 문항별 통계를 확인합니다. 제외 응답과 테스트 응답은 문항별 통계에서 제외됩니다.';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/statistics')); ?>" class="filtering-form admin-survey-statistics-filter ui-form-theme">
@@ -96,10 +100,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="filtering-actions">
             <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
-            <button type="submit" class="btn btn-solid-primary filtering-submit">보기</button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
             <?php if (is_array($survey)): ?>
-                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>분석 CSV</a>
-                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'codebook'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>코드북 CSV</a>
+                <div class="admin-survey-statistics-export-actions">
+                    <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>분석 CSV</a>
+                    <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'codebook'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>코드북 CSV</a>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -108,20 +114,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (!is_array($survey)): ?>
     <section class="admin-card card"><div class="card-body admin-empty-state">통계를 볼 설문이 없습니다.</div></section>
 <?php else: ?>
-    <section class="admin-card card">
-        <div class="card-header"><h2 class="card-title"><?php echo sr_e((string) $survey['title']); ?></h2></div>
+    <section class="admin-card card admin-survey-statistics-summary-card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title"><?php echo sr_e((string) $survey['title']); ?></h2>
+                <p class="admin-dashboard-meta"><?php echo $surveyAutoSelected ? '설문을 선택하지 않아 최근 수정 설문을 자동으로 표시합니다. ' : ''; ?>문항별 통계는 제외 응답과 테스트 응답을 계산에서 뺍니다.</p>
+            </div>
+        </div>
         <div class="card-body">
-            <dl class="admin-module-detail-list">
-                <dt>전체 응답</dt><dd><?php echo sr_e(number_format((int) ($summary['total_count'] ?? 0))); ?>건</dd>
-                <dt>포함</dt><dd><?php echo sr_e(number_format((int) ($summary['accepted_count'] ?? 0))); ?>건</dd>
-                <dt>검토</dt><dd><?php echo sr_e(number_format((int) ($summary['flagged_count'] ?? 0))); ?>건</dd>
-                <dt>제외</dt><dd><?php echo sr_e(number_format((int) ($summary['excluded_count'] ?? 0))); ?>건</dd>
-                <dt>익명</dt><dd><?php echo sr_e(number_format((int) ($summary['anonymous_count'] ?? 0))); ?>건</dd>
+            <dl class="admin-dashboard-site-grid">
+                <div><dt>전체 응답</dt><dd><?php echo sr_e(number_format((int) ($summary['total_count'] ?? 0))); ?>건</dd></div>
+                <div><dt>포함</dt><dd><?php echo sr_e(number_format((int) ($summary['accepted_count'] ?? 0))); ?>건</dd></div>
+                <div><dt>검토</dt><dd><?php echo sr_e(number_format((int) ($summary['flagged_count'] ?? 0))); ?>건</dd></div>
+                <div><dt>제외</dt><dd><?php echo sr_e(number_format((int) ($summary['excluded_count'] ?? 0))); ?>건</dd></div>
+                <div><dt>익명</dt><dd><?php echo sr_e(number_format((int) ($summary['anonymous_count'] ?? 0))); ?>건</dd></div>
             </dl>
         </div>
     </section>
     <section class="admin-card admin-list-card card admin-list-form">
         <div class="card-header"><h2 class="card-title">문항별 통계</h2></div>
+        <div class="admin-list-summary-row">
+            <p class="admin-list-summary">총 <strong><?php echo sr_e(number_format(count($questions))); ?>개</strong> 문항 · 선택형과 숫자형 문항은 표에서 요약하고, 텍스트 응답은 CSV에서 확인합니다.</p>
+        </div>
         <div class="table-wrapper">
             <table class="table">
                 <thead class="ui-table-head">
@@ -132,6 +146,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </tr>
                 </thead>
                 <tbody>
+                    <?php if ($questions === []): ?>
+                        <tr><td colspan="3" class="admin-empty-state">통계를 표시할 문항이 없습니다.</td></tr>
+                    <?php endif; ?>
                     <?php foreach ($questions as $question): ?>
                         <?php $questionKey = (string) ($question['question_key'] ?? ''); ?>
                         <tr>
