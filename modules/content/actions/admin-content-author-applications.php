@@ -18,13 +18,17 @@ if (sr_request_method() === 'POST') {
     $errors = [];
     $notice = '';
     $intent = sr_post_string('intent', 30);
+    $applicationId = sr_admin_post_positive_int('application_id');
     $note = sr_content_clean_text(sr_post_string('note', 2000), 2000);
     try {
         if (!in_array($intent, ['approve', 'reject'], true)) {
             throw new InvalidArgumentException('요청한 신청 처리 작업이 올바르지 않습니다.');
         }
+        if ($applicationId < 1) {
+            throw new InvalidArgumentException('처리할 신청을 선택하세요.');
+        }
 
-        sr_content_review_author_application($pdo, (int) sr_post_string('application_id', 20), $intent === 'approve' ? 'approved' : 'rejected', (int) $account['id'], $note);
+        sr_content_review_author_application($pdo, $applicationId, $intent === 'approve' ? 'approved' : 'rejected', (int) $account['id'], $note);
         $notice = $intent === 'approve' ? '콘텐츠 등록자 신청을 승인했습니다.' : '콘텐츠 등록자 신청을 반려했습니다.';
     } catch (Throwable $exception) {
         $errors[] = $exception->getMessage();
