@@ -132,6 +132,172 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '로고 저장 중 오류가 발생했습니다.';
             }
         }
+    } elseif ($intent === 'update_logo') {
+        if (!$logoTableExists) {
+            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+        }
+
+        $logoId = (int) sr_post_string('logo_id', 20);
+        $logo = null;
+        if ($logoId > 0 && $logoTableExists) {
+            $stmt = $pdo->prepare('SELECT * FROM sr_logo_manager_logos WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $logoId]);
+            $logo = $stmt->fetch();
+            if (!is_array($logo)) {
+                $logo = null;
+            }
+        }
+        if ($logo === null) {
+            $errors[] = '수정할 로고 배치를 찾을 수 없습니다.';
+        }
+
+        $positionKey = sr_logo_manager_clean_position_key(sr_post_string('position_key', 120));
+        $title = sr_logo_manager_clean_single_line(sr_post_string('title', 120), 120);
+        $altText = sr_logo_manager_clean_single_line(sr_post_string('alt_text', 160), 160);
+        $linkUrlRaw = sr_post_string('link_url', 255);
+        $linkUrl = sr_logo_manager_clean_url($linkUrlRaw);
+        $useAsPublicSymbol = sr_logo_manager_use_as_public_symbol_value($positionKey, sr_post_string('use_as_public_symbol', 1));
+        $status = sr_post_string('status_enabled', 10) === '1' ? 'active' : 'disabled';
+        $startsAtInput = sr_post_string('starts_at', 30);
+        $endsAtInput = sr_post_string('ends_at', 30);
+        $startsAt = sr_logo_manager_clean_admin_datetime($startsAtInput);
+        $endsAt = sr_logo_manager_clean_admin_datetime($endsAtInput);
+        $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
+        $uploadFile = $_FILES['logo_file'] ?? null;
+        $uploadedImage = null;
+
+        if ($positionKey === '' || !isset($positionOptions[$positionKey])) {
+            $errors[] = '로고 용도 값이 올바르지 않습니다.';
+        }
+        if ($title === '') {
+            $errors[] = '로고 이름을 입력하세요.';
+        }
+        if ($linkUrlRaw !== '' && $linkUrl === '') {
+            $errors[] = '링크 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.';
+        }
+        if ($startsAtInput !== '' && $startsAt === null) {
+            $errors[] = '시작 시각 형식이 올바르지 않습니다.';
+        }
+        if ($endsAtInput !== '' && $endsAt === null) {
+            $errors[] = '종료 시각 형식이 올바르지 않습니다.';
+        }
+        if ($startsAt !== null && $endsAt !== null && $startsAt > $endsAt) {
+            $errors[] = '종료 시각은 시작 시각 이후여야 합니다.';
+        }
+
+        if ($errors === [] && sr_logo_manager_upload_was_provided($uploadFile) && is_array($uploadFile)) {
+            try {
+                $uploadedImage = sr_logo_manager_upload_image($uploadFile, $positionKey, $pdo);
+            } catch (Throwable $exception) {
+                $errors[] = $exception->getMessage();
+            }
+        }
+
+        if ($errors === [] && is_array($logo)) {
+            $imageReplaced = is_array($uploadedImage);
+            $before = [
+                'position_key' => (string) $logo['position_key'],
+                'title' => (string) $logo['title'],
+                'alt_text' => (string) $logo['alt_text'],
+                'link_url' => (string) $logo['link_url'],
+                'use_as_public_symbol' => (int) $logo['use_as_public_symbol'],
+                'status' => (string) $logo['status'],
+                'starts_at' => $logo['starts_at'],
+                'ends_at' => $logo['ends_at'],
+                'sort_order' => (int) $logo['sort_order'],
+                'storage_driver' => (string) $logo['storage_driver'],
+                'storage_key' => (string) $logo['storage_key'],
+            ];
+            $after = [
+                'position_key' => $positionKey,
+                'title' => $title,
+                'alt_text' => $altText,
+                'link_url' => $linkUrl,
+                'use_as_public_symbol' => $useAsPublicSymbol,
+                'status' => $status,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'sort_order' => $sortOrder,
+                'storage_driver' => $imageReplaced ? (string) $uploadedImage['driver'] : (string) $logo['storage_driver'],
+                'storage_key' => $imageReplaced ? (string) $uploadedImage['storage_key'] : (string) $logo['storage_key'],
+            ];
+
+            try {
+                $sql = 'UPDATE sr_logo_manager_logos
+                        SET position_key = :position_key,
+                            title = :title,
+                            alt_text = :alt_text,
+                            link_url = :link_url,
+                            use_as_public_symbol = :use_as_public_symbol,
+                            status = :status,
+                            starts_at = :starts_at,
+                            ends_at = :ends_at,
+                            sort_order = :sort_order,
+                            updated_at = :updated_at';
+                $params = [
+                    'position_key' => $positionKey,
+                    'title' => $title,
+                    'alt_text' => $altText,
+                    'link_url' => $linkUrl,
+                    'use_as_public_symbol' => $useAsPublicSymbol,
+                    'status' => $status,
+                    'starts_at' => $startsAt,
+                    'ends_at' => $endsAt,
+                    'sort_order' => $sortOrder,
+                    'updated_at' => $now,
+                    'id' => $logoId,
+                ];
+                if ($imageReplaced) {
+                    $sql .= ',
+                            original_name = :original_name,
+                            storage_driver = :storage_driver,
+                            storage_key = :storage_key,
+                            public_url = :public_url,
+                            mime_type = :mime_type,
+                            size_bytes = :size_bytes,
+                            width = :width,
+                            height = :height,
+                            checksum_sha256 = :checksum_sha256';
+                    $params['original_name'] = (string) ($uploadedImage['original_name'] ?? '');
+                    $params['storage_driver'] = (string) $uploadedImage['driver'];
+                    $params['storage_key'] = (string) $uploadedImage['storage_key'];
+                    $params['public_url'] = (string) $uploadedImage['public_url'];
+                    $params['mime_type'] = (string) $uploadedImage['mime_type'];
+                    $params['size_bytes'] = (int) $uploadedImage['size_bytes'];
+                    $params['width'] = (int) $uploadedImage['width'];
+                    $params['height'] = (int) $uploadedImage['height'];
+                    $params['checksum_sha256'] = (string) $uploadedImage['checksum_sha256'];
+                }
+                $sql .= ' WHERE id = :id';
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'logo_manager.logo.updated',
+                    'target_type' => 'logo_manager_logo',
+                    'target_id' => (string) $logoId,
+                    'result' => 'success',
+                    'message' => 'Logo placement updated.',
+                    'metadata' => [
+                        'before' => $before,
+                        'after' => $after,
+                        'image_replaced' => $imageReplaced,
+                        'old_storage_driver' => (string) $logo['storage_driver'],
+                        'old_storage_key' => (string) $logo['storage_key'],
+                        'new_storage_driver' => $after['storage_driver'],
+                        'new_storage_key' => $after['storage_key'],
+                        'reencoded' => $imageReplaced && !empty($uploadedImage['reencoded']),
+                    ],
+                ]);
+
+                $notice = '로고 배치를 수정했습니다.';
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'logo_manager_logo_update_failed');
+                $errors[] = '로고 수정 중 오류가 발생했습니다.';
+            }
+        }
     } elseif ($intent === 'logo_status') {
         if (!$logoTableExists) {
             $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
@@ -268,7 +434,8 @@ if (sr_request_method() === 'POST') {
         }
     }
 
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/logo-manager');
+    $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/logo-manager' . ($redirectQuery !== '' ? '?' . $redirectQuery : ''));
 }
 
 $activeLogos = [];
@@ -288,7 +455,7 @@ if ($logoTableExists) {
         'SELECT id, position_key, title, alt_text, link_url, use_as_public_symbol, status, starts_at, ends_at,
                 CASE WHEN starts_at IS NOT NULL AND ends_at IS NOT NULL THEN TIMESTAMPDIFF(SECOND, starts_at, ends_at) ELSE NULL END AS duration_seconds,
                 sort_order,
-                storage_driver, storage_key, public_url, mime_type, width, height, size_bytes, created_at
+                storage_driver, storage_key, public_url, mime_type, width, height, size_bytes, original_name, created_at
          FROM sr_logo_manager_logos
          ' . sr_admin_sort_order_sql($logoSortOptions, $logoSort, $logoDefaultSort) . '
          LIMIT ' . (int) $logoPagination['per_page'] . ' OFFSET ' . sr_admin_pagination_offset($logoPagination)

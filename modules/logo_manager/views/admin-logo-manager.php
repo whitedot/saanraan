@@ -6,6 +6,8 @@ $adminContainerClass = 'admin-page-logo-manager admin-ui-scope';
 $logoSortOptions = sr_admin_logo_sort_options();
 $logoDefaultSort = sr_admin_logo_default_sort();
 $logoSort = isset($logoSort) && is_array($logoSort) ? $logoSort : $logoDefaultSort;
+$logoManagerCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
+$logoManagerActionSuffix = $logoManagerCurrentQuery !== '' ? '?' . $logoManagerCurrentQuery : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -42,7 +44,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div id="logo-manager-logo-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="logo-manager-logo-modal-label" aria-hidden="true" inert>
     <div class="modal-dialog modal-dialog-lg">
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager')); ?>" enctype="multipart/form-data" class="modal-content ui-form-theme">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" enctype="multipart/form-data" class="modal-content ui-form-theme">
             <div class="modal-header">
                 <h3 id="logo-manager-logo-modal-label" class="modal-title"><?php echo sr_e(sr_t('logo_manager::ui.logo.add')); ?></h3>
                 <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#logo-manager-logo-modal">
@@ -150,7 +152,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php if (empty($logoSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url($logoSortOptions, $logoDefaultSort, '', '', 'logo_sort', 'logo_dir', 'logo_page')); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="로고 배치 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
-        <form id="logo-manager-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager')); ?>" class="logo-manager-bulk-form" data-logo-manager-bulk-form>
+        <form id="logo-manager-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="logo-manager-bulk-form" data-logo-manager-bulk-form>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="batch_status">
             <input type="hidden" name="operation_key" value="logo_manager.set_status">
@@ -211,7 +213,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td><?php echo sr_e((string) $logo['sort_order']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager')); ?>" class="admin-inline-form">
+                                    <?php $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) (int) $logo['id']; ?>
+                                    <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerEditModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>">수정</button>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="logo_status">
                                         <input type="hidden" name="logo_id" value="<?php echo sr_e((string) $logo['id']); ?>">
@@ -230,6 +234,118 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </section>
 <?php echo sr_admin_pagination_html($logoPagination, '로고 배치 목록 페이지'); ?>
+
+<?php foreach ($logos as $logo) { ?>
+    <?php
+    $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) (int) $logo['id'];
+    $logoManagerEditPositionKey = (string) ($logo['position_key'] ?? '');
+    ?>
+    <div id="<?php echo sr_e($logoManagerEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($logoManagerEditModalId); ?>-label" aria-hidden="true" inert>
+        <div class="modal-dialog modal-dialog-lg">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" enctype="multipart/form-data" class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($logoManagerEditModalId); ?>-label" class="modal-title">로고 수정</h3>
+                    <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>">
+                        <?php echo sr_material_icon_html('close', '', sr_t('logo_manager::ui.close.1e8c1020')); ?>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="admin-dashboard-meta">저장 즉시 현재 활성 로고가 변경될 수 있습니다.</p>
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="update_logo">
+                    <input type="hidden" name="logo_id" value="<?php echo sr_e((string) (int) $logo['id']); ?>">
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_position_key_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.position.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
+                        <div class="admin-form-field">
+                            <select id="logo_manager_edit_position_key_<?php echo sr_e((string) (int) $logo['id']); ?>" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
+                                <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
+                                    <option value="<?php echo sr_e((string) $positionKey); ?>"<?php echo (string) $positionKey === $logoManagerEditPositionKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($positionOption['label'] ?? $positionKey)); ?></option>
+                                <?php } ?>
+                            </select>
+                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.position.help')); ?></small>
+                        </div>
+                    </div>
+                    <div class="admin-form-row" data-logo-manager-public-symbol-row>
+                        <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label" for="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>">
+                                <input id="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-choice-dark" data-logo-manager-public-symbol-switch<?php echo !empty($logo['use_as_public_symbol']) ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.public_symbol.label')); ?>
+                            </label>
+                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.help')); ?></small>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_title_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.name.2b2c54b5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
+                        <div class="admin-form-field">
+                            <input id="logo_manager_edit_title_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="title" value="<?php echo sr_e((string) $logo['title']); ?>" class="form-input form-control-full" maxlength="120" required>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></span>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label" for="logo_manager_edit_status_enabled_<?php echo sr_e((string) (int) $logo['id']); ?>">
+                                <input id="logo_manager_edit_status_enabled_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="status_enabled" value="1" class="form-switch form-choice-dark"<?php echo (string) $logo['status'] === 'active' ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html(sr_t('logo_manager::ui.active.93c558d7')); ?>
+                            </label>
+                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.status.save.8ca69925')); ?></small>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_alt_text_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.c2f4a315')); ?></label>
+                        <div class="admin-form-field">
+                            <input id="logo_manager_edit_alt_text_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="alt_text" value="<?php echo sr_e((string) $logo['alt_text']); ?>" class="form-input form-control-full" maxlength="160">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_link_url_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.url.f7ca9b13')); ?></label>
+                        <div class="admin-form-field">
+                            <input id="logo_manager_edit_link_url_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="link_url" value="<?php echo sr_e((string) $logo['link_url']); ?>" class="form-input form-control-full" maxlength="255" placeholder="<?php echo sr_e(sr_t('logo_manager::ui.https.example.com.9a232e78')); ?>">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <span class="form-label">현재 이미지</span>
+                        <div class="admin-form-field">
+                            <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
+                            <small class="admin-form-help"><?php echo sr_e((string) ($logo['original_name'] ?? '')); ?></small>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_logo_file_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.4becf8bb')); ?></label>
+                        <div class="admin-form-field">
+                            <input id="logo_manager_edit_logo_file_<?php echo sr_e((string) (int) $logo['id']); ?>" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg" class="form-input">
+                            <small class="admin-form-help">새 파일을 선택하지 않으면 기존 이미지를 유지합니다.</small>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_starts_at_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.65bdaefd')); ?></label>
+                        <div class="admin-form-field">
+                            <input id="logo_manager_edit_starts_at_<?php echo sr_e((string) (int) $logo['id']); ?>" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_logo_manager_admin_datetime_value($logo['starts_at'] ?? null)); ?>" class="form-input">
+                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_ends_at_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.26c25fca')); ?></label>
+                        <div class="admin-form-field">
+                            <input id="logo_manager_edit_ends_at_<?php echo sr_e((string) (int) $logo['id']); ?>" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_logo_manager_admin_datetime_value($logo['ends_at'] ?? null)); ?>" class="form-input">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="logo_manager_edit_sort_order_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.3788952d')); ?></label>
+                        <div class="admin-form-field">
+                            <input id="logo_manager_edit_sort_order_<?php echo sr_e((string) (int) $logo['id']); ?>" type="number" name="sort_order" value="<?php echo sr_e((string) $logo['sort_order']); ?>" class="form-input">
+                            <small class="admin-form-help"><?php echo sr_e(sr_t('logo_manager::ui.sort.help')); ?></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>"><?php echo sr_e(sr_t('logo_manager::ui.close.1e8c1020')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action">로고 수정 저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php } ?>
 
 <script>
 (function () {
@@ -304,20 +420,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         syncBulkState();
     }
 
-    var positionSelect = document.querySelector('[data-logo-manager-position-select]');
-    var symbolSwitch = document.querySelector('[data-logo-manager-public-symbol-switch]');
-    if (!positionSelect || !symbolSwitch) {
-        return;
-    }
-    var sync = function () {
-        var enabled = positionSelect.value === <?php echo json_encode(sr_logo_manager_public_symbol_position_key(), JSON_UNESCAPED_SLASHES); ?>;
-        symbolSwitch.disabled = !enabled;
-        if (!enabled) {
-            symbolSwitch.checked = false;
+    Array.prototype.slice.call(document.querySelectorAll('[data-logo-manager-position-select]')).forEach(function (positionSelect) {
+        var form = positionSelect.closest('form');
+        var symbolSwitch = form ? form.querySelector('[data-logo-manager-public-symbol-switch]') : null;
+        if (!symbolSwitch) {
+            return;
         }
-    };
-    positionSelect.addEventListener('change', sync);
-    sync();
+        var sync = function () {
+            var enabled = positionSelect.value === <?php echo json_encode(sr_logo_manager_public_symbol_position_key(), JSON_UNESCAPED_SLASHES); ?>;
+            symbolSwitch.disabled = !enabled;
+            if (!enabled) {
+                symbolSwitch.checked = false;
+            }
+        };
+        positionSelect.addEventListener('change', sync);
+        sync();
+    });
 })();
 </script>
 
