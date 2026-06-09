@@ -13,8 +13,9 @@ $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $secretPostsEnabled = !empty($secretPostsEnabled);
 $ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
+$communityEditorToolbarPreset = $pdo instanceof PDO ? sr_community_post_toolbar_preset($pdo, $settings) : 'community_post_basic';
 $editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
-$communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
+$communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="' . sr_e($communityEditorToolbarPreset) . '" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,
@@ -204,7 +205,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_after_form_id'] ?? 0)); ?>
         <?php } ?>
         <?php if ($ckeditorEnabled && function_exists('sr_ckeditor_public_assets_html')) { ?>
-            <?php echo sr_ckeditor_public_assets_html($pdo, 'community_post_basic'); ?>
+            <?php echo sr_ckeditor_public_assets_html($pdo, $communityEditorToolbarPreset); ?>
         <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>

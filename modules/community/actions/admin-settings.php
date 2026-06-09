@@ -19,6 +19,7 @@ $communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin
 sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'view');
 $communityLayoutOptions = sr_public_layout_options($pdo);
 $editorOptions = sr_editor_options($pdo);
+$toolbarPresetOptions = sr_community_post_toolbar_preset_options();
 $siteMenuOptions = [];
 if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
     require_once SR_ROOT . '/modules/site_menu/helpers.php';
@@ -57,6 +58,8 @@ if (sr_request_method() === 'POST') {
         $messageWriteMinLevel = sr_admin_post_int_in_range('message_write_min_level', 0, $levelMaxForValidation);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_community_post_editor_key($postEditorInput);
+        $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
+        $postToolbarPreset = sr_community_post_toolbar_preset_key($postToolbarPresetInput);
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
@@ -141,6 +144,10 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시글 에디터 값이 올바르지 않습니다.';
             $postEditor = (string) ($settings['post_editor'] ?? 'textarea');
         }
+        if ($postToolbarPresetInput !== $postToolbarPreset || !array_key_exists($postToolbarPreset, $toolbarPresetOptions)) {
+            $errors[] = '게시글 툴바 구성 값이 올바르지 않습니다.';
+            $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic');
+        }
         if ($onceHistoryPolicyInput !== $onceHistoryPolicy) {
             $errors[] = sr_t('community::action.admin.once_history_policy_invalid');
             $onceHistoryPolicy = (string) ($settings['once_history_policy'] ?? 'all_access');
@@ -223,6 +230,7 @@ if (sr_request_method() === 'POST') {
                 ['layout_quaternary_menu_key', $layoutQuaternaryMenuKey, 'string'],
                 ['layout_quinary_menu_key', $layoutQuinaryMenuKey, 'string'],
                 ['post_editor', $postEditor, 'string'],
+                ['post_toolbar_preset', $postToolbarPreset, 'string'],
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
@@ -323,6 +331,7 @@ if (sr_request_method() === 'POST') {
                         'layout_quaternary_menu_key' => $layoutQuaternaryMenuKey,
                         'layout_quinary_menu_key' => $layoutQuinaryMenuKey,
                         'post_editor' => $postEditor,
+                        'post_toolbar_preset' => $postToolbarPreset,
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
                         'secret_posts_enabled' => $secretPostsEnabled,
                         'secret_comments_enabled' => $secretCommentsEnabled,

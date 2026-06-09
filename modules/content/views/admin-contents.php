@@ -48,7 +48,8 @@ $newContentFileAssetSettings = [
 ];
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $contentEditorKey = $pdo instanceof PDO ? sr_content_editor_key($pdo) : 'textarea';
-$contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, 'content_basic') : '';
+$contentEditorToolbarPreset = $pdo instanceof PDO ? sr_content_editor_toolbar_preset($pdo) : 'content_basic';
+$contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, $contentEditorToolbarPreset) : '';
 if ($contentEditorAttributes !== '' && $contentEditorKey === 'ckeditor') {
     $contentEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_content_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_content_body_file_upload_token()) . '"';
 }
@@ -782,7 +783,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
     <?php echo $editing ? $contentCopyModalHtml($editPage, '/admin/content/edit?id=' . rawurlencode((string) $editPage['id'])) : ''; ?>
-    <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $contentEditorKey, 'content_basic') : ''; ?>
+    <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $contentEditorKey, $contentEditorToolbarPreset) : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">

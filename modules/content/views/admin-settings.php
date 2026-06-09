@@ -66,6 +66,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_editor_toolbar_preset">툴바 구성 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_editor_toolbar_preset" name="editor_toolbar_preset" class="form-select" required>
+                    <?php foreach ($toolbarPresetOptions as $presetKey => $presetLabel) { ?>
+                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['editor_toolbar_preset'] ?? 'content_basic') === (string) $presetKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $presetLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help">CKEditor를 사용할 때 콘텐츠 본문 입력 화면에 적용할 툴바입니다.</p>
+            </div>
+        </div>
+        <div class="admin-form-row">
             <span class="form-label">본문 URL 자동 링크</span>
             <div class="admin-form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), 'plain text 본문 안의 http/https URL을 링크로 변환'); ?>

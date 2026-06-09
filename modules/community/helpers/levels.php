@@ -44,6 +44,7 @@ function sr_community_default_settings(): array
         'layout_quaternary_menu_key' => is_string($settings['layout_quaternary_menu_key'] ?? null) ? (string) $settings['layout_quaternary_menu_key'] : '',
         'layout_quinary_menu_key' => is_string($settings['layout_quinary_menu_key'] ?? null) ? (string) $settings['layout_quinary_menu_key'] : '',
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
+        'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
         'plain_text_auto_link_urls' => (bool) ($settings['plain_text_auto_link_urls'] ?? false),
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
         'secret_comments_enabled' => (bool) ($settings['secret_comments_enabled'] ?? false),
@@ -158,6 +159,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
         $settings[$settingKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
     $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
+    $settings['post_toolbar_preset'] = sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
     $settings['plain_text_auto_link_urls'] = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
     $settings['secret_posts_enabled'] = sr_community_bool_setting($settings['secret_posts_enabled'] ?? false);
     $settings['secret_comments_enabled'] = sr_community_bool_setting($settings['secret_comments_enabled'] ?? false);
@@ -222,6 +224,45 @@ function sr_community_bool_setting(mixed $value): bool
     }
 
     return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_post_toolbar_preset_key(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return 'community_post_basic';
+    }
+
+    if (function_exists('sr_ckeditor_toolbar_presets')) {
+        $presets = sr_ckeditor_toolbar_presets();
+        return isset($presets[$value]) ? $value : 'community_post_basic';
+    }
+
+    return preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $value) === 1 ? $value : 'community_post_basic';
+}
+
+function sr_community_post_toolbar_preset_options(): array
+{
+    if (function_exists('sr_ckeditor_toolbar_presets')) {
+        $options = [];
+        foreach (sr_ckeditor_toolbar_presets() as $presetKey => $preset) {
+            $options[(string) $presetKey] = (string) ($preset['label'] ?? $presetKey);
+        }
+        if ($options !== []) {
+            return $options;
+        }
+    }
+
+    return [
+        'community_post_basic' => '커뮤니티 게시글 기본',
+    ];
+}
+
+function sr_community_post_toolbar_preset(PDO $pdo, ?array $settings = null): string
+{
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+    sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea'));
+    return sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
 }
 
 function sr_community_message_write_policy_values(): array

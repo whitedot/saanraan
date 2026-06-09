@@ -17,6 +17,7 @@ $notice = (string) $flashResult['notice'];
 $settings = sr_content_settings($pdo);
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $editorOptions = sr_editor_options($pdo);
+$toolbarPresetOptions = sr_content_toolbar_preset_options();
 $publicLayoutOptions = sr_public_layout_options($pdo);
 $siteMenuOptions = [];
 if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
@@ -29,12 +30,15 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $postedEditorInput = sr_post_string('editor', 30);
+    $postedToolbarPresetInput = sr_post_string('editor_toolbar_preset', 80);
+    $postedToolbarPreset = sr_content_toolbar_preset_key($postedToolbarPresetInput);
     $postedOnceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
     $postedAuthorRewardEnabled = sr_post_string('member_submission_author_reward_enabled', 1) === '1';
     $postedAuthorRewardAssetModule = sr_content_clean_slug(sr_post_string('member_submission_author_reward_asset_module', 30));
     $postedAuthorRewardAmount = sr_admin_post_int_in_range('member_submission_author_reward_amount', 0, 999999999);
     $postedSettings = [
         'editor' => sr_editor_normalize_key($postedEditorInput),
+        'editor_toolbar_preset' => $postedToolbarPreset,
         'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
         'secret_comments_enabled' => sr_post_string('secret_comments_enabled', 1) === '1',
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
@@ -53,6 +57,9 @@ if (sr_request_method() === 'POST') {
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
         $errors[] = '본문 에디터 값이 올바르지 않습니다.';
+    }
+    if ($postedToolbarPresetInput !== (string) $postedSettings['editor_toolbar_preset'] || !array_key_exists((string) $postedSettings['editor_toolbar_preset'], $toolbarPresetOptions)) {
+        $errors[] = '툴바 구성 값이 올바르지 않습니다.';
     }
     if ($postedOnceHistoryPolicyInput !== (string) $postedSettings['once_history_policy']) {
         $errors[] = '기존 이용자 재결제 기준 값이 올바르지 않습니다.';

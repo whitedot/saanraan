@@ -162,10 +162,43 @@ function sr_content_bool_setting(mixed $value): bool
     return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
 }
 
+function sr_content_toolbar_preset_key(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return 'content_basic';
+    }
+
+    if (function_exists('sr_ckeditor_toolbar_presets')) {
+        $presets = sr_ckeditor_toolbar_presets();
+        return isset($presets[$value]) ? $value : 'content_basic';
+    }
+
+    return preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $value) === 1 ? $value : 'content_basic';
+}
+
+function sr_content_toolbar_preset_options(): array
+{
+    if (function_exists('sr_ckeditor_toolbar_presets')) {
+        $options = [];
+        foreach (sr_ckeditor_toolbar_presets() as $presetKey => $preset) {
+            $options[(string) $presetKey] = (string) ($preset['label'] ?? $presetKey);
+        }
+        if ($options !== []) {
+            return $options;
+        }
+    }
+
+    return [
+        'content_basic' => '콘텐츠 본문 기본',
+    ];
+}
+
 function sr_content_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_content_default_settings(), sr_module_settings($pdo, 'content'));
     $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
+    $settings['editor_toolbar_preset'] = sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic'));
     $settings['plain_text_auto_link_urls'] = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
     $settings['secret_comments_enabled'] = sr_content_bool_setting($settings['secret_comments_enabled'] ?? false);
     $settings['once_history_policy'] = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
@@ -246,6 +279,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
 
     $rows = [
         ['editor', sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea')), 'string'],
+        ['editor_toolbar_preset', sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic')), 'string'],
         ['plain_text_auto_link_urls', !empty($settings['plain_text_auto_link_urls']) ? '1' : '0', 'bool'],
         ['secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0', 'bool'],
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
@@ -303,6 +337,13 @@ function sr_content_editor_key(PDO $pdo): string
 {
     $settings = sr_content_settings($pdo);
     return sr_editor_effective_key($pdo, (string) $settings['editor']);
+}
+
+function sr_content_editor_toolbar_preset(PDO $pdo): string
+{
+    $settings = sr_content_settings($pdo);
+    sr_editor_effective_key($pdo, (string) $settings['editor']);
+    return sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic'));
 }
 
 function sr_content_html_body_enabled(PDO $pdo): bool

@@ -85,6 +85,7 @@ return [
         'layout_quaternary_menu_key' => '',
         'layout_quinary_menu_key' => '',
         'post_editor' => 'textarea',
+        'post_toolbar_preset' => 'community_post_basic',
         'plain_text_auto_link_urls' => false,
         'post_reward_enabled' => false,
         'post_reward_asset_module' => '',

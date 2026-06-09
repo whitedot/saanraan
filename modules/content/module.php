@@ -23,6 +23,7 @@ return [
     ],
     'settings' => [
         'editor' => 'textarea',
+        'editor_toolbar_preset' => 'content_basic',
         'plain_text_auto_link_urls' => false,
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
