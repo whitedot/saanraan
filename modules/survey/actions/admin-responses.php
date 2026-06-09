@@ -10,7 +10,7 @@ sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys/r
 if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys/responses', 'edit');
     sr_require_csrf();
-    $responseId = (int) sr_post_string('response_id', 20);
+    $responseId = sr_admin_post_positive_int('response_id');
     $qualityStatus = sr_survey_clean_key(sr_post_string('quality_status', 30), 30);
     $qualityNote = sr_survey_clean_text(sr_post_string('quality_note', 1000), 1000);
     $errors = [];
@@ -192,7 +192,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="response_id" value="<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>">
                                 <label class="sr-only" for="quality_note_<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>">품질 메모</label>
-                                <input id="quality_note_<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>" type="text" name="quality_note" value="<?php echo sr_e((string) ($response['quality_note'] ?? '')); ?>" class="form-input" maxlength="1000" placeholder="메모">
+                                <textarea id="quality_note_<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?>" name="quality_note" rows="2" class="form-input" maxlength="1000" placeholder="메모"><?php echo sr_e((string) ($response['quality_note'] ?? '')); ?></textarea>
                                 <?php foreach (sr_survey_quality_statuses() as $status): ?>
                                     <?php if ((string) ($response['quality_status'] ?? '') === $status): ?>
                                         <?php continue; ?>
