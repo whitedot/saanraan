@@ -611,6 +611,16 @@ if (sr_request_method() === 'POST') {
                 ]);
             }
 
+            if (!empty($selectedOptionalModuleMap['site_menu'])) {
+                $installStage = 'seed_site_menu';
+                require_once SR_ROOT . '/modules/site_menu/helpers.php';
+                sr_site_menu_seed_default_header_menu(
+                    $pdo,
+                    $mainPageOptionsByModule,
+                    array_values(array_merge(array_keys($requiredModules), $selectedOptionalModuleKeys))
+                );
+            }
+
             $installStage = 'save_member_settings';
             $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'member' LIMIT 1");
             $stmt->execute();

@@ -922,6 +922,7 @@ return [
 - 배열을 반환한다.
 - 각 항목은 `label`, `url`을 가진 배열이다.
 - `url`은 내부 상대 경로(`/board`) 또는 허용된 `http/https` URL이다.
+- 신규 설치에서 `site_menu`가 선택되면 설치 후 seed helper가 `service_domain.main_page`를 선언한 설치 모듈의 메인 페이지를 기본 `header` 메뉴에 추가한다. `menu-links.php` 후보 전체를 자동 등록하지 않으며, 로그인/회원가입 링크도 기본 header에 자동 삽입하지 않는다.
 
 `output-slots.php`:
 

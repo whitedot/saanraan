@@ -133,6 +133,84 @@ function sr_site_menu_options(PDO $pdo): array
     return $menus;
 }
 
+function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsByModule, array $enabledModuleKeys): int
+{
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_site_menus (menu_key, label, status, created_at, updated_at)
+         VALUES (\'header\', \'상단 메뉴\', \'enabled\', :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE updated_at = updated_at'
+    );
+    $stmt->execute([
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    $stmt = $pdo->prepare('SELECT id FROM sr_site_menus WHERE menu_key = \'header\' LIMIT 1');
+    $stmt->execute();
+    $menuId = (int) $stmt->fetchColumn();
+    if ($menuId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_site_menu_items WHERE menu_id = :menu_id');
+    $stmt->execute(['menu_id' => $menuId]);
+    if ((int) $stmt->fetchColumn() > 0) {
+        return 0;
+    }
+
+    $items = [
+        [
+            'label' => '홈',
+            'url' => '/',
+            'sort_order' => 10,
+        ],
+    ];
+    $sortOrder = 20;
+    foreach ($enabledModuleKeys as $moduleKey) {
+        $moduleKey = (string) $moduleKey;
+        $option = is_array($mainPageOptionsByModule[$moduleKey] ?? null) ? $mainPageOptionsByModule[$moduleKey] : null;
+        if ($option === null) {
+            continue;
+        }
+
+        $label = sr_site_menu_clean_label((string) ($option['label'] ?? ''));
+        $url = sr_site_menu_clean_url((string) ($option['path'] ?? ''));
+        if ($label === '' || $url === '' || $url === '/') {
+            continue;
+        }
+
+        $items[] = [
+            'label' => $label,
+            'url' => $url,
+            'sort_order' => $sortOrder,
+        ];
+        $sortOrder += 10;
+    }
+
+    $insert = $pdo->prepare(
+        'INSERT INTO sr_site_menu_items
+            (menu_id, parent_id, label, url, target, status, sort_order, created_at, updated_at)
+         VALUES
+            (:menu_id, NULL, :label, :url, \'self\', \'enabled\', :sort_order, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE updated_at = updated_at'
+    );
+    $created = 0;
+    foreach ($items as $item) {
+        $insert->execute([
+            'menu_id' => $menuId,
+            'label' => (string) $item['label'],
+            'url' => (string) $item['url'],
+            'sort_order' => (int) $item['sort_order'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $created += $insert->rowCount() > 0 ? 1 : 0;
+    }
+
+    return $created;
+}
+
 function sr_site_menu_link_suggestions(PDO $pdo): array
 {
     $suggestions = [];
