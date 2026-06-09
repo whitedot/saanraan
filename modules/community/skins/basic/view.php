@@ -1,7 +1,7 @@
 <?php
 
 $pageTitle = (string) $post['title'];
-$seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired));
+$seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && !empty($canViewPostBody));
 if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
     require_once SR_ROOT . '/modules/banner/helpers.php';
 }
@@ -34,6 +34,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <article>
             <h1><?php echo sr_e($pageTitle); ?></h1>
             <p>
+                <?php if ((int) ($post['is_secret'] ?? 0) === 1) { ?>
+                    <?php echo sr_e('비밀글'); ?>
+                    /
+                <?php } ?>
                 <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
                 <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_community_time_html((string) $post['created_at']); ?>
                 <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
@@ -127,7 +131,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <?php echo sr_banner_render_public_banner($pdo, (int) ($post['banner_before_view_id'] ?? 0)); ?>
             <?php } ?>
 
-            <?php if (!empty($paidReadConfirmationRequired)) { ?>
+            <?php if (empty($canViewPostBody)) { ?>
+                <p class="community-post-secret"><?php echo sr_e('비밀글입니다.'); ?></p>
+            </article>
+            <?php } elseif (!empty($paidReadConfirmationRequired)) { ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/post')); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
@@ -279,7 +286,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php foreach ($comments as $comment) { ?>
                         <li>
                             <?php
-                            $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null);
+                            $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
                             $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post);
                             $communityCommentCanHide = sr_community_account_can_hide_comment($pdo, $comment, $post, is_array($account ?? null) ? $account : null);
@@ -316,10 +323,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                             <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
                                                         </label>
                                                     </p>
-                                                    <label class="community-comment-secret-toggle">
-                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                        <span><?php echo sr_e('비밀 댓글'); ?></span>
-                                                    </label>
+                                                    <?php if (!empty($secretCommentsEnabled) || (int) ($comment['is_secret'] ?? 0) === 1) { ?>
+                                                        <label class="community-comment-secret-toggle">
+                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                            <span><?php echo sr_e('비밀 댓글'); ?></span>
+                                                        </label>
+                                                    <?php } ?>
                                                     <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
                                                 </form>
                                             </details>
@@ -388,10 +397,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e($commentBody); ?></textarea>
                         </label>
                     </p>
-                    <label class="community-comment-secret-toggle">
-                        <input type="checkbox" name="is_secret" value="1">
-                        <span><?php echo sr_e('비밀 댓글'); ?></span>
-                    </label>
+                    <?php if (!empty($secretCommentsEnabled)) { ?>
+                        <label class="community-comment-secret-toggle">
+                            <input type="checkbox" name="is_secret" value="1"<?php echo !empty($commentIsSecret) ? ' checked' : ''; ?>>
+                            <span><?php echo sr_e('비밀 댓글'); ?></span>
+                        </label>
+                    <?php } ?>
                     <button type="submit"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
                 </form>
             <?php } elseif ($commentUnavailableMessage !== '') { ?>

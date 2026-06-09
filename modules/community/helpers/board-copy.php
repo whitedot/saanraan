@@ -374,11 +374,13 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
     $categoryValueSql = $categorySupported ? ':category_id, ' : '';
     $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts') ? 'author_public_name_snapshot, ' : '';
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
+    $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
+    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
     $insertPost = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, ' . $secretColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :status, 0, :last_commented_at, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, ' . $secretValueSql . ':status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     foreach ($stmt->fetchAll() as $post) {
         if (sr_link_card_token_rejection_errors((string) ($post['body_text'] ?? '')) !== []) {
@@ -401,6 +403,9 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
         }
         if ($authorSnapshotColumnSql !== '') {
             $params['author_public_name_snapshot'] = (string) ($post['author_public_name_snapshot'] ?? '');
+        }
+        if ($secretColumnSql !== '') {
+            $params['is_secret'] = (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
         $insertPost->execute($params);
         $newPostId = (int) $pdo->lastInsertId();

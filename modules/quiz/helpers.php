@@ -2266,6 +2266,7 @@ function sr_quiz_default_admin_values(?array $settings = null): array
         'attempt_limit_period_seconds' => (string) $settings['default_attempt_limit_period_seconds'],
         'member_group_keys' => [],
         'comments_enabled' => 0,
+        'secret_comments_enabled' => 0,
         'reward_enabled' => !empty($settings['default_reward_enabled']) ? 1 : 0,
         'reward_provider' => (string) $settings['default_reward_provider'],
         'reward_module' => (string) $settings['default_reward_module'],
@@ -2349,6 +2350,7 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'attempt_limit_period_seconds' => (string) ($quiz['attempt_limit_period_seconds'] ?? ''),
         'member_group_keys' => sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''),
         'comments_enabled' => (int) ($quiz['comments_enabled'] ?? 0),
+        'secret_comments_enabled' => (int) ($quiz['secret_comments_enabled'] ?? 0),
         'reward_enabled' => (int) ($quiz['reward_enabled'] ?? 0),
         'reward_provider' => (string) ($policy['reward_provider'] ?? 'ledger_asset'),
         'reward_module' => (string) ($policy['reward_module'] ?? ''),
@@ -2489,6 +2491,7 @@ function sr_quiz_admin_values_from_post(): array
         'attempt_limit_period_seconds' => sr_post_string('attempt_limit_period_seconds', 20),
         'member_group_keys' => sr_quiz_member_group_keys_from_value($memberGroupKeys),
         'comments_enabled' => ($_POST['comments_enabled'] ?? '') === '1' ? 1 : 0,
+        'secret_comments_enabled' => ($_POST['secret_comments_enabled'] ?? '') === '1' ? 1 : 0,
         'reward_enabled' => ($_POST['reward_enabled'] ?? '') === '1' ? 1 : 0,
         'reward_provider' => sr_quiz_clean_key(sr_post_string('reward_provider', 30), 30),
         'reward_module' => sr_quiz_clean_key(sr_post_string('reward_module', 40), 40),
@@ -2978,11 +2981,11 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
         $insertQuiz = $pdo->prepare(
             'INSERT INTO sr_quiz_sets
                 (quiz_key, title, description, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
-                 attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, reward_enabled,
+                 attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reward_enabled,
                  created_by_account_id, updated_by_account_id, created_at, updated_at)
              VALUES
                 (:quiz_key, :title, :description, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
-                 :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :reward_enabled,
+                 :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reward_enabled,
                  :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
         );
         $memberGroupKeysJson = json_encode(array_values($memberGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -3000,6 +3003,7 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
             'attempt_limit_period_seconds' => $sourceQuiz['attempt_limit_period_seconds'] ?? null,
             'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
             'comments_enabled' => (int) ($sourceQuiz['comments_enabled'] ?? 0),
+            'secret_comments_enabled' => (int) ($sourceQuiz['secret_comments_enabled'] ?? 0),
             'reward_enabled' => is_array($rewardPolicy) ? 1 : 0,
             'created_by_account_id' => $accountId,
             'updated_by_account_id' => $accountId,
@@ -3239,6 +3243,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
         : null;
     $memberGroupKeysJson = json_encode(sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $commentsEnabled = !empty($values['comments_enabled']) ? 1 : 0;
+    $secretCommentsEnabled = !empty($values['secret_comments_enabled']) ? 1 : 0;
     $settings = sr_quiz_settings($pdo);
     $defaultCtaLabel = (string) ($settings['default_cta_label'] ?? '퀴즈 풀기');
 
@@ -3273,6 +3278,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                      attempt_limit_period_seconds = :attempt_limit_period_seconds,
                      member_group_keys_json = :member_group_keys_json,
                      comments_enabled = :comments_enabled,
+                     secret_comments_enabled = :secret_comments_enabled,
                      reward_enabled = :reward_enabled,
                      updated_by_account_id = :updated_by_account_id,
                      updated_at = :updated_at
@@ -3293,6 +3299,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'attempt_limit_period_seconds' => $attemptLimitPeriodSeconds,
                 'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
                 'comments_enabled' => $commentsEnabled,
+                'secret_comments_enabled' => $secretCommentsEnabled,
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'updated_by_account_id' => $accountId,
                 'updated_at' => $now,
@@ -3302,11 +3309,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_quiz_sets
                     (quiz_key, title, description, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
-                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, reward_enabled,
+                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reward_enabled,
                      created_by_account_id, updated_by_account_id, created_at, updated_at)
                  VALUES
                     (:quiz_key, :title, :description, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
-                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :reward_enabled,
+                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reward_enabled,
                      :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
             );
             $stmt->execute([
@@ -3323,6 +3330,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'attempt_limit_period_seconds' => $attemptLimitPeriodSeconds,
                 'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
                 'comments_enabled' => $commentsEnabled,
+                'secret_comments_enabled' => $secretCommentsEnabled,
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'created_by_account_id' => $accountId,
                 'updated_by_account_id' => $accountId,

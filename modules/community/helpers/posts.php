@@ -236,8 +236,9 @@ function sr_community_public_post(PDO $pdo, int $postId): ?array
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -282,8 +283,9 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -315,6 +317,34 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
     $post['read_policy'] = sr_community_effective_board_policy($pdo, $board, 'read_policy');
     $post['comment_policy'] = sr_community_effective_board_policy($pdo, $board, 'comment_policy');
     return $post;
+}
+
+function sr_community_post_secret_column_exists(PDO $pdo): bool
+{
+    static $existsByConnection = [];
+    $key = (string) spl_object_id($pdo);
+    if (array_key_exists($key, $existsByConnection)) {
+        return $existsByConnection[$key];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => 'sr_community_posts',
+            'column_name' => 'is_secret',
+        ]);
+        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable $exception) {
+        $existsByConnection[$key] = false;
+    }
+
+    return $existsByConnection[$key];
 }
 
 function sr_community_increment_post_view_count(PDO $pdo, int $postId): void
@@ -385,7 +415,7 @@ function sr_community_comment_secret_column_exists(PDO $pdo): bool
     return $existsByConnection[$key];
 }
 
-function sr_community_account_can_view_comment_body(array $comment, array $post, ?array $account): bool
+function sr_community_account_can_view_comment_body(array $comment, array $post, ?array $account, ?PDO $pdo = null): bool
 {
     if ((int) ($comment['is_secret'] ?? 0) !== 1) {
         return true;
@@ -398,7 +428,40 @@ function sr_community_account_can_view_comment_body(array $comment, array $post,
 
     return $accountId > 0
         && ($accountId === (int) ($comment['author_account_id'] ?? 0)
-            || $accountId === (int) ($post['author_account_id'] ?? 0));
+            || $accountId === (int) ($post['author_account_id'] ?? 0)
+            || ($pdo instanceof PDO && sr_community_account_can_manage_post_body($pdo, $post, $account)));
+}
+
+function sr_community_account_can_manage_post_body(PDO $pdo, array $post, ?array $account): bool
+{
+    if (!is_array($account) || (int) ($account['id'] ?? 0) < 1) {
+        return false;
+    }
+
+    $accountId = (int) $account['id'];
+
+    return (function_exists('sr_admin_has_permission')
+            && (sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'view')
+                || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'edit')
+                || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete')))
+        || (function_exists('sr_community_account_has_board_management_permission')
+            && sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'view_manage'));
+}
+
+function sr_community_account_can_view_post_body(PDO $pdo, array $post, ?array $account): bool
+{
+    if ((int) ($post['is_secret'] ?? 0) !== 1) {
+        return true;
+    }
+    if (!is_array($account)) {
+        return false;
+    }
+
+    $accountId = (int) ($account['id'] ?? 0);
+
+    return $accountId > 0
+        && ($accountId === (int) ($post['author_account_id'] ?? 0)
+            || sr_community_account_can_manage_post_body($pdo, $post, $account));
 }
 
 function sr_community_account_can_hide_comment(PDO $pdo, array $comment, array $post, ?array $account): bool
@@ -634,6 +697,7 @@ function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, i
         ];
     }
 
+    $secretCondition = sr_community_post_secret_column_exists($pdo) ? 'AND p.is_secret = 0' : '';
     $stmt = $pdo->prepare(
         'SELECT p.id, p.title, p.body_text, p.status, p.updated_at,
                 b.board_key, b.title AS board_title
@@ -642,6 +706,7 @@ function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, i
          WHERE p.status = \'published\'
            AND b.status = \'enabled\'
            AND b.read_policy = \'public\'
+           ' . $secretCondition . '
            AND ' . $where . '
          ORDER BY p.created_at DESC, p.id DESC
          LIMIT ' . $limit
@@ -729,6 +794,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         }
         $categorySupported = sr_community_categories_supported($pdo);
         $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
+        $secretSetSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret = :is_secret,' : '';
         $stmt = $pdo->prepare(
             'UPDATE sr_community_posts
              SET ' . $categorySetSql . '
@@ -739,6 +805,7 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
                  seo_description = :seo_description,
                  og_title = :og_title,
                  og_description = :og_description,
+                 ' . $secretSetSql . '
                  updated_at = :updated_at
              WHERE id = :id'
         );
@@ -755,6 +822,9 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         ];
         if ($categorySupported) {
             $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
+        }
+        if ($secretSetSql !== '') {
+            $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
         $stmt->execute($params);
         if ($bodyFormat === 'html') {
@@ -1236,6 +1306,10 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
         'og_title' => sr_community_seo_text(sr_post_string('og_title', 160), 160),
         'og_description' => sr_community_seo_text(sr_post_string('og_description', 255), 255),
+        'is_secret' => sr_post_string('is_secret', 10) === '1'
+            && $pdo instanceof PDO
+            && is_array($board)
+            && sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings) ? 1 : 0,
     ];
 }
 
@@ -1283,11 +1357,13 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $categoryValueSql = $categorySupported ? ':category_id, ' : '';
     $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts') ? 'author_public_name_snapshot, ' : '';
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
+    $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
+    $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, seo_title, seo_description, og_title, og_description, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'title, body_text, body_format, seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :seo_title, :seo_description, :og_title, :og_description, :status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':title, :body_text, :body_format, :seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . ':status, 0, NULL, :created_at, :updated_at)'
     );
     $params = [
         'board_id' => $boardId,
@@ -1308,6 +1384,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     }
     if ($authorSnapshotColumnSql !== '') {
         $params['author_public_name_snapshot'] = sr_community_author_public_name_snapshot($pdo, $authorAccountId);
+    }
+    if ($secretColumnSql !== '') {
+        $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
     }
     $pdo->beginTransaction();
 

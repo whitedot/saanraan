@@ -22,10 +22,14 @@ if (sr_content_asset_access_required($page)) {
 }
 
 $values = sr_content_comment_input_values();
+if (empty(sr_content_settings($pdo)['secret_comments_enabled'])) {
+    $values['is_secret'] = 0;
+}
 $errors = sr_content_validate_comment_input($values);
 if ($errors !== []) {
     $_SESSION['sr_content_comment_errors'] = $errors;
     $_SESSION['sr_content_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';
+    $_SESSION['sr_content_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
     sr_redirect(sr_content_path((string) $page['slug']) . '#content-comments');
 }
 

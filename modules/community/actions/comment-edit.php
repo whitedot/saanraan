@@ -25,6 +25,10 @@ if (!sr_community_account_can_edit_comment($comment, $account)) {
 }
 
 $values = sr_community_comment_input_values();
+$board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+if (!is_array($board) || !sr_community_effective_board_secret_comments_enabled($pdo, $board, sr_community_settings($pdo))) {
+    $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
+}
 $errors = sr_community_validate_comment_input($values);
 if ($errors !== []) {
     $_SESSION['sr_community_comment_errors'] = $errors;

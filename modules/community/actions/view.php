@@ -93,9 +93,11 @@ if (is_array($postBoard)) {
     }
 }
 $settings = sr_community_settings($pdo);
+$canViewPostBody = sr_community_account_can_view_post_body($pdo, $post, is_array($account) ? $account : null);
+$secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_secret_comments_enabled($pdo, $postBoard, $settings) : false;
 $assetReadNotices = [];
 $paidReadConfirmationRequired = false;
-if (is_array($postBoard)) {
+if ($canViewPostBody && is_array($postBoard)) {
     $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
     $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
     if (!$isAuthor && sr_community_asset_event_required($paidReadConfig)) {
@@ -170,18 +172,18 @@ if (is_array($postBoard)) {
         }
     }
 }
-if (!$paidReadConfirmationRequired) {
+if (!$paidReadConfirmationRequired && $canViewPostBody) {
     sr_community_increment_post_view_count($pdo, (int) $post['id']);
     $post['view_count'] = (int) $post['view_count'] + 1;
 }
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 
 $commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
-$comments = $paidReadConfirmationRequired ? [] : sr_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
-$attachments = $paidReadConfirmationRequired ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
-$communitySeriesContext = $paidReadConfirmationRequired ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
+$comments = $paidReadConfirmationRequired || !$canViewPostBody ? [] : sr_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
+$attachments = $paidReadConfirmationRequired || !$canViewPostBody ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
+$communitySeriesContext = $paidReadConfirmationRequired || !$canViewPostBody ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
 $communityQuizQuizzes = [];
-if (!$paidReadConfirmationRequired && sr_module_enabled($pdo, 'quiz') && is_file(SR_ROOT . '/modules/quiz/helpers.php')) {
+if (!$paidReadConfirmationRequired && $canViewPostBody && sr_module_enabled($pdo, 'quiz') && is_file(SR_ROOT . '/modules/quiz/helpers.php')) {
     require_once SR_ROOT . '/modules/quiz/helpers.php';
     $communityQuizQuizzes = sr_quiz_community_post_quizzes($pdo, (int) $post['id']);
 }
@@ -194,7 +196,7 @@ foreach ($attachments as $attachment) {
         $fileAttachments[] = $attachment;
     }
 }
-$canComment = !$paidReadConfirmationRequired && is_array($account) && sr_community_account_can_comment_post($pdo, $post, $account);
+$canComment = !$paidReadConfirmationRequired && $canViewPostBody && is_array($account) && sr_community_account_can_comment_post($pdo, $post, $account);
 $commentUnavailableMessage = '';
 if (!is_array($account)) {
     $commentUnavailableMessage = sr_t('community::action.notice.login_required_to_comment');
@@ -246,7 +248,8 @@ if (isset($_SESSION['sr_community_comment_errors']) && is_array($_SESSION['sr_co
 if (isset($_SESSION['sr_community_comment_body']) && is_string($_SESSION['sr_community_comment_body'])) {
     $commentBody = $_SESSION['sr_community_comment_body'];
 }
-unset($_SESSION['sr_community_comment_notice'], $_SESSION['sr_community_comment_errors'], $_SESSION['sr_community_comment_body']);
+$commentIsSecret = !empty($_SESSION['sr_community_comment_is_secret']);
+unset($_SESSION['sr_community_comment_notice'], $_SESSION['sr_community_comment_errors'], $_SESSION['sr_community_comment_body'], $_SESSION['sr_community_comment_is_secret']);
 $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'post');
 

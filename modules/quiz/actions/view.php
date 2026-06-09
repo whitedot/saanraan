@@ -56,6 +56,7 @@ if ($quizQuery !== []) {
     $quizNextUrl .= '?' . http_build_query($quizQuery);
 }
 $quizCommentsEnabled = (int) ($quiz['comments_enabled'] ?? 0) === 1 && sr_quiz_comments_table_exists($pdo);
+$quizSecretCommentsEnabled = (int) ($quiz['secret_comments_enabled'] ?? 0) === 1;
 $quizComments = $quizCommentsEnabled ? sr_quiz_comments($pdo, (int) ($quiz['id'] ?? 0)) : [];
 $quizCommentNotice = (string) ($_SESSION['sr_quiz_comment_notice'] ?? '');
 $quizCommentErrors = (array) ($_SESSION['sr_quiz_comment_errors'] ?? []);
@@ -272,10 +273,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $quizCommentId); ?>">
                                                         <label class="sr-only" for="<?php echo sr_e($quizCommentEditId); ?>">댓글 본문</label>
                                                         <textarea id="<?php echo sr_e($quizCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($quizComment['body_text'] ?? '')); ?></textarea>
-                                                        <label class="sr-quiz-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($quizComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                            비밀 댓글
-                                                        </label>
+                                                        <?php if (!empty($quizSecretCommentsEnabled) || (int) ($quizComment['is_secret'] ?? 0) === 1): ?>
+                                                            <label class="sr-quiz-comment-secret-toggle">
+                                                                <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($quizComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                                비밀 댓글
+                                                            </label>
+                                                        <?php endif; ?>
                                                         <button type="submit" class="btn btn-solid-primary">저장</button>
                                                     </form>
                                                 </details>
@@ -301,10 +304,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                             <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($quiz['id'] ?? 0)); ?>">
                             <label class="sr-only" for="quiz_comment_body">댓글 본문</label>
                             <textarea id="quiz_comment_body" name="body_text" rows="4" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e($quizCommentBody); ?></textarea>
-                            <label class="sr-quiz-comment-secret-toggle">
-                                <input type="checkbox" name="is_secret" value="1"<?php echo $quizCommentIsSecret ? ' checked' : ''; ?>>
-                                비밀 댓글
-                            </label>
+                            <?php if (!empty($quizSecretCommentsEnabled)): ?>
+                                <label class="sr-quiz-comment-secret-toggle">
+                                    <input type="checkbox" name="is_secret" value="1"<?php echo $quizCommentIsSecret ? ' checked' : ''; ?>>
+                                    비밀 댓글
+                                </label>
+                            <?php endif; ?>
                             <button type="submit" class="btn btn-solid-primary">댓글 작성</button>
                         </form>
                     <?php else: ?>

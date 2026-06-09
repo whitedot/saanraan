@@ -273,7 +273,7 @@ function sr_content_account_can_hide_comment(PDO $pdo, array $comment, ?array $a
             || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'delete'));
 }
 
-function sr_content_account_can_view_comment_body(array $comment, array $page, ?array $account): bool
+function sr_content_account_can_view_comment_body(array $comment, array $page, ?array $account, ?PDO $pdo = null): bool
 {
     if ((int) ($comment['is_secret'] ?? 0) !== 1) {
         return true;
@@ -286,7 +286,8 @@ function sr_content_account_can_view_comment_body(array $comment, array $page, ?
 
     return $accountId > 0
         && ($accountId === (int) ($comment['author_account_id'] ?? 0)
-            || $accountId === (int) ($page['created_by'] ?? 0));
+            || $accountId === (int) ($page['created_by'] ?? 0)
+            || ($pdo instanceof PDO && sr_content_account_can_hide_comment($pdo, $comment, $account)));
 }
 
 function sr_content_update_comment_content(PDO $pdo, int $commentId, array $values): void

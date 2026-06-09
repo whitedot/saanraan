@@ -433,6 +433,8 @@ if (sr_request_method() === 'POST') {
         $writeMinLevel = sr_admin_post_int_in_range('write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('comment_min_level', 0, $maxLevel);
         $categoryRequired = ($_POST['category_required'] ?? '') === '1';
+        $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
+        $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
         $boardSeoValues = [
             'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
             'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
@@ -749,6 +751,8 @@ if (sr_request_method() === 'POST') {
                 'write_min_level' => (string) $writeMinLevel,
                 'comment_min_level' => (string) $commentMinLevel,
                 'category_required' => $categoryRequired ? '1' : '0',
+                'secret_posts_enabled' => $secretPostsEnabled ? '1' : '0',
+                'secret_comments_enabled' => $secretCommentsEnabled ? '1' : '0',
                 'level_post_score' => (string) $levelPostScore,
                 'level_comment_score' => (string) $levelCommentScore,
                 'image_uploads_enabled' => $imageUploadsEnabled ? '1' : '0',
@@ -808,6 +812,8 @@ if (sr_request_method() === 'POST') {
                     'comment_min_level' => $commentMinLevel,
                     'level_post_score' => $levelPostScore,
                     'level_comment_score' => $levelCommentScore,
+                    'secret_posts_enabled' => $secretPostsEnabled,
+                    'secret_comments_enabled' => $secretCommentsEnabled,
                     'skin_key' => $skinKey,
                     'asset_settings' => $assetSettings,
                     'asset_prefix_sources' => $assetPrefixSources,
@@ -832,6 +838,8 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
+            sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
+            sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
             sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
@@ -910,6 +918,8 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
+                sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
+                sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
                 foreach ($boardSettingValues as $settingKey => $settingValue) {

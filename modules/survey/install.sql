@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS sr_survey_forms (
     response_limit_period_seconds INT UNSIGNED NULL,
     member_group_keys_json LONGTEXT NULL,
     comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
+    secret_comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     created_by_account_id BIGINT UNSIGNED NULL,
     updated_by_account_id BIGINT UNSIGNED NULL,

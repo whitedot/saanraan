@@ -72,6 +72,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-form-help">textarea로 저장된 plain text 본문에만 적용합니다. HTML 본문은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
             </div>
         </div>
+        <div class="admin-form-row">
+            <span class="form-label">비밀 댓글</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_secret_comments_enabled', 'secret_comments_enabled', '1', !empty($settings['secret_comments_enabled']), '댓글 비밀 댓글 선택 허용'); ?>
+                <p class="admin-form-help">꺼져 있으면 새 댓글 작성/수정 요청의 비밀 댓글 값은 저장하지 않습니다.</p>
+            </div>
+        </div>
     </section>
 
     <section class="admin-card card">

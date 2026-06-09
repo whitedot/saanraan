@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     attempt_limit_period_seconds INT UNSIGNED NULL,
     member_group_keys_json LONGTEXT NULL,
     comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
+    secret_comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_scope VARCHAR(20) NOT NULL DEFAULT 'per_quiz',
     created_by_account_id BIGINT UNSIGNED NULL,

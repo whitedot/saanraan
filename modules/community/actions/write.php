@@ -26,6 +26,7 @@ $settings['file_attachment_max_count'] = sr_community_board_file_attachment_max_
 $settings['file_allowed_extensions'] = sr_community_board_file_allowed_extensions($pdo, (int) $board['id'], $settings);
 $board['image_uploads_enabled'] = sr_community_effective_board_image_uploads_enabled($pdo, $board) ? 1 : 0;
 $board['file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabled($pdo, $board) ? 1 : 0;
+$secretPostsEnabled = sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings);
 $writeChargeConfig = sr_community_asset_event_config($pdo, $board, $settings, 'write_charge', 'every_action');
 $postRewardConfig = sr_community_asset_event_config($pdo, $board, $settings, 'post_reward', 'once');
 $categories = sr_community_categories($pdo, (int) $board['id'], true);
@@ -51,6 +52,7 @@ $values = [
     'seo_description' => '',
     'og_title' => '',
     'og_description' => '',
+    'is_secret' => 0,
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

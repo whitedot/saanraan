@@ -51,6 +51,8 @@ if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
 }
 
 $contentFiles = sr_content_files_for_content($pdo, (int) $page['id']);
+$contentSettings = sr_content_settings($pdo);
+$contentSecretCommentsEnabled = !empty($contentSettings['secret_comments_enabled']);
 $contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array($account) ? $account : null, $contentAdminPreview);
 $contentComments = !empty($pageAccess['allowed']) ? sr_content_comments($pdo, (int) $page['id']) : [];
 $contentQuizLinks = [];
@@ -61,7 +63,8 @@ if (sr_module_enabled($pdo, 'quiz') && is_file(SR_ROOT . '/modules/quiz/helpers.
 $contentCommentNotice = $_SESSION['sr_content_comment_notice'] ?? '';
 $contentCommentErrors = $_SESSION['sr_content_comment_errors'] ?? [];
 $contentCommentBody = $_SESSION['sr_content_comment_body'] ?? '';
-unset($_SESSION['sr_content_comment_notice'], $_SESSION['sr_content_comment_errors'], $_SESSION['sr_content_comment_body']);
+$contentCommentIsSecret = !empty($_SESSION['sr_content_comment_is_secret']);
+unset($_SESSION['sr_content_comment_notice'], $_SESSION['sr_content_comment_errors'], $_SESSION['sr_content_comment_body'], $_SESSION['sr_content_comment_is_secret']);
 $pageActionNotice = $_SESSION['sr_content_action_notice'] ?? '';
 $pageActionErrors = $_SESSION['sr_content_action_errors'] ?? [];
 unset($_SESSION['sr_content_action_notice'], $_SESSION['sr_content_action_errors']);

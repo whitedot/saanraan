@@ -60,6 +60,8 @@ function sr_community_board_group_setting_keys(): array
         'write_min_level',
         'comment_min_level',
         'category_required',
+        'secret_posts_enabled',
+        'secret_comments_enabled',
         'level_post_score',
         'level_comment_score',
         'image_uploads_enabled',
@@ -1165,6 +1167,20 @@ function sr_community_effective_board_image_uploads_enabled(PDO $pdo, array $boa
 function sr_community_effective_board_file_uploads_enabled(PDO $pdo, array $board): bool
 {
     return in_array(sr_community_effective_board_setting($pdo, $board, 'file_uploads_enabled', '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_effective_board_secret_posts_enabled(PDO $pdo, array $board, ?array $settings = null): bool
+{
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'secret_posts_enabled', !empty($settings['secret_posts_enabled']) ? '1' : '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_effective_board_secret_comments_enabled(PDO $pdo, array $board, ?array $settings = null): bool
+{
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
+
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0'), ['1', 'true', 'yes', 'on'], true);
 }
 
 function sr_community_board_min_level(PDO $pdo, int $boardId, string $settingKey): int

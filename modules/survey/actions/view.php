@@ -45,6 +45,7 @@ if ($returnTo !== '') {
 }
 $surveyNextUrl = $surveySelfUrl . ($surveyQuery === [] ? '' : '?' . http_build_query($surveyQuery, '', '&', PHP_QUERY_RFC3986));
 $surveyCommentsEnabled = (int) ($survey['comments_enabled'] ?? 0) === 1 && sr_survey_comments_table_exists($pdo);
+$surveySecretCommentsEnabled = (int) ($survey['secret_comments_enabled'] ?? 0) === 1;
 $surveyComments = $surveyCommentsEnabled ? sr_survey_comments($pdo, (int) ($survey['id'] ?? 0)) : [];
 $surveyCommentNotice = (string) ($_SESSION['sr_survey_comment_notice'] ?? '');
 $surveyCommentErrors = (array) ($_SESSION['sr_survey_comment_errors'] ?? []);
@@ -311,10 +312,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $surveyCommentId); ?>">
                                                         <label class="sr-only" for="<?php echo sr_e($surveyCommentEditId); ?>">댓글 본문</label>
                                                         <textarea id="<?php echo sr_e($surveyCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($surveyComment['body_text'] ?? '')); ?></textarea>
-                                                        <label class="sr-survey-comment-secret-toggle">
-                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                            비밀 댓글
-                                                        </label>
+                                                        <?php if (!empty($surveySecretCommentsEnabled) || (int) ($surveyComment['is_secret'] ?? 0) === 1): ?>
+                                                            <label class="sr-survey-comment-secret-toggle">
+                                                                <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                                비밀 댓글
+                                                            </label>
+                                                        <?php endif; ?>
                                                         <button type="submit" class="btn btn-solid-primary">저장</button>
                                                     </form>
                                                 </details>
@@ -340,10 +343,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($survey['id'] ?? 0)); ?>">
                             <label class="sr-only" for="survey_comment_body">댓글 본문</label>
                             <textarea id="survey_comment_body" name="body_text" rows="4" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e($surveyCommentBody); ?></textarea>
-                            <label class="sr-survey-comment-secret-toggle">
-                                <input type="checkbox" name="is_secret" value="1"<?php echo $surveyCommentIsSecret ? ' checked' : ''; ?>>
-                                비밀 댓글
-                            </label>
+                            <?php if (!empty($surveySecretCommentsEnabled)): ?>
+                                <label class="sr-survey-comment-secret-toggle">
+                                    <input type="checkbox" name="is_secret" value="1"<?php echo $surveyCommentIsSecret ? ' checked' : ''; ?>>
+                                    비밀 댓글
+                                </label>
+                            <?php endif; ?>
                             <button type="submit" class="btn btn-solid-primary">댓글 작성</button>
                         </form>
                     <?php else: ?>

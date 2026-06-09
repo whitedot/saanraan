@@ -24,6 +24,9 @@ $board = sr_community_board_by_id($pdo, (int) $post['board_id']);
 $commentChargeConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_charge', 'every_action') : ['enabled' => false];
 $commentRewardConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_reward', 'once') : ['enabled' => false];
 $values = sr_community_comment_input_values();
+if (!is_array($board) || !sr_community_effective_board_secret_comments_enabled($pdo, $board, $settings)) {
+    $values['is_secret'] = 0;
+}
 $errors = sr_community_validate_comment_input($values);
 
 if ($errors === [] && sr_community_comment_rate_limited($pdo, (int) $account['id'], $settings)) {
@@ -42,6 +45,7 @@ if ($errors === [] && sr_community_asset_event_required($commentChargeConfig)) {
 if ($errors !== []) {
     $_SESSION['sr_community_comment_errors'] = $errors;
     $_SESSION['sr_community_comment_body'] = is_string($values['body_text']) ? $values['body_text'] : '';
+    $_SESSION['sr_community_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
     sr_redirect('/community/post?id=' . (string) $postId . '#comments');
 }
 

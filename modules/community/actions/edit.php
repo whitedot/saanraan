@@ -32,6 +32,7 @@ if (!is_array($board)) {
 $settings = sr_community_settings($pdo);
 $board['image_uploads_enabled'] = 0;
 $board['file_uploads_enabled'] = 0;
+$secretPostsEnabled = sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings);
 $categories = sr_community_categories($pdo, (int) $board['id'], true);
 $currentCategory = (int) ($post['category_id'] ?? 0) > 0 ? sr_community_category_by_id($pdo, (int) $post['category_id']) : null;
 if (is_array($currentCategory) && (string) $currentCategory['status'] !== 'enabled') {
@@ -74,6 +75,7 @@ $values = [
     'seo_description' => (string) ($post['seo_description'] ?? ''),
     'og_title' => (string) ($post['og_title'] ?? ''),
     'og_description' => (string) ($post['og_description'] ?? ''),
+    'is_secret' => (int) ($post['is_secret'] ?? 0),
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

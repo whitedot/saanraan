@@ -615,6 +615,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_secret_posts_enabled">비밀글</label>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="community_admin_boards_secret_posts_enabled">
+                        <input id="community_admin_boards_secret_posts_enabled" type="checkbox" name="secret_posts_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'secret_posts_enabled', !empty($settings['secret_posts_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('게시글 작성/수정 시 비밀글 선택 허용'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_secret_posts_enabled', $boardSettingSource($formBoard, 'secret_posts_enabled')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_secret_comments_enabled">비밀 댓글</label>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="community_admin_boards_secret_comments_enabled">
+                        <input id="community_admin_boards_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0') === '1' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('댓글 작성/수정 시 비밀 댓글 선택 허용'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_secret_comments_enabled', $boardSettingSource($formBoard, 'secret_comments_enabled')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
                     <input id="community_admin_boards_level_post_score" type="number" name="level_post_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input" data-community-level-score="post">

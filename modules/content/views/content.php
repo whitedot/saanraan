@@ -277,7 +277,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <?php foreach ($contentComments as $contentComment) { ?>
                             <li>
                                 <?php
-                                $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null);
+                                $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null, $pdo);
                                 $contentCommentCanEdit = is_array($account ?? null) && sr_content_account_can_edit_comment($contentComment, $account);
                                 $contentCommentCanDelete = is_array($account ?? null) && sr_content_account_can_delete_comment($contentComment, $account, $pdo);
                                 $contentCommentCanHide = sr_content_account_can_hide_comment($pdo, $contentComment, is_array($account ?? null) ? $account : null);
@@ -308,10 +308,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
                                                     <label for="<?php echo sr_e($contentCommentEditId); ?>">댓글 수정</label>
                                                     <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
-                                                    <label class="content-comment-secret-toggle">
-                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                        <span>비밀 댓글</span>
-                                                    </label>
+                                                    <?php if (!empty($contentSecretCommentsEnabled) || (int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
+                                                        <label class="content-comment-secret-toggle">
+                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                            <span>비밀 댓글</span>
+                                                        </label>
+                                                    <?php } ?>
                                                     <button type="submit" class="btn btn-solid-light">저장</button>
                                                 </form>
                                             </details>
@@ -344,10 +346,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
                         <label for="content_comment_body">댓글</label>
                         <textarea id="content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($contentCommentBody ?? '')); ?></textarea>
-                        <label class="content-comment-secret-toggle">
-                            <input type="checkbox" name="is_secret" value="1">
-                            <span>비밀 댓글</span>
-                        </label>
+                        <?php if (!empty($contentSecretCommentsEnabled)) { ?>
+                            <label class="content-comment-secret-toggle">
+                                <input type="checkbox" name="is_secret" value="1"<?php echo !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
+                                <span>비밀 댓글</span>
+                            </label>
+                        <?php } ?>
                         <p class="admin-form-help">@이름 형식으로 회원을 언급할 수 있습니다.</p>
                         <button type="submit" class="btn btn-solid-light">댓글 등록</button>
                     </form>

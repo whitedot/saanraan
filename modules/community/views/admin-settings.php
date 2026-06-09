@@ -407,6 +407,20 @@ $communitySettingsSectionNavItems = [
                 <p class="admin-form-help">textarea로 저장된 plain text 게시글에만 적용합니다. HTML 게시글은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
             </div>
         </div>
+        <div class="admin-form-row">
+            <span class="form-label">비밀글</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_secret_posts_enabled', 'secret_posts_enabled', '1', !empty($settings['secret_posts_enabled']), '게시글 비밀글 선택 허용'); ?>
+                <p class="admin-form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label">비밀 댓글</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_secret_comments_enabled', 'secret_comments_enabled', '1', !empty($settings['secret_comments_enabled']), '댓글 비밀 댓글 선택 허용'); ?>
+                <p class="admin-form-help">게시판 설정에서 별도로 재정의할 수 있습니다.</p>
+            </div>
+        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">

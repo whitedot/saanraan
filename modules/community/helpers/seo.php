@@ -149,13 +149,16 @@ function sr_community_post_og_image_url(PDO $pdo, array $post): string
 
 function sr_community_post_seo_meta(PDO $pdo, array $post, bool $bodyAllowed = true): array
 {
+    if ((int) ($post['is_secret'] ?? 0) === 1) {
+        $bodyAllowed = false;
+    }
     $title = trim((string) ($post['seo_title'] ?? ''));
     if ($title === '') {
         $title = (string) ($post['title'] ?? '');
     }
-    $description = trim((string) ($post['seo_description'] ?? ''));
-    if ($description === '' && $bodyAllowed) {
-        $description = (string) ($post['body_text'] ?? '');
+    $description = $bodyAllowed ? trim((string) ($post['seo_description'] ?? '')) : '';
+    if ($description === '') {
+        $description = $bodyAllowed ? (string) ($post['body_text'] ?? '') : '';
     }
     $robots = (string) ($post['read_policy'] ?? '') === 'public' && $bodyAllowed ? 'index, follow' : 'noindex, nofollow';
 
@@ -168,7 +171,7 @@ function sr_community_post_seo_meta(PDO $pdo, array $post, bool $bodyAllowed = t
     $ogValues = [
         'og_title' => trim((string) ($post['og_title'] ?? '')),
         'og_description' => trim((string) ($post['og_description'] ?? '')),
-        'og_image_url' => sr_community_post_og_image_url($pdo, $post),
+        'og_image_url' => $bodyAllowed ? sr_community_post_og_image_url($pdo, $post) : '',
     ];
     if ($ogValues['og_title'] === '') {
         $ogValues['og_title'] = $seo['title'];

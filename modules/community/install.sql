@@ -148,6 +148,7 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     og_title VARCHAR(160) NOT NULL DEFAULT '',
     og_description VARCHAR(255) NOT NULL DEFAULT '',
     og_image_attachment_id BIGINT UNSIGNED NULL,
+    is_secret TINYINT(1) NOT NULL DEFAULT 0,
     status VARCHAR(30) NOT NULL DEFAULT 'published',
     view_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
     last_commented_at DATETIME NULL,

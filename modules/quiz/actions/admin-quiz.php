@@ -876,6 +876,10 @@ $quizSectionNavItems = [
                         <input id="quiz_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         공개 댓글 사용
                     </label>
+                    <label class="admin-form-check form-label" for="quiz_secret_comments_enabled">
+                        <input id="quiz_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        비밀 댓글 선택 허용
+                    </label>
                     <p class="admin-form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
                 </div>
             </div>

@@ -27,6 +27,9 @@ if (!sr_survey_account_can_edit_comment($comment, $account)) {
 }
 
 $values = sr_survey_comment_input_values();
+if ((int) ($survey['secret_comments_enabled'] ?? 0) !== 1) {
+    $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
+}
 $errors = sr_survey_validate_comment_input($values);
 $redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '#survey-comments';
 if ($errors !== []) {

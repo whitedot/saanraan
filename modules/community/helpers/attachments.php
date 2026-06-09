@@ -25,6 +25,9 @@ function sr_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $a
     if (!is_array($post)) {
         return null;
     }
+    if (!sr_community_account_can_view_post_body($pdo, $post, $account)) {
+        return null;
+    }
 
     $attachment['post'] = $post;
     return $attachment;

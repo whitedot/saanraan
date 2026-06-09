@@ -27,6 +27,9 @@ if (!sr_quiz_account_can_edit_comment($comment, $account)) {
 }
 
 $values = sr_quiz_comment_input_values();
+if ((int) ($quiz['secret_comments_enabled'] ?? 0) !== 1) {
+    $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
+}
 $errors = sr_quiz_validate_comment_input($values);
 $redirectUrl = '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '#quiz-comments';
 if ($errors !== []) {

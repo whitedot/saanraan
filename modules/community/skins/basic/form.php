@@ -11,6 +11,7 @@ $fileAttachmentMaxCount = min(5, max(0, (int) ($settings['file_attachment_max_co
 $fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) ? sr_community_normalize_file_extensions($settings['file_allowed_extensions']) : [];
 $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
+$secretPostsEnabled = !empty($secretPostsEnabled);
 $ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
 $editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
 $communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="community_post_basic" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
@@ -98,6 +99,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80" required<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
+            <?php if ($secretPostsEnabled) { ?>
+                <label class="community-post-secret-toggle">
+                    <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($values['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                    <span><?php echo sr_e('비밀글'); ?></span>
+                </label>
+            <?php } ?>
             <?php if (sr_module_enabled($pdo, 'content') || sr_module_enabled($pdo, 'quiz') || sr_module_enabled($pdo, 'survey')) { ?>
                 <div class="sr-link-card-picker" data-link-card-picker data-endpoint="<?php echo sr_e(sr_url('/community/link-card-targets')); ?>" data-target="content,quiz_set,survey_form" data-textarea="modules_community_form_body_text">
                     <div class="sr-link-card-picker-controls">
