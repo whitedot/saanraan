@@ -193,6 +193,130 @@ if (sr_request_method() === 'POST') {
 
             $notice = '발송 상태를 저장했습니다.';
         }
+    } elseif ($intent === 'batch_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $rawSelectedIds = $_POST['selected_notification_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
+        }
+        $selectedIds = array_values($selectedIds);
+
+        if ($notificationAdminPage !== 'list') {
+            $errors[] = '허용되지 않은 알림 일괄 작업입니다.';
+        }
+        if ($operationKey !== 'notification.set_status') {
+            $errors[] = '허용되지 않은 알림 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, $allowedNotificationStatuses, true)) {
+            $errors[] = '변경할 알림 상태가 올바르지 않습니다.';
+        }
+        if ($selectedIds === []) {
+            $errors[] = '상태를 변경할 알림을 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $errors[] = '알림 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+
+        $selectedNotifications = [];
+        if ($errors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'notification_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT id, status
+                 FROM sr_notifications
+                 WHERE id IN (' . implode(', ', $placeholders) . ')'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedNotifications[(int) $row['id']] = $row;
+            }
+            if (count($selectedNotifications) !== count($selectedIds)) {
+                $errors[] = '선택한 알림 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        if ($errors === [] && $selectedNotifications !== []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            $batchFailureMessage = '';
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare(
+                    'UPDATE sr_notifications
+                     SET status = :status,
+                         updated_at = :updated_at
+                     WHERE id = :id
+                       AND status = :before_status'
+                );
+                foreach ($selectedIds as $selectedId) {
+                    $beforeStatus = (string) ($selectedNotifications[$selectedId]['status'] ?? '');
+                    if ($beforeStatus === $targetStatus) {
+                        $skippedCount++;
+                        continue;
+                    }
+                    $stmt->execute([
+                        'status' => $targetStatus,
+                        'updated_at' => sr_now(),
+                        'id' => $selectedId,
+                        'before_status' => $beforeStatus,
+                    ]);
+                    if ($stmt->rowCount() < 1) {
+                        $batchFailureMessage = '선택한 알림 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+                        throw new RuntimeException($batchFailureMessage);
+                    }
+                    $changedCount++;
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'notification.bulk_status_updated',
+                    'target_type' => 'notification',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Notification statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $notice = '알림 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'notification_status') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($batchFailureMessage !== '') {
+                    $errors[] = $batchFailureMessage;
+                } else {
+                    sr_log_exception($exception, 'notification_batch_status_failed');
+                    $errors[] = '알림 상태 일괄 변경 중 오류가 발생했습니다.';
+                }
+            }
+        }
     } else {
         $audience = sr_post_string('audience', 30);
         $accountIdentifier = sr_post_string('account_identifier', 80);
