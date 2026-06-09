@@ -10,14 +10,13 @@
     display: grid;
     grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr);
     height: 60px;
-    margin: 0 auto;
-    max-width: 1360px;
-    padding: 0;
+    margin: 0;
+    padding: 0 max(calc((100vw - 1360px) / 2), clamp(16px, 2.5vw, 48px));
     position: sticky;
     top: 0;
     transform: translateY(0);
     transition: transform .22s ease;
-    width: calc(100% - clamp(32px, 5vw, 96px));
+    width: 100%;
     z-index: 30;
 }
 
@@ -341,8 +340,7 @@
     .community-layout-header {
         grid-template-columns: 1fr auto;
         min-height: 58px;
-        padding: 0;
-        width: calc(100% - 40px);
+        padding: 0 20px;
     }
 
     .community-layout-nav {
