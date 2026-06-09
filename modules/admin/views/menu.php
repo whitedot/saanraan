@@ -8,9 +8,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<form id="admin-menu-reset-form" method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" hidden>
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="intent" value="reset_menu_overrides">
+    <input type="hidden" name="reset_confirmed" value="0" data-admin-menu-reset-confirmed>
+</form>
+
 <form method="post" action="<?php echo sr_e(sr_url('/admin/menu')); ?>" class="admin-card admin-list-card card admin-list-form admin-menu-form">
     <?php echo sr_csrf_field(); ?>
-    <input type="hidden" name="reset_confirmed" value="0" data-admin-menu-reset-confirmed>
     <div class="card-header admin-menu-toolbar-header">
         <div class="card-actions admin-menu-toolbar-actions" role="group" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.view.controls.2ef4208b')); ?>">
             <button type="button" class="btn btn-sm btn-ghost-secondary" data-admin-menu-toggle-all data-expand-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.expand.all.193cff6e')); ?>" data-collapse-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.collapse.all.44ea49b3')); ?>">
@@ -120,7 +125,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
     <div class="admin-form-actions admin-form-sticky-actions admin-menu-form-actions">
-        <button type="submit" name="intent" value="reset_menu_overrides" class="btn btn-outline-danger" data-admin-menu-reset-confirm data-confirm-message="<?php echo sr_e(sr_t('admin::ui.admin.menu.settings.d694bdec')); ?>"><?php echo sr_e(sr_t('admin::ui.text.4fa71701')); ?></button>
+        <button type="submit" form="admin-menu-reset-form" class="btn btn-outline-danger" data-admin-menu-reset-confirm data-confirm-message="<?php echo sr_e(sr_t('admin::ui.admin.menu.settings.d694bdec')); ?>"><?php echo sr_e(sr_t('admin::ui.text.4fa71701')); ?></button>
         <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.menu.settings.save.914d293b')); ?></button>
     </div>
 </form>

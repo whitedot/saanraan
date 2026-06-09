@@ -110,10 +110,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
         <div class="admin-form-actions">
-            <?php if ($batchAvailable) { ?>
-                <button type="submit" name="intent" value="start_batch" class="btn btn-solid-primary"><?php echo sr_e('배치 복사 작업 만들기'); ?></button>
-            <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('복사본 만들기'); ?></button>
+            <?php if ($batchAvailable) { ?>
+                <button type="submit" name="intent" value="start_batch" class="btn btn-solid-light"><?php echo sr_e('배치 복사 작업 만들기'); ?></button>
+            <?php } ?>
         </div>
     </div>
 </form>

@@ -41,12 +41,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
-        <div class="admin-form-secondary-actions">
-            <small class="admin-form-help"><?php echo sr_e('수동 만료 실행은 만료 대상 포인트를 바로 처리하며, 위 환경설정 입력값은 함께 저장하지 않습니다.'); ?></small>
-            <button type="submit" name="intent" value="expire_due" class="btn btn-solid-light" formnovalidate><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></button>
-        </div>
         <button type="submit" name="intent" value="save_settings" class="btn btn-solid-primary"><?php echo sr_e(sr_t('point::ui.settings.save')); ?></button>
     </div>
+</form>
+
+<form method="post" action="<?php echo sr_e(sr_url('/admin/points/settings')); ?>" class="admin-form ui-form-theme">
+    <section class="admin-card card">
+        <h2><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></h2>
+        <p><?php echo sr_e('만료 대상 포인트를 바로 처리합니다. 위 환경설정 입력값은 함께 저장하지 않습니다.'); ?></p>
+        <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="intent" value="expire_due">
+        <div class="admin-form-row">
+            <span class="form-label"><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></span>
+            <div class="admin-form-field">
+                <button type="submit" class="btn btn-solid-light" formnovalidate><?php echo sr_e(sr_t('point::ui.settings.expire_due')); ?></button>
+            </div>
+        </div>
+    </section>
 </form>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
