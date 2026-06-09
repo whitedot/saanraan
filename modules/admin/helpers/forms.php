@@ -408,7 +408,7 @@ function sr_admin_switch_html(string $id, string $name, string $value, bool $che
     }
 
     $html .= '<label class="admin-form-check form-label" for="' . sr_e($inputId) . '">'
-        . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-switch form-choice-light"' . $inputAttributes . ($checked ? ' checked' : '') . '>'
+        . '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($name) . '" value="' . sr_e($value) . '" class="form-switch form-switch-light"' . $inputAttributes . ($checked ? ' checked' : '') . '>'
         . sr_admin_choice_label_html($label)
         . '</label>';
 

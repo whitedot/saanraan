@@ -5,7 +5,7 @@
  * dropdowns, modals, tabs, and icon sizing.
  * Do not add admin shell chrome or module-specific screen layout here.
  */
-:root{--color-choice-light-active:#5d7292}
+:root{--color-choice-light-active:#718cb0}
 .btn :is(svg,.sr-icon),.btn-icon :is(svg,.sr-icon),.dropdown-toggle :is(svg,.sr-icon),.dropdown-item :is(svg,.sr-icon){width:1em;height:1em;flex:0 0 auto}
 .btn{z-index:10;cursor:pointer;justify-content:center;align-items:center;column-gap:calc(var(--spacing) * 2);border-radius:var(--radius);border-style:solid;border-width:1px;border-color:#0000;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 1.75);text-align:center;font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);transition-property:background-color,border-color,color,box-shadow,opacity;transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);display:inline-flex;position:relative}
 .btn-sm{padding-inline:calc(var(--spacing) * 3);padding-block:calc(var(--spacing) * 1.25);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
@@ -384,6 +384,7 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .form-choice-danger{--form-choice-color:var(--color-danger)}
 .form-choice-dark{--form-choice-color:var(--color-dark)}
 .form-choice-light{--form-choice-color:var(--color-choice-light-active)}
+.form-switch-light{--form-choice-color:var(--color-choice-light-active,#718cb0)}
 .form-choice-muted{background-color:var(--color-default-200)}
 .form-choice-invalid{border-color:var(--color-danger)!important;--form-choice-color:var(--color-danger)}
 .input-icon-group{width:100%;position:relative}

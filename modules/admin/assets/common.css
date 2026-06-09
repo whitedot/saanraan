@@ -6,7 +6,7 @@
  * Do not add admin shell chrome or module-specific screen layout here.
  */
 
-:root{--color-choice-light-active:#5d7292}
+:root{--color-choice-light-active:#718cb0}
 *,:before,:after{box-sizing:border-box;border:0 solid;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;tab-size:4;scroll-behavior:smooth;position:relative}
 body{-webkit-tap-highlight-color:transparent;background-color:var(--color-body-bg);width:100%;min-height:100%;font-family:var(--font-body);font-size:var(--text-body);line-height:var(--leading-normal);font-weight:var(--font-weight-normal);color:var(--color-body-color);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
@@ -450,6 +450,7 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .form-choice-danger{--form-choice-color:var(--color-danger)}
 .form-choice-dark{--form-choice-color:var(--color-dark)}
 .form-choice-light{--form-choice-color:var(--color-choice-light-active)}
+.form-switch-light{--form-choice-color:var(--color-choice-light-active,#718cb0)}
 .form-choice-muted{background-color:var(--color-default-200)}
 .form-choice-invalid{border-color:var(--color-danger)!important;--form-choice-color:var(--color-danger)}
 .input-icon-group{width:100%;position:relative}

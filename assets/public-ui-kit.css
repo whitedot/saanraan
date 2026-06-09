@@ -485,6 +485,8 @@ input:focus-visible + [class*=btn-choice-],
 .form-choice-warning { --form-choice-color: var(--color-warning); }
 .form-choice-danger { --form-choice-color: var(--color-danger); }
 .form-choice-dark { --form-choice-color: var(--color-dark); }
+.form-choice-light { --form-choice-color: var(--color-choice-light-active, #718cb0); }
+.form-switch-light { --form-choice-color: var(--color-choice-light-active, #718cb0); }
 .form-choice-muted { background-color: var(--color-default-200); }
 .form-choice-invalid { border-color: var(--color-danger) !important; --form-choice-color: var(--color-danger); }
 .form-range {

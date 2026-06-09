@@ -985,12 +985,17 @@
                                                             class="form-checkbox form-choice-outline form-choice-danger" checked />
                                                         <label for="checkDanger">Danger</label>
                                                     </div>
-                                                    <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="checkDark"
-                                                            class="form-checkbox form-choice-outline form-choice-dark" checked />
-                                                        <label for="checkDark">Dark</label>
+                                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
+                                                            <input type="checkbox" id="checkDark"
+                                                                class="form-checkbox form-choice-outline form-choice-dark" checked />
+                                                            <label for="checkDark">Dark</label>
+                                                        </div>
+                                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
+                                                            <input type="checkbox" id="checkColorLight"
+                                                                class="form-checkbox form-choice-outline form-choice-light" checked />
+                                                            <label for="checkColorLight">Light</label>
+                                                        </div>
                                                     </div>
-                                                </div>
                                             </div>
                                         </div>
 
@@ -1037,12 +1042,17 @@
                                                             class="form-switch form-choice-danger" checked />
                                                         <label for="switchDanger">Danger</label>
                                                     </div>
-                                                    <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="checkbox" id="switchDark"
-                                                            class="form-switch form-choice-dark" checked />
-                                                        <label for="switchDark">Dark</label>
+                                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
+                                                            <input type="checkbox" id="switchDark"
+                                                                class="form-switch form-choice-dark" checked />
+                                                            <label for="switchDark">Dark</label>
+                                                        </div>
+                                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
+                                                            <input type="checkbox" id="switchColorLight"
+                                                                class="form-switch form-switch-light" checked />
+                                                            <label for="switchColorLight">Light</label>
+                                                        </div>
                                                     </div>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1200,12 +1210,17 @@
                                                             class="form-radio form-choice-danger" />
                                                         <label for="radioDanger">Danger</label>
                                                     </div>
-                                                    <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
-                                                        <input type="radio" name="coloredRadio" id="radioDark"
-                                                            class="form-radio form-choice-dark" />
-                                                        <label for="radioDark">Dark</label>
+                                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
+                                                            <input type="radio" name="coloredRadio" id="radioDark"
+                                                                class="form-radio form-choice-dark" />
+                                                            <label for="radioDark">Dark</label>
+                                                        </div>
+                                                        <div class="ui-kit-cluster ui-kit-align-items-center ui-kit-gap-2">
+                                                            <input type="radio" name="coloredRadio" id="radioColorLight"
+                                                                class="form-radio form-choice-light" />
+                                                            <label for="radioColorLight">Light</label>
+                                                        </div>
                                                     </div>
-                                                </div>
                                             </div>
                                         </div>
 
