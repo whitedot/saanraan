@@ -869,22 +869,16 @@ function sr_admin_handle_member_batch_revoke_sessions_post(PDO $pdo, array $acco
     $errors = [];
     $operationKey = sr_post_string('operation_key', 80);
     $rawSelectedIds = $_POST['selected_account_ids'] ?? [];
-    $selectedIds = [];
-    if (is_array($rawSelectedIds)) {
-        foreach ($rawSelectedIds as $rawSelectedId) {
-            $selectedId = (int) $rawSelectedId;
-            if ($selectedId > 0) {
-                $selectedIds[$selectedId] = $selectedId;
-            }
-        }
-    }
-    $selectedIds = array_values($selectedIds);
+    $selectedIds = sr_admin_positive_int_list_from_input($rawSelectedIds, $hasInvalidSelectedId);
 
     if ($operationKey !== 'member.revoke_sessions') {
         $errors[] = '허용되지 않은 일괄 작업입니다.';
     }
     if ($selectedIds === []) {
         $errors[] = '세션을 회수할 회원을 선택하세요.';
+    }
+    if ($hasInvalidSelectedId) {
+        $errors[] = '선택한 회원 ID 값이 올바르지 않습니다.';
     }
     if (count($selectedIds) > 100) {
         $errors[] = '회원 세션 일괄 회수는 한 번에 100건 이하로 실행하세요.';

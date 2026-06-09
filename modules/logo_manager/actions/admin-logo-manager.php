@@ -408,26 +408,7 @@ if (sr_request_method() === 'POST') {
         $operationKey = sr_post_string('operation_key', 80);
         $targetStatus = sr_post_string('target_status', 30);
         $rawSelectedIds = $_POST['selected_logo_ids'] ?? [];
-        $selectedIds = [];
-        $hasInvalidSelectedId = !is_array($rawSelectedIds);
-        if (is_array($rawSelectedIds)) {
-            foreach ($rawSelectedIds as $rawSelectedId) {
-                if (is_array($rawSelectedId)) {
-                    $hasInvalidSelectedId = true;
-                    continue;
-                }
-
-                $selectedIdValue = trim((string) $rawSelectedId);
-                if ($selectedIdValue === '' || strlen($selectedIdValue) > 20 || preg_match('/\A[1-9][0-9]*\z/', $selectedIdValue) !== 1) {
-                    $hasInvalidSelectedId = true;
-                    continue;
-                }
-
-                $selectedId = (int) $selectedIdValue;
-                $selectedIds[$selectedId] = $selectedId;
-            }
-        }
-        $selectedIds = array_values($selectedIds);
+        $selectedIds = sr_admin_positive_int_list_from_input($rawSelectedIds, $hasInvalidSelectedId);
 
         if ($operationKey !== 'logo_manager.set_status') {
             $errors[] = '허용되지 않은 일괄 작업입니다.';

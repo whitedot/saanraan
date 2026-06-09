@@ -110,16 +110,7 @@ if (sr_request_method() === 'POST') {
             $operationKey = sr_post_string('operation_key', 80);
             $targetStatus = sr_post_string('target_status', 30);
             $rawSelectedIds = $_POST['selected_definition_ids'] ?? [];
-            $selectedIds = [];
-            if (is_array($rawSelectedIds)) {
-                foreach ($rawSelectedIds as $rawSelectedId) {
-                    $selectedId = (int) $rawSelectedId;
-                    if ($selectedId > 0) {
-                        $selectedIds[$selectedId] = $selectedId;
-                    }
-                }
-            }
-            $selectedIds = array_values($selectedIds);
+            $selectedIds = sr_admin_positive_int_list_from_input($rawSelectedIds, $hasInvalidSelectedId);
 
             if ($operationKey !== 'coupon.definition_set_status') {
                 $errors[] = '허용되지 않은 일괄 작업입니다.';
@@ -129,6 +120,9 @@ if (sr_request_method() === 'POST') {
             }
             if ($selectedIds === []) {
                 $errors[] = '상태를 변경할 쿠폰 종류를 선택하세요.';
+            }
+            if ($hasInvalidSelectedId) {
+                $errors[] = '선택한 쿠폰 종류 ID 값이 올바르지 않습니다.';
             }
             if (count($selectedIds) > 100) {
                 $errors[] = '쿠폰 종류 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
