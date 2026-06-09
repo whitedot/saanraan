@@ -125,6 +125,169 @@ if (sr_request_method() === 'POST') {
                 $notice = sr_t('community::action.admin.post_status_updated');
             }
         }
+    } elseif ($intent === 'batch_post_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $rawSelectedIds = $_POST['selected_post_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
+        }
+        $selectedIds = array_values($selectedIds);
+
+        if ($communityPostsPage !== 'posts') {
+            $errors[] = sr_t('community::action.error.intent_invalid');
+        }
+        if ($operationKey !== 'community.post_set_status') {
+            $errors[] = '허용되지 않은 게시글 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, ['published', 'hidden'], true) || !in_array($targetStatus, $allowedPostStatuses, true)) {
+            $errors[] = '변경할 게시글 상태가 올바르지 않습니다.';
+        }
+        if ($selectedIds === []) {
+            $errors[] = '상태를 변경할 게시글을 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $errors[] = '게시글 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+
+        $selectedPosts = [];
+        if ($errors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'post_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT p.id, p.author_account_id, p.status
+                 FROM sr_community_posts p
+                 WHERE p.id IN (' . implode(', ', $placeholders) . ')'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedPosts[(int) $row['id']] = $row;
+            }
+            if (count($selectedPosts) !== count($selectedIds)) {
+                $errors[] = '선택한 게시글 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        if ($errors === [] && $selectedPosts !== []) {
+            foreach ($selectedIds as $selectedId) {
+                $currentStatus = (string) ($selectedPosts[$selectedId]['status'] ?? '');
+                $allowedTransition = $targetStatus === 'hidden'
+                    ? in_array($currentStatus, ['published', 'hidden'], true)
+                    : in_array($currentStatus, ['hidden', 'published'], true);
+                if (!$allowedTransition) {
+                    $errors[] = '선택한 게시글 중 숨김/복구할 수 없는 상태가 있습니다. 공개 또는 숨김 상태의 게시글만 선택하세요.';
+                    break;
+                }
+            }
+        }
+
+        if ($errors === [] && $selectedPosts !== []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            $updatedAttachmentCount = 0;
+            $affectedAccountIds = [];
+            $batchFailureMessage = '';
+            try {
+                $pdo->beginTransaction();
+                $updatePostStatusStmt = $pdo->prepare(
+                    'UPDATE sr_community_posts
+                     SET status = :status,
+                         updated_at = :updated_at
+                     WHERE id = :id
+                       AND status = :before_status'
+                );
+                foreach ($selectedIds as $selectedId) {
+                    $post = $selectedPosts[$selectedId];
+                    $beforeStatus = (string) $post['status'];
+                    if ($beforeStatus === $targetStatus) {
+                        $skippedCount++;
+                        continue;
+                    }
+
+                    if (!empty($settings['post_reward_reversal_enabled']) && $targetStatus === 'hidden' && $beforeStatus === 'published') {
+                        $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $selectedId, 'post_reward_reversal', 'community.post.reward_reversal');
+                        if (empty($reversalResult['allowed'])) {
+                            $batchFailureMessage = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.post_reward_reversal_balance_low', 'community::action.admin.post_reward_reversal_status_failed');
+                            throw new RuntimeException($batchFailureMessage);
+                        }
+                    }
+
+                    $updatePostStatusStmt->execute([
+                        'status' => $targetStatus,
+                        'updated_at' => sr_now(),
+                        'id' => $selectedId,
+                        'before_status' => $beforeStatus,
+                    ]);
+                    if ($updatePostStatusStmt->rowCount() < 1) {
+                        $batchFailureMessage = '선택한 게시글 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+                        throw new RuntimeException($batchFailureMessage);
+                    }
+                    $affectedAccountIds[(int) $post['author_account_id']] = (int) $post['author_account_id'];
+                    if ($targetStatus === 'hidden') {
+                        $updatedAttachmentCount += sr_community_update_post_attachments_status($pdo, $selectedId, $targetStatus);
+                    } elseif ($targetStatus === 'published' && $beforeStatus === 'hidden') {
+                        $updatedAttachmentCount += sr_community_restore_hidden_post_attachments($pdo, $selectedId);
+                    }
+                    $changedCount++;
+                }
+                foreach ($affectedAccountIds as $affectedAccountId) {
+                    sr_community_maybe_recalculate_account_level($pdo, $affectedAccountId, null, 'post_status_updated');
+                    sr_member_group_evaluate_account($pdo, $affectedAccountId, [
+                        'source_module_key' => 'community',
+                    ]);
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.post.bulk_status_updated',
+                    'target_type' => 'community_post',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Community post statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'updated_attachment_count' => $updatedAttachmentCount,
+                        'affected_account_count' => count($affectedAccountIds),
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $notice = '게시글 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'content_status') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($batchFailureMessage !== '') {
+                    $errors[] = $batchFailureMessage;
+                } else {
+                    sr_log_exception($exception, 'community_post_batch_status_failed');
+                    $errors[] = '게시글 상태 일괄 변경 중 오류가 발생했습니다.';
+                }
+            }
+        }
     } elseif ($intent === 'comment_status') {
         $commentIdValue = sr_post_string('comment_id', 20);
         $commentId = preg_match('/\A[1-9][0-9]*\z/', $commentIdValue) === 1 ? (int) $commentIdValue : 0;

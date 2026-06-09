@@ -97,11 +97,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <?php echo sr_admin_pagination_summary_html($postPagination); ?>
     </div>
+    <form id="community-post-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="community-post-bulk-form" data-community-post-bulk-form>
+        <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="intent" value="batch_post_status">
+        <input type="hidden" name="operation_key" value="community.post_set_status">
+        <div class="admin-list-actions community-post-bulk-actions" hidden data-community-post-bulk-bar>
+            <div class="community-post-bulk-summary" aria-live="polite">
+                <strong data-community-post-selected-count>0</strong>개 선택됨
+            </div>
+            <div class="community-post-bulk-controls">
+                <select name="target_status" class="form-select" aria-label="변경할 게시글 상태">
+                    <option value="hidden"><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></option>
+                    <option value="published"><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></option>
+                </select>
+                <button type="submit" class="btn btn-solid-primary" data-community-post-bulk-submit disabled>상태 변경</button>
+                <button type="button" class="btn btn-solid-light" data-community-post-bulk-clear>선택 해제</button>
+            </div>
+        </div>
+    </form>
     <div class="table-wrapper">
     <table class="table admin-community-post-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.f0e443a9')); ?></caption>
         <thead class="ui-table-head">
             <tr>
+                <th class="community-post-select-cell">
+                    <label class="sr-only" for="community_post_bulk_select_all">현재 페이지 게시글 전체 선택</label>
+                    <input id="community_post_bulk_select_all" type="checkbox" class="form-checkbox" data-community-post-select-all<?php echo $posts === [] ? ' disabled' : ''; ?>>
+                </th>
                 <th<?php echo sr_admin_sort_aria('board', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.4732a58f'), 'board', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th>카테고리</th>
                 <th<?php echo sr_admin_sort_aria('title', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.08b17e43'), 'title', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
@@ -116,7 +138,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($posts === []) { ?>
                 <tr>
-                    <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
+                    <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($posts as $post) { ?>
@@ -131,6 +153,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $postStatusSelectId = 'community_admin_post_status_' . (string) $post['id'];
                     ?>
                     <tr>
+                        <td class="community-post-select-cell">
+                            <label class="sr-only" for="community_post_bulk_select_<?php echo sr_e((string) (int) $post['id']); ?>"><?php echo sr_e((string) $post['title']); ?> 선택</label>
+                            <input id="community_post_bulk_select_<?php echo sr_e((string) (int) $post['id']); ?>" type="checkbox" name="selected_post_ids[]" value="<?php echo sr_e((string) (int) $post['id']); ?>" class="form-checkbox" form="community-post-bulk-status-form" data-community-post-row-select>
+                        </td>
                         <td class="admin-table-break admin-community-post-board-cell"><?php echo sr_e((string) $post['board_title']); ?></td>
                         <td class="admin-table-break"><?php echo sr_e((string) ($post['category_title'] ?? '')); ?></td>
                         <td class="admin-table-break admin-community-post-title-cell">
@@ -315,5 +341,80 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </section>
 <?php echo sr_admin_pagination_html($commentPagination, '댓글 목록 페이지'); ?>
 <?php } ?>
+
+<script>
+(function () {
+    var bulkForm = document.querySelector('[data-community-post-bulk-form]');
+    if (!bulkForm) {
+        return;
+    }
+
+    var bar = document.querySelector('[data-community-post-bulk-bar]');
+    var countNode = document.querySelector('[data-community-post-selected-count]');
+    var submit = document.querySelector('[data-community-post-bulk-submit]');
+    var clear = document.querySelector('[data-community-post-bulk-clear]');
+    var selectAll = document.querySelector('[data-community-post-select-all]');
+    var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-community-post-row-select]'));
+
+    var checkedRows = function () {
+        return rowChecks.filter(function (input) {
+            return input.checked && !input.disabled;
+        });
+    };
+
+    var syncBulkState = function () {
+        var selectedCount = checkedRows().length;
+        if (countNode) {
+            countNode.textContent = String(selectedCount);
+        }
+        if (bar) {
+            bar.hidden = selectedCount < 1;
+        }
+        if (submit) {
+            submit.disabled = selectedCount < 1;
+        }
+        if (selectAll) {
+            selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+            selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+        }
+    };
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            rowChecks.forEach(function (input) {
+                if (!input.disabled) {
+                    input.checked = selectAll.checked;
+                }
+            });
+            syncBulkState();
+        });
+    }
+    rowChecks.forEach(function (input) {
+        input.addEventListener('change', syncBulkState);
+    });
+    if (clear) {
+        clear.addEventListener('click', function () {
+            rowChecks.forEach(function (input) {
+                input.checked = false;
+            });
+            syncBulkState();
+        });
+    }
+    bulkForm.addEventListener('submit', function (event) {
+        var selectedCount = checkedRows().length;
+        if (selectedCount < 1) {
+            event.preventDefault();
+            syncBulkState();
+            return;
+        }
+        var status = bulkForm.querySelector('select[name="target_status"]');
+        var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+        if (!window.confirm('선택한 게시글 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+            event.preventDefault();
+        }
+    });
+    syncBulkState();
+})();
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
