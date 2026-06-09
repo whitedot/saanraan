@@ -15,6 +15,8 @@ $commentStatusCounts = isset($commentStatusCounts) && is_array($commentStatusCou
 $totalComments = (int) ($commentStatusCounts['total'] ?? count($comments ?? []));
 $selectedPostStatuses = is_array($postListFilters['status'] ?? null) ? $postListFilters['status'] : [];
 $selectedCommentStatuses = is_array($commentListFilters['status'] ?? null) ? $commentListFilters['status'] : [];
+$postStatusDisplayOrder = array_values(array_intersect(sr_community_admin_post_status_display_order(), $allowedPostStatuses));
+$commentStatusDisplayOrder = array_values(array_intersect(sr_community_admin_comment_status_display_order(), $allowedCommentStatuses));
 $communityPostsCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $communityPostsActionSuffix = $communityPostsCurrentQuery !== '' ? '?' . $communityPostsCurrentQuery : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -29,8 +31,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.97309089')); ?> <strong><?php echo sr_e((string) $totalPosts); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></strong></span>
-        <a href="<?php echo sr_e(sr_url('/admin/community/posts?status=published')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.9d1ba9f4')); ?> <?php echo sr_e((string) ($postStatusCounts['published'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
         <a href="<?php echo sr_e(sr_url('/admin/community/posts?status=pending')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.2a73ed53')); ?> <?php echo sr_e((string) ($postStatusCounts['pending'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
+        <a href="<?php echo sr_e(sr_url('/admin/community/posts?status=published')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.9d1ba9f4')); ?> <?php echo sr_e((string) ($postStatusCounts['published'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
         <a href="<?php echo sr_e(sr_url('/admin/community/posts?status=hidden')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.0eeb676f')); ?> <?php echo sr_e((string) ($postStatusCounts['hidden'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
         <a href="<?php echo sr_e(sr_url('/admin/community/posts?status=deleted')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?> <?php echo sr_e((string) ($postStatusCounts['deleted'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
     </div>
@@ -58,7 +60,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div id="community_post_detail_filters" class="filtering-body" data-filtering-body<?php echo $postDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-community-post-filter-status">
                 <span class="filtering-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></span>
-                <?php echo sr_admin_filter_toggle_group_html('community_admin_posts_status_filter', 'status', sr_admin_code_label_options($allowedPostStatuses, 'content_status'), $selectedPostStatuses, sr_t('community::ui.all.a4b69faf')); ?>
+                <?php echo sr_admin_filter_toggle_group_html('community_admin_posts_status_filter', 'status', sr_admin_code_label_options($postStatusDisplayOrder, 'content_status'), $selectedPostStatuses, sr_t('community::ui.all.a4b69faf')); ?>
             </div>
             <div class="filtering-field admin-community-post-filter-board">
             <label for="community_admin_posts_board_filter" class="filtering-label"><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></label>
@@ -103,8 +105,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="operation_key" value="community.post_set_status">
             <div class="community-post-bulk-actions admin-row-actions" data-community-post-bulk-bar>
                 <div class="community-post-bulk-controls admin-row-actions">
-                    <button type="submit" name="target_status" value="hidden" class="btn btn-sm btn-outline-warning" data-community-post-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></button>
-                    <button type="submit" name="target_status" value="published" class="btn btn-sm btn-outline-warning" data-community-post-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></button>
+                    <button type="submit" name="target_status" value="published" class="btn btn-sm btn-outline-warning" data-community-post-bulk-submit data-status-label="<?php echo sr_e(sr_community_admin_status_action_label('published')); ?>" disabled><?php echo sr_e(sr_community_admin_status_action_label('published')); ?></button>
+                    <button type="submit" name="target_status" value="hidden" class="btn btn-sm btn-outline-warning" data-community-post-bulk-submit data-status-label="<?php echo sr_e(sr_community_admin_status_action_label('hidden')); ?>" disabled><?php echo sr_e(sr_community_admin_status_action_label('hidden')); ?></button>
                     <button type="button" class="btn btn-sm btn-outline-light" data-community-post-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-community-post-selected-count>0</span></button>
                 </div>
             </div>
@@ -178,11 +180,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
                                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                                <?php foreach ($allowedPostStatuses as $status) { ?>
+                                <?php foreach ($postStatusDisplayOrder as $status) { ?>
                                     <?php if ($status === $postStatus) { ?>
                                         <?php continue; ?>
                                     <?php } ?>
-                                    <?php $statusLabel = sr_admin_code_label($status, 'content_status'); ?>
+                                    <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
                                     <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                 <?php } ?>
                             </form>
@@ -233,7 +235,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div id="community_comment_detail_filters" class="filtering-body" data-filtering-body<?php echo $commentDetailFilterOpen ? '' : ' hidden'; ?>>
             <div class="filtering-field admin-community-comment-filter-status">
                 <span class="filtering-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></span>
-                <?php echo sr_admin_filter_toggle_group_html('community_admin_comments_status_filter', 'status', sr_admin_code_label_options($allowedCommentStatuses, 'content_status'), $selectedCommentStatuses, sr_t('community::ui.all.a4b69faf')); ?>
+                <?php echo sr_admin_filter_toggle_group_html('community_admin_comments_status_filter', 'status', sr_admin_code_label_options($commentStatusDisplayOrder, 'content_status'), $selectedCommentStatuses, sr_t('community::ui.all.a4b69faf')); ?>
             </div>
             <div class="filtering-field admin-community-comment-filter-board">
             <label for="community_admin_comments_board_filter" class="filtering-label"><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></label>
@@ -267,8 +269,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="operation_key" value="community.comment_set_status">
             <div class="community-comment-bulk-actions admin-row-actions" data-community-comment-bulk-bar>
                 <div class="community-comment-bulk-controls admin-row-actions">
-                    <button type="submit" name="target_status" value="hidden" class="btn btn-sm btn-outline-warning" data-community-comment-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></button>
-                    <button type="submit" name="target_status" value="published" class="btn btn-sm btn-outline-warning" data-community-comment-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></button>
+                    <button type="submit" name="target_status" value="published" class="btn btn-sm btn-outline-warning" data-community-comment-bulk-submit data-status-label="<?php echo sr_e(sr_community_admin_status_action_label('published')); ?>" disabled><?php echo sr_e(sr_community_admin_status_action_label('published')); ?></button>
+                    <button type="submit" name="target_status" value="hidden" class="btn btn-sm btn-outline-warning" data-community-comment-bulk-submit data-status-label="<?php echo sr_e(sr_community_admin_status_action_label('hidden')); ?>" disabled><?php echo sr_e(sr_community_admin_status_action_label('hidden')); ?></button>
                     <button type="button" class="btn btn-sm btn-outline-light" data-community-comment-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-community-comment-selected-count>0</span></button>
                 </div>
             </div>
@@ -336,11 +338,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="comment_status">
                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                    <?php foreach ($allowedCommentStatuses as $status) { ?>
+                                    <?php foreach ($commentStatusDisplayOrder as $status) { ?>
                                         <?php if ($status === $commentStatus) { ?>
                                             <?php continue; ?>
                                         <?php } ?>
-                                        <?php $statusLabel = sr_admin_code_label($status, 'content_status'); ?>
+                                        <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
                                         <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                     <?php } ?>
                                 </form>

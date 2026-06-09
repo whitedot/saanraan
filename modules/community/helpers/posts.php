@@ -518,6 +518,27 @@ function sr_community_post_statuses(): array
     return ['published', 'hidden', 'deleted', 'pending'];
 }
 
+function sr_community_admin_post_status_display_order(): array
+{
+    return ['pending', 'published', 'hidden', 'deleted'];
+}
+
+function sr_community_admin_comment_status_display_order(): array
+{
+    return ['published', 'hidden', 'deleted'];
+}
+
+function sr_community_admin_status_action_label(string $status): string
+{
+    return match ($status) {
+        'pending' => '대기',
+        'published' => '공개',
+        'hidden' => '숨김',
+        'deleted' => '삭제',
+        default => sr_admin_code_label($status, 'content_status'),
+    };
+}
+
 function sr_community_admin_post_query_parts(array $filters, bool $categorySupported = true): array
 {
     $where = [];
