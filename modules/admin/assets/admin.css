@@ -412,6 +412,10 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-field{grid-column:auto;min-width:0}
 .admin-form .admin-form-field label{font-weight:var(--font-weight-normal);margin:0}
 .admin-form-static{margin:0}
+.admin-form .admin-form-row>.admin-form-field:has(>.admin-form-static:only-child),
+.admin-form .admin-form-row>.admin-form-field:has(>p:not(.admin-form-help):only-child){align-items:center;display:flex;min-height:calc(var(--spacing) * 9.25)}
+.admin-form .admin-form-row>.admin-form-field>.admin-form-static:only-child,
+.admin-form .admin-form-row>.admin-form-field>p:not(.admin-form-help):only-child{margin:0;min-width:0}
 .admin-form .admin-form-field .admin-form-help,
 .admin-form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--text-muted);font-size:var(--type-caption-size);line-height:var(--type-caption-line-height)}
 .admin-form .admin-form-field>.admin-form-help:first-child{margin-top:0}
