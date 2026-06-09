@@ -117,11 +117,24 @@ function sr_ckeditor_save_settings(PDO $pdo, array $settings): void
     sr_clear_module_settings_cache('ckeditor');
 }
 
-function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post_basic'): array
+function sr_ckeditor_effective_toolbar_preset(PDO $pdo, string $presetKey = 'default'): string
 {
     $settings = sr_ckeditor_settings($pdo);
     $presets = sr_ckeditor_toolbar_presets();
-    $preset = $presets[$presetKey] ?? $presets['community_post_basic'];
+    $presetKey = trim($presetKey);
+    if ($presetKey === '' || $presetKey === 'default' || $presetKey === 'inherit') {
+        $presetKey = (string) $settings['toolbar_preset'];
+    }
+
+    return isset($presets[$presetKey]) ? $presetKey : 'community_post_basic';
+}
+
+function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'default'): array
+{
+    $settings = sr_ckeditor_settings($pdo);
+    $presets = sr_ckeditor_toolbar_presets();
+    $effectivePresetKey = sr_ckeditor_effective_toolbar_preset($pdo, $presetKey);
+    $preset = $presets[$effectivePresetKey] ?? $presets['community_post_basic'];
     $assetMode = (string) $settings['asset_mode'];
     $cdnVersion = (string) $settings['cdn_version'];
 
@@ -129,6 +142,7 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post
         'assetMode' => $assetMode,
         'cdnVersion' => $cdnVersion,
         'licenseKey' => (string) $settings['license_key'],
+        'toolbarPreset' => $effectivePresetKey,
         'toolbar' => $preset['items'],
         'cdnScriptUrl' => 'https://cdn.ckeditor.com/ckeditor5/' . rawurlencode($cdnVersion) . '/ckeditor5.umd.js',
         'cdnStylesheetUrl' => 'https://cdn.ckeditor.com/ckeditor5/' . rawurlencode($cdnVersion) . '/ckeditor5.css',
@@ -140,7 +154,7 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'community_post
     return $config;
 }
 
-function sr_ckeditor_public_assets_html(PDO $pdo, string $presetKey = 'community_post_basic'): string
+function sr_ckeditor_public_assets_html(PDO $pdo, string $presetKey = 'default'): string
 {
     $configJson = json_encode(sr_ckeditor_public_config($pdo, $presetKey), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     if (!is_string($configJson)) {
