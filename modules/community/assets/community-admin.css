@@ -55,6 +55,7 @@
 .admin-page-community-report-list .admin-community-report-date-cell,.admin-page-community-report-list .admin-community-report-target-cell,.admin-page-community-report-list .admin-community-report-reason-cell{white-space:nowrap}
 .admin-page-community-report-list .admin-community-report-table .admin-row-actions{gap:.5rem}
 .admin-page-community-report-list .admin-community-report-review-note{display:block;margin-top:calc(var(--spacing) * 1)}
+.admin-page-community-report-list .admin-community-report-action-log-link{flex:0 0 auto}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-filter{width:100%;max-width:100%}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-filter .filtering-card{width:100%;max-width:100%}
 .admin-page-community-publisher-rewards .filtering-card>.filtering-fields.admin-community-publisher-reward-search-grid{display:grid;grid-template-columns:fit-content(9rem) minmax(14rem,1fr) max-content;align-items:end;justify-content:start;width:100%;max-width:100%;padding:calc(var(--spacing) * 4)}

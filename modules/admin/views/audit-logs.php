@@ -27,7 +27,7 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
             <div class="filtering-field">
                 <label for="modules_admin_audit_logs_field" class="filtering-label">검색조건</label>
                 <select id="modules_admin_audit_logs_field" name="field" class="form-select filtering-input">
-                    <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 식별값', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c')] as $value => $label) { ?>
+                    <?php foreach (['event_type' => sr_t('admin::ui.text.b7c0f34b'), 'target_type' => sr_t('admin::ui.text.91df7a82'), 'target_id' => '대상 식별값', 'actor_account_id' => sr_t('admin::ui.id.2ea55f7c'), 'metadata_json' => 'Metadata'] as $value => $label) { ?>
                         <option value="<?php echo sr_e($value); ?>"<?php echo $filters['field'] === $value ? ' selected' : ''; ?>>
                             <?php echo sr_e($label); ?>
                         </option>

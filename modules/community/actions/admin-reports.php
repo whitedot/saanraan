@@ -305,5 +305,6 @@ foreach ($reportStatusCountStmt->fetchAll() as $row) {
 
 $reportPagination = sr_admin_pagination_from_total($pdo, sr_community_report_count($pdo, $reportListFilters));
 $reports = sr_community_reports($pdo, (int) $reportPagination['per_page'], $reportListFilters, sr_admin_pagination_offset($reportPagination));
+$canViewAuditLogs = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/audit-logs', 'view');
 
 include SR_ROOT . '/modules/community/views/admin-reports.php';

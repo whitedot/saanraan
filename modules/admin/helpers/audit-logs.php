@@ -64,7 +64,7 @@ function sr_admin_audit_log_filters(): array
 
 function sr_admin_audit_log_search_field(string $value): string
 {
-    return in_array($value, ['event_type', 'target_type', 'target_id', 'actor_account_id', 'actor_type', 'ip_address'], true) ? $value : 'event_type';
+    return in_array($value, ['event_type', 'target_type', 'target_id', 'actor_account_id', 'actor_type', 'ip_address', 'metadata_json'], true) ? $value : 'event_type';
 }
 
 function sr_admin_audit_log_identifier_filter(string $value, int $maxLength): string
@@ -570,6 +570,16 @@ function sr_admin_audit_log_query_parts(array &$filters): array
             if ($filters['q'] !== '') {
                 $where[] = 'ip_address = :audit_keyword';
                 $params['audit_keyword'] = $filters['q'];
+            }
+        } elseif ($filters['field'] === 'metadata_json') {
+            $metadataKeyword = strtr($filters['q'], [
+                '!' => '!!',
+                '%' => '!%',
+                '_' => '!_',
+            ]);
+            if ($metadataKeyword !== '') {
+                $where[] = "metadata_json LIKE :audit_keyword ESCAPE '!'";
+                $params['audit_keyword'] = '%' . $metadataKeyword . '%';
             }
         } elseif (ctype_digit($filters['q'])) {
             $where[] = 'actor_account_id = :actor_account_id';

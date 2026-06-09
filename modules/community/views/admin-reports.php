@@ -18,6 +18,7 @@ $totalReports = (int) ($reportStatusCounts['total'] ?? count($reports ?? []));
 $selectedReportStatuses = is_array($reportListFilters['status'] ?? null) ? $reportListFilters['status'] : [];
 $selectedReportTargetTypes = is_array($reportListFilters['target_type'] ?? null) ? $reportListFilters['target_type'] : [];
 $selectedReportReasonKeys = is_array($reportListFilters['reason_key'] ?? null) ? $reportListFilters['reason_key'] : [];
+$canViewAuditLogs = isset($canViewAuditLogs) && $canViewAuditLogs === true;
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -236,6 +237,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_e((string) ($report['reviewed_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
+                                <?php if ($canViewAuditLogs && trim((string) ($report['reviewed_at'] ?? '')) !== '') { ?>
+                                    <?php
+                                    $reportActionLogUrl = sr_url('/admin/audit-logs?' . http_build_query([
+                                        'field' => 'metadata_json',
+                                        'q' => '"report_id":' . (string) (int) $report['id'],
+                                    ], '', '&', PHP_QUERY_RFC3986));
+                                    ?>
+                                    <a href="<?php echo sr_e($reportActionLogUrl); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-icon btn-solid-light admin-community-report-action-log-link" aria-label="대상 조치 로그 새 탭으로 열기" title="대상 조치 로그"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                                <?php } ?>
                                 <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($reportProcessModalId); ?>" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
                             </div>
                         </td>
