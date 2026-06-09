@@ -409,7 +409,7 @@ function sr_community_send_body_file(PDO $pdo, int $postId, string $fileName, st
     } else {
         $account = sr_member_current_account($pdo);
         $post = sr_community_post_for_read($pdo, $postId, is_array($account) ? $account : null);
-        if (!is_array($post)) {
+        if (!is_array($post) || !sr_community_account_can_view_post_body($pdo, $post, is_array($account) ? $account : null)) {
             sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
         }
         $key = sr_community_body_file_post_key($postId, $fileName);
