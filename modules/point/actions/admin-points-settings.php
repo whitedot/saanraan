@@ -20,31 +20,37 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
     if ($intent === 'expire_due') {
-        try {
-            $expirationResult = sr_point_expire_due_transactions($pdo, 1000);
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'point.expiration.run',
-                'target_type' => 'module',
-                'target_id' => 'point',
-                'result' => 'success',
-                'message' => 'Point expiration run.',
-                'metadata' => [
-                    'expired_count' => (int) $expirationResult['expired_count'],
-                    'expired_amount' => (int) $expirationResult['expired_amount'],
-                ],
-            ]);
+        if (sr_post_string('expire_confirmed', 1) !== '1') {
+            $errors[] = sr_t('point::action.admin.settings.expiration_confirm_required');
+        }
 
-            sr_admin_flash_result(sr_admin_action_result([], sprintf(
-                sr_t('point::action.admin.settings.expiration_run'),
-                number_format((int) $expirationResult['expired_count']),
-                number_format((int) $expirationResult['expired_amount'])
-            )));
-            sr_redirect('/admin/points/settings');
-        } catch (Throwable $exception) {
-            sr_log_exception($exception, 'point_manual_expiration_failed');
-            $errors[] = sr_t('point::action.admin.settings.expiration_failed');
+        if ($errors === []) {
+            try {
+                $expirationResult = sr_point_expire_due_transactions($pdo, 1000);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'point.expiration.run',
+                    'target_type' => 'module',
+                    'target_id' => 'point',
+                    'result' => 'success',
+                    'message' => 'Point expiration run.',
+                    'metadata' => [
+                        'expired_count' => (int) $expirationResult['expired_count'],
+                        'expired_amount' => (int) $expirationResult['expired_amount'],
+                    ],
+                ]);
+
+                sr_admin_flash_result(sr_admin_action_result([], sprintf(
+                    sr_t('point::action.admin.settings.expiration_run'),
+                    number_format((int) $expirationResult['expired_count']),
+                    number_format((int) $expirationResult['expired_amount'])
+                )));
+                sr_redirect('/admin/points/settings');
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'point_manual_expiration_failed');
+                $errors[] = sr_t('point::action.admin.settings.expiration_failed');
+            }
         }
     }
 
