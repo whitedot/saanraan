@@ -916,7 +916,26 @@ function sr_quiz_account_can_view_comment_body(array $comment, ?array $account, 
     }
 
     return (int) ($account['id'] ?? 0) === (int) ($comment['author_account_id'] ?? 0)
+        || sr_quiz_account_owns_comment_target($pdo, $comment, (int) ($account['id'] ?? 0))
         || sr_quiz_account_can_manage_comments($pdo, $account);
+}
+
+function sr_quiz_account_owns_comment_target(PDO $pdo, array $comment, int $accountId): bool
+{
+    $quizId = (int) ($comment['quiz_id'] ?? 0);
+    if ($quizId < 1 || $accountId < 1) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT created_by_account_id
+         FROM sr_quiz_sets
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $quizId]);
+
+    return (int) $stmt->fetchColumn() === $accountId;
 }
 
 function sr_quiz_account_can_delete_comment(array $comment, array $account, PDO $pdo): bool

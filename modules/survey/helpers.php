@@ -692,8 +692,27 @@ function sr_survey_account_can_view_comment_body(array $comment, ?array $account
     return $accountId > 0
         && (
             $accountId === (int) ($comment['author_account_id'] ?? 0)
+            || sr_survey_account_owns_comment_target($pdo, $comment, $accountId)
             || sr_survey_account_can_manage_comments($pdo, $accountId)
         );
+}
+
+function sr_survey_account_owns_comment_target(PDO $pdo, array $comment, int $accountId): bool
+{
+    $surveyId = (int) ($comment['survey_id'] ?? 0);
+    if ($surveyId < 1 || $accountId < 1) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT created_by_account_id
+         FROM sr_survey_forms
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $surveyId]);
+
+    return (int) $stmt->fetchColumn() === $accountId;
 }
 
 function sr_survey_account_can_delete_comment(array $comment, array $account, PDO $pdo): bool
