@@ -101,7 +101,7 @@ if (sr_request_method() === 'POST') {
         if ($errors === [] && $selectedReports !== []) {
             $processedCount = 0;
             $statusChangedCount = 0;
-            $skippedCount = 0;
+            $sameStatusCount = 0;
             $batchFailureMessage = '';
             $reviewNoteValue = trim((string) $reviewNote);
             try {
@@ -110,7 +110,7 @@ if (sr_request_method() === 'POST') {
                     'UPDATE sr_community_reports
                      SET status = :status,
                          reviewer_account_id = :reviewer_account_id,
-                         review_note = CASE WHEN :review_note_set = 1 THEN :review_note ELSE review_note END,
+                         review_note = :review_note,
                          reviewed_at = :reviewed_at,
                          updated_at = :updated_at
                      WHERE id = :id
@@ -123,7 +123,6 @@ if (sr_request_method() === 'POST') {
                     $stmt->execute([
                         'status' => $targetStatus,
                         'reviewer_account_id' => (int) $account['id'],
-                        'review_note_set' => $reviewNoteValue !== '' ? 1 : 0,
                         'review_note' => $reviewNoteValue,
                         'reviewed_at' => $now,
                         'updated_at' => $now,
@@ -135,7 +134,7 @@ if (sr_request_method() === 'POST') {
                         throw new RuntimeException($batchFailureMessage);
                     }
                     if ($beforeStatus === $targetStatus) {
-                        $skippedCount++;
+                        $sameStatusCount++;
                     } else {
                         $statusChangedCount++;
                     }
@@ -157,7 +156,7 @@ if (sr_request_method() === 'POST') {
                         'requested_count' => count($selectedIds),
                         'changed_count' => $statusChangedCount,
                         'processed_count' => $processedCount,
-                        'skipped_count' => $skippedCount,
+                        'same_status_count' => $sameStatusCount,
                         'review_note_present' => $reviewNoteValue !== '',
                         'selected_ids' => $selectedIds,
                     ],
@@ -167,8 +166,8 @@ if (sr_request_method() === 'POST') {
                 if ($statusChangedCount > 0) {
                     $notice .= ' 상태 변경 ' . number_format($statusChangedCount) . '건.';
                 }
-                if ($skippedCount > 0) {
-                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 처리 메모만 반영했습니다.';
+                if ($sameStatusCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . number_format($sameStatusCount) . '건은 처리 메모만 반영했습니다.';
                 }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
