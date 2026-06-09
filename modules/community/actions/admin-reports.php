@@ -42,12 +42,22 @@ if (sr_request_method() === 'POST') {
         $reviewNote = sr_post_string_without_truncation('review_note', 1000);
         $rawSelectedIds = $_POST['selected_report_ids'] ?? [];
         $selectedIds = [];
+        $hasInvalidSelectedId = !is_array($rawSelectedIds);
         if (is_array($rawSelectedIds)) {
             foreach ($rawSelectedIds as $rawSelectedId) {
-                $selectedId = (int) $rawSelectedId;
-                if ($selectedId > 0) {
-                    $selectedIds[$selectedId] = $selectedId;
+                if (is_array($rawSelectedId)) {
+                    $hasInvalidSelectedId = true;
+                    continue;
                 }
+
+                $selectedIdValue = trim((string) $rawSelectedId);
+                if ($selectedIdValue === '' || strlen($selectedIdValue) > 20 || preg_match('/\A[1-9][0-9]*\z/', $selectedIdValue) !== 1) {
+                    $hasInvalidSelectedId = true;
+                    continue;
+                }
+
+                $selectedId = (int) $selectedIdValue;
+                $selectedIds[$selectedId] = $selectedId;
             }
         }
         $selectedIds = array_values($selectedIds);
@@ -60,6 +70,9 @@ if (sr_request_method() === 'POST') {
         }
         if ($selectedIds === []) {
             $errors[] = '상태를 변경할 신고를 선택하세요.';
+        }
+        if ($hasInvalidSelectedId) {
+            $errors[] = '선택한 신고 ID 값이 올바르지 않습니다.';
         }
         if (count($selectedIds) > 100) {
             $errors[] = '신고 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
