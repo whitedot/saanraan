@@ -152,11 +152,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <?php echo sr_admin_pagination_summary_html($logoPagination); ?>
     </div>
+    <form id="logo-manager-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager')); ?>" class="logo-manager-bulk-form" data-logo-manager-bulk-form>
+        <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="intent" value="batch_status">
+        <input type="hidden" name="operation_key" value="logo_manager.set_status">
+        <div class="admin-list-actions logo-manager-bulk-actions" hidden data-logo-manager-bulk-bar>
+            <div class="logo-manager-bulk-summary" aria-live="polite">
+                <strong data-logo-manager-selected-count>0</strong>개 선택됨
+            </div>
+            <div class="logo-manager-bulk-controls">
+                <select name="target_status" class="form-select" aria-label="변경할 로고 배치 상태">
+                    <option value="active"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></option>
+                    <option value="disabled"><?php echo sr_e(sr_t('logo_manager::ui.text.92cdef3c')); ?></option>
+                </select>
+                <button type="submit" class="btn btn-solid-primary" data-logo-manager-bulk-submit disabled>상태 변경</button>
+                <button type="button" class="btn btn-solid-light" data-logo-manager-bulk-clear>선택 해제</button>
+            </div>
+        </div>
+    </form>
     <div class="table-wrapper">
         <table class="table logo-manager-assignments-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.logo.list')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
+                    <th class="logo-manager-select-cell">
+                        <label class="sr-only" for="logo_manager_bulk_select_all">현재 페이지 로고 배치 전체 선택</label>
+                        <input id="logo_manager_bulk_select_all" type="checkbox" class="form-checkbox" data-logo-manager-select-all<?php echo $logos === [] ? ' disabled' : ''; ?>>
+                    </th>
                     <th<?php echo sr_admin_sort_aria('position_key', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.position.label'), 'position_key', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.ac97396d'), 'title', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></th>
@@ -170,10 +192,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </thead>
             <tbody>
                 <?php if ($logos === []) { ?>
-                    <tr><td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
+                    <tr><td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($logos as $logo) { ?>
                         <tr>
+                            <td class="logo-manager-select-cell">
+                                <label class="sr-only" for="logo_manager_bulk_select_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e((string) $logo['title']); ?> 선택</label>
+                                <input id="logo_manager_bulk_select_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="selected_logo_ids[]" value="<?php echo sr_e((string) (int) $logo['id']); ?>" class="form-checkbox" form="logo-manager-bulk-status-form" data-logo-manager-row-select>
+                            </td>
                             <td><?php echo sr_e(sr_logo_manager_position_label((string) $logo['position_key'], $pdo)); ?></td>
                             <td class="admin-table-break">
                                 <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
@@ -213,6 +239,75 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <script>
 (function () {
+    var bulkForm = document.querySelector('[data-logo-manager-bulk-form]');
+    if (bulkForm) {
+        var bar = document.querySelector('[data-logo-manager-bulk-bar]');
+        var countNode = document.querySelector('[data-logo-manager-selected-count]');
+        var submit = document.querySelector('[data-logo-manager-bulk-submit]');
+        var clear = document.querySelector('[data-logo-manager-bulk-clear]');
+        var selectAll = document.querySelector('[data-logo-manager-select-all]');
+        var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-logo-manager-row-select]'));
+
+        var checkedRows = function () {
+            return rowChecks.filter(function (input) {
+                return input.checked && !input.disabled;
+            });
+        };
+
+        var syncBulkState = function () {
+            var selectedCount = checkedRows().length;
+            if (countNode) {
+                countNode.textContent = String(selectedCount);
+            }
+            if (bar) {
+                bar.hidden = selectedCount < 1;
+            }
+            if (submit) {
+                submit.disabled = selectedCount < 1;
+            }
+            if (selectAll) {
+                selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+            }
+        };
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                rowChecks.forEach(function (input) {
+                    if (!input.disabled) {
+                        input.checked = selectAll.checked;
+                    }
+                });
+                syncBulkState();
+            });
+        }
+        rowChecks.forEach(function (input) {
+            input.addEventListener('change', syncBulkState);
+        });
+        if (clear) {
+            clear.addEventListener('click', function () {
+                rowChecks.forEach(function (input) {
+                    input.checked = false;
+                });
+                syncBulkState();
+            });
+        }
+        bulkForm.addEventListener('submit', function (event) {
+            var selectedCount = checkedRows().length;
+            if (selectedCount < 1) {
+                event.preventDefault();
+                syncBulkState();
+                return;
+            }
+            var status = bulkForm.querySelector('select[name="target_status"]');
+            var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+            if (!window.confirm('선택한 로고 배치 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+                event.preventDefault();
+            }
+        });
+        syncBulkState();
+    }
+
     var positionSelect = document.querySelector('[data-logo-manager-position-select]');
     var symbolSwitch = document.querySelector('[data-logo-manager-public-symbol-switch]');
     if (!positionSelect || !symbolSwitch) {

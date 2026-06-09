@@ -48,6 +48,27 @@
     margin-right: .5rem;
 }
 
+.logo-manager-bulk-actions {
+    border-top: 0;
+}
+
+.logo-manager-bulk-summary,
+.logo-manager-bulk-controls {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+}
+
+.logo-manager-bulk-controls {
+    justify-content: flex-end;
+}
+
+.logo-manager-select-cell {
+    text-align: center;
+    width: 1%;
+}
+
 .logo-manager-assets-table {
     min-width: 62rem;
 }
