@@ -168,22 +168,64 @@
     width: 100%;
 }
 
-.admin-survey-statistics-filter .admin-survey-statistics-filter-survey .form-select {
+.admin-survey-statistics-filter-row {
+    align-items: end;
+    gap: calc(var(--spacing) * 2);
     width: 100%;
 }
 
-.admin-survey-filter-export-actions {
-    align-items: center;
-    border-inline-start: 1px solid var(--color-default-200);
-    display: flex;
-    flex-wrap: wrap;
+.admin-survey-statistics-primary-filter {
+    display: grid;
+    flex: 0 1 auto;
+    gap: calc(var(--spacing) * 1.5);
+    min-width: 0;
+    width: max-content;
+}
+
+.admin-survey-statistics-filter-controls {
+    align-items: end;
+    display: grid;
     gap: calc(var(--spacing) * 2);
+    grid-template-columns: minmax(0, 18rem) max-content;
+    min-width: 0;
+    width: max-content;
+}
+
+.admin-survey-statistics-export-actions {
+    align-items: end;
+    display: flex;
+    gap: calc(var(--spacing) * 2);
+}
+
+.admin-survey-statistics-filter-controls .form-select {
+    min-width: 0;
+    width: 100%;
+}
+
+.admin-survey-statistics-filter-controls .filtering-submit {
+    min-width: max-content;
+}
+
+.admin-survey-statistics-export-actions {
+    flex: 0 0 auto;
     margin-inline-start: auto;
-    padding-inline-start: calc(var(--spacing) * 3);
+}
+
+.admin-survey-statistics-export-actions .btn {
+    font-size: var(--type-caption-size);
+    min-height: calc(var(--spacing) * 8);
+    padding-block: calc(var(--spacing) * 1.5);
+    padding-inline: calc(var(--spacing) * 2.5);
+}
+
+.admin-survey-statistics-filter + .admin-card {
+    margin-top: calc(var(--spacing) * 4);
 }
 
 .admin-survey-statistics-summary-card .card-header {
     align-items: flex-start;
+    gap: calc(var(--spacing) * 3);
+    justify-content: space-between;
 }
 
 .admin-survey-statistics-summary-card .admin-dashboard-site-grid {
@@ -228,15 +270,40 @@
         grid-column: 1;
     }
 
-    .admin-survey-filter-export-actions {
-        border-inline-start: 0;
-        margin-inline-start: 0;
-        padding-inline-start: 0;
+    .admin-survey-statistics-filter-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-survey-statistics-primary-filter {
+        align-items: stretch;
         width: 100%;
     }
 
-    .admin-survey-filter-export-actions .btn {
-        flex: 1 1 auto;
+    .admin-survey-statistics-export-actions {
+        align-items: stretch;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .admin-survey-statistics-filter-controls {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .admin-survey-statistics-export-actions {
+        margin-inline-start: 0;
+    }
+
+    .admin-survey-statistics-filter-row .btn {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .admin-survey-statistics-summary-card .card-header {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .admin-survey-statistics-summary-card .admin-dashboard-site-grid {

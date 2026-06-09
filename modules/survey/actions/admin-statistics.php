@@ -86,27 +86,18 @@ $adminPageTitle = '설문 통계';
 $adminPageSubtitle = '선택한 설문의 응답 집계와 문항별 통계를 확인합니다. 제외 응답과 테스트 응답은 문항별 통계에서 제외됩니다.';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
-<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/statistics')); ?>" class="filtering-form admin-survey-statistics-filter ui-form-theme">
-    <div class="filtering filtering-card" data-filtering>
-        <div class="filtering-fields">
-            <div class="filtering-field filtering-field-fill admin-survey-statistics-filter-survey">
-                <label for="survey_statistics_survey_id" class="filtering-label">설문</label>
+<form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/statistics')); ?>" class="filtering-form filtering filtering-plain admin-survey-statistics-filter ui-form-theme">
+    <div class="filtering-fields filtering-fields-fit admin-survey-statistics-filter-row">
+        <div class="admin-survey-statistics-primary-filter">
+            <label for="survey_statistics_survey_id" class="filtering-label">설문</label>
+            <div class="admin-survey-statistics-filter-controls">
                 <select id="survey_statistics_survey_id" name="survey_id" class="form-select form-control-full">
                     <?php foreach ($surveyOptions as $surveyOption): ?>
                         <option value="<?php echo sr_e((string) (int) $surveyOption['id']); ?>"<?php echo $surveyId === (int) $surveyOption['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $surveyOption['title']); ?></option>
                     <?php endforeach; ?>
                 </select>
+                <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
             </div>
-        </div>
-        <div class="filtering-actions">
-            <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
-            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
-            <?php if (is_array($survey)): ?>
-                <div class="admin-survey-filter-export-actions">
-                    <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>분석 CSV</a>
-                    <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'codebook'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>코드북 CSV</a>
-                </div>
-            <?php endif; ?>
         </div>
     </div>
 </form>
@@ -132,12 +123,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <section class="admin-card admin-list-card card admin-list-form">
-        <div class="card-header"><h2 class="card-title">문항별 통계</h2></div>
+        <div class="card-header">
+            <h2 class="card-title">문항별 통계</h2>
+            <div class="admin-survey-statistics-export-actions">
+                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'analysis'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>분석 CSV</a>
+                <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys/export?' . http_build_query(['survey_id' => $surveyId, 'type' => 'codebook'], '', '&', PHP_QUERY_RFC3986))); ?>"><?php echo sr_material_icon_html('download'); ?>코드북 CSV</a>
+            </div>
+        </div>
         <div class="admin-list-summary-row">
             <p class="admin-list-summary">총 <strong><?php echo sr_e(number_format(count($questions))); ?>개</strong> 문항 · 선택형과 숫자형 문항은 표에서 요약하고, 텍스트 응답은 CSV에서 확인합니다.</p>
         </div>
         <div class="table-wrapper">
-            <table class="table">
+            <table class="table table-list">
+                <caption class="sr-only">설문 문항별 통계 목록</caption>
                 <thead class="ui-table-head">
                     <tr>
                         <th>문항</th>
