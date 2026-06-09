@@ -6,7 +6,7 @@
 .admin-coupon-filter.filtering-form > .filtering-fields {
     align-items: end;
     display: grid;
-    gap: .875rem;
+    gap: calc(var(--spacing) * 3);
     justify-content: stretch;
     width: 100%;
 }
@@ -27,6 +27,21 @@
 .admin-coupon-issue-table .admin-table-actions-cell,
 .admin-coupon-definition-table .admin-table-actions-cell {
     width: 1%;
+}
+
+.admin-coupon-definition-bulk-row {
+    padding-block: calc(var(--spacing) * 2);
+}
+
+.admin-coupon-definition-bulk-form {
+    margin: 0;
+    min-width: 0;
+}
+
+.admin-list-form .admin-coupon-definition-bulk-actions,
+.admin-list-form .admin-coupon-definition-bulk-controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .admin-coupon-filter .filtering-field {
@@ -71,5 +86,20 @@
     .admin-coupon-filter .filtering-input,
     .admin-coupon-filter .filtering-submit {
         width: 100%;
+    }
+
+    .admin-coupon-definition-bulk-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-coupon-definition-bulk-form,
+    .admin-list-form .admin-coupon-definition-bulk-actions,
+    .admin-list-form .admin-coupon-definition-bulk-controls {
+        width: 100%;
+    }
+
+    .admin-list-form .admin-coupon-definition-bulk-controls .btn {
+        flex: 1 1 auto;
     }
 }
