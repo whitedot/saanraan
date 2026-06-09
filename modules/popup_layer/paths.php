@@ -3,6 +3,7 @@
 return [
     'GET /popup-layer/body-file' => 'actions/body-file.php',
     'GET /admin/popup-layers' => 'actions/admin-popup-layers.php',
+    'POST /admin/popup-layers' => 'actions/admin-popup-layers.php',
     'GET /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
     'POST /admin/popup-layers/settings' => 'actions/admin-popup-layer-settings.php',
     'GET /admin/popup-layers/new' => 'actions/admin-popup-layer-new.php',

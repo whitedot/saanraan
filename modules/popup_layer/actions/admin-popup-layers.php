@@ -54,6 +54,10 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers', $intent === 'delete' ? 'delete' : 'edit');
     $popupId = (int) sr_post_string('popup_id', 20);
+    $returnTo = sr_post_string('return_to', 500);
+    if (!sr_is_safe_relative_url($returnTo)) {
+        $returnTo = '/admin/popup-layers';
+    }
 
     if ($intent === 'delete') {
         $stmt = $pdo->prepare('SELECT id FROM sr_popup_layers WHERE id = :id LIMIT 1');
@@ -108,6 +112,145 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '팝업 삭제 중 오류가 발생했습니다.';
             }
         }
+    } elseif ($intent === 'batch_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $rawSelectedIds = $_POST['selected_popup_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
+        }
+        $selectedIds = array_values($selectedIds);
+
+        if ($operationKey !== 'popup_layer.set_status') {
+            $errors[] = '허용되지 않은 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, ['enabled', 'disabled'], true)) {
+            $errors[] = '변경할 팝업레이어 상태가 올바르지 않습니다.';
+        }
+        if ($selectedIds === []) {
+            $errors[] = '상태를 변경할 팝업레이어를 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $errors[] = '팝업레이어 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+
+        $selectedPopups = [];
+        if ($errors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'popup_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT id, title, status
+                 FROM sr_popup_layers
+                 WHERE id IN (' . implode(', ', $placeholders) . ')
+                 ORDER BY id ASC'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedPopups[(int) ($row['id'] ?? 0)] = $row;
+            }
+            if (count($selectedPopups) !== count($selectedIds)) {
+                $errors[] = '선택한 팝업레이어 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        $blockedReferenceIds = [];
+        if ($errors === [] && $targetStatus === 'disabled') {
+            foreach ($selectedPopups as $selectedPopup) {
+                $selectedId = (int) ($selectedPopup['id'] ?? 0);
+                if ($selectedId < 1 || (string) ($selectedPopup['status'] ?? '') !== 'enabled') {
+                    continue;
+                }
+                $referenceResult = sr_read_reference_collect($pdo, 'popup-layer-references.php', [
+                    'owner_module_key' => 'popup_layer',
+                    'target_type' => 'popup_layer',
+                    'target_id' => $selectedId,
+                    'target_key' => '',
+                ]);
+                if (($referenceResult['errors'] ?? []) !== []) {
+                    $errors[] = '팝업레이어 참조 계약 오류가 있어 일괄 비활성화할 수 없습니다.';
+                    break;
+                }
+                if (($referenceResult['rows'] ?? []) !== []) {
+                    $blockedReferenceIds[] = $selectedId;
+                }
+            }
+            if ($errors === [] && $blockedReferenceIds !== []) {
+                $errors[] = '다른 모듈에서 참조 중인 팝업레이어가 있어 비활성화하지 않았습니다: ' . implode(', ', array_map('strval', $blockedReferenceIds));
+            }
+        }
+
+        if ($errors === []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare(
+                    'UPDATE sr_popup_layers
+                     SET status = :status, updated_at = :updated_at
+                     WHERE id = :id AND status <> :status_compare'
+                );
+                $now = sr_now();
+                foreach ($selectedIds as $selectedId) {
+                    $stmt->execute([
+                        'status' => $targetStatus,
+                        'status_compare' => $targetStatus,
+                        'updated_at' => $now,
+                        'id' => $selectedId,
+                    ]);
+                    if ($stmt->rowCount() > 0) {
+                        $changedCount++;
+                    } else {
+                        $skippedCount++;
+                    }
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'popup_layer.bulk_status_updated',
+                    'target_type' => 'popup_layer',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Popup layer statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $notice = '팝업레이어 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'content_status') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errors[] = '팝업레이어 상태 일괄 변경 중 오류가 발생했습니다.';
+            }
+        }
+
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect($returnTo);
     } elseif ($intent === 'save') {
         $isCreate = $popupId <= 0;
         $title = sr_popup_layer_clean_single_line(sr_post_string('title', 120), 120);

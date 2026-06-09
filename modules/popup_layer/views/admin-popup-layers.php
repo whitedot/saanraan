@@ -334,11 +334,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
             <?php echo sr_admin_pagination_summary_html($popupPagination); ?>
         </div>
+        <form id="popup-layer-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="admin-popup-layer-bulk-form" data-popup-layer-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_status">
+            <input type="hidden" name="operation_key" value="popup_layer.set_status">
+            <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/popup-layers')); ?>">
+            <div class="admin-list-actions admin-popup-layer-bulk-actions" hidden data-popup-layer-bulk-bar>
+                <div class="admin-popup-layer-bulk-summary" aria-live="polite">
+                    <strong data-popup-layer-selected-count>0</strong>개 선택됨
+                </div>
+                <div class="admin-popup-layer-bulk-controls">
+                    <select name="target_status" class="form-select" aria-label="변경할 팝업레이어 상태">
+                        <option value="enabled">사용</option>
+                        <option value="disabled">사용 안 함</option>
+                    </select>
+                    <button type="submit" class="btn btn-solid-primary" data-popup-layer-bulk-submit disabled>상태 변경</button>
+                    <button type="button" class="btn btn-solid-light" data-popup-layer-bulk-clear>선택 해제</button>
+                </div>
+            </div>
+        </form>
         <div class="table-wrapper">
         <table class="table admin-popup-layer-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
+                    <th class="admin-popup-layer-select-cell">
+                        <label class="sr-only" for="popup_layer_bulk_select_all">현재 페이지 팝업레이어 전체 선택</label>
+                        <input id="popup_layer_bulk_select_all" type="checkbox" class="form-checkbox" data-popup-layer-select-all<?php echo $popups === [] ? ' disabled' : ''; ?>>
+                    </th>
                     <th<?php echo sr_admin_sort_aria('title', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.08b17e43'), 'title', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.status.e10195a1'), 'status', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('target', $popupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('popup_layer::ui.text.8c609deb'), 'target', $popupSort, $popupSortOptions, $popupDefaultSort); ?></th>
@@ -352,7 +375,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($popups === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
+                        <td colspan="9" class="admin-empty-state"><?php echo sr_e(sr_t('popup_layer::ui.create.88d48f71')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($popups as $popup) { ?>
@@ -371,6 +394,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         };
                         ?>
                         <tr>
+                            <td class="admin-popup-layer-select-cell">
+                                <label class="sr-only" for="popup_layer_bulk_select_<?php echo sr_e((string) (int) $popup['id']); ?>"><?php echo sr_e((string) $popup['title']); ?> 선택</label>
+                                <input id="popup_layer_bulk_select_<?php echo sr_e((string) (int) $popup['id']); ?>" type="checkbox" name="selected_popup_ids[]" value="<?php echo sr_e((string) (int) $popup['id']); ?>" class="form-checkbox" form="popup-layer-bulk-status-form" data-popup-layer-row-select>
+                            </td>
                             <td class="admin-table-break admin-popup-layer-title-cell"><?php echo sr_e((string) $popup['title']); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($popupStatus, 'content_status')); ?></span></td>
                             <td class="admin-table-break admin-popup-layer-target-cell">
@@ -410,6 +437,79 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo $popupLayerCopyModals; ?>
     <?php echo $popupLayerReferenceModals; ?>
     <?php echo sr_admin_pagination_html($popupPagination, '팝업레이어 목록 페이지'); ?>
+    <script>
+    (function () {
+        var form = document.querySelector('[data-popup-layer-bulk-form]');
+        if (!form) {
+            return;
+        }
+        var bar = document.querySelector('[data-popup-layer-bulk-bar]');
+        var countNode = document.querySelector('[data-popup-layer-selected-count]');
+        var submit = document.querySelector('[data-popup-layer-bulk-submit]');
+        var clear = document.querySelector('[data-popup-layer-bulk-clear]');
+        var selectAll = document.querySelector('[data-popup-layer-select-all]');
+        var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-popup-layer-row-select]'));
+
+        function checkedRows() {
+            return rowChecks.filter(function (input) {
+                return input.checked && !input.disabled;
+            });
+        }
+
+        function syncBulkState() {
+            var selectedCount = checkedRows().length;
+            if (countNode) {
+                countNode.textContent = String(selectedCount);
+            }
+            if (bar) {
+                bar.hidden = selectedCount < 1;
+            }
+            if (submit) {
+                submit.disabled = selectedCount < 1;
+            }
+            if (selectAll) {
+                selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+            }
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                rowChecks.forEach(function (input) {
+                    if (!input.disabled) {
+                        input.checked = selectAll.checked;
+                    }
+                });
+                syncBulkState();
+            });
+        }
+        rowChecks.forEach(function (input) {
+            input.addEventListener('change', syncBulkState);
+        });
+        if (clear) {
+            clear.addEventListener('click', function () {
+                rowChecks.forEach(function (input) {
+                    input.checked = false;
+                });
+                syncBulkState();
+            });
+        }
+        form.addEventListener('submit', function (event) {
+            var selectedCount = checkedRows().length;
+            if (selectedCount < 1) {
+                event.preventDefault();
+                syncBulkState();
+                return;
+            }
+            var status = form.querySelector('select[name="target_status"]');
+            var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+            if (!window.confirm('선택한 팝업레이어 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+                event.preventDefault();
+            }
+        });
+        syncBulkState();
+    }());
+    </script>
 <?php } ?>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
