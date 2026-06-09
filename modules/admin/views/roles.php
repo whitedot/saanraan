@@ -541,8 +541,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                     </div>
+                    <input type="hidden" name="intent" value="" data-admin-permission-intent-input>
                     <div class="modal-footer">
-                        <button type="submit" name="intent" value="revoke_permission" class="btn btn-outline-danger modal-action" data-admin-permission-intent>권한 회수</button>
+                        <button type="button" value="revoke_permission" class="btn btn-outline-danger modal-action" data-admin-permission-intent>권한 회수</button>
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($permissionModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
                         <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.save.a6e3d7fe')); ?></button>
                     </div>
@@ -1281,8 +1282,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (permissionSubmit) {
             var submitForm = permissionSubmit.closest('[data-admin-permission-form]');
             if (submitForm) {
+                var submitIntentInput = submitForm.querySelector('[data-admin-permission-intent-input]');
                 submitForm.setAttribute('data-admin-permission-submit-intent', permissionSubmit.getAttribute('name') === 'intent' ? (permissionSubmit.value || '') : '');
+                if (submitIntentInput) {
+                    submitIntentInput.value = permissionSubmit.getAttribute('name') === 'intent' ? (permissionSubmit.value || '') : '';
+                }
             }
+        }
+
+        var permissionIntentButton = event.target.closest && event.target.closest('[data-admin-permission-form] [data-admin-permission-intent]');
+        if (permissionIntentButton) {
+            var intentForm = permissionIntentButton.closest('[data-admin-permission-form]');
+            var intentInput = intentForm ? intentForm.querySelector('[data-admin-permission-intent-input]') : null;
+            if (!intentForm || !intentInput) {
+                return;
+            }
+
+            event.preventDefault();
+            intentInput.value = permissionIntentButton.value || '';
+            intentForm.setAttribute('data-admin-permission-submit-intent', intentInput.value);
+            if (intentForm.requestSubmit) {
+                intentForm.requestSubmit();
+            } else {
+                intentForm.submit();
+            }
+            return;
         }
 
         var memberSearchButton = event.target.closest && event.target.closest('[data-admin-permission-member-search-button]');

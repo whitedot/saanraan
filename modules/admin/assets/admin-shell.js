@@ -587,7 +587,7 @@ window.AdminShell = {
                 return;
             }
 
-            if (choiceInputs.length > 0 && checkedChoices.length === choiceInputs.length) {
+            if (choiceInputs.length > 1 && checkedChoices.length === choiceInputs.length) {
                 choiceInputs.forEach(input => {
                     input.checked = false;
                 });
