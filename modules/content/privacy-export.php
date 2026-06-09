@@ -172,8 +172,11 @@ return static function (PDO $pdo, int $accountId): array {
         $secretSelectSql = sr_content_comments_is_secret_column_exists($pdo)
             ? 'c.is_secret'
             : '0 AS is_secret';
+        $threadSelectSql = function_exists('sr_content_comments_thread_columns_exist') && sr_content_comments_thread_columns_exist($pdo)
+            ? 'c.parent_comment_id, c.thread_root_id, c.depth,'
+            : 'NULL AS parent_comment_id, c.id AS thread_root_id, 1 AS depth,';
         $commentStmt = $pdo->prepare(
-            'SELECT c.id, c.content_id, p.slug, p.title, c.author_account_id, ' . $snapshotSelectSql . ', c.body_text, ' . $secretSelectSql . ', c.status, c.created_at, c.updated_at
+            'SELECT c.id, c.content_id, ' . $threadSelectSql . ' p.slug, p.title, c.author_account_id, ' . $snapshotSelectSql . ', c.body_text, ' . $secretSelectSql . ', c.status, c.created_at, c.updated_at
              FROM sr_content_comments c
              LEFT JOIN sr_content_items p ON p.id = c.content_id
              WHERE c.author_account_id = :account_id

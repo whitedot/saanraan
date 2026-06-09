@@ -266,6 +266,9 @@ CREATE TABLE IF NOT EXISTS sr_content_series_items (
 CREATE TABLE IF NOT EXISTS sr_content_comments (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     content_id BIGINT UNSIGNED NOT NULL,
+    parent_comment_id BIGINT UNSIGNED NULL,
+    thread_root_id BIGINT UNSIGNED NULL,
+    depth TINYINT UNSIGNED NOT NULL DEFAULT 1,
     author_account_id BIGINT UNSIGNED NOT NULL,
     author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
     body_text TEXT NOT NULL,
@@ -275,6 +278,8 @@ CREATE TABLE IF NOT EXISTS sr_content_comments (
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_sr_content_comments_content_status_id (content_id, status, id),
+    KEY idx_sr_content_comments_thread (content_id, status, thread_root_id, parent_comment_id, id),
+    KEY idx_sr_content_comments_parent (parent_comment_id),
     KEY idx_sr_content_comments_author_id (author_account_id, id)
 );
 

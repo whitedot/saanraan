@@ -1530,3 +1530,25 @@
     border-radius: var(--content-radius);
     color: var(--content-text);
 }
+
+.content-comment-depth-2,
+.content-comment-depth-3 {
+    border-left: 3px solid var(--content-border);
+    padding-left: 14px;
+}
+
+.content-comment-depth-2 {
+    margin-left: 18px;
+}
+
+.content-comment-depth-3 {
+    margin-left: 36px;
+}
+
+@media (max-width: 640px) {
+    .content-comment-depth-2,
+    .content-comment-depth-3 {
+        margin-left: 8px;
+        padding-left: 10px;
+    }
+}

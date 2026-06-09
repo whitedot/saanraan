@@ -26,21 +26,32 @@ if (empty(sr_content_settings($pdo)['secret_comments_enabled'])) {
     $values['is_secret'] = 0;
 }
 $errors = sr_content_validate_comment_input($values);
+$parentValidation = sr_content_validate_comment_parent($pdo, $contentId, $values);
+$parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
+$errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
 if ($errors !== []) {
     $_SESSION['sr_content_comment_errors'] = $errors;
     $_SESSION['sr_content_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';
     $_SESSION['sr_content_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
+    $_SESSION['sr_content_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
     sr_redirect(sr_content_path((string) $page['slug']) . '#content-comments');
 }
 
+$values['parent_comment'] = $parentComment;
 $commentId = sr_content_create_comment($pdo, $contentId, (int) $account['id'], $values);
+$notificationExcludeAccountIds = [];
+if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0) {
+    $notificationExcludeAccountIds[] = (int) $parentComment['author_account_id'];
+}
 $commentNotificationResult = sr_content_create_comment_notifications(
     $pdo,
     $page,
     $commentId,
     (string) $values['body_text'],
     (int) $account['id'],
-    (int) ($values['is_secret'] ?? 0) !== 1
+    (int) ($values['is_secret'] ?? 0) !== 1,
+    $notificationExcludeAccountIds,
+    is_array($parentComment) ? $parentComment : null
 );
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
@@ -52,7 +63,9 @@ sr_audit_log($pdo, [
     'message' => 'Content comment created.',
     'metadata' => [
         'content_id' => $contentId,
+        'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
         'content_author_notification_created' => !empty($commentNotificationResult['content_author_notification_created']),
+        'parent_author_notification_created' => !empty($commentNotificationResult['parent_author_notification_created']),
         'mention_candidate_count' => (int) ($commentNotificationResult['mention_candidate_count'] ?? 0),
         'mention_notification_count' => (int) ($commentNotificationResult['mention_notification_count'] ?? 0),
         'mention_account_hashes' => $commentNotificationResult['mention_account_hashes'] ?? [],

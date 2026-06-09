@@ -65,6 +65,9 @@ CREATE TABLE IF NOT EXISTS sr_survey_forms (
 CREATE TABLE IF NOT EXISTS sr_survey_comments (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     survey_id BIGINT UNSIGNED NOT NULL,
+    parent_comment_id BIGINT UNSIGNED NULL,
+    thread_root_id BIGINT UNSIGNED NULL,
+    depth TINYINT UNSIGNED NOT NULL DEFAULT 1,
     author_account_id BIGINT UNSIGNED NULL,
     author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
     body_text TEXT NOT NULL,
@@ -75,6 +78,8 @@ CREATE TABLE IF NOT EXISTS sr_survey_comments (
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
     KEY idx_sr_survey_comments_survey_status_id (survey_id, status, id),
+    KEY idx_sr_survey_comments_thread (survey_id, status, thread_root_id, parent_comment_id, id),
+    KEY idx_sr_survey_comments_parent (parent_comment_id),
     KEY idx_sr_survey_comments_author_id (author_account_id, id),
     KEY idx_sr_survey_comments_created (created_at, id)
 );

@@ -275,13 +275,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <?php if (is_array($contentComments ?? null) && $contentComments !== []) { ?>
                     <ul>
                         <?php foreach ($contentComments as $contentComment) { ?>
-                            <li>
+                            <?php
+                            $contentCommentDepth = min(3, max(1, (int) ($contentComment['depth'] ?? 1)));
+                            ?>
+                            <li class="content-comment-depth-<?php echo sr_e((string) $contentCommentDepth); ?>">
                                 <?php
                                 $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null, $pdo);
                                 $contentCommentCanEdit = is_array($account ?? null) && sr_content_account_can_edit_comment($contentComment, $account);
                                 $contentCommentCanDelete = is_array($account ?? null) && sr_content_account_can_delete_comment($contentComment, $account, $pdo);
                                 $contentCommentCanHide = sr_content_account_can_hide_comment($pdo, $contentComment, is_array($account ?? null) ? $account : null);
+                                $contentCommentCanReply = is_array($account ?? null) && !$contentAdminPreview && $contentCommentCanViewBody && $contentCommentDepth < 3;
                                 $contentCommentEditId = 'content_comment_edit_' . (string) $contentComment['id'];
+                                $contentCommentReplyId = 'content_comment_reply_' . (string) $contentComment['id'];
                                 $contentCommentCreatedAt = (string) ($contentComment['created_at'] ?? '');
                                 ?>
                                 <div class="content-comment-meta">
@@ -292,14 +297,36 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                     <?php if ((int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
                                         <span>비밀</span>
                                     <?php } ?>
+                                    <?php if ($contentCommentDepth > 1) { ?>
+                                        <span>답글 <?php echo sr_e((string) $contentCommentDepth); ?>단계</span>
+                                    <?php } ?>
                                 </div>
                                 <?php if ($contentCommentCanViewBody) { ?>
                                     <p><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
                                 <?php } else { ?>
                                     <p class="content-comment-secret">비밀 댓글입니다.</p>
                                 <?php } ?>
-                                <?php if ($contentCommentCanEdit || $contentCommentCanDelete || $contentCommentCanHide) { ?>
+                                <?php if ($contentCommentCanEdit || $contentCommentCanDelete || $contentCommentCanHide || $contentCommentCanReply) { ?>
                                     <div class="content-comment-actions">
+                                        <?php if ($contentCommentCanReply) { ?>
+                                            <details<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? ' open' : ''; ?>>
+                                                <summary class="btn btn-solid-light">답글</summary>
+                                                <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
+                                                    <?php echo sr_csrf_field(); ?>
+                                                    <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
+                                                    <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
+                                                    <label for="<?php echo sr_e($contentCommentReplyId); ?>">답글</label>
+                                                    <textarea id="<?php echo sr_e($contentCommentReplyId); ?>" name="body_text" rows="3" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                                                    <?php if (!empty($contentSecretCommentsEnabled)) { ?>
+                                                        <label class="content-comment-secret-toggle">
+                                                            <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] && !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
+                                                            <span>비밀 댓글</span>
+                                                        </label>
+                                                    <?php } ?>
+                                                    <button type="submit" class="btn btn-solid-light">답글 등록</button>
+                                                </form>
+                                            </details>
+                                        <?php } ?>
                                         <?php if ($contentCommentCanEdit) { ?>
                                             <details>
                                                 <summary class="btn btn-solid-light">수정</summary>
@@ -344,8 +371,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <form id="content-comment-form" method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
+                        <input type="hidden" name="parent_comment_id" value="0">
                         <label for="content_comment_body">댓글</label>
-                        <textarea id="content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($contentCommentBody ?? '')); ?></textarea>
+                        <textarea id="content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) < 1 ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
                         <?php if (!empty($contentSecretCommentsEnabled)) { ?>
                             <label class="content-comment-secret-toggle">
                                 <input type="checkbox" name="is_secret" value="1"<?php echo !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>

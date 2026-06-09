@@ -235,6 +235,7 @@ unset($_SESSION['sr_community_report_errors'], $_SESSION['sr_community_report_no
 $commentErrors = [];
 $commentNotice = '';
 $commentBody = '';
+$commentParentId = 0;
 if (isset($_SESSION['sr_community_comment_notice']) && is_string($_SESSION['sr_community_comment_notice'])) {
     $commentNotice = $_SESSION['sr_community_comment_notice'];
 }
@@ -249,7 +250,10 @@ if (isset($_SESSION['sr_community_comment_body']) && is_string($_SESSION['sr_com
     $commentBody = $_SESSION['sr_community_comment_body'];
 }
 $commentIsSecret = !empty($_SESSION['sr_community_comment_is_secret']);
-unset($_SESSION['sr_community_comment_notice'], $_SESSION['sr_community_comment_errors'], $_SESSION['sr_community_comment_body'], $_SESSION['sr_community_comment_is_secret']);
+if (isset($_SESSION['sr_community_comment_parent_id'])) {
+    $commentParentId = (int) $_SESSION['sr_community_comment_parent_id'];
+}
+unset($_SESSION['sr_community_comment_notice'], $_SESSION['sr_community_comment_errors'], $_SESSION['sr_community_comment_body'], $_SESSION['sr_community_comment_is_secret'], $_SESSION['sr_community_comment_parent_id']);
 $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'post');
 

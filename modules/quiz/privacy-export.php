@@ -1,6 +1,8 @@
 <?php
 
 return static function (PDO $pdo, int $accountId): array {
+    require_once SR_ROOT . '/modules/quiz/helpers.php';
+
     $attemptStmt = $pdo->prepare(
         'SELECT id, quiz_id, status, source_module, source_type, source_id, source_title_snapshot, source_url_snapshot,
                 return_url, started_at, submitted_at, scored_at, rewarded_at, total_score, passed, selected_result_id,
@@ -35,8 +37,11 @@ return static function (PDO $pdo, int $accountId): array {
 
     $comments = [];
     try {
+        $threadSelectSql = function_exists('sr_quiz_comment_thread_columns_exist') && sr_quiz_comment_thread_columns_exist($pdo)
+            ? 'parent_comment_id, thread_root_id, depth,'
+            : 'NULL AS parent_comment_id, id AS thread_root_id, 1 AS depth,';
         $commentStmt = $pdo->prepare(
-            'SELECT id, quiz_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at
+            'SELECT id, quiz_id, ' . $threadSelectSql . ' author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at
              FROM sr_quiz_comments
              WHERE author_account_id = :account_id
              ORDER BY id ASC'

@@ -28,6 +28,9 @@ if (!is_array($board) || !sr_community_effective_board_secret_comments_enabled($
     $values['is_secret'] = 0;
 }
 $errors = sr_community_validate_comment_input($values);
+$parentValidation = sr_community_validate_comment_parent($pdo, $postId, $values);
+$parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
+$errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
 
 if ($errors === [] && sr_community_comment_rate_limited($pdo, (int) $account['id'], $settings)) {
     $errors[] = sr_t('community::action.rate_limit.comment');
@@ -46,9 +49,11 @@ if ($errors !== []) {
     $_SESSION['sr_community_comment_errors'] = $errors;
     $_SESSION['sr_community_comment_body'] = is_string($values['body_text']) ? $values['body_text'] : '';
     $_SESSION['sr_community_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
+    $_SESSION['sr_community_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
     sr_redirect('/community/post?id=' . (string) $postId . '#comments');
 }
 
+$values['parent_comment'] = $parentComment;
 $commentId = sr_community_create_comment($pdo, $postId, (int) $account['id'], $values);
 $commentChargeResult = sr_community_asset_event_required($commentChargeConfig)
     ? sr_community_run_asset_event($pdo, $commentChargeConfig, (int) $account['id'], 'comment_write_charge', 'community.comment', $commentId, 'use', 'community.comment.write')
@@ -83,16 +88,17 @@ sr_audit_log($pdo, [
     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
 $postAuthorNotificationCreated = false;
+$parentAuthorNotificationCreated = false;
+$commentAuthorLabel = sr_community_message_account_label(
+    (string) ($account['display_name'] ?? ''),
+    (int) $account['id'],
+    false,
+    null,
+    (string) ($account['status'] ?? ''),
+    sr_community_member_nickname($pdo, (int) $account['id']),
+    sr_member_settings($pdo)
+);
 if ((int) $post['author_account_id'] !== (int) $account['id']) {
-    $commentAuthorLabel = sr_community_message_account_label(
-        (string) ($account['display_name'] ?? ''),
-        (int) $account['id'],
-        false,
-        null,
-        (string) ($account['status'] ?? ''),
-        sr_community_member_nickname($pdo, (int) $account['id']),
-        sr_member_settings($pdo)
-    );
     $postAuthorNotificationCreated = sr_community_create_account_event_notification(
         $pdo,
         (int) $post['author_account_id'],
@@ -100,12 +106,35 @@ if ((int) $post['author_account_id'] !== (int) $account['id']) {
         [
             'post_id' => $postId,
             'comment_id' => $commentId,
+            'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
             'member_name' => $commentAuthorLabel,
             'link_url' => '/community/post?id=' . (string) $postId . '#comments',
             'created_at' => sr_now(),
         ],
         (int) $account['id']
     );
+}
+if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0
+    && (int) ($parentComment['author_account_id'] ?? 0) !== (int) $account['id']
+    && (int) ($parentComment['author_account_id'] ?? 0) !== (int) ($post['author_account_id'] ?? 0)) {
+    $parentAuthorNotificationCreated = sr_community_create_account_event_notification(
+        $pdo,
+        (int) $parentComment['author_account_id'],
+        'comment.created',
+        [
+            'post_id' => $postId,
+            'comment_id' => $commentId,
+            'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
+            'member_name' => $commentAuthorLabel,
+            'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+            'created_at' => sr_now(),
+        ],
+        (int) $account['id']
+    );
+}
+$mentionExcludeAccountIds = [(int) $post['author_account_id']];
+if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0) {
+    $mentionExcludeAccountIds[] = (int) $parentComment['author_account_id'];
 }
 $commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
     ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
@@ -115,7 +144,7 @@ $commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
         $commentId,
         (string) $values['body_text'],
         (int) $account['id'],
-        [(int) $post['author_account_id']]
+        $mentionExcludeAccountIds
     );
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
@@ -127,7 +156,9 @@ sr_audit_log($pdo, [
     'message' => 'Community comment notifications created.',
     'metadata' => [
         'post_id' => $postId,
+        'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
         'post_author_notification_created' => $postAuthorNotificationCreated,
+        'parent_author_notification_created' => $parentAuthorNotificationCreated,
         'mention_candidate_count' => (int) ($commentMentionNotificationResult['mention_candidate_count'] ?? 0),
         'mention_notification_count' => (int) ($commentMentionNotificationResult['mention_notification_count'] ?? 0),
         'mention_account_hashes' => $commentMentionNotificationResult['mention_account_hashes'] ?? [],

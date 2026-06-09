@@ -23,15 +23,24 @@ if ((int) ($survey['secret_comments_enabled'] ?? 0) !== 1) {
     $values['is_secret'] = 0;
 }
 $errors = sr_survey_validate_comment_input($values);
+$parentValidation = sr_survey_validate_comment_parent($pdo, $surveyId, $values);
+$parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
+$errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
 $redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '#survey-comments';
 if ($errors !== []) {
     $_SESSION['sr_survey_comment_errors'] = $errors;
     $_SESSION['sr_survey_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';
     $_SESSION['sr_survey_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
+    $_SESSION['sr_survey_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
     sr_redirect($redirectUrl);
 }
 
+$values['parent_comment'] = $parentComment;
 $commentId = sr_survey_create_comment($pdo, $surveyId, (int) $account['id'], $values);
+$mentionExcludeAccountIds = [(int) $account['id']];
+if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0) {
+    $mentionExcludeAccountIds[] = (int) $parentComment['author_account_id'];
+}
 $mentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
     ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
     : sr_survey_create_comment_mention_notifications(
@@ -40,7 +49,7 @@ $mentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
         $commentId,
         (string) $values['body_text'],
         (int) $account['id'],
-        [(int) $account['id']]
+        $mentionExcludeAccountIds
     );
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
@@ -52,6 +61,7 @@ sr_audit_log($pdo, [
     'message' => 'Survey comment created.',
     'metadata' => [
         'survey_id' => $surveyId,
+        'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
         'is_secret' => (int) ($values['is_secret'] ?? 0) === 1,
         'mention_candidate_count' => (int) ($mentionNotificationResult['mention_candidate_count'] ?? 0),
         'mention_notification_count' => (int) ($mentionNotificationResult['mention_notification_count'] ?? 0),

@@ -372,13 +372,19 @@ function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): arr
     $limit = max(1, min(100, $limit));
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
     $secretSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
+    $threadSelectSql = sr_community_comment_thread_columns_exist($pdo)
+        ? 'c.parent_comment_id, c.thread_root_id, c.depth,'
+        : 'NULL AS parent_comment_id, c.id AS thread_root_id, 1 AS depth,';
+    $orderSql = sr_community_comment_thread_columns_exist($pdo)
+        ? 'COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC'
+        : 'c.id ASC';
     $stmt = $pdo->prepare(
-        "SELECT c.id, c.post_id, c.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, c.body_text, " . $secretSelectSql . " c.status, c.created_at, c.updated_at
+        "SELECT c.id, c.post_id, " . $threadSelectSql . " c.author_account_id, " . $authorSnapshotSelectSql . ", author.status AS author_account_status, c.body_text, " . $secretSelectSql . " c.status, c.created_at, c.updated_at
          FROM sr_community_comments c
          LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
          WHERE c.post_id = :post_id
            AND c.status = 'published'
-         ORDER BY c.id ASC
+         ORDER BY " . $orderSql . "
          LIMIT :limit_value"
     );
     $stmt->bindValue('post_id', $postId, PDO::PARAM_INT);
@@ -386,6 +392,31 @@ function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): arr
     $stmt->execute();
 
     return $stmt->fetchAll();
+}
+
+function sr_community_comment_thread_columns_exist(PDO $pdo): bool
+{
+    static $existsByConnection = [];
+    $key = (string) spl_object_id($pdo);
+    if (array_key_exists($key, $existsByConnection)) {
+        return $existsByConnection[$key];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME IN (\'parent_comment_id\', \'thread_root_id\', \'depth\')'
+        );
+        $stmt->execute(['table_name' => 'sr_community_comments']);
+        $existsByConnection[$key] = (int) $stmt->fetchColumn() === 3;
+    } catch (Throwable $exception) {
+        $existsByConnection[$key] = false;
+    }
+
+    return $existsByConnection[$key];
 }
 
 function sr_community_public_comments(PDO $pdo, int $postId, int $limit = 50): array
@@ -1008,7 +1039,10 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     $params = $queryParts['params'];
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
     $secretSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
-    $sql = 'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at,
+    $threadSelectSql = sr_community_comment_thread_columns_exist($pdo)
+        ? 'c.parent_comment_id, c.thread_root_id, c.depth,'
+        : 'NULL AS parent_comment_id, c.id AS thread_root_id, 1 AS depth,';
+    $sql = 'SELECT c.id, c.post_id, ' . $threadSelectSql . ' c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, c.status, c.created_at, c.updated_at,
                    ' . $secretSelectSql . '
                    p.title AS post_title,
                    b.board_key, b.title AS board_title,
@@ -1049,8 +1083,11 @@ function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
 
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_comments', 'c');
     $secretSelectSql = sr_community_comment_secret_column_exists($pdo) ? 'c.is_secret,' : '0 AS is_secret,';
+    $threadSelectSql = sr_community_comment_thread_columns_exist($pdo)
+        ? 'c.parent_comment_id, c.thread_root_id, c.depth,'
+        : 'NULL AS parent_comment_id, c.id AS thread_root_id, 1 AS depth,';
     $stmt = $pdo->prepare(
-        'SELECT c.id, c.post_id, c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, ' . $secretSelectSql . ' c.status, c.created_at, c.updated_at,
+        'SELECT c.id, c.post_id, ' . $threadSelectSql . ' c.author_account_id, ' . $authorSnapshotSelectSql . ', c.body_text, ' . $secretSelectSql . ' c.status, c.created_at, c.updated_at,
                 p.title AS post_title,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
@@ -1503,9 +1540,12 @@ function sr_community_account_can_comment_post(PDO $pdo, array $post, array $acc
 
 function sr_community_comment_input_values(): array
 {
+    $parentCommentIdValue = sr_post_string('parent_comment_id', 20);
+
     return [
         'body_text' => sr_post_string_without_truncation('body_text', 5000),
         'is_secret' => sr_post_string('is_secret', 10) === '1' ? 1 : 0,
+        'parent_comment_id' => preg_match('/\A[1-9][0-9]*\z/', $parentCommentIdValue) === 1 ? (int) $parentCommentIdValue : 0,
     ];
 }
 
@@ -1523,6 +1563,27 @@ function sr_community_validate_comment_input(array $values): array
     return [];
 }
 
+function sr_community_validate_comment_parent(PDO $pdo, int $postId, array $values): array
+{
+    $parentCommentId = (int) ($values['parent_comment_id'] ?? 0);
+    if ($parentCommentId < 1) {
+        return ['parent_comment' => null, 'errors' => []];
+    }
+    if (!sr_community_comment_thread_columns_exist($pdo)) {
+        return ['parent_comment' => null, 'errors' => ['답글 기능을 사용할 수 없습니다. 업데이트를 먼저 적용해 주세요.']];
+    }
+
+    $parentComment = sr_community_admin_comment_by_id($pdo, $parentCommentId);
+    if (!is_array($parentComment) || (int) ($parentComment['post_id'] ?? 0) !== $postId || (string) ($parentComment['status'] ?? '') !== 'published') {
+        return ['parent_comment' => null, 'errors' => ['답글을 작성할 댓글을 찾을 수 없습니다.']];
+    }
+    if ((int) ($parentComment['depth'] ?? 1) >= 3) {
+        return ['parent_comment' => null, 'errors' => ['답글은 3단계까지만 작성할 수 있습니다.']];
+    }
+
+    return ['parent_comment' => $parentComment, 'errors' => []];
+}
+
 function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId, array $values): int
 {
     $now = sr_now();
@@ -1530,11 +1591,17 @@ function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $secretColumnSql = sr_community_comment_secret_column_exists($pdo) ? 'is_secret, ' : '';
     $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
+    $threadColumnSql = sr_community_comment_thread_columns_exist($pdo) ? 'parent_comment_id, thread_root_id, depth, ' : '';
+    $threadValueSql = $threadColumnSql !== '' ? ':parent_comment_id, :thread_root_id, :depth, ' : '';
+    $parentComment = is_array($values['parent_comment'] ?? null) ? $values['parent_comment'] : null;
+    $parentCommentId = is_array($parentComment) ? (int) ($parentComment['id'] ?? 0) : 0;
+    $depth = is_array($parentComment) ? min(3, max(2, (int) ($parentComment['depth'] ?? 1) + 1)) : 1;
+    $threadRootId = is_array($parentComment) ? (int) (($parentComment['thread_root_id'] ?? 0) ?: ($parentComment['id'] ?? 0)) : null;
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_comments
-            (post_id, author_account_id, ' . $authorSnapshotColumnSql . 'body_text, ' . $secretColumnSql . 'status, created_at, updated_at)
+            (post_id, ' . $threadColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . 'body_text, ' . $secretColumnSql . 'status, created_at, updated_at)
          VALUES
-            (:post_id, :author_account_id, ' . $authorSnapshotValueSql . ':body_text, ' . $secretValueSql . ':status, :created_at, :updated_at)'
+            (:post_id, ' . $threadValueSql . ':author_account_id, ' . $authorSnapshotValueSql . ':body_text, ' . $secretValueSql . ':status, :created_at, :updated_at)'
     );
     $params = [
         'post_id' => $postId,
@@ -1550,8 +1617,24 @@ function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId
     if ($secretColumnSql !== '') {
         $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
     }
+    if ($threadColumnSql !== '') {
+        $params['parent_comment_id'] = $parentCommentId > 0 ? $parentCommentId : null;
+        $params['thread_root_id'] = $threadRootId;
+        $params['depth'] = $depth;
+    }
     $stmt->execute($params);
     $commentId = (int) $pdo->lastInsertId();
+    if ($threadColumnSql !== '' && $parentCommentId < 1) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_comments
+             SET thread_root_id = :thread_root_id
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'thread_root_id' => $commentId,
+            'id' => $commentId,
+        ]);
+    }
 
     $stmt = $pdo->prepare(
         'UPDATE sr_community_posts

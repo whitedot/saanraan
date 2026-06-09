@@ -284,13 +284,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php } else { ?>
                 <ul>
                     <?php foreach ($comments as $comment) { ?>
-                        <li>
+                        <?php
+                        $communityCommentDepth = min(3, max(1, (int) ($comment['depth'] ?? 1)));
+                        ?>
+                        <li class="community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>">
                             <?php
                             $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
                             $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post);
                             $communityCommentCanHide = sr_community_account_can_hide_comment($pdo, $comment, $post, is_array($account ?? null) ? $account : null);
+                            $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
+                            $communityCommentReplyId = 'modules_community_view_comment_reply_' . (string) $comment['id'];
                             $communityCommentCreatedAt = (string) ($comment['created_at'] ?? '');
                             ?>
                             <p>
@@ -302,6 +307,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <?php if ((int) ($comment['is_secret'] ?? 0) === 1) { ?>
                                     / <?php echo sr_e('비밀'); ?>
                                 <?php } ?>
+                                <?php if ($communityCommentDepth > 1) { ?>
+                                    / <?php echo sr_e('답글 ' . (string) $communityCommentDepth . '단계'); ?>
+                                <?php } ?>
                             </p>
                             <?php if ($communityCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
@@ -309,8 +317,31 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
                             <?php } ?>
                             <?php if (is_array($account)) { ?>
-                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanHide) { ?>
+                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanHide || $communityCommentCanReply) { ?>
                                     <div class="community-comment-actions">
+                                        <?php if ($communityCommentCanReply) { ?>
+                                            <details<?php echo $commentParentId === (int) $comment['id'] ? ' open' : ''; ?>>
+                                                <summary class="btn btn-solid-light">답글</summary>
+                                                <form method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>">
+                                                    <?php echo sr_csrf_field(); ?>
+                                                    <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                                                    <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                    <p>
+                                                        <label for="<?php echo sr_e($communityCommentReplyId); ?>">
+                                                            <span>답글 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                            <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
+                                                        </label>
+                                                    </p>
+                                                    <?php if (!empty($secretCommentsEnabled)) { ?>
+                                                        <label class="community-comment-secret-toggle">
+                                                            <input type="checkbox" name="is_secret" value="1"<?php echo $commentParentId === (int) $comment['id'] && !empty($commentIsSecret) ? ' checked' : ''; ?>>
+                                                            <span><?php echo sr_e('비밀 댓글'); ?></span>
+                                                        </label>
+                                                    <?php } ?>
+                                                    <button type="submit"><?php echo sr_e('답글 작성'); ?></button>
+                                                </form>
+                                            </details>
+                                        <?php } ?>
                                         <?php if ($communityCommentCanEdit) { ?>
                                             <details>
                                                 <summary class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></summary>
@@ -391,10 +422,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <form id="community-comment-form" method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                    <input type="hidden" name="parent_comment_id" value="0">
                     <p>
                         <label for="modules_community_view_body_text_2">
                     <span><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e($commentBody); ?></textarea>
+                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
                         </label>
                     </p>
                     <?php if (!empty($secretCommentsEnabled)) { ?>

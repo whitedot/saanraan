@@ -440,3 +440,25 @@
         padding: 18px;
     }
 }
+
+.sr-quiz-comment-depth-2,
+.sr-quiz-comment-depth-3 {
+    border-left: 3px solid var(--color-default-300);
+    padding-left: 14px;
+}
+
+.sr-quiz-comment-depth-2 {
+    margin-left: 18px;
+}
+
+.sr-quiz-comment-depth-3 {
+    margin-left: 36px;
+}
+
+@media (max-width: 640px) {
+    .sr-quiz-comment-depth-2,
+    .sr-quiz-comment-depth-3 {
+        margin-left: 8px;
+        padding-left: 10px;
+    }
+}
