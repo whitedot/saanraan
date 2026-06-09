@@ -138,7 +138,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
         }
 
-        $logoId = (int) sr_post_string('logo_id', 20);
+        $logoId = sr_admin_post_positive_int('logo_id');
         $logo = null;
         if ($logoId > 0 && $logoTableExists) {
             $stmt = $pdo->prepare('SELECT * FROM sr_logo_manager_logos WHERE id = :id LIMIT 1');
@@ -311,7 +311,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
         }
 
-        $logoId = (int) sr_post_string('logo_id', 20);
+        $logoId = sr_admin_post_positive_int('logo_id');
         $logo = null;
         if ($logoId > 0 && $logoTableExists) {
             $stmt = $pdo->prepare('SELECT * FROM sr_logo_manager_logos WHERE id = :id LIMIT 1');
@@ -379,7 +379,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
         }
 
-        $logoId = (int) sr_post_string('logo_id', 20);
+        $logoId = sr_admin_post_positive_int('logo_id');
         $status = sr_post_string('status', 30);
         if ($logoId <= 0 || !in_array($status, $logoStatuses, true)) {
             $errors[] = '로고 상태 변경 값이 올바르지 않습니다.';
@@ -409,12 +409,22 @@ if (sr_request_method() === 'POST') {
         $targetStatus = sr_post_string('target_status', 30);
         $rawSelectedIds = $_POST['selected_logo_ids'] ?? [];
         $selectedIds = [];
+        $hasInvalidSelectedId = !is_array($rawSelectedIds);
         if (is_array($rawSelectedIds)) {
             foreach ($rawSelectedIds as $rawSelectedId) {
-                $selectedId = (int) $rawSelectedId;
-                if ($selectedId > 0) {
-                    $selectedIds[$selectedId] = $selectedId;
+                if (is_array($rawSelectedId)) {
+                    $hasInvalidSelectedId = true;
+                    continue;
                 }
+
+                $selectedIdValue = trim((string) $rawSelectedId);
+                if ($selectedIdValue === '' || strlen($selectedIdValue) > 20 || preg_match('/\A[1-9][0-9]*\z/', $selectedIdValue) !== 1) {
+                    $hasInvalidSelectedId = true;
+                    continue;
+                }
+
+                $selectedId = (int) $selectedIdValue;
+                $selectedIds[$selectedId] = $selectedId;
             }
         }
         $selectedIds = array_values($selectedIds);
@@ -427,6 +437,9 @@ if (sr_request_method() === 'POST') {
         }
         if ($selectedIds === []) {
             $errors[] = '상태를 변경할 로고 배치를 선택하세요.';
+        }
+        if ($hasInvalidSelectedId) {
+            $errors[] = '선택한 로고 배치 ID 값이 올바르지 않습니다.';
         }
         if (count($selectedIds) > 100) {
             $errors[] = '로고 배치 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
