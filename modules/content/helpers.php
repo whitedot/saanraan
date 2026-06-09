@@ -3478,7 +3478,7 @@ function sr_content_display_reference_group_setting_rows(PDO $pdo, string $kind,
         $settingKey = (string) ($row['setting_key'] ?? '');
         return [
             'consumer_module_key' => 'content',
-            'reference_type' => $kind === 'banner' ? 'content_group_banner' : 'content_group_popup_layer',
+            'reference_type' => $kind === 'banner' ? 'content_banner' : 'content_popup_layer',
             'reference_id' => 'content_group:' . (string) (int) ($row['group_id'] ?? 0) . ':' . $settingKey,
             'title' => (string) ($row['title'] ?? '') . ' / ' . (string) ($labels[$settingKey] ?? $settingKey),
             'target_type' => $kind,

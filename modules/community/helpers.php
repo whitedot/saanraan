@@ -205,7 +205,7 @@ function sr_community_display_reference_rows(PDO $pdo, string $kind, int $target
             $settingKey = (string) ($row['setting_key'] ?? '');
             $rows[] = [
                 'consumer_module_key' => 'community',
-                'reference_type' => $source['type'] . '_' . $kind,
+                'reference_type' => $kind === 'banner' ? 'community_banner' : 'community_popup_layer',
                 'reference_id' => $source['type'] . ':' . (string) (int) ($row['owner_id'] ?? 0) . ':' . $settingKey,
                 'title' => (string) ($row['title'] ?? '') . ' / ' . (string) ($labels[$settingKey] ?? $settingKey),
                 'target_type' => $kind,

@@ -352,7 +352,7 @@ function sr_survey_member_group_reference_rows(PDO $pdo, array $target, array $c
             'target_id' => (string) ($target['target_id'] ?? ''),
             'target_key' => $targetKey,
             'title' => (string) ($row['title'] ?? ''),
-            'status' => (string) ($row['status'] ?? ''),
+            'policy_status' => (string) ($row['status'] ?? ''),
             'summary' => '설문 참여 대상: ' . (string) ($row['survey_key'] ?? ''),
             'admin_url' => '/admin/surveys?mode=edit&id=' . rawurlencode((string) (int) ($row['id'] ?? 0)),
             'updated_at' => (string) ($row['updated_at'] ?? ''),
@@ -364,9 +364,11 @@ function sr_survey_member_group_reference_rows(PDO $pdo, array $target, array $c
 
 function sr_survey_member_group_reference_health(PDO $pdo, array $target, array $row, array $context): array
 {
-    return (string) ($row['status'] ?? '') === 'active'
-        ? ['status' => 'ok']
-        : ['status' => 'inactive_reference'];
+    $status = (string) ($row['policy_status'] ?? '');
+
+    return $status === 'active'
+        ? ['status' => 'ok', 'policy_status' => $status]
+        : ['status' => 'disabled_target', 'policy_status' => $status, 'message' => '설문이 공개 상태가 아닙니다.'];
 }
 
 function sr_survey_member_group_reference_admin_url(array $row, array $context): string

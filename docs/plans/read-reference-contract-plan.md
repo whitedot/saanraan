@@ -72,11 +72,13 @@ GitHub 마일스톤 13 `읽기 참조 계약`의 이슈 #165, #166, #167, #168, 
 
 `rows_function`은 소비 모듈의 원자료를 반환한다. 공통 helper는 `health_function`과 `admin_url_function`을 적용해 최종 row를 정규화한다. `rows_function`이 이미 `status`나 `admin_url`을 반환해도 공통 helper 검증을 다시 통과해야 한다.
 `rows_function`이 `status`를 명시하면 해당 값도 허용 status여야 하며, 최종 status는 `health_function` 반환값으로 정규화한다.
+소비 모듈의 도메인 상태값이 `draft`, `paused`, `enabled`, `published`처럼 공통 허용 status와 다른 값이면 `status`가 아니라 `policy_status`에 담고, `health_function`에서 `ok`, `disabled_target` 같은 공통 status로 매핑한다.
 `rows_function`이 `admin_url`을 명시하면 해당 값도 내부 상대 URL이어야 하며, 최종 관리자 URL은 `admin_url_function` 반환값으로 정규화한다.
 `health_function`이 `status`, `message`, `policy_status`를 반환하면 각 값은 문자열화 가능한 스칼라여야 하며, 명시된 `null`은 생략으로 보지 않고 계약 오류로 처리한다.
 최종 row의 문자열 필드는 문자열화 가능한 스칼라 값이어야 하며, `metadata`만 배열 값을 허용한다.
 단, 최종 row의 `target_type`, `target_id`, `target_key`는 target 입력과 같은 식별자 형식 기준을 사용한다.
 최종 row가 `consumer_module_key` 또는 `reference_type`을 생략하면 계약 항목 값으로 보완하지만, 명시된 값의 타입이나 형식이 올바르지 않으면 보완하지 않고 계약 오류로 처리한다.
+row가 `reference_type`을 명시한다면 세부 출처가 여러 종류여도 계약 항목의 `reference_type`과 정확히 같아야 한다. 세부 출처 구분은 `reference_id`, `title`, `metadata`에 담거나 계약 항목을 별도로 분리한다.
 최종 row가 `target_type` 또는 `target_id`를 생략하면 조회 target 값으로 보완하지만, 명시된 값의 타입이나 형식이 올바르지 않으면 보완하지 않고 계약 오류로 처리한다.
 `consumer_module_key`, `reference_type`, `target_type`, `target_id`는 조회 중인 계약 모듈, 계약 항목, target 값에 맞아야 한다. 최종 row의 `target_key`도 조회 target의 `target_key`와 같아야 하며, 조회 target에 key가 없으면 row `target_key`도 비어 있어야 한다.
 
