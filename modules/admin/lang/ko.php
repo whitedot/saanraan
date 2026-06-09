@@ -19,6 +19,7 @@ return [
     'action.roles.last_owner_revoke_disallowed' => '마지막 소유자 권한은 회수할 수 없습니다.',
     'action.roles.no_changes' => '관리자 권한 변경 사항이 없습니다.',
     'action.roles.owner_permission_redundant' => '소유자는 이미 모든 관리자 권한을 가지고 있어 메뉴별 권한을 추가할 수 없습니다.',
+    'action.roles.owner_transition_permission_required' => '소유자 권한을 해제하려면 대체 메뉴 권한을 하나 이상 선택하세요. 모든 관리자 권한을 회수하려면 권한 회수 버튼을 사용하세요.',
     'action.roles.revoked' => '관리자 권한을 회수했습니다.',
     'action.roles.permission_invalid' => '권한 값이 올바르지 않습니다.',
     'action.roles.permission_required' => '부여할 소유자 권한 또는 메뉴 권한을 선택하세요.',

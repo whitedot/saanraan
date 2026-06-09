@@ -405,7 +405,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($permissionModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($permissionModalId); ?>-label">
         <div class="modal-dialog modal-dialog-lg admin-permission-modal-dialog">
-            <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>">
+            <form method="post" action="<?php echo sr_e($permissionFormAction); ?>" class="modal-content admin-form ui-form-theme" data-admin-permission-form data-admin-permission-account-status="<?php echo sr_e((string) $adminAccount['status']); ?>" data-admin-permission-was-owner="<?php echo !empty($adminAccount['is_owner']) ? '1' : '0'; ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($permissionModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.admin.bedced78')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($permissionModalId); ?>">
@@ -437,6 +437,56 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-field">
                                 <?php echo sr_admin_checkbox_toggle_html($permissionModalId . '-owner', 'is_owner', '1', !empty($adminAccount['is_owner']), sr_t('admin::ui.text.7258c171'), ' data-overlay-focus'); ?>
                                 <p class="admin-form-help">소유자 권한을 선택하면 메뉴별 권한은 저장 대상에서 제외됩니다.</p>
+                            </div>
+                        </div>
+                        <div class="admin-form-row" data-admin-permission-owner-transition>
+                            <span class="form-label admin-form-label-help">
+                                <?php echo $roleHelpButtonHtml('대상 메뉴', $roleHelp['permission_group']['id']); ?>
+                                <span>대상 메뉴</span>
+                            </span>
+                            <div class="admin-form-field">
+                                <div class="admin-permission-picker-grid">
+                                    <div class="admin-permission-picker-control">
+                                        <label class="filtering-label" for="<?php echo sr_e($permissionModalId); ?>-group">1차</label>
+                                        <select id="<?php echo sr_e($permissionModalId); ?>-group" class="form-select form-control-full" data-admin-permission-group>
+                                            <option value="">선택</option>
+                                            <option value="__all_groups__">전체</option>
+                                            <?php foreach ($permissionPickerGroups as $pickerGroup) { ?>
+                                                <option value="<?php echo sr_e((string) $pickerGroup['id']); ?>"><?php echo sr_e((string) $pickerGroup['label']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                    <div class="admin-permission-picker-control">
+                                        <label class="filtering-label" for="<?php echo sr_e($permissionModalId); ?>-item">2차</label>
+                                        <select id="<?php echo sr_e($permissionModalId); ?>-item" class="form-select form-control-full" data-admin-permission-item disabled>
+                                            <option value="">1차 선택 후 선택</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <p class="admin-form-help">소유자 권한을 해제하려면 저장 전에 대체 메뉴 권한을 하나 이상 선택하세요.</p>
+                            </div>
+                        </div>
+                        <div class="admin-form-row" data-admin-permission-owner-transition>
+                            <span class="form-label admin-form-label-help">
+                                <?php echo $roleHelpButtonHtml('권한', $roleHelp['permission_action']['id']); ?>
+                                <span>권한</span>
+                            </span>
+                            <div class="admin-form-field">
+                                <fieldset class="admin-permission-action-group filtering-toggle-group admin-checkbox-toggle-group">
+                                    <legend class="sr-only">권한</legend>
+                                    <?php $permissionActionIndex = 0; ?>
+                                    <?php $permissionActionLastIndex = max(0, count($permissionActions) - 1); ?>
+                                    <?php foreach ($permissionActions as $actionKey) { ?>
+                                        <?php $pickerActionId = $permissionModalId . '-picker-' . (string) $actionKey; ?>
+                                        <?php $permissionActionGroupClass = $permissionActionIndex === 0 ? 'btn-group-start' : ($permissionActionIndex === $permissionActionLastIndex ? 'btn-group-end' : 'btn-group-middle'); ?>
+                                        <span class="filtering-toggle-item">
+                                            <input id="<?php echo sr_e($pickerActionId); ?>" type="checkbox" value="<?php echo sr_e((string) $actionKey); ?>" class="form-choice-toggle-input sr-only" data-admin-permission-action>
+                                            <label for="<?php echo sr_e($pickerActionId); ?>" class="btn btn-choice-light <?php echo sr_e($permissionActionGroupClass); ?>"><?php echo sr_e(sr_admin_code_label((string) $actionKey, 'admin_permission_action')); ?></label>
+                                        </span>
+                                        <?php $permissionActionIndex++; ?>
+                                    <?php } ?>
+                                </fieldset>
+                                <button type="button" class="btn btn-solid-light admin-permission-picker-add" data-admin-permission-append>선택 권한 추가</button>
                             </div>
                         </div>
                         <div class="admin-form-row">
@@ -492,6 +542,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <button type="submit" name="intent" value="revoke_permission" class="btn btn-outline-danger modal-action" data-admin-permission-intent>권한 회수</button>
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($permissionModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
                         <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.save.a6e3d7fe')); ?></button>
                     </div>
@@ -509,6 +560,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var groups = <?php echo $permissionPickerJson ?: '[]'; ?>;
     var actionLabels = <?php echo $permissionActionLabelJson ?: '{}'; ?>;
     var actions = <?php echo json_encode(array_values($permissionActions), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+    var deleteIconHtml = <?php echo json_encode(sr_material_icon_html('delete'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
     var allGroupsValue = '__all_groups__';
     var allItemsValue = '__all__';
 
@@ -592,6 +644,201 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
+    var permissionRowCounter = 0;
+
+    function ensureSelectedHead(list) {
+        if (!list || list.querySelector('[data-admin-permission-selected-head]')) {
+            return;
+        }
+
+        var head = document.createElement('div');
+        head.className = 'admin-permission-selected-head';
+        head.setAttribute('data-admin-permission-selected-head', '');
+        head.setAttribute('aria-hidden', 'true');
+        var menuLabel = document.createElement('span');
+        menuLabel.textContent = '메뉴';
+        head.appendChild(menuLabel);
+        actions.forEach(function (actionKey) {
+            var actionLabel = document.createElement('span');
+            actionLabel.textContent = actionLabels[actionKey] || actionKey;
+            head.appendChild(actionLabel);
+        });
+        var manageLabel = document.createElement('span');
+        manageLabel.textContent = '관리';
+        head.appendChild(manageLabel);
+        list.insertBefore(head, list.firstChild);
+    }
+
+    function safeIdPart(value) {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'permission';
+    }
+
+    function createPermissionRow(form, item) {
+        var row = document.createElement('div');
+        var rowKey = safeIdPart(item.path) + '-' + (++permissionRowCounter);
+        row.className = 'admin-permission-selected-row';
+        row.setAttribute('data-admin-permission-row', '');
+        row.setAttribute('data-path', item.path);
+        row.setAttribute('data-label', item.label || item.path);
+
+        var title = document.createElement('div');
+        title.className = 'admin-permission-selected-title';
+        var strong = document.createElement('strong');
+        strong.textContent = item.label || item.path;
+        var path = document.createElement('span');
+        path.textContent = item.path;
+        title.appendChild(strong);
+        title.appendChild(path);
+        row.appendChild(title);
+
+        actions.forEach(function (actionKey) {
+            var token = permissionToken(item.path, actionKey);
+            var cell = document.createElement('span');
+            cell.className = 'admin-permission-action-cell';
+            var input = document.createElement('input');
+            input.id = 'admin-permission-dynamic-' + rowKey + '-' + safeIdPart(actionKey);
+            input.type = 'checkbox';
+            input.name = 'permission_keys[]';
+            input.value = token;
+            input.className = 'form-choice-toggle-input sr-only';
+            var label = document.createElement('label');
+            label.setAttribute('for', input.id);
+            label.className = 'btn btn-choice-light';
+            label.textContent = actionLabels[actionKey] || actionKey;
+            cell.appendChild(input);
+            cell.appendChild(label);
+            row.appendChild(cell);
+        });
+
+        var remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'btn btn-sm btn-icon btn-outline-danger';
+        remove.setAttribute('data-admin-permission-remove', '');
+        remove.setAttribute('aria-label', '삭제');
+        remove.setAttribute('title', '삭제');
+        remove.innerHTML = deleteIconHtml;
+        row.appendChild(remove);
+
+        syncOwnerPermissionState(form);
+        return row;
+    }
+
+    function findPermissionRow(list, path) {
+        var rows = list ? list.querySelectorAll('[data-admin-permission-row]') : [];
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].getAttribute('data-path') === path) {
+                return rows[i];
+            }
+        }
+        return null;
+    }
+
+    function findPermissionCheckbox(row, token) {
+        var inputs = row ? row.querySelectorAll('input[name="permission_keys[]"]') : [];
+        for (var i = 0; i < inputs.length; i++) {
+            if (inputs[i].value === token) {
+                return inputs[i];
+            }
+        }
+        return null;
+    }
+
+    function selectedPermissionInputCount(form) {
+        if (!form) {
+            return 0;
+        }
+
+        return form.querySelectorAll('[data-admin-permission-selected] input[name="permission_keys[]"]:checked:not(:disabled)').length;
+    }
+
+    function clearOwnerTransitionValidity(form) {
+        if (!form) {
+            return;
+        }
+
+        var groupSelect = form.querySelector('[data-admin-permission-group]');
+        var itemSelect = form.querySelector('[data-admin-permission-item]');
+        var firstAction = form.querySelector('[data-admin-permission-action]');
+        var firstPermission = form.querySelector('[data-admin-permission-selected] input[name="permission_keys[]"]');
+        [groupSelect, itemSelect, firstAction, firstPermission].forEach(function (control) {
+            if (control && typeof control.setCustomValidity === 'function') {
+                control.setCustomValidity('');
+            }
+        });
+    }
+
+    function validateOwnerTransitionForm(form, report) {
+        clearOwnerTransitionValidity(form);
+
+        if (!form || form.matches('[data-admin-permission-add-form]')) {
+            return true;
+        }
+
+        var wasOwner = form.getAttribute('data-admin-permission-was-owner') === '1';
+        var ownerInput = form.querySelector('input[name="is_owner"]');
+        if (!wasOwner || !ownerInput || ownerInput.checked || selectedPermissionInputCount(form) > 0) {
+            return true;
+        }
+
+        var target = form.querySelector('[data-admin-permission-group]')
+            || form.querySelector('[data-admin-permission-selected] input[name="permission_keys[]"]');
+        if (target && typeof target.setCustomValidity === 'function') {
+            target.setCustomValidity('소유자 권한을 해제하려면 대체 메뉴 권한을 하나 이상 선택하세요.');
+            if (report && typeof target.reportValidity === 'function') {
+                target.reportValidity();
+            }
+        }
+
+        return false;
+    }
+
+    function appendSelectedPermissions(form, report) {
+        var list = form ? form.querySelector('[data-admin-permission-selected]') : null;
+        var items = selectedPermissionItems(form);
+        var actionInputs = form ? Array.prototype.slice.call(form.querySelectorAll('[data-admin-permission-action]:checked:not(:disabled)')) : [];
+        var target = null;
+
+        clearOwnerTransitionValidity(form);
+        if (!form || !list || items.length === 0 || actionInputs.length === 0) {
+            var groupSelect = form ? form.querySelector('[data-admin-permission-group]') : null;
+            var itemSelect = form ? form.querySelector('[data-admin-permission-item]') : null;
+            var firstAction = form ? form.querySelector('[data-admin-permission-action]') : null;
+            if (groupSelect && groupSelect.value === '') {
+                groupSelect.setCustomValidity('1차 권한 범위를 선택하세요.');
+                target = groupSelect;
+            } else if (itemSelect && itemSelect.value === '') {
+                itemSelect.setCustomValidity('2차 권한 대상을 선택하세요.');
+                target = itemSelect;
+            } else if (firstAction) {
+                firstAction.setCustomValidity('추가할 권한을 하나 이상 선택하세요.');
+                target = firstAction;
+            }
+            if (report && target && typeof target.reportValidity === 'function') {
+                target.reportValidity();
+            }
+            return false;
+        }
+
+        ensureSelectedHead(list);
+        items.forEach(function (item) {
+            var row = findPermissionRow(list, item.path);
+            if (!row) {
+                row = createPermissionRow(form, item);
+                list.appendChild(row);
+            }
+            actionInputs.forEach(function (actionInput) {
+                var checkbox = findPermissionCheckbox(row, permissionToken(item.path, actionInput.value));
+                if (checkbox) {
+                    checkbox.checked = true;
+                    syncPermissionActionHierarchy(checkbox);
+                }
+            });
+        });
+        ensureEmptyState(list);
+        validateOwnerTransitionForm(form, false);
+        return true;
+    }
+
     function updateAddSubmit(form) {
         var submit = form.querySelector('[data-admin-permission-submit]');
         var accountInput = form.querySelector('[data-admin-permission-account-id]');
@@ -627,8 +874,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             control.disabled = grantControlsDisabled;
         });
 
+        form.querySelectorAll('[data-admin-permission-append]').forEach(function (control) {
+            control.disabled = grantControlsDisabled;
+        });
+
         form.querySelectorAll('[data-admin-permission-selected] input[name="permission_keys[]"], [data-admin-permission-remove]').forEach(function (control) {
             control.disabled = ownerSelected;
+        });
+
+        form.querySelectorAll('[data-admin-permission-owner-transition]').forEach(function (row) {
+            row.hidden = ownerSelected;
         });
 
         var groupSelect = form.querySelector('[data-admin-permission-group]');
@@ -938,6 +1193,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     event.preventDefault();
                     updateAddSubmit(addForm);
                 }
+                return;
+            }
+
+            var permissionForm = event.target.closest && event.target.closest('[data-admin-permission-form]');
+            var submitIntent = permissionForm ? (permissionForm.getAttribute('data-admin-permission-submit-intent') || '') : '';
+            if (permissionForm && submitIntent !== 'revoke_permission' && !validateOwnerTransitionForm(permissionForm, true)) {
+                event.preventDefault();
             }
             return;
         }
@@ -1005,6 +1267,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         syncPermissionActionHierarchy(control);
         syncOwnerPermissionState(form);
+        validateOwnerTransitionForm(form, false);
         if (!form.matches('[data-admin-permission-add-form]')) {
             return;
         }
@@ -1014,6 +1277,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
 
     document.addEventListener('click', function (event) {
+        var permissionSubmit = event.target.closest && event.target.closest('[data-admin-permission-form] button[type="submit"]');
+        if (permissionSubmit) {
+            var submitForm = permissionSubmit.closest('[data-admin-permission-form]');
+            if (submitForm) {
+                submitForm.setAttribute('data-admin-permission-submit-intent', permissionSubmit.getAttribute('name') === 'intent' ? (permissionSubmit.value || '') : '');
+            }
+        }
+
         var memberSearchButton = event.target.closest && event.target.closest('[data-admin-permission-member-search-button]');
         if (memberSearchButton) {
             event.preventDefault();
@@ -1060,12 +1331,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (removeButton) {
             var selectedList = removeButton.closest('[data-admin-permission-selected]');
             var selectedRow = removeButton.closest('[data-admin-permission-row]');
+            var form = removeButton.closest('[data-admin-permission-form]');
             if (selectedRow) {
                 selectedRow.remove();
             }
             if (selectedList) {
                 ensureEmptyState(selectedList);
             }
+            validateOwnerTransitionForm(form, false);
+            return;
+        }
+
+        var appendButton = event.target.closest && event.target.closest('[data-admin-permission-append]');
+        if (appendButton) {
+            event.preventDefault();
+            appendSelectedPermissions(appendButton.closest('[data-admin-permission-form]'), true);
         }
     });
 

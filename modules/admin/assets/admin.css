@@ -383,6 +383,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-permission-action-group{border:0;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);margin:0;padding:0}
 .admin-permission-action-group.filtering-toggle-group{gap:0}
 .admin-permission-action-group .admin-form-check{min-height:calc(var(--spacing) * 8)}
+.admin-permission-picker-add{margin-top:calc(var(--spacing) * 2)}
 .admin-permission-selected-list{border-top:1px solid var(--color-default-200);display:grid;flex-basis:100%;width:100%}
 .admin-permission-selected-head,
 .admin-permission-selected-row{align-items:center;display:grid;gap:calc(var(--spacing) * 2);grid-template-columns:minmax(13rem,1fr) repeat(3,minmax(4.75rem,auto)) minmax(2.5rem,auto);min-width:0}

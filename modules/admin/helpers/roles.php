@@ -587,6 +587,10 @@ function sr_admin_handle_permissions_post(PDO $pdo, array $account): array
         $selectedPermissionKeys = [];
     }
 
+    if ($errors === [] && $intent === '' && $beforeIsOwner && !$selectedIsOwner && $selectedPermissionKeys === []) {
+        $errors[] = sr_t('admin::action.roles.owner_transition_permission_required');
+    }
+
     if ($errors === []) {
         $addsPermissionKeys = array_values(array_diff($selectedPermissionKeys, $beforePermissionKeys));
         $requiresReauth = $beforeIsOwner !== $selectedIsOwner || $addsPermissionKeys !== [];
