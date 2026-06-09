@@ -231,10 +231,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-row-actions">
                                     <?php $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) (int) $logo['id']; ?>
                                     <?php $logoManagerIconModalId = 'logo-manager-icon-modal-' . (string) (int) $logo['id']; ?>
-                                    <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerEditModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>">수정</button>
                                     <?php if ((string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key()) { ?>
                                         <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerIconModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>">아이콘 세트</button>
                                     <?php } ?>
+                                    <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerEditModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>">수정</button>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="logo_status">
@@ -243,6 +243,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php $logoManagerStatusButtonLabel = (string) $logo['status'] === 'active' ? sr_t('logo_manager::ui.text.92cdef3c') : sr_t('logo_manager::ui.active.93c558d7'); ?>
                                         <input type="hidden" name="status" value="<?php echo sr_e($logoManagerNextStatus); ?>">
                                         <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e($logoManagerStatusButtonLabel); ?></button>
+                                    </form>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form">
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="intent" value="delete_logo">
+                                        <input type="hidden" name="logo_id" value="<?php echo sr_e((string) $logo['id']); ?>">
+                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="로고 배치 삭제" title="삭제" onclick="return confirm('이 로고 배치를 삭제할까요? 원본 이미지와 생성된 아이콘 세트 파일도 함께 정리됩니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
                                     </form>
                                 </div>
                             </td>
@@ -393,7 +399,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-field logo-manager-icon-size-grid">
                                 <?php foreach ($logoManagerIconSizeOptions as $variantKey => $variantOption) { ?>
                                     <label class="admin-form-check form-label" for="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>">
-                                        <input id="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>" type="checkbox" name="icon_variant_keys[]" value="<?php echo sr_e($variantKey); ?>" class="form-checkbox" <?php echo in_array($variantKey, $logoManagerDefaultIconKeys, true) ? 'checked' : ''; ?>>
+                                        <input id="logo_manager_icon_<?php echo sr_e((string) (int) $logo['id']); ?>_<?php echo sr_e($variantKey); ?>" type="checkbox" name="icon_variant_keys[]" value="<?php echo sr_e($variantKey); ?>" class="form-switch form-switch-light" <?php echo in_array($variantKey, $logoManagerDefaultIconKeys, true) ? 'checked' : ''; ?>>
                                         <?php echo sr_admin_choice_label_html((string) $variantOption['label']); ?>
                                     </label>
                                 <?php } ?>

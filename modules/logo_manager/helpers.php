@@ -158,6 +158,40 @@ function sr_logo_manager_icon_variants_table_exists(PDO $pdo): bool
     return $cache[$cacheKey];
 }
 
+function sr_logo_manager_delete_storage_references(array $references): array
+{
+    $deletedCount = 0;
+    $failed = [];
+    $seen = [];
+
+    foreach ($references as $reference) {
+        if (!is_array($reference)) {
+            continue;
+        }
+        $driver = (string) ($reference['storage_driver'] ?? 'local');
+        $key = (string) ($reference['storage_key'] ?? '');
+        $referenceKey = $driver . ':' . $key;
+        if (isset($seen[$referenceKey])) {
+            continue;
+        }
+        $seen[$referenceKey] = true;
+        if (!in_array($driver, ['local', 's3'], true) || !sr_logo_manager_image_storage_key_is_valid($key)) {
+            continue;
+        }
+
+        if (sr_storage_delete($driver, $key)) {
+            $deletedCount++;
+        } else {
+            $failed[] = $referenceKey;
+        }
+    }
+
+    return [
+        'deleted_count' => $deletedCount,
+        'failed' => $failed,
+    ];
+}
+
 function sr_logo_manager_site_setting_reference_count(PDO $pdo, array $target, array $context): int
 {
     return count(sr_logo_manager_site_setting_reference_rows($pdo, $target, $context));

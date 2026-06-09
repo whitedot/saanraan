@@ -20,9 +20,9 @@ $iconVariantTableExists = sr_logo_manager_icon_variants_table_exists($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/logo-manager', 'edit');
-
     $intent = sr_post_string('intent', 40);
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/logo-manager', $intent === 'delete_logo' ? 'delete' : 'edit');
+
     $now = sr_now();
 
     if ($intent === 'create_logo') {
@@ -380,6 +380,80 @@ if (sr_request_method() === 'POST') {
             } catch (Throwable $exception) {
                 sr_log_exception($exception, 'logo_manager_icon_set_generate_failed');
                 $errors[] = $exception->getMessage();
+            }
+        }
+    } elseif ($intent === 'delete_logo') {
+        if (!$logoTableExists) {
+            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+        }
+
+        $logoId = sr_admin_post_positive_int('logo_id');
+        $logo = null;
+        $iconVariants = [];
+        if ($logoId > 0 && $logoTableExists) {
+            $stmt = $pdo->prepare('SELECT * FROM sr_logo_manager_logos WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $logoId]);
+            $row = $stmt->fetch();
+            $logo = is_array($row) ? $row : null;
+            if ($iconVariantTableExists) {
+                $stmt = $pdo->prepare('SELECT storage_driver, storage_key FROM sr_logo_manager_icon_variants WHERE logo_id = :logo_id');
+                $stmt->execute(['logo_id' => $logoId]);
+                $iconVariants = $stmt->fetchAll();
+            }
+        }
+        if (!is_array($logo)) {
+            $errors[] = '삭제할 로고 배치를 찾을 수 없습니다.';
+        }
+
+        if ($errors === [] && is_array($logo)) {
+            $storageReferences = array_merge([
+                [
+                    'storage_driver' => (string) ($logo['storage_driver'] ?? 'local'),
+                    'storage_key' => (string) ($logo['storage_key'] ?? ''),
+                ],
+            ], $iconVariants);
+
+            try {
+                $pdo->beginTransaction();
+
+                if ($iconVariantTableExists) {
+                    $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_icon_variants WHERE logo_id = :logo_id');
+                    $stmt->execute(['logo_id' => $logoId]);
+                }
+
+                $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_logos WHERE id = :id');
+                $stmt->execute(['id' => $logoId]);
+
+                $pdo->commit();
+
+                $storageDeleteResult = sr_logo_manager_delete_storage_references($storageReferences);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'logo_manager.logo.deleted',
+                    'target_type' => 'logo_manager_logo',
+                    'target_id' => (string) $logoId,
+                    'result' => 'success',
+                    'message' => 'Logo placement deleted.',
+                    'metadata' => [
+                        'position_key' => (string) ($logo['position_key'] ?? ''),
+                        'title' => (string) ($logo['title'] ?? ''),
+                        'icon_variant_count' => count($iconVariants),
+                        'deleted_storage_count' => (int) ($storageDeleteResult['deleted_count'] ?? 0),
+                        'failed_storage_refs' => array_slice(array_map('strval', is_array($storageDeleteResult['failed'] ?? null) ? $storageDeleteResult['failed'] : []), 0, 20),
+                    ],
+                ]);
+
+                $notice = '로고 배치를 삭제했습니다.';
+                if (($storageDeleteResult['failed'] ?? []) !== []) {
+                    $notice .= ' 일부 저장소 파일은 정리하지 못했습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                sr_log_exception($exception, 'logo_manager_logo_delete_failed');
+                $errors[] = '로고 삭제 중 오류가 발생했습니다.';
             }
         }
     } elseif ($intent === 'logo_status') {

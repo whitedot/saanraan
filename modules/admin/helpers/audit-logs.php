@@ -456,6 +456,7 @@ function sr_admin_audit_log_display_message(array $log): string
         'Site menu item deleted.' => '사이트 메뉴 항목이 삭제되었습니다.',
         'Site menu deleted.' => '사이트 메뉴가 삭제되었습니다.',
         'Logo placement created.' => '로고 배치가 생성되었습니다.',
+        'Logo placement deleted.' => '로고 배치가 삭제되었습니다.',
         'Logo placement status changed.' => '로고 배치 상태가 변경되었습니다.',
         'Member group saved.' => '회원 그룹이 저장되었습니다.',
         'Member group rule saved.' => '회원 그룹 규칙이 저장되었습니다.',
