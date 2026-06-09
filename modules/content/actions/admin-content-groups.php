@@ -132,6 +132,136 @@ if (sr_request_method() === 'POST') {
         sr_redirect('/admin/content-groups');
     }
 
+    if ($intent === 'batch_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $rawSelectedIds = $_POST['selected_group_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
+        }
+        $selectedIds = array_values($selectedIds);
+
+        if ($operationKey !== 'content.group_set_status') {
+            $errors[] = '허용되지 않은 콘텐츠 그룹 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, $allowedGroupStatuses, true)) {
+            $errors[] = '변경할 콘텐츠 그룹 상태가 올바르지 않습니다.';
+        }
+        if ($selectedIds === []) {
+            $errors[] = '상태를 변경할 콘텐츠 그룹을 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $errors[] = '콘텐츠 그룹 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+
+        $selectedGroups = [];
+        if ($errors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'group_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT id, group_key, status
+                 FROM sr_content_groups
+                 WHERE id IN (' . implode(', ', $placeholders) . ')'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedGroups[(int) $row['id']] = $row;
+            }
+            if (count($selectedGroups) !== count($selectedIds)) {
+                $errors[] = '선택한 콘텐츠 그룹 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        if ($errors === [] && $selectedGroups !== []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            $batchFailureMessage = '';
+            $now = sr_now();
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare(
+                    'UPDATE sr_content_groups
+                     SET status = :status,
+                         updated_at = :updated_at
+                     WHERE id = :id
+                       AND status = :before_status'
+                );
+                foreach ($selectedIds as $selectedId) {
+                    $group = $selectedGroups[$selectedId];
+                    $beforeStatus = (string) $group['status'];
+                    if ($beforeStatus === $targetStatus) {
+                        $skippedCount++;
+                        continue;
+                    }
+                    $stmt->execute([
+                        'status' => $targetStatus,
+                        'updated_at' => $now,
+                        'id' => $selectedId,
+                        'before_status' => $beforeStatus,
+                    ]);
+                    if ($stmt->rowCount() < 1) {
+                        $batchFailureMessage = '선택한 콘텐츠 그룹 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+                        throw new RuntimeException($batchFailureMessage);
+                    }
+                    $changedCount++;
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'content_group.bulk_status_updated',
+                    'target_type' => 'content_group',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Content group statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $_SESSION['sr_content_group_admin_notice'] = '콘텐츠 그룹 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'content_status') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $_SESSION['sr_content_group_admin_notice'] .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($batchFailureMessage !== '') {
+                    $errors[] = $batchFailureMessage;
+                } else {
+                    sr_log_exception($exception, 'content_group_batch_status_failed');
+                    $errors[] = '콘텐츠 그룹 상태 일괄 변경 중 오류가 발생했습니다.';
+                }
+            }
+        }
+
+        if ($errors !== []) {
+            $_SESSION['sr_content_group_admin_errors'] = $errors;
+        }
+        sr_redirect('/admin/content-groups');
+    }
+
     if (!in_array($intent, ['create_group', 'update_group'], true)) {
         $errors[] = '요청한 작업이 올바르지 않습니다.';
     }
