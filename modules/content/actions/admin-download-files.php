@@ -23,6 +23,138 @@ if (!is_array($values)) {
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
+    $intent = sr_post_string('intent', 40);
+    if ($intent === 'batch_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $rawSelectedIds = $_POST['selected_file_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
+        }
+        $selectedIds = array_values($selectedIds);
+        $batchErrors = [];
+
+        if ($operationKey !== 'content.file_set_status') {
+            $batchErrors[] = '허용되지 않은 다운로드 파일 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, ['active', 'hidden'], true)) {
+            $batchErrors[] = '변경할 다운로드 파일 상태가 올바르지 않습니다.';
+        }
+        if ($selectedIds === []) {
+            $batchErrors[] = '상태를 변경할 다운로드 파일을 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $batchErrors[] = '다운로드 파일 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+
+        $selectedFiles = [];
+        if ($batchErrors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'file_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT id, status
+                 FROM sr_content_files
+                 WHERE id IN (' . implode(', ', $placeholders) . ')'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedFiles[(int) $row['id']] = $row;
+            }
+            if (count($selectedFiles) !== count($selectedIds)) {
+                $batchErrors[] = '선택한 다운로드 파일 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        if ($batchErrors === [] && $selectedFiles !== []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            $batchFailureMessage = '';
+            $now = sr_now();
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare(
+                    'UPDATE sr_content_files
+                     SET status = :status,
+                         updated_at = :updated_at
+                     WHERE id = :id
+                       AND status = :before_status'
+                );
+                foreach ($selectedIds as $selectedId) {
+                    $file = $selectedFiles[$selectedId];
+                    $beforeStatus = (string) $file['status'];
+                    if ($beforeStatus === $targetStatus) {
+                        $skippedCount++;
+                        continue;
+                    }
+                    $stmt->execute([
+                        'status' => $targetStatus,
+                        'updated_at' => $now,
+                        'id' => $selectedId,
+                        'before_status' => $beforeStatus,
+                    ]);
+                    if ($stmt->rowCount() < 1) {
+                        $batchFailureMessage = '선택한 다운로드 파일 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+                        throw new RuntimeException($batchFailureMessage);
+                    }
+                    $changedCount++;
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'content_file.bulk_status_updated',
+                    'target_type' => 'content_file',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Content download file statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $_SESSION['sr_content_file_admin_notice'] = '다운로드 파일 ' . number_format($changedCount) . '건의 상태를 ' . ($targetStatus === 'active' ? '사용' : '숨김') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $_SESSION['sr_content_file_admin_notice'] .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($batchFailureMessage !== '') {
+                    $batchErrors[] = $batchFailureMessage;
+                } else {
+                    sr_log_exception($exception, 'content_download_file_batch_status_failed');
+                    $batchErrors[] = '다운로드 파일 상태 일괄 변경 중 오류가 발생했습니다.';
+                }
+            }
+        }
+
+        if ($batchErrors !== []) {
+            $_SESSION['sr_content_file_admin_errors'] = $batchErrors;
+        }
+        sr_redirect('/admin/content/files');
+    }
+
     $fileId = (int) sr_post_string('file_id', 20);
     $action = sr_post_string('action', 20);
     $redirectTarget = '/admin/content/files';

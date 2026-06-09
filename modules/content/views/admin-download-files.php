@@ -149,11 +149,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
             <?php echo sr_admin_pagination_summary_html($downloadFilePagination); ?>
         </div>
+        <form id="content-file-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="content-file-bulk-form" data-content-file-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_status">
+            <input type="hidden" name="operation_key" value="content.file_set_status">
+            <div class="admin-list-actions content-file-bulk-actions" hidden data-content-file-bulk-bar>
+                <div class="content-file-bulk-summary" aria-live="polite">
+                    <strong data-content-file-selected-count>0</strong>개 선택됨
+                </div>
+                <div class="content-file-bulk-controls">
+                    <select name="target_status" class="form-select" aria-label="변경할 다운로드 파일 상태">
+                        <option value="active">사용</option>
+                        <option value="hidden">숨김</option>
+                    </select>
+                    <button type="submit" class="btn btn-solid-primary" data-content-file-bulk-submit disabled>상태 변경</button>
+                    <button type="button" class="btn btn-solid-light" data-content-file-bulk-clear>선택 해제</button>
+                </div>
+            </div>
+        </form>
         <div class="table-wrapper">
             <table class="table admin-content-download-file-table">
                 <caption class="sr-only">다운로드 파일 목록</caption>
                 <thead class="ui-table-head">
                     <tr>
+                        <th class="content-file-select-cell">
+                            <label class="sr-only" for="content_file_bulk_select_all">현재 페이지 다운로드 파일 전체 선택</label>
+                            <input id="content_file_bulk_select_all" type="checkbox" class="form-checkbox" data-content-file-select-all<?php echo $downloadFiles === [] ? ' disabled' : ''; ?>>
+                        </th>
                         <th<?php echo sr_admin_sort_aria('title', $downloadFileSort); ?>><?php echo sr_admin_sort_header_html('파일 제목', 'title', $downloadFileSort, $downloadFileSortOptions, $downloadFileDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('original_name', $downloadFileSort); ?>><?php echo sr_admin_sort_header_html('원본 파일명', 'original_name', $downloadFileSort, $downloadFileSortOptions, $downloadFileDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('status', $downloadFileSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $downloadFileSort, $downloadFileSortOptions, $downloadFileDefaultSort); ?></th>
@@ -167,7 +189,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if ($downloadFiles === []) { ?>
                         <tr>
-                            <td colspan="8" class="admin-empty-state">등록된 다운로드 파일이 없습니다.</td>
+                            <td colspan="9" class="admin-empty-state">등록된 다운로드 파일이 없습니다.</td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($downloadFiles as $downloadFile) { ?>
@@ -176,6 +198,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             $statusClass = $downloadFileStatus === 'active' ? 'is-normal' : 'is-left';
                             ?>
                             <tr>
+                                <td class="content-file-select-cell">
+                                    <label class="sr-only" for="content_file_bulk_select_<?php echo sr_e((string) (int) $downloadFile['id']); ?>"><?php echo sr_e((string) $downloadFile['title']); ?> 선택</label>
+                                    <input id="content_file_bulk_select_<?php echo sr_e((string) (int) $downloadFile['id']); ?>" type="checkbox" name="selected_file_ids[]" value="<?php echo sr_e((string) (int) $downloadFile['id']); ?>" class="form-checkbox" form="content-file-bulk-status-form" data-content-file-row-select>
+                                </td>
                                 <td class="admin-table-break"><strong><?php echo sr_e((string) $downloadFile['title']); ?></strong></td>
                                 <td class="admin-table-break"><?php echo sr_e((string) $downloadFile['original_name']); ?></td>
                                 <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo $downloadFileStatus === 'active' ? '사용' : '숨김'; ?></span></td>
@@ -213,6 +239,80 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
     <?php echo sr_admin_pagination_html($downloadFilePagination, '다운로드 파일 목록 페이지'); ?>
+    <script>
+    (function () {
+        var bulkForm = document.querySelector('[data-content-file-bulk-form]');
+        if (!bulkForm) {
+            return;
+        }
+
+        var bar = document.querySelector('[data-content-file-bulk-bar]');
+        var countNode = document.querySelector('[data-content-file-selected-count]');
+        var submit = document.querySelector('[data-content-file-bulk-submit]');
+        var clear = document.querySelector('[data-content-file-bulk-clear]');
+        var selectAll = document.querySelector('[data-content-file-select-all]');
+        var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-content-file-row-select]'));
+
+        var checkedRows = function () {
+            return rowChecks.filter(function (input) {
+                return input.checked && !input.disabled;
+            });
+        };
+
+        var syncBulkState = function () {
+            var selectedCount = checkedRows().length;
+            if (countNode) {
+                countNode.textContent = String(selectedCount);
+            }
+            if (bar) {
+                bar.hidden = selectedCount < 1;
+            }
+            if (submit) {
+                submit.disabled = selectedCount < 1;
+            }
+            if (selectAll) {
+                selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+            }
+        };
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                rowChecks.forEach(function (input) {
+                    if (!input.disabled) {
+                        input.checked = selectAll.checked;
+                    }
+                });
+                syncBulkState();
+            });
+        }
+        rowChecks.forEach(function (input) {
+            input.addEventListener('change', syncBulkState);
+        });
+        if (clear) {
+            clear.addEventListener('click', function () {
+                rowChecks.forEach(function (input) {
+                    input.checked = false;
+                });
+                syncBulkState();
+            });
+        }
+        bulkForm.addEventListener('submit', function (event) {
+            var selectedCount = checkedRows().length;
+            if (selectedCount < 1) {
+                event.preventDefault();
+                syncBulkState();
+                return;
+            }
+            var status = bulkForm.querySelector('select[name="target_status"]');
+            var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+            if (!window.confirm('선택한 다운로드 파일 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+                event.preventDefault();
+            }
+        });
+        syncBulkState();
+    })();
+    </script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
