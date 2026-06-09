@@ -76,18 +76,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="admin-form-field"><input id="content_author_add_account_id" type="number" min="1" name="account_id" class="form-input" required data-overlay-focus></div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="content_author_add_status">상태</label>
+                        <label class="form-label" for="content_author_add_status">상태 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
-                            <select id="content_author_add_status" name="status" class="form-select">
+                            <select id="content_author_add_status" name="status" class="form-select" required>
                                 <option value="allowed">허용</option>
                                 <option value="blocked">차단</option>
                             </select>
                         </div>
                     </div>
                     <div class="admin-form-row">
-                        <label class="form-label" for="content_author_add_review_required_override">검수 예외</label>
+                        <label class="form-label" for="content_author_add_review_required_override">검수 예외 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
-                            <select id="content_author_add_review_required_override" name="review_required_override" class="form-select">
+                            <select id="content_author_add_review_required_override" name="review_required_override" class="form-select" required>
                                 <option value="inherit">상속</option>
                                 <option value="required">항상 검수</option>
                                 <option value="exempt">검수 면제</option>
@@ -128,18 +128,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-form-field"><p class="admin-form-static"><?php echo sr_e($authorLabel); ?></p></div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-status">상태</label>
+                            <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-status">상태 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
-                                <select id="<?php echo sr_e($authorEditModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
+                                <select id="<?php echo sr_e($authorEditModalId); ?>-status" name="status" class="form-select" required data-overlay-focus>
                                     <option value="allowed"<?php echo (string) $permission['status'] === 'allowed' ? ' selected' : ''; ?>>허용</option>
                                     <option value="blocked"<?php echo (string) $permission['status'] === 'blocked' ? ' selected' : ''; ?>>차단</option>
                                 </select>
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-review">검수 예외</label>
+                            <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-review">검수 예외 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
-                                <select id="<?php echo sr_e($authorEditModalId); ?>-review" name="review_required_override" class="form-select">
+                                <select id="<?php echo sr_e($authorEditModalId); ?>-review" name="review_required_override" class="form-select" required>
                                     <option value="inherit"<?php echo (string) $permission['review_required_override'] === 'inherit' ? ' selected' : ''; ?>>상속</option>
                                     <option value="required"<?php echo (string) $permission['review_required_override'] === 'required' ? ' selected' : ''; ?>>항상 검수</option>
                                     <option value="exempt"<?php echo (string) $permission['review_required_override'] === 'exempt' ? ' selected' : ''; ?>>검수 면제</option>

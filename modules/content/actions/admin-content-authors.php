@@ -18,13 +18,19 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/authors', 'edit');
     $errors = [];
     $notice = '';
-    $targetAccountId = (int) sr_post_string('account_id', 20);
-    $status = in_array(sr_post_string('status', 20), ['allowed', 'blocked'], true) ? sr_post_string('status', 20) : 'allowed';
-    $reviewOverride = in_array(sr_post_string('review_required_override', 20), ['inherit', 'required', 'exempt'], true) ? sr_post_string('review_required_override', 20) : 'inherit';
+    $targetAccountId = sr_admin_post_positive_int('account_id');
+    $status = sr_post_string('status', 20);
+    $reviewOverride = sr_post_string('review_required_override', 20);
     $note = sr_content_clean_text(sr_post_string('note', 2000), 2000);
     try {
         if ($targetAccountId < 1) {
             throw new InvalidArgumentException('회원 ID를 입력하세요.');
+        }
+        if (!in_array($status, ['allowed', 'blocked'], true)) {
+            throw new InvalidArgumentException('상태를 선택하세요.');
+        }
+        if (!in_array($reviewOverride, ['inherit', 'required', 'exempt'], true)) {
+            throw new InvalidArgumentException('검수 예외를 선택하세요.');
         }
         if (sr_member_find_by_id($pdo, $targetAccountId) === null) {
             throw new InvalidArgumentException('회원을 찾을 수 없습니다.');
