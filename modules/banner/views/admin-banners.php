@@ -401,11 +401,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
             <?php echo sr_admin_pagination_summary_html($bannerPagination); ?>
         </div>
+        <form id="banner-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-banner-bulk-form" data-banner-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_status">
+            <input type="hidden" name="operation_key" value="banner.set_status">
+            <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners')); ?>">
+            <div class="admin-list-actions admin-banner-bulk-actions" hidden data-banner-bulk-bar>
+                <div class="admin-banner-bulk-summary" aria-live="polite">
+                    <strong data-banner-selected-count>0</strong>개 선택됨
+                </div>
+                <div class="admin-banner-bulk-controls">
+                    <select name="target_status" class="form-select" aria-label="변경할 배너 상태">
+                        <option value="enabled">사용</option>
+                        <option value="disabled">사용 안 함</option>
+                    </select>
+                    <button type="submit" class="btn btn-solid-primary" data-banner-bulk-submit disabled>상태 변경</button>
+                    <button type="button" class="btn btn-solid-light" data-banner-bulk-clear>선택 해제</button>
+                </div>
+            </div>
+        </form>
         <div class="table-wrapper">
         <table class="table admin-banner-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
+                    <th class="admin-banner-select-cell">
+                        <label class="sr-only" for="banner_bulk_select_all">현재 페이지 배너 전체 선택</label>
+                        <input id="banner_bulk_select_all" type="checkbox" class="form-checkbox" data-banner-select-all<?php echo $banners === [] ? ' disabled' : ''; ?>>
+                    </th>
                     <th<?php echo sr_admin_sort_aria('title', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.08b17e43'), 'title', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.status.e10195a1'), 'status', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('skin_key', $bannerSort); ?>><?php echo sr_admin_sort_header_html(sr_t('banner::ui.text.776b723f'), 'skin_key', $bannerSort, $bannerSortOptions, $bannerDefaultSort); ?></th>
@@ -421,7 +444,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($banners === []) { ?>
                     <tr>
-                        <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('banner::ui.create.banner.a9744568')); ?></td>
+                        <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('banner::ui.create.banner.a9744568')); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($banners as $banner) { ?>
@@ -440,6 +463,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         };
                         ?>
                         <tr>
+                            <td class="admin-banner-select-cell">
+                                <label class="sr-only" for="banner_bulk_select_<?php echo sr_e((string) (int) $banner['id']); ?>"><?php echo sr_e((string) $banner['title']); ?> 선택</label>
+                                <input id="banner_bulk_select_<?php echo sr_e((string) (int) $banner['id']); ?>" type="checkbox" name="selected_banner_ids[]" value="<?php echo sr_e((string) (int) $banner['id']); ?>" class="form-checkbox" form="banner-bulk-status-form" data-banner-row-select>
+                            </td>
                             <td class="admin-table-break admin-banner-title-cell"><?php echo sr_e((string) $banner['title']); ?></td>
                             <td class="admin-table-nowrap">
                                 <span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($bannerStatus, 'content_status')); ?></span>
@@ -486,6 +513,79 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo $bannerCopyModals; ?>
     <?php echo $bannerReferenceModals; ?>
     <?php echo sr_admin_pagination_html($bannerPagination, '배너 목록 페이지'); ?>
+    <script>
+    (function () {
+        var form = document.querySelector('[data-banner-bulk-form]');
+        if (!form) {
+            return;
+        }
+        var bar = document.querySelector('[data-banner-bulk-bar]');
+        var countNode = document.querySelector('[data-banner-selected-count]');
+        var submit = document.querySelector('[data-banner-bulk-submit]');
+        var clear = document.querySelector('[data-banner-bulk-clear]');
+        var selectAll = document.querySelector('[data-banner-select-all]');
+        var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-banner-row-select]'));
+
+        function checkedRows() {
+            return rowChecks.filter(function (input) {
+                return input.checked && !input.disabled;
+            });
+        }
+
+        function syncBulkState() {
+            var selectedCount = checkedRows().length;
+            if (countNode) {
+                countNode.textContent = String(selectedCount);
+            }
+            if (bar) {
+                bar.hidden = selectedCount < 1;
+            }
+            if (submit) {
+                submit.disabled = selectedCount < 1;
+            }
+            if (selectAll) {
+                selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+            }
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                rowChecks.forEach(function (input) {
+                    if (!input.disabled) {
+                        input.checked = selectAll.checked;
+                    }
+                });
+                syncBulkState();
+            });
+        }
+        rowChecks.forEach(function (input) {
+            input.addEventListener('change', syncBulkState);
+        });
+        if (clear) {
+            clear.addEventListener('click', function () {
+                rowChecks.forEach(function (input) {
+                    input.checked = false;
+                });
+                syncBulkState();
+            });
+        }
+        form.addEventListener('submit', function (event) {
+            var selectedCount = checkedRows().length;
+            if (selectedCount < 1) {
+                event.preventDefault();
+                syncBulkState();
+                return;
+            }
+            var status = form.querySelector('select[name="target_status"]');
+            var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+            if (!window.confirm('선택한 배너 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+                event.preventDefault();
+            }
+        });
+        syncBulkState();
+    }());
+    </script>
 <?php } ?>
 
 <?php if ($bannerAdminPage === 'form') { ?>

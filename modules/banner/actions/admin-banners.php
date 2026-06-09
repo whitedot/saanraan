@@ -48,6 +48,10 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/banners', $intent === 'delete' ? 'delete' : 'edit');
     $bannerId = (int) sr_post_string('banner_id', 20);
+    $returnTo = sr_post_string('return_to', 500);
+    if (!sr_is_safe_relative_url($returnTo)) {
+        $returnTo = '/admin/banners';
+    }
 
     if ($intent === 'delete') {
         if ($bannerId <= 0) {
@@ -97,6 +101,145 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '배너 삭제 중 오류가 발생했습니다.';
             }
         }
+    } elseif ($intent === 'batch_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $rawSelectedIds = $_POST['selected_banner_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
+        }
+        $selectedIds = array_values($selectedIds);
+
+        if ($operationKey !== 'banner.set_status') {
+            $errors[] = '허용되지 않은 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, ['enabled', 'disabled'], true)) {
+            $errors[] = '변경할 배너 상태가 올바르지 않습니다.';
+        }
+        if ($selectedIds === []) {
+            $errors[] = '상태를 변경할 배너를 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $errors[] = '배너 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+
+        $selectedBanners = [];
+        if ($errors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'banner_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT id, title, status
+                 FROM sr_banners
+                 WHERE id IN (' . implode(', ', $placeholders) . ')
+                 ORDER BY id ASC'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedBanners[(int) ($row['id'] ?? 0)] = $row;
+            }
+            if (count($selectedBanners) !== count($selectedIds)) {
+                $errors[] = '선택한 배너 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        $blockedReferenceIds = [];
+        if ($errors === [] && $targetStatus === 'disabled') {
+            foreach ($selectedBanners as $selectedBanner) {
+                $selectedId = (int) ($selectedBanner['id'] ?? 0);
+                if ($selectedId < 1 || (string) ($selectedBanner['status'] ?? '') !== 'enabled') {
+                    continue;
+                }
+                $referenceResult = sr_read_reference_collect($pdo, 'banner-references.php', [
+                    'owner_module_key' => 'banner',
+                    'target_type' => 'banner',
+                    'target_id' => $selectedId,
+                    'target_key' => '',
+                ]);
+                if (($referenceResult['errors'] ?? []) !== []) {
+                    $errors[] = '배너 참조 계약 오류가 있어 일괄 비활성화할 수 없습니다.';
+                    break;
+                }
+                if (($referenceResult['rows'] ?? []) !== []) {
+                    $blockedReferenceIds[] = $selectedId;
+                }
+            }
+            if ($errors === [] && $blockedReferenceIds !== []) {
+                $errors[] = '다른 모듈에서 참조 중인 배너가 있어 비활성화하지 않았습니다: ' . implode(', ', array_map('strval', $blockedReferenceIds));
+            }
+        }
+
+        if ($errors === []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            try {
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare(
+                    'UPDATE sr_banners
+                     SET status = :status, updated_at = :updated_at
+                     WHERE id = :id AND status <> :status_compare'
+                );
+                $now = sr_now();
+                foreach ($selectedIds as $selectedId) {
+                    $stmt->execute([
+                        'status' => $targetStatus,
+                        'status_compare' => $targetStatus,
+                        'updated_at' => $now,
+                        'id' => $selectedId,
+                    ]);
+                    if ($stmt->rowCount() > 0) {
+                        $changedCount++;
+                    } else {
+                        $skippedCount++;
+                    }
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'banner.bulk_status_updated',
+                    'target_type' => 'banner',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Banner statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $notice = '배너 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'content_status') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errors[] = '배너 상태 일괄 변경 중 오류가 발생했습니다.';
+            }
+        }
+
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect($returnTo);
     } elseif ($intent === 'save') {
         $isCreate = $bannerId <= 0;
         $title = sr_banner_clean_single_line(sr_post_string('title', 120), 120);
