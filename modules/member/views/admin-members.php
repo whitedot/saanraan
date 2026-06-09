@@ -1,7 +1,10 @@
 <?php
 
 $adminPageTitle = sr_t('member::ui.member.list.d8e6279a');
-$adminPageSubtitle = sr_t('member::ui.member.status.search.5798c9ca') . ' ' . sr_t('member::ui.status.member.login.1e2b02c0');
+$adminPageSubtitle = [
+    sr_t('member::ui.member.status.search.5798c9ca'),
+    sr_t('member::ui.status.member.login.1e2b02c0'),
+];
 $adminContainerClass = 'admin-page-member-list admin-ui-scope';
 $memberAdminPage = isset($memberAdminPage) ? (string) $memberAdminPage : 'members';
 if ($memberAdminPage === 'create_form') {

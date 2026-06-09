@@ -2,6 +2,21 @@
 
 $adminPageTitle = $adminPageTitle ?? sr_t('admin::ui.admin.78496a61');
 $adminPageSubtitle = $adminPageSubtitle ?? '';
+$adminPageSubtitleLines = [];
+if (is_array($adminPageSubtitle)) {
+    foreach ($adminPageSubtitle as $adminPageSubtitleLine) {
+        $adminPageSubtitleLine = trim((string) $adminPageSubtitleLine);
+        if ($adminPageSubtitleLine !== '') {
+            $adminPageSubtitleLines[] = $adminPageSubtitleLine;
+        }
+    }
+    $adminPageSubtitle = implode(' ', $adminPageSubtitleLines);
+} else {
+    $adminPageSubtitle = trim((string) $adminPageSubtitle);
+    if ($adminPageSubtitle !== '') {
+        $adminPageSubtitleLines[] = $adminPageSubtitle;
+    }
+}
 $adminContainerClass = $adminContainerClass ?? '';
 $seo = [
     'title' => $adminPageTitle,
@@ -258,7 +273,11 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
 
         <div id="container" class="admin-content <?php echo sr_e((string) $adminShell['container_class']); ?>">
             <h1 id="container_title" class="type-page-title"><?php echo sr_e((string) $adminShell['page_title']); ?></h1>
-            <?php if ((string) $adminShell['page_subtitle'] !== '') { ?>
-                <p id="container_subtitle" class="type-small"><?php echo sr_e((string) $adminShell['page_subtitle']); ?></p>
+            <?php if ($adminPageSubtitleLines !== []) { ?>
+                <p id="container_subtitle" class="type-small">
+                    <?php foreach ($adminPageSubtitleLines as $adminPageSubtitleLine) { ?>
+                        <span><?php echo sr_e($adminPageSubtitleLine); ?></span>
+                    <?php } ?>
+                </p>
             <?php } ?>
             <?php sr_admin_begin_content_capture(); ?>

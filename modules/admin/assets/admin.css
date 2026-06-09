@@ -129,6 +129,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 #container_title:before{content:"";left:calc(var(--spacing) * 0);bottom:-1px;width:calc(var(--spacing) * 12);height:2px;background-color:var(--color-primary);position:absolute}
 #container_title:where([data-theme=dark],[data-theme=dark] *){color:var(--color-default-950)}
 #container_subtitle{margin-top:calc(var(--spacing) * -3);margin-bottom:calc(var(--spacing) * 5);color:var(--text-subtle)}
+#container_subtitle>span{display:block}
 .admin-flash-message{margin-bottom:calc(var(--spacing) * 5);border-radius:var(--radius);border-style:solid;padding-inline:calc(var(--spacing) * 4);padding-block:calc(var(--spacing) * 3);font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 .0625rem .125rem #4c4c5c26;box-shadow:var(--shadow-sm);border-width:1px}
 .admin-flash-message-success{border-color:var(--color-success)}
 @supports (color:color-mix(in lab, red, red)){.admin-flash-message-success{border-color:color-mix(in oklab, var(--color-success) 30%, transparent)}}
