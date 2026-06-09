@@ -288,6 +288,162 @@ if (sr_request_method() === 'POST') {
                 }
             }
         }
+    } elseif ($intent === 'batch_comment_status') {
+        $operationKey = sr_post_string('operation_key', 80);
+        $targetStatus = sr_post_string('target_status', 30);
+        $rawSelectedIds = $_POST['selected_comment_ids'] ?? [];
+        $selectedIds = [];
+        if (is_array($rawSelectedIds)) {
+            foreach ($rawSelectedIds as $rawSelectedId) {
+                $selectedId = (int) $rawSelectedId;
+                if ($selectedId > 0) {
+                    $selectedIds[$selectedId] = $selectedId;
+                }
+            }
+        }
+        $selectedIds = array_values($selectedIds);
+
+        if ($communityPostsPage !== 'comments') {
+            $errors[] = sr_t('community::action.error.intent_invalid');
+        }
+        if ($operationKey !== 'community.comment_set_status') {
+            $errors[] = '허용되지 않은 댓글 일괄 작업입니다.';
+        }
+        if (!in_array($targetStatus, ['published', 'hidden'], true) || !in_array($targetStatus, $allowedCommentStatuses, true)) {
+            $errors[] = '변경할 댓글 상태가 올바르지 않습니다.';
+        }
+        if ($selectedIds === []) {
+            $errors[] = '상태를 변경할 댓글을 선택하세요.';
+        }
+        if (count($selectedIds) > 100) {
+            $errors[] = '댓글 상태 일괄 변경은 한 번에 100건 이하로 실행하세요.';
+        }
+
+        $selectedComments = [];
+        if ($errors === []) {
+            $placeholders = [];
+            $params = [];
+            foreach ($selectedIds as $index => $selectedId) {
+                $paramKey = 'comment_id_' . (string) $index;
+                $placeholders[] = ':' . $paramKey;
+                $params[$paramKey] = $selectedId;
+            }
+            $stmt = $pdo->prepare(
+                'SELECT c.id, c.post_id, c.author_account_id, c.status
+                 FROM sr_community_comments c
+                 WHERE c.id IN (' . implode(', ', $placeholders) . ')'
+            );
+            foreach ($params as $paramKey => $selectedId) {
+                $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            foreach ($stmt->fetchAll() as $row) {
+                $selectedComments[(int) $row['id']] = $row;
+            }
+            if (count($selectedComments) !== count($selectedIds)) {
+                $errors[] = '선택한 댓글 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+            }
+        }
+
+        if ($errors === [] && $selectedComments !== []) {
+            foreach ($selectedIds as $selectedId) {
+                $currentStatus = (string) ($selectedComments[$selectedId]['status'] ?? '');
+                $allowedTransition = $targetStatus === 'hidden'
+                    ? in_array($currentStatus, ['published', 'hidden'], true)
+                    : in_array($currentStatus, ['hidden', 'published'], true);
+                if (!$allowedTransition) {
+                    $errors[] = '선택한 댓글 중 숨김/복구할 수 없는 상태가 있습니다. 공개 또는 숨김 상태의 댓글만 선택하세요.';
+                    break;
+                }
+            }
+        }
+
+        if ($errors === [] && $selectedComments !== []) {
+            $changedCount = 0;
+            $skippedCount = 0;
+            $affectedAccountIds = [];
+            $batchFailureMessage = '';
+            try {
+                $pdo->beginTransaction();
+                $updateCommentStatusStmt = $pdo->prepare(
+                    'UPDATE sr_community_comments
+                     SET status = :status,
+                         updated_at = :updated_at
+                     WHERE id = :id
+                       AND status = :before_status'
+                );
+                foreach ($selectedIds as $selectedId) {
+                    $comment = $selectedComments[$selectedId];
+                    $beforeStatus = (string) $comment['status'];
+                    if ($beforeStatus === $targetStatus) {
+                        $skippedCount++;
+                        continue;
+                    }
+
+                    if (!empty($settings['comment_reward_reversal_enabled']) && $targetStatus === 'hidden' && $beforeStatus === 'published') {
+                        $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $comment['author_account_id'], 'comment_reward', 'community.comment', $selectedId, 'comment_reward_reversal', 'community.comment.reward_reversal');
+                        if (empty($reversalResult['allowed'])) {
+                            $batchFailureMessage = sr_community_asset_reversal_error_message($reversalResult, 'community::action.admin.comment_reward_reversal_balance_low', 'community::action.admin.comment_reward_reversal_status_failed');
+                            throw new RuntimeException($batchFailureMessage);
+                        }
+                    }
+
+                    $updateCommentStatusStmt->execute([
+                        'status' => $targetStatus,
+                        'updated_at' => sr_now(),
+                        'id' => $selectedId,
+                        'before_status' => $beforeStatus,
+                    ]);
+                    if ($updateCommentStatusStmt->rowCount() < 1) {
+                        $batchFailureMessage = '선택한 댓글 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
+                        throw new RuntimeException($batchFailureMessage);
+                    }
+                    $affectedAccountIds[(int) $comment['author_account_id']] = (int) $comment['author_account_id'];
+                    $changedCount++;
+                }
+                foreach ($affectedAccountIds as $affectedAccountId) {
+                    sr_community_maybe_recalculate_account_level($pdo, $affectedAccountId, null, 'comment_status_updated');
+                    sr_member_group_evaluate_account($pdo, $affectedAccountId, [
+                        'source_module_key' => 'community',
+                    ]);
+                }
+                $pdo->commit();
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.comment.bulk_status_updated',
+                    'target_type' => 'community_comment',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Community comment statuses updated in bulk.',
+                    'metadata' => [
+                        'operation_key' => $operationKey,
+                        'target_status' => $targetStatus,
+                        'requested_count' => count($selectedIds),
+                        'changed_count' => $changedCount,
+                        'skipped_count' => $skippedCount,
+                        'affected_account_count' => count($affectedAccountIds),
+                        'selected_ids' => $selectedIds,
+                    ],
+                ]);
+
+                $notice = '댓글 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'content_status') . '(으)로 변경했습니다.';
+                if ($skippedCount > 0) {
+                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($batchFailureMessage !== '') {
+                    $errors[] = $batchFailureMessage;
+                } else {
+                    sr_log_exception($exception, 'community_comment_batch_status_failed');
+                    $errors[] = '댓글 상태 일괄 변경 중 오류가 발생했습니다.';
+                }
+            }
+        }
     } elseif ($intent === 'comment_status') {
         $commentIdValue = sr_post_string('comment_id', 20);
         $commentId = preg_match('/\A[1-9][0-9]*\z/', $commentIdValue) === 1 ? (int) $commentIdValue : 0;
