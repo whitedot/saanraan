@@ -5,6 +5,8 @@ $adminPageSubtitle = '개별 회원 콘텐츠 제출 권한을 관리합니다.'
 $adminContainerClass = 'admin-page-content-authors admin-ui-scope';
 $canEditContentAuthors = !empty($canEditContentAuthors);
 $authorReturnTo = sr_admin_current_get_url('/admin/content/authors');
+$authorAddMemberInputId = 'content_author_add_account_identifier';
+$authorAddMemberLookupModalId = 'content_author_add_member_lookup_modal';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
@@ -72,8 +74,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="return_to" value="<?php echo sr_e($authorReturnTo); ?>">
                     <div class="admin-form-row">
-                        <label class="form-label" for="content_author_add_account_id">회원 ID <span class="sr-required-label">(필수)</span></label>
-                        <div class="admin-form-field"><input id="content_author_add_account_id" type="number" min="1" name="account_id" class="form-input" required data-overlay-focus></div>
+                        <label class="form-label" for="<?php echo sr_e($authorAddMemberInputId); ?>">회원 <span class="sr-required-label">(필수)</span></label>
+                        <div class="admin-form-field">
+                            <input type="hidden" name="account_identifier_field" value="all">
+                            <div class="admin-lookup-control">
+                                <input id="<?php echo sr_e($authorAddMemberInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
+                                <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($authorAddMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($authorAddMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($authorAddMemberInputId); ?>">회원 검색</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="admin-form-row">
                         <label class="form-label" for="content_author_add_status">상태 <span class="sr-required-label">(필수)</span></label>
@@ -88,7 +96,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="form-label" for="content_author_add_review_required_override">검수 예외 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
                             <select id="content_author_add_review_required_override" name="review_required_override" class="form-select" required>
-                                <option value="inherit">상속</option>
+                                <option value="inherit">기본 설정 따름</option>
                                 <option value="required">항상 검수</option>
                                 <option value="exempt">검수 면제</option>
                             </select>
@@ -140,7 +148,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-review">검수 예외 <span class="sr-required-label">(필수)</span></label>
                             <div class="admin-form-field">
                                 <select id="<?php echo sr_e($authorEditModalId); ?>-review" name="review_required_override" class="form-select" required>
-                                    <option value="inherit"<?php echo (string) $permission['review_required_override'] === 'inherit' ? ' selected' : ''; ?>>상속</option>
+                                    <option value="inherit"<?php echo (string) $permission['review_required_override'] === 'inherit' ? ' selected' : ''; ?>>기본 설정 따름</option>
                                     <option value="required"<?php echo (string) $permission['review_required_override'] === 'required' ? ' selected' : ''; ?>>항상 검수</option>
                                     <option value="exempt"<?php echo (string) $permission['review_required_override'] === 'exempt' ? ' selected' : ''; ?>>검수 면제</option>
                                 </select>
@@ -159,5 +167,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
     <?php } ?>
+    <?php
+    $assetAdjustLookup = [
+        'field_prefix' => 'content_author_add',
+        'member_input_id' => $authorAddMemberInputId,
+        'return_overlay_id' => 'content-author-add-modal',
+        'return_label' => '작성자 승인 추가',
+        'member_search_url' => sr_url('/admin/content/authors/member-search'),
+    ];
+    include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
+    ?>
 <?php } ?>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

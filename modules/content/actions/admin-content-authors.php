@@ -18,7 +18,12 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/authors', 'edit');
     $errors = [];
     $notice = '';
-    $targetAccountId = sr_admin_post_positive_int('account_id');
+    $targetAccountIdentifier = sr_post_string('account_identifier', 80);
+    $targetAccountField = sr_post_string('account_identifier_field', 20);
+    if ($targetAccountIdentifier === '') {
+        $targetAccountIdentifier = sr_post_string('account_id', 80);
+    }
+    $targetAccountId = sr_admin_member_account_id_from_lookup($pdo, isset($config) && is_array($config) ? $config : sr_runtime_config(), $targetAccountField, $targetAccountIdentifier);
     $status = sr_post_string('status', 20);
     $reviewOverride = sr_post_string('review_required_override', 20);
     $note = sr_content_clean_text(sr_post_string('note', 2000), 2000);

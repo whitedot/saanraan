@@ -553,7 +553,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <?php $submissionReviewRequired = $groupSettingValue($groupSettings, 'member_submission_review_required', 'inherit'); ?>
                     <select id="content_group_member_submission_review_required" name="group_member_submission_review_required" class="form-select">
-                        <option value="inherit"<?php echo $submissionReviewRequired === 'inherit' ? ' selected' : ''; ?>>전체 설정 상속</option>
+                        <option value="inherit"<?php echo $submissionReviewRequired === 'inherit' ? ' selected' : ''; ?>>기본 설정 따름</option>
                         <option value="always"<?php echo $submissionReviewRequired === 'always' ? ' selected' : ''; ?>>항상 검수</option>
                         <option value="none"<?php echo $submissionReviewRequired === 'none' ? ' selected' : ''; ?>>검수 없음</option>
                     </select>

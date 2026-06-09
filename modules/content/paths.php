@@ -31,6 +31,7 @@ return [
     'POST /admin/content/author-applications' => 'actions/admin-content-author-applications.php',
     'GET /admin/content/authors' => 'actions/admin-content-authors.php',
     'POST /admin/content/authors' => 'actions/admin-content-authors.php',
+    'GET /admin/content/authors/member-search' => 'actions/admin-content-author-member-search.php',
     'GET /admin/content/files' => 'actions/admin-download-files.php',
     'POST /admin/content/files' => 'actions/admin-download-files.php',
     'GET /admin/content/link-card-targets' => 'actions/admin-link-card-targets.php',

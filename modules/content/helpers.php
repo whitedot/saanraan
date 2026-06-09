@@ -1877,7 +1877,7 @@ function sr_content_author_permission_status_label(string $status): string
 function sr_content_author_review_override_label(string $value): string
 {
     return match ($value) {
-        'inherit' => '상속',
+        'inherit' => '기본 설정 따름',
         'required' => '항상 검수',
         'exempt' => '검수 면제',
         default => $value,
