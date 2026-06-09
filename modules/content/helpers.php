@@ -3597,7 +3597,9 @@ function sr_content_public_display_setting_labels(): array
 function sr_content_input_values(?PDO $pdo = null): array
 {
     $pageGroupScope = sr_content_group_apply_scope(sr_post_string('content_group_scope', 20));
-    $pageGroupId = (int) sr_post_string('content_group_id', 20);
+    $pageGroupIdValue = trim(sr_post_string('content_group_id', 20));
+    $pageGroupId = preg_match('/\A[1-9][0-9]*\z/', $pageGroupIdValue) === 1 ? (int) $pageGroupIdValue : 0;
+    $pageGroupIdInvalid = $pageGroupIdValue !== '' && $pageGroupIdValue !== '0' && $pageGroupId === 0;
     $bodyFormat = 'plain';
     if ($pdo instanceof PDO && sr_post_string('body_format', 20) === 'html' && sr_content_html_body_enabled($pdo)) {
         $bodyFormat = 'html';
@@ -3617,6 +3619,7 @@ function sr_content_input_values(?PDO $pdo = null): array
     $values = [
         'content_group_scope' => $pageGroupScope,
         'content_group_id' => $pageGroupId,
+        'content_group_id_invalid' => $pageGroupIdInvalid ? 1 : 0,
         'source_status' => sr_content_normalize_setting_source(sr_post_string('source_status', 20)),
         'source_layout_key' => sr_content_normalize_setting_source(sr_post_string('source_layout_key', 20)),
         'title' => sr_content_clean_single_line(sr_post_string('title', 160), 160),
@@ -3700,7 +3703,9 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     }
 
     $pageGroupId = (int) ($values['content_group_id'] ?? 0);
-    if ($pageGroupId < 0 || ($pageGroupId > 0 && !is_array(sr_content_group_by_id($pdo, $pageGroupId)))) {
+    if (!empty($values['content_group_id_invalid'])) {
+        $errors[] = '콘텐츠 그룹 값이 올바르지 않습니다.';
+    } elseif ($pageGroupId < 0 || ($pageGroupId > 0 && !is_array(sr_content_group_by_id($pdo, $pageGroupId)))) {
         $errors[] = '콘텐츠 그룹 값이 올바르지 않습니다.';
     }
     if (sr_content_group_apply_scope((string) ($values['content_group_scope'] ?? 'here_only')) === 'group' && $pageGroupId < 1) {
