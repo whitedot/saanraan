@@ -102,9 +102,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <input type="hidden" name="intent" value="batch_post_status">
         <input type="hidden" name="operation_key" value="community.post_set_status">
         <div class="admin-list-actions community-post-bulk-actions" hidden data-community-post-bulk-bar>
-            <div class="community-post-bulk-summary" aria-live="polite">
-                <strong data-community-post-selected-count>0</strong>개 선택됨
-            </div>
             <div class="community-post-bulk-controls">
                 <select name="target_status" class="form-select" aria-label="변경할 게시글 상태">
                     <option value="hidden"><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></option>
@@ -112,6 +109,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
                 <button type="submit" class="btn btn-solid-primary" data-community-post-bulk-submit disabled>상태 변경</button>
                 <button type="button" class="btn btn-solid-light" data-community-post-bulk-clear>선택 해제</button>
+            </div>
+            <div class="community-post-bulk-summary" aria-live="polite">
+                <strong data-community-post-selected-count>0</strong>개 선택됨
             </div>
         </div>
     </form>
@@ -273,9 +273,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <input type="hidden" name="intent" value="batch_comment_status">
         <input type="hidden" name="operation_key" value="community.comment_set_status">
         <div class="admin-list-actions community-comment-bulk-actions" hidden data-community-comment-bulk-bar>
-            <div class="community-comment-bulk-summary" aria-live="polite">
-                <strong data-community-comment-selected-count>0</strong>개 선택됨
-            </div>
             <div class="community-comment-bulk-controls">
                 <select name="target_status" class="form-select" aria-label="변경할 댓글 상태">
                     <option value="hidden"><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></option>
@@ -283,6 +280,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
                 <button type="submit" class="btn btn-solid-primary" data-community-comment-bulk-submit disabled>상태 변경</button>
                 <button type="button" class="btn btn-solid-light" data-community-comment-bulk-clear>선택 해제</button>
+            </div>
+            <div class="community-comment-bulk-summary" aria-live="polite">
+                <strong data-community-comment-selected-count>0</strong>개 선택됨
             </div>
         </div>
     </form>

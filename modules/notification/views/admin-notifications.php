@@ -245,9 +245,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="batch_status">
             <input type="hidden" name="operation_key" value="notification.set_status">
             <div class="admin-list-actions notification-bulk-actions" hidden data-notification-bulk-bar>
-                <div class="notification-bulk-summary" aria-live="polite">
-                    <strong data-notification-selected-count>0</strong>개 선택됨
-                </div>
                 <div class="notification-bulk-controls">
                     <select name="target_status" class="form-select" aria-label="변경할 알림 상태">
                         <?php foreach ($allowedNotificationStatuses as $status) { ?>
@@ -256,6 +253,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <button type="submit" class="btn btn-solid-primary" data-notification-bulk-submit disabled>상태 변경</button>
                     <button type="button" class="btn btn-solid-light" data-notification-bulk-clear>선택 해제</button>
+                </div>
+                <div class="notification-bulk-summary" aria-live="polite">
+                    <strong data-notification-selected-count>0</strong>개 선택됨
                 </div>
             </div>
         </form>

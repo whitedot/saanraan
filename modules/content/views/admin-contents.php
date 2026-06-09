@@ -868,9 +868,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="batch_status">
             <input type="hidden" name="operation_key" value="content.set_status">
             <div class="admin-list-actions content-bulk-actions" hidden data-content-bulk-bar>
-                <div class="content-bulk-summary" aria-live="polite">
-                    <strong data-content-selected-count>0</strong>개 선택됨
-                </div>
                 <div class="content-bulk-controls">
                     <select name="target_status" class="form-select" aria-label="변경할 콘텐츠 상태">
                         <option value="draft"><?php echo sr_e(sr_admin_code_label('draft', 'content_status')); ?></option>
@@ -879,6 +876,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <button type="submit" class="btn btn-solid-primary" data-content-bulk-submit disabled>상태 변경</button>
                     <button type="button" class="btn btn-solid-light" data-content-bulk-clear>선택 해제</button>
+                </div>
+                <div class="content-bulk-summary" aria-live="polite">
+                    <strong data-content-selected-count>0</strong>개 선택됨
                 </div>
             </div>
         </form>

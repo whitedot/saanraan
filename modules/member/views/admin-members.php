@@ -309,12 +309,12 @@ foreach ($allowedStatuses as $status) {
         <input type="hidden" name="operation_key" value="member.revoke_sessions">
         <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/members')); ?>">
         <div class="admin-list-actions admin-member-bulk-actions" hidden data-member-bulk-session-bar>
-            <div class="admin-member-bulk-summary" aria-live="polite">
-                <strong data-member-selected-count>0</strong>명 선택됨
-            </div>
             <div class="admin-member-bulk-controls">
                 <button type="submit" class="btn btn-outline-danger" data-member-bulk-session-submit disabled>세션 회수</button>
                 <button type="button" class="btn btn-solid-light" data-member-bulk-session-clear>선택 해제</button>
+            </div>
+            <div class="admin-member-bulk-summary" aria-live="polite">
+                <strong data-member-selected-count>0</strong>명 선택됨
             </div>
         </div>
     </form>

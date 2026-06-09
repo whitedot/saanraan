@@ -139,9 +139,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <input type="hidden" name="operation_key" value="coupon.definition_set_status">
         <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/coupons')); ?>">
         <div class="admin-list-actions admin-coupon-definition-bulk-actions" hidden data-coupon-definition-bulk-bar>
-            <div class="admin-coupon-definition-bulk-summary" aria-live="polite">
-                <strong data-coupon-definition-selected-count>0</strong>개 선택됨
-            </div>
             <div class="admin-coupon-definition-bulk-controls">
                 <select name="target_status" class="form-select" aria-label="변경할 쿠폰 종류 상태">
                     <option value="active">사용 중</option>
@@ -149,6 +146,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
                 <button type="submit" class="btn btn-solid-primary" data-coupon-definition-bulk-submit disabled>상태 변경</button>
                 <button type="button" class="btn btn-solid-light" data-coupon-definition-bulk-clear>선택 해제</button>
+            </div>
+            <div class="admin-coupon-definition-bulk-summary" aria-live="polite">
+                <strong data-coupon-definition-selected-count>0</strong>개 선택됨
             </div>
         </div>
     </form>

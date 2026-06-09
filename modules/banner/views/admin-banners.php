@@ -407,9 +407,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="operation_key" value="banner.set_status">
             <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners')); ?>">
             <div class="admin-list-actions admin-banner-bulk-actions" hidden data-banner-bulk-bar>
-                <div class="admin-banner-bulk-summary" aria-live="polite">
-                    <strong data-banner-selected-count>0</strong>개 선택됨
-                </div>
                 <div class="admin-banner-bulk-controls">
                     <select name="target_status" class="form-select" aria-label="변경할 배너 상태">
                         <option value="enabled">사용</option>
@@ -417,6 +414,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <button type="submit" class="btn btn-solid-primary" data-banner-bulk-submit disabled>상태 변경</button>
                     <button type="button" class="btn btn-solid-light" data-banner-bulk-clear>선택 해제</button>
+                </div>
+                <div class="admin-banner-bulk-summary" aria-live="polite">
+                    <strong data-banner-selected-count>0</strong>개 선택됨
                 </div>
             </div>
         </form>

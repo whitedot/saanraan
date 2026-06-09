@@ -119,9 +119,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="batch_status">
             <input type="hidden" name="operation_key" value="content.group_set_status">
             <div class="admin-list-actions content-group-bulk-actions" hidden data-content-group-bulk-bar>
-                <div class="content-group-bulk-summary" aria-live="polite">
-                    <strong data-content-group-selected-count>0</strong>개 선택됨
-                </div>
                 <div class="content-group-bulk-controls">
                     <select name="target_status" class="form-select" aria-label="변경할 콘텐츠 그룹 상태">
                         <?php foreach ($allowedGroupStatuses as $status) { ?>
@@ -130,6 +127,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </select>
                     <button type="submit" class="btn btn-solid-primary" data-content-group-bulk-submit disabled>상태 변경</button>
                     <button type="button" class="btn btn-solid-light" data-content-group-bulk-clear>선택 해제</button>
+                </div>
+                <div class="content-group-bulk-summary" aria-live="polite">
+                    <strong data-content-group-selected-count>0</strong>개 선택됨
                 </div>
             </div>
         </form>

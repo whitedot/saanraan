@@ -106,9 +106,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <input type="hidden" name="intent" value="batch_status">
         <input type="hidden" name="operation_key" value="community.report_set_status">
         <div class="admin-list-actions community-report-bulk-actions" hidden data-community-report-bulk-bar>
-            <div class="community-report-bulk-summary" aria-live="polite">
-                <strong data-community-report-selected-count>0</strong>개 선택됨
-            </div>
             <div class="community-report-bulk-controls">
                 <select name="target_status" class="form-select" aria-label="변경할 신고 상태">
                     <?php foreach ($allowedStatuses as $status) { ?>
@@ -118,6 +115,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <input type="text" name="review_note" class="form-input" maxlength="1000" placeholder="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>">
                 <button type="submit" class="btn btn-solid-primary" data-community-report-bulk-submit disabled>상태 변경</button>
                 <button type="button" class="btn btn-solid-light" data-community-report-bulk-clear>선택 해제</button>
+            </div>
+            <div class="community-report-bulk-summary" aria-live="polite">
+                <strong data-community-report-selected-count>0</strong>개 선택됨
             </div>
         </div>
     </form>

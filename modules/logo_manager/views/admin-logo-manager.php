@@ -157,9 +157,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <input type="hidden" name="intent" value="batch_status">
         <input type="hidden" name="operation_key" value="logo_manager.set_status">
         <div class="admin-list-actions logo-manager-bulk-actions" hidden data-logo-manager-bulk-bar>
-            <div class="logo-manager-bulk-summary" aria-live="polite">
-                <strong data-logo-manager-selected-count>0</strong>개 선택됨
-            </div>
             <div class="logo-manager-bulk-controls">
                 <select name="target_status" class="form-select" aria-label="변경할 로고 배치 상태">
                     <option value="active"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></option>
@@ -167,6 +164,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
                 <button type="submit" class="btn btn-solid-primary" data-logo-manager-bulk-submit disabled>상태 변경</button>
                 <button type="button" class="btn btn-solid-light" data-logo-manager-bulk-clear>선택 해제</button>
+            </div>
+            <div class="logo-manager-bulk-summary" aria-live="polite">
+                <strong data-logo-manager-selected-count>0</strong>개 선택됨
             </div>
         </div>
     </form>
