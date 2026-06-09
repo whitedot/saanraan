@@ -64,7 +64,10 @@ if (sr_request_method() === 'POST') {
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons');
         } elseif ($intent === 'issue_coupon' && $couponAdminPage === 'definitions') {
-            $definitionId = (int) sr_post_string('coupon_definition_id', 20);
+            $definitionId = sr_admin_post_positive_int('coupon_definition_id');
+            if ($definitionId < 1) {
+                throw new InvalidArgumentException('지급할 쿠폰 종류를 선택하세요.');
+            }
             $targetMode = sr_post_string('issue_target_mode', 20);
             $targetAccountIds = sr_coupon_issue_target_account_ids(
                 $pdo,
@@ -242,7 +245,10 @@ if (sr_request_method() === 'POST') {
                 sr_redirect($returnTo);
             }
         } elseif ($intent === 'set_definition_status' && $couponAdminPage === 'definitions') {
-            $definitionId = (int) sr_post_string('definition_id', 20);
+            $definitionId = sr_admin_post_positive_int('definition_id');
+            if ($definitionId < 1) {
+                throw new InvalidArgumentException('상태를 변경할 쿠폰 종류를 선택하세요.');
+            }
             $status = sr_post_string('status', 30);
             if ($status !== 'active') {
                 $definition = sr_coupon_definition_by_id($pdo, $definitionId);
@@ -277,7 +283,10 @@ if (sr_request_method() === 'POST') {
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons');
         } elseif ($intent === 'set_issue_status' && $couponAdminPage === 'issues') {
-            $issueId = (int) sr_post_string('issue_id', 20);
+            $issueId = sr_admin_post_positive_int('issue_id');
+            if ($issueId < 1) {
+                throw new InvalidArgumentException('상태를 변경할 지급 내역을 선택하세요.');
+            }
             $status = sr_post_string('status', 30);
             sr_coupon_update_issue_status($pdo, $issueId, $status, (int) $account['id']);
             sr_audit_log($pdo, [
@@ -294,7 +303,10 @@ if (sr_request_method() === 'POST') {
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/coupons/issues');
         } elseif ($intent === 'refund_redemption' && $couponAdminPage === 'redemptions') {
-            $redemptionId = (int) sr_post_string('redemption_id', 20);
+            $redemptionId = sr_admin_post_positive_int('redemption_id');
+            if ($redemptionId < 1) {
+                throw new InvalidArgumentException('환불할 사용 내역을 선택하세요.');
+            }
             $refundNote = sr_post_string('refund_note', 255);
             $refundResult = sr_coupon_refund_redemption($pdo, $redemptionId, (int) $account['id'], $refundNote);
             sr_audit_log($pdo, [
@@ -318,7 +330,7 @@ if (sr_request_method() === 'POST') {
     } catch (Throwable $exception) {
         $errors[] = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException ? $exception->getMessage() : '쿠폰 작업을 처리하지 못했습니다.';
         $couponCreateModalOpen = $intent === 'create_definition';
-        $couponIssueModalOpenDefinitionId = $intent === 'issue_coupon' ? (int) sr_post_string('coupon_definition_id', 20) : 0;
+        $couponIssueModalOpenDefinitionId = $intent === 'issue_coupon' ? sr_admin_post_positive_int('coupon_definition_id') : 0;
     }
 }
 
