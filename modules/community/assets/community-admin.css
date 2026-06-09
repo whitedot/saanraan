@@ -10,6 +10,8 @@
 .admin-page-community-board-list .admin-community-board-table .admin-row-actions{gap:.5rem}
 .admin-community-board-copy-actions>button[type=submit]{margin-left:0}
 .admin-community-board-copy-actions>.admin-community-board-copy-primary{margin-left:auto}
+.admin-community-board-copy-info-text{color:var(--text-strong)}
+.admin-community-board-copy-info-text code{color:inherit}
 .admin-page-community-board-group-list .admin-community-board-group-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
 .admin-page-community-board-group-list .admin-community-board-group-filter .filtering-field{min-width:0}
 .admin-page-community-board-group-list .admin-community-board-group-filter .filtering-submit{justify-content:center;width:auto}

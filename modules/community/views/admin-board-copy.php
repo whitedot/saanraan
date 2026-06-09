@@ -23,48 +23,48 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/copy')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="board_id" value="<?php echo sr_e((string) (int) $sourceBoard['id']); ?>">
-    <section class="admin-card card">
+    <section class="admin-card card admin-community-board-copy-info-card">
         <h2><?php echo sr_e('복사 정보'); ?></h2>
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('원본 게시판'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-help"><?php echo sr_e((string) $sourceBoard['title']); ?> / <code><?php echo sr_e((string) $sourceBoard['board_key']); ?></code></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $sourceBoard['title']); ?> / <code><?php echo sr_e((string) $sourceBoard['board_key']); ?></code></p>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('복사 수'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-help"><?php echo sr_e('게시글 ' . number_format((int) $copyCounts['posts']) . ', 댓글 ' . number_format((int) $copyCounts['comments']) . ', 첨부 ' . number_format((int) $copyCounts['attachments']) . ', 시리즈 ' . number_format((int) ($copyCounts['series'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) $copyCounts['bytes'])); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('게시글 ' . number_format((int) $copyCounts['posts']) . ', 댓글 ' . number_format((int) $copyCounts['comments']) . ', 첨부 ' . number_format((int) $copyCounts['attachments']) . ', 시리즈 ' . number_format((int) ($copyCounts['series'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) $copyCounts['bytes'])); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('복사 상태'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-help"><?php echo sr_e('복사본 게시판은 disabled로 저장됩니다. 신고, 스크랩, 자산 로그, 알림은 복사하지 않습니다. 시리즈는 아래 선택지를 켠 경우에만 새 사본으로 복사합니다.'); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('복사본 게시판은 disabled로 저장됩니다. 신고, 스크랩, 자산 로그, 알림은 복사하지 않습니다. 시리즈는 아래 선택지를 켠 경우에만 새 사본으로 복사합니다.'); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('부하 등급'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-help"><?php echo sr_e((string) $communityBoardCopyLoad['label']); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $communityBoardCopyLoad['label']); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('중단/실패 시 상태'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-help"><?php echo sr_e((string) $communityBoardCopyLoad['failure_state']); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $communityBoardCopyLoad['failure_state']); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('권장 실행 시점'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-help"><?php echo sr_e((string) $communityBoardCopyLoad['recommended_time']); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $communityBoardCopyLoad['recommended_time']); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('기록 위치'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-help"><?php echo sr_e('동기 복사는 감사 로그 community_board.copied metadata에 대상 수와 부하 등급을 남기고, 배치 복사는 작업 목록에 진행/실패/정리 상태를 남깁니다.'); ?></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e('동기 복사는 감사 로그 community_board.copied metadata에 대상 수와 부하 등급을 남기고, 배치 복사는 작업 목록에 진행/실패/정리 상태를 남깁니다.'); ?></p>
             </div>
         </div>
         <?php if ($limitErrors !== []) { ?>
@@ -77,15 +77,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } else { ?>
                     <p><?php echo sr_e('위 차단 사유를 먼저 정리한 뒤 다시 시도하세요.'); ?></p>
                 <?php } ?>
-            </div>
-        <?php } ?>
-        <?php if ($communityBoardCopyStorageWarnings !== []) { ?>
-            <div class="alert alert-warning">
-                <div>
-                    <?php foreach ($communityBoardCopyStorageWarnings as $storageWarning) { ?>
-                        <p><?php echo sr_e($storageWarning); ?></p>
-                    <?php } ?>
-                </div>
             </div>
         <?php } ?>
     </section>
@@ -113,9 +104,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_choice_label_html($modeLabel); ?>
                     </label>
                 <?php } ?>
-                <p class="admin-form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 동기 상한 안에서만 실행됩니다. 상한을 넘으면 복사를 시작하지 않습니다. 첨부파일이 있으면 위 용량 안내를 확인하세요.'); ?></p>
+                <p class="admin-form-help"><?php echo sr_e('게시글/댓글/첨부파일 포함 복사는 동기 상한 안에서만 실행됩니다. 상한을 넘으면 복사를 시작하지 않습니다. 첨부파일이 있으면 아래 용량 안내를 확인하세요.'); ?></p>
             </div>
         </div>
+        <?php if ($communityBoardCopyStorageWarnings !== []) { ?>
+            <div class="alert alert-warning">
+                <div>
+                    <?php foreach ($communityBoardCopyStorageWarnings as $storageWarning) { ?>
+                        <p><?php echo sr_e($storageWarning); ?></p>
+                    <?php } ?>
+                </div>
+            </div>
+        <?php } ?>
         <?php if ((int) ($copyCounts['series'] ?? 0) > 0) { ?>
             <div class="admin-form-row">
                 <span class="form-label"><?php echo sr_e('시리즈'); ?></span>
@@ -135,10 +135,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
     <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split admin-community-board-copy-actions">
         <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e('취소'); ?></a>
-        <button type="submit" class="btn btn-solid-primary admin-community-board-copy-primary"><?php echo sr_e('복사본 만들기'); ?></button>
         <?php if ($batchAvailable) { ?>
             <button type="submit" name="intent" value="start_batch" class="btn btn-solid-light"><?php echo sr_e('배치 복사 작업 만들기'); ?></button>
         <?php } ?>
+        <button type="submit" class="btn btn-solid-primary admin-community-board-copy-primary"><?php echo sr_e('복사본 만들기'); ?></button>
     </div>
 </form>
 
