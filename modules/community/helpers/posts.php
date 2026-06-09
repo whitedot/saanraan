@@ -1308,10 +1308,10 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         'category_id' => preg_match('/\A[1-9][0-9]*\z/', sr_post_string('category_id', 20)) === 1 ? (int) sr_post_string('category_id', 20) : 0,
         'body_text' => $bodyText,
         'body_format' => $bodyFormat,
-        'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
-        'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
-        'og_title' => sr_community_seo_text(sr_post_string('og_title', 160), 160),
-        'og_description' => sr_community_seo_text(sr_post_string('og_description', 255), 255),
+        'seo_title' => '',
+        'seo_description' => '',
+        'og_title' => '',
+        'og_description' => '',
         'is_secret' => sr_post_string('is_secret', 10) === '1'
             && $pdo instanceof PDO
             && is_array($board)

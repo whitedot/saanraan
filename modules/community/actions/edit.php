@@ -86,6 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    $values['seo_title'] = (string) ($post['seo_title'] ?? '');
+    $values['seo_description'] = (string) ($post['seo_description'] ?? '');
+    $values['og_title'] = (string) ($post['og_title'] ?? '');
+    $values['og_description'] = (string) ($post['og_description'] ?? '');
     $seriesSortOrder = sr_community_series_post_sort_order();
     $seriesValues = [
         'series_mode' => sr_post_string('series_mode', 20),
