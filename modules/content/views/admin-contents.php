@@ -861,27 +861,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if (empty($contentSort['is_default'])) { ?>
                 <a href="<?php echo sr_e(sr_content_admin_sort_url()); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-content-sort-reset" aria-label="콘텐츠 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
+            <form id="content-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content')); ?>" class="content-bulk-form" data-content-bulk-form>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="batch_status">
+                <input type="hidden" name="operation_key" value="content.set_status">
+                <div class="content-bulk-actions admin-row-actions" data-content-bulk-bar>
+                    <div class="content-bulk-controls admin-row-actions">
+                        <button type="submit" name="target_status" value="draft" class="btn btn-sm btn-outline-warning" data-content-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('draft', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('draft', 'content_status')); ?></button>
+                        <button type="submit" name="target_status" value="published" class="btn btn-sm btn-outline-warning" data-content-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></button>
+                        <button type="submit" name="target_status" value="hidden" class="btn btn-sm btn-outline-warning" data-content-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></button>
+                        <button type="button" class="btn btn-sm btn-outline-light" data-content-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-content-selected-count>0</span></button>
+                    </div>
+                </div>
+            </form>
             <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
         </div>
-        <form id="content-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content')); ?>" class="content-bulk-form" data-content-bulk-form>
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="intent" value="batch_status">
-            <input type="hidden" name="operation_key" value="content.set_status">
-            <div class="admin-list-actions content-bulk-actions" hidden data-content-bulk-bar>
-                <div class="content-bulk-controls">
-                    <select name="target_status" class="form-select" aria-label="변경할 콘텐츠 상태">
-                        <option value="draft"><?php echo sr_e(sr_admin_code_label('draft', 'content_status')); ?></option>
-                        <option value="published"><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></option>
-                        <option value="hidden"><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></option>
-                    </select>
-                    <button type="submit" class="btn btn-solid-primary" data-content-bulk-submit disabled>상태 변경</button>
-                    <button type="button" class="btn btn-solid-light" data-content-bulk-clear>선택 해제</button>
-                </div>
-                <div class="content-bulk-summary" aria-live="polite">
-                    <strong data-content-selected-count>0</strong>개 선택됨
-                </div>
-            </div>
-        </form>
         <div class="table-wrapper">
             <table class="table admin-content-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></caption>
@@ -983,9 +977,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     document.addEventListener('DOMContentLoaded', function () {
         var bulkForm = document.querySelector('[data-content-bulk-form]');
         if (bulkForm) {
-            var bar = document.querySelector('[data-content-bulk-bar]');
             var countNode = document.querySelector('[data-content-selected-count]');
-            var submit = document.querySelector('[data-content-bulk-submit]');
+            var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-content-bulk-submit]'));
             var clear = document.querySelector('[data-content-bulk-clear]');
             var selectAll = document.querySelector('[data-content-select-all]');
             var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-content-row-select]'));
@@ -1001,11 +994,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 if (countNode) {
                     countNode.textContent = String(selectedCount);
                 }
-                if (bar) {
-                    bar.hidden = selectedCount < 1;
-                }
-                if (submit) {
-                    submit.disabled = selectedCount < 1;
+                submitButtons.forEach(function (button) {
+                    button.disabled = selectedCount < 1;
+                });
+                if (clear) {
+                    clear.hidden = selectedCount < 1;
                 }
                 if (selectAll) {
                     selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
@@ -1041,8 +1034,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     syncBulkState();
                     return;
                 }
-                var status = bulkForm.querySelector('select[name="target_status"]');
-                var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+                var submitter = event.submitter || document.activeElement;
+                var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+                if (!statusLabel) {
+                    statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
+                }
                 if (!window.confirm('선택한 콘텐츠 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
                     event.preventDefault();
                 }

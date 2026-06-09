@@ -150,26 +150,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php if (empty($logoSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url($logoSortOptions, $logoDefaultSort, '', '', 'logo_sort', 'logo_dir', 'logo_page')); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="로고 배치 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
+        <form id="logo-manager-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager')); ?>" class="logo-manager-bulk-form" data-logo-manager-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_status">
+            <input type="hidden" name="operation_key" value="logo_manager.set_status">
+            <div class="logo-manager-bulk-actions admin-row-actions" data-logo-manager-bulk-bar>
+                <div class="logo-manager-bulk-controls admin-row-actions">
+                    <button type="submit" name="target_status" value="active" class="btn btn-sm btn-outline-warning" data-logo-manager-bulk-submit data-status-label="<?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?>" disabled><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></button>
+                    <button type="submit" name="target_status" value="disabled" class="btn btn-sm btn-outline-warning" data-logo-manager-bulk-submit data-status-label="<?php echo sr_e(sr_t('logo_manager::ui.text.92cdef3c')); ?>" disabled><?php echo sr_e(sr_t('logo_manager::ui.text.92cdef3c')); ?></button>
+                    <button type="button" class="btn btn-sm btn-outline-light" data-logo-manager-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-logo-manager-selected-count>0</span></button>
+                </div>
+            </div>
+        </form>
         <?php echo sr_admin_pagination_summary_html($logoPagination); ?>
     </div>
-    <form id="logo-manager-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager')); ?>" class="logo-manager-bulk-form" data-logo-manager-bulk-form>
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="batch_status">
-        <input type="hidden" name="operation_key" value="logo_manager.set_status">
-        <div class="admin-list-actions logo-manager-bulk-actions" hidden data-logo-manager-bulk-bar>
-            <div class="logo-manager-bulk-controls">
-                <select name="target_status" class="form-select" aria-label="변경할 로고 배치 상태">
-                    <option value="active"><?php echo sr_e(sr_t('logo_manager::ui.active.93c558d7')); ?></option>
-                    <option value="disabled"><?php echo sr_e(sr_t('logo_manager::ui.text.92cdef3c')); ?></option>
-                </select>
-                <button type="submit" class="btn btn-solid-primary" data-logo-manager-bulk-submit disabled>상태 변경</button>
-                <button type="button" class="btn btn-solid-light" data-logo-manager-bulk-clear>선택 해제</button>
-            </div>
-            <div class="logo-manager-bulk-summary" aria-live="polite">
-                <strong data-logo-manager-selected-count>0</strong>개 선택됨
-            </div>
-        </div>
-    </form>
     <div class="table-wrapper">
         <table class="table logo-manager-assignments-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.logo.list')); ?></caption>
@@ -241,9 +235,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 (function () {
     var bulkForm = document.querySelector('[data-logo-manager-bulk-form]');
     if (bulkForm) {
-        var bar = document.querySelector('[data-logo-manager-bulk-bar]');
         var countNode = document.querySelector('[data-logo-manager-selected-count]');
-        var submit = document.querySelector('[data-logo-manager-bulk-submit]');
+        var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-logo-manager-bulk-submit]'));
         var clear = document.querySelector('[data-logo-manager-bulk-clear]');
         var selectAll = document.querySelector('[data-logo-manager-select-all]');
         var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-logo-manager-row-select]'));
@@ -259,11 +252,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (countNode) {
                 countNode.textContent = String(selectedCount);
             }
-            if (bar) {
-                bar.hidden = selectedCount < 1;
-            }
-            if (submit) {
-                submit.disabled = selectedCount < 1;
+            submitButtons.forEach(function (button) {
+                button.disabled = selectedCount < 1;
+            });
+            if (clear) {
+                clear.hidden = selectedCount < 1;
             }
             if (selectAll) {
                 selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
@@ -299,8 +292,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 syncBulkState();
                 return;
             }
-            var status = bulkForm.querySelector('select[name="target_status"]');
-            var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+            var submitter = event.submitter || document.activeElement;
+            var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+            if (!statusLabel) {
+                statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
+            }
             if (!window.confirm('선택한 로고 배치 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
                 event.preventDefault();
             }

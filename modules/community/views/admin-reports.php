@@ -100,27 +100,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title"><?php echo sr_e(sr_t('community::ui.list.27da9d14')); ?></h2></div>
-    <?php echo sr_admin_pagination_summary_html($reportPagination); ?>
-    <form id="community-report-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="community-report-bulk-form" data-community-report-bulk-form>
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="batch_status">
-        <input type="hidden" name="operation_key" value="community.report_set_status">
-        <div class="admin-list-actions community-report-bulk-actions" hidden data-community-report-bulk-bar>
-            <div class="community-report-bulk-controls">
-                <select name="target_status" class="form-select" aria-label="변경할 신고 상태">
+    <div class="admin-list-summary-row">
+        <form id="community-report-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="community-report-bulk-form" data-community-report-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_status">
+            <input type="hidden" name="operation_key" value="community.report_set_status">
+            <div class="community-report-bulk-actions admin-row-actions" data-community-report-bulk-bar>
+                <div class="community-report-bulk-controls admin-row-actions">
                     <?php foreach ($allowedStatuses as $status) { ?>
-                        <option value="<?php echo sr_e($status); ?>"><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
+                        <button type="submit" name="target_status" value="<?php echo sr_e($status); ?>" class="btn btn-sm btn-outline-warning" data-community-report-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></button>
                     <?php } ?>
-                </select>
-                <input type="text" name="review_note" class="form-input" maxlength="1000" placeholder="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>">
-                <button type="submit" class="btn btn-solid-primary" data-community-report-bulk-submit disabled>상태 변경</button>
-                <button type="button" class="btn btn-solid-light" data-community-report-bulk-clear>선택 해제</button>
+                    <input type="text" name="review_note" class="form-input" maxlength="1000" placeholder="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-community-report-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-community-report-selected-count>0</span></button>
+                </div>
             </div>
-            <div class="community-report-bulk-summary" aria-live="polite">
-                <strong data-community-report-selected-count>0</strong>개 선택됨
-            </div>
-        </div>
-    </form>
+        </form>
+        <?php echo sr_admin_pagination_summary_html($reportPagination); ?>
+    </div>
     <div class="table-wrapper">
     <table class="table admin-community-report-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.b4e41b31')); ?></caption>
@@ -243,9 +239,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return;
     }
 
-    var bar = document.querySelector('[data-community-report-bulk-bar]');
     var countNode = document.querySelector('[data-community-report-selected-count]');
-    var submit = document.querySelector('[data-community-report-bulk-submit]');
+    var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-report-bulk-submit]'));
     var clear = document.querySelector('[data-community-report-bulk-clear]');
     var selectAll = document.querySelector('[data-community-report-select-all]');
     var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-community-report-row-select]'));
@@ -261,11 +256,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (countNode) {
             countNode.textContent = String(selectedCount);
         }
-        if (bar) {
-            bar.hidden = selectedCount < 1;
-        }
-        if (submit) {
-            submit.disabled = selectedCount < 1;
+        submitButtons.forEach(function (button) {
+            button.disabled = selectedCount < 1;
+        });
+        if (clear) {
+            clear.hidden = selectedCount < 1;
         }
         if (selectAll) {
             selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
@@ -301,8 +296,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             syncBulkState();
             return;
         }
-        var status = bulkForm.querySelector('select[name="target_status"]');
-        var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+        var submitter = event.submitter || document.activeElement;
+        var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+        if (!statusLabel) {
+            statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
+        }
         if (!window.confirm('선택한 신고 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
             event.preventDefault();
         }

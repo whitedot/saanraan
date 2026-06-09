@@ -399,27 +399,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if (empty($bannerSort['is_default'])) { ?>
                 <a href="<?php echo sr_e(sr_admin_sort_url($bannerSortOptions, $bannerDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="배너 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
+            <form id="banner-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-banner-bulk-form" data-banner-bulk-form>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="batch_status">
+                <input type="hidden" name="operation_key" value="banner.set_status">
+                <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners')); ?>">
+                <div class="admin-banner-bulk-actions admin-row-actions" data-banner-bulk-bar>
+                    <div class="admin-banner-bulk-controls admin-row-actions">
+                        <button type="submit" name="target_status" value="enabled" class="btn btn-sm btn-outline-warning" data-banner-bulk-submit data-status-label="사용" disabled>사용</button>
+                        <button type="submit" name="target_status" value="disabled" class="btn btn-sm btn-outline-warning" data-banner-bulk-submit data-status-label="사용 안 함" disabled>사용 안 함</button>
+                        <button type="button" class="btn btn-sm btn-outline-light" data-banner-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-banner-selected-count>0</span></button>
+                    </div>
+                </div>
+            </form>
             <?php echo sr_admin_pagination_summary_html($bannerPagination); ?>
         </div>
-        <form id="banner-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="admin-banner-bulk-form" data-banner-bulk-form>
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="intent" value="batch_status">
-            <input type="hidden" name="operation_key" value="banner.set_status">
-            <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/banners')); ?>">
-            <div class="admin-list-actions admin-banner-bulk-actions" hidden data-banner-bulk-bar>
-                <div class="admin-banner-bulk-controls">
-                    <select name="target_status" class="form-select" aria-label="변경할 배너 상태">
-                        <option value="enabled">사용</option>
-                        <option value="disabled">사용 안 함</option>
-                    </select>
-                    <button type="submit" class="btn btn-solid-primary" data-banner-bulk-submit disabled>상태 변경</button>
-                    <button type="button" class="btn btn-solid-light" data-banner-bulk-clear>선택 해제</button>
-                </div>
-                <div class="admin-banner-bulk-summary" aria-live="polite">
-                    <strong data-banner-selected-count>0</strong>개 선택됨
-                </div>
-            </div>
-        </form>
         <div class="table-wrapper">
         <table class="table admin-banner-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></caption>
@@ -519,9 +513,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (!form) {
             return;
         }
-        var bar = document.querySelector('[data-banner-bulk-bar]');
         var countNode = document.querySelector('[data-banner-selected-count]');
-        var submit = document.querySelector('[data-banner-bulk-submit]');
+        var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-banner-bulk-submit]'));
         var clear = document.querySelector('[data-banner-bulk-clear]');
         var selectAll = document.querySelector('[data-banner-select-all]');
         var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-banner-row-select]'));
@@ -537,11 +530,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (countNode) {
                 countNode.textContent = String(selectedCount);
             }
-            if (bar) {
-                bar.hidden = selectedCount < 1;
-            }
-            if (submit) {
-                submit.disabled = selectedCount < 1;
+            submitButtons.forEach(function (button) {
+                button.disabled = selectedCount < 1;
+            });
+            if (clear) {
+                clear.hidden = selectedCount < 1;
             }
             if (selectAll) {
                 selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
@@ -577,8 +570,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 syncBulkState();
                 return;
             }
-            var status = form.querySelector('select[name="target_status"]');
-            var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+            var submitter = event.submitter || document.activeElement;
+            var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+            if (!statusLabel) {
+                statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
+            }
             if (!window.confirm('선택한 배너 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
                 event.preventDefault();
             }

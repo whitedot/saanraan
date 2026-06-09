@@ -300,24 +300,21 @@ foreach ($allowedStatuses as $status) {
         <?php if (empty($memberSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_member_sort_options(), sr_admin_member_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="회원 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
+        <form id="member-bulk-session-form" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-member-bulk-form" data-member-bulk-session-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_revoke_sessions">
+            <input type="hidden" name="operation_key" value="member.revoke_sessions">
+            <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/members')); ?>">
+            <div class="admin-member-bulk-actions admin-row-actions" data-member-bulk-session-bar>
+                <div class="admin-member-bulk-controls admin-row-actions">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" data-member-bulk-session-submit disabled>세션 회수</button>
+                    <button type="button" class="btn btn-sm btn-outline-light" data-member-bulk-session-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-member-selected-count>0</span></button>
+                </div>
+            </div>
+        </form>
         <?php echo sr_admin_pagination_summary_html($memberPagination); ?>
     </div>
     <?php $memberListShowNicknameColumn = !empty($memberSettings['nickname_enabled']); ?>
-    <form id="member-bulk-session-form" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="admin-member-bulk-form" data-member-bulk-session-form>
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="batch_revoke_sessions">
-        <input type="hidden" name="operation_key" value="member.revoke_sessions">
-        <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/members')); ?>">
-        <div class="admin-list-actions admin-member-bulk-actions" hidden data-member-bulk-session-bar>
-            <div class="admin-member-bulk-controls">
-                <button type="submit" class="btn btn-outline-danger" data-member-bulk-session-submit disabled>세션 회수</button>
-                <button type="button" class="btn btn-solid-light" data-member-bulk-session-clear>선택 해제</button>
-            </div>
-            <div class="admin-member-bulk-summary" aria-live="polite">
-                <strong data-member-selected-count>0</strong>명 선택됨
-            </div>
-        </div>
-    </form>
     <div class="table-wrapper">
         <table class="table admin-member-table">
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.5e737292')); ?></caption>
@@ -405,7 +402,6 @@ foreach ($allowedStatuses as $status) {
     if (!form) {
         return;
     }
-    var bar = document.querySelector('[data-member-bulk-session-bar]');
     var countNode = document.querySelector('[data-member-selected-count]');
     var submit = document.querySelector('[data-member-bulk-session-submit]');
     var clear = document.querySelector('[data-member-bulk-session-clear]');
@@ -423,11 +419,11 @@ foreach ($allowedStatuses as $status) {
         if (countNode) {
             countNode.textContent = String(selectedCount);
         }
-        if (bar) {
-            bar.hidden = selectedCount < 1;
-        }
         if (submit) {
             submit.disabled = selectedCount < 1;
+        }
+        if (clear) {
+            clear.hidden = selectedCount < 1;
         }
         if (selectAll) {
             selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;

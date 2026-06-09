@@ -110,22 +110,6 @@
     table-layout: auto;
 }
 
-.admin-page-popup-layer-list .admin-popup-layer-bulk-actions {
-    border-top: 0;
-}
-
-.admin-page-popup-layer-list .admin-popup-layer-bulk-summary,
-.admin-page-popup-layer-list .admin-popup-layer-bulk-controls {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--spacing) * 2);
-}
-
-.admin-page-popup-layer-list .admin-popup-layer-bulk-controls {
-    justify-content: flex-end;
-}
-
 .admin-page-popup-layer-list .admin-popup-layer-select-cell {
     text-align: center;
     width: 1%;

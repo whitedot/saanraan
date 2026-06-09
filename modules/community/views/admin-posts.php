@@ -260,26 +260,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php if (empty($commentSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="댓글 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
+        <form id="community-comment-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="community-comment-bulk-form" data-community-comment-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_comment_status">
+            <input type="hidden" name="operation_key" value="community.comment_set_status">
+            <div class="community-comment-bulk-actions admin-row-actions" data-community-comment-bulk-bar>
+                <div class="community-comment-bulk-controls admin-row-actions">
+                    <button type="submit" name="target_status" value="hidden" class="btn btn-sm btn-outline-warning" data-community-comment-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></button>
+                    <button type="submit" name="target_status" value="published" class="btn btn-sm btn-outline-warning" data-community-comment-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></button>
+                    <button type="button" class="btn btn-sm btn-outline-light" data-community-comment-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-community-comment-selected-count>0</span></button>
+                </div>
+            </div>
+        </form>
         <?php echo sr_admin_pagination_summary_html($commentPagination); ?>
     </div>
-    <form id="community-comment-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="community-comment-bulk-form" data-community-comment-bulk-form>
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="batch_comment_status">
-        <input type="hidden" name="operation_key" value="community.comment_set_status">
-        <div class="admin-list-actions community-comment-bulk-actions" hidden data-community-comment-bulk-bar>
-            <div class="community-comment-bulk-controls">
-                <select name="target_status" class="form-select" aria-label="변경할 댓글 상태">
-                    <option value="hidden"><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></option>
-                    <option value="published"><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></option>
-                </select>
-                <button type="submit" class="btn btn-solid-primary" data-community-comment-bulk-submit disabled>상태 변경</button>
-                <button type="button" class="btn btn-solid-light" data-community-comment-bulk-clear>선택 해제</button>
-            </div>
-            <div class="community-comment-bulk-summary" aria-live="polite">
-                <strong data-community-comment-selected-count>0</strong>개 선택됨
-            </div>
-        </div>
-    </form>
     <div class="table-wrapper">
     <table class="table admin-community-comment-table">
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.bf0539a8')); ?></caption>
@@ -447,9 +441,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return;
     }
 
-    var bar = document.querySelector('[data-community-comment-bulk-bar]');
     var countNode = document.querySelector('[data-community-comment-selected-count]');
-    var submit = document.querySelector('[data-community-comment-bulk-submit]');
+    var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-comment-bulk-submit]'));
     var clear = document.querySelector('[data-community-comment-bulk-clear]');
     var selectAll = document.querySelector('[data-community-comment-select-all]');
     var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-community-comment-row-select]'));
@@ -465,11 +458,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (countNode) {
             countNode.textContent = String(selectedCount);
         }
-        if (bar) {
-            bar.hidden = selectedCount < 1;
-        }
-        if (submit) {
-            submit.disabled = selectedCount < 1;
+        submitButtons.forEach(function (button) {
+            button.disabled = selectedCount < 1;
+        });
+        if (clear) {
+            clear.hidden = selectedCount < 1;
         }
         if (selectAll) {
             selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
@@ -505,8 +498,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             syncBulkState();
             return;
         }
-        var status = bulkForm.querySelector('select[name="target_status"]');
-        var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+        var submitter = event.submitter || document.activeElement;
+        var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+        if (!statusLabel) {
+            statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
+        }
         if (!window.confirm('선택한 댓글 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
             event.preventDefault();
         }

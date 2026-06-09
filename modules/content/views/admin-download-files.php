@@ -147,26 +147,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if (empty($downloadFileSort['is_default'])) { ?>
                 <a href="<?php echo sr_e(sr_admin_sort_url($downloadFileSortOptions, $downloadFileDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="다운로드 파일 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
             <?php } ?>
+            <form id="content-file-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="content-file-bulk-form" data-content-file-bulk-form>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="batch_status">
+                <input type="hidden" name="operation_key" value="content.file_set_status">
+                <div class="content-file-bulk-actions admin-row-actions" data-content-file-bulk-bar>
+                    <div class="content-file-bulk-controls admin-row-actions">
+                        <button type="submit" name="target_status" value="active" class="btn btn-sm btn-outline-warning" data-content-file-bulk-submit data-status-label="사용" disabled>사용</button>
+                        <button type="submit" name="target_status" value="hidden" class="btn btn-sm btn-outline-warning" data-content-file-bulk-submit data-status-label="숨김" disabled>숨김</button>
+                        <button type="button" class="btn btn-sm btn-outline-light" data-content-file-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-content-file-selected-count>0</span></button>
+                    </div>
+                </div>
+            </form>
             <?php echo sr_admin_pagination_summary_html($downloadFilePagination); ?>
         </div>
-        <form id="content-file-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="content-file-bulk-form" data-content-file-bulk-form>
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="intent" value="batch_status">
-            <input type="hidden" name="operation_key" value="content.file_set_status">
-            <div class="admin-list-actions content-file-bulk-actions" hidden data-content-file-bulk-bar>
-                <div class="content-file-bulk-controls">
-                    <select name="target_status" class="form-select" aria-label="변경할 다운로드 파일 상태">
-                        <option value="active">사용</option>
-                        <option value="hidden">숨김</option>
-                    </select>
-                    <button type="submit" class="btn btn-solid-primary" data-content-file-bulk-submit disabled>상태 변경</button>
-                    <button type="button" class="btn btn-solid-light" data-content-file-bulk-clear>선택 해제</button>
-                </div>
-                <div class="content-file-bulk-summary" aria-live="polite">
-                    <strong data-content-file-selected-count>0</strong>개 선택됨
-                </div>
-            </div>
-        </form>
         <div class="table-wrapper">
             <table class="table admin-content-download-file-table">
                 <caption class="sr-only">다운로드 파일 목록</caption>
@@ -246,9 +240,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
-        var bar = document.querySelector('[data-content-file-bulk-bar]');
         var countNode = document.querySelector('[data-content-file-selected-count]');
-        var submit = document.querySelector('[data-content-file-bulk-submit]');
+        var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-content-file-bulk-submit]'));
         var clear = document.querySelector('[data-content-file-bulk-clear]');
         var selectAll = document.querySelector('[data-content-file-select-all]');
         var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-content-file-row-select]'));
@@ -264,11 +257,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (countNode) {
                 countNode.textContent = String(selectedCount);
             }
-            if (bar) {
-                bar.hidden = selectedCount < 1;
-            }
-            if (submit) {
-                submit.disabled = selectedCount < 1;
+            submitButtons.forEach(function (button) {
+                button.disabled = selectedCount < 1;
+            });
+            if (clear) {
+                clear.hidden = selectedCount < 1;
             }
             if (selectAll) {
                 selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
@@ -304,8 +297,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 syncBulkState();
                 return;
             }
-            var status = bulkForm.querySelector('select[name="target_status"]');
-            var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+            var submitter = event.submitter || document.activeElement;
+            var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+            if (!statusLabel) {
+                statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
+            }
             if (!window.confirm('선택한 다운로드 파일 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
                 event.preventDefault();
             }

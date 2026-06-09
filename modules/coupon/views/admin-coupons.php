@@ -128,30 +128,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($couponCreateModalId); ?>" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">쿠폰 추가</button>
     </div>
-    <?php if (empty($definitionSort['is_default'])) { ?>
-        <div class="admin-list-summary-row">
+    <div class="admin-list-summary-row">
+        <?php if (empty($definitionSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 종류 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
-        </div>
-    <?php } ?>
-    <form id="coupon-definition-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-coupon-definition-bulk-form" data-coupon-definition-bulk-form>
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="batch_definition_status">
-        <input type="hidden" name="operation_key" value="coupon.definition_set_status">
-        <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/coupons')); ?>">
-        <div class="admin-list-actions admin-coupon-definition-bulk-actions" hidden data-coupon-definition-bulk-bar>
-            <div class="admin-coupon-definition-bulk-controls">
-                <select name="target_status" class="form-select" aria-label="변경할 쿠폰 종류 상태">
-                    <option value="active">사용 중</option>
-                    <option value="disabled">중지</option>
-                </select>
-                <button type="submit" class="btn btn-solid-primary" data-coupon-definition-bulk-submit disabled>상태 변경</button>
-                <button type="button" class="btn btn-solid-light" data-coupon-definition-bulk-clear>선택 해제</button>
+        <?php } ?>
+        <form id="coupon-definition-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="admin-coupon-definition-bulk-form" data-coupon-definition-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_definition_status">
+            <input type="hidden" name="operation_key" value="coupon.definition_set_status">
+            <input type="hidden" name="return_to" value="<?php echo sr_e((string) ($_SERVER['REQUEST_URI'] ?? '/admin/coupons')); ?>">
+            <div class="admin-coupon-definition-bulk-actions admin-row-actions" data-coupon-definition-bulk-bar>
+                <div class="admin-coupon-definition-bulk-controls admin-row-actions">
+                    <button type="submit" name="target_status" value="active" class="btn btn-sm btn-outline-warning" data-coupon-definition-bulk-submit data-status-label="사용 중" disabled>사용 중</button>
+                    <button type="submit" name="target_status" value="disabled" class="btn btn-sm btn-outline-warning" data-coupon-definition-bulk-submit data-status-label="중지" disabled>중지</button>
+                    <button type="button" class="btn btn-sm btn-outline-light" data-coupon-definition-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-coupon-definition-selected-count>0</span></button>
+                </div>
             </div>
-            <div class="admin-coupon-definition-bulk-summary" aria-live="polite">
-                <strong data-coupon-definition-selected-count>0</strong>개 선택됨
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
     <div class="table-wrapper">
     <table class="table admin-coupon-definition-table">
         <thead>
@@ -221,9 +215,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     if (!form) {
         return;
     }
-    var bar = document.querySelector('[data-coupon-definition-bulk-bar]');
     var countNode = document.querySelector('[data-coupon-definition-selected-count]');
-    var submit = document.querySelector('[data-coupon-definition-bulk-submit]');
+    var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-coupon-definition-bulk-submit]'));
     var clear = document.querySelector('[data-coupon-definition-bulk-clear]');
     var selectAll = document.querySelector('[data-coupon-definition-select-all]');
     var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-coupon-definition-row-select]'));
@@ -239,11 +232,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (countNode) {
             countNode.textContent = String(selectedCount);
         }
-        if (bar) {
-            bar.hidden = selectedCount < 1;
-        }
-        if (submit) {
-            submit.disabled = selectedCount < 1;
+        submitButtons.forEach(function (button) {
+            button.disabled = selectedCount < 1;
+        });
+        if (clear) {
+            clear.hidden = selectedCount < 1;
         }
         if (selectAll) {
             selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
@@ -279,8 +272,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             syncBulkState();
             return;
         }
-        var status = form.querySelector('select[name="target_status"]');
-        var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+        var submitter = event.submitter || document.activeElement;
+        var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
+        if (!statusLabel) {
+            statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
+        }
         if (!window.confirm('선택한 쿠폰 종류 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
             event.preventDefault();
         }

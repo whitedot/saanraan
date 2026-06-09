@@ -93,22 +93,6 @@
     table-layout: auto;
 }
 
-.admin-page-banner-list .admin-banner-bulk-actions {
-    border-top: 0;
-}
-
-.admin-page-banner-list .admin-banner-bulk-summary,
-.admin-page-banner-list .admin-banner-bulk-controls {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--spacing) * 2);
-}
-
-.admin-page-banner-list .admin-banner-bulk-controls {
-    justify-content: flex-end;
-}
-
 .admin-page-banner-list .admin-banner-select-cell {
     text-align: center;
     width: 1%;
