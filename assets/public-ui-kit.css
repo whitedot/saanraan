@@ -424,7 +424,7 @@ input.form-choice-toggle-input[type=radio]:checked + .btn-choice-light:where([da
 input:checked + [class*=btn-choice-],
 [class*=btn-choice-]:has(> .form-choice-toggle-input:checked),
 [class*=btn-choice-].is-active,
-[class*=btn-choice-][aria-pressed=true] { z-index: 40; background-color: var(--btn-choice-color, var(--color-primary)); border-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
+[class*=btn-choice-][aria-pressed=true] { z-index: 2; background-color: var(--btn-choice-color, var(--color-primary)); border-color: var(--btn-choice-color, var(--color-primary)); color: var(--color-white); }
 @media (hover: hover) {
     input:checked + [class*=btn-choice-]:hover,
     [class*=btn-choice-]:has(> .form-choice-toggle-input:checked):hover,
@@ -464,7 +464,7 @@ input:checked + .btn-choice-light:where([data-theme=dark], [data-theme=dark] *):
 .btn-choice-light.is-active:where([data-theme=dark], [data-theme=dark] *):is(:focus, :focus-visible, :active),
 .btn-choice-light[aria-pressed=true]:where([data-theme=dark], [data-theme=dark] *):is(:focus, :focus-visible, :active) { background-color: var(--color-white); border-color: var(--color-white); color: var(--color-slate-950); }
 input:focus-visible + [class*=btn-choice-],
-[class*=btn-choice-]:has(> .form-choice-toggle-input:focus-visible) { z-index: 41; box-shadow: 0 0 0 3px color-mix(in oklab, var(--btn-choice-color, var(--color-primary)) 14%, transparent); }
+[class*=btn-choice-]:has(> .form-choice-toggle-input:focus-visible) { z-index: 3; box-shadow: 0 0 0 3px color-mix(in oklab, var(--btn-choice-color, var(--color-primary)) 14%, transparent); }
 .form-checkbox:focus-visible,
 .form-radio:focus-visible,
 .form-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--form-choice-color, var(--color-primary)) 12%, transparent); }
@@ -944,7 +944,7 @@ input:focus-visible + [class*=btn-choice-],
 
 /* Modal overlay tweaks */
 .overlay {
-    z-index: 120 !important;
+    z-index: var(--admin-z-overlay, 300) !important;
 }
 
 .overlay.size-full {
