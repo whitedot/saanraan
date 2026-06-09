@@ -8,12 +8,15 @@ require_once SR_ROOT . '/modules/content/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/author-applications', 'view');
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/author-applications', 'edit');
+    $errors = [];
+    $notice = '';
     $intent = sr_post_string('intent', 30);
     $note = sr_content_clean_text(sr_post_string('note', 2000), 2000);
     try {
@@ -26,6 +29,8 @@ if (sr_request_method() === 'POST') {
     } catch (Throwable $exception) {
         $errors[] = $exception->getMessage();
     }
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_redirect(sr_admin_post_return_url('/admin/content/author-applications'));
 }
 
 $applicationStatusInput = array_key_exists('filter', $_GET) ? ($_GET['status'] ?? []) : ($_GET['status'] ?? ['pending']);

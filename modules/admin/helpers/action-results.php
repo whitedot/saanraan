@@ -51,6 +51,13 @@ function sr_admin_current_get_url(string $fallback = '/admin'): string
     return sr_is_safe_relative_url($target) ? $target : $fallback;
 }
 
+function sr_admin_post_return_url(string $fallback = '/admin'): string
+{
+    $returnTo = sr_post_string('return_to', 500);
+
+    return sr_is_safe_relative_url($returnTo) ? $returnTo : $fallback;
+}
+
 function sr_admin_redirect_with_result(array $result, string $fallback = '/admin'): void
 {
     sr_admin_flash_result($result);

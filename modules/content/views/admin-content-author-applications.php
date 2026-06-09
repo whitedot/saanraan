@@ -43,6 +43,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php if ((string) ($application['status'] ?? '') === 'pending') { ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/author-applications')); ?>" class="admin-form-actions">
                                         <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/content/author-applications')); ?>">
                                         <input type="hidden" name="application_id" value="<?php echo sr_e((string) (int) $application['id']); ?>">
                                         <input type="text" name="note" value="" class="form-input" placeholder="검토 메모">
                                         <button type="submit" name="intent" value="approve" class="btn btn-sm btn-solid-primary">승인</button>

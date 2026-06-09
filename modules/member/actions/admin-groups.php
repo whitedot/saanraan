@@ -251,10 +251,8 @@ if (sr_request_method() === 'POST') {
             ]);
 
             $notice = $ruleId > 0 ? sr_t('member::action.admin_groups.rule_updated') : sr_t('member::action.admin_groups.rule_created');
-            if ($ruleId <= 0) {
-                sr_admin_flash_result(sr_admin_action_result([], $notice));
-                sr_redirect('/admin/member-group-rules');
-            }
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect(sr_admin_post_return_url($ruleId > 0 ? '/admin/member-group-rules?edit_rule_id=' . (string) $savedRuleId : '/admin/member-group-rules'));
         }
     } elseif ($intent === 'evaluate_group') {
         $groupId = sr_admin_post_positive_int('group_id');
@@ -351,7 +349,7 @@ if (sr_request_method() === 'POST') {
                 ]),
             ]);
             sr_admin_flash_result(sr_admin_action_result([], $notice));
-            sr_redirect('/admin/member-group-rules');
+            sr_redirect(sr_admin_post_return_url('/admin/member-group-rules'));
         }
     } elseif ($intent === 'evaluate_account') {
         $targetAccountIdentifier = sr_post_string('account_identifier', 80);
@@ -403,6 +401,8 @@ if (sr_request_method() === 'POST') {
                     'source_module_key' => $sourceModuleKey,
                 ]),
             ]);
+            sr_admin_flash_result(sr_admin_action_result([], $notice));
+            sr_redirect(sr_admin_post_return_url('/admin/member-group-rules'));
         }
     } elseif ($intent === 'grant_manual' || $intent === 'revoke_manual') {
         $groupId = sr_admin_post_positive_int('group_id');
@@ -474,6 +474,10 @@ if (sr_request_method() === 'POST') {
         }
     } else {
         $errors[] = sr_t('member::action.admin_groups.intent_invalid');
+    }
+    if ($errors !== [] && in_array($intent, ['evaluate_group', 'evaluate_account'], true)) {
+        sr_admin_flash_result(sr_admin_action_result($errors, ''));
+        sr_redirect(sr_admin_post_return_url('/admin/member-group-rules'));
     }
 }
 

@@ -11,11 +11,14 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 
 $jobId = (int) sr_get_string('id', 20);
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    $errors = [];
+    $notice = '';
     $jobId = (int) sr_post_string('job_id', 20);
     $intent = sr_post_string('intent', 30);
     try {
@@ -59,6 +62,8 @@ if (sr_request_method() === 'POST') {
         }
         $errors[] = $exception->getMessage();
     }
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_redirect(sr_admin_post_return_url('/admin/community/board-copy-jobs' . ($jobId > 0 ? '?id=' . (string) $jobId : '')));
 }
 
 $job = $jobId > 0 ? sr_community_board_copy_job_by_id($pdo, $jobId) : null;

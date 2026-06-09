@@ -37,6 +37,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if ($canRun || $canRetry || $canCancel) { ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/admin/community/board-copy-jobs?id=' . rawurlencode((string) (int) $job['id']))); ?>">
                     <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/community/board-copy-jobs?id=' . (string) (int) $job['id'])); ?>">
                     <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $job['id']); ?>">
                     <?php if ($canRun) { ?>
                         <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '정리 다시 시도' : '다음 묶음 처리'); ?></button>

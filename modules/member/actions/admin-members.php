@@ -35,17 +35,17 @@ if (sr_request_method() === 'POST') {
     }
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
+    if ($intent === 'batch_revoke_sessions') {
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect(sr_admin_post_return_url('/admin/members'));
+    }
+    if (in_array($intent, ['status', 'revoke_sessions', 'evaluate_groups'], true)) {
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_redirect(sr_admin_post_return_url('/admin/members'));
+    }
     if ($errors === [] && (int) ($postResult['created_account_id'] ?? 0) > 0) {
         sr_admin_flash_result(sr_admin_action_result([], $notice));
         sr_redirect('/admin/members');
-    }
-    if ($errors === [] && $intent === 'batch_revoke_sessions') {
-        $returnTo = sr_post_string('return_to', 500);
-        if (!sr_is_safe_relative_url($returnTo)) {
-            $returnTo = '/admin/members';
-        }
-        sr_admin_flash_result(sr_admin_action_result([], $notice));
-        sr_redirect($returnTo);
     }
     if (isset($postResult['create_values']) && is_array($postResult['create_values'])) {
         $memberCreateValues = $postResult['create_values'];

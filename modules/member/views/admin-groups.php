@@ -189,6 +189,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     $focusAttr = $focusFirst ? ' data-overlay-focus' : '';
     ?>
     <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/member-group-rules')); ?>">
     <input type="hidden" name="rule_id" value="<?php echo sr_e(is_array($formRule) ? (string) $formRule['id'] : ''); ?>">
     <div class="admin-form-row">
         <?php echo sr_admin_form_label_help_html($groupFieldId, sr_t('member::ui.text.5034bb32'), $memberGroupHelp['rule_group']['id'], $memberGroupHelpOpenLabel, true); ?>
@@ -797,6 +798,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 </div>
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/member-group-rules')); ?>">
                     <input type="hidden" name="intent" value="evaluate_group">
                     <p class="admin-form-help">규칙 평가는 저장된 회원 그룹 규칙 기준으로 회원 배정을 다시 계산합니다. 열려 있는 규칙 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
                     <div class="admin-form-row">

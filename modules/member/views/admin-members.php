@@ -375,12 +375,14 @@ foreach ($allowedStatuses as $status) {
                                 <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
                                     <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                     <input type="hidden" name="intent" value="evaluate_groups">
                                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
                                     <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>" title="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>"><?php echo sr_material_icon_html('rule'); ?></button>
                                 </form>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>">
                                     <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                     <input type="hidden" name="intent" value="revoke_sessions">
                                     <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
                                     <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>" title="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>

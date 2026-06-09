@@ -23,6 +23,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <h2>작성자 승인 추가/수정</h2>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/content/authors')); ?>" class="admin-form ui-form-theme">
         <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/content/authors')); ?>">
         <div class="admin-form-row">
             <label class="form-label" for="content_author_account_id">회원 ID <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field"><input id="content_author_account_id" type="number" min="1" name="account_id" class="form-input"></div>

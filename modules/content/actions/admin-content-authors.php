@@ -8,12 +8,15 @@ require_once SR_ROOT . '/modules/content/helpers.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/authors', 'view');
-$errors = [];
-$notice = '';
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/authors', 'edit');
+    $errors = [];
+    $notice = '';
     $targetAccountId = (int) sr_post_string('account_id', 20);
     $status = in_array(sr_post_string('status', 20), ['allowed', 'blocked'], true) ? sr_post_string('status', 20) : 'allowed';
     $reviewOverride = in_array(sr_post_string('review_required_override', 20), ['inherit', 'required', 'exempt'], true) ? sr_post_string('review_required_override', 20) : 'inherit';
@@ -52,6 +55,10 @@ if (sr_request_method() === 'POST') {
         $notice = '작성자 승인을 저장했습니다.';
     } catch (Throwable $exception) {
         $errors[] = $exception->getMessage();
+    }
+    if ($errors === []) {
+        sr_admin_flash_result(sr_admin_action_result([], $notice));
+        sr_redirect(sr_admin_post_return_url('/admin/content/authors'));
     }
 }
 

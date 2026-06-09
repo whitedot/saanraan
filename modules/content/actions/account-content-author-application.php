@@ -6,14 +6,20 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
 
 $account = sr_member_require_login($pdo);
-$errors = [];
-$notice = '';
+$flash = isset($_SESSION['sr_content_author_application_flash']) && is_array($_SESSION['sr_content_author_application_flash'])
+    ? $_SESSION['sr_content_author_application_flash']
+    : [];
+unset($_SESSION['sr_content_author_application_flash']);
+$errors = isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [];
+$notice = (string) ($flash['notice'] ?? '');
 $settings = sr_content_settings($pdo);
 $authorPermission = sr_content_author_permission($pdo, (int) $account['id']);
 $authorApplication = sr_content_author_application_by_account($pdo, (int) $account['id']);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
+    $errors = [];
+    $notice = '';
     try {
         if (empty($settings['member_submission_enabled'])) {
             throw new InvalidArgumentException('현재 콘텐츠 등록자 신청을 받지 않습니다.');
@@ -35,6 +41,11 @@ if (sr_request_method() === 'POST') {
     } catch (Throwable $exception) {
         $errors[] = $exception->getMessage();
     }
+    $_SESSION['sr_content_author_application_flash'] = [
+        'errors' => $errors,
+        'notice' => $notice,
+    ];
+    sr_redirect('/account/content/author-application');
 }
 
 include SR_ROOT . '/modules/content/views/account-content-author-application.php';
