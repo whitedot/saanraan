@@ -863,11 +863,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
             <?php echo sr_admin_pagination_summary_html($pagePagination); ?>
         </div>
+        <form id="content-bulk-status-form" method="post" action="<?php echo sr_e(sr_url('/admin/content')); ?>" class="content-bulk-form" data-content-bulk-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="batch_status">
+            <input type="hidden" name="operation_key" value="content.set_status">
+            <div class="admin-list-actions content-bulk-actions" hidden data-content-bulk-bar>
+                <div class="content-bulk-summary" aria-live="polite">
+                    <strong data-content-selected-count>0</strong>개 선택됨
+                </div>
+                <div class="content-bulk-controls">
+                    <select name="target_status" class="form-select" aria-label="변경할 콘텐츠 상태">
+                        <option value="draft"><?php echo sr_e(sr_admin_code_label('draft', 'content_status')); ?></option>
+                        <option value="published"><?php echo sr_e(sr_admin_code_label('published', 'content_status')); ?></option>
+                        <option value="hidden"><?php echo sr_e(sr_admin_code_label('hidden', 'content_status')); ?></option>
+                    </select>
+                    <button type="submit" class="btn btn-solid-primary" data-content-bulk-submit disabled>상태 변경</button>
+                    <button type="button" class="btn btn-solid-light" data-content-bulk-clear>선택 해제</button>
+                </div>
+            </div>
+        </form>
         <div class="table-wrapper">
             <table class="table admin-content-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></caption>
                 <thead class="ui-table-head">
                     <tr>
+                        <th class="content-select-cell">
+                            <label class="sr-only" for="content_bulk_select_all">현재 페이지 콘텐츠 전체 선택</label>
+                            <input id="content_bulk_select_all" type="checkbox" class="form-checkbox" data-content-select-all<?php echo $pages === [] ? ' disabled' : ''; ?>>
+                        </th>
                         <th<?php echo sr_content_admin_sort_aria('title', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.08b17e43'), 'title', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('content_group', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.5d908ddd'), 'content_group', $contentSort); ?></th>
                         <th><?php echo sr_e('시리즈'); ?></th>
@@ -883,7 +906,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if ($pages === []) { ?>
                         <tr>
-                            <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('content::ui.create.content.8994ccd1')); ?></td>
+                            <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('content::ui.create.content.8994ccd1')); ?></td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($pages as $page) { ?>
@@ -896,6 +919,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             };
                             ?>
                             <tr>
+                                <td class="content-select-cell">
+                                    <label class="sr-only" for="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>"><?php echo sr_e((string) $page['title']); ?> 선택</label>
+                                    <input id="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>" type="checkbox" name="selected_content_ids[]" value="<?php echo sr_e((string) (int) $page['id']); ?>" class="form-checkbox" form="content-bulk-status-form" data-content-row-select>
+                                </td>
                                 <td class="admin-table-break admin-content-title-cell"><?php echo sr_e((string) $page['title']); ?></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['content_group_title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap">
@@ -954,6 +981,75 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($pageAdminPage === 'list') { ?>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var bulkForm = document.querySelector('[data-content-bulk-form]');
+        if (bulkForm) {
+            var bar = document.querySelector('[data-content-bulk-bar]');
+            var countNode = document.querySelector('[data-content-selected-count]');
+            var submit = document.querySelector('[data-content-bulk-submit]');
+            var clear = document.querySelector('[data-content-bulk-clear]');
+            var selectAll = document.querySelector('[data-content-select-all]');
+            var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-content-row-select]'));
+
+            var checkedRows = function () {
+                return rowChecks.filter(function (input) {
+                    return input.checked && !input.disabled;
+                });
+            };
+
+            var syncBulkState = function () {
+                var selectedCount = checkedRows().length;
+                if (countNode) {
+                    countNode.textContent = String(selectedCount);
+                }
+                if (bar) {
+                    bar.hidden = selectedCount < 1;
+                }
+                if (submit) {
+                    submit.disabled = selectedCount < 1;
+                }
+                if (selectAll) {
+                    selectAll.checked = selectedCount > 0 && selectedCount === rowChecks.length;
+                    selectAll.indeterminate = selectedCount > 0 && selectedCount < rowChecks.length;
+                }
+            };
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    rowChecks.forEach(function (input) {
+                        if (!input.disabled) {
+                            input.checked = selectAll.checked;
+                        }
+                    });
+                    syncBulkState();
+                });
+            }
+            rowChecks.forEach(function (input) {
+                input.addEventListener('change', syncBulkState);
+            });
+            if (clear) {
+                clear.addEventListener('click', function () {
+                    rowChecks.forEach(function (input) {
+                        input.checked = false;
+                    });
+                    syncBulkState();
+                });
+            }
+            bulkForm.addEventListener('submit', function (event) {
+                var selectedCount = checkedRows().length;
+                if (selectedCount < 1) {
+                    event.preventDefault();
+                    syncBulkState();
+                    return;
+                }
+                var status = bulkForm.querySelector('select[name="target_status"]');
+                var statusLabel = status && status.options[status.selectedIndex] ? status.options[status.selectedIndex].text : '선택한 상태';
+                if (!window.confirm('선택한 콘텐츠 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+                    event.preventDefault();
+                }
+            });
+            syncBulkState();
+        }
+
         document.querySelectorAll('[data-copy-series-toggle]').forEach(function (toggle) {
             var form = toggle.closest('form');
             var sync = function () {
