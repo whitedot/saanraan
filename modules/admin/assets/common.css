@@ -494,6 +494,12 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 .form-control-group-end{border-start-start-radius:0!important;border-end-start-radius:0!important}
 .form-input-valid,.form-select-valid,.form-textarea-valid{border-color:var(--color-success)!important}
 .form-input-invalid,.form-select-invalid,.form-textarea-invalid{border-color:var(--color-danger)!important}
+.validation-field{position:relative}
+.validation-static-icon{align-items:center;bottom:0;display:flex;inset-inline-end:0;padding-inline-end:calc(var(--spacing) * 3);pointer-events:none;position:absolute;top:0}
+.validation-static-icon[hidden]{display:none!important}
+.validation-error-icon,.validation-error-note{color:var(--color-danger)}
+.validation-error-note{font-size:var(--type-caption-size);line-height:var(--type-caption-line-height);margin-top:calc(var(--spacing) * 1)}
+.validation-error-note[hidden]{display:none!important}
 .form-input-plain{border-color:transparent!important;background-color:transparent!important}
 .form-control-auto{height:auto}
 .form-control-icon-end{padding-inline-end:calc(var(--spacing) * 10)!important}

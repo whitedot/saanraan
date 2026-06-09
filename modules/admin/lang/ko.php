@@ -86,6 +86,7 @@ return [
     'retention.help.used_tokens.body.2' => '이미 사용된 토큰을 오래 보관할 필요가 없다면 짧게 둘 수 있습니다. 보관일보다 오래된 기록은 정리 대상이 됩니다.',
     'retention.help.used_tokens.body.3' => '비밀번호 재설정은 실제로 사용한 시간, 이메일 인증은 인증을 마친 시간이 보관일보다 오래되면 정리 대상입니다. 정리 실행 버튼을 누르면 바로 정리되고, 자동 정리를 켜두면 방문자가 사이트 화면을 열 때 설정한 간격에 맞춰 정리됩니다.',
     'retention.help.used_tokens.title' => '사용 완료 토큰 보관일 도움말',
+    'retention.cleanup.phrase_error' => 'DELETE를 정확히 입력하세요.',
     'roles.help.add_member.body.1' => '관리자 권한을 줄 회원을 먼저 검색해 선택합니다.',
     'roles.help.add_member.body.2' => '회원 검색에서 선택한 회원만 저장할 수 있습니다. 검색 결과에서 정확한 회원을 고른 뒤 권한을 선택하세요.',
     'roles.help.add_member.title' => '회원 선택 도움말',

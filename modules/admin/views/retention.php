@@ -187,7 +187,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <div id="admin-retention-cleanup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-retention-cleanup-modal-label">
     <div class="modal-dialog modal-dialog-lg">
         <div class="modal-content">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/retention')); ?>" class="admin-form ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/retention')); ?>" class="admin-form ui-form-theme" data-admin-retention-cleanup-form>
                 <div class="modal-header">
                     <h3 id="admin-retention-cleanup-modal-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.0b10a14f')); ?></h3>
                     <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-retention-cleanup-modal">
@@ -293,7 +293,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="admin_retention_cleanup_phrase"><?php echo sr_e(sr_t('admin::ui.text.82e63a67')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <input id="admin_retention_cleanup_phrase" type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required class="form-input">
+                            <div class="validation-field">
+                                <input id="admin_retention_cleanup_phrase" type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required class="form-input form-control-icon-end" aria-describedby="admin_retention_cleanup_phrase_error" data-admin-confirm-phrase="DELETE" data-admin-confirm-message="<?php echo sr_e(sr_t('admin::retention.cleanup.phrase_error')); ?>">
+                                <div class="validation-static-icon" hidden data-admin-confirm-phrase-icon>
+                                    <?php echo sr_material_icon_html('info', 'validation-error-icon', sr_t('admin::retention.cleanup.phrase_error')); ?>
+                                </div>
+                            </div>
+                            <p id="admin_retention_cleanup_phrase_error" class="validation-error-note" hidden data-admin-confirm-phrase-error><?php echo sr_e(sr_t('admin::retention.cleanup.phrase_error')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -305,5 +311,77 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('[data-admin-retention-cleanup-form]');
+    if (!form) {
+        return;
+    }
+
+    var input = form.querySelector('[data-admin-confirm-phrase]');
+    var errorNote = form.querySelector('[data-admin-confirm-phrase-error]');
+    var errorIcon = form.querySelector('[data-admin-confirm-phrase-icon]');
+    if (!input) {
+        return;
+    }
+
+    var expectedPhrase = input.getAttribute('data-admin-confirm-phrase') || '';
+    var errorMessage = input.getAttribute('data-admin-confirm-message') || '';
+
+    var clearPhraseError = function () {
+        input.setCustomValidity('');
+        input.classList.remove('form-input-invalid');
+        input.removeAttribute('aria-invalid');
+        if (errorNote) {
+            errorNote.hidden = true;
+        }
+        if (errorIcon) {
+            errorIcon.hidden = true;
+        }
+    };
+
+    var showPhraseError = function () {
+        input.setCustomValidity(errorMessage);
+        input.classList.add('form-input-invalid');
+        input.setAttribute('aria-invalid', 'true');
+        if (errorNote) {
+            errorNote.hidden = false;
+        }
+        if (errorIcon) {
+            errorIcon.hidden = false;
+        }
+    };
+
+    input.addEventListener('input', function () {
+        if (input.value === expectedPhrase) {
+            clearPhraseError();
+        } else if (errorNote && !errorNote.hidden) {
+            showPhraseError();
+        } else {
+            input.setCustomValidity('');
+            input.classList.remove('form-input-invalid');
+            input.removeAttribute('aria-invalid');
+            if (errorIcon) {
+                errorIcon.hidden = true;
+            }
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (input.value === '' || input.value === expectedPhrase) {
+            if (input.value === expectedPhrase) {
+                clearPhraseError();
+            }
+            return;
+        }
+
+        showPhraseError();
+        event.preventDefault();
+        input.focus();
+        input.reportValidity();
+    });
+});
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
