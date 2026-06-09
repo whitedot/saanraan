@@ -20,17 +20,7 @@ $selectedReportReasonKeys = is_array($reportListFilters['reason_key'] ?? null) ?
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<?php if ($notice !== '') { ?>
-    <p><?php echo sr_e($notice); ?></p>
-<?php } ?>
-
-<?php if ($errors !== []) { ?>
-    <ul>
-        <?php foreach ($errors as $error) { ?>
-            <li><?php echo sr_e($error); ?></li>
-        <?php } ?>
-    </ul>
-<?php } ?>
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="admin-local-nav-wrap">
     <div class="admin-local-nav">
@@ -105,13 +95,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="batch_status">
             <input type="hidden" name="operation_key" value="community.report_set_status">
+            <input type="hidden" name="target_status" value="" data-community-report-bulk-target-status>
             <div class="community-report-bulk-actions admin-row-actions" data-community-report-bulk-bar>
                 <div class="community-report-bulk-controls admin-row-actions">
                     <?php foreach ($allowedStatuses as $status) { ?>
-                        <button type="submit" name="target_status" value="<?php echo sr_e($status); ?>" class="btn btn-sm btn-outline-warning" data-community-report-bulk-submit data-status-label="<?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?>" disabled><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></button>
+                        <button type="button" class="btn btn-sm btn-outline-warning" data-community-report-bulk-submit data-target-status="<?php echo sr_e($status); ?>" data-status-label="<?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-report-bulk-status-modal" data-overlay="#community-report-bulk-status-modal" disabled><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></button>
                     <?php } ?>
-                    <input type="text" name="review_note" class="form-input" maxlength="1000" placeholder="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>" aria-label="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>">
                     <button type="button" class="btn btn-sm btn-outline-light" data-community-report-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-community-report-selected-count>0</span></button>
+                </div>
+            </div>
+            <div id="community-report-bulk-status-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-report-bulk-status-modal-title" aria-hidden="true" inert>
+                <div class="modal-dialog modal-dialog-lg">
+                    <div class="modal-content ui-form-theme">
+                        <div class="modal-header">
+                            <h3 id="community-report-bulk-status-modal-title" class="modal-title">신고 일괄 처리</h3>
+                            <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-report-bulk-status-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="admin-summary-meta"><strong data-community-report-bulk-modal-count>0</strong>개 신고를 <strong data-community-report-bulk-modal-status>선택한 상태</strong>(으)로 변경합니다.</p>
+                            <div class="admin-form-row">
+                                <label for="community_report_bulk_review_note" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <div class="admin-form-field">
+                                    <textarea id="community_report_bulk_review_note" name="review_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-report-bulk-status-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                            <button type="submit" class="btn btn-solid-primary modal-action">처리</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
@@ -156,8 +169,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
                     $targetId = (int) ($report['target_id'] ?? 0);
                     $targetSummary = $targetType !== '' && $targetId > 0 ? $targetType . ' #' . (string) $targetId : '';
-                    $reportStatusSelectId = 'community_admin_report_status_' . (string) $report['id'];
-                    $reportReviewNoteId = 'community_admin_report_review_note_' . (string) $report['id'];
+                    $reportProcessModalId = 'community-report-process-modal-' . (string) $report['id'];
                     ?>
                     <tr>
                         <td class="community-report-select-cell">
@@ -186,7 +198,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             is_string($report['reported_nickname'] ?? null) ? $report['reported_nickname'] : null,
                             isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
                         )); ?></td>
-                        <td class="admin-table-break admin-community-report-memo-cell"><?php echo sr_e((string) ($report['memo_text'] ?? '')); ?></td>
+                        <td class="admin-table-break admin-community-report-memo-cell">
+                            <?php echo sr_e((string) ($report['memo_text'] ?? '')); ?>
+                            <?php if (trim((string) ($report['review_note'] ?? '')) !== '') { ?>
+                                <span class="admin-community-report-review-note type-caption">처리 메모: <?php echo sr_e((string) $report['review_note']); ?></span>
+                            <?php } ?>
+                        </td>
                         <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_community_time_html((string) $report['created_at']); ?></td>
                         <td class="admin-table-break admin-community-report-account-cell">
                             <?php if ((int) ($report['reviewer_account_id'] ?? 0) > 0) { ?>
@@ -202,25 +219,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_e((string) ($report['reviewed_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="report_id" value="<?php echo sr_e((string) $report['id']); ?>">
-                                    <label for="<?php echo sr_e($reportStatusSelectId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                    <select id="<?php echo sr_e($reportStatusSelectId); ?>" name="status" class="form-select">
-                                            <?php foreach ($allowedStatuses as $status) { ?>
-                                                <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) $report['status'] ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                    <label for="<?php echo sr_e($reportReviewNoteId); ?>" class="sr-only"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?></label>
-                                    <textarea id="<?php echo sr_e($reportReviewNoteId); ?>" name="review_note" rows="2" cols="24" class="form-textarea" placeholder="<?php echo sr_e(sr_t('community::ui.text.514556d0')); ?>"><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
-                                    <label class="sr-only" for="community_admin_report_target_action_<?php echo sr_e((string) $report['id']); ?>">대상 조치</label>
-                                    <select id="community_admin_report_target_action_<?php echo sr_e((string) $report['id']); ?>" name="target_action" class="form-select">
-                                        <?php foreach (sr_community_report_target_action_options((string) $report['target_type']) as $actionKey => $actionLabel) { ?>
-                                            <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
-                                        <?php } ?>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($reportProcessModalId); ?>" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
                             </div>
                         </td>
                     </tr>
@@ -230,6 +229,66 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+<?php if ($reports !== []) { ?>
+    <?php foreach ($reports as $report) { ?>
+        <?php
+        $reportId = (int) ($report['id'] ?? 0);
+        $reportProcessModalId = 'community-report-process-modal-' . (string) $reportId;
+        $reportProcessStatusId = 'community_admin_report_status_' . (string) $reportId;
+        $reportProcessReviewNoteId = 'community_admin_report_review_note_' . (string) $reportId;
+        $reportProcessTargetActionId = 'community_admin_report_target_action_' . (string) $reportId;
+        $targetType = (string) ($report['target_type'] ?? '');
+        $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
+        $targetId = (int) ($report['target_id'] ?? 0);
+        $targetSummary = $targetType !== '' && $targetId > 0 ? $targetLabel . ' #' . (string) $targetId : $targetLabel;
+        ?>
+        <div id="<?php echo sr_e($reportProcessModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($reportProcessModalId); ?>-title" aria-hidden="true" inert>
+            <div class="modal-dialog modal-dialog-lg">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/reports')); ?>" class="modal-content ui-form-theme">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="report_id" value="<?php echo sr_e((string) $reportId); ?>">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($reportProcessModalId); ?>-title" class="modal-title">신고 처리</h3>
+                        <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="admin-summary-meta"><?php echo sr_e($targetSummary); ?> · <?php echo sr_e(sr_community_report_reason_label((string) ($report['reason_key'] ?? ''))); ?></p>
+                        <div class="admin-form-row">
+                            <label for="<?php echo sr_e($reportProcessStatusId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                            <div class="admin-form-field">
+                                <select id="<?php echo sr_e($reportProcessStatusId); ?>" name="status" class="form-select" required>
+                                    <?php foreach ($allowedStatuses as $status) { ?>
+                                        <option value="<?php echo sr_e($status); ?>"<?php echo $status === (string) ($report['status'] ?? '') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'report_status')); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label for="<?php echo sr_e($reportProcessReviewNoteId); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.514556d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                            <div class="admin-form-field">
+                                <textarea id="<?php echo sr_e($reportProcessReviewNoteId); ?>" name="review_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus><?php echo sr_e((string) ($report['review_note'] ?? '')); ?></textarea>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label for="<?php echo sr_e($reportProcessTargetActionId); ?>" class="form-label">대상 조치</label>
+                            <div class="admin-form-field">
+                                <select id="<?php echo sr_e($reportProcessTargetActionId); ?>" name="target_action" class="form-select">
+                                    <?php foreach (sr_community_report_target_action_options($targetType) as $actionKey => $actionLabel) { ?>
+                                        <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                        <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php } ?>
+<?php } ?>
 <?php echo sr_admin_pagination_html($reportPagination, '신고 목록 페이지'); ?>
 
 <script>
@@ -242,6 +301,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var countNode = document.querySelector('[data-community-report-selected-count]');
     var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-report-bulk-submit]'));
     var clear = document.querySelector('[data-community-report-bulk-clear]');
+    var targetStatusInput = document.querySelector('[data-community-report-bulk-target-status]');
+    var modalCountNode = document.querySelector('[data-community-report-bulk-modal-count]');
+    var modalStatusNode = document.querySelector('[data-community-report-bulk-modal-status]');
     var selectAll = document.querySelector('[data-community-report-select-all]');
     var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-community-report-row-select]'));
 
@@ -255,6 +317,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var selectedCount = checkedRows().length;
         if (countNode) {
             countNode.textContent = String(selectedCount);
+        }
+        if (modalCountNode) {
+            modalCountNode.textContent = String(selectedCount);
         }
         submitButtons.forEach(function (button) {
             button.disabled = selectedCount < 1;
@@ -281,6 +346,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     rowChecks.forEach(function (input) {
         input.addEventListener('change', syncBulkState);
     });
+    submitButtons.forEach(function (button) {
+        button.addEventListener('click', function (event) {
+            var selectedCount = checkedRows().length;
+            if (selectedCount < 1) {
+                event.preventDefault();
+                syncBulkState();
+                return;
+            }
+            var targetStatus = button.getAttribute('data-target-status') || '';
+            var statusLabel = button.getAttribute('data-status-label') || button.textContent.replace(/\s+/g, ' ').trim();
+            if (targetStatusInput) {
+                targetStatusInput.value = targetStatus;
+            }
+            if (modalStatusNode) {
+                modalStatusNode.textContent = statusLabel || '선택한 상태';
+            }
+            if (modalCountNode) {
+                modalCountNode.textContent = String(selectedCount);
+            }
+        });
+    });
     if (clear) {
         clear.addEventListener('click', function () {
             rowChecks.forEach(function (input) {
@@ -296,13 +382,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             syncBulkState();
             return;
         }
-        var submitter = event.submitter || document.activeElement;
-        var statusLabel = submitter && submitter.getAttribute ? submitter.getAttribute('data-status-label') : '';
-        if (!statusLabel) {
-            statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
-        }
-        if (!window.confirm('선택한 신고 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+        if (!targetStatusInput || targetStatusInput.value === '') {
             event.preventDefault();
+            syncBulkState();
         }
     });
     syncBulkState();

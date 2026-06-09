@@ -109,7 +109,7 @@ modules/sample/
 
 관리자 목록/폼 마크업은 [관리자 UI 작성 기준](admin-ui-guide.md)을 따른다. 특히 등록, 수정, 설정 화면은 `form.admin-form.ui-form-theme > section.admin-card.card` 구조를 실제 view에 직접 작성하고, 목록 검색/행 액션 폼과 구분한다.
 
-관리자 목록에 선택 기반 일괄 작업을 추가할 때는 모듈 action이 작업 정책을 소유한다. view는 첫 열 체크박스, 현재 페이지 전체 선택, 선택 수 표시, 작업 바를 제공할 수 있지만, action은 CSRF, 권한, `intent` allowlist, `operation_key`, 대상 ID 배열, 대상 존재 여부, 현재 처리 가능 상태를 다시 검증해야 한다. 일괄 작업 컨트롤은 목록 요약 행 안에서 항상 보이게 두고, 상태 변경은 select 대신 상태별 작은 submit 버튼으로 제공하며, 선택 해제 버튼과 선택 수 숫자는 선택 항목이 있을 때만 표시한다. 클라이언트가 보낸 선택 수나 진행 수는 감사 로그와 완료 판정의 근거로 쓰지 않는다. 고부하 가능 작업은 모듈별 작업 테이블과 공통 상태 contract를 따르고, 작업 contract는 `{module_key}.{operation}` 형식의 operation key, 권한 path/action, 실행 모델, snapshot 모드, 위험도, handler를 명시한다.
+관리자 목록에 선택 기반 일괄 작업을 추가할 때는 모듈 action이 작업 정책을 소유한다. view는 첫 열 체크박스, 현재 페이지 전체 선택, 선택 수 표시, 작업 바를 제공할 수 있지만, action은 CSRF, 권한, `intent` allowlist, `operation_key`, 대상 ID 배열, 대상 존재 여부, 현재 처리 가능 상태를 다시 검증해야 한다. 일괄 작업 컨트롤은 목록 요약 행 안에서 항상 보이게 두고, 상태 변경은 select 대신 상태별 작은 submit 버튼으로 제공하며, 선택 해제 버튼과 선택 수 숫자는 선택 항목이 있을 때만 표시한다. 처리 메모, 사유, 대상 조치처럼 실행 전 추가 입력이 필요한 작업은 목록 행이나 요약 행에 입력칸을 노출하지 않고 처리 버튼에서 모달을 열어 입력받는다. 클라이언트가 보낸 선택 수나 진행 수는 감사 로그와 완료 판정의 근거로 쓰지 않는다. 고부하 가능 작업은 모듈별 작업 테이블과 공통 상태 contract를 따르고, 작업 contract는 `{module_key}.{operation}` 형식의 operation key, 권한 path/action, 실행 모델, snapshot 모드, 위험도, handler를 명시한다.
 
 공개 화면과 확장 지점이 있는 모듈:
 

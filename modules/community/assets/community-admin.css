@@ -47,14 +47,12 @@
 .admin-page-community-report-list .admin-community-report-filter .filtering-submit{justify-content:center;width:auto}
 .admin-page-community-report-list .admin-community-report-table{table-layout:auto}
 .admin-page-community-report-list .admin-community-report-table th,.admin-page-community-report-list .admin-community-report-table td{overflow:hidden;text-overflow:ellipsis}
-.admin-page-community-report-list .admin-community-report-table .admin-table-actions-cell{min-width:22rem;overflow:visible}
+.admin-page-community-report-list .admin-community-report-table .admin-table-actions-cell{min-width:6rem;overflow:visible}
 .admin-page-community-report-list .admin-community-report-table th:nth-child(1),.admin-page-community-report-list .admin-community-report-table th:nth-child(2),.admin-page-community-report-list .admin-community-report-table th:nth-child(3),.admin-page-community-report-list .admin-community-report-table th:nth-child(4),.admin-page-community-report-list .admin-community-report-table th:nth-child(5),.admin-page-community-report-list .admin-community-report-table th:nth-child(7),.admin-page-community-report-list .admin-community-report-table th:nth-child(8),.admin-page-community-report-list .admin-community-report-table th:nth-child(9),.admin-page-community-report-list .admin-community-report-table th:nth-child(10){width:1%}
 .admin-page-community-report-list .admin-community-report-target-cell,.admin-page-community-report-list .admin-community-report-reason-cell,.admin-page-community-report-list .admin-community-report-account-cell,.admin-page-community-report-list .admin-community-report-memo-cell,.admin-page-community-report-list .admin-community-report-date-cell{overflow:hidden;text-overflow:ellipsis}
 .admin-page-community-report-list .admin-community-report-date-cell,.admin-page-community-report-list .admin-community-report-target-cell,.admin-page-community-report-list .admin-community-report-reason-cell{white-space:nowrap}
 .admin-page-community-report-list .admin-community-report-table .admin-row-actions{gap:.5rem}
-.admin-page-community-report-list .admin-community-report-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
-.admin-page-community-report-list .admin-community-report-table td form .form-select{min-width:8rem}
-.admin-page-community-report-list .admin-community-report-table td form .form-textarea{min-width:10rem;max-width:12rem;min-height:2.5rem;resize:vertical}
+.admin-page-community-report-list .admin-community-report-review-note{display:block;margin-top:calc(var(--spacing) * 1)}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-filter{width:100%;max-width:100%}
 .admin-page-community-publisher-rewards .admin-community-publisher-reward-filter .filtering-card{width:100%;max-width:100%}
 .admin-page-community-publisher-rewards .filtering-card>.filtering-fields.admin-community-publisher-reward-search-grid{display:grid;grid-template-columns:fit-content(9rem) minmax(14rem,1fr) max-content;align-items:end;justify-content:start;width:100%;max-width:100%;padding:calc(var(--spacing) * 4)}

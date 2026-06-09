@@ -68,6 +68,9 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.review_note_too_long');
             $reviewNote = '';
         }
+        if ($reviewNote !== null && trim((string) $reviewNote) === '') {
+            $errors[] = '처리 메모를 입력하세요.';
+        }
 
         $selectedReports = [];
         if ($errors === []) {
@@ -96,7 +99,8 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && $selectedReports !== []) {
-            $changedCount = 0;
+            $processedCount = 0;
+            $statusChangedCount = 0;
             $skippedCount = 0;
             $batchFailureMessage = '';
             $reviewNoteValue = trim((string) $reviewNote);
@@ -115,10 +119,6 @@ if (sr_request_method() === 'POST') {
                 foreach ($selectedIds as $selectedId) {
                     $report = $selectedReports[$selectedId];
                     $beforeStatus = (string) $report['status'];
-                    if ($beforeStatus === $targetStatus) {
-                        $skippedCount++;
-                        continue;
-                    }
                     $now = sr_now();
                     $stmt->execute([
                         'status' => $targetStatus,
@@ -130,11 +130,16 @@ if (sr_request_method() === 'POST') {
                         'id' => $selectedId,
                         'before_status' => $beforeStatus,
                     ]);
-                    if ($stmt->rowCount() < 1) {
+                    if ($stmt->rowCount() < 1 && $beforeStatus !== $targetStatus) {
                         $batchFailureMessage = '선택한 신고 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
                         throw new RuntimeException($batchFailureMessage);
                     }
-                    $changedCount++;
+                    if ($beforeStatus === $targetStatus) {
+                        $skippedCount++;
+                    } else {
+                        $statusChangedCount++;
+                    }
+                    $processedCount++;
                 }
                 $pdo->commit();
 
@@ -150,16 +155,20 @@ if (sr_request_method() === 'POST') {
                         'operation_key' => $operationKey,
                         'target_status' => $targetStatus,
                         'requested_count' => count($selectedIds),
-                        'changed_count' => $changedCount,
+                        'changed_count' => $statusChangedCount,
+                        'processed_count' => $processedCount,
                         'skipped_count' => $skippedCount,
                         'review_note_present' => $reviewNoteValue !== '',
                         'selected_ids' => $selectedIds,
                     ],
                 ]);
 
-                $notice = '신고 ' . number_format($changedCount) . '건의 상태를 ' . sr_admin_code_label($targetStatus, 'report_status') . '(으)로 변경했습니다.';
+                $notice = '신고 ' . number_format($processedCount) . '건을 처리했습니다.';
+                if ($statusChangedCount > 0) {
+                    $notice .= ' 상태 변경 ' . number_format($statusChangedCount) . '건.';
+                }
                 if ($skippedCount > 0) {
-                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
+                    $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 처리 메모만 반영했습니다.';
                 }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
@@ -192,6 +201,9 @@ if (sr_request_method() === 'POST') {
         if ($reviewNote === null) {
             $errors[] = sr_t('community::action.admin.review_note_too_long');
             $reviewNote = '';
+        }
+        if ($reviewNote !== null && trim((string) $reviewNote) === '') {
+            $errors[] = '처리 메모를 입력하세요.';
         }
         if (is_array($report) && !array_key_exists($targetAction === '' ? 'none' : $targetAction, sr_community_report_target_action_options((string) $report['target_type']))) {
             $errors[] = '신고 대상 조치 값이 올바르지 않습니다.';
