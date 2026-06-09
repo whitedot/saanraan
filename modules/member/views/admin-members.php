@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('member::ui.member.list.d8e6279a');
-$adminPageSubtitle = sr_t('member::ui.member.status.search.5798c9ca');
+$adminPageSubtitle = sr_t('member::ui.member.status.search.5798c9ca') . ' ' . sr_t('member::ui.status.member.login.1e2b02c0');
 $adminContainerClass = 'admin-page-member-list admin-ui-scope';
 $memberAdminPage = isset($memberAdminPage) ? (string) $memberAdminPage : 'members';
 if ($memberAdminPage === 'create_form') {
@@ -469,13 +469,6 @@ foreach ($allowedStatuses as $status) {
 }());
 </script>
 
-<div class="admin-notice">
-    <span class="admin-notice-icon" aria-hidden="true">i</span>
-    <div class="admin-notice-copy">
-        <strong><?php echo sr_e(sr_t('member::ui.member.7093117c')); ?></strong>
-        <p><?php echo sr_e(sr_t('member::ui.status.member.login.1e2b02c0')); ?></p>
-    </div>
-</div>
 <?php } ?>
 
 <?php foreach ($memberAdminHelp as $memberAdminHelpModal) { ?>

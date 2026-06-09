@@ -1,18 +1,11 @@
 <?php
 
 $adminPageTitle = sr_t('admin::ui.text.1ab0e3a9');
+$adminPageSubtitle = sr_t('admin::ui.status.130b725f');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
-
-<div class="admin-notice">
-    <span class="admin-notice-icon" aria-hidden="true">i</span>
-    <div class="admin-notice-copy">
-        <strong><?php echo sr_e(sr_t('admin::ui.status.7febe1b1')); ?></strong>
-        <p><?php echo sr_e(sr_t('admin::ui.status.130b725f')); ?></p>
-    </div>
-</div>
 
 <div class="admin-section-heading">
     <h2><?php echo sr_e(sr_t('admin::ui.text.2d01e6b6')); ?></h2>

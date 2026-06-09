@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = sr_t('admin::ui.admin.004791bd');
-$adminPageSubtitle = sr_t('admin::ui.member.search.admin.411aa70f');
+$adminPageSubtitle = sr_t('admin::ui.member.search.admin.411aa70f') . ' ' . sr_t('admin::ui.member.6c9f2a2d');
 $adminContainerClass = 'admin-page-role-list admin-ui-scope';
 $permissionOptions = isset($permissionOptions) && is_array($permissionOptions) ? $permissionOptions : [];
 $permissionActions = isset($permissionActions) && is_array($permissionActions) ? $permissionActions : sr_admin_permission_actions();
@@ -1091,13 +1091,5 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
 })();
 </script>
-
-<div class="admin-notice">
-    <span class="admin-notice-icon" aria-hidden="true">i</span>
-    <div class="admin-notice-copy">
-        <strong><?php echo sr_e(sr_t('admin::ui.admin.c6bfc841')); ?></strong>
-        <p><?php echo sr_e(sr_t('admin::ui.member.6c9f2a2d')); ?></p>
-    </div>
-</div>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
