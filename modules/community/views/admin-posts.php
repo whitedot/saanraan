@@ -157,13 +157,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-break admin-community-post-board-cell"><?php echo sr_e((string) $post['board_title']); ?></td>
                         <td class="admin-table-break"><?php echo sr_e((string) ($post['category_title'] ?? '')); ?></td>
                         <td class="admin-table-break admin-community-post-title-cell">
-                            <?php if ((string) $post['status'] === 'published') { ?>
-                                <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">
-                                    <?php echo sr_e((string) $post['title']); ?>
-                                </a>
-                            <?php } else { ?>
+                            <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>" target="_blank" rel="noopener noreferrer">
                                 <?php echo sr_e((string) $post['title']); ?>
-                            <?php } ?>
+                            </a>
                         </td>
                         <td class="admin-table-break admin-community-post-author-cell"><?php echo sr_e(sr_community_report_account_label(
                             sr_community_author_display_name_from_row($post, isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null),
@@ -315,7 +311,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="community_comment_bulk_select_<?php echo sr_e((string) (int) $comment['id']); ?>" type="checkbox" name="selected_comment_ids[]" value="<?php echo sr_e((string) (int) $comment['id']); ?>" class="form-checkbox" form="community-comment-bulk-status-form" data-community-comment-row-select>
                         </td>
                         <td class="admin-table-break admin-community-comment-post-cell">
-                            <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $comment['post_id'])); ?>">
+                            <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $comment['post_id'])); ?>" target="_blank" rel="noopener noreferrer">
                                 <?php echo sr_e((string) $comment['post_title']); ?>
                             </a>
                         </td>

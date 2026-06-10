@@ -122,8 +122,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) ($comment['created_at'] ?? '')); ?></td>
                         <td class="admin-table-break">
-                            <strong><?php echo sr_e((string) ($comment['quiz_title'] ?? '')); ?></strong><br>
-                            <a href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) ($comment['quiz_key'] ?? '')) . '#quiz-comments')); ?>" target="_blank" rel="noopener"><code><?php echo sr_e((string) ($comment['quiz_key'] ?? '')); ?></code></a>
+                            <strong><a href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) ($comment['quiz_key'] ?? '')) . '#quiz-comments')); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) ($comment['quiz_title'] ?? '')); ?></a></strong><br>
+                            <a href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) ($comment['quiz_key'] ?? '')) . '#quiz-comments')); ?>" target="_blank" rel="noopener noreferrer"><code><?php echo sr_e((string) ($comment['quiz_key'] ?? '')); ?></code></a>
                         </td>
                         <td class="admin-table-break">
                             <?php echo sr_e((string) ($comment['author_public_name_snapshot'] ?? '회원')); ?><br>

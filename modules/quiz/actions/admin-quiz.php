@@ -248,7 +248,7 @@ if ($mode === 'list') {
                         <tr>
                             <td class="admin-table-nowrap"><code><?php echo sr_e((string) $quiz['quiz_key']); ?></code></td>
                             <td class="admin-table-break">
-                                <strong><?php echo sr_e((string) $quiz['title']); ?></strong><br>
+                                <strong><a href="<?php echo sr_e($publicQuizUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $quiz['title']); ?></a></strong><br>
                                 <span class="admin-summary-meta"><?php echo sr_e(sr_quiz_mode_label((string) ($quiz['quiz_mode'] ?? ''))); ?> · <?php echo sr_e(sr_quiz_scoring_model_label((string) ($quiz['scoring_model'] ?? ''))); ?></span>
                             </td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e(sr_quiz_status_label($quizStatus)); ?></span></td>

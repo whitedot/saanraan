@@ -920,7 +920,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <label class="sr-only" for="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>"><?php echo sr_e((string) $page['title']); ?> 선택</label>
                                     <input id="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>" type="checkbox" name="selected_content_ids[]" value="<?php echo sr_e((string) (int) $page['id']); ?>" class="form-checkbox" form="content-bulk-status-form" data-content-row-select>
                                 </td>
-                                <td class="admin-table-break admin-content-title-cell"><?php echo sr_e((string) $page['title']); ?></td>
+                                <td class="admin-table-break admin-content-title-cell">
+                                    <?php if (sr_content_slug_is_valid((string) ($page['slug'] ?? ''))) { ?>
+                                        <a href="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $page['title']); ?></a>
+                                    <?php } else { ?>
+                                        <?php echo sr_e((string) $page['title']); ?>
+                                    <?php } ?>
+                                </td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['content_group_title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap">
                                     <?php if ((string) ($page['content_series_title'] ?? '') !== '') { ?>

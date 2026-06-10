@@ -780,7 +780,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <tr>
                             <td class="admin-table-nowrap"><code><?php echo sr_e((string) $survey['survey_key']); ?></code></td>
                             <td class="admin-table-break">
-                                <strong><?php echo sr_e((string) $survey['title']); ?></strong><br>
+                                <strong><a href="<?php echo sr_e($publicSurveyUrl); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e((string) $survey['title']); ?></a></strong><br>
                                 <span class="admin-summary-meta">회원 조건 <?php echo sr_e(number_format(count($listGroupKeys))); ?>개</span>
                             </td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class($surveyStatus)); ?>"><?php echo sr_e(sr_survey_status_label($surveyStatus)); ?></span></td>
