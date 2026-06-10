@@ -18,7 +18,7 @@ $notice = (string) $flashResult['notice'];
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
-    $isBatchIntent = in_array($intent, ['batch_mark_read', 'batch_acknowledge', 'batch_process', 'batch_archive', 'batch_reopen'], true);
+    $isBatchIntent = in_array($intent, ['batch_mark_read', 'batch_process'], true);
     $notificationId = $isBatchIntent ? 0 : sr_admin_post_positive_int('notification_id');
     $notificationIds = [];
     $postErrors = [];
@@ -47,12 +47,9 @@ if (sr_request_method() === 'POST') {
         foreach ($notificationIds as $targetNotificationId) {
             if (in_array($intent, ['mark_read', 'batch_mark_read'], true)) {
                 $processed = sr_notification_admin_mark_read($pdo, $targetNotificationId, (int) $account['id'], false);
-            } elseif (in_array($intent, ['acknowledge', 'batch_acknowledge'], true)) {
-                $processed = sr_notification_admin_mark_read($pdo, $targetNotificationId, (int) $account['id'], true);
-            } elseif (in_array($intent, ['process', 'archive', 'reopen', 'batch_process', 'batch_archive', 'batch_reopen'], true)) {
+            } elseif (in_array($intent, ['process', 'reopen', 'batch_process'], true)) {
                 $targetStatus = match ($intent) {
                     'process', 'batch_process' => 'processed',
-                    'archive', 'batch_archive' => 'archived',
                     default => 'open',
                 };
                 $processed = sr_notification_admin_set_status($pdo, $targetNotificationId, (int) $account['id'], $targetStatus);
@@ -74,15 +71,10 @@ if (sr_request_method() === 'POST') {
         if ($postErrors === []) {
             $postNotice = match ($intent) {
                 'mark_read' => '운영 알림을 읽음 처리했습니다.',
-                'acknowledge' => '운영 알림을 확인했습니다.',
-                'process' => '운영 알림을 처리됨으로 변경했습니다.',
-                'archive' => '운영 알림을 보관했습니다.',
-                'reopen' => '운영 알림을 다시 열었습니다.',
+                'process' => '운영 알림을 완료했습니다.',
+                'reopen' => '운영 알림을 재개했습니다.',
                 'batch_mark_read' => '운영 알림 ' . number_format($processedCount) . '건을 읽음 처리했습니다.',
-                'batch_acknowledge' => '운영 알림 ' . number_format($processedCount) . '건을 확인했습니다.',
-                'batch_process' => '운영 알림 ' . number_format($processedCount) . '건을 처리됨으로 변경했습니다.',
-                'batch_archive' => '운영 알림 ' . number_format($processedCount) . '건을 보관했습니다.',
-                'batch_reopen' => '운영 알림 ' . number_format($processedCount) . '건을 다시 열었습니다.',
+                'batch_process' => '운영 알림 ' . number_format($processedCount) . '건을 완료했습니다.',
                 default => '운영 알림을 변경했습니다.',
             };
         }

@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'admin.event.community.report.created' => '신고 접수',
+    'admin.event.community.storage_cleanup.retry_failed' => '저장소 정리 재시도 실패',
+    'admin.event.content.author_application.created' => '등록자 신청 접수',
+    'admin.event.content.storage_cleanup.retry_failed' => '저장소 정리 재시도 실패',
+    'admin.event.notification.delivery.failed' => '이메일 발송 실패',
+    'admin.event.notification.ui_dummy.created' => 'UI 확인용 더미',
+    'admin.event.privacy.request.created' => '개인정보 요청 접수',
     'ui.0.e82c2721' => '이메일 대기 0',
     'ui.all.a4b69faf' => '전체',
     'ui.all.e078b14a' => '전체 보기',

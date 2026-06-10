@@ -12,7 +12,7 @@ $selectedAdminNotificationSeverities = is_array($adminNotificationFilters['sever
 $adminNotificationActionUrl = sr_admin_current_get_url('/admin/admin-notifications');
 $adminNotificationStatusLabels = [
     'open' => '열림',
-    'processed' => '처리됨',
+    'processed' => '완료',
     'archived' => '보관됨',
 ];
 $adminNotificationSeverityLabels = [
@@ -85,10 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-notification-bulk-actions admin-row-actions" data-admin-notification-bulk-bar>
                 <div class="admin-notification-bulk-controls admin-row-actions">
                     <button type="submit" name="intent" value="batch_mark_read" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="읽음" title="선택한 운영 알림을 내 계정 기준 읽음 상태로 변경합니다." disabled>읽음</button>
-                    <button type="submit" name="intent" value="batch_acknowledge" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="확인" title="선택한 운영 알림을 읽음 처리하고 확인 완료 시각을 기록합니다." disabled>확인</button>
-                    <button type="submit" name="intent" value="batch_process" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="처리됨" title="선택한 열린 운영 알림을 조치 완료 상태로 변경합니다." disabled>처리됨</button>
-                    <button type="submit" name="intent" value="batch_reopen" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="다시 열기" title="선택한 처리됨 또는 보관 알림을 열린 상태로 되돌립니다." disabled>다시 열기</button>
-                    <button type="submit" name="intent" value="batch_archive" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="보관" title="선택한 운영 알림을 보관 상태로 변경합니다." disabled>보관</button>
+                    <button type="submit" name="intent" value="batch_process" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="완료" title="선택한 열린 운영 알림을 운영 조치 완료 상태로 변경합니다." disabled>완료</button>
                     <button type="button" class="btn btn-sm btn-outline-light" data-admin-notification-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-admin-notification-selected-count>0</span></button>
                 </div>
             </div>
@@ -109,7 +106,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th class="admin-notification-message-head">알림</th>
                 <th class="admin-notification-source-head">출처</th>
                 <th class="admin-notification-time-head">발생</th>
-                <th class="admin-notification-read-head">확인</th>
+                <th class="admin-notification-read-head">읽음</th>
                 <th class="admin-notification-actions-head text-end">작업</th>
             </tr>
         </thead>
@@ -132,7 +129,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     'warning' => 'is-warning',
                     default => 'is-normal',
                 };
-                $sourceText = trim((string) ($adminNotification['source_module_key'] ?? '') . ' / ' . (string) ($adminNotification['event_key'] ?? ''), ' /');
+                $sourceModuleKey = (string) ($adminNotification['source_module_key'] ?? '');
+                $eventKey = (string) ($adminNotification['event_key'] ?? '');
+                $sourceText = sr_notification_admin_source_label($sourceModuleKey, $eventKey);
                 $targetText = trim((string) ($adminNotification['target_type'] ?? '') . ' #' . (string) ($adminNotification['target_id'] ?? ''), ' #');
                 $actionUrl = sr_notification_admin_clean_action_url((string) ($adminNotification['action_url'] ?? ''));
                 ?>
@@ -161,14 +160,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </td>
                     <td class="admin-table-nowrap admin-notification-read-cell">
                         <?php echo empty($adminNotification['read_at']) ? '안읽음' : '읽음'; ?>
-                        <?php if (!empty($adminNotification['acknowledged_at'])) { ?>
-                            <br><span class="text-muted">확인함</span>
-                        <?php } ?>
                     </td>
                     <td class="admin-table-actions-cell">
                         <div class="admin-row-actions">
                             <?php if ($actionUrl !== '') { ?>
-                                <a href="<?php echo sr_e(sr_url($actionUrl)); ?>" class="btn btn-sm btn-outline-secondary" aria-label="관련 관리자 화면으로 이동" title="관련 관리자 화면으로 이동">이동</a>
+                                <a href="<?php echo sr_e(sr_url($actionUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" target="_blank" rel="noopener noreferrer" aria-label="바로가기 새 탭에서 열기" title="바로가기 새 탭에서 열기"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                             <?php } ?>
                             <?php if (empty($adminNotification['read_at'])) { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>">
@@ -178,20 +174,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <button type="submit" name="intent" value="mark_read" class="btn btn-sm btn-outline-secondary" aria-label="내 계정 기준 읽음 상태로 변경" title="내 계정 기준 읽음 상태로 변경">읽음</button>
                                 </form>
                             <?php } ?>
-                            <?php if (empty($adminNotification['acknowledged_at'])) { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationActionUrl); ?>">
-                                    <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notificationId); ?>">
-                                    <button type="submit" name="intent" value="acknowledge" class="btn btn-sm btn-outline-secondary" aria-label="읽음 처리하고 확인 완료 시각 기록" title="읽음 처리하고 확인 완료 시각 기록">확인</button>
-                                </form>
-                            <?php } ?>
                             <?php if ($status === 'open') { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationActionUrl); ?>">
                                     <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notificationId); ?>">
-                                    <button type="submit" name="intent" value="process" class="btn btn-sm btn-outline-secondary" aria-label="조치 완료 상태로 변경" title="조치 완료 상태로 변경">처리됨</button>
+                                    <button type="submit" name="intent" value="process" class="btn btn-sm btn-outline-secondary" aria-label="운영 조치 완료 상태로 변경" title="운영 조치 완료 상태로 변경">완료</button>
                                 </form>
                             <?php } ?>
                             <?php if ($status !== 'open') { ?>
@@ -199,15 +187,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationActionUrl); ?>">
                                     <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notificationId); ?>">
-                                    <button type="submit" name="intent" value="reopen" class="btn btn-sm btn-outline-secondary" aria-label="운영 알림을 열린 상태로 되돌림" title="운영 알림을 열린 상태로 되돌림">다시 열기</button>
-                                </form>
-                            <?php } ?>
-                            <?php if ($status !== 'archived') { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationActionUrl); ?>">
-                                    <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notificationId); ?>">
-                                    <button type="submit" name="intent" value="archive" class="btn btn-sm btn-outline-secondary" aria-label="운영 알림을 보관 상태로 변경" title="운영 알림을 보관 상태로 변경">보관</button>
+                                    <button type="submit" name="intent" value="reopen" class="btn btn-sm btn-outline-secondary" aria-label="운영 알림을 열린 상태로 되돌림" title="운영 알림을 열린 상태로 되돌림">재개</button>
                                 </form>
                             <?php } ?>
                         </div>

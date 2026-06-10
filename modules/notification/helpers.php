@@ -289,6 +289,46 @@ function sr_notification_admin_operation_statuses(): array
     return ['open', 'processed', 'archived'];
 }
 
+function sr_notification_admin_source_label(string $moduleKey, string $eventKey): string
+{
+    $moduleKey = trim($moduleKey);
+    $eventKey = trim($eventKey);
+    $moduleLabel = '';
+
+    if ($moduleKey !== '' && sr_is_safe_module_key($moduleKey)) {
+        $metadata = sr_module_metadata($moduleKey);
+        $moduleName = trim((string) ($metadata['name'] ?? ''));
+        $moduleLabel = $moduleName !== '' && function_exists('sr_admin_module_name_label')
+            ? sr_admin_module_name_label($moduleName)
+            : $moduleName;
+    }
+    if ($moduleLabel === '') {
+        $moduleLabel = $moduleKey;
+    }
+
+    $eventLabels = [
+        'content.author_application.created' => sr_t('notification::admin.event.content.author_application.created'),
+        'content.storage_cleanup.retry_failed' => sr_t('notification::admin.event.content.storage_cleanup.retry_failed'),
+        'community.report.created' => sr_t('notification::admin.event.community.report.created'),
+        'community.storage_cleanup.retry_failed' => sr_t('notification::admin.event.community.storage_cleanup.retry_failed'),
+        'notification.delivery.failed' => sr_t('notification::admin.event.notification.delivery.failed'),
+        'notification.ui_dummy.created' => sr_t('notification::admin.event.notification.ui_dummy.created'),
+        'privacy.request.created' => sr_t('notification::admin.event.privacy.request.created'),
+    ];
+    $eventLookupKey = $moduleKey !== '' ? $moduleKey . '.' . $eventKey : $eventKey;
+    $eventLabel = (string) ($eventLabels[$eventLookupKey] ?? $eventKey);
+    if ($eventLabel === $eventKey && $eventKey !== '' && function_exists('sr_admin_event_type_label')) {
+        $eventLabel = sr_admin_event_type_label($moduleKey !== '' ? $moduleKey . '.' . $eventKey : $eventKey);
+        if ($moduleLabel !== '' && str_starts_with($eventLabel, $moduleLabel . ' ')) {
+            $eventLabel = trim(substr($eventLabel, strlen($moduleLabel) + 1));
+        }
+    }
+
+    $parts = array_values(array_filter([$moduleLabel, $eventLabel], static fn (string $value): bool => $value !== ''));
+
+    return $parts === [] ? '-' : implode(' / ', $parts);
+}
+
 function sr_notification_admin_clean_severity(string $value): string
 {
     return in_array($value, sr_notification_admin_severities(), true) ? $value : 'info';
