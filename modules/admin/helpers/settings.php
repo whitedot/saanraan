@@ -623,6 +623,7 @@ function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
         'default_locale' => (string) ($site['default_locale'] ?? 'ko'),
         'supported_locales' => (string) ($site['supported_locales'] ?? (string) ($site['default_locale'] ?? 'ko')),
         'status' => (string) ($site['status'] ?? 'active'),
+        'member_only_enabled' => !empty($site['member_only_enabled']) ? '1' : '0',
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? '/'),
     ];
@@ -637,6 +638,7 @@ function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): 
         'default_locale' => (string) ($site['default_locale'] ?? ''),
         'supported_locales' => (string) ($site['supported_locales'] ?? ''),
         'status' => (string) ($site['status'] ?? ''),
+        'member_only_enabled' => !empty($site['member_only_enabled']) ? '1' : '0',
         'public_layout_key' => sr_public_layout_key($site, $pdo),
         'home_path' => (string) ($site['home_path'] ?? ''),
     ];
@@ -651,6 +653,7 @@ function sr_admin_post_site_setting_values(?array $site): array
         'default_locale' => sr_post_string('default_locale', 20),
         'supported_locales' => sr_admin_post_supported_locales(),
         'status' => sr_post_string('status', 30),
+        'member_only_enabled' => sr_post_string('member_only_enabled', 1) === '1' ? '1' : '0',
         'public_layout_key' => sr_public_layout_normalize_key(sr_post_string('public_layout_key', 80)),
         'home_path' => sr_post_string('home_path', 255),
     ];
@@ -751,6 +754,14 @@ function sr_admin_handle_settings_post(
             $errors[] = '운영 상태 값이 올바르지 않습니다.';
         }
 
+        if (!in_array($values['member_only_enabled'], ['0', '1'], true)) {
+            $errors[] = '회원 전용 모드 값이 올바르지 않습니다.';
+        }
+
+        if ($values['member_only_enabled'] === '1' && !sr_module_enabled($pdo, 'member')) {
+            $errors[] = '회원 전용 모드를 사용하려면 회원 모듈이 활성화되어 있어야 합니다.';
+        }
+
         if (!isset(sr_public_layout_options($pdo)[$values['public_layout_key']])) {
             $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
         }
@@ -791,6 +802,7 @@ function sr_admin_handle_settings_post(
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.supported_locales' => ['value' => $values['supported_locales'], 'type' => 'string'],
                 'site.status' => ['value' => $values['status'], 'type' => 'string'],
+                'site.member_only_enabled' => ['value' => $values['member_only_enabled'], 'type' => 'bool'],
                 'public_layout_key' => ['value' => $values['public_layout_key'], 'type' => 'string'],
                 'site.home_path' => ['value' => $values['home_path'], 'type' => 'string'],
             ]);

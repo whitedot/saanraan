@@ -69,6 +69,12 @@ $siteSettingsHelp = [
             'settings.help.home_path.body.2',
         ]),
     ],
+    'member_only' => [
+        'id' => 'admin-settings-member-only-help-modal',
+        'title' => '회원 전용 모드',
+        'body_html' => '<p>' . sr_e('켜면 비로그인 방문자가 공개 사이트 화면에 접근할 때 로그인 화면으로 이동합니다.') . '</p>'
+            . '<p>' . sr_e('로그인 후에는 원래 요청한 내부 화면으로 돌아갑니다. 로그인, 가입, 비밀번호 재설정 같은 인증 화면은 계속 접근할 수 있습니다.') . '</p>',
+    ],
     'admin_color_scheme' => [
         'id' => 'admin-settings-admin-color-scheme-help-modal',
         'title' => sr_t('admin::settings.help.ui_color_scheme.title'),
@@ -231,6 +237,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_radio_toggle_group_html('admin_settings_status', 'status', ['active' => sr_t('admin::ui.text.0928a1b8'), 'maintenance' => sr_t('admin::ui.text.4fd02e48')], (string) $values['status'], true); ?>
             </div>
         </div>
+        <div class="admin-form-row">
+            <?php echo sr_admin_form_label_help_html('admin_settings_member_only_enabled', '회원 전용 모드', $siteSettingsHelp['member_only']['id'], $siteSettingsHelpOpenLabel, true); ?>
+            <div class="admin-form-field">
+                <?php echo sr_admin_radio_toggle_group_html('admin_settings_member_only_enabled', 'member_only_enabled', ['0' => '끄기', '1' => '켜기'], (string) ($values['member_only_enabled'] ?? '0'), true); ?>
+                <p class="admin-form-help">비로그인 방문자는 로그인 화면으로 이동하며, 로그인 후 원래 경로로 돌아갑니다.</p>
+            </div>
+        </div>
     </section>
     <section class="admin-card card">
         <h2><?php echo sr_e(sr_t('admin::ui.text.b5361f64')); ?></h2>
@@ -260,7 +273,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.page.page.community.status.active.ee1178b4')); ?></p>
+                <p class="admin-form-help"><?php echo sr_e(sr_t('admin::ui.page.page.community.status.active.ee1178b4')); ?> 회원 전용 모드가 켜져 있으면 비로그인 방문자에게 초기화면 대신 로그인 화면이 먼저 표시됩니다.</p>
             </div>
         </div>
     </section>

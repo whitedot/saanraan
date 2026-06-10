@@ -569,6 +569,7 @@ if (sr_request_method() === 'POST') {
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
+                'site.member_only_enabled' => ['value' => '0', 'type' => 'bool'],
                 'site.home_path' => ['value' => $values['main_page_path'], 'type' => 'string'],
                 'public_layout_key' => ['value' => sr_public_layout_default_key(), 'type' => 'string'],
             ]);
