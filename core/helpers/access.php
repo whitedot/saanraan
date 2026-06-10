@@ -20,8 +20,13 @@ function sr_site_member_only_current_request_next_path(): string
 
 function sr_site_member_only_guard(PDO $pdo, ?array $site, string $method, string $path, ?array $routeMatch = null): void
 {
-    if (!sr_site_member_only_enabled($site) || !sr_module_enabled($pdo, 'member')) {
+    if (!sr_site_member_only_enabled($site)) {
         return;
+    }
+
+    if (!sr_module_enabled($pdo, 'member')) {
+        sr_render_error(503, '회원 전용 모드를 사용하려면 회원 모듈이 활성화되어 있어야 합니다.');
+        exit;
     }
 
     require_once SR_ROOT . '/modules/member/helpers.php';
@@ -53,15 +58,15 @@ function sr_site_member_only_route_decision(string $method, string $path, ?array
         return 'allow';
     }
 
-    if ($method === 'GET' && $path === '/') {
+    if (in_array($method, ['GET', 'HEAD'], true) && $path === '/') {
         return 'redirect';
     }
 
-    if ($method === 'GET' && $path === '/ui-kit') {
+    if (in_array($method, ['GET', 'HEAD'], true) && $path === '/ui-kit') {
         return 'redirect';
     }
 
-    if ($method === 'GET' && sr_site_member_only_direct_public_route($path)) {
+    if (in_array($method, ['GET', 'HEAD'], true) && sr_site_member_only_direct_public_route($path)) {
         return 'allow';
     }
 
@@ -126,7 +131,7 @@ function sr_site_member_only_public_auth_route(string $method, string $path): bo
 
 function sr_site_member_only_public_system_route(string $method, string $path): bool
 {
-    return $method === 'GET' && in_array($path, ['/robots.txt', '/sitemap.xml'], true);
+    return in_array($method, ['GET', 'HEAD'], true) && in_array($path, ['/robots.txt', '/sitemap.xml'], true);
 }
 
 function sr_site_member_only_direct_public_route(string $path): bool
