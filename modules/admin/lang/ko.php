@@ -79,6 +79,8 @@ return [
     'retention.pending.content_access' => '콘텐츠 접근 미완료 자산 로그',
     'retention.pending.content_action' => '콘텐츠 액션 미완료 자산 로그',
     'retention.pending.community_asset' => '커뮤니티 미완료 자산 로그',
+    'retention.policy.deleted_content.body' => '삭제 상태의 글과 댓글은 공개 화면에서 제외되더라도 이 데이터 정리 화면의 자동 삭제 대상이 아닙니다. 보존 기간, 물리 삭제, 첨부 파일 정리는 커뮤니티·콘텐츠·퀴즈·설문 등 소유 모듈의 정책이 정해진 뒤 해당 모듈에서 처리합니다.',
+    'retention.policy.deleted_content.title' => '삭제된 글·댓글은 운영 보존 데이터입니다.',
     'retention.help.sessions.body.1' => '세션은 로그인 유지와 요청 제한 같은 접속 상태를 관리하는 기록입니다.',
     'retention.help.sessions.body.2' => '이미 만료되었거나 폐기된 오래된 세션만 정리 대상이 되며, 현재 사용 중인 정상 세션을 줄이는 설정은 아닙니다.',
     'retention.help.sessions.body.3' => '로그인이 만료되었거나 강제로 끊긴 시간이 보관일보다 오래되면 정리 대상입니다. 정리 실행 버튼을 누르면 바로 정리되고, 자동 정리를 켜두면 방문자가 사이트 화면을 열 때 설정한 간격에 맞춰 정리됩니다.',

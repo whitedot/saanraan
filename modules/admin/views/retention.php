@@ -105,6 +105,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.7a617d5f')); ?></h2>
         </div>
+        <div class="alert alert-info">
+            <strong><?php echo sr_e(sr_t('admin::retention.policy.deleted_content.title')); ?></strong>
+            <p><?php echo sr_e(sr_t('admin::retention.policy.deleted_content.body')); ?></p>
+        </div>
         <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_auth_logs_days', sr_t('admin::ui.text.6cc455be'), $retentionHelp['auth_logs_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="admin-form-field">
