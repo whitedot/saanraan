@@ -31,6 +31,14 @@ if ($editing && (string) ($editPopup['module_key'] ?? '') !== '') {
     $selectedTargetOption = sr_popup_layer_public_target_option_value();
 }
 $currentMatchType = $editing ? (string) ($editPopup['match_type'] ?? 'all') : (isset($popupLayerDefaultMatchType) ? (string) $popupLayerDefaultMatchType : 'all');
+if (sr_popup_layer_is_public_target_option($selectedTargetOption)) {
+    $currentMatchType = 'all';
+}
+$popupLayerTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);
+$selectedTargetServiceKey = sr_popup_layer_selected_target_service_key($selectedTargetOption);
+if ($selectedTargetServiceKey === '') {
+    $selectedTargetServiceKey = sr_popup_layer_public_target_option_value();
+}
 $subjectRequired = !sr_popup_layer_is_public_target_option($selectedTargetOption) && $currentMatchType === 'exact';
 $popupLayerHelpOpenLabel = sr_t('popup_layer::help.open');
 $popupLayerHelpButtonHtml = static function (string $label, string $modalId) use ($popupLayerHelpOpenLabel): string {
@@ -182,22 +190,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 </select>
                     </div>
                 </div>
+                <input type="hidden" name="target_option" value="<?php echo sr_e($selectedTargetOption); ?>" data-admin-target-option>
                 <div class="admin-form-row">
-                    <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_target_option', sr_t('popup_layer::ui.text.75911303'), $popupLayerHelp['target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_target_service_key', '서비스', $popupLayerHelp['target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <select id="popup_layer_admin_popup_layers_target_option" name="target_option" class="form-select" required>
-                                                    <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e(sr_t('popup_layer::ui.text.11677edb')); ?>
-                                                    </option>
-                                                    <?php foreach ($availableTargets as $target) { ?>
-                                                        <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
-                                                        <option value="<?php echo sr_e($optionValue); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
-                                                            <?php echo sr_e(sr_popup_layer_target_option_label($target)); ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
-                        <br>
-                                            <small><?php echo sr_e(sr_t('popup_layer::ui.settings.select.active.a35cb577')); ?></small>
+                        <select id="popup_layer_admin_popup_layers_target_service_key" name="target_service_key" class="form-select" required data-admin-target-service>
+                            <?php foreach ($popupLayerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
+                                <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $selectedTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                        <p class="admin-form-help"><?php echo sr_e('공용은 다른 화면에서 직접 선택하는 팝업레이어이고, 서비스 선택 시 상세 노출 위치를 고릅니다.'); ?></p>
+                    </div>
+                </div>
+                <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>>
+                    <label class="form-label" for="popup_layer_admin_popup_layers_target_detail_option"><?php echo sr_e('상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e(sr_t('popup_layer::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <select id="popup_layer_admin_popup_layers_target_detail_option" name="target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_popup_layer_is_public_target_option($selectedTargetOption) ? ' disabled' : ' required'; ?>>
+                            <?php foreach ($availableTargets as $target) { ?>
+                                <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
+                                <option value="<?php echo sr_e($optionValue); ?>" data-service="<?php echo sr_e(sr_popup_layer_target_service_key($target)); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
+                                    <?php echo sr_e(sr_popup_layer_target_detail_label($target)); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::ui.settings.select.active.a35cb577')); ?></p>
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -273,11 +289,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $selectedPopupStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     $selectedPopupTargets = is_array($filters['target'] ?? null) ? $filters['target'] : [];
-    $popupDetailFilterOpen = $selectedPopupStatuses !== [] || $selectedPopupTargets !== [];
-    $popupTargetOptions = [[sr_popup_layer_public_target_option_value(), sr_t('popup_layer::ui.text.11677edb')]];
-    foreach ($availableTargets as $target) {
-        $popupTargetOptions[] = [sr_popup_layer_target_option_value($target), sr_popup_layer_target_option_label($target)];
+    $selectedPopupTarget = (string) ($selectedPopupTargets[0] ?? '');
+    $selectedPopupTargetService = (string) ($filters['target_service'] ?? '');
+    if ($selectedPopupTargetService === '' && $selectedPopupTarget !== '') {
+        $selectedPopupTargetService = sr_popup_layer_selected_target_service_key($selectedPopupTarget);
     }
+    $popupDetailFilterOpen = $selectedPopupStatuses !== [] || $selectedPopupTargets !== [] || $selectedPopupTargetService !== '';
+    $popupTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="filtering-form admin-popup-layer-filter ui-form-theme">
         <div class="filtering-fields admin-popup-layer-search-grid">
@@ -304,12 +322,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_filter_toggle_group_html('modules_popup_layer_admin_popup_layers_status_filter', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedPopupStatuses, sr_t('popup_layer::ui.all.a4b69faf')); ?>
                     </div>
                     <div class="filtering-field admin-popup-layer-filter-target">
-                        <label for="modules_popup_layer_admin_popup_layers_target_filter" class="filtering-label"><?php echo sr_e(sr_t('popup_layer::ui.text.75911303')); ?></label>
-                        <select id="modules_popup_layer_admin_popup_layers_target_filter" name="target" class="form-select filtering-input">
+                        <label for="modules_popup_layer_admin_popup_layers_target_service_filter" class="filtering-label"><?php echo sr_e('서비스'); ?></label>
+                        <select id="modules_popup_layer_admin_popup_layers_target_service_filter" name="target_service" class="form-select filtering-input" data-admin-target-service>
                             <option value=""><?php echo sr_e(sr_t('popup_layer::ui.all.a4b69faf')); ?></option>
-                            <?php foreach ($popupTargetOptions as $targetOption) { ?>
-                                <?php $targetValue = (string) $targetOption[0]; ?>
-                                <option value="<?php echo sr_e($targetValue); ?>"<?php echo in_array($targetValue, $selectedPopupTargets, true) ? ' selected' : ''; ?>><?php echo sr_e((string) $targetOption[1]); ?></option>
+                            <?php foreach ($popupTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
+                                <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $selectedPopupTargetService === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="filtering-field admin-popup-layer-filter-target">
+                        <label for="modules_popup_layer_admin_popup_layers_target_filter" class="filtering-label"><?php echo sr_e('상세'); ?></label>
+                        <select id="modules_popup_layer_admin_popup_layers_target_filter" name="target" class="form-select filtering-input" data-admin-target-detail>
+                            <option value=""><?php echo sr_e(sr_t('popup_layer::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($availableTargets as $target) { ?>
+                                <?php $targetValue = sr_popup_layer_target_option_value($target); ?>
+                                <option value="<?php echo sr_e($targetValue); ?>" data-service="<?php echo sr_e(sr_popup_layer_target_service_key($target)); ?>"<?php echo $selectedPopupTarget === $targetValue ? ' selected' : ''; ?>><?php echo sr_e(sr_popup_layer_target_detail_label($target)); ?></option>
                             <?php } ?>
                         </select>
                     </div>
@@ -529,24 +556,63 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
-        var target = form.querySelector('select[name="target_option"]');
+        var targetService = form.querySelector('[data-admin-target-service]');
+        var targetDetail = form.querySelector('[data-admin-target-detail]');
+        var targetOption = form.querySelector('[data-admin-target-option]');
+        var targetDetailRow = form.querySelector('[data-admin-target-detail-row]');
+        var targetDetailRequired = form.querySelector('[data-admin-target-detail-required]');
         var match = form.querySelector('select[name="match_type"]');
         var subject = form.querySelector('[data-admin-subject-id]');
         var label = form.querySelector('[data-admin-subject-required]');
         var publicTarget = form.getAttribute('data-public-target-value') || '';
 
+        function syncTargetDetail() {
+            var service = targetService ? targetService.value : publicTarget;
+            var isPublic = service === publicTarget;
+            if (targetDetailRow) {
+                targetDetailRow.hidden = isPublic;
+            }
+            if (targetDetailRequired) {
+                targetDetailRequired.hidden = isPublic;
+            }
+            if (targetDetail) {
+                var visibleOptions = [];
+                Array.prototype.forEach.call(targetDetail.options, function (option) {
+                    var visible = !isPublic && option.getAttribute('data-service') === service;
+                    option.hidden = !visible;
+                    option.disabled = !visible;
+                    if (visible) {
+                        visibleOptions.push(option);
+                    }
+                });
+                targetDetail.disabled = isPublic;
+                targetDetail.required = !isPublic;
+                if (!isPublic && (!targetDetail.value || targetDetail.selectedIndex < 0 || targetDetail.options[targetDetail.selectedIndex].disabled) && visibleOptions.length > 0) {
+                    targetDetail.value = visibleOptions[0].value;
+                }
+            }
+            if (targetOption) {
+                targetOption.value = isPublic ? publicTarget : (targetDetail ? targetDetail.value : '');
+            }
+            if (isPublic && match) {
+                match.value = 'all';
+            }
+        }
+
         function syncSubjectRequired() {
-            var needed = !!(target && match && target.value !== publicTarget && match.value === 'exact');
+            syncTargetDetail();
+            var needed = !!(targetOption && match && targetOption.value !== publicTarget && match.value === 'exact');
             if (label) {
                 label.hidden = !needed;
             }
             if (subject) {
                 subject.required = needed;
+                subject.disabled = !needed;
             }
         }
 
         form.addEventListener('change', function (event) {
-            if (event.target === target || event.target === match) {
+            if (event.target === targetService || event.target === targetDetail || event.target === match) {
                 syncSubjectRequired();
             }
         });
@@ -554,5 +620,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     })();
     </script>
 <?php } ?>
+
+<script>
+(function () {
+    document.querySelectorAll('form').forEach(function (form) {
+        var service = form.querySelector('[data-admin-target-service]');
+        var detail = form.querySelector('[data-admin-target-detail]');
+        if (!service || !detail || form.hasAttribute('data-admin-subject-form')) {
+            return;
+        }
+
+        function syncDetail() {
+            var serviceValue = service.value || '';
+            Array.prototype.forEach.call(detail.options, function (option) {
+                if (option.value === '') {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+                var visible = serviceValue === '' || option.getAttribute('data-service') === serviceValue;
+                option.hidden = !visible;
+                option.disabled = !visible;
+            });
+            if (detail.value && detail.options[detail.selectedIndex] && detail.options[detail.selectedIndex].disabled) {
+                detail.value = '';
+            }
+        }
+
+        service.addEventListener('change', syncDetail);
+        form.addEventListener('reset', function () {
+            window.setTimeout(syncDetail, 0);
+        });
+        syncDetail();
+    });
+}());
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

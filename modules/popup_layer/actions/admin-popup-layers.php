@@ -22,6 +22,18 @@ if (sr_request_method() === 'GET' && $popupLayerAdminPage === 'form') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/popup-layers', 'edit');
 }
 $availableTargets = sr_popup_layer_available_targets($pdo);
+$stmt = $pdo->query(
+    "SELECT DISTINCT module_key, point_key, slot_key
+     FROM sr_popup_layer_targets
+     WHERE module_key <> '' AND point_key <> '' AND slot_key <> ''
+     ORDER BY module_key ASC, point_key ASC, slot_key ASC"
+);
+foreach ($stmt->fetchAll() as $storedTargetRow) {
+    $storedTarget = sr_popup_layer_target_from_row($storedTargetRow);
+    if ($storedTarget !== null && sr_popup_layer_find_target($availableTargets, sr_popup_layer_target_option_value($storedTarget)) === null) {
+        $availableTargets[] = $storedTarget;
+    }
+}
 $popupLayerSettings = sr_popup_layer_settings($pdo);
 $popupLayerSkinOptions = sr_popup_layer_skin_options();
 $popupLayerSkinKey = sr_popup_layer_skin_key($popupLayerSettings);
@@ -41,11 +53,16 @@ foreach ($availableTargets as $availableTarget) {
 $filters = [
     'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
     'target' => sr_admin_get_allowed_single_array('target', $allowedTargetOptions, 300),
+    'target_service' => sr_get_string('target_service', 120),
     'field' => sr_get_string('field', 20),
     'q' => sr_popup_layer_clean_single_line(sr_get_string('q', 120), 120),
 ];
 if (!in_array($filters['field'], ['all', 'title', 'subject'], true)) {
     $filters['field'] = 'all';
+}
+$popupLayerTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);
+if (!isset($popupLayerTargetServiceOptions[(string) $filters['target_service']])) {
+    $filters['target_service'] = '';
 }
 
 if (sr_request_method() === 'POST') {
@@ -266,9 +283,15 @@ if (sr_request_method() === 'POST') {
         $startsAt = sr_popup_layer_clean_admin_datetime($startsAtInput);
         $endsAt = sr_popup_layer_clean_admin_datetime($endsAtInput);
         $dismissCookieDays = max(0, min(365, (int) sr_post_string('dismiss_cookie_days', 5)));
-        $targetOption = sr_post_string('target_option', 300);
-        $isPublicPopupLayer = sr_popup_layer_is_public_target_option($targetOption);
-        $target = $isPublicPopupLayer ? null : sr_popup_layer_find_target($availableTargets, $targetOption);
+        $postedTargetResult = sr_popup_layer_normalize_posted_target_option(
+            $availableTargets,
+            sr_post_string('target_service_key', 120),
+            sr_post_string('target_detail_option', 300),
+            sr_post_string('target_option', 300)
+        );
+        $targetOption = (string) $postedTargetResult['option'];
+        $isPublicPopupLayer = (bool) $postedTargetResult['is_public'];
+        $target = is_array($postedTargetResult['target']) ? $postedTargetResult['target'] : null;
         $matchType = sr_post_string('match_type', 20);
         $subjectId = sr_popup_layer_clean_subject_id(sr_post_string('subject_id', 80));
 
@@ -298,7 +321,31 @@ if (sr_request_method() === 'POST') {
         }
 
         if (!$isPublicPopupLayer && $target === null) {
-            $errors[] = '공용 팝업레이어 또는 노출 대상을 선택해야 합니다.';
+            if ($popupId > 0) {
+                $stmt = $pdo->prepare(
+                    'SELECT module_key, point_key, slot_key
+                     FROM sr_popup_layer_targets
+                     WHERE popup_layer_id = :popup_layer_id
+                     LIMIT 1'
+                );
+                $stmt->execute(['popup_layer_id' => $popupId]);
+                $storedTarget = $stmt->fetch();
+                if (is_array($storedTarget)) {
+                    $storedTargetData = sr_popup_layer_target_from_row($storedTarget);
+                    if ($storedTargetData !== null && sr_popup_layer_target_option_value($storedTargetData) === $targetOption) {
+                        $target = $storedTargetData;
+                    }
+                }
+            }
+
+            if ($target === null) {
+                $errors[] = (string) $postedTargetResult['error'] !== '' ? (string) $postedTargetResult['error'] : '공용 팝업레이어 또는 노출 위치를 선택해야 합니다.';
+            }
+        }
+
+        if ($isPublicPopupLayer) {
+            $matchType = 'all';
+            $subjectId = '';
         }
 
         if (!in_array($matchType, $allowedMatchTypes, true)) {
@@ -466,6 +513,11 @@ if ($editId > 0) {
     $row = $stmt->fetch();
     if (is_array($row)) {
         $editPopup = $row;
+        $editTarget = sr_popup_layer_target_from_row($row);
+        if ($editTarget !== null && sr_popup_layer_find_target($availableTargets, sr_popup_layer_target_option_value($editTarget)) === null) {
+            $availableTargets[] = $editTarget;
+            $popupLayerTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);
+        }
     }
 }
 
@@ -516,6 +568,13 @@ if (($filters['target'] ?? []) !== []) {
     }
     if ($targetWhere !== []) {
         $popupWhere[] = '(' . implode(' OR ', $targetWhere) . ')';
+    }
+} elseif (($filters['target_service'] ?? '') !== '') {
+    if ((string) $filters['target_service'] === sr_popup_layer_public_target_option_value()) {
+        $popupWhere[] = 't.id IS NULL';
+    } else {
+        $popupWhere[] = 't.module_key = :filter_target_service';
+        $popupParams['filter_target_service'] = (string) $filters['target_service'];
     }
 }
 if ($filters['q'] !== '') {

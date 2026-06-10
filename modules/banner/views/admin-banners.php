@@ -38,6 +38,11 @@ $bannerUseImage = $editing && sr_banner_clean_image_url((string) ($editBanner['i
 if (sr_banner_is_public_target_option($selectedTargetOption) || $currentSubjectTargetType === '') {
     $currentMatchType = 'all';
 }
+$bannerTargetServiceOptions = sr_banner_target_service_options($availableTargets, true);
+$selectedTargetServiceKey = sr_banner_selected_target_service_key($selectedTargetOption);
+if ($selectedTargetServiceKey === '') {
+    $selectedTargetServiceKey = sr_banner_public_target_option_value();
+}
 $subjectScopeVisible = $currentSubjectTargetType !== '' && !sr_banner_is_public_target_option($selectedTargetOption);
 $subjectRequired = $subjectScopeVisible && $currentMatchType === 'exact';
 $bannerSubjectLookupModalId = 'banner-subject-lookup-modal';
@@ -220,20 +225,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('banner::ui.section.exposure')); ?></h2>
+            <input type="hidden" name="target_option" value="<?php echo sr_e($selectedTargetOption); ?>" data-admin-target-option>
             <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('banner_admin_banners_target_option', sr_t('banner::ui.text.76389a62'), $bannerHelp['target_option']['id'], $bannerHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('banner_admin_banners_target_service_key', '서비스', $bannerHelp['target_option']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="banner_admin_banners_target_option" name="target_option" class="form-select">
-                                            <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $selectedTargetOption === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>
-                                                <?php echo sr_e(sr_t('banner::ui.banner.48de068b')); ?>
-                                            </option>
-                                            <?php foreach ($availableTargets as $target) { ?>
-                                                <?php $optionValue = sr_banner_target_option_value($target); ?>
-                                                <option value="<?php echo sr_e($optionValue); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
-                                                    <?php echo sr_e(sr_banner_target_admin_label($target)); ?>
-                                                </option>
-                                            <?php } ?>
-                                        </select>
+                    <select id="banner_admin_banners_target_service_key" name="target_service_key" class="form-select" required data-admin-target-service>
+                        <?php foreach ($bannerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
+                            <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $selectedTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help"><?php echo sr_e('공용은 다른 화면에서 직접 선택하는 배너이고, 서비스 선택 시 상세 노출 위치를 고릅니다.'); ?></p>
+                </div>
+            </div>
+            <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>>
+                <label class="form-label" for="banner_admin_banners_target_detail_option"><?php echo sr_e('상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
+                <div class="admin-form-field">
+                    <select id="banner_admin_banners_target_detail_option" name="target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? ' disabled' : ' required'; ?>>
+                        <?php foreach ($availableTargets as $target) { ?>
+                            <?php $optionValue = sr_banner_target_option_value($target); ?>
+                            <option value="<?php echo sr_e($optionValue); ?>" data-service="<?php echo sr_e(sr_banner_target_service_key($target)); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
+                                <?php echo sr_e(sr_banner_target_admin_label($target)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('banner::ui.banner.settings.select.active.88d78049')); ?></p>
                 </div>
             </div>
@@ -338,11 +352,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php
     $selectedBannerStatuses = is_array($filters['status'] ?? null) ? $filters['status'] : [];
     $selectedBannerTargets = is_array($filters['target'] ?? null) ? $filters['target'] : [];
-    $bannerDetailFilterOpen = $selectedBannerStatuses !== [] || $selectedBannerTargets !== [];
-    $bannerTargetOptions = [[sr_banner_public_target_option_value(), sr_t('banner::ui.banner.48de068b')]];
-    foreach ($availableTargets as $target) {
-        $bannerTargetOptions[] = [sr_banner_target_option_value($target), sr_banner_target_admin_label($target)];
+    $selectedBannerTarget = (string) ($selectedBannerTargets[0] ?? '');
+    $selectedBannerTargetService = (string) ($filters['target_service'] ?? '');
+    if ($selectedBannerTargetService === '' && $selectedBannerTarget !== '') {
+        $selectedBannerTargetService = sr_banner_selected_target_service_key($selectedBannerTarget);
     }
+    $bannerDetailFilterOpen = $selectedBannerStatuses !== [] || $selectedBannerTargets !== [] || $selectedBannerTargetService !== '';
+    $bannerTargetServiceOptions = sr_banner_target_service_options($availableTargets, true);
     ?>
     <form method="get" action="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="filtering-form admin-banner-filter ui-form-theme">
         <div class="filtering-fields admin-banner-search-grid">
@@ -369,12 +385,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_filter_toggle_group_html('modules_banner_admin_banners_status', 'status', sr_admin_code_label_options($allowedStatuses, 'content_status'), $selectedBannerStatuses, sr_t('banner::ui.all.a4b69faf')); ?>
                     </div>
                     <div class="filtering-field admin-banner-filter-target">
-                        <label for="modules_banner_admin_banners_target" class="filtering-label"><?php echo sr_e(sr_t('banner::ui.text.76389a62')); ?></label>
-                        <select id="modules_banner_admin_banners_target" name="target" class="form-select filtering-input">
+                        <label for="modules_banner_admin_banners_target_service" class="filtering-label"><?php echo sr_e('서비스'); ?></label>
+                        <select id="modules_banner_admin_banners_target_service" name="target_service" class="form-select filtering-input" data-admin-target-service>
                             <option value=""><?php echo sr_e(sr_t('banner::ui.all.a4b69faf')); ?></option>
-                            <?php foreach ($bannerTargetOptions as $targetOption) { ?>
-                                <?php $targetValue = (string) $targetOption[0]; ?>
-                                <option value="<?php echo sr_e($targetValue); ?>"<?php echo in_array($targetValue, $selectedBannerTargets, true) ? ' selected' : ''; ?>><?php echo sr_e((string) $targetOption[1]); ?></option>
+                            <?php foreach ($bannerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
+                                <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $selectedBannerTargetService === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="filtering-field admin-banner-filter-target">
+                        <label for="modules_banner_admin_banners_target" class="filtering-label"><?php echo sr_e('상세'); ?></label>
+                        <select id="modules_banner_admin_banners_target" name="target" class="form-select filtering-input" data-admin-target-detail>
+                            <option value=""><?php echo sr_e(sr_t('banner::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($availableTargets as $target) { ?>
+                                <?php $targetValue = sr_banner_target_option_value($target); ?>
+                                <option value="<?php echo sr_e($targetValue); ?>" data-service="<?php echo sr_e(sr_banner_target_service_key($target)); ?>"<?php echo $selectedBannerTarget === $targetValue ? ' selected' : ''; ?>><?php echo sr_e(sr_banner_target_admin_label($target)); ?></option>
                             <?php } ?>
                         </select>
                     </div>
@@ -634,7 +659,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
 
-        var target = form.querySelector('select[name="target_option"]');
+        var targetService = form.querySelector('[data-admin-target-service]');
+        var targetDetail = form.querySelector('[data-admin-target-detail]');
+        var targetOption = form.querySelector('[data-admin-target-option]');
+        var targetDetailRow = form.querySelector('[data-admin-target-detail-row]');
+        var targetDetailRequired = form.querySelector('[data-admin-target-detail-required]');
         var scopes = form.querySelectorAll('[data-admin-subject-scope]');
         var exact = form.querySelector('input[name="match_type"][value="exact"]');
         var all = form.querySelector('input[name="match_type"][value="all"]');
@@ -662,9 +691,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'display' => sr_t('banner::ui.display_text.help'),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
+        function syncTargetDetail() {
+            var service = targetService ? targetService.value : publicTarget;
+            var isPublic = service === publicTarget;
+            if (targetDetailRow) {
+                targetDetailRow.hidden = isPublic;
+            }
+            if (targetDetailRequired) {
+                targetDetailRequired.hidden = isPublic;
+            }
+            if (targetDetail) {
+                var visibleOptions = [];
+                Array.prototype.forEach.call(targetDetail.options, function (option) {
+                    var visible = !isPublic && option.getAttribute('data-service') === service;
+                    option.hidden = !visible;
+                    option.disabled = !visible;
+                    if (visible) {
+                        visibleOptions.push(option);
+                    }
+                });
+                targetDetail.disabled = isPublic;
+                targetDetail.required = !isPublic;
+                if (!isPublic && (!targetDetail.value || targetDetail.selectedIndex < 0 || targetDetail.options[targetDetail.selectedIndex].disabled) && visibleOptions.length > 0) {
+                    targetDetail.value = visibleOptions[0].value;
+                }
+            }
+            if (targetOption) {
+                targetOption.value = isPublic ? publicTarget : (targetDetail ? targetDetail.value : '');
+            }
+        }
+
         function syncSubjectRequired() {
-            var isPublic = !!(target && target.value === publicTarget);
-            var subjectTargetType = target ? (searchableTargetTypes[target.value] || '') : '';
+            syncTargetDetail();
+            var currentTargetOption = targetOption ? targetOption.value : '';
+            var isPublic = currentTargetOption === publicTarget;
+            var subjectTargetType = searchableTargetTypes[currentTargetOption] || '';
             var scopeVisible = !!subjectTargetType && !isPublic;
             if (!scopeVisible && all) {
                 all.checked = true;
@@ -706,7 +767,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
 
         form.addEventListener('change', function (event) {
-            if (event.target === target || Array.prototype.indexOf.call(scopes, event.target) !== -1) {
+            if (event.target === targetService || event.target === targetDetail || Array.prototype.indexOf.call(scopes, event.target) !== -1) {
                 syncSubjectRequired();
             }
         });
@@ -735,5 +796,40 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     })();
     </script>
 <?php } ?>
+
+<script>
+(function () {
+    document.querySelectorAll('form').forEach(function (form) {
+        var service = form.querySelector('[data-admin-target-service]');
+        var detail = form.querySelector('[data-admin-target-detail]');
+        if (!service || !detail || form.hasAttribute('data-admin-subject-form')) {
+            return;
+        }
+
+        function syncDetail() {
+            var serviceValue = service.value || '';
+            Array.prototype.forEach.call(detail.options, function (option) {
+                if (option.value === '') {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+                var visible = serviceValue === '' || option.getAttribute('data-service') === serviceValue;
+                option.hidden = !visible;
+                option.disabled = !visible;
+            });
+            if (detail.value && detail.options[detail.selectedIndex] && detail.options[detail.selectedIndex].disabled) {
+                detail.value = '';
+            }
+        }
+
+        service.addEventListener('change', syncDetail);
+        form.addEventListener('reset', function () {
+            window.setTimeout(syncDetail, 0);
+        });
+        syncDetail();
+    });
+}());
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

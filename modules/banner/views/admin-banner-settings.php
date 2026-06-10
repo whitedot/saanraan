@@ -38,6 +38,11 @@ $bannerSettingsHelp = [
         'body' => $bannerSettingsHelpBodyHtml(['banner::settings.help.default_sort_order.body.1', 'banner::settings.help.default_sort_order.body.2']),
     ],
 ];
+$bannerTargetServiceOptions = sr_banner_target_service_options($availableTargets, true);
+$bannerDefaultTargetServiceKey = sr_banner_selected_target_service_key($bannerDefaultTargetOption);
+if ($bannerDefaultTargetServiceKey === '') {
+    $bannerDefaultTargetServiceKey = sr_banner_public_target_option_value();
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -71,16 +76,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_target_option', sr_t('banner::settings.default_target_option'), $bannerSettingsHelp['default_target_option']['id'], $bannerHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_target_service_key', '기본 서비스', $bannerSettingsHelp['default_target_option']['id'], $bannerHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="banner_admin_banner_settings_default_target_option" name="banner_default_target_option" class="form-select" required>
-                    <option value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>"<?php echo $bannerDefaultTargetOption === sr_banner_public_target_option_value() ? ' selected' : ''; ?>>
-                        <?php echo sr_e(sr_t('banner::ui.banner.48de068b')); ?>
-                    </option>
+                <input type="hidden" name="banner_default_target_option" value="<?php echo sr_e($bannerDefaultTargetOption); ?>" data-admin-target-option>
+                <select id="banner_admin_banner_settings_default_target_service_key" name="banner_default_target_service_key" class="form-select" required data-admin-target-service>
+                    <?php foreach ($bannerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
+                        <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $bannerDefaultTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help"><?php echo sr_e('새 배너가 처음 사용할 서비스입니다. 공용은 직접 선택용 배너입니다.'); ?></p>
+            </div>
+        </div>
+        <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>>
+            <label class="form-label" for="banner_admin_banner_settings_default_target_detail_option"><?php echo sr_e('기본 상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
+            <div class="admin-form-field">
+                <select id="banner_admin_banner_settings_default_target_detail_option" name="banner_default_target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' disabled' : ' required'; ?>>
                     <?php foreach ($availableTargets as $target) { ?>
                         <?php $optionValue = sr_banner_target_option_value($target); ?>
-                        <option value="<?php echo sr_e($optionValue); ?>"<?php echo $bannerDefaultTargetOption === $optionValue ? ' selected' : ''; ?>>
-                            <?php echo sr_e((string) $target['label']); ?>
+                        <option value="<?php echo sr_e($optionValue); ?>" data-service="<?php echo sr_e(sr_banner_target_service_key($target)); ?>"<?php echo $bannerDefaultTargetOption === $optionValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_banner_target_admin_label($target)); ?>
                         </option>
                     <?php } ?>
                 </select>
@@ -111,5 +125,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php foreach ($bannerSettingsHelp as $bannerHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $bannerHelpModal['id'], (string) $bannerHelpModal['title'], (string) $bannerHelpModal['body']); ?>
 <?php } ?>
+
+<script>
+(function () {
+    var form = document.querySelector('form.admin-form');
+    if (!form) {
+        return;
+    }
+    var publicTarget = <?php echo json_encode(sr_banner_public_target_option_value()); ?>;
+    var service = form.querySelector('[data-admin-target-service]');
+    var detail = form.querySelector('[data-admin-target-detail]');
+    var targetOption = form.querySelector('[data-admin-target-option]');
+    var detailRow = form.querySelector('[data-admin-target-detail-row]');
+    var detailRequired = form.querySelector('[data-admin-target-detail-required]');
+
+    function syncTarget() {
+        var isPublic = service && service.value === publicTarget;
+        if (detailRow) {
+            detailRow.hidden = isPublic;
+        }
+        if (detailRequired) {
+            detailRequired.hidden = isPublic;
+        }
+        if (detail) {
+            var visibleOptions = [];
+            Array.prototype.forEach.call(detail.options, function (option) {
+                var visible = !isPublic && option.getAttribute('data-service') === service.value;
+                option.hidden = !visible;
+                option.disabled = !visible;
+                if (visible) {
+                    visibleOptions.push(option);
+                }
+            });
+            detail.disabled = isPublic;
+            detail.required = !isPublic;
+            if (!isPublic && (!detail.value || detail.selectedIndex < 0 || detail.options[detail.selectedIndex].disabled) && visibleOptions.length > 0) {
+                detail.value = visibleOptions[0].value;
+            }
+        }
+        if (targetOption) {
+            targetOption.value = isPublic ? publicTarget : (detail ? detail.value : '');
+        }
+    }
+
+    if (service) {
+        service.addEventListener('change', syncTarget);
+    }
+    if (detail) {
+        detail.addEventListener('change', syncTarget);
+    }
+    syncTarget();
+}());
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -38,6 +38,11 @@ $popupLayerSettingsHelp = [
         'body' => $popupLayerSettingsHelpBodyHtml(['popup_layer::settings.help.default_dismiss_cookie_days.body.1', 'popup_layer::settings.help.default_dismiss_cookie_days.body.2']),
     ],
 ];
+$popupLayerTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);
+$popupLayerDefaultTargetServiceKey = sr_popup_layer_selected_target_service_key($popupLayerDefaultTargetOption);
+if ($popupLayerDefaultTargetServiceKey === '') {
+    $popupLayerDefaultTargetServiceKey = sr_popup_layer_public_target_option_value();
+}
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -75,16 +80,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_target_option', sr_t('popup_layer::settings.default_target_option'), $popupLayerSettingsHelp['default_target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_target_service_key', '기본 서비스', $popupLayerSettingsHelp['default_target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
             <div class="admin-form-field">
-                <select id="popup_layer_admin_popup_layer_settings_default_target_option" name="popup_layer_default_target_option" class="form-select" required>
-                    <option value="<?php echo sr_e(sr_popup_layer_public_target_option_value()); ?>"<?php echo $popupLayerDefaultTargetOption === sr_popup_layer_public_target_option_value() ? ' selected' : ''; ?>>
-                        <?php echo sr_e(sr_t('popup_layer::ui.text.11677edb')); ?>
-                    </option>
+                <input type="hidden" name="popup_layer_default_target_option" value="<?php echo sr_e($popupLayerDefaultTargetOption); ?>" data-admin-target-option>
+                <select id="popup_layer_admin_popup_layer_settings_default_target_service_key" name="popup_layer_default_target_service_key" class="form-select" required data-admin-target-service>
+                    <?php foreach ($popupLayerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
+                        <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $popupLayerDefaultTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help"><?php echo sr_e('새 팝업레이어가 처음 사용할 서비스입니다. 공용은 직접 선택용 팝업레이어입니다.'); ?></p>
+            </div>
+        </div>
+        <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>>
+            <label class="form-label" for="popup_layer_admin_popup_layer_settings_default_target_detail_option"><?php echo sr_e('기본 상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
+            <div class="admin-form-field">
+                <select id="popup_layer_admin_popup_layer_settings_default_target_detail_option" name="popup_layer_default_target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' disabled' : ' required'; ?>>
                     <?php foreach ($availableTargets as $target) { ?>
                         <?php $optionValue = sr_popup_layer_target_option_value($target); ?>
-                        <option value="<?php echo sr_e($optionValue); ?>"<?php echo $popupLayerDefaultTargetOption === $optionValue ? ' selected' : ''; ?>>
-                            <?php echo sr_e(sr_popup_layer_target_option_label($target)); ?>
+                        <option value="<?php echo sr_e($optionValue); ?>" data-service="<?php echo sr_e(sr_popup_layer_target_service_key($target)); ?>"<?php echo $popupLayerDefaultTargetOption === $optionValue ? ' selected' : ''; ?>>
+                            <?php echo sr_e(sr_popup_layer_target_detail_label($target)); ?>
                         </option>
                     <?php } ?>
                 </select>
@@ -121,5 +135,61 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php foreach ($popupLayerSettingsHelp as $popupLayerHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $popupLayerHelpModal['id'], (string) $popupLayerHelpModal['title'], (string) $popupLayerHelpModal['body']); ?>
 <?php } ?>
+
+<script>
+(function () {
+    var form = document.querySelector('form.admin-form');
+    if (!form) {
+        return;
+    }
+    var publicTarget = <?php echo json_encode(sr_popup_layer_public_target_option_value()); ?>;
+    var service = form.querySelector('[data-admin-target-service]');
+    var detail = form.querySelector('[data-admin-target-detail]');
+    var targetOption = form.querySelector('[data-admin-target-option]');
+    var detailRow = form.querySelector('[data-admin-target-detail-row]');
+    var detailRequired = form.querySelector('[data-admin-target-detail-required]');
+    var match = form.querySelector('select[name="popup_layer_default_match_type"]');
+
+    function syncTarget() {
+        var isPublic = service && service.value === publicTarget;
+        if (detailRow) {
+            detailRow.hidden = isPublic;
+        }
+        if (detailRequired) {
+            detailRequired.hidden = isPublic;
+        }
+        if (detail) {
+            var visibleOptions = [];
+            Array.prototype.forEach.call(detail.options, function (option) {
+                var visible = !isPublic && option.getAttribute('data-service') === service.value;
+                option.hidden = !visible;
+                option.disabled = !visible;
+                if (visible) {
+                    visibleOptions.push(option);
+                }
+            });
+            detail.disabled = isPublic;
+            detail.required = !isPublic;
+            if (!isPublic && (!detail.value || detail.selectedIndex < 0 || detail.options[detail.selectedIndex].disabled) && visibleOptions.length > 0) {
+                detail.value = visibleOptions[0].value;
+            }
+        }
+        if (targetOption) {
+            targetOption.value = isPublic ? publicTarget : (detail ? detail.value : '');
+        }
+        if (isPublic && match) {
+            match.value = 'all';
+        }
+    }
+
+    if (service) {
+        service.addEventListener('change', syncTarget);
+    }
+    if (detail) {
+        detail.addEventListener('change', syncTarget);
+    }
+    syncTarget();
+}());
+</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

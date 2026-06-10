@@ -22,6 +22,18 @@ if (sr_request_method() === 'GET' && $bannerAdminPage === 'form') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/banners', 'edit');
 }
 $availableTargets = sr_banner_available_targets($pdo);
+$stmt = $pdo->query(
+    "SELECT DISTINCT module_key, point_key, slot_key
+     FROM sr_banner_targets
+     WHERE module_key <> '' AND point_key <> '' AND slot_key <> ''
+     ORDER BY module_key ASC, point_key ASC, slot_key ASC"
+);
+foreach ($stmt->fetchAll() as $storedTargetRow) {
+    $storedTarget = sr_banner_target_from_row($storedTargetRow, '선언이 사라진 저장 위치');
+    if ($storedTarget !== null && sr_banner_find_target($availableTargets, sr_banner_target_option_value($storedTarget)) === null) {
+        $availableTargets[] = $storedTarget;
+    }
+}
 $bannerSettings = sr_banner_settings($pdo);
 $bannerSkinOptions = sr_banner_skin_options();
 $bannerSkinKey = sr_banner_skin_key($bannerSettings);
@@ -35,11 +47,16 @@ foreach ($availableTargets as $availableTarget) {
 $filters = [
     'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
     'target' => sr_admin_get_allowed_single_array('target', $allowedTargetOptions, 300),
+    'target_service' => sr_get_string('target_service', 120),
     'field' => sr_get_string('field', 20),
     'q' => sr_banner_clean_single_line(sr_get_string('q', 120), 120),
 ];
 if (!in_array($filters['field'], ['all', 'title', 'link'], true)) {
     $filters['field'] = 'all';
+}
+$bannerTargetServiceOptions = sr_banner_target_service_options($availableTargets, true);
+if (!isset($bannerTargetServiceOptions[(string) $filters['target_service']])) {
+    $filters['target_service'] = '';
 }
 
 if (sr_request_method() === 'POST') {
@@ -259,9 +276,15 @@ if (sr_request_method() === 'POST') {
         $startsAt = sr_banner_clean_admin_datetime($startsAtInput);
         $endsAt = sr_banner_clean_admin_datetime($endsAtInput);
         $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
-        $targetOption = sr_post_string('target_option', 300);
-        $isPublicBanner = sr_banner_is_public_target_option($targetOption);
-        $target = $isPublicBanner ? null : sr_banner_find_target($availableTargets, $targetOption);
+        $postedTargetResult = sr_banner_normalize_posted_target_option(
+            $availableTargets,
+            sr_post_string('target_service_key', 120),
+            sr_post_string('target_detail_option', 300),
+            sr_post_string('target_option', 300)
+        );
+        $targetOption = (string) $postedTargetResult['option'];
+        $isPublicBanner = (bool) $postedTargetResult['is_public'];
+        $target = is_array($postedTargetResult['target']) ? $postedTargetResult['target'] : null;
         $matchType = sr_post_string('match_type', 20);
         $subjectId = sr_banner_clean_single_line(sr_post_string('subject_id', 80), 80);
 
@@ -321,7 +344,7 @@ if (sr_request_method() === 'POST') {
             }
 
             if ($target === null) {
-                $errors[] = '공용 배너 또는 모듈이 선언한 출력 위치를 선택하세요.';
+                $errors[] = (string) $postedTargetResult['error'] !== '' ? (string) $postedTargetResult['error'] : '공용 배너 또는 모듈이 선언한 노출 위치를 선택하세요.';
             }
         }
         if ($isPublicBanner) {
@@ -342,7 +365,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '노출 대상 번호를 입력하세요.';
         }
         if (($isPublicBanner || $target !== null) && !sr_banner_skin_supports($skinKey, sr_banner_target_placement_kind($target, $isPublicBanner))) {
-            $errors[] = '선택한 배너 스킨은 출력 위치와 호환되지 않습니다.';
+            $errors[] = '선택한 배너 스킨은 노출 위치와 호환되지 않습니다.';
         }
 
         $existingBanner = null;
@@ -575,6 +598,13 @@ if (($filters['target'] ?? []) !== []) {
     }
     if ($targetWhere !== []) {
         $bannerWhere[] = '(' . implode(' OR ', $targetWhere) . ')';
+    }
+} elseif (($filters['target_service'] ?? '') !== '') {
+    if ((string) $filters['target_service'] === sr_banner_public_target_option_value()) {
+        $bannerWhere[] = 't.id IS NULL';
+    } else {
+        $bannerWhere[] = 't.module_key = :filter_target_service';
+        $bannerParams['filter_target_service'] = (string) $filters['target_service'];
     }
 }
 if ($filters['q'] !== '') {

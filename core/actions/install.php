@@ -56,7 +56,7 @@ $optionalModules = [
         'name' => '배너',
         'version' => '2026.05.003',
         'label' => sr_t('install.module.banner.label'),
-        'description' => '공통 출력 위치에 노출할 배너와 노출 규칙을 관리합니다.',
+        'description' => '공통 노출 위치에 표시할 배너와 노출 규칙을 관리합니다.',
     ],
     'popup_layer' => [
         'name' => '팝업레이어',

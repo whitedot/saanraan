@@ -36,7 +36,13 @@ if (sr_request_method() === 'POST') {
 
     $postedSkinKey = sr_post_string('popup_layer_skin_key', 40);
     $postedDefaultStatus = sr_post_string('popup_layer_default_status', 30);
-    $postedDefaultTargetOption = sr_post_string('popup_layer_default_target_option', 300);
+    $postedDefaultTargetResult = sr_popup_layer_normalize_posted_target_option(
+        $availableTargets,
+        sr_post_string('popup_layer_default_target_service_key', 120),
+        sr_post_string('popup_layer_default_target_detail_option', 300),
+        sr_post_string('popup_layer_default_target_option', 300)
+    );
+    $postedDefaultTargetOption = (string) $postedDefaultTargetResult['option'];
     $postedDefaultMatchType = sr_post_string('popup_layer_default_match_type', 20);
     $postedDefaultDismissCookieDays = max(0, min(365, (int) sr_post_string('popup_layer_default_dismiss_cookie_days', 5)));
     if ($errors === []) {
@@ -46,11 +52,14 @@ if (sr_request_method() === 'POST') {
         if (!in_array($postedDefaultStatus, $allowedStatuses, true)) {
             $errors[] = '팝업레이어 기본 상태 값이 올바르지 않습니다.';
         }
-        if (!sr_popup_layer_is_public_target_option($postedDefaultTargetOption) && sr_popup_layer_find_target($availableTargets, $postedDefaultTargetOption) === null) {
-            $errors[] = '팝업레이어 기본 노출 대상 값이 올바르지 않습니다.';
+        if (!sr_popup_layer_is_public_target_option($postedDefaultTargetOption) && !is_array($postedDefaultTargetResult['target'])) {
+            $errors[] = (string) $postedDefaultTargetResult['error'] !== '' ? (string) $postedDefaultTargetResult['error'] : '팝업레이어 기본 노출 위치 값이 올바르지 않습니다.';
         }
         if (!in_array($postedDefaultMatchType, $allowedMatchTypes, true)) {
             $errors[] = '팝업레이어 기본 매칭 방식이 올바르지 않습니다.';
+        }
+        if (sr_popup_layer_is_public_target_option($postedDefaultTargetOption)) {
+            $postedDefaultMatchType = 'all';
         }
     }
 

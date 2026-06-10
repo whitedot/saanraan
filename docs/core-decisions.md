@@ -539,8 +539,8 @@ SEO 관리자 설정
 예:
 
 ```text
-popup_layer 모듈 -> 관리자 설정 시점에 활성 모듈의 extension-points.php를 읽어 노출 대상 목록 구성
-banner 모듈 -> 관리자 배너 폼에서 활성 모듈의 extension-points.php로 출력 위치를 고르고 coupon-targets.php 검색 계약으로 특정 subject 후보를 조회
+popup_layer 모듈 -> 관리자 설정 시점에 활성 모듈의 extension-points.php를 읽어 서비스/상세 노출 위치 목록 구성
+banner 모듈 -> 관리자 배너 폼에서 활성 모듈의 extension-points.php를 서비스/상세 노출 위치로 고르고 coupon-targets.php 검색 계약으로 특정 subject 후보를 조회
 content 모듈 -> content.view의 before_content/after_content slot에서 sr_render_output_slot() 호출
 member 모듈 -> 로그인/회원가입 화면에서 sr_render_output_slot()를 명시 호출
 ```
@@ -555,7 +555,7 @@ member 모듈 -> 로그인/회원가입 화면에서 sr_render_output_slot()를 
 module -> point -> slot -> subject
 ```
 
-팝업레이어도 배너와 같이 선언된 `content` slot을 읽어 `module -> point -> slot -> subject` 범위에서 대상을 선택합니다. 화면 소유 모듈은 실제 출력 위치에서 `slot_key`를 포함해 `sr_render_output_slot()`을 명시 호출하고, 팝업레이어 모듈은 저장된 대상 규칙에 맞는 HTML을 해당 content slot으로 반환합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 filters/options로 분리합니다.
+팝업레이어도 배너와 같이 선언된 `content` slot을 읽어 `module -> point -> slot -> subject` 범위에서 대상을 선택합니다. 관리자 UI는 `module`을 서비스로, `point + slot`을 상세 노출 위치로 압축해 보여주지만 저장 식별자는 기존 조합을 유지합니다. 화면 소유 모듈은 실제 출력 위치에서 `slot_key`를 포함해 `sr_render_output_slot()`을 명시 호출하고, 팝업레이어 모듈은 저장된 대상 규칙에 맞는 HTML을 해당 content slot으로 반환합니다. 5단계 이상이 필요하면 단계를 늘리지 않고 filters/options로 분리합니다.
 
 콘텐츠 모듈은 `content.view` point를 제공하고, 콘텐츠 관리 화면에서 공용 배너/팝업레이어를 직접 선택하는 좁은 편의 경로도 둡니다. 직접 선택은 공용 항목만 허용하며, 상태, 커버 이미지, 콘텐츠 레이아웃, 표시, 자산 정책은 현재 콘텐츠에 저장합니다. 커버 이미지는 콘텐츠 모듈이 `sr_content_items.cover_image_url`로 소유하고, 파일 업로드 이미지는 콘텐츠 모듈 저장소와 `/content/cover-image` 프록시로 공개합니다. 콘텐츠 편집 화면에서 운영자가 명시적으로 선택한 `그룹`/`전체` 적용은 현재 편집값을 다른 콘텐츠에 한 번 복사할 수 있지만, 콘텐츠 그룹 설정은 새 콘텐츠나 새 파일 설정을 만들 때 참고하는 기본값으로만 사용하고 이후 그룹 설정 변경이 기존 콘텐츠 값을 바꾸지 않아야 합니다. 콘텐츠 그룹은 목록 페이지, 메뉴 후보, 기본값, 복사 범위를 위한 운영 묶음이고, 콘텐츠 시리즈는 회차 표시와 이전/다음 이동을 위한 읽기 흐름입니다. 한 콘텐츠는 콘텐츠 그룹에 속하면서 동시에 하나의 시리즈 회차로 연결될 수 있으며 두 정렬 기준은 서로 영향을 주지 않습니다. 세부 노출 규칙이 필요하면 배너/팝업레이어 모듈의 target 규칙을 사용합니다. 사이트 설정의 초기화면 후보는 콘텐츠 개별/그룹이 아니라 콘텐츠 메인으로 제한하며, 본문/파일/유료 열람/SEO 정책은 계속 콘텐츠 모듈이 소유합니다.
 

@@ -124,6 +124,130 @@ function sr_popup_layer_target_option_label(array $target): string
     return (string) $target['module_label'] . ' / ' . (string) $target['point_label'] . ' / ' . (string) $target['slot_label'];
 }
 
+function sr_popup_layer_target_detail_label(array $target): string
+{
+    return (string) $target['point_label'] . ' - ' . (string) $target['slot_label'];
+}
+
+function sr_popup_layer_target_service_key(array $target): string
+{
+    $moduleKey = (string) ($target['module_key'] ?? '');
+    return sr_is_safe_module_key($moduleKey) ? $moduleKey : '';
+}
+
+function sr_popup_layer_target_service_label(string $serviceKey): string
+{
+    if ($serviceKey === sr_popup_layer_public_target_option_value()) {
+        return '공용';
+    }
+
+    $labels = [
+        'core' => '홈',
+        'content' => '콘텐츠',
+        'community' => '커뮤니티',
+        'member' => '회원',
+    ];
+    if (isset($labels[$serviceKey])) {
+        return $labels[$serviceKey];
+    }
+
+    return sr_popup_layer_module_label($serviceKey);
+}
+
+function sr_popup_layer_target_service_options(array $targets, bool $includePublic = true): array
+{
+    $options = [];
+    if ($includePublic) {
+        $options[sr_popup_layer_public_target_option_value()] = sr_popup_layer_target_service_label(sr_popup_layer_public_target_option_value());
+    }
+
+    foreach ($targets as $target) {
+        $serviceKey = sr_popup_layer_target_service_key($target);
+        if ($serviceKey !== '' && !isset($options[$serviceKey])) {
+            $options[$serviceKey] = sr_popup_layer_target_service_label($serviceKey);
+        }
+    }
+
+    return $options;
+}
+
+function sr_popup_layer_selected_target_service_key(string $targetOption): string
+{
+    if (sr_popup_layer_is_public_target_option($targetOption)) {
+        return sr_popup_layer_public_target_option_value();
+    }
+
+    $parts = explode('|', $targetOption);
+    return count($parts) === 3 && sr_is_safe_module_key((string) $parts[0]) ? (string) $parts[0] : '';
+}
+
+function sr_popup_layer_target_from_row(array $row, string $label = '선언이 사라진 노출 위치'): ?array
+{
+    $moduleKey = (string) ($row['module_key'] ?? '');
+    $pointKey = (string) ($row['point_key'] ?? '');
+    $slotKey = (string) ($row['slot_key'] ?? '');
+
+    if (!sr_is_safe_module_key($moduleKey) || !sr_popup_layer_is_safe_key($pointKey, 120) || !sr_popup_layer_is_safe_key($slotKey, 80)) {
+        return null;
+    }
+
+    return [
+        'module_key' => $moduleKey,
+        'module_label' => sr_popup_layer_target_service_label($moduleKey),
+        'point_key' => $pointKey,
+        'point_label' => $label . ' / ' . $pointKey,
+        'slot_key' => $slotKey,
+        'slot_label' => $slotKey,
+    ];
+}
+
+function sr_popup_layer_normalize_posted_target_option(array $targets, string $serviceKey, string $detailOption, string $legacyOption): array
+{
+    $serviceKey = trim($serviceKey);
+    $detailOption = trim($detailOption);
+    $legacyOption = trim($legacyOption);
+
+    if ($serviceKey === '' && $detailOption === '') {
+        $detailOption = $legacyOption;
+        $serviceKey = sr_popup_layer_selected_target_service_key($detailOption);
+    }
+
+    if ($serviceKey === sr_popup_layer_public_target_option_value()) {
+        return [
+            'option' => sr_popup_layer_public_target_option_value(),
+            'is_public' => true,
+            'target' => null,
+            'error' => '',
+        ];
+    }
+
+    if (!sr_is_safe_module_key($serviceKey)) {
+        return [
+            'option' => $detailOption,
+            'is_public' => false,
+            'target' => null,
+            'error' => '노출 위치 서비스를 선택하세요.',
+        ];
+    }
+
+    $target = sr_popup_layer_find_target($targets, $detailOption);
+    if ($target === null || sr_popup_layer_target_service_key($target) !== $serviceKey) {
+        return [
+            'option' => $detailOption,
+            'is_public' => false,
+            'target' => null,
+            'error' => '선택한 서비스에 속한 상세 노출 위치를 선택하세요.',
+        ];
+    }
+
+    return [
+        'option' => sr_popup_layer_target_option_value($target),
+        'is_public' => false,
+        'target' => $target,
+        'error' => '',
+    ];
+}
+
 function sr_popup_layer_find_target(array $targets, string $optionValue): ?array
 {
     foreach ($targets as $target) {

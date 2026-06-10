@@ -323,6 +323,107 @@ function sr_banner_target_admin_label(array $target): string
     return $label !== '-' && $label !== '' ? $label : sr_banner_target_option_value($target);
 }
 
+function sr_banner_target_service_key(array $target): string
+{
+    $moduleKey = (string) ($target['module_key'] ?? '');
+    return sr_is_safe_module_key($moduleKey) ? $moduleKey : '';
+}
+
+function sr_banner_target_service_label(string $serviceKey): string
+{
+    if ($serviceKey === sr_banner_public_target_option_value()) {
+        return '공용';
+    }
+
+    $labels = [
+        'core' => '홈',
+        'content' => '콘텐츠',
+        'community' => '커뮤니티',
+        'member' => '회원',
+    ];
+    if (isset($labels[$serviceKey])) {
+        return $labels[$serviceKey];
+    }
+
+    $metadata = sr_module_metadata($serviceKey);
+    $name = (string) ($metadata['name'] ?? '');
+    return $name !== '' ? $name : $serviceKey;
+}
+
+function sr_banner_target_service_options(array $targets, bool $includePublic = true): array
+{
+    $options = [];
+    if ($includePublic) {
+        $options[sr_banner_public_target_option_value()] = sr_banner_target_service_label(sr_banner_public_target_option_value());
+    }
+
+    foreach ($targets as $target) {
+        $serviceKey = sr_banner_target_service_key($target);
+        if ($serviceKey !== '' && !isset($options[$serviceKey])) {
+            $options[$serviceKey] = sr_banner_target_service_label($serviceKey);
+        }
+    }
+
+    return $options;
+}
+
+function sr_banner_selected_target_service_key(string $targetOption): string
+{
+    if (sr_banner_is_public_target_option($targetOption)) {
+        return sr_banner_public_target_option_value();
+    }
+
+    $target = sr_banner_target_from_option($targetOption);
+    return is_array($target) ? sr_banner_target_service_key($target) : '';
+}
+
+function sr_banner_normalize_posted_target_option(array $targets, string $serviceKey, string $detailOption, string $legacyOption): array
+{
+    $serviceKey = trim($serviceKey);
+    $detailOption = trim($detailOption);
+    $legacyOption = trim($legacyOption);
+
+    if ($serviceKey === '' && $detailOption === '') {
+        $detailOption = $legacyOption;
+        $serviceKey = sr_banner_selected_target_service_key($detailOption);
+    }
+
+    if ($serviceKey === sr_banner_public_target_option_value()) {
+        return [
+            'option' => sr_banner_public_target_option_value(),
+            'is_public' => true,
+            'target' => null,
+            'error' => '',
+        ];
+    }
+
+    if (!sr_is_safe_module_key($serviceKey)) {
+        return [
+            'option' => $detailOption,
+            'is_public' => false,
+            'target' => null,
+            'error' => '노출 위치 서비스를 선택하세요.',
+        ];
+    }
+
+    $target = sr_banner_find_target($targets, $detailOption);
+    if ($target === null || sr_banner_target_service_key($target) !== $serviceKey) {
+        return [
+            'option' => $detailOption,
+            'is_public' => false,
+            'target' => null,
+            'error' => '선택한 서비스에 속한 상세 노출 위치를 선택하세요.',
+        ];
+    }
+
+    return [
+        'option' => sr_banner_target_option_value($target),
+        'is_public' => false,
+        'target' => $target,
+        'error' => '',
+    ];
+}
+
 function sr_banner_public_target_option_value(): string
 {
     return '__public__';
@@ -543,7 +644,7 @@ function sr_banner_target_for_context(PDO $pdo, array $context): ?array
     ]);
 }
 
-function sr_banner_target_from_row(array $row, string $label = '저장된 출력 위치'): ?array
+function sr_banner_target_from_row(array $row, string $label = '저장된 노출 위치'): ?array
 {
     $moduleKey = (string) ($row['module_key'] ?? '');
     $pointKey = (string) ($row['point_key'] ?? '');

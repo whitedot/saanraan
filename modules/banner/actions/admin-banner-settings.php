@@ -36,8 +36,14 @@ if (sr_request_method() === 'POST') {
 
     $postedSkinKey = sr_post_string('banner_skin_key', 40);
     $postedDefaultStatus = sr_post_string('banner_default_status', 30);
-    $postedDefaultTargetOption = sr_post_string('banner_default_target_option', 300);
-    $postedDefaultTarget = null;
+    $postedDefaultTargetResult = sr_banner_normalize_posted_target_option(
+        $availableTargets,
+        sr_post_string('banner_default_target_service_key', 120),
+        sr_post_string('banner_default_target_detail_option', 300),
+        sr_post_string('banner_default_target_option', 300)
+    );
+    $postedDefaultTargetOption = (string) $postedDefaultTargetResult['option'];
+    $postedDefaultTarget = is_array($postedDefaultTargetResult['target']) ? $postedDefaultTargetResult['target'] : null;
     $postedDefaultMatchType = sr_post_string('banner_default_match_type', 20);
     $postedDefaultSortOrder = max(-100000, min(100000, (int) sr_post_string('banner_default_sort_order', 20)));
     if ($errors === []) {
@@ -47,17 +53,17 @@ if (sr_request_method() === 'POST') {
         if (!in_array($postedDefaultStatus, $allowedStatuses, true)) {
             $errors[] = '배너 기본 상태 값이 올바르지 않습니다.';
         }
-        if (!sr_banner_is_public_target_option($postedDefaultTargetOption)) {
-            $postedDefaultTarget = sr_banner_find_target($availableTargets, $postedDefaultTargetOption);
-            if ($postedDefaultTarget === null) {
-                $errors[] = '배너 기본 출력 위치 값이 올바르지 않습니다.';
-            }
+        if (!sr_banner_is_public_target_option($postedDefaultTargetOption) && $postedDefaultTarget === null) {
+            $errors[] = (string) $postedDefaultTargetResult['error'] !== '' ? (string) $postedDefaultTargetResult['error'] : '배너 기본 노출 위치 값이 올바르지 않습니다.';
         }
         if (!in_array($postedDefaultMatchType, $allowedMatchTypes, true)) {
             $errors[] = '배너 기본 매칭 방식이 올바르지 않습니다.';
         }
+        if (sr_banner_is_public_target_option($postedDefaultTargetOption)) {
+            $postedDefaultMatchType = 'all';
+        }
         if (($postedDefaultTarget !== null || sr_banner_is_public_target_option($postedDefaultTargetOption)) && !sr_banner_skin_supports($postedSkinKey, sr_banner_target_placement_kind($postedDefaultTarget, sr_banner_is_public_target_option($postedDefaultTargetOption)))) {
-            $errors[] = '배너 기본 스킨은 기본 출력 위치와 호환되어야 합니다.';
+            $errors[] = '배너 기본 스킨은 기본 노출 위치와 호환되어야 합니다.';
         }
     }
 

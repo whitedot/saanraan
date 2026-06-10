@@ -18,7 +18,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 - plain text 본문 저장과 escape 출력
 - `menu-links.php` 기반 사이트 메뉴 후보
 - `sitemap.php` 기반 sitemap 후보
-- `extension-points.php` 기반 배너/팝업레이어 출력 위치
+- `extension-points.php` 기반 배너/팝업레이어 노출 위치
 - 콘텐츠별 공용 배너와 공용 팝업레이어 직접 선택
 - 활성화된 포인트, 적립금, 예치금 기반 유료 열람과 복합 차감
 - 최초 1회 차감과 매 열람 차감 정책
@@ -38,7 +38,7 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 - 관리자 POST action의 로그인, 권한, CSRF 검증
 - 콘텐츠 생성, 수정, 숨김 감사 로그
 - 공용 배너/팝업레이어 직접 선택 출력
-- `content.view` 출력 위치 기반 배너/팝업레이어 규칙 출력
+- `content.view` 노출 위치 기반 배너/팝업레이어 규칙 출력
 - 유료 열람 활성화 시 로그인 요구, 잔액 확인, 항목 차감 후 본문 출력. 반복 열람/다운로드 차감은 CSRF가 붙은 확인 POST 후 짧은 1회성 GET 접근권으로 연결한다. 관리자 `draft` 미리보기는 열람 차감, 다운로드, 완료 버튼 처리를 실행하지 않음
 - 복합 차감 항목은 선택한 항목마다 차감 금액을 따로 저장하고 각 항목 잔액을 개별 확인
 - 최초 1회 차감 정책은 접근권 테이블을 기준으로 같은 회원/콘텐츠/항목 조합을 중복 차감하지 않음
@@ -65,6 +65,6 @@ GitHub 이슈 #9의 1차 범위는 구현 완료 기준으로 정리한다.
 
 콘텐츠 모듈 전용 UI-KIT 미리보기는 `/content/ui-kit` 사용자 화면에서 현재 콘텐츠 공개 레이아웃 설정을 적용해 제공한다. 모듈 서브메뉴에는 노출하지 않고 관리자 UI-KIT의 사용자 화면 링크에서 접근한다. 샘플은 `modules/content/views/ui-kit-samples/`, 보조 스타일은 `modules/content/assets/ui-kit.css`가 소유한다. 공개 콘텐츠 제목, 요약, 본문, 메타, 캡션은 `--type-*-size`, `--type-*-line-height`, `--text-strong`, `--text-muted`, `--text-subtle` 역할 토큰을 기준으로 맞춘다.
 
-## 출력 위치
+## 노출 위치
 
 `content.view` point는 `before_content`, `after_content` content slot을 제공한다. 배너와 팝업레이어 모듈은 이 위치를 대상으로 `all` 또는 콘텐츠 ID 기반 `exact` 규칙을 저장할 수 있다.
