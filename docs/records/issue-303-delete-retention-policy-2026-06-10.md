@@ -40,3 +40,10 @@
 - `modules/quiz/helpers.php`: 퀴즈 삭제 시 퀴즈 제목/설명, 문항/선택지/결과 원문, 댓글 원문과 작성자 표시 snapshot, 응시 answer/scoring/result snapshot, 주관식 답변, 보상 snapshot을 마스킹한다.
 - `modules/survey/helpers.php`, `modules/survey/actions/admin-surveys.php`: 설문 삭제 시 설문 설명/조사 설계 원문, 문항/선택지 원문, 댓글 원문과 작성자 표시 snapshot, 응답/답변 snapshot, 주관식/기타/숫자 답변, 보상 snapshot을 마스킹한다.
 - `modules/quiz/module.php`, `modules/survey/module.php`, `core/actions/install.php`: 퀴즈/설문 모듈 파일 전용 버전과 신규 설치 기본 버전을 각각 `2026.06.011`, `2026.06.008`로 올렸다.
+
+## 보조 payload 검토
+
+- 알림 모듈의 기본 템플릿은 댓글/멘션/보상 이벤트에 공개 이름, 금액, 링크 같은 운영 요약만 저장하며 삭제 대상 본문, 제목, 문항, 답변 원문을 별도 snapshot으로 복제하지 않는다.
+- 관리자/회원 감사 로그는 삭제 이벤트에서 대상 ID, slug, 상태, 정리 건수 같은 식별자와 처리 결과만 남기고 원문 본문을 metadata에 넣지 않는다.
+- 개인정보 요청의 `request_message`와 `requester_snapshot`은 사용자가 별도로 제출한 권리 행사 요청 기록이므로 콘텐츠·커뮤니티·퀴즈·설문 삭제 대상 원문의 복제본으로 보지 않는다.
+- 런타임 세션 payload는 로그인/폼 오류 복원/결제·차감 확인용 임시 상태이며, 현재 삭제 이벤트에서 장기 보존되는 도메인 원문 snapshot 저장소로 쓰이지 않는다.
