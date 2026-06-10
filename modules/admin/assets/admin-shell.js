@@ -792,11 +792,14 @@ window.AdminShell = {
             }
         };
 
-        const closeProfileDropdown = () => {
-            const profileDropdown = document.querySelector('#tnb .admin-profile-dropdown[open]');
-            if (profileDropdown) {
-                profileDropdown.removeAttribute('open');
-            }
+        const closeToolbarDropdowns = except => {
+            Array.prototype.slice.call(document.querySelectorAll('#tnb .admin-profile-dropdown[open], #tnb .admin-notification-dropdown[open]')).forEach(dropdown => {
+                if (except && dropdown === except) {
+                    return;
+                }
+
+                dropdown.removeAttribute('open');
+            });
         };
 
         document.addEventListener('click', event => {
@@ -811,15 +814,15 @@ window.AdminShell = {
                 }
             }
 
-            const profileDropdown = document.querySelector('#tnb .admin-profile-dropdown[open]');
-            if (profileDropdown && !profileDropdown.contains(event.target)) {
-                closeProfileDropdown();
-            }
+            const activeToolbarDropdown = event.target && event.target.closest
+                ? event.target.closest('#tnb .admin-profile-dropdown, #tnb .admin-notification-dropdown')
+                : null;
+            closeToolbarDropdowns(activeToolbarDropdown);
         });
 
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
-                closeProfileDropdown();
+                closeToolbarDropdowns(null);
             }
         });
 
