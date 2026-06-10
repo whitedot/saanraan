@@ -246,7 +246,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     ?>
                                     <a href="<?php echo sr_e($reportActionLogUrl); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-icon btn-solid-light admin-community-report-action-log-link" aria-label="대상 조치 로그 새 탭으로 열기" title="대상 조치 로그"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                                 <?php } ?>
-                                <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($reportProcessModalId); ?>" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></button>
+                                <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($reportProcessModalId); ?>" data-overlay="#<?php echo sr_e($reportProcessModalId); ?>"><?php echo sr_material_icon_html('fact_check'); ?></button>
                             </div>
                         </td>
                     </tr>
