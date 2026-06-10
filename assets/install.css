@@ -5,6 +5,12 @@
 
 :root,
 :root[data-color-scheme="light"] {
+    --sr-font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --sr-font-heading: "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --sr-radius-sm: 4px;
+    --sr-radius: 8px;
+    --sr-transition: 160ms ease;
+    --sr-focus-ring: rgba(16, 103, 214, 0.18);
     --sr-text: #20242a;
     --sr-muted: #47505c;
     --sr-muted-soft: #5d6b7c;
@@ -12,12 +18,17 @@
     --sr-surface: #ffffff;
     --sr-surface-soft: #fbfcfe;
     --sr-surface-muted: #eceff4;
+    --sr-surface-hover: #f4f7fb;
     --sr-border: #d8dde6;
     --sr-border-soft: #e8edf3;
     --sr-control-border: #b9c2d0;
-    --sr-primary: #243b5a;
+    --sr-control-bg: #ffffff;
+    --sr-primary: #1067d6;
+    --sr-primary-hover: #0d55b1;
+    --sr-primary-soft: #edf5ff;
     --sr-on-primary: #ffffff;
     --sr-shadow-soft: rgba(32, 36, 42, 0.06);
+    --sr-shadow-card: 0 10px 24px var(--sr-shadow-soft);
     --sr-danger-border: #d7a3a3;
     --sr-danger-bg: #fff0f0;
     --sr-danger-bg-soft: #fff7f7;
@@ -40,12 +51,17 @@
     --sr-surface: #171d24;
     --sr-surface-soft: #1d2530;
     --sr-surface-muted: #26303c;
+    --sr-surface-hover: #26303c;
     --sr-border: #334050;
     --sr-border-soft: #2a3442;
     --sr-control-border: #526174;
-    --sr-primary: #7da2d8;
-    --sr-on-primary: #0b1118;
+    --sr-control-bg: #151b22;
+    --sr-primary: #7caeff;
+    --sr-primary-hover: #9fc4ff;
+    --sr-primary-soft: #172b45;
+    --sr-on-primary: #08111d;
     --sr-shadow-soft: rgba(0, 0, 0, 0.24);
+    --sr-shadow-card: 0 10px 24px var(--sr-shadow-soft);
     --sr-danger-border: #9f5d63;
     --sr-danger-bg: #391d22;
     --sr-danger-bg-soft: #2a171b;
@@ -69,12 +85,17 @@
         --sr-surface: #171d24;
         --sr-surface-soft: #1d2530;
         --sr-surface-muted: #26303c;
+        --sr-surface-hover: #26303c;
         --sr-border: #334050;
         --sr-border-soft: #2a3442;
         --sr-control-border: #526174;
-        --sr-primary: #7da2d8;
-        --sr-on-primary: #0b1118;
+        --sr-control-bg: #151b22;
+        --sr-primary: #7caeff;
+        --sr-primary-hover: #9fc4ff;
+        --sr-primary-soft: #172b45;
+        --sr-on-primary: #08111d;
         --sr-shadow-soft: rgba(0, 0, 0, 0.24);
+        --sr-shadow-card: 0 10px 24px var(--sr-shadow-soft);
         --sr-danger-border: #9f5d63;
         --sr-danger-bg: #391d22;
         --sr-danger-bg-soft: #2a171b;
@@ -90,6 +111,81 @@
     }
 }
 
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    letter-spacing: 0;
+}
+
+body {
+    margin: 0;
+    color: var(--sr-text);
+    font-family: var(--sr-font-body);
+    font-size: var(--type-body-size, 1rem);
+    line-height: var(--type-body-line-height, 1.5);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+    max-width: 100%;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+a {
+    color: inherit;
+}
+
+h1,
+h2,
+h3 {
+    color: var(--sr-text);
+    font-family: var(--sr-font-heading);
+    line-height: 1.35;
+}
+
+code {
+    color: var(--sr-primary);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.92em;
+}
+
 .sr-install-page {
     background: var(--sr-install-bg);
     overflow-x: hidden;
@@ -98,6 +194,8 @@
 .sr-install-shell {
     width: min(1120px, calc(100% - 32px));
     min-width: 0;
+    margin: 0 auto;
+    padding: 24px 0;
     overflow-wrap: anywhere;
 }
 
@@ -106,9 +204,9 @@
 .sr-install-alert,
 .sr-install-actions {
     border: 1px solid var(--sr-border);
-    border-radius: 8px;
+    border-radius: var(--sr-radius);
     background: var(--sr-surface);
-    box-shadow: 0 10px 24px var(--sr-shadow-soft);
+    box-shadow: var(--sr-shadow-card);
 }
 
 .sr-install-intro {
@@ -167,11 +265,24 @@
     width: 100%;
     min-height: 44px;
     border: 1px solid var(--sr-border);
-    border-radius: 8px;
+    border-radius: var(--sr-radius);
     padding: 8px 10px;
     background: var(--sr-surface-soft);
     color: var(--sr-muted-strong);
     text-align: left;
+    transition: background-color var(--sr-transition), border-color var(--sr-transition), box-shadow var(--sr-transition), color var(--sr-transition);
+}
+
+@media (hover: hover) {
+    .sr-install-steps button:hover {
+        border-color: var(--sr-control-border);
+        background: var(--sr-surface-hover);
+    }
+}
+
+.sr-install-steps button:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--sr-focus-ring);
 }
 
 .sr-install-step-number {
@@ -205,6 +316,7 @@
 .sr-install-steps li.is-current button {
     border-color: var(--sr-primary);
     background: var(--sr-surface);
+    box-shadow: 0 0 0 3px var(--sr-focus-ring);
 }
 
 .sr-install-steps li.is-current .sr-install-step-number,
@@ -271,7 +383,7 @@
 
 .sr-install-step-errors {
     border: 1px solid var(--sr-danger-border);
-    border-radius: 8px;
+    border-radius: var(--sr-radius);
     margin-bottom: 18px;
     padding: 12px 14px;
     background: var(--sr-danger-bg-soft);
@@ -335,11 +447,12 @@
     gap: 10px;
     align-items: flex-start;
     border: 1px solid var(--sr-border);
-    border-radius: 8px;
+    border-radius: var(--sr-radius);
     margin: 0 0 12px;
     background: var(--sr-surface-soft);
     padding: 12px 14px;
     color: var(--sr-text);
+    transition: background-color var(--sr-transition), border-color var(--sr-transition), box-shadow var(--sr-transition);
 }
 
 .sr-install-module-select-all strong {
@@ -358,9 +471,33 @@
 .sr-install-module {
     min-width: 0;
     border: 1px solid var(--sr-border);
-    border-radius: 8px;
+    border-radius: var(--sr-radius);
     background: var(--sr-surface-soft);
     padding: 14px;
+    transition: background-color var(--sr-transition), border-color var(--sr-transition), box-shadow var(--sr-transition);
+}
+
+@media (hover: hover) {
+    .sr-install-module-option:hover,
+    .sr-install-module-select-all:hover {
+        border-color: var(--sr-control-border);
+        background: var(--sr-surface-hover);
+    }
+}
+
+.sr-install-module-option:has(.form-checkbox:focus-visible),
+.sr-install-main-page-option:has(.form-checkbox:focus-visible),
+.sr-install-module-select-all:has(.form-checkbox:focus-visible) {
+    box-shadow: 0 0 0 3px var(--sr-focus-ring);
+}
+
+.sr-install-module-option:has(> .sr-install-module-title .form-checkbox:checked) {
+    border-color: var(--sr-primary);
+    background: var(--sr-primary-soft);
+}
+
+.sr-install-main-page-option:has(.form-checkbox:checked) {
+    color: var(--sr-primary);
 }
 
 .sr-install-check strong,
@@ -465,39 +602,64 @@
 .sr-install-field-grid input,
 .sr-install-field-grid select {
     border: 1px solid var(--sr-control-border);
-    border-radius: 6px;
-    background: var(--sr-surface);
+    border-radius: var(--sr-radius-sm);
+    background: var(--sr-control-bg);
     color: var(--sr-text);
     line-height: 1.5;
     min-height: 42px;
     padding: 9px 11px;
     width: 100%;
+    transition: background-color var(--sr-transition), border-color var(--sr-transition), box-shadow var(--sr-transition), color var(--sr-transition);
+}
+
+@media (hover: hover) {
+    .sr-install-field-grid input:hover,
+    .sr-install-field-grid select:hover {
+        border-color: var(--sr-muted-soft);
+    }
 }
 
 .sr-install-field-grid input:focus-visible,
 .sr-install-field-grid select:focus-visible,
 .sr-install-actions button:focus-visible,
 .sr-install-step-actions button:focus-visible {
-    outline: 2px solid var(--sr-primary);
-    outline-offset: 2px;
+    border-color: var(--sr-primary);
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--sr-focus-ring);
+}
+
+.sr-install-field-grid input:invalid:focus-visible,
+.sr-install-field-grid select:invalid:focus-visible {
+    border-color: var(--sr-danger-border);
 }
 
 .sr-install-page .form-checkbox {
     appearance: none;
     border: 1px solid var(--sr-control-border);
-    border-radius: 4px;
-    background: var(--sr-surface);
+    border-radius: var(--sr-radius-sm);
+    background: var(--sr-control-bg);
     display: inline-grid;
     height: 1rem;
     margin: 0;
     place-content: center;
     vertical-align: middle;
     width: 1rem;
+    transition: background-color var(--sr-transition), border-color var(--sr-transition), box-shadow var(--sr-transition);
 }
 
 .sr-install-page .form-checkbox:checked {
     background: var(--sr-primary);
     border-color: var(--sr-primary);
+}
+
+.sr-install-page .form-checkbox:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--sr-focus-ring);
+}
+
+.sr-install-page .form-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: .55;
 }
 
 .sr-install-page .form-checkbox:checked::before {
@@ -557,7 +719,7 @@
 .sr-install-home-default {
     display: inline-block;
     border: 1px solid var(--sr-border);
-    border-radius: 6px;
+    border-radius: var(--sr-radius-sm);
     padding: 8px 10px;
     background: var(--sr-surface-soft);
     font-weight: var(--font-weight-bold);
@@ -603,8 +765,8 @@
 
 .sr-install-actions button,
 .sr-install-step-actions button {
-    border-color: var(--sr-primary);
-    border-radius: 999px;
+    border: 1px solid var(--sr-primary);
+    border-radius: var(--sr-radius);
     background: var(--sr-primary);
     color: var(--sr-on-primary);
     font-weight: var(--font-weight-bold);
@@ -612,6 +774,20 @@
     min-height: 42px;
     min-width: 140px;
     padding: 10px 18px;
+    transition: background-color var(--sr-transition), border-color var(--sr-transition), box-shadow var(--sr-transition), color var(--sr-transition), opacity var(--sr-transition), transform var(--sr-transition);
+}
+
+@media (hover: hover) {
+    .sr-install-actions button:hover,
+    .sr-install-step-actions button:hover {
+        border-color: var(--sr-primary-hover);
+        background: var(--sr-primary-hover);
+    }
+}
+
+.sr-install-actions button:active,
+.sr-install-step-actions button:active {
+    transform: translateY(1px);
 }
 
 .sr-install-actions button:disabled,
@@ -620,11 +796,33 @@
     opacity: 0.56;
 }
 
+@media (hover: hover) {
+    .sr-install-actions button:disabled:hover,
+    .sr-install-step-actions button:disabled:hover {
+        border-color: var(--sr-primary);
+        background: var(--sr-primary);
+    }
+}
+
 .sr-install-actions .sr-install-secondary-button,
 .sr-install-step-actions .sr-install-secondary-button {
     border-color: var(--sr-control-border);
     background: var(--sr-surface);
     color: var(--sr-text);
+}
+
+@media (hover: hover) {
+    .sr-install-actions .sr-install-secondary-button:hover,
+    .sr-install-step-actions .sr-install-secondary-button:hover {
+        border-color: var(--sr-control-border);
+        background: var(--sr-surface-hover);
+    }
+
+    .sr-install-actions .sr-install-secondary-button:disabled:hover,
+    .sr-install-step-actions .sr-install-secondary-button:disabled:hover {
+        border-color: var(--sr-control-border);
+        background: var(--sr-surface);
+    }
 }
 
 .sr-install-final-actions {
@@ -643,7 +841,7 @@
 .sr-install-summary-grid > div {
     min-width: 0;
     border: 1px solid var(--sr-border);
-    border-radius: 8px;
+    border-radius: var(--sr-radius);
     padding: 14px;
     background: var(--sr-surface-soft);
 }
@@ -676,7 +874,7 @@
 
 .sr-install-progress {
     border: 1px solid var(--sr-primary);
-    border-radius: 8px;
+    border-radius: var(--sr-radius);
     margin-top: 18px;
     padding: 14px;
     background: var(--sr-surface-soft);
