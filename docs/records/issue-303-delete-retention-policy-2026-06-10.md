@@ -37,3 +37,6 @@
 - `modules/content/helpers/comments.php`, `modules/content/actions/comment-delete.php`: 콘텐츠 댓글 삭제 시 상태만 바꾸지 않고 댓글 본문과 작성자 표시 snapshot을 제거한다.
 - `modules/content/actions/admin-content-save.php`, `modules/content/actions/admin-contents.php`, `modules/content/views/admin-contents.php`: 원문 제거가 끝난 삭제 콘텐츠는 저장/일괄 상태 변경으로 공개·초안·숨김 상태로 복구할 수 없도록 서버 검증과 관리자 행 액션을 맞췄다.
 - `modules/content/module.php`, `core/actions/install.php`: 콘텐츠 모듈 파일 전용 버전과 신규 설치 기본 버전을 `2026.06.018`로 올렸다.
+- `modules/quiz/helpers.php`: 퀴즈 삭제 시 퀴즈 제목/설명, 문항/선택지/결과 원문, 댓글 원문과 작성자 표시 snapshot, 응시 answer/scoring/result snapshot, 주관식 답변, 보상 snapshot을 마스킹한다.
+- `modules/survey/helpers.php`, `modules/survey/actions/admin-surveys.php`: 설문 삭제 시 설문 설명/조사 설계 원문, 문항/선택지 원문, 댓글 원문과 작성자 표시 snapshot, 응답/답변 snapshot, 주관식/기타/숫자 답변, 보상 snapshot을 마스킹한다.
+- `modules/quiz/module.php`, `modules/survey/module.php`, `core/actions/install.php`: 퀴즈/설문 모듈 파일 전용 버전과 신규 설치 기본 버전을 각각 `2026.06.011`, `2026.06.008`로 올렸다.

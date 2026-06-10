@@ -829,6 +829,10 @@ function sr_survey_update_comment_status(PDO $pdo, int $commentId, string $statu
     if (!in_array($status, sr_survey_comment_statuses(), true)) {
         throw new RuntimeException('Invalid survey comment status.');
     }
+    if ($status === 'deleted') {
+        sr_survey_delete_comment_redacted($pdo, $commentId);
+        return;
+    }
 
     $stmt = $pdo->prepare(
         'UPDATE sr_survey_comments
@@ -845,6 +849,172 @@ function sr_survey_update_comment_status(PDO $pdo, int $commentId, string $statu
         'updated_at' => $now,
         'id' => $commentId,
     ]);
+}
+
+function sr_survey_delete_comment_redacted(PDO $pdo, int $commentId): void
+{
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_survey_comments
+         SET author_public_name_snapshot = '',
+             body_text = :body_text,
+             status = 'deleted',
+             deleted_at = :deleted_at,
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'body_text' => '삭제된 댓글입니다.',
+        'deleted_at' => $now,
+        'updated_at' => $now,
+        'id' => $commentId,
+    ]);
+}
+
+function sr_survey_soft_delete_redacted(PDO $pdo, int $surveyId, int $accountId): bool
+{
+    if ($surveyId < 1) {
+        return false;
+    }
+
+    $now = sr_now();
+    $deletedTitle = '삭제된 설문';
+    $deletedBody = '삭제된 설문입니다.';
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_survey_forms
+             SET title = :title,
+                 description = :description,
+                 research_purpose = '',
+                 target_population = '',
+                 recruitment_method = '',
+                 project_brief = '',
+                 sponsor_name = '',
+                 research_region = '',
+                 research_language = '',
+                 fieldwork_method = '',
+                 sample_frame = '',
+                 sample_method = '',
+                 quota_policy = '',
+                 response_rate_basis = '',
+                 analysis_plan = '',
+                 weighting_policy = '',
+                 margin_error_note = '',
+                 methodology_disclosure = '',
+                 ethics_note = '',
+                 sensitive_data_policy = '',
+                 recontact_policy = '',
+                 withdrawal_policy = '',
+                 vendor_name = '',
+                 external_channel_policy = '',
+                 invite_token_policy = '',
+                 qa_note = '',
+                 organizer_name = '',
+                 contact_text = '',
+                 consent_text = '',
+                 privacy_notice = '',
+                 comments_enabled = 0,
+                 secret_comments_enabled = 0,
+                 reward_enabled = 0,
+                 updated_by_account_id = :account_id,
+                 updated_at = :updated_at,
+                 deleted_at = :deleted_at
+             WHERE id = :id
+               AND deleted_at IS NULL"
+        );
+        $stmt->execute([
+            'title' => $deletedTitle,
+            'description' => $deletedBody,
+            'account_id' => $accountId,
+            'updated_at' => $now,
+            'deleted_at' => $now,
+            'id' => $surveyId,
+        ]);
+        if ($stmt->rowCount() < 1) {
+            $pdo->rollBack();
+            return false;
+        }
+
+        $pdo->prepare(
+            "UPDATE sr_survey_questions
+             SET prompt = :prompt,
+                 analysis_note = '',
+                 scale_min_label = '',
+                 scale_max_label = '',
+                 number_unit = '',
+                 settings_json = NULL,
+                 updated_at = :updated_at
+             WHERE survey_id = :survey_id"
+        )->execute([
+            'prompt' => $deletedBody,
+            'updated_at' => $now,
+            'survey_id' => $surveyId,
+        ]);
+        $pdo->prepare(
+            'UPDATE sr_survey_choices c
+             INNER JOIN sr_survey_questions q ON q.id = c.question_id
+             SET c.label = :label,
+                 c.settings_json = NULL,
+                 c.updated_at = :updated_at
+             WHERE q.survey_id = :survey_id'
+        )->execute([
+            'label' => '삭제된 선택지',
+            'updated_at' => $now,
+            'survey_id' => $surveyId,
+        ]);
+        $pdo->prepare(
+            "UPDATE sr_survey_comments
+             SET author_public_name_snapshot = '',
+                 body_text = :body_text,
+                 status = 'deleted',
+                 deleted_at = COALESCE(deleted_at, :deleted_at),
+                 updated_at = :updated_at
+             WHERE survey_id = :survey_id"
+        )->execute([
+            'body_text' => '삭제된 댓글입니다.',
+            'deleted_at' => $now,
+            'updated_at' => $now,
+            'survey_id' => $surveyId,
+        ]);
+        $pdo->prepare(
+            "UPDATE sr_survey_responses
+             SET quality_note = '',
+                 consent_snapshot_json = '{}',
+                 metadata_snapshot_json = '{}',
+                 answer_snapshot_json = '{}',
+                 updated_at = :updated_at
+             WHERE survey_id = :survey_id"
+        )->execute([
+            'updated_at' => $now,
+            'survey_id' => $surveyId,
+        ]);
+        $pdo->prepare(
+            "UPDATE sr_survey_response_answers ra
+             INNER JOIN sr_survey_responses r ON r.id = ra.response_id
+             SET ra.answer_text = NULL,
+                 ra.answer_number = NULL,
+                 ra.other_text = NULL,
+                 ra.answer_snapshot_json = '{}'
+             WHERE r.survey_id = :survey_id"
+        )->execute(['survey_id' => $surveyId]);
+        $pdo->prepare(
+            "UPDATE sr_survey_reward_grants
+             SET request_snapshot_json = '{}',
+                 result_snapshot_json = '{}',
+                 error_message = ''
+             WHERE survey_id = :survey_id"
+        )->execute(['survey_id' => $surveyId]);
+
+        $pdo->commit();
+        return true;
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 
 function sr_survey_notification_event_function(PDO $pdo): ?string

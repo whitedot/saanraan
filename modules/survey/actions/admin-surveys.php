@@ -29,12 +29,7 @@ if (sr_request_method() === 'POST') {
         if ($surveyId < 1 || !is_array(sr_survey_by_id($pdo, $surveyId))) {
             sr_admin_redirect_with_result(sr_admin_action_result(['삭제할 설문을 찾을 수 없습니다.'], ''), '/admin/surveys');
         }
-        $pdo->prepare('UPDATE sr_survey_forms SET deleted_at = :deleted_at, updated_at = :updated_at, updated_by_account_id = :account_id WHERE id = :id')->execute([
-            'deleted_at' => sr_now(),
-            'updated_at' => sr_now(),
-            'account_id' => (int) ($account['id'] ?? 0),
-            'id' => $surveyId,
-        ]);
+        sr_survey_soft_delete_redacted($pdo, $surveyId, (int) ($account['id'] ?? 0));
         sr_audit_log($pdo, [
             'actor_account_id' => (int) ($account['id'] ?? 0),
             'actor_type' => 'admin',

@@ -1042,6 +1042,10 @@ function sr_quiz_update_comment_status(PDO $pdo, int $commentId, string $status)
     if (!in_array($status, sr_quiz_comment_statuses(), true)) {
         return;
     }
+    if ($status === 'deleted') {
+        sr_quiz_delete_comment_redacted($pdo, $commentId);
+        return;
+    }
 
     $stmt = $pdo->prepare(
         'UPDATE sr_quiz_comments
@@ -1054,6 +1058,26 @@ function sr_quiz_update_comment_status(PDO $pdo, int $commentId, string $status)
     $stmt->execute([
         'status' => $status,
         'status_deleted' => $status,
+        'deleted_at' => $now,
+        'updated_at' => $now,
+        'id' => $commentId,
+    ]);
+}
+
+function sr_quiz_delete_comment_redacted(PDO $pdo, int $commentId): void
+{
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_quiz_comments
+         SET author_public_name_snapshot = '',
+             body_text = :body_text,
+             status = 'deleted',
+             deleted_at = :deleted_at,
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'body_text' => '삭제된 댓글입니다.',
         'deleted_at' => $now,
         'updated_at' => $now,
         'id' => $commentId,
@@ -3600,23 +3624,113 @@ function sr_quiz_soft_delete(PDO $pdo, int $quizId, int $accountId): bool
     }
 
     $now = sr_now();
-    $stmt = $pdo->prepare(
-        'UPDATE sr_quiz_sets
-         SET status = \'archived\',
-             updated_by_account_id = :account_id,
-             updated_at = :updated_at,
-             deleted_at = :deleted_at
-         WHERE id = :id
-           AND deleted_at IS NULL'
-    );
-    $stmt->execute([
-        'account_id' => $accountId,
-        'updated_at' => $now,
-        'deleted_at' => $now,
-        'id' => $quizId,
-    ]);
+    $deletedTitle = '삭제된 퀴즈';
+    $deletedBody = '삭제된 퀴즈입니다.';
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_quiz_sets
+             SET title = :title,
+                 description = :description,
+                 status = \'archived\',
+                 comments_enabled = 0,
+                 secret_comments_enabled = 0,
+                 reward_enabled = 0,
+                 updated_by_account_id = :account_id,
+                 updated_at = :updated_at,
+                 deleted_at = :deleted_at
+             WHERE id = :id
+               AND deleted_at IS NULL'
+        );
+        $stmt->execute([
+            'title' => $deletedTitle,
+            'description' => $deletedBody,
+            'account_id' => $accountId,
+            'updated_at' => $now,
+            'deleted_at' => $now,
+            'id' => $quizId,
+        ]);
+        $deleted = $stmt->rowCount() > 0;
+        if (!$deleted) {
+            $pdo->rollBack();
+            return false;
+        }
 
-    return $stmt->rowCount() > 0;
+        $pdo->prepare('UPDATE sr_quiz_questions SET prompt = :prompt, help_text = NULL, settings_json = NULL, updated_at = :updated_at WHERE quiz_id = :quiz_id')->execute([
+            'prompt' => $deletedBody,
+            'updated_at' => $now,
+            'quiz_id' => $quizId,
+        ]);
+        $pdo->prepare(
+            'UPDATE sr_quiz_choices c
+             INNER JOIN sr_quiz_questions q ON q.id = c.question_id
+             SET c.label = :label,
+                 c.description = NULL,
+                 c.settings_json = NULL,
+                 c.updated_at = :updated_at
+             WHERE q.quiz_id = :quiz_id'
+        )->execute([
+            'label' => '삭제된 선택지',
+            'updated_at' => $now,
+            'quiz_id' => $quizId,
+        ]);
+        $pdo->prepare('UPDATE sr_quiz_results SET title = :title, summary = \'\', body = \'\', updated_at = :updated_at WHERE quiz_id = :quiz_id')->execute([
+            'title' => '삭제된 결과',
+            'updated_at' => $now,
+            'quiz_id' => $quizId,
+        ]);
+        $pdo->prepare('UPDATE sr_quiz_comments SET author_public_name_snapshot = \'\', body_text = :body_text, status = \'deleted\', deleted_at = COALESCE(deleted_at, :deleted_at), updated_at = :updated_at WHERE quiz_id = :quiz_id')->execute([
+            'body_text' => '삭제된 댓글입니다.',
+            'deleted_at' => $now,
+            'updated_at' => $now,
+            'quiz_id' => $quizId,
+        ]);
+        $pdo->prepare(
+            "UPDATE sr_quiz_attempts
+             SET source_title_snapshot = '',
+                 source_url_snapshot = '',
+                 return_url = '',
+                 answer_snapshot_json = '{}',
+                 scoring_snapshot_json = '{}',
+                 result_snapshot_json = '{}',
+                 updated_at = :updated_at
+             WHERE quiz_id = :quiz_id"
+        )->execute([
+            'updated_at' => $now,
+            'quiz_id' => $quizId,
+        ]);
+        $pdo->prepare(
+            "UPDATE sr_quiz_attempt_answers aa
+             INNER JOIN sr_quiz_attempts a ON a.id = aa.attempt_id
+             SET aa.answer_text = NULL,
+                 aa.answer_snapshot_json = '{}',
+                 aa.category_scores_json = NULL
+             WHERE a.quiz_id = :quiz_id"
+        )->execute(['quiz_id' => $quizId]);
+        $pdo->prepare(
+            "UPDATE sr_quiz_attempt_result_scores ars
+             INNER JOIN sr_quiz_attempts a ON a.id = ars.attempt_id
+             SET ars.snapshot_json = '{}'
+             WHERE a.quiz_id = :quiz_id"
+        )->execute(['quiz_id' => $quizId]);
+        $pdo->prepare(
+            "UPDATE sr_quiz_reward_grants
+             SET request_snapshot_json = '{}',
+                 result_snapshot_json = '{}',
+                 error_message = '',
+                 resolution_note = ''
+             WHERE quiz_id = :quiz_id"
+        )->execute(['quiz_id' => $quizId]);
+
+        $pdo->commit();
+        return true;
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 
 function sr_quiz_content_quizzes(PDO $pdo, int $contentId): array
