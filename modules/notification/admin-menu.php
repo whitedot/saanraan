@@ -5,6 +5,11 @@ return [
     'order' => 27,
     'items' => [
         [
+            'label' => '운영 알림',
+            'path' => '/admin/admin-notifications',
+            'order' => 5,
+        ],
+        [
             'label' => sr_t('notification::ui.notification.list.7475cac1'),
             'path' => '/admin/notifications',
             'order' => 10,

@@ -59,6 +59,7 @@ return [
         'consumes' => [
             'member-assets.php',
             'notification-events.php',
+            'admin-notification-events.php',
         ],
     ],
     'service_domain' => [

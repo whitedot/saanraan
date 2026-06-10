@@ -1328,3 +1328,16 @@ body.admin-sidebar-condensed #gnb .admin-nav-panel.hidden{display:block!importan
 ) {
     color: var(--admin-muted-text);
 }
+
+.admin-toolbar-badge{position:absolute;top:.15rem;right:.15rem;min-width:1.1rem;height:1.1rem;padding:0 .25rem;border-radius:999px;background:var(--color-danger-600);color:#fff;font-size:.68rem;font-weight:700;line-height:1.1rem;text-align:center}
+.admin-notification-dropdown{position:relative}
+.admin-notification-dropdown>summary{list-style:none}
+.admin-notification-dropdown>summary::-webkit-details-marker{display:none}
+.admin-notification-menu{inset:auto 0 auto auto;min-width:min(22rem,calc(100vw - 2rem));padding:0}
+.admin-notification-menu-header{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid var(--admin-border-color)}
+.admin-notification-menu ul{list-style:none;margin:0;padding:.25rem 0}
+.admin-notification-menu li a{display:grid;gap:.25rem;padding:.65rem 1rem;text-decoration:none}
+.admin-notification-menu li a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-notification-menu li a small{color:var(--admin-muted-text)}
+.admin-notification-menu-empty{padding:.85rem 1rem;color:var(--admin-muted-text)}
+.admin-notification-menu-all{display:block;padding:.75rem 1rem;border-top:1px solid var(--admin-border-color);text-align:center;text-decoration:none}

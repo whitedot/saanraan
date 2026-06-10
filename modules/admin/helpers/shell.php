@@ -22,6 +22,20 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
             $accountDisplayName = '';
         }
     }
+    $adminNotificationSummary = ['open_count' => 0, 'items' => [], 'url' => sr_url('/admin/admin-notifications')];
+    if ($accountId > 0) {
+        try {
+            $summaryFunction = sr_module_contract_function($pdo, 'notification', 'admin-notification-events.php', 'summary_function');
+            if ($summaryFunction !== '') {
+                $summary = $summaryFunction($pdo, $accountId, 5);
+                if (is_array($summary)) {
+                    $adminNotificationSummary = array_merge($adminNotificationSummary, $summary);
+                }
+            }
+        } catch (Throwable $exception) {
+            $adminNotificationSummary = ['open_count' => 0, 'items' => [], 'url' => sr_url('/admin/admin-notifications')];
+        }
+    }
 
     return [
         'site_title' => sr_admin_shell_site_title($site),
@@ -35,6 +49,7 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         'account_display_name' => $accountDisplayName,
         'navigation_items' => $navigationItems,
         'auxiliary_links' => $auxiliaryLinks,
+        'admin_notification_summary' => $adminNotificationSummary,
     ];
 }
 

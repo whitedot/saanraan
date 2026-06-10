@@ -60,7 +60,7 @@
 | 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/rewards/settings`, `/admin/deposits`, `/admin/deposits/settings`, `/admin/asset-exchange`, `/admin/asset-exchange/settings`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
 | 임베드 | `/admin/embed-manager` |
-| 알림/개인정보 | `/account/notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests`, `/admin/privacy-requests` |
+| 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests`, `/admin/privacy-requests` |
 
 ## 주요 DB 테이블
 
@@ -79,7 +79,7 @@
 | 회원 자산 | `sr_point_balances`, `sr_point_transactions`, `sr_point_expiration_consumptions`, `sr_reward_balances`, `sr_reward_transactions`, `sr_reward_withdrawal_requests`, `sr_deposit_balances`, `sr_deposit_transactions`, `sr_deposit_refund_requests`, `sr_asset_exchange_policies`, `sr_asset_exchange_logs`, `sr_coupon_definitions`, `sr_coupon_issues`, `sr_coupon_redemptions` |
 | 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_logos`, `sr_logo_manager_icon_variants`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
 | 임베드 | `sr_embed_manager_refs` |
-| 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates` |
+| 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates`, `sr_admin_notifications`, `sr_admin_notification_reads` |
 
 상세 컬럼과 인덱스는 설치 SQL과 Wiki DB 명세를 정본으로 본다. 이 문서는 1.0 전 구현 표면을 빠르게 확인하기 위한 보조 문서다.
 

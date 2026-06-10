@@ -169,6 +169,7 @@ function sr_check_module_lifecycle_metadata(): void
         'site-setting-references.php' => true,
         'logo-positions.php' => true,
         'notification-events.php' => true,
+        'admin-notification-events.php' => true,
         'embed-manager-targets.php' => true,
     ];
 
@@ -328,6 +329,7 @@ function sr_check_module_contract_files(): void
         'site-setting-references.php',
         'logo-positions.php',
         'notification-events.php',
+        'admin-notification-events.php',
         'embed-manager-targets.php',
     ];
 

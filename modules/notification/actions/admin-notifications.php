@@ -179,6 +179,22 @@ if (sr_request_method() === 'POST') {
                 'updated_at' => $now,
                 'id' => $deliveryId,
             ]);
+            if ($status === 'failed') {
+                sr_notification_create_admin_notification($pdo, [
+                    'title' => '이메일 발송 작업이 실패로 표시되었습니다.',
+                    'body_text' => '발송 작업 #' . (string) $deliveryId . ' 상태를 확인해 주세요.',
+                    'severity' => 'warning',
+                    'source_module_key' => 'notification',
+                    'event_key' => 'delivery.failed',
+                    'target_type' => 'notification_delivery',
+                    'target_id' => (string) $deliveryId,
+                    'action_url' => '/admin/notification-deliveries?delivery_status=failed',
+                    'permission_path' => '/admin/notification-deliveries',
+                    'permission_action' => 'view',
+                    'dedupe_key' => 'notification.delivery.failed.' . (string) $deliveryId,
+                    'created_by_account_id' => (int) $account['id'],
+                ]);
+            }
 
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

@@ -17,6 +17,11 @@ function sr_community_notification_event_function(PDO $pdo): string
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
 }
 
+function sr_community_admin_notification_create_function(PDO $pdo): string
+{
+    return sr_module_contract_function($pdo, 'notification', 'admin-notification-events.php', 'create_function');
+}
+
 function sr_community_create_account_notification(
     PDO $pdo,
     int $accountId,
@@ -132,11 +137,36 @@ function sr_community_create_admin_report_notifications(
         return;
     }
 
+    $createAdminNotificationFunction = sr_community_admin_notification_create_function($pdo);
     $bodyText = sr_t('community::notification.report.body', [
         'target_type' => $targetType,
         'target_id' => (string) $targetId,
         'reason' => sr_community_report_reason_label($reasonKey),
     ]);
+    if ($createAdminNotificationFunction !== '') {
+        try {
+            $adminNotificationId = $createAdminNotificationFunction($pdo, [
+                'title' => sr_t('community::notification.report.title'),
+                'body_text' => $bodyText,
+                'severity' => $reasonKey === 'personal_info' || $reasonKey === 'illegal' ? 'danger' : 'warning',
+                'source_module_key' => 'community',
+                'event_key' => 'report.created',
+                'target_type' => 'community_report',
+                'target_id' => (string) $reportId,
+                'action_url' => '/admin/community/reports',
+                'permission_path' => '/admin/community/reports',
+                'permission_action' => 'view',
+                'dedupe_key' => 'community.report.' . (string) $reportId,
+                'created_by_account_id' => $createdByAccountId,
+            ]);
+            if ($adminNotificationId !== null) {
+                return;
+            }
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'community_admin_notification_create');
+        }
+    }
+
     foreach (sr_community_notification_admin_account_ids($pdo) as $accountId) {
         sr_community_create_account_notification(
             $pdo,

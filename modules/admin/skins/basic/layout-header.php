@@ -43,6 +43,12 @@ $adminShellAccountDisplayName = trim((string) ($adminShell['account_display_name
 if ($adminShellAccountDisplayName === '' && isset($account) && is_array($account)) {
     $adminShellAccountDisplayName = trim((string) ($account['display_name'] ?? ''));
 }
+$adminNotificationSummary = isset($adminShell['admin_notification_summary']) && is_array($adminShell['admin_notification_summary'])
+    ? $adminShell['admin_notification_summary']
+    : ['open_count' => 0, 'items' => [], 'url' => sr_url('/admin/admin-notifications')];
+$adminNotificationOpenCount = max(0, (int) ($adminNotificationSummary['open_count'] ?? 0));
+$adminNotificationItems = isset($adminNotificationSummary['items']) && is_array($adminNotificationSummary['items']) ? $adminNotificationSummary['items'] : [];
+$adminNotificationUrl = (string) ($adminNotificationSummary['url'] ?? sr_url('/admin/admin-notifications'));
 $adminBrandLogoHtml = '';
 $adminFaviconHtml = '';
 $adminBrandIconUrl = '';
@@ -236,6 +242,42 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                 <?php echo sr_icon('home', 'admin-shell-control-icon'); ?>
                             </a>
                         </li>
+                        <?php if ($adminNotificationUrl !== '' && ($adminNotificationOpenCount > 0 || $adminNotificationItems !== [])) { ?>
+                            <li class="tnb_li admin-toolbar-item relative">
+                                <details class="admin-notification-dropdown">
+                                    <summary class="tnb_icon_btn admin-toolbar-icon-button" aria-label="운영 알림" title="운영 알림">
+                                        <?php echo sr_icon('notifications', 'admin-shell-control-icon'); ?>
+                                        <?php if ($adminNotificationOpenCount > 0) { ?>
+                                            <span class="admin-toolbar-badge"><?php echo sr_e((string) min(99, $adminNotificationOpenCount)); ?></span>
+                                        <?php } ?>
+                                    </summary>
+                                    <div class="admin-toolbar-menu admin-notification-menu" role="menu">
+                                        <div class="admin-notification-menu-header">
+                                            <strong>운영 알림</strong>
+                                            <span><?php echo sr_e(number_format($adminNotificationOpenCount)); ?>건</span>
+                                        </div>
+                                        <ul>
+                                            <?php foreach ($adminNotificationItems as $adminNotificationItem) { ?>
+                                                <?php if (!is_array($adminNotificationItem)) { continue; } ?>
+                                                <?php $adminNotificationItemUrl = function_exists('sr_notification_admin_clean_action_url') ? sr_notification_admin_clean_action_url((string) ($adminNotificationItem['action_url'] ?? '')) : ''; ?>
+                                                <li>
+                                                    <a href="<?php echo sr_e($adminNotificationItemUrl !== '' ? sr_url($adminNotificationItemUrl) : $adminNotificationUrl); ?>">
+                                                        <span><?php echo sr_e((string) ($adminNotificationItem['title'] ?? '')); ?></span>
+                                                        <?php if (function_exists('sr_notification_time_html')) { ?>
+                                                            <small><?php echo sr_notification_time_html((string) ($adminNotificationItem['last_occurred_at'] ?? $adminNotificationItem['created_at'] ?? '')); ?></small>
+                                                        <?php } ?>
+                                                    </a>
+                                                </li>
+                                            <?php } ?>
+                                            <?php if ($adminNotificationItems === []) { ?>
+                                                <li class="admin-notification-menu-empty">열린 운영 알림이 없습니다.</li>
+                                            <?php } ?>
+                                        </ul>
+                                        <a class="admin-notification-menu-all" href="<?php echo sr_e($adminNotificationUrl); ?>">전체 보기</a>
+                                    </div>
+                                </details>
+                            </li>
+                        <?php } ?>
                         <li class="tnb_li admin-toolbar-item relative">
                             <details class="admin-profile-dropdown">
                                 <summary class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">

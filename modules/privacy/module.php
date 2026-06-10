@@ -29,6 +29,7 @@ return [
         ],
         'consumes' => [
             'privacy-export.php',
+            'admin-notification-events.php',
         ],
     ],
 ];

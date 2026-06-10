@@ -26,6 +26,7 @@ return [
         'consumes' => [
             'homepage-candidates.php',
             'site-setting-references.php',
+            'admin-notification-events.php',
         ],
     ],
     'settings' => [

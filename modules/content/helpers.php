@@ -2074,8 +2074,38 @@ function sr_content_author_application_admin_account_ids(PDO $pdo): array
     return $accountIds;
 }
 
+function sr_content_admin_notification_create_function(PDO $pdo): string
+{
+    return sr_module_contract_function($pdo, 'notification', 'admin-notification-events.php', 'create_function');
+}
+
 function sr_content_create_admin_author_application_notifications(PDO $pdo, int $applicationId, int $applicantAccountId): int
 {
+    $createAdminNotificationFunction = sr_content_admin_notification_create_function($pdo);
+    if ($applicationId > 0 && $applicantAccountId > 0 && $createAdminNotificationFunction !== '') {
+        try {
+            $adminNotificationId = $createAdminNotificationFunction($pdo, [
+                'title' => '새 콘텐츠 등록자 신청이 접수되었습니다.',
+                'body_text' => '콘텐츠 등록자 신청을 검토해 주세요.',
+                'severity' => 'warning',
+                'source_module_key' => 'content',
+                'event_key' => 'author_application.created',
+                'target_type' => 'content_author_application',
+                'target_id' => (string) $applicationId,
+                'action_url' => '/admin/content/author-applications',
+                'permission_path' => '/admin/content/author-applications',
+                'permission_action' => 'view',
+                'dedupe_key' => 'content.author_application.' . (string) $applicationId,
+                'created_by_account_id' => $applicantAccountId,
+            ]);
+            if ($adminNotificationId !== null) {
+                return 1;
+            }
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'content_author_application_admin_notification_create');
+        }
+    }
+
     $createNotificationFunction = sr_content_notification_create_function($pdo);
     if ($applicationId < 1 || $applicantAccountId < 1 || $createNotificationFunction === '') {
         return 0;

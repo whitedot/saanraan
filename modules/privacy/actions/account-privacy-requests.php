@@ -100,6 +100,28 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
 
+        $createAdminNotificationFunction = sr_module_contract_function($pdo, 'notification', 'admin-notification-events.php', 'create_function');
+        if ($createAdminNotificationFunction !== '') {
+            try {
+                $createAdminNotificationFunction($pdo, [
+                    'title' => '새 개인정보 처리 요청이 접수되었습니다.',
+                    'body_text' => '요청 유형: ' . sr_privacy_request_type_label($values['request_type']),
+                    'severity' => 'danger',
+                    'source_module_key' => 'privacy',
+                    'event_key' => 'request.created',
+                    'target_type' => 'privacy_request',
+                    'target_id' => (string) $requestId,
+                    'action_url' => '/admin/privacy-requests',
+                    'permission_path' => '/admin/privacy-requests',
+                    'permission_action' => 'view',
+                    'dedupe_key' => 'privacy.request.' . (string) $requestId,
+                    'created_by_account_id' => (int) $account['id'],
+                ]);
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'privacy_admin_notification_create');
+            }
+        }
+
         $notice = '개인정보 처리 요청을 접수했습니다.';
         $values = [
             'request_type' => 'access',

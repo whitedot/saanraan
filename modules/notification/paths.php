@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'GET /admin/admin-notifications' => 'actions/admin-admin-notifications.php',
+    'POST /admin/admin-notifications' => 'actions/admin-admin-notifications.php',
     'GET /admin/notifications' => 'actions/admin-notifications.php',
     'POST /admin/notifications' => 'actions/admin-notifications.php',
     'GET /admin/notifications/settings' => 'actions/admin-notification-settings.php',

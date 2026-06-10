@@ -277,6 +277,27 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
         if (empty($retryResult['ok'])) {
+            $createAdminNotificationFunction = sr_module_contract_function($pdo, 'notification', 'admin-notification-events.php', 'create_function');
+            if ($createAdminNotificationFunction !== '') {
+                try {
+                    $createAdminNotificationFunction($pdo, [
+                        'title' => '커뮤니티 저장소 정리 재시도에 실패했습니다.',
+                        'body_text' => (string) ($retryResult['message'] ?? '저장소 파일 정리 재시도에 실패했습니다.'),
+                        'severity' => 'warning',
+                        'source_module_key' => 'community',
+                        'event_key' => 'storage_cleanup.retry_failed',
+                        'target_type' => 'community_storage_cleanup_failure',
+                        'target_id' => (string) $failureId,
+                        'action_url' => '/admin/community/boards',
+                        'permission_path' => '/admin/community/boards',
+                        'permission_action' => 'delete',
+                        'dedupe_key' => 'community.storage_cleanup.retry_failed.' . (string) $failureId,
+                        'created_by_account_id' => (int) $account['id'],
+                    ]);
+                } catch (Throwable $exception) {
+                    sr_log_exception($exception, 'community_storage_cleanup_admin_notification_create');
+                }
+            }
             $errors[] = (string) ($retryResult['message'] ?? '저장소 파일 정리 재시도에 실패했습니다.');
         } else {
             $notice = (string) ($retryResult['message'] ?? '저장소 파일 정리를 완료했습니다.');
