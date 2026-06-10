@@ -170,6 +170,17 @@ function sr_admin_retention_notification_tables_exist(PDO $pdo): bool
     }
 }
 
+function sr_admin_retention_admin_notification_tables_exist(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM sr_admin_notifications LIMIT 1');
+        $pdo->query('SELECT 1 FROM sr_admin_notification_reads LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
 function sr_admin_retention_runtime_sessions_table_exists(PDO $pdo): bool
 {
     try {
@@ -211,7 +222,7 @@ function sr_admin_retention_community_asset_tables_exist(PDO $pdo): bool
     }
 }
 
-function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable, bool $hasRuntimeSessionsTable = false, bool $hasRateLimitsTable = false, bool $hasContentAssetTables = false, bool $hasCommunityAssetTables = false): array
+function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable, bool $hasRuntimeSessionsTable = false, bool $hasRateLimitsTable = false, bool $hasContentAssetTables = false, bool $hasCommunityAssetTables = false, bool $hasAdminNotificationTables = false): array
 {
     return [
         'auth_logs' => [
@@ -475,6 +486,60 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
                 'cutoff' => 'notifications',
             ],
         ],
+        'admin_notification_reads' => [
+            'enabled' => $hasAdminNotificationTables,
+            'auto_scope' => 'admin',
+            'cutoff_key' => 'notifications',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM sr_admin_notification_reads r
+             INNER JOIN sr_admin_notifications n ON n.id = r.notification_id
+             WHERE n.status <> \'open\'
+               AND COALESCE(n.archived_at, n.processed_at, n.updated_at, n.created_at) < :cutoff',
+            'count_params' => [
+                'cutoff' => 'notifications',
+            ],
+            'delete_sql' => 'DELETE r
+             FROM sr_admin_notification_reads r
+             INNER JOIN sr_admin_notifications n ON n.id = r.notification_id
+             WHERE n.status <> \'open\'
+               AND COALESCE(n.archived_at, n.processed_at, n.updated_at, n.created_at) < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_admin_notification_reads
+             WHERE notification_id IN (
+                SELECT id FROM sr_admin_notifications
+                WHERE status <> \'open\'
+                  AND COALESCE(archived_at, processed_at, updated_at, created_at) < :cutoff
+             )
+             LIMIT {limit}',
+            'delete_params' => [
+                'cutoff' => 'notifications',
+            ],
+        ],
+        'admin_notifications' => [
+            'enabled' => $hasAdminNotificationTables,
+            'auto_scope' => 'admin',
+            'cutoff_key' => 'notifications',
+            'count_sql' => 'SELECT COUNT(*) AS count_value
+             FROM sr_admin_notifications
+             WHERE status <> \'open\'
+               AND COALESCE(archived_at, processed_at, updated_at, created_at) < :cutoff',
+            'count_params' => [
+                'cutoff' => 'notifications',
+            ],
+            'delete_sql' => 'DELETE FROM sr_admin_notifications
+             WHERE status <> \'open\'
+               AND COALESCE(archived_at, processed_at, updated_at, created_at) < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_admin_notifications
+             WHERE status <> \'open\'
+               AND COALESCE(archived_at, processed_at, updated_at, created_at) < :cutoff
+               AND NOT EXISTS (
+                    SELECT 1 FROM sr_admin_notification_reads r WHERE r.notification_id = sr_admin_notifications.id
+               )
+             ORDER BY id ASC
+             LIMIT {limit}',
+            'delete_params' => [
+                'cutoff' => 'notifications',
+            ],
+        ],
         'module_backups' => [
             'enabled' => true,
             'auto_scope' => 'admin',
@@ -501,6 +566,8 @@ function sr_admin_retention_cleanup_target_keys(?string $autoScope = null): arra
         'notification_deliveries',
         'notification_reads',
         'notifications',
+        'admin_notification_reads',
+        'admin_notifications',
         'module_backups',
     ];
 
@@ -509,7 +576,7 @@ function sr_admin_retention_cleanup_target_keys(?string $autoScope = null): arra
     }
 
     $scopedKeys = [];
-    $targets = sr_admin_retention_target_definitions(true, true, true, true, true, true);
+    $targets = sr_admin_retention_target_definitions(true, true, true, true, true, true, true);
     foreach ($targetKeys as $targetKey) {
         if ((string) ($targets[$targetKey]['auto_scope'] ?? '') === $autoScope) {
             $scopedKeys[] = $targetKey;
@@ -637,7 +704,8 @@ function sr_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, bool
         sr_admin_retention_runtime_sessions_table_exists($pdo),
         sr_admin_retention_rate_limits_table_exists($pdo),
         sr_admin_retention_content_asset_tables_exist($pdo),
-        sr_admin_retention_community_asset_tables_exist($pdo)
+        sr_admin_retention_community_asset_tables_exist($pdo),
+        sr_admin_retention_admin_notification_tables_exist($pdo)
     );
 
     foreach ($targets as $key => $target) {
@@ -671,7 +739,8 @@ function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNo
         sr_admin_retention_runtime_sessions_table_exists($pdo),
         sr_admin_retention_rate_limits_table_exists($pdo),
         sr_admin_retention_content_asset_tables_exist($pdo),
-        sr_admin_retention_community_asset_tables_exist($pdo)
+        sr_admin_retention_community_asset_tables_exist($pdo),
+        sr_admin_retention_admin_notification_tables_exist($pdo)
     );
     $deletedCounts = [];
     foreach (sr_admin_retention_cleanup_target_keys($autoScope) as $key) {

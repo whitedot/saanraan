@@ -276,6 +276,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <td><?php echo sr_e((string) $previewCounts['notification_reads']); ?></td>
                                 </tr>
                             <?php } ?>
+                            <?php if (!empty($hasAdminNotificationTables)) { ?>
+                                <tr>
+                                    <td>관리자 운영 알림</td>
+                                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
+                                    <td><?php echo sr_e((string) $previewCounts['admin_notifications']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td>관리자 운영 알림 확인 기록</td>
+                                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
+                                    <td><?php echo sr_e((string) $previewCounts['admin_notification_reads']); ?></td>
+                                </tr>
+                            <?php } ?>
                             <tr>
                                 <td><?php echo sr_e(sr_t('admin::ui.text.b7aa8533')); ?></td>
                                 <td><?php echo sr_e($previewCutoffs['module_backups']); ?></td>

@@ -29,10 +29,12 @@ $expectedKeys = [
     'notifications',
     'notification_deliveries',
     'notification_reads',
+    'admin_notification_reads',
+    'admin_notifications',
     'module_backups',
 ];
 
-$targets = sr_admin_retention_target_definitions(true, true, true, true, true, true);
+$targets = sr_admin_retention_target_definitions(true, true, true, true, true, true, true);
 if (array_keys($targets) !== $expectedKeys) {
     sr_retention_check_error($errors, 'Retention target keys changed unexpectedly.');
 }
@@ -79,8 +81,8 @@ foreach ($targets as $key => $target) {
     }
 }
 
-$disabledTargets = sr_admin_retention_target_definitions(false, false, false, false, false, false);
-foreach (['sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'notifications', 'notification_deliveries', 'notification_reads'] as $key) {
+$disabledTargets = sr_admin_retention_target_definitions(false, false, false, false, false, false, false);
+foreach (['sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'notifications', 'notification_deliveries', 'notification_reads', 'admin_notification_reads', 'admin_notifications'] as $key) {
     if ($disabledTargets[$key]['enabled'] !== false) {
         sr_retention_check_error($errors, 'Retention optional target should be disabled: ' . $key);
     }
@@ -100,6 +102,14 @@ foreach (['notification_deliveries', 'notification_reads'] as $key) {
     $position = array_search($key, $cleanupOrder, true);
     if (!is_int($position) || !is_int($notificationsPosition) || $position > $notificationsPosition) {
         sr_retention_check_error($errors, 'Retention notification cleanup order is unsafe: ' . $key);
+    }
+}
+
+$adminNotificationsPosition = array_search('admin_notifications', $cleanupOrder, true);
+foreach (['admin_notification_reads'] as $key) {
+    $position = array_search($key, $cleanupOrder, true);
+    if (!is_int($position) || !is_int($adminNotificationsPosition) || $position > $adminNotificationsPosition) {
+        sr_retention_check_error($errors, 'Retention admin notification cleanup order is unsafe: ' . $key);
     }
 }
 

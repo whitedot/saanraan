@@ -13,6 +13,7 @@ $errors = [];
 $notice = '';
 
 $hasNotificationTables = sr_admin_retention_notification_tables_exist($pdo);
+$hasAdminNotificationTables = sr_admin_retention_admin_notification_tables_exist($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
