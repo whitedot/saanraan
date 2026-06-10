@@ -1031,16 +1031,16 @@ return [
 - 각 섹션은 `key`, `title`, 선택 `order`, 선택 `default_visible`, 선택 `view`, 선택 `layout`, `rows` 또는 `items`를 가진다.
 - `default_visible`은 사용자가 별도 표시 설정을 저장하지 않았을 때의 기본 노출 여부다. 생략하면 표시하고, `false`, `0`, `hidden`, `no`, `off` 값은 기본 숨김으로 처리한다.
 - `view`는 모듈 폴더 기준 `views/*.php` 상대 경로다. admin 모듈은 경로가 모듈 폴더 안에 있는지 검증한 뒤 대시보드 섹션 내부로 include한다.
-- `view`를 제공한 모듈은 섹션 내부 구성과 도메인별 표시 리듬을 직접 맡는다. 이때 사용할 수 있는 변수는 `$pdo`, `$dashboardSection`, `$dashboardRows`, `$dashboardModuleKey`, `$dashboardSectionTitle`이다.
-- admin 모듈은 대시보드 섹션의 외곽 wrapper, 이동 핸들, 정렬 저장만 맡는다. 모듈 view는 전체 HTML layout을 렌더링하되 출력값을 직접 escape하고, 필요한 스타일은 `module.php`의 `admin.stylesheets`로 선언한 모듈 내부 CSS에서 소유한다.
-- `layout`은 기존 모듈 호환용 fallback이며 `table` 또는 `stats`만 지원한다. 생략하거나 알 수 없는 값이면 `table`로 처리한다.
+- `view`를 제공한 모듈은 섹션 내부 구성과 도메인별 표시 리듬을 직접 맡는다. 카드형 UI를 사용할 수도 있고 카드가 아닌 자체 레이아웃을 렌더링할 수도 있다. 이때 사용할 수 있는 변수는 `$pdo`, `$dashboardSection`, `$dashboardRows`, `$dashboardModuleKey`, `$dashboardSectionTitle`이다.
+- admin 모듈은 대시보드 섹션의 외곽 wrapper, 이동 핸들, 정렬 저장만 맡는다. wrapper는 최소 drop target과 drop line 기준을 안정적으로 제공하는 배치 단위이며, 모듈 view의 시각 구조를 카드로 강제하지 않는다. 모듈 view는 핸들 주변의 시각적 안전 여백을 포함해 전체 HTML layout을 렌더링하되 출력값을 직접 escape하고, 필요한 스타일은 `module.php`의 `admin.stylesheets`로 선언한 모듈 내부 CSS에서 소유한다.
+- `layout`은 기존 모듈 호환용 fallback이며 `table` 또는 `stats`만 지원한다. 생략하거나 알 수 없는 값이면 `table`로 처리한다. view를 제공하는 모듈에는 HTML 구조를 강제하지 않는 호환 옵션이다.
 - `table` layout은 기존 `rows`를 사용하고 `항목 / 주요 수치 / 상세` 표로 표시한다.
 - `stats` layout은 `items`를 우선 사용하고, 없으면 `rows`를 사용한다. 각 item은 지표 카드로 표시한다.
 - 각 row는 `label`과 `value_sql` 또는 `value`, 선택 `detail_sql` 또는 `detail`, 선택 `detail_prefix`, 선택 `detail_suffix`를 가진다.
 - `stats` item은 선택 `state`와 선택 `emphasis`를 가질 수 있다. `state` 허용 값은 `default`, `success`, `warning`, `danger`, `info`이고, `emphasis` 허용 값은 `default`, `primary`이다. 알 수 없는 값은 각각 `default`로 처리한다.
 - SQL은 단일 `SELECT`만 사용하고 `value_sql`은 `value`, `detail_sql`은 `detail` 컬럼을 반환한다. locale 전환이 필요한 화면 문구는 SQL 문자열 안에 넣지 않고, `label`, `detail_prefix`, `detail_suffix`에서 번역 값을 조합한다.
 - admin 모듈은 SQL 실행 실패를 해당 row의 빈 값으로 처리하므로, 모듈은 자기 테이블이 없거나 비활성 상태인 경우에도 전체 대시보드를 깨지 않게 작성한다.
-- `view`가 없으면 admin 모듈의 fallback renderer가 `layout`과 `rows`/`items`를 사용해 표시한다.
+- `view`가 없거나 view 렌더링 중 예외가 발생하면 admin 모듈의 fallback renderer가 `layout`과 `rows`/`items`를 사용해 `admin-card` 기반 기본 카드 UI로 표시한다. 이 fallback은 기존 모듈을 깨지 않기 위한 안전한 기본 표시이며, 새 모듈 view의 권장 HTML 구조를 뜻하지 않는다.
 
 `layout-options.php`:
 

@@ -332,6 +332,11 @@ function sr_check_module_contract_files(): void
         'admin-notification-events.php',
         'embed-manager-targets.php',
     ];
+    $requiredConsumes = [
+        'admin' => [
+            'dashboard.php',
+        ],
+    ];
 
     foreach (sr_check_module_dirs() as $moduleDir) {
         $moduleFile = $moduleDir . '/module.php';
@@ -339,6 +344,7 @@ function sr_check_module_contract_files(): void
             continue;
         }
 
+        $moduleKey = basename($moduleDir);
         if (!is_file($moduleDir . '/install.sql')) {
             sr_check_add_error('Module install.sql is missing: ' . $moduleDir);
         }
@@ -356,6 +362,21 @@ function sr_check_module_contract_files(): void
         $provides = isset($metadata['contracts']['provides']) && is_array($metadata['contracts']['provides'])
             ? $metadata['contracts']['provides']
             : [];
+        $consumes = isset($metadata['contracts']['consumes']) && is_array($metadata['contracts']['consumes'])
+            ? $metadata['contracts']['consumes']
+            : [];
+        $consumedFiles = [];
+        foreach ($consumes as $contractFile) {
+            if (is_string($contractFile)) {
+                $consumedFiles[$contractFile] = true;
+            }
+        }
+        foreach ($requiredConsumes[$moduleKey] ?? [] as $contractFile) {
+            if (!isset($consumedFiles[$contractFile])) {
+                sr_check_add_error('Module contract file must be declared in contracts.consumes: ' . $moduleFile . ' ' . $contractFile);
+            }
+        }
+
         $providedFiles = [];
         foreach ($provides as $contractFile) {
             $contractFile = is_string($contractFile) ? $contractFile : '';

@@ -24,6 +24,7 @@ return [
             'paths.php',
         ],
         'consumes' => [
+            'dashboard.php',
             'homepage-candidates.php',
             'site-setting-references.php',
             'admin-notification-events.php',

@@ -460,7 +460,9 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-dashboard-site-grid>div:last-child{border-right-width:0}
 .admin-dashboard-site-grid dt{font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);font-weight:var(--font-weight-semibold);color:var(--text-subtle)}
 .admin-dashboard-site-grid dd{margin-top:.25rem;font-size:var(--type-body-size);line-height:var(--type-body-line-height);font-weight:var(--font-weight-semibold);color:var(--text-strong);overflow-wrap:anywhere}
-.admin-dashboard-module-section{position:relative}
+.admin-dashboard-module-section{position:relative;min-height:calc(var(--spacing) * 12)}
+.admin-dashboard-module-section>:not(.admin-dashboard-module-section-handle){min-width:0}
+.admin-dashboard-module-section>.admin-card:first-of-type{height:100%}
 .admin-dashboard-module-section-handle{position:absolute;top:calc(var(--spacing) * 3);right:calc(var(--spacing) * 3);z-index:5;box-shadow:var(--shadow-sm)}
 .admin-dashboard-module-default{height:100%}
 .admin-dashboard-module-default>.card-header{padding-right:calc(var(--spacing) * 12)}
