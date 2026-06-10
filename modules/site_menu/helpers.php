@@ -133,6 +133,75 @@ function sr_site_menu_options(PDO $pdo): array
     return $menus;
 }
 
+function sr_site_menu_seed_default_header_menu_items(array $mainPageOptionsByModule, array $enabledModuleKeys): array
+{
+    $candidates = [];
+    $seenModuleKeys = [];
+    foreach (array_values($enabledModuleKeys) as $enabledOrder => $moduleKey) {
+        $moduleKey = (string) $moduleKey;
+        if ($moduleKey === '' || isset($seenModuleKeys[$moduleKey])) {
+            continue;
+        }
+        $seenModuleKeys[$moduleKey] = true;
+
+        $option = is_array($mainPageOptionsByModule[$moduleKey] ?? null) ? $mainPageOptionsByModule[$moduleKey] : null;
+        if ($option === null) {
+            continue;
+        }
+
+        $label = sr_site_menu_clean_label((string) ($option['label'] ?? ''));
+        $url = sr_site_menu_clean_url((string) ($option['path'] ?? ''));
+        if ($label === '' || $url === '' || $url === '/') {
+            continue;
+        }
+
+        $metadata = sr_module_metadata($moduleKey);
+        $adminMetadata = is_array($metadata['admin'] ?? null) ? $metadata['admin'] : [];
+        $candidates[] = [
+            'label' => $label,
+            'url' => $url,
+            '_category_order' => (int) ($adminMetadata['category_order'] ?? 999),
+            '_menu_order' => (int) ($adminMetadata['menu_order'] ?? 999),
+            '_enabled_order' => (int) $enabledOrder,
+        ];
+    }
+
+    usort($candidates, static function (array $left, array $right): int {
+        return [
+            (int) ($left['_category_order'] ?? 999),
+            (int) ($left['_menu_order'] ?? 999),
+            (string) ($left['label'] ?? ''),
+            (string) ($left['url'] ?? ''),
+            (int) ($left['_enabled_order'] ?? 999),
+        ] <=> [
+            (int) ($right['_category_order'] ?? 999),
+            (int) ($right['_menu_order'] ?? 999),
+            (string) ($right['label'] ?? ''),
+            (string) ($right['url'] ?? ''),
+            (int) ($right['_enabled_order'] ?? 999),
+        ];
+    });
+
+    $items = [
+        [
+            'label' => '홈',
+            'url' => '/',
+            'sort_order' => 10,
+        ],
+    ];
+    $sortOrder = 20;
+    foreach ($candidates as $candidate) {
+        $items[] = [
+            'label' => (string) $candidate['label'],
+            'url' => (string) $candidate['url'],
+            'sort_order' => $sortOrder,
+        ];
+        $sortOrder += 10;
+    }
+
+    return $items;
+}
+
 function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsByModule, array $enabledModuleKeys): int
 {
     $now = sr_now();
@@ -159,34 +228,7 @@ function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsB
         return 0;
     }
 
-    $items = [
-        [
-            'label' => '홈',
-            'url' => '/',
-            'sort_order' => 10,
-        ],
-    ];
-    $sortOrder = 20;
-    foreach ($enabledModuleKeys as $moduleKey) {
-        $moduleKey = (string) $moduleKey;
-        $option = is_array($mainPageOptionsByModule[$moduleKey] ?? null) ? $mainPageOptionsByModule[$moduleKey] : null;
-        if ($option === null) {
-            continue;
-        }
-
-        $label = sr_site_menu_clean_label((string) ($option['label'] ?? ''));
-        $url = sr_site_menu_clean_url((string) ($option['path'] ?? ''));
-        if ($label === '' || $url === '' || $url === '/') {
-            continue;
-        }
-
-        $items[] = [
-            'label' => $label,
-            'url' => $url,
-            'sort_order' => $sortOrder,
-        ];
-        $sortOrder += 10;
-    }
+    $items = sr_site_menu_seed_default_header_menu_items($mainPageOptionsByModule, $enabledModuleKeys);
 
     $insert = $pdo->prepare(
         'INSERT INTO sr_site_menu_items
