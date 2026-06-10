@@ -10,6 +10,7 @@ $logoManagerCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $logoManagerActionSuffix = $logoManagerCurrentQuery !== '' ? '?' . $logoManagerCurrentQuery : '';
 $logoManagerIconSizeOptions = sr_logo_manager_icon_size_options();
 $logoManagerDefaultIconKeys = sr_logo_manager_default_icon_variant_keys();
+$logoManagerNow = is_string($logoManagerNow ?? null) ? $logoManagerNow : sr_now();
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -198,7 +199,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         $logoManagerPositionKey = (string) ($logo['position_key'] ?? '');
                         $logoManagerActiveIdForPosition = (int) ($activeLogoIdsByPosition[$logoManagerPositionKey] ?? 0);
                         $logoManagerIsCurrentLogo = $logoManagerActiveIdForPosition > 0 && $logoManagerActiveIdForPosition === (int) ($logo['id'] ?? 0);
-                        $logoManagerIsActiveCandidate = (string) ($logo['status'] ?? '') === 'active';
+                        $logoManagerStartsAt = is_string($logo['starts_at'] ?? null) ? (string) $logo['starts_at'] : '';
+                        $logoManagerEndsAt = is_string($logo['ends_at'] ?? null) ? (string) $logo['ends_at'] : '';
+                        $logoManagerIsCurrentPeriod = ($logoManagerStartsAt === '' || $logoManagerStartsAt <= $logoManagerNow)
+                            && ($logoManagerEndsAt === '' || $logoManagerEndsAt >= $logoManagerNow);
+                        $logoManagerIsActiveCandidate = (string) ($logo['status'] ?? '') === 'active' && $logoManagerIsCurrentPeriod;
                         ?>
                         <tr>
                             <td class="logo-manager-select-cell">
@@ -213,7 +218,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php if ($logoManagerIsCurrentLogo) { ?>
                                         <span class="badge badge-soft-success"><?php echo sr_e(sr_t('logo_manager::ui.current_applied')); ?></span>
                                     <?php } elseif ($logoManagerIsActiveCandidate) { ?>
-                                        <span class="badge badge-soft-secondary"><?php echo sr_e(sr_t('logo_manager::ui.active_candidate')); ?></span>
+                                        <span class="badge badge-soft-secondary"><?php echo sr_e(sr_t('logo_manager::ui.current_candidate')); ?></span>
                                     <?php } ?>
                                 </span>
                                 <?php $logoManagerIconVariants = is_array($iconVariantsByLogoId[(int) $logo['id']] ?? null) ? $iconVariantsByLogoId[(int) $logo['id']] : []; ?>

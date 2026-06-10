@@ -629,6 +629,7 @@ foreach ($activeLogos as $positionKey => $activeLogo) {
         $activeLogoIdsByPosition[(string) $positionKey] = (int) $activeLogo['id'];
     }
 }
+$logoManagerNow = sr_now();
 
 $logoSortOptions = sr_admin_logo_sort_options();
 $logoDefaultSort = sr_admin_logo_default_sort();
