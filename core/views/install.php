@@ -1,10 +1,6 @@
 <?php
 
 $pageTitle = sr_t('ui.saanraan.878daf3c');
-$seo = [
-    'title' => $pageTitle,
-    'robots' => 'noindex, nofollow',
-];
 $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 $selectedMainPageOption = $mainPageOptions[$values['main_page_path']] ?? $mainPageOptions['/'];
 $installStepLabels = [
@@ -18,6 +14,13 @@ if ($installErrorSteps !== []) {
     $firstErrorStepKey = (string) array_key_first($installErrorSteps);
 }
 $initialInstallStepKey = array_key_exists($firstErrorStepKey, $installStepLabels) ? $firstErrorStepKey : 'environment';
+$installMetaTitleBase = 's a a n r a a n 설치';
+$initialInstallStepNumber = array_search($initialInstallStepKey, array_keys($installStepLabels), true);
+$initialInstallStepNumber = is_int($initialInstallStepNumber) ? $initialInstallStepNumber + 1 : 1;
+$seo = [
+    'title' => '(' . (string) $initialInstallStepNumber . '/' . (string) count($installStepLabels) . ') ' . $installMetaTitleBase,
+    'robots' => 'noindex, nofollow',
+];
 $hasEnvironmentBlockingError = is_file($configPath) !== is_file($installedLockPath);
 foreach ($installChecks as $check) {
     if ((string) $check['status'] === 'error') {
@@ -555,6 +558,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
             }
 
             var stepOrder = ['environment', 'basic', 'account_modules', 'confirm'];
+            var installMetaTitleBase = <?php echo json_encode($installMetaTitleBase, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
             var shell = document.querySelector('[data-install-current-step]');
             var form = document.querySelector('[data-install-form]');
             var currentStep = shell ? shell.getAttribute('data-install-current-step') : 'environment';
@@ -568,12 +572,17 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                 return index === -1 ? 0 : index;
             }
 
+            function updateMetaTitle(stepKey) {
+                document.title = '(' + String(stepIndex(stepKey) + 1) + '/' + String(stepOrder.length) + ') ' + installMetaTitleBase;
+            }
+
             function setStep(stepKey, shouldScroll) {
                 if (stepOrder.indexOf(stepKey) === -1) {
                     stepKey = 'environment';
                 }
                 currentStep = stepKey;
                 var activeIndex = stepIndex(stepKey);
+                updateMetaTitle(stepKey);
                 document.querySelectorAll('[data-install-step]').forEach(function (panel) {
                     panel.hidden = panel.getAttribute('data-install-step') !== stepKey;
                 });
