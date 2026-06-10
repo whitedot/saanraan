@@ -352,7 +352,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('popup_layer::ui.list.f0aa41f6')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th class="admin-popup-layer-select-cell">
+                    <th class="admin-table-checkbox-cell admin-popup-layer-select-cell">
                         <label class="sr-only" for="popup_layer_bulk_select_all">현재 페이지 팝업레이어 전체 선택</label>
                         <input id="popup_layer_bulk_select_all" type="checkbox" class="form-checkbox" data-popup-layer-select-all<?php echo $popups === [] ? ' disabled' : ''; ?>>
                     </th>
@@ -388,7 +388,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         };
                         ?>
                         <tr>
-                            <td class="admin-popup-layer-select-cell">
+                            <td class="admin-table-checkbox-cell admin-popup-layer-select-cell">
                                 <label class="sr-only" for="popup_layer_bulk_select_<?php echo sr_e((string) (int) $popup['id']); ?>"><?php echo sr_e((string) $popup['title']); ?> 선택</label>
                                 <input id="popup_layer_bulk_select_<?php echo sr_e((string) (int) $popup['id']); ?>" type="checkbox" name="selected_popup_ids[]" value="<?php echo sr_e((string) (int) $popup['id']); ?>" class="form-checkbox" form="popup-layer-bulk-status-form" data-popup-layer-row-select>
                             </td>

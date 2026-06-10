@@ -149,7 +149,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.b4e41b31')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th class="community-report-select-cell">
+                <th class="admin-table-checkbox-cell community-report-select-cell">
                     <label class="sr-only" for="community_report_bulk_select_all">현재 페이지 신고 전체 선택</label>
                     <input id="community_report_bulk_select_all" type="checkbox" class="form-checkbox" data-community-report-select-all<?php echo $reports === [] ? ' disabled' : ''; ?>>
                 </th>
@@ -189,7 +189,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $reportProcessModalId = 'community-report-process-modal-' . (string) $report['id'];
                     ?>
                     <tr>
-                        <td class="community-report-select-cell">
+                        <td class="admin-table-checkbox-cell community-report-select-cell">
                             <label class="sr-only" for="community_report_bulk_select_<?php echo sr_e((string) (int) $report['id']); ?>"><?php echo sr_e($targetLabel); ?> 신고 선택</label>
                             <input id="community_report_bulk_select_<?php echo sr_e((string) (int) $report['id']); ?>" type="checkbox" name="selected_report_ids[]" value="<?php echo sr_e((string) (int) $report['id']); ?>" class="form-checkbox" form="community-report-bulk-status-form" data-community-report-row-select>
                         </td>

@@ -166,7 +166,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <caption class="sr-only">다운로드 파일 목록</caption>
                 <thead class="ui-table-head">
                     <tr>
-                        <th class="content-file-select-cell">
+                        <th class="admin-table-checkbox-cell content-file-select-cell">
                             <label class="sr-only" for="content_file_bulk_select_all">현재 페이지 다운로드 파일 전체 선택</label>
                             <input id="content_file_bulk_select_all" type="checkbox" class="form-checkbox" data-content-file-select-all<?php echo $downloadFiles === [] ? ' disabled' : ''; ?>>
                         </th>
@@ -192,7 +192,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             $statusClass = $downloadFileStatus === 'active' ? 'is-normal' : 'is-left';
                             ?>
                             <tr>
-                                <td class="content-file-select-cell">
+                                <td class="admin-table-checkbox-cell content-file-select-cell">
                                     <label class="sr-only" for="content_file_bulk_select_<?php echo sr_e((string) (int) $downloadFile['id']); ?>"><?php echo sr_e((string) $downloadFile['title']); ?> 선택</label>
                                     <input id="content_file_bulk_select_<?php echo sr_e((string) (int) $downloadFile['id']); ?>" type="checkbox" name="selected_file_ids[]" value="<?php echo sr_e((string) (int) $downloadFile['id']); ?>" class="form-checkbox" form="content-file-bulk-status-form" data-content-file-row-select>
                                 </td>

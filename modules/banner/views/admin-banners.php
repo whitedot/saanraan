@@ -419,7 +419,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('banner::ui.banner.list.f989d740')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th class="admin-banner-select-cell">
+                    <th class="admin-table-checkbox-cell admin-banner-select-cell">
                         <label class="sr-only" for="banner_bulk_select_all">현재 페이지 배너 전체 선택</label>
                         <input id="banner_bulk_select_all" type="checkbox" class="form-checkbox" data-banner-select-all<?php echo $banners === [] ? ' disabled' : ''; ?>>
                     </th>
@@ -457,7 +457,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         };
                         ?>
                         <tr>
-                            <td class="admin-banner-select-cell">
+                            <td class="admin-table-checkbox-cell admin-banner-select-cell">
                                 <label class="sr-only" for="banner_bulk_select_<?php echo sr_e((string) (int) $banner['id']); ?>"><?php echo sr_e((string) $banner['title']); ?> 선택</label>
                                 <input id="banner_bulk_select_<?php echo sr_e((string) (int) $banner['id']); ?>" type="checkbox" name="selected_banner_ids[]" value="<?php echo sr_e((string) (int) $banner['id']); ?>" class="form-checkbox" form="banner-bulk-status-form" data-banner-row-select>
                             </td>

@@ -118,7 +118,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.f0e443a9')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th class="community-post-select-cell">
+                <th class="admin-table-checkbox-cell community-post-select-cell">
                     <label class="sr-only" for="community_post_bulk_select_all">현재 페이지 게시글 전체 선택</label>
                     <input id="community_post_bulk_select_all" type="checkbox" class="form-checkbox" data-community-post-select-all<?php echo $posts === [] ? ' disabled' : ''; ?>>
                 </th>
@@ -150,7 +150,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     };
                     ?>
                     <tr>
-                        <td class="community-post-select-cell">
+                        <td class="admin-table-checkbox-cell community-post-select-cell">
                             <label class="sr-only" for="community_post_bulk_select_<?php echo sr_e((string) (int) $post['id']); ?>"><?php echo sr_e((string) $post['title']); ?> 선택</label>
                             <input id="community_post_bulk_select_<?php echo sr_e((string) (int) $post['id']); ?>" type="checkbox" name="selected_post_ids[]" value="<?php echo sr_e((string) (int) $post['id']); ?>" class="form-checkbox" form="community-post-bulk-status-form" data-community-post-row-select>
                         </td>
@@ -278,7 +278,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.bf0539a8')); ?></caption>
         <thead class="ui-table-head">
             <tr>
-                <th class="community-comment-select-cell">
+                <th class="admin-table-checkbox-cell community-comment-select-cell">
                     <label class="sr-only" for="community_comment_bulk_select_all">현재 페이지 댓글 전체 선택</label>
                     <input id="community_comment_bulk_select_all" type="checkbox" class="form-checkbox" data-community-comment-select-all<?php echo $comments === [] ? ' disabled' : ''; ?>>
                 </th>
@@ -306,7 +306,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     };
                     ?>
                     <tr>
-                        <td class="community-comment-select-cell">
+                        <td class="admin-table-checkbox-cell community-comment-select-cell">
                             <label class="sr-only" for="community_comment_bulk_select_<?php echo sr_e((string) (int) $comment['id']); ?>"><?php echo sr_e((string) $comment['post_title']); ?> 댓글 선택</label>
                             <input id="community_comment_bulk_select_<?php echo sr_e((string) (int) $comment['id']); ?>" type="checkbox" name="selected_comment_ids[]" value="<?php echo sr_e((string) (int) $comment['id']); ?>" class="form-checkbox" form="community-comment-bulk-status-form" data-community-comment-row-select>
                         </td>

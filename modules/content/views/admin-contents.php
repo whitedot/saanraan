@@ -884,7 +884,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.771ca9aa')); ?></caption>
                 <thead class="ui-table-head">
                     <tr>
-                        <th class="content-select-cell">
+                        <th class="admin-table-checkbox-cell content-select-cell">
                             <label class="sr-only" for="content_bulk_select_all">현재 페이지 콘텐츠 전체 선택</label>
                             <input id="content_bulk_select_all" type="checkbox" class="form-checkbox" data-content-select-all<?php echo $pages === [] ? ' disabled' : ''; ?>>
                         </th>
@@ -916,7 +916,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             };
                             ?>
                             <tr>
-                                <td class="content-select-cell">
+                                <td class="admin-table-checkbox-cell content-select-cell">
                                     <label class="sr-only" for="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>"><?php echo sr_e((string) $page['title']); ?> 선택</label>
                                     <input id="content_bulk_select_<?php echo sr_e((string) (int) $page['id']); ?>" type="checkbox" name="selected_content_ids[]" value="<?php echo sr_e((string) (int) $page['id']); ?>" class="form-checkbox" form="content-bulk-status-form" data-content-row-select>
                                 </td>

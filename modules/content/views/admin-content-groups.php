@@ -132,7 +132,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <caption class="sr-only"><?php echo sr_e(sr_t('content::ui.content.list.d2ad38e3')); ?></caption>
                 <thead class="ui-table-head">
                     <tr>
-                        <th class="content-group-select-cell">
+                        <th class="admin-table-checkbox-cell content-group-select-cell">
                             <label class="sr-only" for="content_group_bulk_select_all">현재 페이지 콘텐츠 그룹 전체 선택</label>
                             <input id="content_group_bulk_select_all" type="checkbox" class="form-checkbox" data-content-group-select-all<?php echo ($pageGroups ?? []) === [] ? ' disabled' : ''; ?>>
                         </th>
@@ -161,7 +161,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             };
                             ?>
                             <tr>
-                                <td class="content-group-select-cell">
+                                <td class="admin-table-checkbox-cell content-group-select-cell">
                                     <label class="sr-only" for="content_group_bulk_select_<?php echo sr_e((string) (int) $pageGroup['id']); ?>"><?php echo sr_e((string) ($pageGroup['title'] ?? '')); ?> 선택</label>
                                     <input id="content_group_bulk_select_<?php echo sr_e((string) (int) $pageGroup['id']); ?>" type="checkbox" name="selected_group_ids[]" value="<?php echo sr_e((string) (int) $pageGroup['id']); ?>" class="form-checkbox" form="content-group-bulk-status-form" data-content-group-row-select>
                                 </td>

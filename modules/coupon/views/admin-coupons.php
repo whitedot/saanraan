@@ -150,7 +150,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <table class="table admin-coupon-definition-table">
         <thead>
             <tr>
-                <th class="admin-coupon-definition-select-cell">
+                <th class="admin-table-checkbox-cell admin-coupon-definition-select-cell">
                     <label class="sr-only" for="coupon_definition_bulk_select_all">현재 페이지 쿠폰 종류 전체 선택</label>
                     <input id="coupon_definition_bulk_select_all" type="checkbox" class="form-checkbox" data-coupon-definition-select-all<?php echo $definitions === [] ? ' disabled' : ''; ?>>
                 </th>
@@ -169,7 +169,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } else { ?>
                 <?php foreach ($definitions as $definition) { ?>
                     <tr>
-                        <td class="admin-coupon-definition-select-cell">
+                        <td class="admin-table-checkbox-cell admin-coupon-definition-select-cell">
                             <label class="sr-only" for="coupon_definition_bulk_select_<?php echo sr_e((string) (int) $definition['id']); ?>"><?php echo sr_e((string) $definition['title']); ?> 선택</label>
                             <input id="coupon_definition_bulk_select_<?php echo sr_e((string) (int) $definition['id']); ?>" type="checkbox" name="selected_definition_ids[]" value="<?php echo sr_e((string) (int) $definition['id']); ?>" class="form-checkbox" form="coupon-definition-bulk-status-form" data-coupon-definition-row-select>
                         </td>

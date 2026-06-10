@@ -97,7 +97,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <caption class="sr-only">운영 알림 목록</caption>
         <thead class="ui-table-head">
             <tr>
-                <th class="admin-notification-select-cell">
+                <th class="admin-table-checkbox-cell admin-notification-select-cell">
                     <label class="sr-only" for="admin_notification_bulk_select_all">현재 페이지 운영 알림 전체 선택</label>
                     <input id="admin_notification_bulk_select_all" type="checkbox" class="form-checkbox" data-admin-notification-select-all<?php echo (($adminNotifications ?? []) === []) ? ' disabled' : ''; ?>>
                 </th>
@@ -136,7 +136,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $actionUrl = sr_notification_admin_clean_action_url((string) ($adminNotification['action_url'] ?? ''));
                 ?>
                 <tr>
-                    <td class="admin-notification-select-cell">
+                    <td class="admin-table-checkbox-cell admin-notification-select-cell">
                         <label class="sr-only" for="admin_notification_bulk_select_<?php echo sr_e((string) $notificationId); ?>"><?php echo sr_e((string) ($adminNotification['title'] ?? '')); ?> 선택</label>
                         <input id="admin_notification_bulk_select_<?php echo sr_e((string) $notificationId); ?>" type="checkbox" name="selected_admin_notification_ids[]" value="<?php echo sr_e((string) $notificationId); ?>" class="form-checkbox" form="admin-notification-bulk-form" data-admin-notification-row-select>
                     </td>

@@ -323,7 +323,7 @@ foreach ($allowedStatuses as $status) {
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.5e737292')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th class="admin-member-select-cell">
+                    <th class="admin-table-checkbox-cell admin-member-select-cell">
                         <label class="sr-only" for="member_bulk_select_all">현재 페이지 회원 전체 선택</label>
                         <input id="member_bulk_select_all" type="checkbox" class="form-checkbox" data-member-select-all<?php echo $members === [] ? ' disabled' : ''; ?>>
                     </th>
@@ -356,7 +356,7 @@ foreach ($allowedStatuses as $status) {
                     };
                     ?>
                     <tr>
-                        <td class="admin-member-select-cell">
+                        <td class="admin-table-checkbox-cell admin-member-select-cell">
                             <label class="sr-only" for="member_bulk_select_<?php echo sr_e((string) (int) $member['id']); ?>"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?> 선택</label>
                             <input id="member_bulk_select_<?php echo sr_e((string) (int) $member['id']); ?>" type="checkbox" name="selected_account_ids[]" value="<?php echo sr_e((string) (int) $member['id']); ?>" class="form-checkbox" form="member-bulk-session-form" data-member-row-select>
                         </td>

@@ -175,7 +175,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('logo_manager::ui.logo.list')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th class="logo-manager-select-cell">
+                    <th class="admin-table-checkbox-cell logo-manager-select-cell">
                         <label class="sr-only" for="logo_manager_bulk_select_all">현재 페이지 로고 배치 전체 선택</label>
                         <input id="logo_manager_bulk_select_all" type="checkbox" class="form-checkbox" data-logo-manager-select-all<?php echo $logos === [] ? ' disabled' : ''; ?>>
                     </th>
@@ -206,7 +206,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         $logoManagerIsActiveCandidate = (string) ($logo['status'] ?? '') === 'active' && $logoManagerIsCurrentPeriod;
                         ?>
                         <tr>
-                            <td class="logo-manager-select-cell">
+                            <td class="admin-table-checkbox-cell logo-manager-select-cell">
                                 <label class="sr-only" for="logo_manager_bulk_select_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e((string) $logo['title']); ?> 선택</label>
                                 <input id="logo_manager_bulk_select_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="selected_logo_ids[]" value="<?php echo sr_e((string) (int) $logo['id']); ?>" class="form-checkbox" form="logo-manager-bulk-status-form" data-logo-manager-row-select>
                             </td>

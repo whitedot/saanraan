@@ -258,7 +258,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('notification::ui.notification.list.7475cac1')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th class="notification-select-cell">
+                    <th class="admin-table-checkbox-cell notification-select-cell">
                         <label class="sr-only" for="notification_bulk_select_all">현재 페이지 알림 전체 선택</label>
                         <input id="notification_bulk_select_all" type="checkbox" class="form-checkbox" data-notification-select-all<?php echo $notifications === [] ? ' disabled' : ''; ?>>
                     </th>
@@ -283,7 +283,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         };
                         ?>
                         <tr>
-                            <td class="notification-select-cell">
+                            <td class="admin-table-checkbox-cell notification-select-cell">
                                 <label class="sr-only" for="notification_bulk_select_<?php echo sr_e((string) (int) $notification['id']); ?>"><?php echo sr_e((string) ($notification['title'] ?? '')); ?> 선택</label>
                                 <input id="notification_bulk_select_<?php echo sr_e((string) (int) $notification['id']); ?>" type="checkbox" name="selected_notification_ids[]" value="<?php echo sr_e((string) (int) $notification['id']); ?>" class="form-checkbox" form="notification-bulk-status-form" data-notification-row-select>
                             </td>
