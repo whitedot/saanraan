@@ -66,6 +66,32 @@ if (!in_array($commentListFilters['field'], ['all', 'body', 'author', 'post', 'b
     $commentListFilters['field'] = 'all';
 }
 
+$communityHiddenOptionsFromPost = static function (int $accountId): array {
+    $duration = sr_post_string('hidden_duration', 20);
+    $allowedDurations = ['7', '15', '30', '90', 'permanent'];
+    if (!in_array($duration, $allowedDurations, true)) {
+        $duration = '30';
+    }
+
+    $hiddenUntil = null;
+    if ($duration !== 'permanent') {
+        $date = new DateTimeImmutable('now');
+        $hiddenUntil = $date->modify('+' . $duration . ' days')->format('Y-m-d H:i:s');
+    }
+
+    $reason = sr_post_string('hidden_reason', 40);
+    if (!in_array($reason, ['rights_request', 'moderation', 'spam', 'policy', 'other'], true)) {
+        $reason = 'moderation';
+    }
+
+    return [
+        'hidden_until' => $hiddenUntil,
+        'hidden_reason' => $reason,
+        'hidden_note' => trim(sr_post_string('hidden_note', 1000)),
+        'hidden_by_account_id' => $accountId,
+    ];
+};
+
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
@@ -98,7 +124,11 @@ if (sr_request_method() === 'POST') {
             }
 
             if ($errors === []) {
-                sr_community_update_post_status($pdo, $postId, $status);
+                if ($status === 'hidden') {
+                    sr_community_update_post_status($pdo, $postId, $status, $communityHiddenOptionsFromPost((int) $account['id']));
+                } else {
+                    sr_community_update_post_status($pdo, $postId, $status);
+                }
                 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $post['author_account_id'], null, 'post_status_updated');
                 $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $post['author_account_id'], [
                     'source_module_key' => 'community',
@@ -200,13 +230,45 @@ if (sr_request_method() === 'POST') {
             $batchFailureMessage = '';
             try {
                 $pdo->beginTransaction();
-                $updatePostStatusStmt = $pdo->prepare(
-                    'UPDATE sr_community_posts
-                     SET status = :status,
-                         updated_at = :updated_at
-                     WHERE id = :id
-                       AND status = :before_status'
-                );
+                $postHiddenColumnsExist = sr_community_hidden_columns_exist($pdo, 'sr_community_posts');
+                $postBatchHiddenOptions = $communityHiddenOptionsFromPost((int) $account['id']);
+                if ($postHiddenColumnsExist && $targetStatus === 'hidden') {
+                    $updatePostStatusStmt = $pdo->prepare(
+                        'UPDATE sr_community_posts
+                         SET status = :status,
+                             hidden_at = :hidden_at,
+                             hidden_until = :hidden_until,
+                             hidden_reason = :hidden_reason,
+                             hidden_note = :hidden_note,
+                             hidden_by_account_id = :hidden_by_account_id,
+                             hidden_before_status = CASE WHEN status <> \'hidden\' THEN status ELSE hidden_before_status END,
+                             updated_at = :updated_at
+                         WHERE id = :id
+                           AND status = :before_status'
+                    );
+                } elseif ($postHiddenColumnsExist && $targetStatus === 'published') {
+                    $updatePostStatusStmt = $pdo->prepare(
+                        'UPDATE sr_community_posts
+                         SET status = :status,
+                             hidden_at = NULL,
+                             hidden_until = NULL,
+                             hidden_reason = \'\',
+                             hidden_note = NULL,
+                             hidden_by_account_id = NULL,
+                             hidden_before_status = \'\',
+                             updated_at = :updated_at
+                         WHERE id = :id
+                           AND status = :before_status'
+                    );
+                } else {
+                    $updatePostStatusStmt = $pdo->prepare(
+                        'UPDATE sr_community_posts
+                         SET status = :status,
+                             updated_at = :updated_at
+                         WHERE id = :id
+                           AND status = :before_status'
+                    );
+                }
                 foreach ($selectedIds as $selectedId) {
                     $post = $selectedPosts[$selectedId];
                     $beforeStatus = (string) $post['status'];
@@ -223,12 +285,20 @@ if (sr_request_method() === 'POST') {
                         }
                     }
 
-                    $updatePostStatusStmt->execute([
+                    $postStatusParams = [
                         'status' => $targetStatus,
                         'updated_at' => sr_now(),
                         'id' => $selectedId,
                         'before_status' => $beforeStatus,
-                    ]);
+                    ];
+                    if ($postHiddenColumnsExist && $targetStatus === 'hidden') {
+                        $postStatusParams['hidden_at'] = sr_now();
+                        $postStatusParams['hidden_until'] = $postBatchHiddenOptions['hidden_until'];
+                        $postStatusParams['hidden_reason'] = $postBatchHiddenOptions['hidden_reason'];
+                        $postStatusParams['hidden_note'] = $postBatchHiddenOptions['hidden_note'];
+                        $postStatusParams['hidden_by_account_id'] = $postBatchHiddenOptions['hidden_by_account_id'];
+                    }
+                    $updatePostStatusStmt->execute($postStatusParams);
                     if ($updatePostStatusStmt->rowCount() < 1) {
                         $batchFailureMessage = '선택한 게시글 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
                         throw new RuntimeException($batchFailureMessage);
@@ -356,13 +426,45 @@ if (sr_request_method() === 'POST') {
             $batchFailureMessage = '';
             try {
                 $pdo->beginTransaction();
-                $updateCommentStatusStmt = $pdo->prepare(
-                    'UPDATE sr_community_comments
-                     SET status = :status,
-                         updated_at = :updated_at
-                     WHERE id = :id
-                       AND status = :before_status'
-                );
+                $commentHiddenColumnsExist = sr_community_hidden_columns_exist($pdo, 'sr_community_comments');
+                $commentBatchHiddenOptions = $communityHiddenOptionsFromPost((int) $account['id']);
+                if ($commentHiddenColumnsExist && $targetStatus === 'hidden') {
+                    $updateCommentStatusStmt = $pdo->prepare(
+                        'UPDATE sr_community_comments
+                         SET status = :status,
+                             hidden_at = :hidden_at,
+                             hidden_until = :hidden_until,
+                             hidden_reason = :hidden_reason,
+                             hidden_note = :hidden_note,
+                             hidden_by_account_id = :hidden_by_account_id,
+                             hidden_before_status = CASE WHEN status <> \'hidden\' THEN status ELSE hidden_before_status END,
+                             updated_at = :updated_at
+                         WHERE id = :id
+                           AND status = :before_status'
+                    );
+                } elseif ($commentHiddenColumnsExist && $targetStatus === 'published') {
+                    $updateCommentStatusStmt = $pdo->prepare(
+                        'UPDATE sr_community_comments
+                         SET status = :status,
+                             hidden_at = NULL,
+                             hidden_until = NULL,
+                             hidden_reason = \'\',
+                             hidden_note = NULL,
+                             hidden_by_account_id = NULL,
+                             hidden_before_status = \'\',
+                             updated_at = :updated_at
+                         WHERE id = :id
+                           AND status = :before_status'
+                    );
+                } else {
+                    $updateCommentStatusStmt = $pdo->prepare(
+                        'UPDATE sr_community_comments
+                         SET status = :status,
+                             updated_at = :updated_at
+                         WHERE id = :id
+                           AND status = :before_status'
+                    );
+                }
                 foreach ($selectedIds as $selectedId) {
                     $comment = $selectedComments[$selectedId];
                     $beforeStatus = (string) $comment['status'];
@@ -379,12 +481,20 @@ if (sr_request_method() === 'POST') {
                         }
                     }
 
-                    $updateCommentStatusStmt->execute([
+                    $commentStatusParams = [
                         'status' => $targetStatus,
                         'updated_at' => sr_now(),
                         'id' => $selectedId,
                         'before_status' => $beforeStatus,
-                    ]);
+                    ];
+                    if ($commentHiddenColumnsExist && $targetStatus === 'hidden') {
+                        $commentStatusParams['hidden_at'] = sr_now();
+                        $commentStatusParams['hidden_until'] = $commentBatchHiddenOptions['hidden_until'];
+                        $commentStatusParams['hidden_reason'] = $commentBatchHiddenOptions['hidden_reason'];
+                        $commentStatusParams['hidden_note'] = $commentBatchHiddenOptions['hidden_note'];
+                        $commentStatusParams['hidden_by_account_id'] = $commentBatchHiddenOptions['hidden_by_account_id'];
+                    }
+                    $updateCommentStatusStmt->execute($commentStatusParams);
                     if ($updateCommentStatusStmt->rowCount() < 1) {
                         $batchFailureMessage = '선택한 댓글 중 상태가 바뀐 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
                         throw new RuntimeException($batchFailureMessage);
@@ -460,7 +570,11 @@ if (sr_request_method() === 'POST') {
             }
 
             if ($errors === []) {
-                sr_community_update_comment_status($pdo, $commentId, $status);
+                if ($status === 'hidden') {
+                    sr_community_update_comment_status($pdo, $commentId, $status, $communityHiddenOptionsFromPost((int) $account['id']));
+                } else {
+                    sr_community_update_comment_status($pdo, $commentId, $status);
+                }
                 $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $comment['author_account_id'], null, 'comment_status_updated');
                 $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $comment['author_account_id'], [
                     'source_module_key' => 'community',

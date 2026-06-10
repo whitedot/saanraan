@@ -29,3 +29,7 @@
 - `modules/community/helpers/attachments.php`: 커뮤니티 게시글 삭제 시 첨부 저장소 파일을 삭제하고 원본 파일명과 저장소 참조를 마스킹하도록 했다. 저장소 삭제 실패는 기존 정리 실패 테이블에 기록한다.
 - `modules/community/actions/admin-posts.php`, `modules/community/views/admin-posts.php`: 원문 제거가 끝난 삭제 게시글/댓글은 공개·숨김 상태로 복구할 수 없도록 서버 검증과 관리자 행 액션을 맞췄다.
 - `modules/community/module.php`, `core/actions/install.php`: 커뮤니티 모듈 파일 전용 버전과 신규 설치 기본 버전을 `2026.06.016`으로 올렸다.
+- `modules/community/install.sql`, `modules/community/updates/2026.06.017.sql`: 커뮤니티 게시글/댓글에 숨김 시각, 만료 시각, 사유, 운영 메모, 처리자, 숨김 전 상태 컬럼을 추가했다.
+- `modules/community/actions/admin-posts.php`, `modules/community/views/admin-posts.php`: 관리자 단건 숨김 처리에 7일/15일/30일/90일/영구 기간과 사유/메모 입력 모달을 추가했다. 일괄 숨김은 기본 30일 운영 검토 메타데이터를 저장한다.
+- `modules/community/helpers/posts.php`: 숨김 메타데이터 컬럼이 적용된 환경에서는 상태 변경 시 숨김 메타데이터를 저장하고, DB 업데이트 전 환경에서는 기존 상태 변경으로 fallback한다.
+- `modules/community/module.php`, `core/actions/install.php`: 커뮤니티 모듈 DB 업데이트 버전과 신규 설치 기본 버전을 `2026.06.017`로 올렸다.

@@ -182,7 +182,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php continue; ?>
                                         <?php } ?>
                                         <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
-                                        <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                        <?php if ($status === 'hidden') { ?>
+                                            <button type="button" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-hide-status-modal" data-overlay="#community-hide-status-modal" data-community-hide-open data-target-type="post" data-target-id="<?php echo sr_e((string) (int) $post['id']); ?>" data-target-title="<?php echo sr_e((string) $post['title']); ?>"><?php echo sr_e($statusLabel); ?></button>
+                                        <?php } else { ?>
+                                            <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                        <?php } ?>
                                     <?php } ?>
                                 <?php } ?>
                             </form>
@@ -342,7 +346,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <?php continue; ?>
                                             <?php } ?>
                                             <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
-                                            <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                            <?php if ($status === 'hidden') { ?>
+                                                <button type="button" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-hide-status-modal" data-overlay="#community-hide-status-modal" data-community-hide-open data-target-type="comment" data-target-id="<?php echo sr_e((string) (int) $comment['id']); ?>" data-target-title="<?php echo sr_e((string) $comment['post_title']); ?>"><?php echo sr_e($statusLabel); ?></button>
+                                            <?php } else { ?>
+                                                <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                            <?php } ?>
                                         <?php } ?>
                                     <?php } ?>
                                 </form>
@@ -358,7 +366,88 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_pagination_html($commentPagination, '댓글 목록 페이지'); ?>
 <?php } ?>
 
+<div id="community-hide-status-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-hide-status-modal-label" aria-hidden="true" inert>
+    <div class="modal-dialog">
+        <form method="post" action="<?php echo sr_e(sr_url($communityPostsPage === 'comments' ? '/admin/community/comments' . $communityPostsActionSuffix : '/admin/community/posts' . $communityPostsActionSuffix)); ?>" class="modal-content ui-form-theme">
+            <div class="modal-header">
+                <h3 id="community-hide-status-modal-label" class="modal-title">숨김 처리</h3>
+                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-hide-status-modal">
+                    <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="<?php echo $communityPostsPage === 'comments' ? 'comment_status' : 'post_status'; ?>" data-community-hide-intent>
+                <input type="hidden" name="status" value="hidden">
+                <input type="hidden" name="post_id" value="" data-community-hide-post-id>
+                <input type="hidden" name="comment_id" value="" data-community-hide-comment-id>
+                <p class="admin-summary-meta">선택한 항목을 공개 화면에서 숨기고, 지정한 기간과 사유를 운영 기록으로 남깁니다.</p>
+                <p class="admin-form-static" data-community-hide-target-label></p>
+                <div class="admin-form-row">
+                    <span class="form-label">숨김 기간</span>
+                    <div class="admin-form-field">
+                        <?php echo sr_admin_radio_toggle_group_html('community_hidden_duration', 'hidden_duration', [
+                            '7' => '7일',
+                            '15' => '15일',
+                            '30' => '30일',
+                            '90' => '90일',
+                            'permanent' => '영구',
+                        ], '30', true); ?>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_hidden_reason">숨김 사유</label>
+                    <div class="admin-form-field">
+                        <select id="community_hidden_reason" name="hidden_reason" class="form-select">
+                            <option value="rights_request">권리 요청 대응</option>
+                            <option value="moderation" selected>운영 검토</option>
+                            <option value="spam">스팸/도배</option>
+                            <option value="policy">정책 위반</option>
+                            <option value="other">기타</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_hidden_note">운영 메모</label>
+                    <div class="admin-form-field">
+                        <textarea id="community_hidden_note" name="hidden_note" class="form-textarea" rows="3" maxlength="1000"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-hide-status-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                <button type="submit" class="btn btn-outline-warning modal-action">숨김 처리</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+(function () {
+    var modal = document.getElementById('community-hide-status-modal');
+    if (!modal) {
+        return;
+    }
+    var postId = modal.querySelector('[data-community-hide-post-id]');
+    var commentId = modal.querySelector('[data-community-hide-comment-id]');
+    var label = modal.querySelector('[data-community-hide-target-label]');
+    document.querySelectorAll('[data-community-hide-open]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var targetType = button.getAttribute('data-target-type') || '';
+            var targetId = button.getAttribute('data-target-id') || '';
+            if (postId) {
+                postId.value = targetType === 'post' ? targetId : '';
+            }
+            if (commentId) {
+                commentId.value = targetType === 'comment' ? targetId : '';
+            }
+            if (label) {
+                label.textContent = (targetType === 'comment' ? '댓글' : '게시글') + ' #' + targetId + ' ' + (button.getAttribute('data-target-title') || '');
+            }
+        });
+    });
+})();
+
 (function () {
     var bulkForm = document.querySelector('[data-community-post-bulk-form]');
     if (!bulkForm) {

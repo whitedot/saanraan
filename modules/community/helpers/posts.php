@@ -452,6 +452,35 @@ function sr_community_comment_secret_column_exists(PDO $pdo): bool
     return $existsByConnection[$key];
 }
 
+function sr_community_hidden_columns_exist(PDO $pdo, string $tableName): bool
+{
+    static $existsByConnection = [];
+    if (!in_array($tableName, ['sr_community_posts', 'sr_community_comments'], true)) {
+        return false;
+    }
+
+    $key = (string) spl_object_id($pdo) . ':' . $tableName;
+    if (array_key_exists($key, $existsByConnection)) {
+        return $existsByConnection[$key];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME IN (\'hidden_at\', \'hidden_until\', \'hidden_reason\', \'hidden_note\', \'hidden_by_account_id\', \'hidden_before_status\')'
+        );
+        $stmt->execute(['table_name' => $tableName]);
+        $existsByConnection[$key] = (int) $stmt->fetchColumn() === 6;
+    } catch (Throwable $exception) {
+        $existsByConnection[$key] = false;
+    }
+
+    return $existsByConnection[$key];
+}
+
 function sr_community_account_can_view_comment_body(array $comment, array $post, ?array $account, ?PDO $pdo = null): bool
 {
     if ((int) ($comment['is_secret'] ?? 0) !== 1) {
@@ -791,11 +820,16 @@ function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, i
     }, $stmt->fetchAll());
 }
 
-function sr_community_update_post_status(PDO $pdo, int $postId, string $status): void
+function sr_community_update_post_status(PDO $pdo, int $postId, string $status, array $options = []): void
 {
     if ($status === 'deleted') {
         sr_community_redact_deleted_post($pdo, $postId);
         sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
+        return;
+    }
+
+    if (sr_community_hidden_columns_exist($pdo, 'sr_community_posts')) {
+        sr_community_update_status_with_hidden_metadata($pdo, 'sr_community_posts', $postId, $status, $options);
         return;
     }
 
@@ -810,6 +844,60 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status):
         'status' => $status,
         'updated_at' => sr_now(),
         'id' => $postId,
+    ]);
+}
+
+function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $tableName, int $id, string $status, array $options = []): void
+{
+    if ($id < 1 || !in_array($tableName, ['sr_community_posts', 'sr_community_comments'], true)) {
+        return;
+    }
+
+    $now = sr_now();
+    if ($status === 'hidden') {
+        $stmt = $pdo->prepare(
+            'UPDATE ' . $tableName . '
+             SET status = :status,
+                 hidden_at = :hidden_at,
+                 hidden_until = :hidden_until,
+                 hidden_reason = :hidden_reason,
+                 hidden_note = :hidden_note,
+                 hidden_by_account_id = :hidden_by_account_id,
+                 hidden_before_status = CASE WHEN status <> \'hidden\' THEN status ELSE hidden_before_status END,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND status <> \'deleted\''
+        );
+        $stmt->execute([
+            'status' => $status,
+            'hidden_at' => $now,
+            'hidden_until' => $options['hidden_until'] ?? null,
+            'hidden_reason' => (string) ($options['hidden_reason'] ?? ''),
+            'hidden_note' => (string) ($options['hidden_note'] ?? ''),
+            'hidden_by_account_id' => isset($options['hidden_by_account_id']) && (int) $options['hidden_by_account_id'] > 0 ? (int) $options['hidden_by_account_id'] : null,
+            'updated_at' => $now,
+            'id' => $id,
+        ]);
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE ' . $tableName . '
+         SET status = :status,
+             hidden_at = NULL,
+             hidden_until = NULL,
+             hidden_reason = \'\',
+             hidden_note = NULL,
+             hidden_by_account_id = NULL,
+             hidden_before_status = \'\',
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status <> \'deleted\''
+    );
+    $stmt->execute([
+        'status' => $status,
+        'updated_at' => $now,
+        'id' => $id,
     ]);
 }
 
@@ -1145,10 +1233,15 @@ function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
     return is_array($comment) ? $comment : null;
 }
 
-function sr_community_update_comment_status(PDO $pdo, int $commentId, string $status): void
+function sr_community_update_comment_status(PDO $pdo, int $commentId, string $status, array $options = []): void
 {
     if ($status === 'deleted') {
         sr_community_redact_deleted_comment($pdo, $commentId);
+        return;
+    }
+
+    if (sr_community_hidden_columns_exist($pdo, 'sr_community_comments')) {
+        sr_community_update_status_with_hidden_metadata($pdo, 'sr_community_comments', $commentId, $status, $options);
         return;
     }
 
