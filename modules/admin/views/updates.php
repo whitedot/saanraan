@@ -113,6 +113,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php if ($pendingUpdates !== []) { ?>
+        <div class="alert alert-warning" role="alert">
+            <p><?php echo sr_e(sr_t('admin::ui.updates.pending_warning.body')); ?></p>
+        </div>
+    <?php } ?>
 
 </section>
 
@@ -121,7 +126,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="apply_updates">
     </form>
-    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
         <span class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
             <span class="filtering-toggle-item">
                 <input id="modules_admin_updates_backup_confirmed" type="checkbox" name="backup_confirmed" value="1" class="form-choice-toggle-input sr-only" required form="modules_admin_updates_apply_form">
