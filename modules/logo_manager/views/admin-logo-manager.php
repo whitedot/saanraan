@@ -147,6 +147,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div>
             <h2 class="card-title"><?php echo sr_e(sr_t('logo_manager::ui.logo.list')); ?></h2>
             <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('logo_manager::ui.text.e98faae0')); ?></p>
+            <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('logo_manager::ui.favicon.status_help')); ?></p>
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="logo-manager-logo-modal" data-overlay="#logo-manager-logo-modal"><?php echo sr_e(sr_t('logo_manager::ui.logo.add')); ?></button>
     </div>
@@ -193,15 +194,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr><td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('logo_manager::ui.logo.empty')); ?></td></tr>
                 <?php } else { ?>
                     <?php foreach ($logos as $logo) { ?>
+                        <?php
+                        $logoManagerPositionKey = (string) ($logo['position_key'] ?? '');
+                        $logoManagerActiveIdForPosition = (int) ($activeLogoIdsByPosition[$logoManagerPositionKey] ?? 0);
+                        $logoManagerIsCurrentLogo = $logoManagerActiveIdForPosition > 0 && $logoManagerActiveIdForPosition === (int) ($logo['id'] ?? 0);
+                        $logoManagerIsActiveCandidate = (string) ($logo['status'] ?? '') === 'active';
+                        ?>
                         <tr>
                             <td class="logo-manager-select-cell">
                                 <label class="sr-only" for="logo_manager_bulk_select_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e((string) $logo['title']); ?> 선택</label>
                                 <input id="logo_manager_bulk_select_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="selected_logo_ids[]" value="<?php echo sr_e((string) (int) $logo['id']); ?>" class="form-checkbox" form="logo-manager-bulk-status-form" data-logo-manager-row-select>
                             </td>
-                            <td><?php echo sr_e(sr_logo_manager_position_label((string) $logo['position_key'], $pdo)); ?></td>
+                            <td><?php echo sr_e(sr_logo_manager_position_label($logoManagerPositionKey, $pdo)); ?></td>
                             <td class="admin-table-break">
                                 <img class="logo-manager-thumb" src="<?php echo sr_e(sr_logo_manager_url_for_output(sr_logo_manager_logo_url($logo))); ?>" alt="" loading="lazy" decoding="async">
                                 <?php echo sr_e((string) $logo['title']); ?>
+                                <span class="logo-manager-row-flags">
+                                    <?php if ($logoManagerIsCurrentLogo) { ?>
+                                        <span class="badge badge-soft-success"><?php echo sr_e(sr_t('logo_manager::ui.current_applied')); ?></span>
+                                    <?php } elseif ($logoManagerIsActiveCandidate) { ?>
+                                        <span class="badge badge-soft-secondary"><?php echo sr_e(sr_t('logo_manager::ui.active_candidate')); ?></span>
+                                    <?php } ?>
+                                </span>
                                 <?php $logoManagerIconVariants = is_array($iconVariantsByLogoId[(int) $logo['id']] ?? null) ? $iconVariantsByLogoId[(int) $logo['id']] : []; ?>
                                 <?php if ($logoManagerIconVariants !== []) { ?>
                                     <div class="logo-manager-icon-preview-list" aria-label="활성 아이콘 세트">
@@ -218,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </td>
                             <td>
-                                <?php echo (string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key() && !empty($logo['use_as_public_symbol'])
+                                <?php echo $logoManagerPositionKey === sr_logo_manager_public_symbol_position_key() && !empty($logo['use_as_public_symbol'])
                                     ? sr_e(sr_t('logo_manager::ui.public_symbol.yes'))
                                     : sr_e(sr_t('logo_manager::ui.public_symbol.no')); ?>
                             </td>
@@ -231,7 +245,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="admin-row-actions">
                                     <?php $logoManagerEditModalId = 'logo-manager-edit-modal-' . (string) (int) $logo['id']; ?>
                                     <?php $logoManagerIconModalId = 'logo-manager-icon-modal-' . (string) (int) $logo['id']; ?>
-                                    <?php if ((string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key()) { ?>
+                                    <?php if ($logoManagerPositionKey === sr_logo_manager_public_symbol_position_key()) { ?>
                                         <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="아이콘 세트 관리" title="아이콘 세트" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerIconModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerIconModalId); ?>"><?php echo sr_material_icon_html('apps'); ?></button>
                                     <?php } ?>
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="로고 배치 수정" title="수정" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($logoManagerEditModalId); ?>" data-overlay="#<?php echo sr_e($logoManagerEditModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
@@ -243,7 +257,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php $logoManagerStatusButtonLabel = (string) $logo['status'] === 'active' ? sr_t('logo_manager::ui.text.92cdef3c') : sr_t('logo_manager::ui.active.93c558d7'); ?>
                                         <?php $logoManagerStatusButtonClass = $logoManagerNextStatus === 'disabled' ? 'btn-outline-secondary' : 'btn-solid-primary'; ?>
                                         <?php $logoManagerStatusButtonIcon = $logoManagerNextStatus === 'disabled' ? 'toggle_off' : 'toggle_on'; ?>
-                                        <?php $logoManagerStatusConfirm = $logoManagerNextStatus === 'disabled' ? " onclick=\"return confirm('이 로고 배치를 미사용 처리할까요? 같은 위치에 다른 활성 로고가 있으면 그 로고가 적용될 수 있습니다.');\"" : ''; ?>
+                                        <?php $logoManagerStatusConfirmMessage = $logoManagerPositionKey === sr_logo_manager_public_symbol_position_key()
+                                            ? '이 파비콘/앱 아이콘 로고를 중지할까요? 이 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.'
+                                            : '이 로고 배치를 미사용 처리할까요? 같은 용도에 다른 활성 로고가 있으면 그 로고가 적용될 수 있습니다.'; ?>
+                                        <?php $logoManagerStatusConfirm = $logoManagerNextStatus === 'disabled' ? ' onclick="return confirm(' . sr_e(json_encode($logoManagerStatusConfirmMessage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . ');"' : ''; ?>
                                         <input type="hidden" name="status" value="<?php echo sr_e($logoManagerNextStatus); ?>">
                                         <button type="submit" class="btn btn-sm btn-icon <?php echo sr_e($logoManagerStatusButtonClass); ?>" aria-label="<?php echo sr_e($logoManagerStatusButtonLabel); ?>" title="<?php echo sr_e($logoManagerStatusButtonLabel); ?>"<?php echo $logoManagerStatusConfirm; ?>><?php echo sr_material_icon_html($logoManagerStatusButtonIcon); ?></button>
                                     </form>
@@ -515,7 +532,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (!statusLabel) {
                 statusLabel = submitter && submitter.textContent ? submitter.textContent.replace(/\s+/g, ' ').trim() : '선택한 상태';
             }
-            if (!window.confirm('선택한 로고 배치 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.')) {
+            var nextStatus = submitter && submitter.getAttribute ? submitter.getAttribute('value') : '';
+            var message = '선택한 로고 배치 ' + selectedCount + '건의 상태를 "' + statusLabel + '"(으)로 변경합니다.';
+            if (nextStatus === 'disabled') {
+                message += ' 파비콘/앱 아이콘이 포함되어 있으면 해당 로고와 아이콘 세트는 head link 후보에서 제외되고, 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
+            }
+            if (!window.confirm(message)) {
                 event.preventDefault();
             }
         });

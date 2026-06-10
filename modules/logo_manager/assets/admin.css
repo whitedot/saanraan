@@ -48,6 +48,14 @@
     margin-right: .5rem;
 }
 
+.logo-manager-row-flags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    margin-left: .375rem;
+    vertical-align: middle;
+}
+
 .logo-manager-icon-preview-list {
     display: flex;
     flex-wrap: wrap;

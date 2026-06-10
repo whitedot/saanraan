@@ -467,6 +467,18 @@ if (sr_request_method() === 'POST') {
             $errors[] = '로고 상태 변경 값이 올바르지 않습니다.';
         }
 
+        $logo = null;
+        if ($errors === []) {
+            $stmt = $pdo->prepare('SELECT id, position_key, status FROM sr_logo_manager_logos WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $logoId]);
+            $row = $stmt->fetch();
+            if (!is_array($row)) {
+                $errors[] = '상태를 변경할 로고 배치를 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 시도하세요.';
+            } else {
+                $logo = $row;
+            }
+        }
+
         if ($errors === []) {
             $stmt = $pdo->prepare('UPDATE sr_logo_manager_logos SET status = :status, updated_at = :updated_at WHERE id = :id');
             $stmt->execute(['status' => $status, 'updated_at' => $now, 'id' => $logoId]);
@@ -481,6 +493,13 @@ if (sr_request_method() === 'POST') {
                 'metadata' => ['status' => $status],
             ]);
             $notice = '로고 배치 상태를 변경했습니다.';
+            if (
+                $status === 'disabled'
+                && is_array($logo)
+                && (string) ($logo['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key()
+            ) {
+                $notice .= ' 이 파비콘/앱 아이콘 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
+            }
         }
     } elseif ($intent === 'batch_status') {
         if (!$logoTableExists) {
@@ -517,7 +536,7 @@ if (sr_request_method() === 'POST') {
                 $params[$paramKey] = $selectedId;
             }
             $stmt = $pdo->prepare(
-                'SELECT id
+                'SELECT id, position_key
                  FROM sr_logo_manager_logos
                  WHERE id IN (' . implode(', ', $placeholders) . ')'
             );
@@ -525,7 +544,8 @@ if (sr_request_method() === 'POST') {
                 $stmt->bindValue($paramKey, $selectedId, PDO::PARAM_INT);
             }
             $stmt->execute();
-            if (count($stmt->fetchAll()) !== count($selectedIds)) {
+            $selectedLogoRows = $stmt->fetchAll();
+            if (count($selectedLogoRows) !== count($selectedIds)) {
                 $errors[] = '선택한 로고 배치 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
             }
         }
@@ -577,6 +597,15 @@ if (sr_request_method() === 'POST') {
                 if ($skippedCount > 0) {
                     $notice .= ' 이미 같은 상태인 ' . number_format($skippedCount) . '건은 건너뛰었습니다.';
                 }
+                $selectedFaviconCount = 0;
+                foreach ($selectedLogoRows ?? [] as $selectedLogoRow) {
+                    if ((string) ($selectedLogoRow['position_key'] ?? '') === sr_logo_manager_public_symbol_position_key()) {
+                        $selectedFaviconCount++;
+                    }
+                }
+                if ($targetStatus === 'disabled' && $selectedFaviconCount > 0) {
+                    $notice .= ' 파비콘/앱 아이콘 로고를 중지하면 해당 로고와 아이콘 세트는 head link 후보에서 제외되며, 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.';
+                }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -593,6 +622,12 @@ if (sr_request_method() === 'POST') {
 $activeLogos = [];
 foreach (array_keys($positionOptions) as $positionKey) {
     $activeLogos[$positionKey] = sr_logo_manager_active_logo($pdo, (string) $positionKey);
+}
+$activeLogoIdsByPosition = [];
+foreach ($activeLogos as $positionKey => $activeLogo) {
+    if (is_array($activeLogo) && (int) ($activeLogo['id'] ?? 0) > 0) {
+        $activeLogoIdsByPosition[(string) $positionKey] = (int) $activeLogo['id'];
+    }
 }
 
 $logoSortOptions = sr_admin_logo_sort_options();

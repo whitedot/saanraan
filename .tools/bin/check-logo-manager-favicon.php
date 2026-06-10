@@ -213,21 +213,24 @@ function sr_logo_manager_favicon_check_insert_variant(PDO $pdo, array $row): voi
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
     'id' => 1,
+    'use_as_public_symbol' => 0,
     'public_url' => '/uploads/favicon-active.png',
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert(str_contains($html, 'rel="icon"'), 'active public.favicon logo must render icon link');
 sr_logo_manager_favicon_check_assert(str_contains($html, 'rel="apple-touch-icon"'), 'active public.favicon logo must render apple touch icon link');
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-active.png'), 'active favicon link must contain active logo URL');
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-active.png'), 'favicon links must not require use_as_public_symbol');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
     'id' => 2,
     'status' => 'disabled',
+    'use_as_public_symbol' => 1,
     'public_url' => '/uploads/favicon-disabled.png',
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert($html === '', 'disabled public.favicon logo must not render favicon links');
+sr_logo_manager_favicon_check_assert($html === '', 'disabled public.favicon logo must not render favicon links even when public symbol is enabled');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
