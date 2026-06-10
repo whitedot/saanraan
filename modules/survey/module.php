@@ -35,6 +35,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'homepage-candidates.php',
+            'dashboard.php',
             'layout-options.php',
             'privacy-export.php',
             'privacy-cleanup.php',

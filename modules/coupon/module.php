@@ -29,6 +29,7 @@ return [
             'privacy-export.php',
             'member-withdrawal-assets.php',
             'coupon-references.php',
+            'dashboard.php',
         ],
         'consumes' => [
             'coupon-references.php',

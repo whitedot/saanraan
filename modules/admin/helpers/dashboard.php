@@ -229,6 +229,7 @@ function sr_admin_dashboard_metric_rows(PDO $pdo, array $rows): array
 function sr_admin_dashboard_module_sections(PDO $pdo): array
 {
     $sections = [];
+    $menuOrderByModule = sr_admin_dashboard_module_menu_order_map($pdo);
 
     foreach (sr_enabled_module_contract_files($pdo, 'dashboard.php') as $moduleKey => $dashboardFile) {
         $definition = sr_load_module_contract_file($moduleKey, $dashboardFile);
@@ -261,6 +262,7 @@ function sr_admin_dashboard_module_sections(PDO $pdo): array
                 'module_key' => (string) $moduleKey,
                 'title' => trim((string) ($section['title'] ?? $moduleKey)),
                 'order' => (int) ($section['order'] ?? 100),
+                'menu_order' => (int) ($menuOrderByModule[$moduleKey] ?? 100000),
                 'default_visible' => sr_admin_dashboard_default_visible($section['default_visible'] ?? null),
                 'rows' => $rows,
                 'view_file' => $viewFile,
@@ -269,11 +271,40 @@ function sr_admin_dashboard_module_sections(PDO $pdo): array
     }
 
     usort($sections, static function (array $left, array $right): int {
-        return ((int) $left['order'] <=> (int) $right['order'])
+        return ((int) $left['menu_order'] <=> (int) $right['menu_order'])
+            ?: ((int) $left['order'] <=> (int) $right['order'])
             ?: strcmp((string) $left['module_key'], (string) $right['module_key']);
     });
 
     return $sections;
+}
+
+function sr_admin_dashboard_module_menu_order_map(PDO $pdo): array
+{
+    if (!function_exists('sr_admin_navigation_groups')) {
+        return [];
+    }
+
+    $orderMap = [];
+    $position = 0;
+
+    foreach (sr_admin_navigation_groups($pdo) as $category) {
+        foreach ((array) ($category['module_groups'] ?? []) as $moduleGroup) {
+            if (!is_array($moduleGroup)) {
+                continue;
+            }
+
+            $moduleKey = (string) ($moduleGroup['module_key'] ?? '');
+            if ($moduleKey === '' || isset($orderMap[$moduleKey])) {
+                continue;
+            }
+
+            $orderMap[$moduleKey] = $position;
+            $position++;
+        }
+    }
+
+    return $orderMap;
 }
 
 function sr_admin_dashboard_auth_runtime_summary(PDO $pdo, array $config): array

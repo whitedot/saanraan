@@ -27,7 +27,6 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
-            'dashboard.php',
             'notification-events.php',
             'admin-notification-events.php',
         ],

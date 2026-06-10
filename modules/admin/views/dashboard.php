@@ -1,26 +1,35 @@
 <?php
 
 $adminPageTitle = sr_t('admin::ui.admin.dashboard.e12d3646');
+$adminDashboardSettingsModalId = 'admin-dashboard-settings-modal';
+$adminDashboardSettingsModalTitleId = $adminDashboardSettingsModalId . '-label';
+$adminPageTitleActionsHtml = '<button type="button" class="btn btn-solid-light" data-admin-dashboard-manager-toggle aria-haspopup="dialog" aria-controls="' . sr_e($adminDashboardSettingsModalId) . '" aria-expanded="false">'
+    . sr_material_icon_html('dashboard_customize')
+    . '<span>' . sr_e(sr_t('admin::ui.settings.115bced4')) . '</span>'
+    . '</button>';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
-<div class="admin-dashboard-toolbar">
-    <button type="button" class="btn btn-surface-default-soft" data-admin-dashboard-manager-toggle aria-expanded="false">
-        <?php echo sr_material_icon_html('dashboard_customize'); ?>
-        <span><?php echo sr_e(sr_t('admin::ui.text.22a12dff')); ?></span>
-    </button>
+<div id="<?php echo sr_e($adminDashboardSettingsModalId); ?>" class="modal-overlay modal-overlay-fade overlay admin-dashboard-manager hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-modal="true" aria-hidden="true" aria-labelledby="<?php echo sr_e($adminDashboardSettingsModalTitleId); ?>" data-admin-dashboard-manager hidden>
+    <div class="modal-dialog admin-dashboard-manager-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="<?php echo sr_e($adminDashboardSettingsModalTitleId); ?>" class="modal-title"><?php echo sr_e(sr_t('admin::ui.dashboard.settings.title.2df7f452')); ?></h3>
+                <button type="button" class="modal-close" data-admin-dashboard-manager-close aria-label="<?php echo sr_e(sr_t('admin::ui.close.dashboard.settings.6d0816de')); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+            </div>
+            <div class="modal-body admin-dashboard-manager-body">
+                <p class="admin-dashboard-manager-help"><?php echo sr_e(sr_t('admin::ui.dashboard.settings.help.4c1b2f80')); ?></p>
+                <div class="admin-dashboard-manager-list" data-admin-dashboard-manager-list></div>
+            </div>
+            <div class="modal-footer">
+                <div class="admin-dashboard-manager-reset-actions">
+                    <button type="button" class="btn btn-soft-warning modal-action" data-admin-dashboard-change-cancel hidden><?php echo sr_material_icon_html('undo'); ?><span><?php echo sr_e(sr_t('admin::ui.dashboard.settings.change_cancel.8d8f35d8')); ?></span></button>
+                </div>
+                <button type="button" class="btn btn-solid-light modal-action" data-admin-dashboard-manager-close><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+            </div>
+        </div>
+    </div>
 </div>
-
-<section class="admin-card card admin-dashboard-manager" data-admin-dashboard-manager hidden>
-    <div class="admin-dashboard-manager-header">
-        <h2 class="type-section-title"><?php echo sr_e(sr_t('admin::ui.text.22a12dff')); ?></h2>
-        <button type="button" class="btn btn-ghost-default btn-icon" data-admin-dashboard-manager-close aria-label="<?php echo sr_e(sr_t('admin::ui.close.a6d9b729')); ?>"><?php echo sr_material_icon_html('close'); ?></button>
-    </div>
-    <div class="admin-dashboard-manager-list" data-admin-dashboard-manager-list></div>
-    <div class="admin-dashboard-manager-actions">
-        <button type="button" class="btn btn-outline-default" data-admin-dashboard-visibility-reset><?php echo sr_e(sr_t('admin::ui.text.13ea0bb0')); ?></button>
-    </div>
-</section>
 
 <div class="admin-dashboard-sections" data-admin-dashboard-sections>
 <section class="admin-card admin-list-card card admin-dashboard-site-card admin-dashboard-section" data-admin-dashboard-section="site" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.text.b2c8d45c')); ?>" data-admin-dashboard-default-visible="1">

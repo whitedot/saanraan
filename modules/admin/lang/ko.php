@@ -286,6 +286,7 @@ return [
     'ui.close.5f3ace98' => '자동 닫기 동작',
     'ui.close.6278c252' => '모든 단계가 완료되었습니다. 최종 확인 후 닫기를 눌러주세요.',
     'ui.close.a6d9b729' => '섹션 관리 닫기',
+    'ui.close.dashboard.settings.6d0816de' => '대시보드 설정 닫기',
     'ui.close.notification.8d72e773' => '커스텀 닫기 버튼이 있는 경고 알림!',
     'ui.color.aa8ae7a1' => '색상
                                                     (Color)',
@@ -302,6 +303,9 @@ return [
     'ui.dashboard.f6df4a9f' => '재무 대시보드에 오신 것을 환영합니다. 여기에서 소득, 지출, 저축 및 투자에 대한 실시간 업데이트를 모니터링할 수 있습니다. 저희 도구는
                                             정보를 바탕으로 의사 결정을 내리고 재무 목표를 더 빨리 달성할 수 있도록 설계되었습니다.',
     'ui.dashboard.section.move.35fe8045' => '{title} 섹션 이동',
+    'ui.dashboard.settings.change_cancel.8d8f35d8' => '변경취소',
+    'ui.dashboard.settings.help.4c1b2f80' => '섹션 항목의 핸들을 드래그해 대시보드와 같은 방식으로 위치를 바꾸고, 스위치로 표시 여부를 조정할 수 있습니다.',
+    'ui.dashboard.settings.title.2df7f452' => '대시보드 설정',
     'ui.dashboard.status.login.active.74ffa722' => '이 대시보드는 최근 활동, 성능 메트릭 및 시스템 상태에 대한 빠른 개요를 제공합니다. 주요 지표, 최근 로그인, 보류 중인 작업 및
                                             전반적인 사용자 참여를 쉽게 모니터링할 수 있습니다.',
     'ui.db.74be7570' => 'DB 변경이 없는 파일 업데이트입니다. SQL은 실행하지 않고, 설치 버전 기록만 현재 코드 버전에 맞춥니다.',

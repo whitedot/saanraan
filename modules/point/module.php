@@ -29,6 +29,7 @@ return [
             'asset-exchange.php',
             'member-assets.php',
             'member-withdrawal-assets.php',
+            'dashboard.php',
         ],
         'consumes' => [
             'notification-events.php',

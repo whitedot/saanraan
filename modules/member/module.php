@@ -25,6 +25,7 @@ return [
             'extension-points.php',
             'menu-links.php',
             'privacy-export.php',
+            'dashboard.php',
             'member-group-references.php',
         ],
         'consumes' => [

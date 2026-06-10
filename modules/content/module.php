@@ -47,6 +47,7 @@ return [
             'privacy-export.php',
             'privacy-cleanup.php',
             'sitemap.php',
+            'dashboard.php',
             'homepage-candidates.php',
             'member-group-rules.php',
             'coupon-targets.php',

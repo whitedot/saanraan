@@ -31,6 +31,7 @@ return [
             'member-assets.php',
             'member-withdrawal-assets.php',
             'member-group-references.php',
+            'dashboard.php',
         ],
         'consumes' => [
             'notification-events.php',

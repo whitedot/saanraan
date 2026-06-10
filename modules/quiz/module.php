@@ -33,6 +33,7 @@ return [
             'layout-options.php',
             'privacy-export.php',
             'privacy-cleanup.php',
+            'dashboard.php',
             'coupon-references.php',
             'sitemap.php',
             'embed-manager-targets.php',
