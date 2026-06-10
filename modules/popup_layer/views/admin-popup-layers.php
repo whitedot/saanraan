@@ -412,8 +412,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     $popupLayerReferenceModals .= sr_admin_read_reference_modal_html($popupLayerReferenceModalId, '팝업레이어 참조 현황', $popupLayerReferenceResult);
                                     ?>
                                     <?php echo sr_admin_read_reference_button_html($popupLayerReferenceModalId, $popupLayerReferenceResult); ?>
-                                    <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($popupLayerCopyModalId); ?>" data-overlay="#<?php echo sr_e($popupLayerCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                     <a href="<?php echo sr_e(sr_url('/admin/popup-layers/edit?id=' . rawurlencode((string) $popup['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('popup_layer::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
+                                    <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($popupLayerCopyModalId); ?>" data-overlay="#<?php echo sr_e($popupLayerCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/popup-layers/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="popup_id" value="<?php echo sr_e((string) $popup['id']); ?>">
