@@ -197,7 +197,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="cleanup">
-                    <p class="admin-form-help">정리 실행은 보관 정책 저장과 별도로 바로 처리됩니다. 위 보관 정책 입력값은 함께 저장되지 않습니다.</p>
                     <p><?php echo sr_e(sr_t('admin::ui.save.5d203a1c')); ?></p>
                     <div class="table-wrapper">
                     <table class="table">
@@ -314,6 +313,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <p id="admin_retention_cleanup_phrase_error" class="validation-error-note" hidden data-admin-confirm-phrase-error><?php echo sr_e(sr_t('admin::retention.cleanup.phrase_error')); ?></p>
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer-note">
+                    <p class="admin-form-help">정리 실행은 보관 정책 저장과 별도로 바로 처리됩니다. 위 보관 정책 입력값은 함께 저장되지 않습니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-retention-cleanup-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>

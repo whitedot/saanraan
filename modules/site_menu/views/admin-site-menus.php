@@ -177,7 +177,6 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="save_menu">
                     <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e($menuKey) : ''; ?>">
-                    <p class="admin-form-help">이 모달의 저장 버튼은 메뉴 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key"><?php echo sr_e(sr_t('site_menu::ui.menu.key.20cd5d6a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
@@ -202,6 +201,9 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                             </select>
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer-note">
+                    <p class="admin-form-help">이 모달의 저장 버튼은 메뉴 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
@@ -238,7 +240,6 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <input type="hidden" name="intent" value="save_item">
                     <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
                     <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $itemMenuId); ?>">
-                    <p class="admin-form-help">이 모달의 저장 버튼은 메뉴 항목 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_module"><?php echo sr_e(sr_t('site_menu::ui.text.06aff97f')); ?></label>
                         <div class="admin-form-field">
@@ -324,6 +325,9 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                             <input id="<?php echo sr_e($modalId); ?>_sort_order" type="number" name="sort_order" value="<?php echo sr_e((string) $sortOrder); ?>" class="form-input">
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer-note">
+                    <p class="admin-form-help">이 모달의 저장 버튼은 메뉴 항목 정보만 저장합니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>

@@ -330,7 +330,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-body admin-icon-key-modal-body">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="icon_settings">
-                <p class="admin-form-help">이 모달의 저장 버튼은 공용 아이콘 설정만 바로 저장합니다. 위 사이트 설정 form에 작성 중인 값은 함께 저장되지 않습니다.</p>
                 <div class="admin-icon-key-list" data-admin-icon-key-list>
                     <?php foreach ($adminIconRows as $adminIconRow) { ?>
                         <?php
@@ -391,6 +390,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-icon-key-add><?php echo sr_material_icon_html('add'); ?>키 추가</button>
                 </div>
                 <p class="admin-form-help">Material 이름은 Google Material Symbols의 ligature 이름입니다. 이미지 업로드는 JPG, PNG, GIF, WebP / 최대 <?php echo sr_e(sr_admin_icon_format_bytes(sr_admin_icon_upload_max_bytes())); ?> / 512px 이하만 허용합니다.</p>
+            </div>
+            <div class="modal-footer-note">
+                <p class="admin-form-help">이 모달의 저장 버튼은 공용 아이콘 설정만 바로 저장합니다. 위 사이트 설정 form에 작성 중인 값은 함께 저장되지 않습니다.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-icon-key-settings-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>

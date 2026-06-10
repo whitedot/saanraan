@@ -730,7 +730,6 @@ $communitySettingsSectionNavItems = [
                 <div data-community-level-recalculate-step="notice">
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_1')); ?></p>
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_2')); ?></p>
-                    <p class="admin-form-help">재계산 실행은 현재 저장된 레벨 기준으로 회원 레벨을 다시 계산합니다. 레벨 설정 form의 작성 중인 최소 점수 입력값은 함께 저장되지 않습니다.</p>
                     <dl class="admin-meta-list">
                         <dt><?php echo sr_e('부하 등급'); ?></dt>
                         <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['label']); ?></dd>
@@ -750,6 +749,9 @@ $communitySettingsSectionNavItems = [
                     <input id="community-level-recalculate-confirm-input" type="text" class="form-input" autocomplete="off" placeholder="<?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_text')); ?>" aria-describedby="community-level-recalculate-confirm-error" data-overlay-focus data-community-level-recalculate-confirm-input>
                     <p id="community-level-recalculate-confirm-error" class="community-confirm-validation-message type-caption" data-community-level-recalculate-confirm-error hidden><?php echo sr_e(sr_t('community::ui.level_recalculate_confirmation_error')); ?></p>
                 </div>
+            </div>
+            <div class="modal-footer-note">
+                <p class="admin-form-help">재계산 실행은 현재 저장된 레벨 기준으로 회원 레벨을 다시 계산합니다. 레벨 설정 form의 작성 중인 최소 점수 입력값은 함께 저장되지 않습니다.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityLevelRecalculateModalId); ?>" data-community-level-recalculate-cancel><?php echo sr_e(sr_t('community::ui.cancel')); ?></button>

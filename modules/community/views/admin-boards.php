@@ -1028,7 +1028,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input type="hidden" name="intent" value="board_manager_grant">
                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                             <input type="hidden" name="account_id" value="" data-community-board-manager-account-id>
-                            <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 관리권한만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                             <div class="admin-form-row">
                                 <label class="form-label" for="community_board_manager_account_identifier">회원 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
@@ -1056,6 +1055,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="modal-footer-note">
+                            <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 관리권한만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-board-manager-grant-modal">닫기</button>
@@ -1163,7 +1165,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="category_create">
                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                            <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 새 카테고리만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                             <div class="admin-form-row">
                                 <label class="form-label" for="community_category_key_new">key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
@@ -1198,6 +1199,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </div>
                             </div>
                         </div>
+                        <div class="modal-footer-note">
+                            <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 새 카테고리만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
+                        </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-category-create-modal">닫기</button>
                             <button type="submit" class="btn btn-solid-primary modal-action">카테고리 추가</button>
@@ -1219,7 +1223,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="intent" value="category_update">
                                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                                 <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
-                                <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 이 카테고리만 수정합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                                 <div class="admin-form-row">
                                     <span class="form-label">key</span>
                                     <div class="admin-form-field">
@@ -1253,6 +1256,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <input id="<?php echo sr_e($categoryModalId); ?>-sort" type="number" name="category_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) $category['sort_order']); ?>" required class="form-input">
                                     </div>
                                 </div>
+                            </div>
+                            <div class="modal-footer-note">
+                                <p class="admin-form-help">이 작업은 게시판 기본 설정 저장과 별도로 이 카테고리만 수정합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($categoryModalId); ?>">닫기</button>

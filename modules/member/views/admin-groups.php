@@ -495,7 +495,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <div class="modal-body">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) $groupId); ?>">
-                        <p class="admin-form-help">수동 배정은 회원 그룹 정보 저장과 별도로 회원 배정만 바로 반영합니다. 열려 있는 그룹 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
                         <div class="admin-summary-stats">
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
                             <span class="admin-summary-meta"><?php echo sr_e((string) $group['group_key']); ?></span>
@@ -509,6 +508,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="modal-footer-note">
+                        <p class="admin-form-help">수동 배정은 회원 그룹 정보 저장과 별도로 회원 배정만 바로 반영합니다. 열려 있는 그룹 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($manualAssignModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
@@ -800,7 +802,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/member-group-rules')); ?>">
                     <input type="hidden" name="intent" value="evaluate_group">
-                    <p class="admin-form-help">규칙 평가는 저장된 회원 그룹 규칙 기준으로 회원 배정을 다시 계산합니다. 열려 있는 규칙 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
                     <div class="admin-form-row">
                         <?php echo sr_admin_form_label_help_html('member_group_rule_evaluate_group_id', sr_t('member::ui.text.5034bb32'), $memberGroupHelp['rule_group']['id'], $memberGroupHelpOpenLabel, true); ?>
                         <div class="admin-form-field">
@@ -846,6 +847,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         </div>
                     </div>
                     <?php } ?>
+                </div>
+                <div class="modal-footer-note">
+                    <p class="admin-form-help">규칙 평가는 저장된 회원 그룹 규칙 기준으로 회원 배정을 다시 계산합니다. 열려 있는 규칙 등록/수정 모달 입력값은 함께 저장되지 않습니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#member-group-rule-evaluate-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>

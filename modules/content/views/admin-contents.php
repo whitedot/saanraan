@@ -186,7 +186,6 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $contentId); ?>">
                         <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
                         <p class="admin-form-help"><?php echo sr_e((string) ($content['title'] ?? '')); ?></p>
-                        <p class="admin-form-help"><?php echo sr_e('복사는 이미 저장된 원본 콘텐츠 기준으로 새 초안을 만들며, 열려 있는 수정 form 입력값은 함께 저장하거나 복사하지 않습니다.'); ?></p>
                         <div class="admin-form-row">
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
                             <div class="admin-form-field">
@@ -224,6 +223,9 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                                 </div>
                             </div>
                         <?php } ?>
+                    </div>
+                    <div class="modal-footer-note">
+                        <p class="admin-form-help"><?php echo sr_e('복사는 이미 저장된 원본 콘텐츠 기준으로 새 초안을 만들며, 열려 있는 수정 form 입력값은 함께 저장하거나 복사하지 않습니다.'); ?></p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e('취소'); ?></button>
