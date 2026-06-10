@@ -76,7 +76,7 @@ function sr_site_menu_items_icon_name_column_exists(PDO $pdo): bool
 function sr_site_menu_icon_allowed(PDO $pdo, string $name): bool
 {
     $name = trim($name);
-    if (sr_admin_menu_symbol_allowed($name)) {
+    if (sr_admin_menu_icon_allowed($pdo, $name)) {
         return true;
     }
 
@@ -86,13 +86,7 @@ function sr_site_menu_icon_allowed(PDO $pdo, string $name): bool
 
 function sr_site_menu_icon_options(PDO $pdo): array
 {
-    $allowed = sr_admin_allowed_menu_symbol_icons();
-    foreach (sr_admin_icon_custom_map($pdo) as $name => $custom) {
-        $name = trim((string) $name);
-        if (sr_admin_custom_icon_key_is_valid($name) && is_array($custom) && (string) ($custom['type'] ?? 'material') === 'material') {
-            $allowed[$name] = true;
-        }
-    }
+    $allowed = sr_admin_allowed_menu_icon_options($pdo);
     ksort($allowed, SORT_STRING);
 
     return $allowed;

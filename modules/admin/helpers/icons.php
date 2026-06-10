@@ -248,7 +248,7 @@ function sr_admin_menu_custom_icon_keys(PDO $pdo): array
 function sr_admin_menu_icon_allowed(PDO $pdo, string $name): bool
 {
     $name = trim($name);
-    if (sr_admin_menu_symbol_allowed($name)) {
+    if (sr_admin_menu_symbol_allowed($name) || sr_admin_material_icon_key_allowed($name)) {
         return true;
     }
 
@@ -260,6 +260,10 @@ function sr_admin_menu_icon_allowed(PDO $pdo, string $name): bool
 function sr_admin_allowed_menu_icon_options(PDO $pdo): array
 {
     $allowed = sr_admin_allowed_menu_symbol_icons();
+    foreach (sr_admin_material_icon_names() as $name => $_materialName) {
+        $allowed[(string) $name] = true;
+    }
+
     $customKeys = sr_admin_menu_custom_icon_keys($pdo);
     ksort($customKeys, SORT_STRING);
     foreach ($customKeys as $name => $_enabled) {
@@ -284,6 +288,24 @@ function sr_admin_menu_symbol_icon(string $name): array
 }
 
 function sr_admin_material_icon_names(): array
+{
+    static $icons = null;
+    if (is_array($icons)) {
+        return $icons;
+    }
+
+    $icons = sr_admin_builtin_material_icon_names();
+    foreach (sr_admin_common_material_icon_names() as $name => $_enabled) {
+        if (!isset($icons[$name])) {
+            $icons[$name] = $name;
+        }
+    }
+    ksort($icons, SORT_STRING);
+
+    return $icons;
+}
+
+function sr_admin_builtin_material_icon_names(): array
 {
     return [
         'settings' => 'settings',
@@ -313,12 +335,117 @@ function sr_admin_material_icon_names(): array
     ];
 }
 
+function sr_admin_common_material_icon_names(): array
+{
+    $names = [
+        'add',
+        'add_circle',
+        'arrow_back',
+        'arrow_downward',
+        'arrow_forward',
+        'arrow_upward',
+        'attach_file',
+        'build',
+        'cached',
+        'calendar_month',
+        'cancel',
+        'category',
+        'check',
+        'check_circle',
+        'chevron_left',
+        'chevron_right',
+        'close',
+        'cloud_upload',
+        'code',
+        'content_copy',
+        'dark_mode',
+        'dashboard',
+        'dashboard_customize',
+        'delete',
+        'download',
+        'drag_indicator',
+        'edit',
+        'error',
+        'expand_less',
+        'expand_more',
+        'filter_alt',
+        'format_list_bulleted',
+        'help',
+        'history',
+        'info',
+        'keyboard_arrow_down',
+        'keyboard_arrow_left',
+        'keyboard_arrow_right',
+        'keyboard_arrow_up',
+        'language',
+        'light_mode',
+        'link',
+        'lock',
+        'login',
+        'logout',
+        'mail',
+        'manage_accounts',
+        'menu_open',
+        'monitoring',
+        'more_horiz',
+        'more_vert',
+        'notifications',
+        'open_in_new',
+        'payments',
+        'person',
+        'play_arrow',
+        'preview',
+        'print',
+        'public',
+        'refresh',
+        'restart_alt',
+        'rule',
+        'save',
+        'search',
+        'security',
+        'send',
+        'share',
+        'star',
+        'sync',
+        'table_view',
+        'tune',
+        'undo',
+        'upload',
+        'visibility',
+        'visibility_off',
+        'warning',
+        'work',
+    ];
+
+    $map = [];
+    foreach ($names as $name) {
+        $map[$name] = true;
+    }
+
+    return $map;
+}
+
+function sr_admin_material_icon_key_allowed(string $name): bool
+{
+    $name = trim($name);
+
+    return isset(sr_admin_material_icon_names()[$name]);
+}
+
 function sr_admin_material_icon_name(string $symbolName): string
 {
-    $icons = sr_admin_material_icon_names();
     $symbolName = trim($symbolName);
+    $builtinIcons = sr_admin_builtin_material_icon_names();
+    if (isset($builtinIcons[$symbolName])) {
+        return (string) $builtinIcons[$symbolName];
+    }
 
-    return (string) ($icons[$symbolName] ?? $icons['folder']);
+    $materialName = sr_material_icon_name($symbolName);
+    if ($materialName === $symbolName && sr_admin_material_icon_key_allowed($materialName)) {
+        return $materialName;
+    }
+
+    return (string) $builtinIcons['folder'];
 }
 
 function sr_admin_icon_custom_map(PDO $pdo): array
