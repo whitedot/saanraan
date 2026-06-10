@@ -11,6 +11,7 @@ if (PHP_SAPI === 'cli-server') {
         && (
             str_starts_with($requestPath, '/assets/')
             || preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/assets/#', $requestPath) === 1
+            || in_array($requestPath, ['/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js', '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'], true)
         )
     ) {
         $staticPath = realpath(SR_ROOT . $requestPath);
@@ -91,6 +92,8 @@ if (
     exit;
 }
 
+sr_site_member_only_guard($pdo, $site, $method, $path);
+
 if ($path === '/') {
     $homePath = is_array($site) ? (string) ($site['home_path'] ?? '/') : '/';
     if ($homePath !== '/' && sr_site_home_path_is_available($pdo, $homePath)) {
@@ -102,6 +105,11 @@ if ($path === '/') {
 }
 
 if ($method === 'GET' && $path === '/ui-kit') {
+    sr_site_member_only_guard($pdo, $site, $method, $path, [
+        'module_key' => 'core',
+        'route' => 'GET /ui-kit',
+    ]);
+
     $uiKitFile = sr_public_layout_optional_view_file(sr_public_layout_key($site, $pdo), 'ui_kit', $pdo);
     if ($uiKitFile === null) {
         sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
@@ -114,6 +122,11 @@ if ($method === 'GET' && $path === '/ui-kit') {
 
 if ($method === 'GET' && ($path === '/content/ui-kit' || $path === '/community/ui-kit' || $path === '/quiz/ui-kit')) {
     $uiKitModuleKey = $path === '/content/ui-kit' ? 'content' : ($path === '/community/ui-kit' ? 'community' : 'quiz');
+    sr_site_member_only_guard($pdo, $site, $method, $path, [
+        'module_key' => $uiKitModuleKey,
+        'route' => 'GET ' . $path,
+    ]);
+
     if (sr_module_record_entry($pdo, $uiKitModuleKey) === null) {
         sr_render_error(404, '요청한 화면을 찾을 수 없습니다.');
         exit;
@@ -195,6 +208,7 @@ if (count($routeMatches) > 1) {
 }
 
 if (count($routeMatches) === 1) {
+    sr_site_member_only_guard($pdo, $site, $method, $path, $routeMatches[0]);
     sr_start_request_contract($method, $path, (string) $routeMatches[0]['module_key'], (string) $routeMatches[0]['action_file']);
     include $routeMatches[0]['action_file'];
     sr_enforce_request_contract('after_action');

@@ -410,9 +410,9 @@ function sr_member_current_request_next_path(): string
 
 function sr_member_login_next_path(): string
 {
-    $next = sr_member_safe_next_path(sr_get_string_without_truncation('next', 1024) ?? '');
-    if ($next !== '/') {
-        return $next;
+    $rawNext = sr_get_string_without_truncation('next', 1024);
+    if (is_string($rawNext) && $rawNext !== '') {
+        return sr_member_safe_next_path($rawNext);
     }
 
     return sr_member_referrer_next_path();
@@ -484,18 +484,35 @@ function sr_member_url_matches_current_host(string $url): bool
 
 function sr_member_safe_next_path(string $path): string
 {
+    $requestPath = parse_url($path, PHP_URL_PATH);
     if (
         $path === ''
         || $path[0] !== '/'
         || str_starts_with($path, '//')
         || strpos($path, '\\') !== false
         || preg_match('/[\x00-\x1F\x7F]/', $path) === 1
+        || !is_string($requestPath)
+        || $requestPath === ''
+        || preg_match('/%(?:2f|5c)/i', $requestPath) === 1
+        || sr_member_next_path_has_dot_segment($requestPath)
         || sr_member_next_path_is_auth_path($path)
     ) {
         return '/';
     }
 
     return $path;
+}
+
+function sr_member_next_path_has_dot_segment(string $requestPath): bool
+{
+    foreach (explode('/', $requestPath) as $segment) {
+        $decodedSegment = rawurldecode($segment);
+        if ($decodedSegment === '.' || $decodedSegment === '..') {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function sr_member_next_path_is_auth_path(string $path): bool
