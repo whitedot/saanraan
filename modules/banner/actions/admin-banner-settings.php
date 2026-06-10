@@ -18,6 +18,14 @@ $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
 $availableTargets = sr_banner_available_targets($pdo);
 $bannerSettings = sr_banner_settings($pdo);
+$storedDefaultTargetOption = (string) ($bannerSettings['banner_default_target_option'] ?? '');
+if ($storedDefaultTargetOption !== '' && !sr_banner_is_public_target_option($storedDefaultTargetOption) && sr_banner_find_target($availableTargets, $storedDefaultTargetOption) === null) {
+    $storedDefaultTarget = sr_banner_target_from_option($storedDefaultTargetOption);
+    if ($storedDefaultTarget !== null) {
+        $storedDefaultTarget['label'] = '선언이 사라진 기본 노출 위치 / ' . (string) $storedDefaultTarget['module_key'] . ' / ' . (string) $storedDefaultTarget['point_key'] . ' / ' . (string) $storedDefaultTarget['slot_key'];
+        $availableTargets[] = $storedDefaultTarget;
+    }
+}
 $bannerSkinOptions = sr_banner_skin_options();
 $bannerSkinKey = sr_banner_skin_key($bannerSettings);
 $bannerDefaultStatus = sr_banner_default_status($bannerSettings);

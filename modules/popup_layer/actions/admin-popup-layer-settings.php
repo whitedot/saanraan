@@ -18,6 +18,20 @@ $allowedStatuses = ['draft', 'enabled', 'disabled'];
 $allowedMatchTypes = ['all', 'exact'];
 $availableTargets = sr_popup_layer_available_targets($pdo);
 $popupLayerSettings = sr_popup_layer_settings($pdo);
+$storedDefaultTargetOption = (string) ($popupLayerSettings['popup_layer_default_target_option'] ?? '');
+if ($storedDefaultTargetOption !== '' && !sr_popup_layer_is_public_target_option($storedDefaultTargetOption) && sr_popup_layer_find_target($availableTargets, $storedDefaultTargetOption) === null) {
+    $storedDefaultTargetParts = explode('|', $storedDefaultTargetOption);
+    if (count($storedDefaultTargetParts) === 3) {
+        $storedDefaultTarget = sr_popup_layer_target_from_row([
+            'module_key' => $storedDefaultTargetParts[0],
+            'point_key' => $storedDefaultTargetParts[1],
+            'slot_key' => $storedDefaultTargetParts[2],
+        ], '선언이 사라진 기본 노출 위치');
+        if ($storedDefaultTarget !== null) {
+            $availableTargets[] = $storedDefaultTarget;
+        }
+    }
+}
 $popupLayerSkinOptions = sr_popup_layer_skin_options();
 $popupLayerSkinKey = sr_popup_layer_skin_key($popupLayerSettings);
 $popupLayerDefaultStatus = sr_popup_layer_default_status($popupLayerSettings);
