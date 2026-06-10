@@ -176,12 +176,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="post_status">
                                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                                <?php foreach ($postStatusDisplayOrder as $status) { ?>
-                                    <?php if ($status === $postStatus) { ?>
-                                        <?php continue; ?>
+                                <?php if ($postStatus !== 'deleted') { ?>
+                                    <?php foreach ($postStatusDisplayOrder as $status) { ?>
+                                        <?php if ($status === $postStatus) { ?>
+                                            <?php continue; ?>
+                                        <?php } ?>
+                                        <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
+                                        <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                     <?php } ?>
-                                    <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
-                                    <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                 <?php } ?>
                             </form>
                             </div>
@@ -334,12 +336,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="comment_status">
                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                    <?php foreach ($commentStatusDisplayOrder as $status) { ?>
-                                        <?php if ($status === $commentStatus) { ?>
-                                            <?php continue; ?>
+                                    <?php if ($commentStatus !== 'deleted') { ?>
+                                        <?php foreach ($commentStatusDisplayOrder as $status) { ?>
+                                            <?php if ($status === $commentStatus) { ?>
+                                                <?php continue; ?>
+                                            <?php } ?>
+                                            <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
+                                            <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                         <?php } ?>
-                                        <?php $statusLabel = sr_community_admin_status_action_label($status); ?>
-                                        <button type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
                                     <?php } ?>
                                 </form>
                             </div>

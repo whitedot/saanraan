@@ -85,6 +85,9 @@ if (sr_request_method() === 'POST') {
         if (!in_array($status, $allowedPostStatuses, true)) {
             $errors[] = sr_t('community::action.admin.post_status_invalid');
         }
+        if ($errors === [] && is_array($post) && (string) $post['status'] === 'deleted' && $status !== 'deleted') {
+            $errors[] = sr_t('community::redaction.deleted_post_restore_forbidden');
+        }
 
         if ($errors === [] && is_array($post)) {
             if (!empty($settings['post_reward_reversal_enabled']) && in_array($status, ['hidden', 'deleted'], true) && (string) $post['status'] === 'published') {
@@ -443,6 +446,9 @@ if (sr_request_method() === 'POST') {
 
         if (!in_array($status, $allowedCommentStatuses, true)) {
             $errors[] = sr_t('community::action.admin.comment_status_invalid');
+        }
+        if ($errors === [] && is_array($comment) && (string) $comment['status'] === 'deleted' && $status !== 'deleted') {
+            $errors[] = sr_t('community::redaction.deleted_comment_restore_forbidden');
         }
 
         if ($errors === [] && is_array($comment)) {

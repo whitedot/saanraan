@@ -25,3 +25,7 @@
 
 - `modules/admin/views/retention.php`: 데이터 정리 화면에 삭제된 글·댓글이 운영 보존 데이터이며 자동 정리 대상이 아니라는 안내를 추가했다.
 - `modules/admin/lang/ko.php`: 데이터 정리 화면 안내 문구를 번역 키로 추가했다.
+- `modules/community/helpers/posts.php`: 커뮤니티 게시글/댓글이 `deleted` 상태로 전환될 때 제목, 본문, 작성자 표시 snapshot, SEO/OG 원문, 본문 임베드 참조를 제거하도록 했다.
+- `modules/community/helpers/attachments.php`: 커뮤니티 게시글 삭제 시 첨부 저장소 파일을 삭제하고 원본 파일명과 저장소 참조를 마스킹하도록 했다. 저장소 삭제 실패는 기존 정리 실패 테이블에 기록한다.
+- `modules/community/actions/admin-posts.php`, `modules/community/views/admin-posts.php`: 원문 제거가 끝난 삭제 게시글/댓글은 공개·숨김 상태로 복구할 수 없도록 서버 검증과 관리자 행 액션을 맞췄다.
+- `modules/community/module.php`, `core/actions/install.php`: 커뮤니티 모듈 파일 전용 버전과 신규 설치 기본 버전을 `2026.06.016`으로 올렸다.

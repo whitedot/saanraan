@@ -793,19 +793,57 @@ function sr_community_link_card_search_post_targets(PDO $pdo, string $keyword, i
 
 function sr_community_update_post_status(PDO $pdo, int $postId, string $status): void
 {
+    if ($status === 'deleted') {
+        sr_community_redact_deleted_post($pdo, $postId);
+        sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
+        return;
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_community_posts
          SET status = :status,
              updated_at = :updated_at
-         WHERE id = :id'
+         WHERE id = :id
+           AND status <> \'deleted\''
     );
     $stmt->execute([
         'status' => $status,
         'updated_at' => sr_now(),
         'id' => $postId,
     ]);
-    if ($status === 'deleted') {
-        sr_community_cleanup_body_files_for_deleted_posts($pdo, [$postId]);
+}
+
+function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
+{
+    if ($postId < 1) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_posts
+         SET status = 'deleted',
+             title = :title,
+             body_text = '',
+             body_format = 'plain',
+             author_public_name_snapshot = '',
+             seo_title = '',
+             seo_description = '',
+             og_title = '',
+             og_description = '',
+             og_image_attachment_id = NULL,
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'title' => sr_t('community::redaction.deleted_post_title'),
+        'updated_at' => $now,
+        'id' => $postId,
+    ]);
+
+    $pdo->prepare('DELETE FROM sr_community_link_refs WHERE post_id = :post_id')->execute(['post_id' => $postId]);
+    if (function_exists('sr_embed_manager_sync_body_refs')) {
+        sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', null);
     }
 }
 
@@ -1109,14 +1147,41 @@ function sr_community_admin_comment_by_id(PDO $pdo, int $commentId): ?array
 
 function sr_community_update_comment_status(PDO $pdo, int $commentId, string $status): void
 {
+    if ($status === 'deleted') {
+        sr_community_redact_deleted_comment($pdo, $commentId);
+        return;
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_community_comments
          SET status = :status,
              updated_at = :updated_at
-         WHERE id = :id'
+         WHERE id = :id
+           AND status <> \'deleted\''
     );
     $stmt->execute([
         'status' => $status,
+        'updated_at' => sr_now(),
+        'id' => $commentId,
+    ]);
+}
+
+function sr_community_redact_deleted_comment(PDO $pdo, int $commentId): void
+{
+    if ($commentId < 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_community_comments
+         SET status = 'deleted',
+             body_text = :body_text,
+             author_public_name_snapshot = '',
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'body_text' => sr_t('community::redaction.deleted_comment_body'),
         'updated_at' => sr_now(),
         'id' => $commentId,
     ]);

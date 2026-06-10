@@ -332,6 +332,10 @@ function sr_community_update_post_attachments_status(PDO $pdo, int $postId, stri
         return 0;
     }
 
+    if ($status === 'deleted') {
+        return sr_community_redact_deleted_post_attachments($pdo, $postId);
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_community_attachments
          SET status = :status
@@ -345,6 +349,57 @@ function sr_community_update_post_attachments_status(PDO $pdo, int $postId, stri
     ]);
 
     return $stmt->rowCount();
+}
+
+function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId): int
+{
+    if ($postId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT id, storage_driver, storage_key
+         FROM sr_community_attachments
+         WHERE post_id = :post_id
+           AND status <> 'deleted'"
+    );
+    $stmt->execute(['post_id' => $postId]);
+    $attachments = $stmt->fetchAll();
+    if ($attachments === []) {
+        return 0;
+    }
+
+    foreach ($attachments as $attachment) {
+        $driver = sr_community_attachment_storage_driver($attachment);
+        $key = sr_community_attachment_storage_key($attachment);
+        if ($key !== '' && !sr_storage_delete($driver, $key)) {
+            sr_community_record_storage_cleanup_failure(
+                $pdo,
+                'attachment_post_delete',
+                (int) ($attachment['id'] ?? 0),
+                $driver,
+                $key,
+                '게시글 삭제 후 첨부파일 저장소 정리에 실패했습니다.'
+            );
+        }
+    }
+
+    $update = $pdo->prepare(
+        "UPDATE sr_community_attachments
+         SET original_name = :original_name,
+             stored_name = '',
+             storage_path = '',
+             storage_key = '',
+             status = 'deleted'
+         WHERE post_id = :post_id
+           AND status <> 'deleted'"
+    );
+    $update->execute([
+        'original_name' => sr_t('community::redaction.deleted_attachment_name'),
+        'post_id' => $postId,
+    ]);
+
+    return $update->rowCount();
 }
 
 function sr_community_restore_hidden_post_attachments(PDO $pdo, int $postId): int
