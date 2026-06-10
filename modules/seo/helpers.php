@@ -55,6 +55,42 @@ function sr_seo_default_settings(): array
     ];
 }
 
+function sr_seo_install_default_title_suffix(PDO $pdo, ?string $siteName = null): void
+{
+    $titleSuffix = sr_seo_clean_single_line((string) ($siteName ?? sr_site_setting($pdo, 'site.name', '')), 80);
+    if ($titleSuffix === '') {
+        return;
+    }
+
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'seo' LIMIT 1");
+    $stmt->execute();
+    $seoModule = $stmt->fetch();
+    if (!is_array($seoModule)) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            updated_at = IF(TRIM(COALESCE(setting_value, \'\')) = \'\', VALUES(updated_at), updated_at),
+            value_type = VALUES(value_type),
+            setting_value = IF(TRIM(COALESCE(setting_value, \'\')) = \'\', VALUES(setting_value), setting_value)'
+    );
+    $stmt->execute([
+        'module_id' => (int) $seoModule['id'],
+        'setting_key' => 'title_suffix',
+        'setting_value' => $titleSuffix,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    sr_clear_module_settings_cache('seo');
+}
+
 function sr_seo_settings(PDO $pdo): array
 {
     $settings = sr_seo_default_settings();

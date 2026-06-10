@@ -611,6 +611,12 @@ if (sr_request_method() === 'POST') {
                 ]);
             }
 
+            if (!empty($selectedOptionalModuleMap['seo'])) {
+                $installStage = 'save_seo_settings';
+                require_once SR_ROOT . '/modules/seo/helpers.php';
+                sr_seo_install_default_title_suffix($pdo, $values['site_name']);
+            }
+
             if (!empty($selectedOptionalModuleMap['site_menu'])) {
                 $installStage = 'seed_site_menu';
                 require_once SR_ROOT . '/modules/site_menu/helpers.php';
