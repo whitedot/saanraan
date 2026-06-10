@@ -1146,6 +1146,40 @@ function sr_logo_manager_render_logo(PDO $pdo, string $positionKey, ?array $site
     return $html;
 }
 
+function sr_logo_manager_render_public_symbol_logo(PDO $pdo, ?array $site = null, array $attributes = []): string
+{
+    $logo = sr_logo_manager_public_symbol_logo($pdo);
+    if (!is_array($logo)) {
+        return '';
+    }
+
+    $src = sr_logo_manager_logo_url($logo);
+    if ($src === '') {
+        return '';
+    }
+
+    if (array_key_exists('alt', $attributes)) {
+        $alt = sr_logo_manager_clean_single_line((string) $attributes['alt'], 160);
+    } else {
+        $alt = trim((string) ($logo['alt_text'] ?? ''));
+        if ($alt === '') {
+            $alt = is_array($site) ? trim((string) ($site['site_name'] ?? $site['name'] ?? '')) : '';
+        }
+    }
+
+    $class = sr_logo_manager_clean_single_line((string) ($attributes['class'] ?? 'site-logo-image'), 120);
+    $width = (int) ($logo['width'] ?? 0);
+    $height = (int) ($logo['height'] ?? 0);
+
+    $html = '<img class="' . sr_e($class) . '" src="' . sr_e(sr_logo_manager_url_for_output($src)) . '" alt="' . sr_e($alt) . '"';
+    if ($width > 0 && $height > 0) {
+        $html .= ' width="' . sr_e((string) $width) . '" height="' . sr_e((string) $height) . '"';
+    }
+    $html .= ' loading="eager" decoding="async">';
+
+    return $html;
+}
+
 function sr_logo_manager_active_url(PDO $pdo, string $positionKey): string
 {
     $logo = sr_logo_manager_active_logo($pdo, $positionKey);

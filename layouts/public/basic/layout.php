@@ -37,9 +37,23 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
             ? 'public-layout-brand-logo public-layout-brand-logo-mobile'
             : 'public-layout-brand-logo',
     ]);
+    $layoutPublicSymbolLogo = null;
+    if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
+        $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
+            'class' => 'public-layout-brand-logo',
+        ]);
+        if ($layoutBrandLogoHtml !== '') {
+            $layoutPublicSymbolLogo = sr_logo_manager_public_symbol_logo($layoutPdo);
+        }
+    }
     $layoutBrandLogo = sr_logo_manager_active_logo($layoutPdo, 'public.header.desktop');
     if (is_array($layoutBrandLogo)) {
         $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutBrandLogo['link_url'] ?? ''));
+        if ($layoutBrandLink !== '') {
+            $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
+        }
+    } elseif (is_array($layoutPublicSymbolLogo)) {
+        $layoutBrandLink = sr_logo_manager_clean_url((string) ($layoutPublicSymbolLogo['link_url'] ?? ''));
         if ($layoutBrandLink !== '') {
             $layoutBrandLinkUrl = sr_logo_manager_url_for_output($layoutBrandLink);
         }
