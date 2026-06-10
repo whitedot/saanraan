@@ -181,7 +181,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </th>
                     <th<?php echo sr_admin_sort_aria('position_key', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.position.label'), 'position_key', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.ac97396d'), 'title', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
-                    <th><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></th>
+                    <th><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.list_label')); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.status.e10195a1'), 'status', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('starts_at', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.65bdaefd'), 'starts_at', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
                     <th<?php echo sr_admin_sort_aria('ends_at', $logoSort); ?>><?php echo sr_admin_sort_header_html(sr_t('logo_manager::ui.text.26c25fca'), 'ends_at', $logoSort, $logoSortOptions, $logoDefaultSort, 'logo_sort', 'logo_dir', 'logo_page'); ?></th>
@@ -282,6 +282,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
+    </div>
+    <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('apps'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.icon_set')); ?></span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.edit')); ?></span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('toggle_on'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.status')); ?></span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.delete')); ?></span>
     </div>
 </section>
 <?php echo sr_admin_pagination_html($logoPagination, '로고 배치 목록 페이지'); ?>

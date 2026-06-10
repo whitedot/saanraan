@@ -278,6 +278,12 @@ if ($mode === 'list') {
                 </tbody>
             </table>
         </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('visibility'); ?> 사용자 화면 미리보기</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('content_copy'); ?> 복사</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 삭제</span>
+        </div>
     </section>
     <?php foreach ($quizzes as $quiz) { ?>
         <?php

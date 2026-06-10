@@ -192,6 +192,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('add'); ?> 이 그룹에 콘텐츠 추가</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('visibility'); ?> <?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?></span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?></span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 콘텐츠 그룹 삭제</span>
+        </div>
     </section>
     <?php echo sr_admin_pagination_html($pageGroupPagination, '콘텐츠 그룹 목록 페이지'); ?>
     <?php $contentStorageCleanupFailures = is_array($contentStorageCleanupFailures ?? null) ? $contentStorageCleanupFailures : []; ?>

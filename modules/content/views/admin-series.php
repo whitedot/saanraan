@@ -204,6 +204,10 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
             </tbody>
         </table>
     </div>
+    <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('save'); ?> 저장</span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 콘텐츠 시리즈 삭제</span>
+    </div>
 </section>
 <?php echo sr_admin_pagination_html($seriesPagination, '콘텐츠 시리즈 목록 페이지'); ?>
 

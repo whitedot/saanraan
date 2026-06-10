@@ -417,9 +417,15 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     </tr>
                 <?php } ?>
             </tbody>
-        </table>
+	        </table>
+	        </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('travel_explore'); ?> 참조 현황</span>
+            <?php if ($canEditMemberGroups) { ?>
+                <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></span>
+            <?php } ?>
         </div>
-    </section>
+	    </section>
 
     <?php echo $memberGroupReferenceModals; ?>
     <?php echo sr_admin_pagination_html($groupPagination, '회원 그룹 목록 페이지'); ?>
@@ -591,9 +597,12 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                             </tr>
                                         <?php } ?>
                                     </tbody>
-                                </table>
-                            </div>
-                        </section>
+	        </table>
+	        </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></span>
+        </div>
+	    </section>
 
                         <section class="admin-card admin-list-card card admin-list-form">
                             <div class="card-header">

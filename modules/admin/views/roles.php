@@ -265,9 +265,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tr>
         <?php } ?>
     </tbody>
-</table>
+	</table>
+	</div>
+<div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+    <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('admin::ui.text.5336e811')); ?></span>
+    <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 권한 회수</span>
 </div>
-</div>
+	</div>
 <?php echo sr_admin_pagination_html($accountPagination, '관리자 권한 회원 목록 페이지'); ?>
 
 <div id="admin-permission-add-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0 admin-permission-add-modal" role="dialog" tabindex="-1" aria-labelledby="admin-permission-add-modal-label" aria-hidden="true" inert>

@@ -61,6 +61,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php if ($canEditContentAuthors) { ?>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
+        </div>
+    <?php } ?>
 </section>
 <?php if ($canEditContentAuthors) { ?>
     <div id="content-author-add-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="content-author-add-modal-title" aria-hidden="true" inert>

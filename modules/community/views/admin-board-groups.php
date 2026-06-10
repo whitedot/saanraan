@@ -321,8 +321,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </tbody>
         </table>
-        </div>
-    </section>
+    </div>
+    <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('add'); ?> 이 그룹에 게시판 추가</span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 게시판 그룹 삭제</span>
+    </div>
+</section>
     <?php echo sr_admin_pagination_html($boardGroupPagination, '게시판 그룹 목록 페이지'); ?>
 <?php } else { ?>
     <?php

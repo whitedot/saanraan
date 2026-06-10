@@ -510,6 +510,9 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 #container>section.admin-list-card>.table-wrapper,
 #container>form>section.admin-list-card>.table-wrapper{padding:0}
 .admin-list-card .table-wrapper::after{content:"";display:block;height:1px}
+.admin-icon-button-legend{align-items:center;border-top:1px solid var(--color-default-200);color:var(--text-muted);display:flex;flex-wrap:wrap;font-size:var(--type-meta-size);gap:.5rem .875rem;justify-content:flex-end;line-height:var(--type-meta-line-height);padding:.75rem 1rem}
+.admin-icon-button-legend-item{align-items:center;display:inline-flex;gap:.25rem;white-space:nowrap}
+.admin-icon-button-legend-item .sr-icon{font-size:1.125rem}
 .admin-list-form .sv_wrap{align-items:center;display:inline-flex;position:static}
 .admin-list-form .sv_member{border-style:solid;padding:calc(var(--spacing) * 0);text-align:left;vertical-align:baseline;box-shadow:0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000;color:inherit;font:inherit;line-height:inherit;cursor:pointer;background-color:#0000;border-width:0;align-items:center;display:inline-flex}
 .admin-list-form .sv_member:hover,.admin-list-form .sv_member:focus{color:var(--color-primary);outline-style:none;text-decoration-line:underline}

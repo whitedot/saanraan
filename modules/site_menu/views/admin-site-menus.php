@@ -451,9 +451,13 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <?php } ?>
                 <?php } ?>
             </tbody>
-        </table>
+	        </table>
+	    </div>
+    <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?></span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?></span>
     </div>
-    <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="admin-form-actions admin-form-sticky-actions admin-site-menu-form-actions">
+	    <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="admin-form-actions admin-form-sticky-actions admin-site-menu-form-actions">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_item_order">
         <p class="admin-form-help">순서 적용하기는 목록의 정렬 값만 저장합니다. 열려 있는 메뉴/항목 모달 입력값은 함께 저장되지 않습니다.</p>

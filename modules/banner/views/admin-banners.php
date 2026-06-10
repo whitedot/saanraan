@@ -501,9 +501,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 <?php } ?>
             </tbody>
-        </table>
+	        </table>
+	        </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('open_in_new'); ?> 링크 새 탭에서 열기</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('travel_explore'); ?> 참조 현황</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('banner::ui.edit.3537f0cc')); ?></span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('content_copy'); ?> 복사</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('banner::ui.delete.6139b6c3')); ?></span>
         </div>
-    </section>
+	    </section>
     <?php echo $bannerCopyModals; ?>
     <?php echo $bannerReferenceModals; ?>
     <?php echo sr_admin_pagination_html($bannerPagination, '배너 목록 페이지'); ?>

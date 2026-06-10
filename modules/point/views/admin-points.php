@@ -256,9 +256,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 <?php } ?>
             </tbody>
-        </table>
+	        </table>
+	        </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('point::ui.text.b9d9b240')); ?></span>
         </div>
-    </section>
+	    </section>
     <?php echo sr_admin_pagination_html($transactionPagination, $pointDisplayName . ' 거래 목록 페이지'); ?>
 <?php } else { ?>
     <section class="admin-card admin-list-card card admin-list-form">

@@ -203,8 +203,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             <?php } ?>
         </tbody>
-    </table>
-    </div>
+	</table>
+	</div>
+<div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+    <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('travel_explore'); ?> 참조 현황</span>
+</div>
 </section>
 
 <?php echo $couponDefinitionReferenceModals; ?>

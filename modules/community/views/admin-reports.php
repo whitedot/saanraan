@@ -253,8 +253,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             <?php } ?>
         </tbody>
-    </table>
-    </div>
+	</table>
+	</div>
+<div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+    <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('open_in_new'); ?> 바로가기</span>
+    <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('fact_check'); ?> <?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></span>
+</div>
 </section>
 <?php if ($reports !== []) { ?>
     <?php foreach ($reports as $report) { ?>

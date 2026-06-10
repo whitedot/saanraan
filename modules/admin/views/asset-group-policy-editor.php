@@ -212,6 +212,9 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
             </tbody>
         </table>
     </div>
+    <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 삭제</span>
+    </div>
     <div class="admin-list-summary admin-asset-group-policy-notes">
         <?php if ($assetGroupPolicyHelpText !== '') { ?>
             <p><?php echo sr_e($assetGroupPolicyHelpText); ?></p>

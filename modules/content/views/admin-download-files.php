@@ -231,6 +231,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('history'); ?> 다운로드 내역</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('visibility_off'); ?> 숨김</span>
+        </div>
     </section>
     <?php echo sr_admin_pagination_html($downloadFilePagination, '다운로드 파일 목록 페이지'); ?>
     <script>
