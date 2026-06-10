@@ -30,6 +30,7 @@
     display: inline-flex;
     gap: 8px;
     justify-self: start;
+    max-width: 100%;
     min-width: 0;
     text-decoration: none;
 }
@@ -39,6 +40,16 @@
     max-height: 1.65rem;
     max-width: min(9.8rem, 36vw);
     object-fit: contain;
+}
+
+.content-layout-brand-symbol {
+    aspect-ratio: 1;
+    border-radius: .45rem;
+    flex: 0 0 auto;
+    height: 1.9rem;
+    max-height: 1.9rem;
+    max-width: 1.9rem;
+    width: 1.9rem;
 }
 
 .content-layout-brand-logo-mobile {
@@ -61,6 +72,10 @@
     font-weight: 800;
     letter-spacing: 0;
     line-height: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .content-layout-nav {

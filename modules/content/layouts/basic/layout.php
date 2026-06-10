@@ -23,6 +23,7 @@ $layoutFooterMenuSlots = [
 $layoutSiteName = trim((string) ($layoutSite['name'] ?? $layoutSite['site_name'] ?? 'Saanraan'));
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
+$layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/content');
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
@@ -40,9 +41,10 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
     $layoutPublicSymbolLogo = null;
     if ($layoutBrandLogoHtml === '' && $layoutMobileBrandLogoHtml === '') {
         $layoutBrandLogoHtml = sr_logo_manager_render_public_symbol_logo($layoutPdo, $layoutSite, [
-            'class' => 'content-layout-brand-logo',
+            'class' => 'content-layout-brand-logo content-layout-brand-symbol',
         ]);
         if ($layoutBrandLogoHtml !== '') {
+            $layoutBrandUsesPublicSymbol = true;
             $layoutPublicSymbolLogo = sr_logo_manager_public_symbol_logo($layoutPdo);
         }
     }
@@ -153,6 +155,9 @@ $layoutCopyrightYear = date('Y');
             <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
                 <?php echo $layoutMobileBrandLogoHtml; ?>
                 <?php echo $layoutBrandLogoHtml; ?>
+                <?php if ($layoutBrandUsesPublicSymbol) { ?>
+                    <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
+                <?php } ?>
             <?php } else { ?>
                 <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
             <?php } ?>
