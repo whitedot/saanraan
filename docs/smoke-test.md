@@ -63,6 +63,18 @@ SR_SMOKE_EXPECT_COMMUNITY=1 \
 php .tools/bin/smoke-http.php
 ```
 
+회원 전용 사이트 모드를 검증할 때는 local 또는 staging에서만 설정을 켜고, 실행 전 `sr_site_settings`의 `site.member_only_enabled`, `site.status`, `site.home_path`, `public_layout_key`와 `member` 모듈 상태를 기록한다. 가능하면 `/admin/settings` 저장 흐름으로 켜서 서버 검증과 감사 로그를 함께 확인하고, 직접 DB update를 쓴 경우에는 smoke profile 준비용 변경으로 구분한다. 성공/실패와 관계없이 원래 설정으로 되돌린 뒤 공개 모드 대표 경로가 기존 기대값으로 돌아왔는지 확인해야 한다.
+
+회원 전용 ON 상태의 대표 HTTP smoke는 다음 profile로 실행한다.
+
+```sh
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_MEMBER_ONLY=1 \
+php .tools/bin/smoke-http.php
+```
+
+이 profile은 비로그인 `/`, `/ui-kit`, 콘텐츠/커뮤니티 공개 화면 후보가 `/login?next=...`로 이동하는지, 로그인·비밀번호 재설정 같은 인증 예외가 열리는지, 공개 서비스 모듈의 POST/action endpoint가 403 또는 미설치 404로 닫히는지, `robots.txt`가 `Disallow: /`를 반환하는지 확인한다. 회원 전용 OFF 회귀 smoke는 `SR_SMOKE_MEMBER_ONLY` 없이 다시 실행한다.
+
 로컬 PHP 내장 서버는 개발용 router로 실행한다.
 
 ```sh

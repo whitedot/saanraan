@@ -98,7 +98,7 @@ function sr_site_member_only_route_decision(string $method, string $path, ?array
         }
 
         if (sr_site_member_only_module_public_path($moduleKey, $path)) {
-            return 'forbid';
+            return in_array($method, ['GET', 'HEAD'], true) ? 'redirect' : 'forbid';
         }
     }
 

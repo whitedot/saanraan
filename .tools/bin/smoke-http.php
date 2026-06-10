@@ -16,10 +16,11 @@ function sr_smoke_argument(array $argv, int $index, string $environmentKey): str
 
 $baseUrl = rtrim(sr_smoke_argument($argv, 1, 'SR_SMOKE_BASE_URL'), '/');
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl)) {
-    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\nEnv: SR_SMOKE_BASE_URL SR_SMOKE_EXPECT_COMMUNITY=1\n");
+    fwrite(STDERR, "Usage: php .tools/bin/smoke-http.php http://127.0.0.1:8080\nEnv: SR_SMOKE_BASE_URL SR_SMOKE_EXPECT_COMMUNITY=1 SR_SMOKE_MEMBER_ONLY=1\n");
     exit(2);
 }
 $expectCommunity = getenv('SR_SMOKE_EXPECT_COMMUNITY') === '1';
+$expectMemberOnly = getenv('SR_SMOKE_MEMBER_ONLY') === '1';
 $basePath = (string) (parse_url($baseUrl, PHP_URL_PATH) ?? '');
 $basePath = $basePath !== '/' ? rtrim($basePath, '/') : '';
 
@@ -33,6 +34,12 @@ $checks = [
     [
         'label' => 'login route',
         'path' => '/login',
+        'allowed_statuses' => [200, 302],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'password reset route',
+        'path' => '/password/reset',
         'allowed_statuses' => [200, 302],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
@@ -265,6 +272,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'robots endpoint',
+        'path' => '/robots.txt',
+        'allowed_statuses' => [200, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'home skin stylesheet',
         'path' => '/assets/saanraan.css',
         'allowed_statuses' => [200],
@@ -401,6 +414,66 @@ if ($expectCommunity) {
             return (int) $status !== 404;
         }));
         $check['expect_installed_route'] = true;
+    }
+    unset($check);
+}
+
+if ($expectMemberOnly) {
+    $memberOnlyRedirectPaths = [
+        '/' => true,
+        '/ui-kit' => true,
+        '/content/example' => true,
+        '/community' => true,
+        '/community/board?key=free' => true,
+        '/community/group?key=general' => true,
+        '/community/message/write' => true,
+        '/community/write?key=free' => true,
+        '/community/link-card-targets?target=content&q=test' => true,
+        '/community/edit?id=1' => true,
+        '/community/scraps' => true,
+        '/community/messages' => true,
+        '/community/message?id=1' => true,
+    ];
+    $memberOnlyForbiddenPosts = [
+        'POST /community/edit' => true,
+        'POST /community/delete' => true,
+        'POST /community/comment' => true,
+        'POST /content/comment' => true,
+        'POST /community/report' => true,
+        'POST /community/comment/edit' => true,
+        'POST /community/comment/delete' => true,
+        'POST /community/scrap' => true,
+        'POST /community/message/write' => true,
+        'POST /community/message/delete' => true,
+    ];
+
+    foreach ($checks as &$check) {
+        if (isset($check['must_not_expose'])) {
+            continue;
+        }
+
+        $path = (string) ($check['path'] ?? '');
+        $method = strtoupper((string) ($check['method'] ?? 'GET'));
+        $key = $method . ' ' . $path;
+
+        if (isset($memberOnlyRedirectPaths[$path]) && $method === 'GET') {
+            $check['allowed_statuses'] = [302, 404];
+            $check['redirect_path_prefixes'] = ['/login?next='];
+            unset($check['must_contain'], $check['must_contain_by_status']);
+        } elseif (isset($memberOnlyForbiddenPosts[$key])) {
+            $check['allowed_statuses'] = [403, 404];
+            unset($check['redirect_path_prefixes']);
+        } elseif ($path === '/sitemap.xml') {
+            $check['allowed_statuses'] = [200, 404];
+            $check['must_contain_by_status'] = [
+                200 => ['<urlset', '</urlset>'],
+            ];
+        } elseif ($path === '/robots.txt') {
+            $check['allowed_statuses'] = [200, 404];
+            $check['must_contain_by_status'] = [
+                200 => ['User-agent: *', 'Disallow: /'],
+            ];
+        }
     }
     unset($check);
 }

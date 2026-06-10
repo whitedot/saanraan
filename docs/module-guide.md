@@ -417,6 +417,8 @@ return [
 - 관리자 화면 path는 `/admin/...` 아래에 둔다.
 - 상태 변경은 `POST`로 처리한다.
 - 상태 변경 `POST`는 저장, 오류 수집, flash 결과 저장 뒤 `sr_redirect()`로 `GET` 화면에 돌아가는 PRG 흐름으로 끝낸다. 같은 요청에서 view를 렌더링하면 브라우저 새로고침이 저장이나 메일 발송 같은 작업을 다시 실행할 수 있다.
+- 회원 전용 사이트 모드가 켜지면 코어 guard는 활성 모듈 `paths.php`에서 실제 match된 공개 서비스 route에만 적용된다. 방문자용 화면 `GET`은 로그인 redirect 대상인지, 파일/다운로드/JSON/상태 변경 endpoint는 403 대상인지 모듈 문서와 smoke 기준에 남긴다.
+- 외부 PG, 본인확인, 배송사처럼 provider가 호출하는 callback/webhook route는 일반 공개 화면 route처럼 설계하지 않는다. 회원 전용 모드에서도 `/login` HTML로 redirect되면 안 되므로, 모듈 action이 provider 서명, state/nonce, idempotency key, 감사 로그 기준으로 직접 검증하고 후속 계약 테스트에 회원 전용 ON 상태를 포함한다.
 
 경로 설계 기준:
 
