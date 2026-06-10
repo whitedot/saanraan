@@ -79,11 +79,23 @@
 @media (max-width:767px){.admin-page-notification-delivery-list .admin-notification-delivery-search-grid{grid-template-columns:1fr}.admin-page-notification-delivery-list .admin-notification-delivery-filter-keyword,.admin-page-notification-delivery-list .admin-notification-delivery-filter .filtering-submit{grid-column:auto}}
 @media (max-width:767px){.admin-page-notification-delivery-list .admin-notification-delivery-table :is(th,td):nth-child(2),.admin-page-notification-delivery-list .admin-notification-delivery-table :is(th,td):nth-child(5){display:none}}
 .admin-page-admin-notifications .admin-notification-search-grid{grid-template-columns:max-content minmax(14rem,1fr);align-items:end;justify-content:stretch;width:100%}
+.admin-page-admin-notifications .admin-notification-filter .filtering-field{min-width:0}
+.admin-page-admin-notifications .admin-notification-filter .filtering-submit{justify-content:center;width:auto}
 .admin-page-admin-notifications .admin-notification-table{table-layout:auto}
-.admin-page-admin-notifications .admin-notification-table th,.admin-page-admin-notifications .admin-notification-table td{overflow:hidden;text-overflow:ellipsis}
-.admin-page-admin-notifications .admin-notification-table th:nth-child(1),.admin-page-admin-notifications .admin-notification-table th:nth-child(2),.admin-page-admin-notifications .admin-notification-table th:nth-child(4),.admin-page-admin-notifications .admin-notification-table th:nth-child(5),.admin-page-admin-notifications .admin-notification-table th:nth-child(6),.admin-page-admin-notifications .admin-notification-table th:nth-child(7){width:1%}
-.admin-page-admin-notifications .admin-notification-table .admin-table-actions-cell{min-width:14rem;overflow:visible}
-.admin-page-admin-notifications .admin-notification-table .admin-row-actions{gap:.5rem}
+.admin-page-admin-notifications .admin-notification-table th,.admin-page-admin-notifications .admin-notification-table td{vertical-align:middle;word-break:keep-all}
+.admin-page-admin-notifications .admin-notification-table th{white-space:nowrap}
+.admin-page-admin-notifications .admin-notification-select-cell{padding-inline:calc(var(--spacing) * 3);text-align:center;white-space:nowrap;width:1%}
+.admin-page-admin-notifications .admin-notification-status-head,.admin-page-admin-notifications .admin-notification-status-cell{width:5.5rem}
+.admin-page-admin-notifications .admin-notification-severity-head,.admin-page-admin-notifications .admin-notification-severity-cell{width:5.5rem}
+.admin-page-admin-notifications .admin-notification-source-head,.admin-page-admin-notifications .admin-notification-source-cell{width:12rem}
+.admin-page-admin-notifications .admin-notification-time-head,.admin-page-admin-notifications .admin-notification-time-cell{width:7rem}
+.admin-page-admin-notifications .admin-notification-read-head,.admin-page-admin-notifications .admin-notification-read-cell{width:6rem}
+.admin-page-admin-notifications .admin-notification-actions-head,.admin-page-admin-notifications .admin-table-actions-cell{min-width:22rem;width:1%}
+.admin-page-admin-notifications .admin-notification-message-cell{white-space:normal;overflow-wrap:anywhere}
+.admin-page-admin-notifications .admin-notification-message-cell strong{display:inline-block;margin-bottom:.15rem}
+.admin-page-admin-notifications .admin-notification-source-cell{white-space:normal;overflow-wrap:anywhere}
+.admin-page-admin-notifications .admin-notification-table .admin-table-actions-cell{overflow:visible;white-space:nowrap}
+.admin-page-admin-notifications .admin-notification-table .admin-row-actions .btn{justify-content:center;min-width:3.6rem}
 .admin-page-admin-notifications .admin-notification-table td form{align-items:center;display:flex;margin:0}
-@media (max-width:1023px){.admin-page-admin-notifications .admin-notification-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-@media (max-width:767px){.admin-page-admin-notifications .admin-notification-search-grid{grid-template-columns:1fr}.admin-page-admin-notifications .admin-notification-table :is(th,td):nth-child(2),.admin-page-admin-notifications .admin-notification-table :is(th,td):nth-child(4),.admin-page-admin-notifications .admin-notification-table :is(th,td):nth-child(6){display:none}}
+@media (max-width:1023px){.admin-page-admin-notifications .admin-notification-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-admin-notifications .admin-notification-filter-keyword,.admin-page-admin-notifications .admin-notification-filter .filtering-submit{grid-column:1 / -1}.admin-page-admin-notifications .admin-notification-filter .filtering-submit{width:100%}}
+@media (max-width:767px){.admin-page-admin-notifications .admin-notification-search-grid{grid-template-columns:1fr}.admin-page-admin-notifications .admin-notification-filter-keyword,.admin-page-admin-notifications .admin-notification-filter .filtering-submit{grid-column:auto}.admin-page-admin-notifications .admin-notification-table :is(th,td):nth-child(3),.admin-page-admin-notifications .admin-notification-table :is(th,td):nth-child(5),.admin-page-admin-notifications .admin-notification-table :is(th,td):nth-child(7){display:none}.admin-page-admin-notifications .admin-notification-status-head,.admin-page-admin-notifications .admin-notification-status-cell{width:4.75rem}.admin-page-admin-notifications .admin-notification-time-head,.admin-page-admin-notifications .admin-notification-time-cell{width:5.75rem}}

@@ -525,6 +525,11 @@ function sr_notification_admin_query_parts(PDO $pdo, int $accountId, array $filt
         $where[] = $condition;
         $params = array_merge($params, $conditionParams);
     }
+    if (($filters['read'] ?? '') === 'unread') {
+        $where[] = 'r.read_at IS NULL';
+    } elseif (($filters['read'] ?? '') === 'read') {
+        $where[] = 'r.read_at IS NOT NULL';
+    }
 
     $keyword = trim((string) ($filters['q'] ?? ''));
     if ($keyword !== '') {
@@ -562,8 +567,16 @@ function sr_notification_admin_count(PDO $pdo, int $accountId, array $filters = 
     }
 
     $queryParts = sr_notification_admin_query_parts($pdo, $accountId, $filters);
-    $stmt = $pdo->prepare('SELECT COUNT(*) AS count_value FROM sr_admin_notifications n ' . $queryParts['where_sql']);
-    $stmt->execute($queryParts['params']);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS count_value
+         FROM sr_admin_notifications n
+         LEFT JOIN sr_admin_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
+         ' . $queryParts['where_sql']
+    );
+    foreach (array_merge($queryParts['params'], ['read_account_id' => $accountId]) as $key => $value) {
+        $stmt->bindValue($key, $value);
+    }
+    $stmt->execute();
     $row = $stmt->fetch();
 
     return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
@@ -626,11 +639,13 @@ function sr_notification_admin_operation_status_counts(PDO $pdo, int $accountId,
 
 function sr_notification_admin_header_summary(PDO $pdo, int $accountId, int $limit = 5): array
 {
-    $filters = ['status' => ['open'], 'severity' => [], 'field' => 'all', 'q' => ''];
+    $filters = ['status' => ['open'], 'severity' => [], 'read' => 'unread', 'field' => 'all', 'q' => ''];
     $limit = max(1, min(10, $limit));
+    $unreadCount = sr_notification_admin_count($pdo, $accountId, $filters);
 
     return [
-        'open_count' => sr_notification_admin_count($pdo, $accountId, $filters),
+        'open_count' => $unreadCount,
+        'unread_count' => $unreadCount,
         'items' => sr_notification_admin_rows($pdo, $accountId, $filters, $limit, 0),
         'url' => sr_url('/admin/admin-notifications'),
     ];

@@ -107,9 +107,9 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 #hd_top .hd_breadcrumb strong:where([data-theme=dark],[data-theme=dark] *){color:var(--color-default-900)}
 #hd_top .hd_top_right,#tnb>ul{align-items:center;gap:calc(var(--spacing) * 2);display:flex}
 #tnb .tnb_li{position:relative}
-#tnb .tnb_li>a,#tnb .tnb_li>button,#tnb .admin-profile-dropdown>summary{height:calc(var(--spacing) * 9);border-radius:var(--radius-lg);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);padding-inline:calc(var(--spacing) * 3);font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);color:var(--color-default-700);transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);align-items:center;display:inline-flex}
-@media (hover:hover){:is(#tnb .tnb_li>a,#tnb .tnb_li>button,#tnb .admin-profile-dropdown>summary):hover{background-color:var(--color-default-100)}}
-#tnb .tnb_li>a.tnb_icon_btn,#tnb .tnb_li>button.tnb_icon_btn,#tnb .admin-profile-dropdown>summary.tnb_icon_btn{width:calc(var(--spacing) * 9);padding-inline:calc(var(--spacing) * 0);justify-content:center}
+#tnb .tnb_li>a,#tnb .tnb_li>button,#tnb .admin-profile-dropdown>summary,#tnb .admin-notification-dropdown>summary{height:calc(var(--spacing) * 9);border-radius:var(--radius-lg);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);padding-inline:calc(var(--spacing) * 3);font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-medium);color:var(--color-default-700);transition-timing-function:var(--default-transition-timing-function);transition-duration:var(--default-transition-duration);align-items:center;display:inline-flex}
+@media (hover:hover){:is(#tnb .tnb_li>a,#tnb .tnb_li>button,#tnb .admin-profile-dropdown>summary,#tnb .admin-notification-dropdown>summary):hover{background-color:var(--color-default-100)}}
+#tnb .tnb_li>a.tnb_icon_btn,#tnb .tnb_li>button.tnb_icon_btn,#tnb .admin-profile-dropdown>summary.tnb_icon_btn,#tnb .admin-notification-dropdown>summary.tnb_icon_btn{width:calc(var(--spacing) * 9);padding-inline:calc(var(--spacing) * 0);justify-content:center}
 #tnb .admin-profile-dropdown{position:relative}
 #tnb .admin-profile-dropdown>summary{cursor:pointer;gap:calc(var(--spacing) * 2);list-style:none;user-select:none}
 #tnb .admin-profile-dropdown>summary.tnb_icon_btn{width:auto;min-width:calc(var(--spacing) * 9);max-width:14rem;padding-inline:calc(var(--spacing) * 3)}
@@ -1329,15 +1329,18 @@ body.admin-sidebar-condensed #gnb .admin-nav-panel.hidden{display:block!importan
     color: var(--admin-muted-text);
 }
 
-.admin-toolbar-badge{position:absolute;top:.15rem;right:.15rem;min-width:1.1rem;height:1.1rem;padding:0 .25rem;border-radius:999px;background:var(--color-danger-600);color:#fff;font-size:.68rem;font-weight:700;line-height:1.1rem;text-align:center}
+.admin-toolbar-badge{position:absolute;top:-.35rem;right:-.35rem;min-width:1.15rem;height:1.15rem;padding:0 .28rem;border:2px solid var(--color-card);border-radius:999px;background:var(--color-danger-600);color:#fff;font-size:.65rem;font-weight:700;line-height:calc(1.15rem - 4px);text-align:center}
 .admin-notification-dropdown{position:relative}
-.admin-notification-dropdown>summary{list-style:none}
+.admin-notification-dropdown>summary{cursor:pointer;list-style:none;position:relative}
 .admin-notification-dropdown>summary::-webkit-details-marker{display:none}
-.admin-notification-menu{inset:auto 0 auto auto;min-width:min(22rem,calc(100vw - 2rem));padding:0}
-.admin-notification-menu-header{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid var(--admin-border-color)}
-.admin-notification-menu ul{list-style:none;margin:0;padding:.25rem 0}
-.admin-notification-menu li a{display:grid;gap:.25rem;padding:.65rem 1rem;text-decoration:none}
-.admin-notification-menu li a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.admin-notification-menu li a small{color:var(--admin-muted-text)}
+.admin-notification-menu{top:calc(100% + calc(var(--spacing) * 2));right:0;z-index:var(--admin-z-layout-popover);width:20rem;max-width:calc(100vw - calc(var(--spacing) * 4));border-radius:var(--radius);border-style:solid;border-width:1px;border-color:var(--color-default-300);background-color:var(--color-card);box-shadow:var(--shadow);padding:0;position:absolute;overflow:hidden}
+.admin-notification-menu-header{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.85rem 1rem;border-bottom:1px solid var(--admin-border-color)}
+.admin-notification-menu-header strong{font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-bold)}
+.admin-notification-menu-header span{border-radius:999px;background-color:var(--color-default-100);color:var(--color-default-700);font-size:var(--text-xs);line-height:var(--text-xs--line-height);font-weight:var(--font-weight-semibold);padding:.2rem .55rem;white-space:nowrap}
+.admin-notification-menu ul{list-style:none;margin:0;max-height:18rem;overflow-y:auto;padding:.25rem 0}
+.admin-notification-menu li a{display:grid;gap:.3rem;padding:.8rem 1rem;text-decoration:none;color:var(--color-default-800)}
+.admin-notification-menu li a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:var(--font-weight-semibold)}
+.admin-notification-menu li a small{color:var(--admin-muted-text);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
 .admin-notification-menu-empty{padding:.85rem 1rem;color:var(--admin-muted-text)}
-.admin-notification-menu-all{display:block;padding:.75rem 1rem;border-top:1px solid var(--admin-border-color);text-align:center;text-decoration:none}
+.admin-notification-menu-all{display:block;padding:.8rem 1rem;border-top:1px solid var(--admin-border-color);text-align:center;text-decoration:none;font-size:var(--text-sm);line-height:var(--text-sm--line-height);font-weight:var(--font-weight-semibold);color:var(--color-primary)}
+@media (hover:hover){.admin-notification-menu li a:hover,.admin-notification-menu-all:hover{background-color:var(--color-default-100);color:var(--color-default-950)}}
