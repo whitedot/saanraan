@@ -48,6 +48,9 @@ $errors = sr_content_validate_input($pdo, $values, $pageId, $publicBannerIds, $p
 if ($pageId > 0 && !is_array($existingContent)) {
     $errors[] = '수정할 콘텐츠를 찾을 수 없습니다.';
 }
+if (is_array($existingContent) && (string) ($existingContent['status'] ?? '') === 'deleted') {
+    $errors[] = sr_t('content::redaction.deleted_content_restore_forbidden');
+}
 if ((int) $seriesValues['series_id'] > 0) {
     $selectedSeries = sr_content_series_by_id($pdo, (int) $seriesValues['series_id']);
     if (!is_array($selectedSeries) || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)) {

@@ -4535,3 +4535,205 @@ function sr_content_hide(PDO $pdo, int $pageId, int $accountId): bool
         throw $exception;
     }
 }
+
+function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): array
+{
+    $page = sr_content_by_id($pdo, $pageId);
+    if (!is_array($page) || (string) ($page['status'] ?? '') === 'deleted') {
+        return [
+            'deleted' => false,
+            'body_files_deleted' => 0,
+            'cover_image_deleted' => false,
+            'cover_image_failed' => false,
+            'files_deleted' => 0,
+            'files_failed' => 0,
+        ];
+    }
+
+    $now = sr_now();
+    $deletedTitle = sr_t('content::redaction.deleted_content_title');
+    $deletedBody = sr_t('content::redaction.deleted_content_body');
+    $deletedFileName = sr_t('content::redaction.deleted_file_name');
+    $coverImageCleanup = ['attempted' => false, 'deleted' => false, 'failed' => false, 'reference' => ''];
+    $deletedBodyFiles = 0;
+    $deletedFiles = 0;
+    $failedFiles = 0;
+
+    $pdo->beginTransaction();
+    try {
+        $coverImageUrl = (string) ($page['cover_image_url'] ?? '');
+        if ($coverImageUrl !== '') {
+            $coverImageCleanup = sr_content_delete_cover_image_storage($pdo, $coverImageUrl, $pageId, 'content_delete_cover_image', $pageId);
+        }
+
+        $fileRows = sr_content_group_file_rows_for_delete($pdo, [$pageId]);
+
+        foreach ($fileRows as $fileRow) {
+            $driver = sr_content_file_storage_driver($fileRow);
+            $key = sr_content_file_storage_key($fileRow);
+            if ($key !== '' && !sr_storage_delete($driver, $key)) {
+                $failedFiles++;
+                sr_content_record_storage_cleanup_failure($pdo, 'content_delete_file', $pageId, $driver, $key, '콘텐츠 삭제 후 첨부 파일 저장소 정리에 실패했습니다.');
+            } elseif ($key !== '') {
+                $deletedFiles++;
+            }
+        }
+
+        $fileIds = array_values(array_unique(array_filter(array_map(
+            static fn (array $fileRow): int => (int) ($fileRow['id'] ?? 0),
+            $fileRows
+        ), static fn (int $fileId): bool => $fileId > 0)));
+        if ($fileIds !== []) {
+            $filePlaceholders = implode(',', array_fill(0, count($fileIds), '?'));
+            $stmt = $pdo->prepare(
+                "UPDATE sr_content_files
+                 SET title = ?,
+                     original_name = ?,
+                     stored_name = '',
+                     storage_path = '',
+                     storage_key = '',
+                     mime_type = 'application/octet-stream',
+                     size_bytes = 0,
+                     checksum_sha256 = ?,
+                     status = 'deleted',
+                     asset_download_enabled = 0,
+                     asset_module = '',
+                     asset_download_amount = 0,
+                     asset_download_amounts_json = '{}',
+                     asset_download_group_policies_json = '',
+                     asset_download_policy_set_id = 0,
+                     updated_at = ?
+                 WHERE id IN (" . $filePlaceholders . ")"
+            );
+            $params = [$deletedFileName, $deletedFileName, str_repeat('0', 64), $now];
+            foreach ($fileIds as $fileId) {
+                $params[] = $fileId;
+            }
+            $stmt->execute($params);
+        }
+
+        if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
+            $stmt = $pdo->prepare("UPDATE sr_content_file_links SET status = 'hidden', updated_at = :updated_at WHERE content_id = :content_id");
+            $stmt->execute([
+                'updated_at' => $now,
+                'content_id' => $pageId,
+            ]);
+        }
+
+        if (sr_content_optional_table_exists($pdo, 'sr_content_revisions')) {
+            $stmt = $pdo->prepare(
+                "UPDATE sr_content_revisions
+                 SET title = :title,
+                     summary = '',
+                     cover_image_url = '',
+                     body_text = :body_text,
+                     body_format = 'plain',
+                     status = 'deleted'
+                 WHERE content_id = :content_id"
+            );
+            $stmt->execute([
+                'title' => $deletedTitle,
+                'body_text' => $deletedBody,
+                'content_id' => $pageId,
+            ]);
+        }
+
+        if (sr_content_optional_table_exists($pdo, 'sr_content_submissions')) {
+            $stmt = $pdo->prepare(
+                "UPDATE sr_content_submissions
+                 SET title = :title,
+                     summary = '',
+                     body_text = :body_text,
+                     body_format = 'plain',
+                     review_note = ''
+                 WHERE content_id = :content_id"
+            );
+            $stmt->execute([
+                'title' => $deletedTitle,
+                'body_text' => $deletedBody,
+                'content_id' => $pageId,
+            ]);
+        }
+
+        if (sr_content_file_download_log_snapshot_columns_exist($pdo)) {
+            $stmt = $pdo->prepare(
+                "UPDATE sr_content_file_download_logs
+                 SET content_title_snapshot = :content_title_snapshot,
+                     content_slug_snapshot = '',
+                     file_title_snapshot = :file_title_snapshot,
+                     file_original_name_snapshot = :file_original_name_snapshot
+                 WHERE content_id = :content_id"
+            );
+            $stmt->execute([
+                'content_title_snapshot' => $deletedTitle,
+                'file_title_snapshot' => $deletedFileName,
+                'file_original_name_snapshot' => $deletedFileName,
+                'content_id' => $pageId,
+            ]);
+        }
+
+        if (sr_content_optional_table_exists($pdo, 'sr_content_link_refs')) {
+            $stmt = $pdo->prepare('DELETE FROM sr_content_link_refs WHERE content_id = :content_id');
+            $stmt->execute(['content_id' => $pageId]);
+        }
+
+        sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
+        $deletedBodyFiles = sr_content_cleanup_body_files_for_deleted_content($pdo, [$pageId]);
+
+        $stmt = $pdo->prepare(
+            "UPDATE sr_content_items
+             SET title = :title,
+                 summary = '',
+                 cover_image_url = '',
+                 body_text = :body_text,
+                 body_format = 'plain',
+                 status = 'deleted',
+                 asset_access_enabled = 0,
+                 asset_module = '',
+                 asset_access_amount = 0,
+                 asset_access_amounts_json = '{}',
+                 asset_access_group_policies_json = '',
+                 asset_access_policy_set_id = 0,
+                 asset_action_enabled = 0,
+                 asset_action_module = '',
+                 asset_action_amount = 0,
+                 asset_action_amounts_json = '{}',
+                 asset_action_group_policies_json = '',
+                 asset_action_policy_set_id = 0,
+                 banner_before_content_id = 0,
+                 banner_after_content_id = 0,
+                 popup_layer_id = 0,
+                 seo_title = '',
+                 seo_description = '',
+                 updated_by = :updated_by,
+                 published_at = NULL,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND status <> 'deleted'"
+        );
+        $stmt->execute([
+            'title' => $deletedTitle,
+            'body_text' => $deletedBody,
+            'updated_by' => $accountId,
+            'updated_at' => $now,
+            'id' => $pageId,
+        ]);
+
+        $pdo->commit();
+
+        return [
+            'deleted' => $stmt->rowCount() > 0,
+            'body_files_deleted' => $deletedBodyFiles,
+            'cover_image_deleted' => !empty($coverImageCleanup['deleted']),
+            'cover_image_failed' => !empty($coverImageCleanup['failed']),
+            'files_deleted' => $deletedFiles,
+            'files_failed' => $failedFiles,
+        ];
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $exception;
+    }
+}

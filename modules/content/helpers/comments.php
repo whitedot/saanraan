@@ -390,6 +390,11 @@ function sr_content_update_comment_content(PDO $pdo, int $commentId, array $valu
 
 function sr_content_update_comment_status(PDO $pdo, int $commentId, string $status): void
 {
+    if ($status === 'deleted') {
+        sr_content_delete_comment_redacted($pdo, $commentId);
+        return;
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE sr_content_comments
          SET status = :status,
@@ -398,6 +403,24 @@ function sr_content_update_comment_status(PDO $pdo, int $commentId, string $stat
     );
     $stmt->execute([
         'status' => $status,
+        'updated_at' => sr_now(),
+        'id' => $commentId,
+    ]);
+}
+
+function sr_content_delete_comment_redacted(PDO $pdo, int $commentId): void
+{
+    $snapshotSql = sr_content_comments_author_public_name_snapshot_column_exists($pdo) ? "author_public_name_snapshot = ''," : '';
+    $stmt = $pdo->prepare(
+        "UPDATE sr_content_comments
+         SET body_text = :body_text,
+             " . $snapshotSql . "
+             status = 'deleted',
+             updated_at = :updated_at
+         WHERE id = :id"
+    );
+    $stmt->execute([
+        'body_text' => sr_t('content::redaction.deleted_comment_body'),
         'updated_at' => sr_now(),
         'id' => $commentId,
     ]);

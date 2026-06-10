@@ -961,11 +961,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         ?>
                                         <a href="<?php echo sr_e(sr_url('/admin/content/edit?id=' . rawurlencode((string) $page['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                         <button type="button" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCopyModalId); ?>" data-overlay="#<?php echo sr_e($contentCopyModalId); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
-                                        <?php if ((string) $page['status'] !== 'hidden') { ?>
+                                        <?php if (!in_array((string) $page['status'], ['hidden', 'deleted'], true)) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/admin/content/delete')); ?>" class="admin-inline-form">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
-                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('content::ui.text.0eeb676f')); ?>" title="<?php echo sr_e(sr_t('content::ui.text.0eeb676f')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                             </form>
                                         <?php } ?>
                                     </div>

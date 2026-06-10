@@ -33,3 +33,7 @@
 - `modules/community/actions/admin-posts.php`, `modules/community/views/admin-posts.php`: 관리자 단건 숨김 처리에 7일/15일/30일/90일/영구 기간과 사유/메모 입력 모달을 추가했다. 일괄 숨김은 기본 30일 운영 검토 메타데이터를 저장한다.
 - `modules/community/helpers/posts.php`: 숨김 메타데이터 컬럼이 적용된 환경에서는 상태 변경 시 숨김 메타데이터를 저장하고, DB 업데이트 전 환경에서는 기존 상태 변경으로 fallback한다.
 - `modules/community/module.php`, `core/actions/install.php`: 커뮤니티 모듈 DB 업데이트 버전과 신규 설치 기본 버전을 `2026.06.017`로 올렸다.
+- `modules/content/helpers.php`, `modules/content/actions/admin-content-delete.php`: 콘텐츠 관리자 삭제를 숨김 처리에서 `deleted` 상태 전환과 원문 제거 처리로 바꿨다. 제목, 요약, 본문, SEO, 커버 이미지, 본문 이미지, 임베드/링크 참조, revision 원문, 회원 제출 원문, 다운로드 로그 snapshot, 다운로드 첨부 파일 원본명과 저장소 참조를 마스킹하거나 정리한다.
+- `modules/content/helpers/comments.php`, `modules/content/actions/comment-delete.php`: 콘텐츠 댓글 삭제 시 상태만 바꾸지 않고 댓글 본문과 작성자 표시 snapshot을 제거한다.
+- `modules/content/actions/admin-content-save.php`, `modules/content/actions/admin-contents.php`, `modules/content/views/admin-contents.php`: 원문 제거가 끝난 삭제 콘텐츠는 저장/일괄 상태 변경으로 공개·초안·숨김 상태로 복구할 수 없도록 서버 검증과 관리자 행 액션을 맞췄다.
+- `modules/content/module.php`, `core/actions/install.php`: 콘텐츠 모듈 파일 전용 버전과 신규 설치 기본 버전을 `2026.06.018`로 올렸다.

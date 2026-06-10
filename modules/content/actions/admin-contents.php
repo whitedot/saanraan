@@ -88,6 +88,12 @@ if (sr_request_method() === 'POST') {
         if (count($selectedContents) !== count($selectedIds)) {
             $errors[] = '선택한 콘텐츠 중 찾을 수 없는 항목이 있습니다. 목록을 새로고침한 뒤 다시 선택하세요.';
         }
+        foreach ($selectedContents as $selectedContent) {
+            if ((string) ($selectedContent['status'] ?? '') === 'deleted') {
+                $errors[] = sr_t('content::redaction.deleted_content_restore_forbidden');
+                break;
+            }
+        }
     }
 
     if ($errors === [] && $selectedContents !== []) {
