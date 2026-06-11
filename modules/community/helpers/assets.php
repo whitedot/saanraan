@@ -1490,8 +1490,7 @@ function sr_community_asset_board_setting(PDO $pdo, array $board, array $setting
         }
     }
 
-    $defaultSettings = sr_community_default_settings();
-    $value = $defaultSettings[$key] ?? $default;
+    $value = $settings[$key] ?? $default;
     if (is_array($value)) {
         if (str_ends_with($key, '_amounts_json')) {
             return sr_community_asset_amounts_json_from_map(sr_community_asset_amounts_from_value($value));

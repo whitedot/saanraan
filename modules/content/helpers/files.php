@@ -420,9 +420,9 @@ function sr_content_upload_file(PDO $pdo, int $pageId, int $accountId, array $fi
 
         $stmt = $pdo->prepare(
             "INSERT INTO sr_content_files
-                (content_id, title, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount, asset_download_amounts_json, asset_download_group_policies_json, asset_download_policy_set_id, asset_charge_policy, created_by, created_at, updated_at)
+                (content_id, title, original_name, stored_name, storage_path, storage_driver, storage_key, mime_type, size_bytes, checksum_sha256, status, asset_download_enabled, asset_module, asset_download_amount, asset_download_settlement_currency, asset_download_amounts_json, asset_download_group_policies_json, asset_download_policy_set_id, asset_charge_policy, created_by, created_at, updated_at)
              VALUES
-                (:content_id, :title, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, 'active', :asset_download_enabled, :asset_module, :asset_download_amount, :asset_download_amounts_json, :asset_download_group_policies_json, :asset_download_policy_set_id, :asset_charge_policy, :created_by, :created_at, :updated_at)"
+                (:content_id, :title, :original_name, :stored_name, :storage_path, :storage_driver, :storage_key, :mime_type, :size_bytes, :checksum_sha256, 'active', :asset_download_enabled, :asset_module, :asset_download_amount, :asset_download_settlement_currency, :asset_download_amounts_json, :asset_download_group_policies_json, :asset_download_policy_set_id, :asset_charge_policy, :created_by, :created_at, :updated_at)"
         );
         $now = sr_now();
         $stmt->execute([
@@ -439,6 +439,7 @@ function sr_content_upload_file(PDO $pdo, int $pageId, int $accountId, array $fi
             'asset_download_enabled' => (int) $values['asset_download_enabled'],
             'asset_module' => (string) $values['asset_module'],
             'asset_download_amount' => (int) $values['asset_download_amount'],
+            'asset_download_settlement_currency' => sr_site_default_currency($pdo),
             'asset_download_amounts_json' => (string) ($values['asset_download_amounts_json'] ?? '{}'),
             'asset_download_group_policies_json' => (string) ($values['asset_download_group_policies_json'] ?? ''),
             'asset_download_policy_set_id' => (int) ($values['asset_download_policy_set_id'] ?? 0),

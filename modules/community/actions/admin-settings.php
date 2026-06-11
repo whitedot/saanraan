@@ -213,6 +213,7 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === [] && is_array($communityModule ?? null)) {
+            $defaultSettlementCurrency = sr_site_default_currency($pdo);
             $rows = [
                 ['level_enabled', $levelEnabled ? '1' : '0', 'bool'],
                 ['level_max_value', (string) $levelMaxValue, 'int'],
@@ -249,18 +250,21 @@ if (sr_request_method() === 'POST') {
                 ['write_charge_enabled', $assetSettings['write_charge_enabled'] ? '1' : '0', 'bool'],
                 ['write_charge_asset_module', (string) $assetSettings['write_charge_asset_module'], 'string'],
                 ['write_charge_amount', (string) $assetSettings['write_charge_amount'], 'int'],
+                ['write_charge_settlement_currency', $defaultSettlementCurrency, 'string'],
                 ['write_charge_amounts_json', (string) $assetSettings['write_charge_amounts_json'], 'json'],
                 ['write_charge_group_policies_json', (string) $assetSettings['write_charge_group_policies_json'], 'json'],
                 ['write_charge_policy_set_id', (string) $assetSettings['write_charge_policy_set_id'], 'int'],
                 ['comment_charge_enabled', $assetSettings['comment_charge_enabled'] ? '1' : '0', 'bool'],
                 ['comment_charge_asset_module', (string) $assetSettings['comment_charge_asset_module'], 'string'],
                 ['comment_charge_amount', (string) $assetSettings['comment_charge_amount'], 'int'],
+                ['comment_charge_settlement_currency', $defaultSettlementCurrency, 'string'],
                 ['comment_charge_amounts_json', (string) $assetSettings['comment_charge_amounts_json'], 'json'],
                 ['comment_charge_group_policies_json', (string) $assetSettings['comment_charge_group_policies_json'], 'json'],
                 ['comment_charge_policy_set_id', (string) $assetSettings['comment_charge_policy_set_id'], 'int'],
                 ['paid_read_enabled', $assetSettings['paid_read_enabled'] ? '1' : '0', 'bool'],
                 ['paid_read_asset_module', (string) $assetSettings['paid_read_asset_module'], 'string'],
                 ['paid_read_amount', (string) $assetSettings['paid_read_amount'], 'int'],
+                ['paid_read_settlement_currency', $defaultSettlementCurrency, 'string'],
                 ['paid_read_amounts_json', (string) $assetSettings['paid_read_amounts_json'], 'json'],
                 ['paid_read_group_policies_json', (string) $assetSettings['paid_read_group_policies_json'], 'json'],
                 ['paid_read_policy_set_id', (string) $assetSettings['paid_read_policy_set_id'], 'int'],
@@ -269,6 +273,7 @@ if (sr_request_method() === 'POST') {
                 ['paid_attachment_download_enabled', $assetSettings['paid_attachment_download_enabled'] ? '1' : '0', 'bool'],
                 ['paid_attachment_download_asset_module', (string) $assetSettings['paid_attachment_download_asset_module'], 'string'],
                 ['paid_attachment_download_amount', (string) $assetSettings['paid_attachment_download_amount'], 'int'],
+                ['paid_attachment_download_settlement_currency', $defaultSettlementCurrency, 'string'],
                 ['paid_attachment_download_amounts_json', (string) $assetSettings['paid_attachment_download_amounts_json'], 'json'],
                 ['paid_attachment_download_group_policies_json', (string) $assetSettings['paid_attachment_download_group_policies_json'], 'json'],
                 ['paid_attachment_download_policy_set_id', (string) $assetSettings['paid_attachment_download_policy_set_id'], 'int'],

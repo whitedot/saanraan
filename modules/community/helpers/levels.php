@@ -118,7 +118,7 @@ function sr_community_normalize_level_value(mixed $value, ?array $settings = nul
 
 function sr_community_settings(PDO $pdo): array
 {
-    return sr_community_normalize_settings(sr_module_settings($pdo, 'community'));
+    return sr_community_normalize_settings(sr_module_settings($pdo, 'community'), null, $pdo);
 }
 
 function sr_community_normalize_settings(array $settings, ?array $site = null, ?PDO $pdo = null): array
@@ -169,6 +169,18 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
             ? sr_community_asset_module_value_from_keys(sr_community_asset_module_keys_from_value($settings[$assetPrefix . '_asset_module'] ?? '', true), true)
             : sr_community_asset_module_key_or_empty((string) ($settings[$assetPrefix . '_asset_module'] ?? ''));
         $settings[$assetPrefix . '_amount'] = min(999999999, max(0, (int) ($settings[$assetPrefix . '_amount'] ?? 0)));
+        if (in_array($assetPrefix, ['write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'], true)) {
+            $settlementCurrency = (string) ($settings[$assetPrefix . '_settlement_currency'] ?? '');
+            $settings[$assetPrefix . '_settlement_currency'] = $pdo instanceof PDO
+                ? sr_community_asset_settlement_currency($pdo, ['asset_settlement_currency' => $settlementCurrency])
+                : (function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency)));
+            if (
+                (string) $settings[$assetPrefix . '_settlement_currency'] === ''
+                || (function_exists('sr_currency_is_known') && !sr_currency_is_known((string) $settings[$assetPrefix . '_settlement_currency']))
+            ) {
+                $settings[$assetPrefix . '_settlement_currency'] = 'KRW';
+            }
+        }
         $settings[$assetPrefix . '_group_policies_json'] = sr_community_asset_group_policy_json_from_value($settings[$assetPrefix . '_group_policies_json'] ?? '');
         $settings[$assetPrefix . '_policy_set_id'] = max(0, (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0));
         if (sr_community_asset_prefix_uses_composite($assetPrefix)) {
