@@ -108,7 +108,23 @@ function sr_community_uploaded_file_present(mixed $file): bool
     return isset($file['error']) && (int) $file['error'] !== UPLOAD_ERR_NO_FILE;
 }
 
-function sr_community_privacy_consent_post_targets_from_request(): array
+function sr_community_privacy_consent_body_upload_targets_from_values(array $values): array
+{
+    if ((string) ($values['body_format'] ?? 'plain') !== 'html') {
+        return [];
+    }
+
+    $bodyText = (string) ($values['body_text'] ?? '');
+    foreach (sr_community_body_file_refs_from_html($bodyText) as $ref) {
+        if ((string) ($ref['type'] ?? '') === 'tmp') {
+            return ['attachment_upload'];
+        }
+    }
+
+    return [];
+}
+
+function sr_community_privacy_consent_post_targets_from_request(array $values = []): array
 {
     $targets = ['post'];
     if (sr_community_uploaded_file_present($_FILES['image_attachment'] ?? null)
@@ -116,7 +132,7 @@ function sr_community_privacy_consent_post_targets_from_request(): array
         $targets[] = 'attachment_upload';
     }
 
-    return $targets;
+    return array_values(array_unique(array_merge($targets, sr_community_privacy_consent_body_upload_targets_from_values($values))));
 }
 
 function sr_community_privacy_consent_validation_errors(PDO $pdo, array $board, array $targetKeys): array

@@ -64,7 +64,8 @@
       url: url,
       fieldName: textarea.dataset.srEditorUploadField || 'upload',
       csrfToken: textarea.dataset.srEditorUploadCsrf || '',
-      uploadToken: textarea.dataset.srEditorUploadToken || ''
+      uploadToken: textarea.dataset.srEditorUploadToken || '',
+      form: textarea.form || null
     };
   }
 
@@ -185,6 +186,12 @@
         }
         if (upload.uploadToken) {
           data.append('upload_token', upload.uploadToken);
+        }
+        if (upload.form) {
+          var consent = upload.form.querySelector('input[name="community_privacy_consent_accepted"]');
+          if (consent && consent.checked) {
+            data.append('community_privacy_consent_accepted', consent.value || '1');
+          }
         }
         xhr.send(data);
       });

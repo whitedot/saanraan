@@ -28,6 +28,8 @@ $mustContain('modules/community/helpers/privacy-consents.php', [
     'sr_community_privacy_consent_validation_errors',
     'sr_community_record_submission_consents',
     'sr_community_submission_consents_table_exists',
+    'sr_community_privacy_consent_body_upload_targets_from_values',
+    '($ref[\'type\'] ?? \'\') === \'tmp\'',
     '$requiredActionKeys = sr_community_privacy_consent_required_actions($pdo, $board, $actionKeys)',
     'foreach ($requiredActionKeys as $actionKey)',
     '$idSuffix',
@@ -49,14 +51,20 @@ $mustContain('modules/community/views/admin-boards.php', [
     'sr_community_privacy_consent_target_keys',
 ]);
 $mustContain('modules/community/actions/write.php', [
-    'sr_community_privacy_consent_post_targets_from_request',
+    'sr_community_privacy_consent_post_targets_from_request($values)',
     'sr_community_privacy_consent_validation_errors',
     'sr_community_record_submission_consents',
 ]);
 $mustContain('modules/community/actions/edit.php', [
-    "['post']",
+    'sr_community_privacy_consent_post_targets_from_request($values)',
     'sr_community_privacy_consent_validation_errors',
     'sr_community_record_submission_consents',
+]);
+$mustContain('modules/community/actions/body-file-upload.php', [
+    'sr_community_privacy_consent_validation_errors($pdo, $board, [\'attachment_upload\'])',
+]);
+$mustContain('modules/ckeditor/assets/saanraan-ckeditor.js', [
+    'community_privacy_consent_accepted',
 ]);
 $mustContain('modules/community/actions/comment.php', [
     "['comment']",

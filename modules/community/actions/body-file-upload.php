@@ -39,6 +39,10 @@ try {
     if (!is_array($upload)) {
         throw new RuntimeException('업로드할 본문 이미지를 선택하세요.');
     }
+    $privacyConsentErrors = sr_community_privacy_consent_validation_errors($pdo, $board, ['attachment_upload']);
+    if ($privacyConsentErrors !== []) {
+        throw new RuntimeException((string) $privacyConsentErrors[0]);
+    }
 
     $stored = sr_community_upload_body_file($pdo, (int) $account['id'], $board, $upload, sr_post_string('upload_token', 64), $post);
     try {

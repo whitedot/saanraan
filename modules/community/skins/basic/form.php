@@ -12,17 +12,16 @@ $fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) 
 $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $secretPostsEnabled = !empty($secretPostsEnabled);
-$communityPrivacyConsentDisplayTargets = ['post'];
-$communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_for($pdo, $board, 'post');
-if (!isset($postIdField)
-    && ($imageUploadEnabled || $fileUploadEnabled)
-    && sr_community_privacy_consent_required_for($pdo, $board, 'attachment_upload')) {
-    $communityPrivacyConsentDisplayTargets[] = 'attachment_upload';
-}
 $ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
 $communityEditorToolbarPreset = $pdo instanceof PDO ? sr_community_post_toolbar_preset($pdo, $settings) : 'community_post_basic';
 $editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
 $communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="' . sr_e($communityEditorToolbarPreset) . '" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
+$communityPrivacyConsentDisplayTargets = ['post'];
+if (($ckeditorEnabled || (!isset($postIdField) && ($imageUploadEnabled || $fileUploadEnabled)))
+    && sr_community_privacy_consent_required_for($pdo, $board, 'attachment_upload')) {
+    $communityPrivacyConsentDisplayTargets[] = 'attachment_upload';
+}
+$communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_actions($pdo, $board, $communityPrivacyConsentDisplayTargets) !== [];
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,
