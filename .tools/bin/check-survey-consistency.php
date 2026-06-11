@@ -78,6 +78,13 @@ foreach (['INFORMATION_SCHEMA.COLUMNS', 'member_group_keys_json', 'DO 0', 'INFOR
         'Survey 2026.06.003 update must be safe to retry after partial schema drift'
     );
 }
+foreach (['$skinKey = sr_survey_clean_key', '$settings[\'skin_key\'] = $skinKey'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/helpers.php',
+        $needle,
+        'Survey settings POST validation must preserve submitted skin key until validation'
+    );
+}
 sr_survey_check_contains(
     'modules/survey/privacy-cleanup.php',
     "dedupe_key = CONCAT(\\'anonymized:survey_reward:\\', id)",

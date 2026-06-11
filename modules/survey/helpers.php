@@ -213,8 +213,9 @@ function sr_survey_settings(PDO $pdo): array
 
 function sr_survey_settings_from_post(): array
 {
-    return sr_survey_normalize_settings([
-        'skin_key' => sr_survey_clean_key(sr_post_string('skin_key', 40), 40),
+    $skinKey = sr_survey_clean_key(sr_post_string('skin_key', 40), 40);
+    $settings = sr_survey_normalize_settings([
+        'skin_key' => $skinKey,
         'default_status' => sr_post_string('default_status', 20),
         'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
         'default_consent_required' => ($_POST['default_consent_required'] ?? '') === '1',
@@ -222,6 +223,9 @@ function sr_survey_settings_from_post(): array
         'default_response_limit_period_seconds' => sr_post_string('default_response_limit_period_seconds', 20),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
+    $settings['skin_key'] = $skinKey;
+
+    return $settings;
 }
 
 function sr_survey_settings_validation_errors(array $settings): array
