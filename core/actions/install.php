@@ -228,6 +228,7 @@ $values = [
     'base_url' => '',
     'timezone' => 'Asia/Seoul',
     'default_locale' => 'ko',
+    'default_currency' => 'KRW',
     'main_page_path' => '/',
     'member_login_identifier' => 'both',
     'admin_login_id' => '',
@@ -428,6 +429,11 @@ if (sr_request_method() === 'POST') {
         $addInstallError('기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.', 'basic');
     }
 
+    $values['default_currency'] = sr_normalize_currency_code($values['default_currency']);
+    if (!sr_currency_is_known($values['default_currency'])) {
+        $addInstallError('기본 통화 값이 올바르지 않습니다.', 'basic');
+    }
+
     if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
         $addInstallError('공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.', 'basic');
     }
@@ -568,7 +574,7 @@ if (sr_request_method() === 'POST') {
                 'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
-                'site.default_currency' => ['value' => 'KRW', 'type' => 'string'],
+                'site.default_currency' => ['value' => $values['default_currency'], 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
                 'site.member_only_enabled' => ['value' => '0', 'type' => 'bool'],
                 'site.home_path' => ['value' => $values['main_page_path'], 'type' => 'string'],

@@ -260,6 +260,17 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                             </select>
                         </p>
                         <p>
+                            <label for="default_currency">기본 통화 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <select id="default_currency" name="default_currency" required data-summary-source="default_currency">
+                                <?php foreach (array_keys(sr_known_currency_min_units()) as $currencyCode) { ?>
+                                    <option value="<?php echo sr_e($currencyCode); ?>"<?php echo $values['default_currency'] === $currencyCode ? ' selected' : ''; ?>>
+                                        <?php echo sr_e($currencyCode); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                            <span class="sr-install-help">설치 후 일반 설정에서는 바꿀 수 없습니다. 기존 가격과 로그는 이 값으로 변환되지 않습니다.</span>
+                        </p>
+                        <p>
                             <span class="sr-install-field-label"><?php echo sr_e(sr_t('ui.text.214b5fb8')); ?></span>
                             <input type="hidden" name="main_page_path" value="/">
                             <span class="sr-install-home-default" data-install-main-page-summary><?php echo sr_e((string) $selectedMainPageOption['label']); ?> · <?php echo sr_e((string) $selectedMainPageOption['path']); ?></span>
@@ -470,6 +481,8 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                             <dd data-summary-target="timezone"><?php echo sr_e($values['timezone']); ?></dd>
                             <dt>Locale</dt>
                             <dd data-summary-target="default_locale"><?php echo sr_e($values['default_locale']); ?></dd>
+                            <dt>통화</dt>
+                            <dd data-summary-target="default_currency"><?php echo sr_e($values['default_currency']); ?></dd>
                             <dt>초기화면</dt>
                             <dd data-summary-target="main_page_path"><?php echo sr_e((string) $selectedMainPageOption['label']); ?> · <?php echo sr_e((string) $selectedMainPageOption['path']); ?></dd>
                         </dl>

@@ -55,6 +55,8 @@ SR_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
 
 하위 경로에 설치된 환경은 base URL에 해당 경로를 포함한다. 예를 들어 `https://example.com/saanraan`처럼 실행하면 로그인 보호 redirect도 같은 하위 경로 기준으로 검증한다.
 
+설치 화면을 수정한 경우에는 `기본 정보` 단계의 기본 통화 선택지가 `sr_known_currency_min_units()` 기준과 일치하는지, 선택값이 최종 요약에 표시되는지, 설치 후 `/admin/settings`에서는 읽기 전용으로만 보이고 일반 설정 POST로 바뀌지 않는지 확인한다. 이 값은 신규 가격/정책 row 기본값이며 기존 가격·로그·구매력 snapshot 변환 스위치가 아니라는 안내도 함께 확인한다.
+
 커뮤니티 모듈이 설치되어 있어야 하는 스테이징 검수에서는 404 허용을 제거한 강한 모드로 실행한다.
 
 ```sh

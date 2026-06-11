@@ -232,6 +232,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
+            <span class="form-label">기본 통화</span>
+            <div class="admin-form-field">
+                <code><?php echo sr_e((string) ($values['default_currency'] ?? 'KRW')); ?></code>
+                <p class="admin-form-help">설치 시 선택한 값이며 일반 설정 저장으로 변경되지 않습니다. 신규 가격/정책 row의 기본값일 뿐 기존 가격, 로그, 구매력 snapshot은 변환하지 않습니다.</p>
+            </div>
+        </div>
+        <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_status', sr_t('admin::ui.status.e4163930'), $siteSettingsHelp['status']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <?php echo sr_admin_radio_toggle_group_html('admin_settings_status', 'status', ['active' => sr_t('admin::ui.text.0928a1b8'), 'maintenance' => sr_t('admin::ui.text.4fd02e48')], (string) $values['status'], true); ?>
