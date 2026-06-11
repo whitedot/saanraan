@@ -2178,8 +2178,14 @@ function sr_quiz_admin_attempt_where_sql(array $filters, array &$params): string
     $where = ['1 = 1'];
     $keyword = trim((string) ($filters['q'] ?? ''));
     if ($keyword !== '') {
-        $where[] = '(q.quiz_key LIKE :attempt_q OR q.title LIKE :attempt_q OR a.source_title_snapshot LIKE :attempt_q OR CAST(a.id AS CHAR) LIKE :attempt_q OR CAST(a.account_id AS CHAR) LIKE :attempt_q)';
-        $params['attempt_q'] = '%' . $keyword . '%';
+        $keywordColumns = ['q.quiz_key', 'q.title', 'a.source_title_snapshot', 'CAST(a.id AS CHAR)', 'CAST(a.account_id AS CHAR)'];
+        $keywordWhere = [];
+        foreach ($keywordColumns as $index => $column) {
+            $paramKey = 'attempt_q_' . (string) $index;
+            $keywordWhere[] = $column . ' LIKE :' . $paramKey;
+            $params[$paramKey] = '%' . $keyword . '%';
+        }
+        $where[] = '(' . implode(' OR ', $keywordWhere) . ')';
     }
 
     $statuses = sr_quiz_admin_filter_values((array) ($filters['status'] ?? []), ['submitted', 'scored', 'rewarded', 'failed']);

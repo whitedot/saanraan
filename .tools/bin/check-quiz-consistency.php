@@ -217,6 +217,10 @@ function sr_quiz_check_paths_and_admin(): void
         'reward_module',
         'reward_amount',
     ]);
+    sr_quiz_check_file_contains('modules/quiz/helpers.php', [
+        "attempt_q_' . (string) \$index",
+        '$keywordWhere[] = $column . \' LIKE :\' . $paramKey',
+    ]);
     sr_quiz_check_file_contains('modules/content/actions/view.php', [
         'sr_quiz_content_quizzes',
     ]);

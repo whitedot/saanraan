@@ -111,11 +111,11 @@ foreach (['UPDATE sr_survey_comments', 'author_account_id = NULL', 'survey_comme
     );
 }
 
-foreach (['SELECT a.question_key, a.choice_key', 'GROUP BY a.question_key, a.choice_key'] as $needle) {
+foreach (['SELECT r.id AS response_id, a.question_key, a.choice_key', '$choiceResponseStats[$questionKey][$choiceKey][$responseId] = true'] as $needle) {
     sr_survey_check_contains(
         'modules/survey/actions/admin-statistics.php',
         $needle,
-        'Survey choice statistics must use stable question and choice keys'
+        'Survey choice statistics must use stable question/choice keys and count each response once per choice'
     );
 }
 foreach (['GROUP BY a.question_id', 'choiceStats[(int)', 'choice_id IS NOT NULL'] as $needle) {

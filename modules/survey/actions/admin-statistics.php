@@ -30,6 +30,7 @@ if (!is_array($survey) && is_array($surveyOptions[0] ?? null)) {
 $summary = ['total_count' => 0, 'accepted_count' => 0, 'flagged_count' => 0, 'excluded_count' => 0, 'anonymous_count' => 0];
 $questions = [];
 $choiceStats = [];
+$choiceResponseStats = [];
 $numberStats = [];
 if (is_array($survey)) {
     $summaryStmt = $pdo->prepare(
@@ -49,21 +50,28 @@ if (is_array($survey)) {
     }
     $questions = sr_survey_questions_with_choices($pdo, $surveyId);
     $choiceStmt = $pdo->prepare(
-        "SELECT a.question_key, a.choice_key, COUNT(*) AS answer_count
+        "SELECT r.id AS response_id, a.question_key, a.choice_key
          FROM sr_survey_response_answers a
          INNER JOIN sr_survey_responses r ON r.id = a.response_id
          WHERE r.survey_id = :survey_id
            AND r.quality_status <> 'excluded'
            AND r.is_test = 0
            AND a.choice_key IS NOT NULL
-           AND a.choice_key <> ''
-         GROUP BY a.question_key, a.choice_key"
+           AND a.choice_key <> ''"
     );
     $choiceStmt->execute(['survey_id' => $surveyId]);
     foreach ($choiceStmt->fetchAll() as $row) {
+        $responseId = (int) ($row['response_id'] ?? 0);
         $questionKey = (string) ($row['question_key'] ?? '');
         foreach (array_filter(array_map('trim', explode(',', (string) ($row['choice_key'] ?? '')))) as $choiceKey) {
-            $choiceStats[$questionKey][$choiceKey] = (int) ($choiceStats[$questionKey][$choiceKey] ?? 0) + (int) ($row['answer_count'] ?? 0);
+            if ($responseId > 0 && $questionKey !== '' && $choiceKey !== '') {
+                $choiceResponseStats[$questionKey][$choiceKey][$responseId] = true;
+            }
+        }
+    }
+    foreach ($choiceResponseStats as $questionKey => $choiceRows) {
+        foreach ($choiceRows as $choiceKey => $responseIds) {
+            $choiceStats[$questionKey][$choiceKey] = count($responseIds);
         }
     }
     $numberStmt = $pdo->prepare(
