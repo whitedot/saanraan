@@ -224,7 +224,7 @@ foreach (['/admin/surveys/comments', 'sr_survey_admin_comments', 'sr_survey_upda
 }
 
 sr_survey_check_not_contains(
-    'modules/survey/skins/basic/view.php',
+    'modules/survey/skins/basic/complete.php',
     "sr_get_string('reward'",
     'Survey completion page must not trust reward status from query string'
 );

@@ -199,7 +199,7 @@ function sr_quiz_check_paths_and_admin(): void
         'reward_module',
         'content_source_ids',
     ]);
-    sr_quiz_check_file_contains('modules/quiz/skins/basic/view.php', [
+    sr_quiz_check_file_contains('modules/quiz/skins/basic/result.php', [
         '$submitResult[\'display_score\']',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/comment.php', [
