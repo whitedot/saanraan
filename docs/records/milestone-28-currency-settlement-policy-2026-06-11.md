@@ -26,6 +26,7 @@
 - `rounding_policy_version`은 minor unit 변환, fractional carry, 마지막 자산 정확 충당, reversal 금액 배분/잔여 처리 같은 계산 정책 version이다.
 - `exchange_rate_policy_version`은 환율 환산 표시를 열 때만 쓰는 환율 출처/만료/환산 rounding 정책 version이며 실제 차감 기준 version이 아니다.
 - `settlement_kind`는 `paid`, `free`, `paid_settled_zero`, `preview_test_zero`, `legacy_unknown` 중 하나로 시작한다.
+- `free`는 무료 접근뿐 아니라 지급/적립처럼 기준가격 settlement가 발생하지 않는 non-use row를 포함한다. 자산 증감량은 `direction`과 `asset_amount`로 별도 해석한다.
 - `legacy_unknown` row는 운영 합계에서 임의로 매출/무료 어느 쪽으로 재분류하지 않고 통계/export에서 별도 bucket으로 보여준다.
 - `legacy_unknown` row의 환불/정정은 자동 금액 환불 대상이 아니라 관리자 검토 대상으로 둔다.
 
@@ -43,7 +44,7 @@
 - 환불·취소·정정의 소유자는 원 차감/접근권/다운로드 이력을 소유한 도메인 모듈이다. 전역 코어 reversal 테이블을 기본값으로 만들지 않는다.
 - reversal snapshot 후보의 정규 필드는 `original_settlement_log_id`, `reversal_amount`, `reversal_currency`, `reversal_asset_amount`, `reversal_reason`, `rounding_policy_version`, `snapshot_schema_version`, `created_at`이다.
 - 부분 환불/정정은 원 settlement snapshot의 `settlement_amount`, `asset_amount`, `purchase_power_snapshot_json`, `rounding_policy_version`을 기준으로 하며 현재 구매력으로 재계산하지 않는다.
-- `free`, `paid_settled_zero`, `preview_test_zero`, `legacy_unknown`은 모두 0원처럼 보일 수 있어도 통계와 export에서 별도 count 또는 filter로 구분한다.
+- `free`, `paid_settled_zero`, `preview_test_zero`, `legacy_unknown`은 모두 settlement amount가 0일 수 있어도 통계와 export에서 별도 count 또는 filter로 구분한다. `free` 중 지급/적립 row는 매출이 아니라 자산 지급 지표로 분리한다.
 - 통계 합계는 기본적으로 `settlement_currency`별로 분리하고, 환산 합계는 환율 정책이 실제 구현으로 분리되기 전까지 제공하지 않는다.
 - export/cache key는 `settlement_currency`, `snapshot_schema_version`, `rounding_policy_version`, `settlement_kind`, reversal 포함 여부를 명시적으로 구분한다.
 - CSV/admin/privacy export는 raw JSON만 내보내지 않고 저장 기준인 minor unit, settlement currency, asset amount, `snapshot_schema_version`, `rounding_policy_version`과 사람이 읽을 수 있는 settlement 요약을 함께 제공한다.

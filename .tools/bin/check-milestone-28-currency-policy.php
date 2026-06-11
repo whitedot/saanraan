@@ -35,6 +35,7 @@ sr_milestone_28_check_contains($record, [
     '환율 미설정, 만료, 조회 실패는 실제 구매 차감을 실패시키지 않는다',
     '`exchange_rate_policy_version`은 환율 환산 표시를 열 때만 쓰는 환율 출처/만료/환산 rounding 정책 version이며 실제 차감 기준 version이 아니다',
     '`settlement_kind`는 `paid`, `free`, `paid_settled_zero`, `preview_test_zero`, `legacy_unknown` 중 하나로 시작한다',
+    '`free`는 무료 접근뿐 아니라 지급/적립처럼 기준가격 settlement가 발생하지 않는 non-use row를 포함한다',
     '`legacy_unknown` row의 환불/정정은 자동 금액 환불 대상이 아니라 관리자 검토 대상으로 둔다',
     '구매력 변경과 가격/정책 통화 일괄 변환 batch apply는 같은 자산/통화/도메인 scope에서 동시에 실행하지 않는다',
     '#319 dry-run/apply는 dry-run 시점의 purchase power version, 가격 row version, currency registry, `rounding_policy_version`을 저장하고 apply 직전에 같은 기준인지 재검증한다',
@@ -50,6 +51,7 @@ sr_milestone_28_check_contains('docs/core-decisions.md', [
     '환율은 초기 범위에서 통계/표시 보조값이고, 환율 미설정/만료/조회 실패는 실제 구매 차감을 실패시키지 않습니다',
     '외부 환율 API secret은 기존 관리자 secret 설정/마스킹 primitive와 운영 로그 sanitize 기준을 사용합니다',
     '구매력 변경과 가격/정책 통화 일괄 변환 batch apply는 같은 자산/통화/도메인 scope에서 동시에 실행하지 않고',
+    '`free`는 무료 접근뿐 아니라 지급/적립처럼 기준가격 settlement가 발생하지 않는 non-use row를 포함하고',
     '통계/export/cache key는 `settlement_currency`, `snapshot_schema_version`, `rounding_policy_version`, `settlement_kind`, reversal 포함 여부를 구분하며',
 ]);
 

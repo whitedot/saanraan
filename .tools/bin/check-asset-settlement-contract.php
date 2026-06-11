@@ -51,6 +51,7 @@ sr_asset_settlement_check_contains('docs/core-decisions.md', [
     '`snapshot_schema_version`은 snapshot 구조 버전',
     '`rounding_policy_version`은 금액 계산/반올림/잔여 처리 버전',
     '`settlement_kind`는 `paid`, `free`, `paid_settled_zero`, `preview_test_zero`, `legacy_unknown` 중 하나',
+    '`free`는 무료 접근뿐 아니라 지급/적립처럼 기준가격 settlement가 발생하지 않는 non-use row를 포함하고',
     '같은 PDO transaction에 동참해야 하며 내부 commit이나 별도 connection을 쓰면 안 됩니다',
     '문구 존재를 보는 정적 체크는 계약 조항 삭제를 막는 가드일 뿐 transaction 동참, carry, overpay, lock 순서의 런타임 준수를 증명하지 못하므로',
     'InnoDB에서는 미커밋 unique claim row에 대한 중복 insert가 선행 트랜잭션의 commit/rollback까지 블록될 수 있으므로',
@@ -75,6 +76,7 @@ sr_asset_settlement_check_contains('docs/module-guide.md', [
     '운영자가 통화 min-unit 또는 rounding/carry `rounding_policy_version`을 변경하면 기존 확인 화면의 in-flight 요청이 fail-closed 재확인으로 떨어질 수 있음을 변경 워크플로에 안내한다',
     '`snapshot_schema_version`, rounding/carry `rounding_policy_version`, 0원/legacy 분류 `settlement_kind`',
     '`settlement_kind`는 `paid`, `free`, `paid_settled_zero`, `preview_test_zero`, `legacy_unknown` 중 하나',
+    '`free`는 무료 접근뿐 아니라 지급/적립처럼 기준가격 settlement가 발생하지 않는 non-use row를 포함하고',
     '정적 체크는 계약 문구 회귀 방지용이며 transaction 동참, carry, overpay, lock 순서의 런타임 준수는 구현 시점 테스트 fixture로 검증한다',
     'InnoDB의 미커밋 unique claim 중복 insert는 선행 트랜잭션 commit/rollback까지 블록될 수 있으므로 commit 후 duplicate-key, rollback 후 insert 성공, lock wait timeout 시 `processing` 응답을 함께 확인한다',
 ]);
