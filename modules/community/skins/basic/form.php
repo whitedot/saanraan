@@ -21,7 +21,7 @@ if (($ckeditorEnabled || (!isset($postIdField) && ($imageUploadEnabled || $fileU
     && sr_community_privacy_consent_required_for($pdo, $board, 'attachment_upload')) {
     $communityPrivacyConsentDisplayTargets[] = 'attachment_upload';
 }
-$communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_actions($pdo, $board, $communityPrivacyConsentDisplayTargets) !== [];
+$communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_for($pdo, $board, 'post');
 $seo = [
     'title' => $pageTitle,
     'canonical' => $formAction,

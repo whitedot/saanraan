@@ -74,6 +74,7 @@ $mustContain('modules/community/actions/comment.php', [
 $mustContain('modules/community/skins/basic/form.php', [
     'sr_community_privacy_consent_field_html',
     'attachment_upload',
+    "\$communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_for(\$pdo, \$board, 'post')",
 ]);
 $mustContain('modules/community/skins/basic/view.php', [
     'sr_community_privacy_consent_field_html',
