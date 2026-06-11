@@ -1439,6 +1439,7 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
             $scoringModel = 'correct_answer';
         }
         $selectedResult = sr_quiz_select_result($pdo, $quizId, $scoringModel, $totalScore, $categoryScores);
+        $displayScore = sr_quiz_attempt_display_score($scoringModel, $totalScore, $categoryScores, $selectedResult);
         $passed = $allRequiredAnswered && ($scoringModel === 'category_score' || $totalScore >= $passScore);
 
         $returnUrl = sr_quiz_internal_return_path(sr_post_string('return_to', 255));
@@ -1508,6 +1509,7 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
             $snapshotJson = json_encode([
                 'question_prompt' => (string) ($question['prompt'] ?? ''),
                 'choice_labels' => $choiceLabels,
+                'choice_keys' => $choiceKeys,
                 'selected_choice_ids' => (array) ($answerRow['selected_choice_ids'] ?? []),
                 'correct_choice_ids' => (array) ($answerRow['correct_choice_ids'] ?? []),
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -1517,7 +1519,7 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
                 'question_id' => (int) ($question['id'] ?? 0),
                 'question_key' => (string) ($question['question_key'] ?? ''),
                 'choice_id' => isset($firstChoice['id']) ? (int) $firstChoice['id'] : null,
-                'choice_key' => implode(',', array_filter($choiceKeys)),
+                'choice_key' => count(array_filter($choiceKeys)) === 1 ? (string) array_values(array_filter($choiceKeys))[0] : null,
                 'answer_snapshot_json' => is_string($snapshotJson) ? $snapshotJson : '{}',
                 'score_awarded' => (int) $answerRow['score_awarded'],
                 'category_scores_json' => is_string($answerCategoryJson) ? $answerCategoryJson : '{}',
@@ -1540,6 +1542,8 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
         return [
             'attempt_id' => $attemptId,
             'total_score' => $totalScore,
+            'display_score' => $displayScore,
+            'category_scores' => $categoryScores,
             'passed' => $passed,
             'selected_result' => $selectedResult,
             'reward_grant' => $rewardGrant,
@@ -1551,6 +1555,24 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
         }
         throw $exception;
     }
+}
+
+function sr_quiz_attempt_display_score(string $scoringModel, int $totalScore, array $categoryScores, array $selectedResult): int
+{
+    if ($scoringModel !== 'category_score') {
+        return $totalScore;
+    }
+
+    $categoryKey = (string) ($selectedResult['category_key'] ?? '');
+    if ($categoryKey !== '' && isset($categoryScores[$categoryKey])) {
+        return (int) $categoryScores[$categoryKey];
+    }
+
+    if ($categoryScores === []) {
+        return 0;
+    }
+
+    return max(array_map('intval', array_values($categoryScores)));
 }
 
 function sr_quiz_answer_category_scores(array $choices): array
@@ -2039,6 +2061,8 @@ function sr_quiz_admin_quiz_sort_options(): array
         'status' => ['columns' => ['q.status', 'q.id']],
         'question_count' => ['columns' => ['question_count', 'q.id']],
         'source_count' => ['columns' => ['source_count', 'q.id']],
+        'attempt_count' => ['columns' => ['attempt_count', 'q.id']],
+        'passed_count' => ['columns' => ['passed_count', 'q.id']],
         'reward_enabled' => ['columns' => ['q.reward_enabled', 'q.id']],
         'updated_at' => ['columns' => ['q.updated_at', 'q.id']],
     ];
@@ -2054,8 +2078,14 @@ function sr_quiz_admin_quiz_where_sql(array $filters, array &$params): string
     $where = ['q.deleted_at IS NULL'];
     $keyword = trim((string) ($filters['q'] ?? ''));
     if ($keyword !== '') {
-        $where[] = '(q.quiz_key LIKE :quiz_q OR q.title LIKE :quiz_q OR q.description LIKE :quiz_q)';
-        $params['quiz_q'] = '%' . $keyword . '%';
+        $keywordColumns = ['q.quiz_key', 'q.title', 'q.description'];
+        $keywordWhere = [];
+        foreach ($keywordColumns as $index => $column) {
+            $paramKey = 'quiz_q_' . (string) $index;
+            $keywordWhere[] = $column . ' LIKE :' . $paramKey;
+            $params[$paramKey] = '%' . $keyword . '%';
+        }
+        $where[] = '(' . implode(' OR ', $keywordWhere) . ')';
     }
 
     $statuses = sr_quiz_admin_filter_values((array) ($filters['status'] ?? []), sr_quiz_statuses());
@@ -2122,16 +2152,26 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
                 COUNT(DISTINCT qs.id) AS question_count,
                 COUNT(DISTINCT rr.id) AS result_rule_count,
                 COUNT(DISTINCT rp.id) AS reward_policy_count,
-                COUNT(DISTINCT src.id) AS source_count
+                COUNT(DISTINCT src.id) AS source_count,
+                COALESCE(qa.attempt_count, 0) AS attempt_count,
+                COALESCE(qa.passed_count, 0) AS passed_count
          FROM sr_quiz_sets q
          LEFT JOIN sr_quiz_questions qs ON qs.quiz_id = q.id
          LEFT JOIN sr_quiz_result_rules rr ON rr.quiz_id = q.id
          LEFT JOIN sr_quiz_reward_policies rp ON rp.quiz_id = q.id AND rp.status = \'active\'
          LEFT JOIN sr_quiz_sources src ON src.quiz_id = q.id AND src.status = \'active\'
+         LEFT JOIN (
+             SELECT quiz_id,
+                    COUNT(*) AS attempt_count,
+                    SUM(CASE WHEN passed = 1 THEN 1 ELSE 0 END) AS passed_count
+             FROM sr_quiz_attempts
+             WHERE submitted_at IS NOT NULL
+             GROUP BY quiz_id
+         ) qa ON qa.quiz_id = q.id
          ' . $whereSql . '
          GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                   q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
-                  q.member_group_keys_json, q.reward_enabled, q.updated_at
+                  q.member_group_keys_json, q.reward_enabled, q.updated_at, qa.attempt_count, qa.passed_count
          ' . $orderSql . '
          LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset
     );
@@ -2274,7 +2314,7 @@ function sr_quiz_admin_attempts(PDO $pdo, array $filters = [], int $limit = 100,
 
     $stmt = $pdo->prepare(
         'SELECT a.id, a.status, a.account_id, a.source_module, a.source_type, a.source_id,
-                a.source_title_snapshot, a.total_score, a.passed, a.submitted_at, a.updated_at,
+                a.source_title_snapshot, a.total_score, a.passed, a.result_snapshot_json, a.submitted_at, a.updated_at,
                 q.quiz_key, q.title,
                 COALESCE(rg.grant_count, 0) AS grant_count,
                 COALESCE(rg.pending_count, 0) AS pending_count,
@@ -2291,7 +2331,18 @@ function sr_quiz_admin_attempts(PDO $pdo, array $filters = [], int $limit = 100,
     );
     $stmt->execute($params);
 
-    return $stmt->fetchAll();
+    $rows = $stmt->fetchAll();
+    foreach ($rows as $index => $row) {
+        $snapshot = json_decode((string) ($row['result_snapshot_json'] ?? ''), true);
+        if (!is_array($snapshot)) {
+            $snapshot = [];
+        }
+        $rows[$index]['result_key'] = (string) ($snapshot['result_key'] ?? '');
+        $rows[$index]['result_title'] = (string) ($snapshot['title'] ?? '');
+        $rows[$index]['result_summary'] = (string) ($snapshot['summary'] ?? '');
+    }
+
+    return $rows;
 }
 
 function sr_quiz_admin_quiz_by_id(PDO $pdo, int $quizId): ?array

@@ -82,6 +82,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('status', $attemptSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('total_score', $attemptSort); ?>><?php echo sr_admin_sort_header_html('점수', 'total_score', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th>통과</th>
+                    <th>결과</th>
                     <th<?php echo sr_admin_sort_aria('reward', $attemptSort); ?>><?php echo sr_admin_sort_header_html('보상', 'reward', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('submitted_at', $attemptSort); ?>><?php echo sr_admin_sort_header_html('제출일', 'submitted_at', $attemptSort, $attemptSortOptions, $attemptDefaultSort); ?></th>
                 </tr>
@@ -89,7 +90,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($attempts === []) { ?>
                     <tr>
-                        <td colspan="8" class="admin-empty-state">조건에 맞는 퀴즈 시도 내역이 없습니다.</td>
+                        <td colspan="9" class="admin-empty-state">조건에 맞는 퀴즈 시도 내역이 없습니다.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($attempts as $attempt) { ?>
@@ -125,6 +126,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_quiz_attempt_status_label($attemptStatus)); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) ($attempt['total_score'] ?? '-')); ?></td>
                         <td class="admin-table-nowrap"><?php echo ((int) ($attempt['passed'] ?? 0) === 1) ? '예' : '아니오'; ?></td>
+                        <td class="admin-table-break">
+                            <?php if ((string) ($attempt['result_title'] ?? '') !== '') { ?>
+                                <strong><?php echo sr_e((string) ($attempt['result_title'] ?? '')); ?></strong>
+                                <?php if ((string) ($attempt['result_key'] ?? '') !== '') { ?>
+                                    <br><span class="admin-summary-meta"><code><?php echo sr_e((string) ($attempt['result_key'] ?? '')); ?></code></span>
+                                <?php } ?>
+                                <?php if ((string) ($attempt['result_summary'] ?? '') !== '') { ?>
+                                    <br><span class="admin-summary-meta"><?php echo sr_e((string) ($attempt['result_summary'] ?? '')); ?></span>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <span class="admin-summary-meta">결과 없음</span>
+                            <?php } ?>
+                        </td>
                         <td class="admin-table-break">
                             <span class="admin-status <?php echo sr_e($rewardStatusClass); ?>"><?php echo sr_e($rewardLabel); ?></span>
                             <?php if ($grantCount > 0) { ?>

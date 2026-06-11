@@ -141,7 +141,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
             <?php if ($submitResult !== null): ?>
                 <section class="sr-quiz-result">
                     <h2>퀴즈 결과</h2>
-                    <p>점수: <?php echo sr_e((string) (int) ($submitResult['total_score'] ?? 0)); ?></p>
+                    <p>점수: <?php echo sr_e((string) (int) ($submitResult['display_score'] ?? $submitResult['total_score'] ?? 0)); ?></p>
                     <p><?php echo !empty($submitResult['passed']) ? '통과했습니다.' : '통과하지 못했습니다.'; ?></p>
                     <?php $resultSnapshot = is_array($submitResult['selected_result'] ?? null) ? $submitResult['selected_result'] : []; ?>
                     <?php if ((string) ($resultSnapshot['title'] ?? '') !== ''): ?>

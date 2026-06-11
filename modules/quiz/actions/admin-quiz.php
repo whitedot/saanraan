@@ -225,7 +225,7 @@ if ($mode === 'list') {
                         <th<?php echo sr_admin_sort_aria('status', $quizSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('question_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('문제', 'question_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('source_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('연결', 'source_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
-                        <th>응시</th>
+                        <th<?php echo sr_admin_sort_aria('attempt_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('응시/통과', 'attempt_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('reward_enabled', $quizSort); ?>><?php echo sr_admin_sort_header_html('보상', 'reward_enabled', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('updated_at', $quizSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th class="text-end">관리</th>
@@ -255,8 +255,8 @@ if ($mode === 'list') {
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['source_count'] ?? 0))); ?></td>
                             <td class="admin-table-break">
-                                <?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?><br>
-                                <span class="admin-summary-meta">통과 <?php echo sr_e((string) ($quiz['pass_score'] ?? '-')); ?> · 회원 조건 <?php echo sr_e(number_format($memberGroupCount)); ?>개</span>
+                                응시 <?php echo sr_e(number_format((int) ($quiz['attempt_count'] ?? 0))); ?>건 · 통과 <?php echo sr_e(number_format((int) ($quiz['passed_count'] ?? 0))); ?>건<br>
+                                <span class="admin-summary-meta">제한 <?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?> · 통과 점수 <?php echo sr_e((string) ($quiz['pass_score'] ?? '-')); ?> · 회원 조건 <?php echo sr_e(number_format($memberGroupCount)); ?>개</span>
                             </td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '미사용'; ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>

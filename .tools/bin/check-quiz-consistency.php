@@ -171,6 +171,12 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_issue_coupon_reward_grant',
         'sr_quiz_refresh_reward_grant_for_retry',
         'reference_type\' => \'quiz_reward',
+        '\'choice_keys\' => $choiceKeys',
+        'count(array_filter($choiceKeys)) === 1',
+        'sr_quiz_attempt_display_score',
+        '\'display_score\' => $displayScore',
+        'a.result_snapshot_json',
+        '$rows[$index][\'result_title\']',
     ]);
     sr_quiz_check_file_contains('modules/quiz/module.php', [
         'member-assets.php',
@@ -188,8 +194,13 @@ function sr_quiz_check_paths_and_admin(): void
         'member_group_keys',
         'comments_enabled',
         'attempt_limit_policy',
+        'attempt_count',
+        'passed_count',
         'reward_module',
         'content_source_ids',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/view.php', [
+        '$submitResult[\'display_score\']',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/comment.php', [
         'sr_quiz_create_comment',
@@ -216,8 +227,11 @@ function sr_quiz_check_paths_and_admin(): void
         'grant_status',
         'reward_module',
         'reward_amount',
+        'result_title',
+        'result_summary',
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [
+        "quiz_q_' . (string) \$index",
         "attempt_q_' . (string) \$index",
         '$keywordWhere[] = $column . \' LIKE :\' . $paramKey',
     ]);
