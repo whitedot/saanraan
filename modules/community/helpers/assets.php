@@ -1742,6 +1742,32 @@ function sr_community_access_entitlements_table_exists(PDO $pdo): bool
     return $exists;
 }
 
+function sr_community_asset_log_settlement_metadata_columns_exist(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    $prefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS column_count
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME IN (\'settlement_kind\', \'snapshot_schema_version\', \'rounding_policy_version\')'
+        );
+        $stmt->execute(['table_name' => $prefix . 'community_asset_logs']);
+        $row = $stmt->fetch();
+        $exists = is_array($row) && (int) ($row['column_count'] ?? 0) === 3;
+    } catch (Throwable $exception) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
 function sr_community_grant_access_entitlement(PDO $pdo, int $accountId, string $subjectType, int $subjectId, string $eventKey, string $sourceKind, string $sourceAssetModule = '', string $sourceChargePolicy = 'once', string $sourceReference = ''): void
 {
     if ($accountId <= 0 || $subjectType === '' || $subjectId <= 0 || $eventKey === '' || !sr_community_access_entitlements_table_exists($pdo)) {

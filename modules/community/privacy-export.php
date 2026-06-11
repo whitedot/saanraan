@@ -238,8 +238,11 @@ return static function (PDO $pdo, int $accountId): array {
             $empty['access_entitlements'] = $stmt->fetchAll();
         }
 
+        $assetLogSettlementMetadataSelect = sr_community_asset_log_settlement_metadata_columns_exist($pdo)
+            ? 'settlement_kind, snapshot_schema_version, rounding_policy_version'
+            : '\'legacy_unknown\' AS settlement_kind, \'asset_settlement_snapshot_v1\' AS snapshot_schema_version, \'asset_settlement_rounding_v1\' AS rounding_policy_version';
         $stmt = $pdo->prepare(
-            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, group_policy_snapshot_json, created_at
+            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, ' . $assetLogSettlementMetadataSelect . ', group_policy_snapshot_json, created_at
              FROM sr_community_asset_logs
              WHERE account_id = :account_id
              ORDER BY id ASC

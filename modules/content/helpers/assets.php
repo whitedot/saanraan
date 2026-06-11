@@ -1346,6 +1346,59 @@ function sr_content_access_entitlements_table_exists(PDO $pdo): bool
     return $exists;
 }
 
+function sr_content_asset_log_settlement_metadata_columns_exist(PDO $pdo, string $tableName): bool
+{
+    static $existsByTable = [];
+    $tableName = trim($tableName);
+    if ($tableName === '') {
+        return false;
+    }
+    if (array_key_exists($tableName, $existsByTable)) {
+        return $existsByTable[$tableName];
+    }
+
+    $prefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+    $expectedTables = [
+        $prefix . 'content_asset_access_logs' => true,
+        $prefix . 'content_asset_action_logs' => true,
+    ];
+    if (!isset($expectedTables[$tableName])) {
+        $existsByTable[$tableName] = false;
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS column_count
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table_name
+               AND COLUMN_NAME IN (\'settlement_kind\', \'snapshot_schema_version\', \'rounding_policy_version\')'
+        );
+        $stmt->execute(['table_name' => $tableName]);
+        $row = $stmt->fetch();
+        $existsByTable[$tableName] = is_array($row) && (int) ($row['column_count'] ?? 0) === 3;
+    } catch (Throwable $exception) {
+        $existsByTable[$tableName] = false;
+    }
+
+    return $existsByTable[$tableName];
+}
+
+function sr_content_asset_access_log_settlement_metadata_columns_exist(PDO $pdo): bool
+{
+    $prefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+
+    return sr_content_asset_log_settlement_metadata_columns_exist($pdo, $prefix . 'content_asset_access_logs');
+}
+
+function sr_content_asset_action_log_settlement_metadata_columns_exist(PDO $pdo): bool
+{
+    $prefix = $pdo instanceof SrPrefixedPDO ? $pdo->srTablePrefix() : 'sr_';
+
+    return sr_content_asset_log_settlement_metadata_columns_exist($pdo, $prefix . 'content_asset_action_logs');
+}
+
 function sr_content_access_entitlement_subject_type(string $accessKind): string
 {
     return $accessKind === 'download' ? 'content_file' : 'content';

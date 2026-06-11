@@ -860,6 +860,10 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
     $contentSlugSelect = $hasSnapshots ? "COALESCE(NULLIF(p.slug, ''), NULLIF(d.content_slug_snapshot, ''))" : 'p.slug';
     $fileTitleSelect = $hasSnapshots ? "COALESCE(NULLIF(f.title, ''), NULLIF(d.file_title_snapshot, ''))" : 'f.title';
     $fileOriginalNameSelect = $hasSnapshots ? "COALESCE(NULLIF(f.original_name, ''), NULLIF(d.file_original_name_snapshot, ''))" : 'f.original_name';
+    $hasSettlementMetadata = function_exists('sr_content_asset_access_log_settlement_metadata_columns_exist') && sr_content_asset_access_log_settlement_metadata_columns_exist($pdo);
+    $accessLogSettlementSummarySelect = $hasSettlementMetadata
+        ? 'al.settlement_amount, ":", al.settlement_currency, ":", al.settlement_kind, ":", al.snapshot_schema_version, ":", al.rounding_policy_version'
+        : 'al.settlement_amount, ":", al.settlement_currency, ":", "legacy_unknown", ":", "asset_settlement_snapshot_v1", ":", "asset_settlement_rounding_v1"';
     $stmt = $pdo->prepare(
         'SELECT d.*,
                 ' . $contentTitleSelect . ' AS content_title,
@@ -871,7 +875,7 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
                 a.email,
                 a.display_name,
                 rb.display_name AS refunded_by_display_name,
-                GROUP_CONCAT(CONCAT(al.asset_module, ":", al.transaction_id, ":", al.amount, ":", al.settlement_amount, ":", al.settlement_currency, ":", al.settlement_kind, ":", al.snapshot_schema_version, ":", al.rounding_policy_version, ":", COALESCE(al.group_policy_snapshot_json, "")) ORDER BY al.id ASC SEPARATOR "\n") AS access_log_summary
+                GROUP_CONCAT(CONCAT(al.asset_module, ":", al.transaction_id, ":", al.amount, ":", ' . $accessLogSettlementSummarySelect . ', ":", COALESCE(al.group_policy_snapshot_json, "")) ORDER BY al.id ASC SEPARATOR "\n") AS access_log_summary
          FROM sr_content_file_download_logs d
          LEFT JOIN sr_content_items p ON p.id = d.content_id
          LEFT JOIN sr_content_files f ON f.id = d.file_id
