@@ -111,7 +111,7 @@ function sr_module_route_conflict_errors(PDO $pdo, string $candidateModuleKey): 
                     continue;
                 }
 
-                $errors[] = $candidateModuleKey . ' 모듈 route가 ' . $moduleKey . ' 모듈과 충돌합니다: ' . (string) $candidateRoute . ' / ' . $route;
+                $errors[] = $candidateModuleKey . ' 모듈 주소 경로가 ' . $moduleKey . ' 모듈과 충돌합니다: ' . (string) $candidateRoute . ' / ' . $route;
             }
         }
     }
@@ -138,17 +138,17 @@ function sr_module_route_map(string $moduleKey): array
         $route = (string) $route;
         $actionRelativePath = (string) $actionRelativePath;
         if (!sr_is_valid_module_route($route)) {
-            $errors[] = $moduleKey . ' 모듈 route 형식이 올바르지 않습니다: ' . $route;
+            $errors[] = $moduleKey . ' 모듈 주소 경로 형식이 올바르지 않습니다: ' . $route;
             continue;
         }
 
         if (!sr_is_safe_module_action($actionRelativePath)) {
-            $errors[] = $moduleKey . ' 모듈 action 경로가 올바르지 않습니다: ' . $route;
+            $errors[] = $moduleKey . ' 모듈 실행 파일 경로가 올바르지 않습니다: ' . $route;
             continue;
         }
 
         if (!is_file($moduleDir . '/' . $actionRelativePath)) {
-            $errors[] = $moduleKey . ' 모듈 action 파일을 찾을 수 없습니다: ' . $route;
+            $errors[] = $moduleKey . ' 모듈 실행 파일을 찾을 수 없습니다: ' . $route;
             continue;
         }
 

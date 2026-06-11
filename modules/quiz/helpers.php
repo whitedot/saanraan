@@ -2919,11 +2919,11 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     $quizId = (int) ($values['id'] ?? 0);
     $quizKey = (string) ($values['quiz_key'] ?? '');
     if (!sr_quiz_key_is_valid($quizKey)) {
-        $errors[] = '퀴즈 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '퀴즈 관리용 키는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (sr_quiz_key_is_reserved($quizKey)) {
-        $errors[] = '예약된 퀴즈 key는 사용할 수 없습니다.';
+        $errors[] = '예약된 퀴즈 관리용 키는 사용할 수 없습니다.';
     } elseif (sr_quiz_key_exists($pdo, $quizKey, $quizId)) {
-        $errors[] = '이미 사용 중인 퀴즈 key입니다.';
+        $errors[] = '이미 사용 중인 퀴즈 관리용 키입니다.';
     }
     if ((string) ($values['title'] ?? '') === '') {
         $errors[] = '퀴즈 제목을 입력하세요.';
@@ -2979,9 +2979,9 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
             $errors[] = '문제 ' . (string) $number . '의 유형이 올바르지 않습니다.';
         }
         if (!sr_quiz_key_is_valid($questionKey)) {
-            $errors[] = '문제 ' . (string) $number . '의 key가 올바르지 않습니다.';
+            $errors[] = '문제 ' . (string) $number . '의 관리용 키가 올바르지 않습니다.';
         } elseif (isset($questionKeys[$questionKey])) {
-            $errors[] = '문제 key가 중복되었습니다: ' . $questionKey;
+            $errors[] = '문제 관리용 키가 중복되었습니다: ' . $questionKey;
         }
         $questionKeys[$questionKey] = true;
         if ((string) ($question['prompt'] ?? '') === '') {
@@ -2997,9 +2997,9 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
             $choiceNumber = $choiceIndex + 1;
             $choiceKey = (string) ($choice['choice_key'] ?? '');
             if (!sr_quiz_key_is_valid($choiceKey)) {
-                $errors[] = '문제 ' . (string) $number . ' 선택지 ' . (string) $choiceNumber . '의 key가 올바르지 않습니다.';
+                $errors[] = '문제 ' . (string) $number . ' 선택지 ' . (string) $choiceNumber . '의 관리용 키가 올바르지 않습니다.';
             } elseif (isset($choiceKeys[$choiceKey])) {
-                $errors[] = '문제 ' . (string) $number . '의 선택지 key가 중복되었습니다: ' . $choiceKey;
+                $errors[] = '문제 ' . (string) $number . '의 선택지 관리용 키가 중복되었습니다: ' . $choiceKey;
             }
             $choiceKeys[$choiceKey] = true;
             if ((string) ($choice['label'] ?? '') === '') {
@@ -3021,9 +3021,9 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
         $number = $ruleIndex + 1;
         $resultKey = (string) ($rule['result_key'] ?? '');
         if (!sr_quiz_key_is_valid($resultKey)) {
-            $errors[] = '결과 규칙 ' . (string) $number . '의 key가 올바르지 않습니다.';
+            $errors[] = '결과 규칙 ' . (string) $number . '의 관리용 키가 올바르지 않습니다.';
         } elseif (isset($resultRuleKeys[$resultKey])) {
-            $errors[] = '결과 규칙 key가 중복되었습니다: ' . $resultKey;
+            $errors[] = '결과 규칙 관리용 키가 중복되었습니다: ' . $resultKey;
         }
         $resultRuleKeys[$resultKey] = true;
         if ((string) ($rule['title'] ?? '') === '') {
@@ -3084,7 +3084,7 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     foreach (sr_quiz_result_rules_from_value((string) ($values['result_rules'] ?? '')) as $index => $rule) {
         $number = $index + 1;
         if (!sr_quiz_key_is_valid((string) ($rule['result_key'] ?? ''))) {
-            $errors[] = '결과 규칙 ' . (string) $number . '의 결과 key가 올바르지 않습니다.';
+            $errors[] = '결과 규칙 ' . (string) $number . '의 결과 관리용 키가 올바르지 않습니다.';
         }
         if ((string) ($rule['title'] ?? '') === '') {
             $errors[] = '결과 규칙 ' . (string) $number . '의 제목을 입력하세요.';
@@ -3117,9 +3117,9 @@ function sr_quiz_copy_validation_errors(PDO $pdo, array $options): array
     }
     $quizKey = (string) ($options['quiz_key'] ?? '');
     if (!sr_quiz_key_is_valid($quizKey)) {
-        $errors[] = '새 퀴즈 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '새 퀴즈 관리용 키는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (sr_quiz_key_exists($pdo, $quizKey, 0)) {
-        $errors[] = '이미 사용 중인 퀴즈 key입니다.';
+        $errors[] = '이미 사용 중인 퀴즈 관리용 키입니다.';
     }
     if ((string) ($options['title'] ?? '') === '') {
         $errors[] = '새 퀴즈 제목을 입력하세요.';
@@ -3167,7 +3167,7 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
                 }
             }
             if ($skippedMemberGroupKeys !== []) {
-                $warnings[] = '존재하지 않는 회원 그룹 key는 복사하지 않았습니다.';
+                $warnings[] = '존재하지 않는 회원 그룹 관리용 키는 복사하지 않았습니다.';
             }
         }
 

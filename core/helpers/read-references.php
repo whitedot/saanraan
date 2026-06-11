@@ -77,11 +77,11 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
             try {
                 $rawCount = $countFunction($pdo, $target, $context);
                 if (!is_int($rawCount)) {
-                    $errors[] = $moduleKey . ': count_function 반환값이 정수가 아닙니다.';
+                    $errors[] = $moduleKey . ': 개수 조회 함수 반환값이 정수가 아닙니다.';
                     continue;
                 }
                 if ($rawCount < 0) {
-                    $errors[] = $moduleKey . ': count_function 반환값이 음수입니다.';
+                    $errors[] = $moduleKey . ': 개수 조회 함수 반환값이 음수입니다.';
                     continue;
                 }
                 $count = $rawCount;
@@ -91,33 +91,33 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
 
                 $rawRows = $rowsFunction($pdo, $target, $context);
                 if (!is_array($rawRows)) {
-                    $errors[] = $moduleKey . ': rows_function 반환값이 배열이 아닙니다.';
+                    $errors[] = $moduleKey . ': 목록 조회 함수 반환값이 배열이 아닙니다.';
                     continue;
                 }
                 if ($rawRows === []) {
-                    $errors[] = $moduleKey . ': count_function은 참조가 있다고 반환했지만 rows_function 반환값이 비어 있습니다.';
+                    $errors[] = $moduleKey . ': 개수 조회 함수는 참조가 있다고 반환했지만 목록 조회 함수 반환값이 비어 있습니다.';
                     continue;
                 }
                 if (count($rawRows) !== $count) {
-                    $errors[] = $moduleKey . ': count_function 반환값과 rows_function row 수가 맞지 않습니다.';
+                    $errors[] = $moduleKey . ': 개수 조회 함수 반환값과 목록 조회 결과 수가 맞지 않습니다.';
                     continue;
                 }
 
                 foreach ($rawRows as $rawRow) {
                     if (!is_array($rawRow)) {
-                        $errors[] = $moduleKey . ': 참조 row 형식이 올바르지 않습니다.';
+                        $errors[] = $moduleKey . ': 참조 항목 형식이 올바르지 않습니다.';
                         continue;
                     }
 
                     $health = $healthFunction($pdo, $target, $rawRow, $context);
                     if (!is_array($health)) {
-                        $errors[] = $moduleKey . ': health_function 반환값이 배열이 아닙니다.';
+                        $errors[] = $moduleKey . ': 상태 확인 함수 반환값이 배열이 아닙니다.';
                         $health = ['status' => 'unknown', 'message' => '상태를 확인할 수 없습니다.'];
                     }
 
                     $rawAdminUrl = $adminUrlFunction($rawRow, $context);
                     if (!is_string($rawAdminUrl)) {
-                        $errors[] = $moduleKey . ': admin_url_function 반환값이 문자열이 아닙니다.';
+                        $errors[] = $moduleKey . ': 관리 URL 함수 반환값이 문자열이 아닙니다.';
                         continue;
                     }
                     $adminUrl = $rawAdminUrl;
@@ -133,7 +133,7 @@ function sr_read_reference_collect(PDO $pdo, string $contractFile, array $target
                 if (function_exists('sr_log_exception')) {
                     sr_log_exception($exception, 'read_reference_contract_' . $moduleKey . '_' . str_replace(['.', '-'], '_', $contractFile));
                 }
-                $errors[] = $moduleKey . ': 계약 callable 실행 중 오류가 발생했습니다.';
+                $errors[] = $moduleKey . ': 계약 실행 함수 처리 중 오류가 발생했습니다.';
             }
         }
     }
@@ -162,40 +162,40 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
     $errors = [];
     $consumerModuleKey = $entry['consumer_module_key'] ?? null;
     if (!is_string($consumerModuleKey) || $consumerModuleKey !== $moduleKey || !sr_is_safe_module_key($consumerModuleKey)) {
-        $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
+        $errors[] = '사용 모듈 관리용 키가 제공 모듈과 맞지 않습니다.';
     }
 
     if (!is_string($entry['label'] ?? null) || trim((string) $entry['label']) === '') {
-        $errors[] = 'label 필수값이 비어 있습니다.';
+        $errors[] = '표시 이름 필수값이 비어 있습니다.';
     }
     if (!is_string($entry['reference_type'] ?? null) || trim((string) $entry['reference_type']) === '') {
-        $errors[] = 'reference_type 필수값이 비어 있습니다.';
+        $errors[] = '참조 종류 필수값이 비어 있습니다.';
     } elseif (!sr_read_reference_reference_type_is_valid((string) $entry['reference_type'])) {
-        $errors[] = 'reference_type 값이 올바르지 않습니다.';
+        $errors[] = '참조 종류 값이 올바르지 않습니다.';
     }
 
     $supportsTargetTypes = $entry['supports_target_types'] ?? null;
     if (!is_array($supportsTargetTypes) || $supportsTargetTypes === []) {
-        $errors[] = 'supports_target_types가 비어 있습니다.';
+        $errors[] = '지원 대상 종류가 비어 있습니다.';
     } else {
         $normalizedTargetTypes = [];
         foreach ($supportsTargetTypes as $supportedTargetType) {
             if (!is_string($supportedTargetType)) {
-                $errors[] = 'supports_target_types 값이 올바르지 않습니다.';
+                $errors[] = '지원 대상 종류 값이 올바르지 않습니다.';
                 continue;
             }
             if (trim($supportedTargetType) === '') {
-                $errors[] = 'supports_target_types 값이 비어 있습니다.';
+                $errors[] = '지원 대상 종류 값이 비어 있습니다.';
                 continue;
             }
             if ($supportedTargetType !== $targetType) {
-                $errors[] = 'supports_target_types가 대상 type과 맞지 않습니다.';
+                $errors[] = '지원 대상 종류가 조회 대상 종류와 맞지 않습니다.';
                 continue;
             }
             $normalizedTargetTypes[] = $supportedTargetType;
         }
         if ($normalizedTargetTypes !== [] && !in_array($targetType, $normalizedTargetTypes, true)) {
-            $errors[] = 'supports_target_types가 대상 type을 지원하지 않습니다.';
+            $errors[] = '지원 대상 종류가 조회 대상 종류를 지원하지 않습니다.';
         }
     }
 
@@ -204,34 +204,41 @@ function sr_read_reference_prepare_entry(string $moduleKey, array $entry, string
         $helpers = [$helpers];
     }
     if (!is_array($helpers)) {
-        $errors[] = 'helpers 형식이 올바르지 않습니다.';
+        $errors[] = '도움 함수 파일 목록 형식이 올바르지 않습니다.';
     } else {
         foreach ($helpers as $helper) {
             if (!is_string($helper)) {
-                $errors[] = 'helper 경로가 올바르지 않습니다.';
+                $errors[] = '도움 함수 파일 경로가 올바르지 않습니다.';
                 continue;
             }
             $helperPath = sr_read_reference_helper_path($moduleKey, trim($helper));
             if ($helperPath === '') {
-                $errors[] = 'helper 경로가 올바르지 않습니다.';
+                $errors[] = '도움 함수 파일 경로가 올바르지 않습니다.';
                 continue;
             }
             require_once $helperPath;
         }
     }
 
+    $functionLabels = [
+        'count_function' => '개수 조회 함수',
+        'rows_function' => '목록 조회 함수',
+        'health_function' => '상태 확인 함수',
+        'admin_url_function' => '관리 URL 함수',
+    ];
     foreach (['count_function', 'rows_function', 'health_function', 'admin_url_function'] as $functionKey) {
+        $functionLabel = $functionLabels[$functionKey] ?? $functionKey;
         if (!is_string($entry[$functionKey] ?? null) || trim((string) $entry[$functionKey]) === '') {
-            $errors[] = $functionKey . ' callable이 없습니다.';
+            $errors[] = $functionLabel . '를 찾을 수 없습니다.';
             continue;
         }
         $functionName = trim((string) $entry[$functionKey]);
         if (!function_exists($functionName)) {
-            $errors[] = $functionKey . ' callable이 없습니다.';
+            $errors[] = $functionLabel . '를 찾을 수 없습니다.';
             continue;
         }
         if (!sr_read_reference_callable_signature_is_valid($functionKey, $functionName)) {
-            $errors[] = $functionKey . ' callable 인자 수가 올바르지 않습니다.';
+            $errors[] = $functionLabel . '의 인자 수가 올바르지 않습니다.';
         }
     }
 
@@ -325,13 +332,26 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
         'admin_url' => $adminUrl,
     ];
 
+    $rowFieldLabels = [
+        'admin_url' => '관리 URL',
+        'consumer_module_key' => '사용 모듈 관리용 키',
+        'message' => '메시지',
+        'policy_status' => '정책 상태',
+        'reference_id' => '참조 ID',
+        'reference_type' => '참조 종류',
+        'target_id' => '대상 ID',
+        'target_key' => '대상 관리용 키',
+        'target_type' => '대상 종류',
+        'title' => '제목',
+        'updated_at' => '수정 시각',
+    ];
     foreach (['target_key', 'policy_status', 'updated_at', 'message'] as $optionalKey) {
         if (array_key_exists($optionalKey, $rawRow)) {
             $optionalValue = $optionalKey === 'target_key'
                 ? sr_read_reference_target_key_value($rawRow[$optionalKey])
                 : sr_read_reference_string_value($rawRow[$optionalKey]);
             if ($optionalValue === null) {
-                $errors[] = $optionalKey . ' 값이 올바르지 않습니다.';
+                $errors[] = ($rowFieldLabels[$optionalKey] ?? $optionalKey) . ' 값이 올바르지 않습니다.';
                 continue;
             }
             $row[$optionalKey] = $optionalValue;
@@ -363,31 +383,31 @@ function sr_read_reference_normalize_row(string $moduleKey, array $entry, array 
 
     foreach (['consumer_module_key', 'reference_type', 'reference_id', 'title', 'target_type', 'target_id', 'admin_url'] as $requiredKey) {
         if ((string) ($row[$requiredKey] ?? '') === '') {
-            $errors[] = $requiredKey . ' 필수값이 비어 있습니다.';
+            $errors[] = ($rowFieldLabels[$requiredKey] ?? $requiredKey) . ' 필수값이 비어 있습니다.';
         }
     }
     if (!sr_is_safe_module_key((string) ($row['consumer_module_key'] ?? '')) || (string) ($row['consumer_module_key'] ?? '') !== $moduleKey) {
-        $errors[] = 'consumer_module_key가 제공 모듈과 맞지 않습니다.';
+        $errors[] = '사용 모듈 관리용 키가 제공 모듈과 맞지 않습니다.';
     }
     if (!sr_read_reference_reference_type_is_valid((string) ($row['reference_type'] ?? ''))) {
-        $errors[] = 'reference_type 값이 올바르지 않습니다.';
+        $errors[] = '참조 종류 값이 올바르지 않습니다.';
     }
     $expectedReferenceType = is_string($entry['reference_type'] ?? null) ? (string) $entry['reference_type'] : '';
     if ((string) ($row['reference_type'] ?? '') !== $expectedReferenceType) {
-        $errors[] = 'reference_type이 계약 항목과 맞지 않습니다.';
+        $errors[] = '참조 종류가 계약 항목과 맞지 않습니다.';
     }
     $expectedTargetType = is_string($target['target_type'] ?? null) ? (string) $target['target_type'] : '';
     if ((string) ($row['target_type'] ?? '') !== $expectedTargetType) {
-        $errors[] = 'target_type이 조회 대상과 맞지 않습니다.';
+        $errors[] = '대상 종류가 조회 대상과 맞지 않습니다.';
     }
     $expectedTargetId = sr_read_reference_target_id_value($target['target_id'] ?? null) ?? '';
     if ((string) ($row['target_id'] ?? '') !== $expectedTargetId) {
-        $errors[] = 'target_id가 조회 대상과 맞지 않습니다.';
+        $errors[] = '대상 ID가 조회 대상과 맞지 않습니다.';
     }
     $expectedTargetKey = sr_read_reference_target_key_value($target['target_key'] ?? '') ?? '';
     $rowTargetKey = (string) ($row['target_key'] ?? '');
     if (($expectedTargetKey !== '' && $rowTargetKey !== $expectedTargetKey) || ($expectedTargetKey === '' && $rowTargetKey !== '')) {
-        $errors[] = 'target_key가 조회 대상과 맞지 않습니다.';
+        $errors[] = '대상 관리용 키가 조회 대상과 맞지 않습니다.';
     }
 
     return [
@@ -418,9 +438,9 @@ function sr_read_reference_target_errors(string $contractFile, array $target): a
 
     $targetKey = sr_read_reference_target_key_value($target['target_key'] ?? '');
     if ($targetKey === null) {
-        $errors[] = '읽기 참조 대상 key가 올바르지 않습니다.';
+        $errors[] = '읽기 참조 대상 관리용 키가 올바르지 않습니다.';
     } elseif (in_array($expectedTargetType, ['member_group', 'site_setting'], true) && $targetKey === '') {
-        $errors[] = '읽기 참조 대상 key가 비어 있습니다.';
+        $errors[] = '읽기 참조 대상 관리용 키가 비어 있습니다.';
     }
 
     return $errors;

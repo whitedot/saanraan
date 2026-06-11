@@ -383,7 +383,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                     <div class="admin-menu-target admin-menu-target-depth-0">
                                         <span class="admin-menu-target-copy">
                                             <span class="admin-menu-target-label"><?php echo sr_e((string) $row['label']); ?></span>
-                                            <span class="admin-menu-target-context"><?php echo sr_e((string) $row['menu_key']); ?></span>
+                                            <span class="admin-menu-target-context">관리용 키: <?php echo sr_e((string) $row['menu_key']); ?></span>
                                         </span>
                                     </div>
                                 </td>
@@ -423,7 +423,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                                 <?php } ?>
                                                 <span><?php echo sr_e((string) $row['label']); ?></span>
                                             </span>
-                                            <span class="admin-menu-target-context"><?php echo sr_e((string) $row['menu_key']); ?></span>
+                                            <span class="admin-menu-target-context">메뉴 관리용 키: <?php echo sr_e((string) $row['menu_key']); ?></span>
                                         </span>
                                     </div>
                                 </td>

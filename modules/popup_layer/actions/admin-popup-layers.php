@@ -353,7 +353,7 @@ if (sr_request_method() === 'POST') {
         }
 
         if (!$isPublicPopupLayer && $matchType === 'exact' && $subjectId === '') {
-            $errors[] = '특정 subject ID를 입력해야 합니다.';
+            $errors[] = '특정 대상 ID를 입력해야 합니다.';
         }
 
         $existingPopup = null;

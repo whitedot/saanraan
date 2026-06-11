@@ -78,7 +78,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = '콘텐츠 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
     }
     if ($intent === 'create' && !sr_content_series_key_is_valid((string) $values['series_key'])) {
-        $errors[] = '시리즈 key가 올바르지 않습니다.';
+        $errors[] = '시리즈 관리용 키가 올바르지 않습니다.';
     }
     if (!is_string($description)) {
         $errors[] = '시리즈 설명이 너무 깁니다.';
@@ -93,7 +93,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = '상태 또는 공개 범위가 올바르지 않습니다.';
     }
     if ($intent === 'create' && $errors === [] && sr_content_series_key_exists($pdo, (string) $values['series_key'])) {
-        $errors[] = '이미 같은 key의 콘텐츠 시리즈가 있습니다.';
+        $errors[] = '이미 같은 관리용 키의 콘텐츠 시리즈가 있습니다.';
     }
     if ($errors === []) {
         if ($intent === 'create') {
@@ -105,7 +105,7 @@ if (sr_request_method() === 'POST') {
                 if ((string) $exception->getCode() !== '23000') {
                     throw $exception;
                 }
-                $errors[] = '이미 같은 key의 콘텐츠 시리즈가 있습니다.';
+                $errors[] = '이미 같은 관리용 키의 콘텐츠 시리즈가 있습니다.';
             }
         } elseif ($intent === 'update') {
             $series = sr_content_series_by_id($pdo, $seriesId);

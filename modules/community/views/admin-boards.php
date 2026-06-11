@@ -240,7 +240,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-field admin-community-board-filter-field">
                         <label for="community_admin_boards_field" class="filtering-label">검색조건</label>
                         <select id="community_admin_boards_field" name="field" class="form-select filtering-input">
-                            <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => 'key', 'title' => sr_t('community::ui.name.253d1510'), 'group' => sr_t('community::ui.text.5d908ddd')] as $fieldValue => $fieldLabel) { ?>
+                            <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => sr_t('community::ui.key.cf056766'), 'title' => sr_t('community::ui.name.253d1510'), 'group' => sr_t('community::ui.text.5d908ddd')] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($boardListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
                                 </option>
@@ -297,7 +297,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.90d528cf')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('board_key', $boardSort); ?>><?php echo sr_admin_sort_header_html('key', 'board_key', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('board_key', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.key.cf056766'), 'board_key', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.name.253d1510'), 'title', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('board_group', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.5d908ddd'), 'board_group', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $boardSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $boardSort, sr_community_admin_board_sort_options(), sr_community_admin_board_default_sort()); ?></th>
@@ -1173,7 +1173,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <caption class="sr-only">게시판 카테고리 목록</caption>
                     <thead class="ui-table-head">
                         <tr>
-                            <th>key</th>
+                            <th>관리용 키</th>
                             <th>이름</th>
                             <th>상태</th>
                             <th>정렬</th>
@@ -1227,7 +1227,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input type="hidden" name="intent" value="category_create">
                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                             <div class="admin-form-row">
-                                <label class="form-label" for="community_category_key_new">key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                <label class="form-label" for="community_category_key_new">카테고리 관리용 키 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
                                     <input id="community_category_key_new" type="text" name="category_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#community_category_title_new" data-admin-key-suggest-fallback="category_<?php echo sr_e((string) (count($categories ?? []) + 1)); ?>" data-overlay-focus class="form-input">
                                 </div>
@@ -1285,7 +1285,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                                 <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
                                 <div class="admin-form-row">
-                                    <span class="form-label">key</span>
+                                    <span class="form-label">관리용 키</span>
                                     <div class="admin-form-field">
                                         <code><?php echo sr_e((string) $category['category_key']); ?></code>
                                     </div>

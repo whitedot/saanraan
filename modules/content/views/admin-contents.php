@@ -193,7 +193,7 @@ $contentCopyModalHtml = static function (array $content, string $returnTo): stri
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-slug"><?php echo sr_e('Slug'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-slug"><?php echo sr_e('주소 이름'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
                             <div class="admin-form-field">
                                 <input id="<?php echo sr_e($modalId); ?>-slug" type="text" name="slug" value="<?php echo sr_e((string) $suggestion['slug']); ?>" class="form-input form-control-full" maxlength="120" pattern="[a-z0-9][a-z0-9\-]{1,118}[a-z0-9]" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-slug-input>
                                 <p class="admin-form-help"><?php echo sr_e('복사본은 초안으로 저장됩니다. 댓글, 이용 로그, 리비전은 복사하지 않습니다.'); ?></p>
@@ -399,7 +399,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_slug', 'Slug', $contentHelp['slug']['id'], $contentHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_slug', '주소 이름', $contentHelp['slug']['id'], $contentHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <input id="content_admin_contents_slug" type="text" name="slug" value="<?php echo sr_e((string) ($values['slug'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" pattern="[a-z0-9][a-z0-9\-]{1,118}[a-z0-9]" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-slug-input>
                     <br>
@@ -492,7 +492,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php if (sr_module_enabled($pdo, 'community') || sr_module_enabled($pdo, 'quiz') || sr_module_enabled($pdo, 'survey')) { ?>
                         <div class="sr-link-card-picker" data-link-card-picker data-endpoint="<?php echo sr_e(sr_url('/admin/content/link-card-targets')); ?>" data-target="community_post,quiz_set,survey_form" data-textarea="content_admin_contents_body_text">
                             <div class="sr-link-card-picker-controls">
-                                <input type="search" class="form-input" data-link-card-search placeholder="<?php echo sr_e('게시글, 퀴즈, 설문 제목/key/ID 검색'); ?>">
+                                <input type="search" class="form-input" data-link-card-search placeholder="<?php echo sr_e('게시글, 퀴즈, 설문 제목/관리용 키/ID 검색'); ?>">
                                 <button type="button" class="btn btn-solid-light" data-link-card-search-trigger><?php echo sr_e('검색'); ?></button>
                                 <button type="button" class="btn btn-solid-primary" data-link-card-insert><?php echo sr_e('본문에 삽입'); ?></button>
                             </div>
@@ -811,7 +811,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-field admin-content-filter-field">
                         <label for="modules_content_admin_contents_field" class="filtering-label">검색조건</label>
                         <select id="modules_content_admin_contents_field" name="field" class="form-select filtering-input">
-                            <?php foreach (['all' => sr_t('content::ui.all.a4b69faf'), 'title' => sr_t('content::ui.text.08b17e43'), 'slug' => 'Slug'] as $fieldValue => $fieldLabel) { ?>
+                            <?php foreach (['all' => sr_t('content::ui.all.a4b69faf'), 'title' => sr_t('content::ui.text.08b17e43'), 'slug' => '주소 이름'] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
                                 </option>
@@ -891,7 +891,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th<?php echo sr_content_admin_sort_aria('title', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.08b17e43'), 'title', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('content_group', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.5d908ddd'), 'content_group', $contentSort); ?></th>
                         <th><?php echo sr_e('시리즈'); ?></th>
-                        <th<?php echo sr_content_admin_sort_aria('slug', $contentSort); ?>><?php echo sr_content_admin_sort_header_html('Slug', 'slug', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('slug', $contentSort); ?>><?php echo sr_content_admin_sort_header_html('주소 이름', 'slug', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('status', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.status.e10195a1'), 'status', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('asset_access', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.c9b3e6f0'), 'asset_access', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('created_by', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.f2ee20a7'), 'created_by', $contentSort); ?></th>

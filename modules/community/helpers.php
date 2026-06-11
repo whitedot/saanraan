@@ -50,7 +50,7 @@ function sr_community_coupon_target_search(PDO $pdo, string $targetType, string 
                 'reference_id' => (string) (int) ($row['id'] ?? 0),
                 'title' => (string) ($row['title'] ?? ''),
                 'reason' => '게시판 #' . (string) (int) ($row['id'] ?? 0),
-                'member_name' => 'key: ' . (string) ($row['board_key'] ?? ''),
+                'member_name' => '관리용 키: ' . (string) ($row['board_key'] ?? ''),
                 'member_email' => trim('그룹: ' . (string) ($row['group_title'] ?? '')),
                 'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
             ];
@@ -76,7 +76,7 @@ function sr_community_coupon_target_search(PDO $pdo, string $targetType, string 
                 'title' => (string) ($row['title'] ?? ''),
                 'reason' => '게시글 #' . (string) (int) ($row['id'] ?? 0),
                 'member_name' => '게시판: ' . (string) ($row['board_title'] ?? ''),
-                'member_email' => 'key: ' . (string) ($row['board_key'] ?? ''),
+                'member_email' => '관리용 키: ' . (string) ($row['board_key'] ?? ''),
                 'created_at' => '상태: ' . (string) ($row['status'] ?? ''),
             ];
         }, $stmt->fetchAll());

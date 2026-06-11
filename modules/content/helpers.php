@@ -1467,7 +1467,7 @@ function sr_content_admin_sort_options(): array
             'columns' => ['g.title', 'p.id'],
         ],
         'slug' => [
-            'label' => 'Slug',
+            'label' => '주소 이름',
             'columns' => ['p.slug', 'p.id'],
         ],
         'status' => [
@@ -4494,9 +4494,9 @@ function sr_content_copy_series_validate_options(PDO $pdo, int $sourceContentId,
         $seriesKey = strtolower(trim((string) ($keys[(string) $seriesId] ?? $keys[$seriesId] ?? $suggestion['series_key'])));
         $seriesTitle = sr_content_clean_single_line((string) ($titles[(string) $seriesId] ?? $titles[$seriesId] ?? $suggestion['title']), 160);
         if (!sr_content_series_key_is_valid($seriesKey)) {
-            $errors[] = '시리즈 key는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
+            $errors[] = '시리즈 관리용 키는 소문자 영문, 숫자, 밑줄만 사용할 수 있습니다.';
         } elseif (isset($seen[$seriesKey]) || sr_content_series_key_exists($pdo, $seriesKey)) {
-            $errors[] = '이미 사용 중인 시리즈 key입니다: ' . $seriesKey;
+            $errors[] = '이미 사용 중인 시리즈 관리용 키입니다: ' . $seriesKey;
         }
         if ($seriesTitle === '') {
             $errors[] = '새 시리즈 제목을 입력하세요.';

@@ -117,7 +117,7 @@ return [
     'ui.subject_target.scope' => '노출 범위',
     'ui.subject_target.search' => '검색',
     'ui.subject_target.search_empty' => '노출 위치를 선택하고 검색어 없이 검색하면 최근 대상이 표시됩니다.',
-    'ui.subject_target.search_placeholder' => '번호, 제목, key',
+    'ui.subject_target.search_placeholder' => '번호, 제목, 관리용 키',
     'ui.subject_target.search_title' => '특정 대상 검색',
     'ui.subject_target.search_type' => '대상 유형',
     'ui.subject_target.subject_help' => '검색으로 콘텐츠, 게시판, 게시글 같은 실제 노출 대상을 고르세요.',

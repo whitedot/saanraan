@@ -34,7 +34,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-module-card-header">
                     <div>
                         <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
-                        <p><?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></p>
+                        <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></p>
                     </div>
                     <span class="admin-status <?php echo $canInstall ? 'is-normal' : 'is-blocked'; ?>">
                         <?php echo sr_e($canInstall ? sr_t('admin::ui.text.24a5a830') : sr_t('admin::ui.text.944c1818')); ?>
@@ -92,7 +92,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="modal-body">
                             <dl class="admin-module-detail-list">
                                 <dt><?php echo sr_e(sr_t('admin::ui.text.e37db65f')); ?></dt>
-                                <dd><?php echo sr_e($moduleKey); ?></dd>
+                                <dd>관리용 키: <?php echo sr_e($moduleKey); ?></dd>
                                 <dt><?php echo sr_e(sr_t('admin::ui.name.253d1510')); ?></dt>
                                 <dd><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></dd>
                                 <dt><?php echo sr_e(sr_t('admin::ui.text.5cf2792b')); ?></dt>
@@ -148,7 +148,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></span>
                                         <div class="admin-form-field">
                                             <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
-                                            <span class="admin-form-help"><?php echo sr_e($moduleKey); ?></span>
+                                            <span class="admin-form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
                                         </div>
                                     </div>
                                     <div class="admin-form-row">
@@ -197,7 +197,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-module-card-header">
                 <div>
                     <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
-                    <p><?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) ($module['code_type'] ?? 'module'), 'module_type')); ?></p>
+                    <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) ($module['code_type'] ?? 'module'), 'module_type')); ?></p>
                 </div>
                 <span class="admin-status <?php echo sr_e($moduleStatusClass); ?>">
                     <?php echo sr_e(sr_admin_code_label($moduleStatus, 'module_status')); ?>
@@ -393,7 +393,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></span>
                                     <div class="admin-form-field">
                                         <strong><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></strong>
-                                        <span class="admin-form-help"><?php echo sr_e($moduleKey); ?></span>
+                                        <span class="admin-form-help">관리용 키: <?php echo sr_e($moduleKey); ?></span>
                                     </div>
                                 </div>
                                 <div class="admin-form-row">
@@ -445,7 +445,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php if (!$canManageModuleSources) { ?>
                         <p><?php echo sr_e(sr_t('admin::ui.text.db7d2323')); ?></p>
                     <?php } elseif (!$moduleUploadAvailable) { ?>
-                        <p><?php echo sr_e(sr_t('admin::ui.php.ziparchive.zip.active.cc251e55')); ?> <code>modules/{module_key}</code><?php echo sr_e(sr_t('admin::ui.text.e285ef90')); ?></p>
+                        <p><?php echo sr_e(sr_t('admin::ui.php.ziparchive.zip.active.cc251e55')); ?> <code>modules/{모듈관리용키}</code><?php echo sr_e(sr_t('admin::ui.text.e285ef90')); ?></p>
                     <?php } ?>
                 </div>
                 <div class="modal-footer">
@@ -504,7 +504,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="admin_modules_owner_password" type="password" name="owner_password" autocomplete="current-password" required class="form-input">
                             </div>
                         </div>
-                        <p><?php echo sr_e(sr_t('admin::ui.password.db92fb99')); ?> <?php echo sr_e($moduleUploadLimitLabel); ?><?php echo sr_e(sr_t('admin::ui.text.52241dbe')); ?> <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?><?php echo sr_e(sr_t('admin::ui.text.f20440e8')); ?> <code>{module_key}/module.php</code> <?php echo sr_e(sr_t('admin::ui.text.ffa27cfc')); ?> <code>module/module.php</code> <?php echo sr_e(sr_t('admin::ui.module.fb45cdc5')); ?></p>
+                        <p><?php echo sr_e(sr_t('admin::ui.password.db92fb99')); ?> <?php echo sr_e($moduleUploadLimitLabel); ?><?php echo sr_e(sr_t('admin::ui.text.52241dbe')); ?> <?php echo sr_e(sr_format_bytes(sr_module_source_uncompressed_limit_bytes())); ?><?php echo sr_e(sr_t('admin::ui.text.f20440e8')); ?> <code>{모듈관리용키}/module.php</code> <?php echo sr_e(sr_t('admin::ui.text.ffa27cfc')); ?> <code>module/module.php</code> <?php echo sr_e(sr_t('admin::ui.module.fb45cdc5')); ?></p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#module-upload-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>

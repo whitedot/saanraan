@@ -333,7 +333,7 @@ if (sr_request_method() === 'POST') {
         $categorySortOrder = sr_admin_post_int_in_range('category_sort_order', 0, 1000000);
 
         if ($intent === 'category_create' && !sr_community_category_key_is_valid($categoryKey)) {
-            $errors[] = '카테고리 key는 소문자, 숫자, _만 사용할 수 있으며 예약어는 사용할 수 없습니다.';
+            $errors[] = '카테고리 관리용 키는 소문자, 숫자, 밑줄만 사용할 수 있으며 예약어는 사용할 수 없습니다.';
         }
         if ($intent !== 'category_delete' && $categoryTitle === '') {
             $errors[] = '카테고리 이름을 입력해 주세요.';
@@ -350,7 +350,7 @@ if (sr_request_method() === 'POST') {
             $categoryDescription = '';
         }
         if ($intent === 'category_create' && $errors === [] && sr_community_category_by_key($pdo, $boardId, $categoryKey) !== null) {
-            $errors[] = '같은 게시판에 이미 같은 key의 카테고리가 있습니다.';
+            $errors[] = '같은 게시판에 이미 같은 관리용 키의 카테고리가 있습니다.';
         }
 
         if ($errors === [] && is_array($board)) {

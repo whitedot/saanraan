@@ -201,20 +201,20 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.db.saanraan.active.af3cd57e')); ?> <code>sr_</code><?php echo sr_e(sr_t('ui.text.66341384')); ?></p>
                     <div class="sr-install-field-grid">
                         <p>
-                            <label for="db_host">DB host <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <label for="db_host">DB 호스트 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="db_host" type="text" name="db_host" value="<?php echo sr_e($values['db_host']); ?>" autocomplete="off" required data-summary-source="db_host">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.active.d13269d0')); ?></span>
                         </p>
                         <p>
-                            <label for="db_name">DB name <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <label for="db_name">DB 이름 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="db_name" type="text" name="db_name" value="<?php echo sr_e($values['db_name']); ?>" autocomplete="off" required data-summary-source="db_name">
                         </p>
                         <p>
-                            <label for="db_user">DB user <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                            <label for="db_user">DB 사용자 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="db_user" type="text" name="db_user" value="<?php echo sr_e($values['db_user']); ?>" autocomplete="off" required data-summary-source="db_user">
                         </p>
                         <p>
-                            <label for="db_password">DB password</label>
+                            <label for="db_password">DB 비밀번호</label>
                             <input id="db_password" type="password" name="db_password" autocomplete="new-password">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.password.215ab9d4')); ?></span>
                         </p>
@@ -291,7 +291,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                         <p class="sr-install-kicker">3단계</p>
                         <h2>관리자와 모듈</h2>
                     </div>
-                    <p>최초 owner 계정과 설치할 기본 모듈 구성을 정합니다.</p>
+                    <p>최초 소유자 계정과 설치할 기본 모듈 구성을 정합니다.</p>
                 </div>
 
                 <?php if (!empty($installErrorSteps['account_modules'])) { ?>
@@ -348,7 +348,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                             <div class="sr-install-module">
                                 <span class="sr-install-status sr-install-status-<?php echo $moduleErrors === [] ? 'ok' : 'error'; ?>"><?php echo $moduleErrors === [] ? sr_t('ui.required.9825053d') : sr_t('ui.text.84dd6e38'); ?></span>
                                 <strong><?php echo sr_e((string) $module['label']); ?></strong>
-                                <code><?php echo sr_e((string) $moduleKey); ?></code>
+                                <small>관리용 키: <?php echo sr_e((string) $moduleKey); ?></small>
                                 <p><?php echo sr_e((string) $module['description']); ?></p>
                                 <?php if ($moduleErrors !== []) { ?>
                                     <ul>
@@ -363,7 +363,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
 
                     <h3><?php echo sr_e(sr_t('ui.select.d37edab7')); ?></h3>
                     <?php if ($optionalModules === []) { ?>
-                        <p><?php echo sr_e(sr_t('ui.select.select.feaab9be')); ?> <code>modules/{module_key}</code><?php echo sr_e(sr_t('ui.admin.2253b218')); ?></p>
+                        <p>설치 가능한 추가 모듈을 찾지 못했습니다. 모듈 폴더와 설정 파일을 확인하세요.</p>
                     <?php } else { ?>
                         <label class="sr-install-module-select-all" for="optional_modules_select_all">
                             <input id="optional_modules_select_all" type="checkbox" class="form-checkbox" data-install-module-select-all>
@@ -396,7 +396,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                                     <?php if ($moduleErrors !== []) { ?>
                                         <span class="sr-install-status sr-install-status-error"><?php echo sr_e(sr_t('ui.text.b4052951')); ?></span>
                                     <?php } ?>
-                                    <code><?php echo sr_e((string) $moduleKey); ?></code>
+                                    <small>관리용 키: <?php echo sr_e((string) $moduleKey); ?></small>
                                     <p><?php echo sr_e((string) $module['description']); ?></p>
                                     <?php if (is_array($moduleMainPageOption) && $moduleErrors === []) { ?>
                                         <label class="sr-install-main-page-option" for="<?php echo sr_e($moduleHomeCheckboxId); ?>">
@@ -460,13 +460,13 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     <div>
                         <h3>DB</h3>
                         <dl>
-                            <dt>Host</dt>
+                            <dt>호스트</dt>
                             <dd data-summary-target="db_host"><?php echo sr_e($values['db_host']); ?></dd>
-                            <dt>Name</dt>
+                            <dt>데이터베이스명</dt>
                             <dd data-summary-target="db_name"><?php echo sr_e($values['db_name'] !== '' ? $values['db_name'] : '-'); ?></dd>
-                            <dt>User</dt>
+                            <dt>사용자</dt>
                             <dd data-summary-target="db_user"><?php echo sr_e($values['db_user'] !== '' ? $values['db_user'] : '-'); ?></dd>
-                            <dt>Prefix</dt>
+                            <dt>테이블 접두어</dt>
                             <dd data-summary-target="db_table_prefix"><?php echo sr_e($values['db_table_prefix']); ?></dd>
                         </dl>
                     </div>
@@ -477,9 +477,9 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                             <dd data-summary-target="site_name"><?php echo sr_e($values['site_name']); ?></dd>
                             <dt>URL</dt>
                             <dd data-summary-target="base_url"><?php echo sr_e($values['base_url'] !== '' ? $values['base_url'] : '-'); ?></dd>
-                            <dt>Timezone</dt>
+                            <dt>시간대</dt>
                             <dd data-summary-target="timezone"><?php echo sr_e($values['timezone']); ?></dd>
-                            <dt>Locale</dt>
+                            <dt>언어</dt>
                             <dd data-summary-target="default_locale"><?php echo sr_e($values['default_locale']); ?></dd>
                             <dt>통화</dt>
                             <dd data-summary-target="default_currency"><?php echo sr_e($values['default_currency']); ?></dd>
@@ -490,9 +490,9 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     <div>
                         <h3>관리자</h3>
                         <dl>
-                            <dt>Email</dt>
+                            <dt>이메일</dt>
                             <dd data-summary-target="admin_email"><?php echo sr_e($values['admin_email'] !== '' ? $values['admin_email'] : '-'); ?></dd>
-                            <dt>Login ID</dt>
+                            <dt>로그인 아이디</dt>
                             <dd data-summary-target="admin_login_id"><?php echo sr_e($values['admin_login_id'] !== '' ? $values['admin_login_id'] : '-'); ?></dd>
                             <dt>이름</dt>
                             <dd data-summary-target="admin_display_name"><?php echo sr_e($values['admin_display_name']); ?></dd>

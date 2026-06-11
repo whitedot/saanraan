@@ -115,7 +115,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php if (sr_module_enabled($pdo, 'content') || sr_module_enabled($pdo, 'quiz') || sr_module_enabled($pdo, 'survey')) { ?>
                 <div class="sr-link-card-picker" data-link-card-picker data-endpoint="<?php echo sr_e(sr_url('/community/link-card-targets')); ?>" data-target="content,quiz_set,survey_form" data-textarea="modules_community_form_body_text">
                     <div class="sr-link-card-picker-controls">
-                        <input type="search" class="form-input" data-link-card-search placeholder="<?php echo sr_e('콘텐츠, 퀴즈, 설문 제목/key/ID 검색'); ?>">
+                        <input type="search" class="form-input" data-link-card-search placeholder="<?php echo sr_e('콘텐츠, 퀴즈, 설문 제목/관리용 키/ID 검색'); ?>">
                         <button type="button" class="btn btn-solid-light" data-link-card-search-trigger><?php echo sr_e('검색'); ?></button>
                         <button type="button" class="btn btn-solid-primary" data-link-card-insert><?php echo sr_e('본문에 삽입'); ?></button>
                     </div>

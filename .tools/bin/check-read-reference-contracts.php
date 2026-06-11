@@ -404,21 +404,21 @@ function sr_read_reference_check_prepare_entry_samples(): void
     $invalidConsumerModuleKeyEntry = $entry;
     $invalidConsumerModuleKeyEntry['consumer_module_key'] = ['sample_module'];
     $invalidConsumerModuleKeyErrors = sr_read_reference_prepare_entry('sample_module', $invalidConsumerModuleKeyEntry, 'banner');
-    if (!in_array('consumer_module_key가 제공 모듈과 맞지 않습니다.', $invalidConsumerModuleKeyErrors, true)) {
+    if (!in_array('사용 모듈 관리용 키가 제공 모듈과 맞지 않습니다.', $invalidConsumerModuleKeyErrors, true)) {
         sr_read_reference_check_error('read reference prepare entry sample accepted invalid consumer_module_key type');
     }
 
     $spacedEntry = $entry;
     $spacedEntry['supports_target_types'] = [' banner '];
     $spacedErrors = sr_read_reference_prepare_entry('sample_module', $spacedEntry, 'banner');
-    if (!in_array('supports_target_types가 대상 type과 맞지 않습니다.', $spacedErrors, true)) {
+    if (!in_array('지원 대상 종류가 조회 대상 종류와 맞지 않습니다.', $spacedErrors, true)) {
         sr_read_reference_check_error('read reference prepare entry sample accepted spaced supports_target_types');
     }
 
     $invalidReferenceTypeEntry = $entry;
     $invalidReferenceTypeEntry['reference_type'] = ' sample_reference ';
     $invalidReferenceTypeErrors = sr_read_reference_prepare_entry('sample_module', $invalidReferenceTypeEntry, 'banner');
-    if (!in_array('reference_type 값이 올바르지 않습니다.', $invalidReferenceTypeErrors, true)) {
+    if (!in_array('참조 종류 값이 올바르지 않습니다.', $invalidReferenceTypeErrors, true)) {
         sr_read_reference_check_error('read reference prepare entry sample accepted invalid reference_type');
     }
 }
@@ -515,49 +515,49 @@ function sr_read_reference_check_normalize_row_target_samples(): void
     $mismatchedReferenceType = $baseRow;
     $mismatchedReferenceType['reference_type'] = 'other_reference';
     $mismatchedReference = sr_read_reference_normalize_row('sample_module', $entry, $target, $mismatchedReferenceType, ['status' => 'ok'], '/admin/sample');
-    if (is_array($mismatchedReference['row'] ?? null) || !in_array('reference_type이 계약 항목과 맞지 않습니다.', $mismatchedReference['errors'] ?? [], true)) {
+    if (is_array($mismatchedReference['row'] ?? null) || !in_array('참조 종류가 계약 항목과 맞지 않습니다.', $mismatchedReference['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted mismatched reference_type');
     }
 
     $invalidReferenceType = $baseRow;
     $invalidReferenceType['reference_type'] = ' sample_reference ';
     $invalidReference = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidReferenceType, ['status' => 'ok'], '/admin/sample');
-    if (is_array($invalidReference['row'] ?? null) || !in_array('reference_type 값이 올바르지 않습니다.', $invalidReference['errors'] ?? [], true)) {
+    if (is_array($invalidReference['row'] ?? null) || !in_array('참조 종류 값이 올바르지 않습니다.', $invalidReference['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted invalid reference_type');
     }
 
     $nullConsumerModuleKey = $baseRow;
     $nullConsumerModuleKey['consumer_module_key'] = null;
     $nullConsumer = sr_read_reference_normalize_row('sample_module', $entry, $target, $nullConsumerModuleKey, ['status' => 'ok'], '/admin/sample');
-    if (is_array($nullConsumer['row'] ?? null) || !in_array('consumer_module_key 필수값이 비어 있습니다.', $nullConsumer['errors'] ?? [], true)) {
+    if (is_array($nullConsumer['row'] ?? null) || !in_array('사용 모듈 관리용 키 필수값이 비어 있습니다.', $nullConsumer['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted null consumer_module_key');
     }
 
     $nullReferenceType = $baseRow;
     $nullReferenceType['reference_type'] = null;
     $nullReference = sr_read_reference_normalize_row('sample_module', $entry, $target, $nullReferenceType, ['status' => 'ok'], '/admin/sample');
-    if (is_array($nullReference['row'] ?? null) || !in_array('reference_type 필수값이 비어 있습니다.', $nullReference['errors'] ?? [], true)) {
+    if (is_array($nullReference['row'] ?? null) || !in_array('참조 종류 필수값이 비어 있습니다.', $nullReference['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted null reference_type');
     }
 
     $missingTargetKey = $baseRow;
     unset($missingTargetKey['target_key']);
     $missing = sr_read_reference_normalize_row('sample_module', $entry, $target, $missingTargetKey, ['status' => 'ok'], '/admin/sample');
-    if (is_array($missing['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $missing['errors'] ?? [], true)) {
+    if (is_array($missing['row'] ?? null) || !in_array('대상 관리용 키가 조회 대상과 맞지 않습니다.', $missing['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted missing target_key');
     }
 
     $mismatchedTargetKey = $baseRow;
     $mismatchedTargetKey['target_key'] = 'site.description';
     $mismatched = sr_read_reference_normalize_row('sample_module', $entry, $target, $mismatchedTargetKey, ['status' => 'ok'], '/admin/sample');
-    if (is_array($mismatched['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $mismatched['errors'] ?? [], true)) {
+    if (is_array($mismatched['row'] ?? null) || !in_array('대상 관리용 키가 조회 대상과 맞지 않습니다.', $mismatched['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted mismatched target_key');
     }
 
     $invalidRowTargetKey = $baseRow;
     $invalidRowTargetKey['target_key'] = ' site.name ';
     $invalidKeyRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidRowTargetKey, ['status' => 'ok'], '/admin/sample');
-    if (is_array($invalidKeyRow['row'] ?? null) || !in_array('target_key 값이 올바르지 않습니다.', $invalidKeyRow['errors'] ?? [], true)) {
+    if (is_array($invalidKeyRow['row'] ?? null) || !in_array('대상 관리용 키 값이 올바르지 않습니다.', $invalidKeyRow['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted invalid row target_key');
     }
 
@@ -569,7 +569,7 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         'target_id' => 10,
         'target_key' => '',
     ], $unexpectedTargetKey, ['status' => 'ok'], '/admin/sample');
-    if (is_array($unexpected['row'] ?? null) || !in_array('target_key가 조회 대상과 맞지 않습니다.', $unexpected['errors'] ?? [], true)) {
+    if (is_array($unexpected['row'] ?? null) || !in_array('대상 관리용 키가 조회 대상과 맞지 않습니다.', $unexpected['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted unexpected target_key');
     }
 
@@ -582,7 +582,7 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         'target_id' => 1,
         'target_key' => '',
     ], $invalidRowTargetId, ['status' => 'ok'], '/admin/sample');
-    if (is_array($invalidIdRow['row'] ?? null) || !in_array('target_id 필수값이 비어 있습니다.', $invalidIdRow['errors'] ?? [], true)) {
+    if (is_array($invalidIdRow['row'] ?? null) || !in_array('대상 ID 필수값이 비어 있습니다.', $invalidIdRow['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted invalid row target_id');
     }
 
@@ -595,14 +595,14 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         'target_id' => 1,
         'target_key' => '',
     ], $nullRowTargetId, ['status' => 'ok'], '/admin/sample');
-    if (is_array($nullIdRow['row'] ?? null) || !in_array('target_id 필수값이 비어 있습니다.', $nullIdRow['errors'] ?? [], true)) {
+    if (is_array($nullIdRow['row'] ?? null) || !in_array('대상 ID 필수값이 비어 있습니다.', $nullIdRow['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted null row target_id');
     }
 
     $invalidRowTargetType = $baseRow;
     $invalidRowTargetType['target_type'] = true;
     $invalidTypeRow = sr_read_reference_normalize_row('sample_module', $entry, $target, $invalidRowTargetType, ['status' => 'ok'], '/admin/sample');
-    if (is_array($invalidTypeRow['row'] ?? null) || !in_array('target_type 필수값이 비어 있습니다.', $invalidTypeRow['errors'] ?? [], true)) {
+    if (is_array($invalidTypeRow['row'] ?? null) || !in_array('대상 종류 필수값이 비어 있습니다.', $invalidTypeRow['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted invalid row target_type');
     }
 
@@ -615,7 +615,7 @@ function sr_read_reference_check_normalize_row_target_samples(): void
         'target_id' => true,
         'target_key' => '',
     ], $invalidTargetTypeRow, ['status' => 'ok'], '/admin/sample');
-    if (is_array($invalidTarget['row'] ?? null) || !in_array('target_id가 조회 대상과 맞지 않습니다.', $invalidTarget['errors'] ?? [], true)) {
+    if (is_array($invalidTarget['row'] ?? null) || !in_array('대상 ID가 조회 대상과 맞지 않습니다.', $invalidTarget['errors'] ?? [], true)) {
         sr_read_reference_check_error('read reference normalize row target sample accepted invalid typed target_id');
     }
 }
@@ -640,12 +640,12 @@ function sr_read_reference_check_collect_target_samples(): void
         ['banner-references.php', ['target_type' => 'banner', 'target_id' => true, 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
         ['banner-references.php', ['target_type' => 'banner', 'target_id' => ' 1 ', 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
         ['banner-references.php', ['target_type' => 'banner', 'target_id' => '01', 'target_key' => ''], '읽기 참조 대상 ID가 올바르지 않습니다.'],
-        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => ''], '읽기 참조 대상 key가 비어 있습니다.'],
-        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => ' vip_member '], '읽기 참조 대상 key가 올바르지 않습니다.'],
+        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => ''], '읽기 참조 대상 관리용 키가 비어 있습니다.'],
+        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => ' vip_member '], '읽기 참조 대상 관리용 키가 올바르지 않습니다.'],
         ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1.5, 'target_key' => 'vip_member'], '읽기 참조 대상 ID가 올바르지 않습니다.'],
-        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => true], '읽기 참조 대상 key가 올바르지 않습니다.'],
+        ['member-group-references.php', ['target_type' => 'member_group', 'target_id' => 1, 'target_key' => true], '읽기 참조 대상 관리용 키가 올바르지 않습니다.'],
         ['site-setting-references.php', ['target_type' => 'site_setting', 'target_id' => 1, 'target_key' => 'site.name'], '읽기 참조 대상 ID가 올바르지 않습니다.'],
-        ['site-setting-references.php', ['target_type' => 'site_setting', 'target_id' => 0, 'target_key' => ['site.name']], '읽기 참조 대상 key가 올바르지 않습니다.'],
+        ['site-setting-references.php', ['target_type' => 'site_setting', 'target_id' => 0, 'target_key' => ['site.name']], '읽기 참조 대상 관리용 키가 올바르지 않습니다.'],
     ];
     foreach ($invalidSamples as [$contractFile, $target, $expectedError]) {
         $errors = sr_read_reference_target_errors($contractFile, $target);

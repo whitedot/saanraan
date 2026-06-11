@@ -197,7 +197,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <select id="<?php echo sr_e($groupFieldId); ?>" name="group_id" required class="form-select"<?php echo $focusAttr; ?>>
                 <?php foreach ($groups as $group) { ?>
                     <option value="<?php echo sr_e((string) $group['id']); ?>"<?php echo is_array($formRule) && (int) $formRule['group_id'] === (int) $group['id'] ? ' selected' : ''; ?>>
-                        <?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)
+                        <?php echo sr_e((string) $group['title']); ?> - 관리용 키: <?php echo sr_e((string) $group['group_key']); ?>
                     </option>
                 <?php } ?>
             </select>
@@ -370,7 +370,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
             <caption class="sr-only"><?php echo sr_e(sr_t('member::ui.member.list.7b664c16')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('group_key', $groupSort); ?>><?php echo sr_admin_sort_header_html('key', 'group_key', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('group_key', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.key.1057ecca'), 'group_key', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.97e73d18'), 'title', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('active_member_count', $groupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.member.984c7e2b'), 'active_member_count', $groupSort, sr_admin_member_group_sort_options(), sr_admin_member_group_default_sort()); ?></th>
@@ -503,7 +503,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) $groupId); ?>">
                         <div class="admin-summary-stats">
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
-                            <span class="admin-summary-meta"><?php echo sr_e((string) $group['group_key']); ?></span>
+                            <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) $group['group_key']); ?></span>
                         </div>
                         <div class="admin-form-row">
                             <?php echo sr_admin_form_label_help_html($manualAssignAccountInputId, sr_t('member::ui.member.hash.5a5dbe2b'), $memberGroupHelp['member_hash']['id'], $memberGroupHelpOpenLabel, true); ?>
@@ -548,7 +548,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <div class="modal-body">
                         <div class="admin-summary-stats">
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.7482bebf')); ?> <strong><?php echo sr_e((string) $group['title']); ?></strong></span>
-                            <span class="admin-summary-meta"><?php echo sr_e((string) $group['group_key']); ?></span>
+                            <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) $group['group_key']); ?></span>
                         </div>
                         <section class="admin-card admin-list-card card admin-list-form">
                             <div class="card-header">
@@ -674,14 +674,14 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <div class="filtering-field">
                     <label for="member_group_rule_filter_field" class="filtering-label">검색조건</label>
                     <select id="member_group_rule_filter_field" name="field" class="form-select filtering-input">
-                        <?php foreach (['all' => '전체', 'group' => '대상 그룹', 'source' => sr_t('member::ui.text.291ac971'), 'rule' => '규칙 key'] as $fieldValue => $fieldLabel) { ?>
+                        <?php foreach (['all' => '전체', 'group' => '대상 그룹', 'source' => sr_t('member::ui.text.291ac971'), 'rule' => '규칙 관리용 키'] as $fieldValue => $fieldLabel) { ?>
                             <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($groupRuleFilter['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                         <?php } ?>
                     </select>
                 </div>
                 <div class="filtering-field filtering-field-fill admin-member-group-rule-filter-keyword">
                     <label for="member_group_rule_filter_q" class="filtering-label"><?php echo sr_e(sr_t('member::ui.search.bda397fc')); ?></label>
-                    <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="대상 그룹, 모듈, 규칙 key">
+                    <input id="member_group_rule_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($groupRuleFilter['keyword'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="대상 그룹, 모듈, 규칙 관리용 키">
                 </div>
             </div>
             <div id="member_group_rule_detail_filters" class="filtering-body" data-filtering-body<?php echo $memberGroupRuleDetailFilterOpen ? '' : ' hidden'; ?>>
@@ -817,7 +817,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                             <select id="member_group_rule_evaluate_group_id" name="group_id" class="form-select" required data-overlay-focus>
                                 <option value=""><?php echo sr_e(sr_t('member::ui.text.72ea3d64')); ?></option>
                                 <?php foreach ($enabledRuleTargetGroups as $group) { ?>
-                                    <option value="<?php echo sr_e((string) $group['id']); ?>"><?php echo sr_e((string) $group['title']); ?> (<?php echo sr_e((string) $group['group_key']); ?>)</option>
+                                    <option value="<?php echo sr_e((string) $group['id']); ?>"><?php echo sr_e((string) $group['title']); ?> - 관리용 키: <?php echo sr_e((string) $group['group_key']); ?></option>
                                 <?php } ?>
                             </select>
                         </div>

@@ -490,7 +490,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap">
                                 <span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($bannerStatus, 'content_status')); ?></span>
                             </td>
-                            <td class="admin-table-nowrap"><?php echo sr_e(sr_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')])); ?></td>
+                            <?php $bannerRowSkinKey = sr_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]); ?>
+                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($bannerSkinOptions[$bannerRowSkinKey]['label'] ?? $bannerRowSkinKey)); ?></td>
                             <td class="admin-table-nowrap admin-banner-link-cell">
                                 <?php if ((string) ($banner['link_url'] ?? '') !== '') { ?>
                                     <a href="<?php echo sr_e((string) $banner['link_url']); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e('링크 새 탭에서 열기'); ?>" title="<?php echo sr_e('링크 새 탭에서 열기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>

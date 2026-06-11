@@ -142,7 +142,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                                     <?php $assetGroupKey = (string) ($assetGroupPolicyGroup['group_key'] ?? ''); ?>
                                     <?php if ($assetGroupKey === '') { continue; } ?>
                                     <option value="<?php echo sr_e($assetGroupKey); ?>"<?php echo $assetGroupPolicyGroupKey === $assetGroupKey ? ' selected' : ''; ?>>
-                                        <?php echo sr_e((string) ($assetGroupPolicyGroup['title'] ?? $assetGroupKey)); ?> (<?php echo sr_e($assetGroupKey); ?>)
+                                        <?php echo sr_e((string) ($assetGroupPolicyGroup['title'] ?? $assetGroupKey)); ?> - 관리용 키: <?php echo sr_e($assetGroupKey); ?>
                                         <?php echo (string) ($assetGroupPolicyGroup['status'] ?? '') !== 'enabled' ? ' - ' . sr_e('비활성') : ''; ?>
                                     </option>
                                 <?php } ?>
@@ -231,7 +231,7 @@ $assetGroupPolicySummaryHelp = in_array('exempt', $assetGroupPolicyModes, true) 
                         <?php $assetGroupKey = (string) ($assetGroupPolicyGroup['group_key'] ?? ''); ?>
                         <?php if ($assetGroupKey === '') { continue; } ?>
                         <option value="<?php echo sr_e($assetGroupKey); ?>">
-                            <?php echo sr_e((string) ($assetGroupPolicyGroup['title'] ?? $assetGroupKey)); ?> (<?php echo sr_e($assetGroupKey); ?>)
+                            <?php echo sr_e((string) ($assetGroupPolicyGroup['title'] ?? $assetGroupKey)); ?> - 관리용 키: <?php echo sr_e($assetGroupKey); ?>
                             <?php echo (string) ($assetGroupPolicyGroup['status'] ?? '') !== 'enabled' ? ' - ' . sr_e('비활성') : ''; ?>
                         </option>
                     <?php } ?>

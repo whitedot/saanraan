@@ -924,7 +924,7 @@ function sr_admin_handle_member_batch_revoke_sessions_post(PDO $pdo, array $acco
             }
         }
         if ($blockedOwnerIds !== []) {
-            $errors[] = 'owner 권한 회원의 세션은 owner 관리자만 회수할 수 있습니다: ' . implode(', ', array_map('strval', $blockedOwnerIds));
+            $errors[] = '소유자 권한 회원의 세션은 소유자 관리자만 회수할 수 있습니다: ' . implode(', ', array_map('strval', $blockedOwnerIds));
         }
     }
 

@@ -42,7 +42,7 @@
                         </div>
                         <div class="ui-kit-type-row">
                             <span class="ui-kit-type-label">Meta</span>
-                            <p class="type-meta">2026-05-30 14:25 · module_key: member_accounts</p>
+                            <p class="type-meta">2026-05-30 14:25 · 관리용 키: member_accounts</p>
                         </div>
                         <div class="ui-kit-type-row">
                             <span class="ui-kit-type-label">Caption</span>

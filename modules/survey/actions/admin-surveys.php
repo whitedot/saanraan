@@ -116,14 +116,14 @@ if (sr_request_method() === 'POST') {
     $existingSurveyForSave = $surveyId > 0 ? sr_survey_by_id($pdo, $surveyId) : null;
 
     if (!sr_survey_key_is_valid($surveyKey)) {
-        $errors[] = '설문 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '설문 관리용 키는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (sr_survey_key_is_reserved($surveyKey)) {
-        $errors[] = '예약된 설문 key입니다.';
+        $errors[] = '예약된 설문 관리용 키입니다.';
     } else {
         $stmt = $pdo->prepare('SELECT id FROM sr_survey_forms WHERE survey_key = :survey_key AND id <> :id LIMIT 1');
         $stmt->execute(['survey_key' => $surveyKey, 'id' => $surveyId]);
         if (is_array($stmt->fetch())) {
-            $errors[] = '이미 사용 중인 설문 key입니다.';
+            $errors[] = '이미 사용 중인 설문 관리용 키입니다.';
         }
     }
     if ($title === '') {
@@ -247,7 +247,7 @@ if (sr_request_method() === 'POST') {
     }
     foreach ($questions as $index => $question) {
         if (!sr_survey_key_is_valid((string) $question['question_key'])) {
-            $errors[] = '문항 ' . (string) ($index + 1) . '의 key가 올바르지 않습니다.';
+            $errors[] = '문항 ' . (string) ($index + 1) . '의 관리용 키가 올바르지 않습니다.';
         }
         if ((string) $question['prompt'] === '') {
             $errors[] = '문항 ' . (string) ($index + 1) . '의 내용을 입력하세요.';
@@ -718,7 +718,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="filtering-fields">
                 <div class="filtering-field filtering-field-fill admin-survey-filter-keyword">
                     <label for="survey_list_keyword" class="filtering-label">검색어</label>
-                    <input id="survey_list_keyword" type="text" name="q" value="<?php echo sr_e($listKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="key, 제목, 설명">
+                    <input id="survey_list_keyword" type="text" name="q" value="<?php echo sr_e($listKeyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="관리용 키, 제목, 설명">
                 </div>
             </div>
             <div id="survey_detail_filters" class="filtering-body" data-filtering-body<?php echo $surveyListFilterOpen ? '' : ' hidden'; ?>>
@@ -749,7 +749,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <table class="table admin-survey-table">
                 <thead class="ui-table-head">
                     <tr>
-                        <th>Key</th>
+                        <th>관리용 키</th>
                         <th>제목</th>
                         <th>상태</th>
                         <th>기간</th>
@@ -904,7 +904,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $surveyHelp = [
         'survey_key' => [
             'id' => 'survey-help-key-modal',
-            'title' => '설문 Key',
+            'title' => '설문 관리용 키',
             'body_html' => $surveyHelpBodyHtml([
                 '공개 URL과 내부 연결에 쓰는 고유 식별자입니다.',
                 '소문자, 숫자, 밑줄만 사용하고 첫 글자는 소문자로 시작해야 합니다.',
@@ -963,14 +963,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'id' => 'survey-help-questions-modal',
             'title' => '문항 관리',
             'body_html' => $surveyHelpBodyHtml([
-                '문항 표에서 등록된 문항의 key, 유형, 필수 여부, 선택지 수를 확인합니다.',
-                '문항 등록과 수정은 모달에서 처리하고, 저장 시 서버가 key, 내용, 선택지, 범위를 다시 검증합니다.',
+                '문항 표에서 등록된 문항의 관리용 키, 유형, 필수 여부, 선택지 수를 확인합니다.',
+                '문항 등록과 수정은 모달에서 처리하고, 저장 시 서버가 관리용 키, 내용, 선택지, 범위를 다시 검증합니다.',
                 '저장된 문항은 개수 제한 없이 모두 표시하고, 새 문항은 문항 등록 버튼으로 여는 모달에서 추가합니다.',
             ]),
         ],
         'question_key' => [
             'id' => 'survey-help-question-key-modal',
-            'title' => '문항 Key',
+            'title' => '문항 관리용 키',
             'body_html' => $surveyHelpBodyHtml([
                 '한 설문 안에서 문항을 구분하는 내부 식별자입니다.',
                 '통계, 분석 CSV, 개인정보 사본에서 문항을 안정적으로 찾는 기준이 됩니다.',
@@ -1018,7 +1018,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
             <div class="card-body">
                 <div class="form-field">
-                    <?php echo sr_admin_form_label_help_html('survey_key', '설문 key', $surveyHelp['survey_key']['id'], $surveyHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html('survey_key', '설문 관리용 키', $surveyHelp['survey_key']['id'], $surveyHelpOpenLabel, true); ?>
                     <input id="survey_key" type="text" name="survey_key" value="<?php echo sr_e((string) ($values['survey_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" required data-admin-key-input>
                 </div>
                 <div class="form-field">
@@ -1154,7 +1154,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php $groupKey = (string) ($memberGroup['group_key'] ?? ''); ?>
                         <label class="admin-form-check form-label">
                             <input type="checkbox" name="member_group_keys[]" value="<?php echo sr_e($groupKey); ?>" class="form-checkbox"<?php echo in_array($groupKey, $selectedMemberGroupKeys, true) ? ' checked' : ''; ?><?php echo (string) ($memberGroup['status'] ?? '') === 'enabled' ? '' : ' disabled'; ?>>
-                            <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> (<?php echo sr_e($groupKey); ?>)
+                            <?php echo sr_e((string) ($memberGroup['title'] ?? $groupKey)); ?> - 관리용 키: <?php echo sr_e($groupKey); ?>
                         </label>
                     <?php endforeach; ?>
                 </div>
@@ -1360,7 +1360,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <thead class="ui-table-head">
                         <tr>
                             <th>순서</th>
-                            <th>Key</th>
+                            <th>관리용 키</th>
                             <th>문항</th>
                             <th>유형</th>
                             <th>필수</th>
@@ -1426,7 +1426,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </div>
                             </div>
                             <div class="admin-form-row">
-                                <?php echo sr_admin_form_label_help_html('question_key_' . (string) $index, '문항 key', $surveyHelp['question_key']['id'], $surveyHelpOpenLabel); ?>
+                                <?php echo sr_admin_form_label_help_html('question_key_' . (string) $index, '문항 관리용 키', $surveyHelp['question_key']['id'], $surveyHelpOpenLabel); ?>
                                 <div class="admin-form-field">
                                     <input id="question_key_<?php echo sr_e((string) $index); ?>" type="text" name="question_key[]" value="<?php echo sr_e((string) ($question['question_key'] ?? '')); ?>" class="form-input" maxlength="64" pattern="[a-z][a-z0-9_]{1,63}" data-admin-key-input data-admin-key-suggest-source="#question_prompt_<?php echo sr_e((string) $index); ?>" data-admin-key-suggest-fallback="question_<?php echo sr_e((string) ($index + 1)); ?>" data-overlay-focus>
                                 </div>

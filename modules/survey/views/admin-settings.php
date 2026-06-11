@@ -46,8 +46,8 @@ $surveySettingsHelp = [
         'id' => 'survey-settings-help-skin-key',
         'title' => '설문 스킨',
         'body_html' => $surveySettingsHelpBodyHtml([
-            '설문 공개 목록, 상세/응답, 완료 화면의 본문 view 묶음입니다.',
-            '허용된 스킨 key만 저장하고, 누락된 view는 기본 스킨으로 대체합니다.',
+            '설문 공개 목록, 상세/응답, 완료 화면의 본문 화면 파일 묶음입니다.',
+            '허용된 스킨 관리용 키만 저장하고, 누락된 화면 파일은 기본 스킨으로 대체합니다.',
         ]),
     ],
     'default_login_required' => [

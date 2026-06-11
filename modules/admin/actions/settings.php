@@ -331,7 +331,7 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 continue;
             }
             if (isset($adminIconDefaults[$customKey]) || isset($postedIconOverrides[$customKey])) {
-                $errors[] = '중복된 아이콘 키입니다: ' . $customKey;
+                $errors[] = '중복된 아이콘 관리용 키입니다: ' . $customKey;
                 continue;
             }
 

@@ -25,14 +25,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-field">
                         <label for="content_policy_set_filter_field" class="filtering-label">검색조건</label>
                         <select id="content_policy_set_filter_field" name="field" class="form-select filtering-input">
-                            <?php foreach (['all' => '전체', 'key' => 'Key', 'title' => '이름'] as $fieldValue => $fieldLabel) { ?>
+                            <?php foreach (['all' => '전체', 'key' => '관리용 키', 'title' => '이름'] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($policySetFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                             <?php } ?>
                         </select>
                     </div>
                     <div class="filtering-field-fill filtering-field admin-content-asset-policy-set-filter-keyword">
                         <label for="content_policy_set_filter_q" class="filtering-label">검색어</label>
-                        <input id="content_policy_set_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($policySetFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="Key 또는 이름">
+                        <input id="content_policy_set_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($policySetFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="관리용 키 또는 이름">
                     </div>
                 </div>
                 <div id="content_policy_set_detail_filters" class="filtering-body" data-filtering-body<?php echo $policySetDetailFilterOpen ? '' : ' hidden'; ?>>
@@ -69,7 +69,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <thead class="ui-table-head">
                     <tr>
                         <th<?php echo sr_admin_sort_aria('title', $policySetSort); ?>><?php echo sr_admin_sort_header_html('이름', 'title', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>
-                        <th<?php echo sr_admin_sort_aria('set_key', $policySetSort); ?>><?php echo sr_admin_sort_header_html('Key', 'set_key', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('set_key', $policySetSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'set_key', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>
                         <th<?php echo sr_admin_sort_aria('status', $policySetSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>
                         <th<?php echo sr_admin_sort_aria('updated_at', $policySetSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $policySetSort, sr_content_asset_policy_set_sort_options(), sr_content_asset_policy_set_default_sort()); ?></th>
                         <th class="text-end">관리</th>
@@ -117,7 +117,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="admin-card card">
             <h2><?php echo $policySetPage === 'edit' ? '회원 그룹별 설정 수정' : '회원 그룹별 설정 생성'; ?></h2>
             <div class="admin-form-row">
-                <label class="form-label" for="content_policy_set_key">Key <span class="sr-required-label">(필수)</span></label>
+                <label class="form-label" for="content_policy_set_key">관리용 키 <span class="sr-required-label">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="content_policy_set_key" type="text" name="set_key" value="<?php echo sr_e((string) ($values['set_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" required data-admin-key-input data-admin-key-suggest-source="#content_policy_set_title" data-admin-key-suggest-fallback="content_policy_set">
                 </div>

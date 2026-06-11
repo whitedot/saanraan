@@ -72,7 +72,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-field">
                         <label for="content_admin_groups_field" class="filtering-label">검색조건</label>
                         <select id="content_admin_groups_field" name="field" class="form-select filtering-input">
-                            <?php foreach (['all' => sr_t('content::ui.all.a4b69faf'), 'key' => 'key', 'title' => sr_t('content::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
+                            <?php foreach (['all' => sr_t('content::ui.all.a4b69faf'), 'key' => sr_t('content::ui.key.1057ecca'), 'title' => sr_t('content::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($pageGroupFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
                                 </option>
@@ -137,7 +137,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="content_group_bulk_select_all" type="checkbox" class="form-checkbox" data-content-group-select-all<?php echo ($pageGroups ?? []) === [] ? ' disabled' : ''; ?>>
                         </th>
                         <th<?php echo sr_admin_sort_aria('title', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.name.253d1510'), 'title', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
-                        <th<?php echo sr_admin_sort_aria('group_key', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html('Key', 'group_key', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
+                        <th<?php echo sr_admin_sort_aria('group_key', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.key.1057ecca'), 'group_key', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
                         <th<?php echo sr_admin_sort_aria('status', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.status.e10195a1'), 'status', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
                         <th<?php echo sr_admin_sort_aria('content_count', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.content.5ed1a7cd'), 'content_count', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>
                         <th<?php echo sr_admin_sort_aria('sort_order', $pageGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('content::ui.text.3788952d'), 'sort_order', $pageGroupSort, sr_content_admin_group_sort_options(), sr_content_admin_group_default_sort()); ?></th>

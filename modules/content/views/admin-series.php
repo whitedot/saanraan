@@ -67,14 +67,14 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                 <div class="filtering-field admin-content-series-filter-field">
                     <label for="content_series_filter_field" class="filtering-label">검색조건</label>
                     <select id="content_series_filter_field" name="field" class="form-select filtering-input">
-                        <?php foreach (['all' => '전체', 'key' => 'key', 'title' => '제목'] as $fieldValue => $fieldLabel) { ?>
+                        <?php foreach (['all' => '전체', 'key' => '관리용 키', 'title' => '제목'] as $fieldValue => $fieldLabel) { ?>
                             <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($seriesFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>><?php echo sr_e($fieldLabel); ?></option>
                         <?php } ?>
                     </select>
                 </div>
                 <div class="filtering-field-fill filtering-field admin-content-series-filter-keyword">
                     <label for="content_series_filter_q" class="filtering-label">검색어</label>
-                    <input id="content_series_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($seriesFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="key 또는 제목">
+                    <input id="content_series_filter_q" type="text" name="q" value="<?php echo sr_e((string) ($seriesFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="관리용 키 또는 제목">
                 </div>
             </div>
             <div id="content_series_detail_filters" class="filtering-body" data-filtering-body<?php echo $seriesDetailFilterOpen ? '' : ' hidden'; ?>>
@@ -125,7 +125,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
             <caption class="sr-only">콘텐츠 시리즈 목록</caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('series_key', $seriesSort); ?>><?php echo sr_admin_sort_header_html('key', 'series_key', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('series_key', $seriesSort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'series_key', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>><?php echo sr_admin_sort_header_html('공개', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>

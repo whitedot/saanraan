@@ -120,7 +120,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <dd>
                         <dl class="quiz-manual-example-list">
                             <div>
-                                <dt>Key</dt>
+                                <dt>관리용 키</dt>
                                 <dd><strong>spring_benefit_quiz</strong></dd>
                             </div>
                             <div>
@@ -135,7 +135,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </dd>
                 </dl>
                 <ul class="quiz-manual-list">
-                    <li><strong>Key</strong>는 주소와 내부 연결에 쓰는 고유 이름입니다.</li>
+                    <li><strong>관리용 키</strong>는 주소와 내부 연결에 쓰는 고유 이름입니다.</li>
                     <li>영문 소문자, 숫자, 밑줄만 사용합니다.</li>
                     <li><strong>보관</strong>은 더 이상 운영하지 않는 퀴즈에 사용합니다.</li>
                 </ul>
@@ -181,8 +181,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p>퀴즈를 푼 뒤 보여줄 결과 안내입니다.</p>
                 <ul class="quiz-manual-list">
                     <li><strong>점수형 퀴즈</strong>: 최소 점수와 최대 점수를 입력합니다.</li>
-                    <li><strong>진단형 퀴즈</strong>: 카테고리 Key와 기준값을 입력합니다.</li>
-                    <li><strong>결과 Key</strong>: 같은 퀴즈 안에서 중복될 수 없습니다.</li>
+                    <li><strong>진단형 퀴즈</strong>: 카테고리 관리용 키와 기준값을 입력합니다.</li>
+                    <li><strong>결과 관리용 키</strong>: 같은 퀴즈 안에서 중복될 수 없습니다.</li>
                 </ul>
             </div>
         </div>
@@ -213,7 +213,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <dd>
                         <dl class="quiz-manual-example-list">
                             <div>
-                                <dt>문제 Key</dt>
+                                <dt>문제 관리용 키</dt>
                                 <dd><strong>q1</strong></dd>
                             </div>
                             <div>
@@ -229,8 +229,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </dl>
                 <ul class="quiz-manual-list">
                     <li>두 번째 문제는 <strong>q2</strong>, 세 번째 문제는 <strong>q3</strong>처럼 이어서 입력합니다.</li>
-                    <li>문제 Key는 회원에게 크게 보이는 문구가 아니라 관리자와 시스템이 문제를 구분하는 이름입니다.</li>
-                    <li>같은 퀴즈 안에서 문제 Key가 중복되면 저장할 수 없습니다.</li>
+                    <li>문제 관리용 키는 회원에게 크게 보이는 문구가 아니라 관리자와 시스템이 문제를 구분하는 이름입니다.</li>
+                    <li>같은 퀴즈 안에서 문제 관리용 키가 중복되면 저장할 수 없습니다.</li>
                 </ul>
             </div>
         </div>
@@ -387,7 +387,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <ul class="quiz-manual-list">
                     <li>퀴즈 목록에서 복사할 퀴즈 행의 복사 아이콘을 누릅니다.</li>
-                    <li>모달에서 새 퀴즈 Key와 새 제목을 입력합니다.</li>
+                    <li>모달에서 새 퀴즈 관리용 키와 새 제목을 입력합니다.</li>
                     <li>복사본은 기본적으로 초안으로 생성됩니다.</li>
                 </ul>
             </div>
@@ -492,7 +492,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <p>화면 상단 토스트의 오류 문구를 먼저 확인합니다.</p>
                 <ul class="quiz-manual-list">
-                    <li>Key 중복.</li>
+                    <li>관리용 키 중복.</li>
                     <li>필수 입력 누락.</li>
                     <li>문제 선택지 부족 또는 정답 개수 오류.</li>
                     <li>사용할 수 없는 쿠폰.</li>

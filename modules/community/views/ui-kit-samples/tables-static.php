@@ -44,7 +44,7 @@ $uiKitTableRows = [
                     </label>
                     <label class="filtering-field-fill" for="admin_ui_filtering_plain_keyword">
                         <span class="form-label">검색어</span>
-                        <input id="admin_ui_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
+                        <input id="admin_ui_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
                     </label>
                 </div>
                 <div class="filtering-actions">
@@ -68,7 +68,7 @@ $uiKitTableRows = [
                     </label>
                     <label class="filtering-field-fill" for="admin_ui_filtering_card_keyword">
                         <span class="form-label">검색어</span>
-                        <input id="admin_ui_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, Slug">
+                        <input id="admin_ui_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
                     </label>
                 </div>
                 <div id="admin_ui_filtering_card_detail" class="filtering-body" data-filtering-body hidden>

@@ -28,9 +28,9 @@ function sr_community_board_copy_job_create(PDO $pdo, int $sourceBoardId, array 
     $title = sr_community_clean_single_line((string) ($values['title'] ?? ''), 120);
     $errors = [];
     if (!sr_community_board_key_is_valid($boardKey)) {
-        $errors[] = '게시판 key는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
+        $errors[] = '게시판 관리용 키는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
     } elseif (is_array(sr_community_board_by_key($pdo, $boardKey))) {
-        $errors[] = '이미 사용 중인 게시판 key입니다.';
+        $errors[] = '이미 사용 중인 게시판 관리용 키입니다.';
     }
     if ($title === '') {
         $errors[] = '새 게시판 제목을 입력하세요.';

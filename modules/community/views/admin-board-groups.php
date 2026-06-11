@@ -231,7 +231,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-field admin-community-board-group-filter-field">
                         <label for="community_admin_board_groups_field" class="filtering-label">검색조건</label>
                         <select id="community_admin_board_groups_field" name="field" class="form-select filtering-input">
-                            <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => 'key', 'title' => sr_t('community::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
+                            <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => sr_t('community::ui.key.1057ecca'), 'title' => sr_t('community::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($boardGroupListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
                                 </option>
@@ -274,7 +274,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.339c91e7')); ?></caption>
             <thead class="ui-table-head">
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('group_key', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html('key', 'group_key', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('group_key', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.key.1057ecca'), 'group_key', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.name.253d1510'), 'title', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('board_count', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.d6d92d73'), 'board_count', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>

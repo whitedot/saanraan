@@ -117,7 +117,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) ($attempt['updated_at'] ?? '')); ?></td>
                         <td class="admin-table-break">
                             <strong><?php echo sr_e((string) ($attempt['title'] ?? '')); ?></strong><br>
-                            <span class="admin-summary-meta"><code><?php echo sr_e((string) ($attempt['quiz_key'] ?? '')); ?></code> · 시도 #<?php echo sr_e((string) (int) ($attempt['id'] ?? 0)); ?></span>
+                            <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) ($attempt['quiz_key'] ?? '')); ?> · 시도 #<?php echo sr_e((string) (int) ($attempt['id'] ?? 0)); ?></span>
                             <?php if ((string) ($attempt['source_title_snapshot'] ?? '') !== '') { ?>
                                 <br><span class="admin-summary-meta"><?php echo sr_e((string) ($attempt['source_title_snapshot'] ?? '')); ?></span>
                             <?php } ?>
@@ -130,7 +130,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php if ((string) ($attempt['result_title'] ?? '') !== '') { ?>
                                 <strong><?php echo sr_e((string) ($attempt['result_title'] ?? '')); ?></strong>
                                 <?php if ((string) ($attempt['result_key'] ?? '') !== '') { ?>
-                                    <br><span class="admin-summary-meta"><code><?php echo sr_e((string) ($attempt['result_key'] ?? '')); ?></code></span>
+                                    <br><span class="admin-summary-meta">결과 관리용 키: <?php echo sr_e((string) ($attempt['result_key'] ?? '')); ?></span>
                                 <?php } ?>
                                 <?php if ((string) ($attempt['result_summary'] ?? '') !== '') { ?>
                                     <br><span class="admin-summary-meta"><?php echo sr_e((string) ($attempt['result_summary'] ?? '')); ?></span>

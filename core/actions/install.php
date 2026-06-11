@@ -397,7 +397,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($values['db_host'] === '' || $values['db_name'] === '' || $values['db_user'] === '') {
-        $addInstallError('DB host, DB 이름, DB 사용자를 입력하세요.', 'basic');
+        $addInstallError('DB 호스트, DB 이름, DB 사용자를 입력하세요.', 'basic');
     }
 
     if (!sr_is_safe_table_prefix($values['db_table_prefix'])) {

@@ -9,7 +9,7 @@ $quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($qui
     <?php foreach ($quizSiteMenuOptions as $menuKey => $menu) { ?>
         <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
         <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
-            <?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?>
+            <?php echo sr_e($menuLabel . ' - 관리용 키: ' . (string) $menuKey); ?>
         </option>
     <?php } ?>
     <?php
@@ -75,8 +75,8 @@ $quizSettingsHelp = [
         'id' => 'quiz-settings-help-skin-key',
         'title' => '퀴즈 스킨',
         'body_html' => $quizSettingsHelpBodyHtml([
-            '퀴즈 공개 목록, 상세/응시, 결과 화면의 본문 view 묶음입니다.',
-            '허용된 스킨 key만 저장하고, 누락된 view는 기본 스킨으로 대체합니다.',
+            '퀴즈 공개 목록, 상세/응시, 결과 화면의 본문 화면 파일 묶음입니다.',
+            '허용된 스킨 관리용 키만 저장하고, 누락된 화면 파일은 기본 스킨으로 대체합니다.',
         ]),
     ],
     'default_status' => [

@@ -25,7 +25,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <dt><?php echo sr_e('원본 / 대상'); ?></dt>
             <dd><?php echo sr_e((string) (int) $job['source_board_id'] . ' -> ' . (string) (int) $job['target_board_id']); ?></dd>
             <dt><?php echo sr_e('새 게시판'); ?></dt>
-            <dd><?php echo sr_e((string) ($options['title'] ?? '') . ' / ' . (string) ($options['board_key'] ?? '')); ?></dd>
+            <dd><?php echo sr_e((string) ($options['title'] ?? '') . ' / 관리용 키: ' . (string) ($options['board_key'] ?? '')); ?></dd>
             <dt><?php echo sr_e('복사 수'); ?></dt>
             <dd><?php echo sr_e('게시글 ' . number_format((int) ($counts['posts'] ?? 0)) . ', 댓글 ' . number_format((int) ($counts['comments'] ?? 0)) . ', 첨부 ' . number_format((int) ($counts['attachments'] ?? 0)) . ', 첨부 총량 ' . sr_community_format_bytes((int) ($counts['bytes'] ?? 0))); ?></dd>
             <?php if ((string) ($job['last_error'] ?? '') !== '') { ?>

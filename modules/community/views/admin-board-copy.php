@@ -28,7 +28,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e('원본 게시판'); ?></span>
             <div class="admin-form-field">
-                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $sourceBoard['title']); ?> / <code><?php echo sr_e((string) $sourceBoard['board_key']); ?></code></p>
+                <p class="admin-form-static admin-community-board-copy-info-text"><?php echo sr_e((string) $sourceBoard['title']); ?> / 관리용 키: <?php echo sr_e((string) $sourceBoard['board_key']); ?></p>
             </div>
         </div>
         <div class="admin-form-row">
@@ -84,9 +84,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="admin-card card">
         <h2><?php echo sr_e('복사 설정'); ?></h2>
         <div class="admin-form-row">
-            <label class="form-label" for="community_board_copy_key"><?php echo sr_e('board_key'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+            <label class="form-label" for="community_board_copy_key"><?php echo sr_e('새 게시판 관리용 키'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
             <div class="admin-form-field">
                 <input id="community_board_copy_key" type="text" name="board_key" value="<?php echo sr_e((string) $values['board_key']); ?>" class="form-input form-control-full" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input>
+                <p class="admin-form-help">복사본 게시판을 구분하는 내부 식별값입니다. 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.</p>
             </div>
         </div>
         <div class="admin-form-row">

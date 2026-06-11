@@ -358,9 +358,9 @@ if (sr_request_method() === 'POST') {
     $groupSettings['file_asset_charge_policy'] = (string) ($groupFileAssetSettings['asset_charge_policy'] ?? 'once');
 
     if (!$isUpdate && !sr_content_group_key_is_valid($groupKey)) {
-        $errors[] = '그룹 key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '그룹 관리용 키는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (!$isUpdate && sr_content_group_key_exists($pdo, $groupKey)) {
-        $errors[] = '이미 사용 중인 그룹 key입니다.';
+        $errors[] = '이미 사용 중인 그룹 관리용 키입니다.';
     }
 
     if ($title === '') {

@@ -304,7 +304,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-field admin-popup-layer-filter-field">
                         <label for="modules_popup_layer_admin_popup_layers_field" class="filtering-label">검색조건</label>
                         <select id="modules_popup_layer_admin_popup_layers_field" name="field" class="form-select filtering-input">
-                            <?php foreach (['all' => sr_t('popup_layer::ui.all.a4b69faf'), 'title' => sr_t('popup_layer::ui.text.08b17e43'), 'subject' => 'Subject ID'] as $fieldValue => $fieldLabel) { ?>
+                            <?php foreach (['all' => sr_t('popup_layer::ui.all.a4b69faf'), 'title' => sr_t('popup_layer::ui.text.08b17e43'), 'subject' => sr_t('popup_layer::ui.subject.id.14852174')] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($filters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
                                 </option>

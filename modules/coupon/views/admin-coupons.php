@@ -484,7 +484,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <input type="text" name="q" maxlength="120" class="form-input" placeholder="번호, 제목, key" data-overlay-focus>
+                    <input type="text" name="q" maxlength="120" class="form-input" placeholder="번호, 제목, 관리용 키" data-overlay-focus>
                     <button type="submit" class="btn btn-solid-primary">검색</button>
                 </form>
                 <div id="<?php echo sr_e($couponTargetLookupResultsId); ?>" class="admin-lookup-results">

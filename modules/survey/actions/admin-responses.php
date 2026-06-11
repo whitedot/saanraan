@@ -124,7 +124,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="filtering-fields">
             <div class="filtering-field filtering-field-fill admin-survey-response-filter-keyword">
                 <label for="survey_response_keyword" class="filtering-label">검색어</label>
-                <input id="survey_response_keyword" type="text" name="q" value="<?php echo sr_e($keyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="응답 ID, 회원 ID, 설문 key, 제목">
+                <input id="survey_response_keyword" type="text" name="q" value="<?php echo sr_e($keyword); ?>" class="form-input filtering-input" maxlength="120" placeholder="응답 ID, 회원 ID, 설문 관리용 키, 제목">
             </div>
         </div>
         <div id="survey_response_detail_filters" class="filtering-body" data-filtering-body<?php echo $responseDetailFilterOpen ? '' : ' hidden'; ?>>
@@ -182,7 +182,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($response['submitted_at'] ?? '')); ?></td>
                         <td class="admin-table-break">
                             <strong><?php echo sr_e((string) ($response['title'] ?? '')); ?></strong><br>
-                            <span class="admin-summary-meta"><code><?php echo sr_e((string) ($response['survey_key'] ?? '')); ?></code> · 응답 #<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?></span>
+                            <span class="admin-summary-meta">관리용 키: <?php echo sr_e((string) ($response['survey_key'] ?? '')); ?> · 응답 #<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?></span>
                         </td>
                         <td class="admin-table-nowrap"><?php echo (int) ($response['account_id'] ?? 0) > 0 ? sr_e((string) (int) $response['account_id']) : '익명'; ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class((string) ($response['quality_status'] ?? 'accepted'))); ?>"><?php echo sr_e(sr_survey_quality_status_label((string) ($response['quality_status'] ?? 'accepted'))); ?></span></td>
