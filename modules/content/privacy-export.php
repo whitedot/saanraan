@@ -17,6 +17,9 @@ if (!function_exists('sr_content_privacy_asset_settlement_summary')) {
             'asset_amount' => (int) ($row['amount'] ?? 0),
             'settlement_amount' => (int) ($row['settlement_amount'] ?? 0),
             'settlement_currency' => (string) ($row['settlement_currency'] ?? ''),
+            'settlement_kind' => (string) ($row['settlement_kind'] ?? ''),
+            'snapshot_schema_version' => (string) ($row['snapshot_schema_version'] ?? ''),
+            'rounding_policy_version' => (string) ($row['rounding_policy_version'] ?? ''),
             'purchase_power' => [
                 'asset_units' => (int) ($snapshot['asset_units'] ?? 0),
                 'settlement_units' => (int) ($snapshot['settlement_units'] ?? 0),
@@ -80,6 +83,7 @@ return static function (PDO $pdo, int $accountId): array {
         'SELECT l.id, l.content_id, p.slug, p.title, l.account_id, l.asset_module, l.transaction_id,
                 l.reference_type, l.reference_id, l.access_kind, l.charge_policy, l.amount,
                 l.settlement_amount, l.settlement_currency, l.purchase_power_snapshot_json,
+                l.settlement_kind, l.snapshot_schema_version, l.rounding_policy_version,
                 l.group_policy_snapshot_json, l.created_at
          FROM sr_content_asset_access_logs l
          LEFT JOIN sr_content_items p ON p.id = l.content_id
@@ -121,6 +125,7 @@ return static function (PDO $pdo, int $accountId): array {
         'SELECT l.id, l.content_id, p.slug, p.title, l.account_id, l.asset_module, l.transaction_id,
                 l.reference_type, l.reference_id, l.action_key, l.direction, l.amount,
                 l.settlement_amount, l.settlement_currency, l.purchase_power_snapshot_json,
+                l.settlement_kind, l.snapshot_schema_version, l.rounding_policy_version,
                 l.group_policy_snapshot_json, l.created_at
          FROM sr_content_asset_action_logs l
          LEFT JOIN sr_content_items p ON p.id = l.content_id

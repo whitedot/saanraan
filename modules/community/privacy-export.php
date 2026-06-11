@@ -17,6 +17,9 @@ if (!function_exists('sr_community_privacy_asset_settlement_summary')) {
             'asset_amount' => (int) ($row['amount'] ?? 0),
             'settlement_amount' => (int) ($row['settlement_amount'] ?? 0),
             'settlement_currency' => (string) ($row['settlement_currency'] ?? ''),
+            'settlement_kind' => (string) ($row['settlement_kind'] ?? ''),
+            'snapshot_schema_version' => (string) ($row['snapshot_schema_version'] ?? ''),
+            'rounding_policy_version' => (string) ($row['rounding_policy_version'] ?? ''),
             'purchase_power' => [
                 'asset_units' => (int) ($snapshot['asset_units'] ?? 0),
                 'settlement_units' => (int) ($snapshot['settlement_units'] ?? 0),
@@ -236,7 +239,7 @@ return static function (PDO $pdo, int $accountId): array {
         }
 
         $stmt = $pdo->prepare(
-            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, group_policy_snapshot_json, created_at
+            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, group_policy_snapshot_json, created_at
              FROM sr_community_asset_logs
              WHERE account_id = :account_id
              ORDER BY id ASC

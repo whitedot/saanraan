@@ -102,6 +102,34 @@ function sr_content_asset_log_status_pending(): string
     return 'pending';
 }
 
+function sr_content_asset_snapshot_schema_version(): string
+{
+    return 'asset_settlement_snapshot_v1';
+}
+
+function sr_content_asset_rounding_policy_version(): string
+{
+    return 'asset_settlement_rounding_v1';
+}
+
+function sr_content_asset_settlement_kind_for_use(int $amount, int $settlementAmount, string $purchasePowerSnapshotJson): string
+{
+    if ($settlementAmount > 0 || $purchasePowerSnapshotJson !== '') {
+        return 'paid';
+    }
+
+    return $amount === 0 ? 'paid_settled_zero' : 'legacy_unknown';
+}
+
+function sr_content_asset_settlement_kind_for_action(string $direction, int $amount, int $settlementAmount, string $purchasePowerSnapshotJson): string
+{
+    if ($direction !== 'use') {
+        return 'free';
+    }
+
+    return sr_content_asset_settlement_kind_for_use($amount, $settlementAmount, $purchasePowerSnapshotJson);
+}
+
 function sr_content_asset_confirmation_session_key(string $accessKind, int $accountId, int $subjectId): string
 {
     return $accessKind . ':' . (string) $accountId . ':' . (string) $subjectId;
@@ -1528,11 +1556,13 @@ function sr_content_allocate_asset_use(PDO $pdo, array $assetModules, int $accou
 
 function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'content.view', ?string $referenceId = null, string $accessKind = 'view', string $groupPolicySnapshotJson = '', int $settlementAmount = 0, string $settlementCurrency = 'KRW', string $purchasePowerSnapshotJson = ''): bool
 {
+    $settlementAmount = max(0, $settlementAmount);
+    $settlementKind = sr_content_asset_settlement_kind_for_use($amount, $settlementAmount, $purchasePowerSnapshotJson);
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_access_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, log_status, group_policy_snapshot_json, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :settlement_kind, :snapshot_schema_version, :rounding_policy_version, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -1543,9 +1573,12 @@ function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $
         'access_kind' => $accessKind,
         'charge_policy' => $chargePolicy,
         'amount' => $amount,
-        'settlement_amount' => max(0, $settlementAmount),
+        'settlement_amount' => $settlementAmount,
         'settlement_currency' => sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => $settlementCurrency]),
         'purchase_power_snapshot_json' => $purchasePowerSnapshotJson,
+        'settlement_kind' => $settlementKind,
+        'snapshot_schema_version' => sr_content_asset_snapshot_schema_version(),
+        'rounding_policy_version' => sr_content_asset_rounding_policy_version(),
         'log_status' => sr_content_asset_log_status_pending(),
         'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,
@@ -2055,11 +2088,13 @@ function sr_content_has_completed_asset_action_for_modules(PDO $pdo, array $asse
 
 function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, string $direction, int $amount, string $dedupeKey, string $groupPolicySnapshotJson = '', int $settlementAmount = 0, string $settlementCurrency = 'KRW', string $purchasePowerSnapshotJson = ''): bool
 {
+    $settlementAmount = max(0, $settlementAmount);
+    $settlementKind = sr_content_asset_settlement_kind_for_action($direction, $amount, $settlementAmount, $purchasePowerSnapshotJson);
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_action_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, log_status, group_policy_snapshot_json, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :settlement_kind, :snapshot_schema_version, :rounding_policy_version, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -2070,9 +2105,12 @@ function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $
         'action_key' => 'complete',
         'direction' => $direction,
         'amount' => $amount,
-        'settlement_amount' => max(0, $settlementAmount),
+        'settlement_amount' => $settlementAmount,
         'settlement_currency' => sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => $settlementCurrency]),
         'purchase_power_snapshot_json' => $purchasePowerSnapshotJson,
+        'settlement_kind' => $settlementKind,
+        'snapshot_schema_version' => sr_content_asset_snapshot_schema_version(),
+        'rounding_policy_version' => sr_content_asset_rounding_policy_version(),
         'log_status' => sr_content_asset_log_status_pending(),
         'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,

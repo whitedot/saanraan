@@ -721,6 +721,29 @@ function sr_community_asset_log_status_pending(): string
     return 'pending';
 }
 
+function sr_community_asset_snapshot_schema_version(): string
+{
+    return 'asset_settlement_snapshot_v1';
+}
+
+function sr_community_asset_rounding_policy_version(): string
+{
+    return 'asset_settlement_rounding_v1';
+}
+
+function sr_community_asset_settlement_kind(string $direction, int $amount, int $settlementAmount, string $purchasePowerSnapshotJson): string
+{
+    if ($direction !== 'use') {
+        return 'free';
+    }
+
+    if ($settlementAmount > 0 || $purchasePowerSnapshotJson !== '') {
+        return 'paid';
+    }
+
+    return $amount === 0 ? 'paid_settled_zero' : 'legacy_unknown';
+}
+
 function sr_community_asset_confirmation_session_key(string $eventKey, string $subjectType, int $accountId, int $subjectId): string
 {
     return $eventKey . ':' . $subjectType . ':' . (string) $accountId . ':' . (string) $subjectId;
@@ -1937,11 +1960,19 @@ function sr_community_try_paid_read_coupon_access(PDO $pdo, int $accountId, arra
 
 function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
 {
+    $settlementAmount = max(0, (int) ($row['settlement_amount'] ?? 0));
+    $purchasePowerSnapshotJson = (string) ($row['purchase_power_snapshot_json'] ?? '');
+    $settlementKind = sr_community_asset_settlement_kind(
+        (string) $row['direction'],
+        (int) $row['amount'],
+        $settlementAmount,
+        $purchasePowerSnapshotJson
+    );
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_community_asset_logs
-            (account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, log_status, group_policy_snapshot_json, dedupe_key, created_at)
+            (account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:account_id, :asset_module, 0, :reference_type, :reference_id, :subject_type, :subject_id, :event_key, :direction, :charge_policy, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:account_id, :asset_module, 0, :reference_type, :reference_id, :subject_type, :subject_id, :event_key, :direction, :charge_policy, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :settlement_kind, :snapshot_schema_version, :rounding_policy_version, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'account_id' => (int) $row['account_id'],
@@ -1954,9 +1985,12 @@ function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
         'direction' => (string) $row['direction'],
         'charge_policy' => (string) $row['charge_policy'],
         'amount' => (int) $row['amount'],
-        'settlement_amount' => max(0, (int) ($row['settlement_amount'] ?? 0)),
+        'settlement_amount' => $settlementAmount,
         'settlement_currency' => sr_community_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($row['settlement_currency'] ?? 'KRW')]),
-        'purchase_power_snapshot_json' => (string) ($row['purchase_power_snapshot_json'] ?? ''),
+        'purchase_power_snapshot_json' => $purchasePowerSnapshotJson,
+        'settlement_kind' => $settlementKind,
+        'snapshot_schema_version' => sr_community_asset_snapshot_schema_version(),
+        'rounding_policy_version' => sr_community_asset_rounding_policy_version(),
         'log_status' => sr_community_asset_log_status_pending(),
         'group_policy_snapshot_json' => (string) ($row['group_policy_snapshot_json'] ?? ''),
         'dedupe_key' => (string) $row['dedupe_key'],
