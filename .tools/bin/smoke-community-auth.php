@@ -218,6 +218,16 @@ function sr_auth_smoke_report_id_for_post(array $response, int $postId): string
             }
         }
     }
+    if (preg_match_all('/<div\b[^>]*id="community-report-process-modal-[^"]*"[^>]*>.*?<\/form>/s', $body, $modals) !== false) {
+        foreach ($modals[0] as $modal) {
+            $modalText = html_entity_decode(strip_tags((string) $modal), ENT_QUOTES, 'UTF-8');
+            if (str_contains($modalText, '게시글 #' . (string) $postId)
+                && preg_match('/name="report_id"\s+value="([^"]+)"/', (string) $modal, $matches) === 1
+            ) {
+                return html_entity_decode((string) $matches[1], ENT_QUOTES, 'UTF-8');
+            }
+        }
+    }
 
     throw new RuntimeException('admin report list did not contain report for post #' . (string) $postId);
 }
@@ -403,22 +413,6 @@ try {
     if ($createdPostId > 0 && $adminIdentifier !== '' && $adminPassword !== '') {
         $adminCookies = [];
         sr_auth_smoke_login($baseUrl, $adminIdentifier, $adminPassword, $adminCookies, $errors, 'admin account');
-        if ($reportedPost) {
-            $adminReports = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/reports', [], $adminCookies);
-            sr_auth_smoke_assert_status($errors, 'admin report list', $adminReports, [200]);
-            $adminReportCsrf = sr_auth_smoke_csrf($adminReports, 'admin report list');
-            $reportId = sr_auth_smoke_report_id_for_post($adminReports, $createdPostId);
-            $reportReviewResponse = sr_auth_smoke_request($baseUrl, 'POST', '/admin/community/reports', [
-                'csrf_token' => $adminReportCsrf,
-                'report_id' => $reportId,
-                'status' => 'resolved',
-                'review_note' => 'Saanraan authenticated community admin report smoke ' . $runToken . '.',
-            ], $adminCookies);
-            sr_auth_smoke_assert_status($errors, 'admin report resolve', $reportReviewResponse, [200, 302]);
-        } else {
-            echo "[skip] admin report resolve requires reporter credentials\n";
-        }
-
         $adminComments = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/comments', [], $adminCookies);
         sr_auth_smoke_assert_status($errors, 'admin comment list', $adminComments, [200]);
         $adminCommentCsrf = sr_auth_smoke_csrf($adminComments, 'admin comment list');
@@ -436,20 +430,38 @@ try {
             sr_auth_smoke_assert_body_not_contains($errors, 'post view after comment hide', $postAfterCommentHide, $commentBody);
         }
 
-        $adminPosts = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/posts', [], $adminCookies);
-        sr_auth_smoke_assert_status($errors, 'admin post list', $adminPosts, [200]);
-        $adminPostCsrf = sr_auth_smoke_csrf($adminPosts, 'admin post list');
-        $postHideResponse = sr_auth_smoke_request($baseUrl, 'POST', '/admin/community/posts', [
-            'csrf_token' => $adminPostCsrf,
-            'intent' => 'post_status',
-            'post_id' => (string) $createdPostId,
-            'status' => 'hidden',
-        ], $adminCookies);
-        sr_auth_smoke_assert_status($errors, 'admin post hide', $postHideResponse, [200, 302]);
+        if ($reportedPost) {
+            $adminReports = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/reports', [], $adminCookies);
+            sr_auth_smoke_assert_status($errors, 'admin report list', $adminReports, [200]);
+            $adminReportCsrf = sr_auth_smoke_csrf($adminReports, 'admin report list');
+            $reportId = sr_auth_smoke_report_id_for_post($adminReports, $createdPostId);
+            $reportReviewResponse = sr_auth_smoke_request($baseUrl, 'POST', '/admin/community/reports', [
+                'csrf_token' => $adminReportCsrf,
+                'report_id' => $reportId,
+                'status' => 'resolved',
+                'target_action' => 'hide_post',
+                'review_note' => 'Saanraan authenticated community admin report smoke ' . $runToken . '.',
+            ], $adminCookies);
+            sr_auth_smoke_assert_status($errors, 'admin report resolve target action', $reportReviewResponse, [200, 302]);
+            $postAfterReportAction = sr_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $reporterCookies);
+            sr_auth_smoke_assert_status($errors, 'post view after report target action', $postAfterReportAction, [404]);
+        } else {
+            echo "[skip] admin report resolve requires reporter credentials\n";
+            $adminPosts = sr_auth_smoke_request($baseUrl, 'GET', '/admin/community/posts', [], $adminCookies);
+            sr_auth_smoke_assert_status($errors, 'admin post list', $adminPosts, [200]);
+            $adminPostCsrf = sr_auth_smoke_csrf($adminPosts, 'admin post list');
+            $postHideResponse = sr_auth_smoke_request($baseUrl, 'POST', '/admin/community/posts', [
+                'csrf_token' => $adminPostCsrf,
+                'intent' => 'post_status',
+                'post_id' => (string) $createdPostId,
+                'status' => 'hidden',
+            ], $adminCookies);
+            sr_auth_smoke_assert_status($errors, 'admin post hide', $postHideResponse, [200, 302]);
 
-        $viewerCookies = isset($reporterCookies) && is_array($reporterCookies) ? $reporterCookies : [];
-        $publicPostAfterHide = sr_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $viewerCookies);
-        sr_auth_smoke_assert_status($errors, 'hidden post public view', $publicPostAfterHide, [404]);
+            $viewerCookies = isset($reporterCookies) && is_array($reporterCookies) ? $reporterCookies : [];
+            $publicPostAfterHide = sr_auth_smoke_request($baseUrl, 'GET', '/community/post?id=' . (string) $createdPostId, [], $viewerCookies);
+            sr_auth_smoke_assert_status($errors, 'hidden post public view', $publicPostAfterHide, [404]);
+        }
     } else {
         echo "[skip] admin moderation requires admin_identifier and admin_password\n";
     }

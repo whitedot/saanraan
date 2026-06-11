@@ -256,33 +256,44 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $normalizedTargetAction, (int) $account['id']);
-            if (!empty($targetActionResult['error'])) {
-                $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
+            try {
+                $pdo->beginTransaction();
+                $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $normalizedTargetAction, (int) $account['id']);
+                if (!empty($targetActionResult['error'])) {
+                    throw new RuntimeException('report_target_action_failed');
+                }
+                sr_community_update_report_status($pdo, $reportId, $status, (int) $account['id'], (string) $reviewNote);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.report.status_updated',
+                    'target_type' => 'community_report',
+                    'target_id' => (string) $reportId,
+                    'result' => 'success',
+                    'message' => 'Community report status updated.',
+                    'metadata' => [
+                        'before_status' => (string) $report['status'],
+                        'after_status' => $status,
+                        'review_note_present' => trim((string) $reviewNote) !== '',
+                        'target_type' => (string) $report['target_type'],
+                        'target_id' => (int) $report['target_id'],
+                        'reported_account_id' => (int) $report['reported_account_id'],
+                        'target_action' => $targetActionResult,
+                    ],
+                ]);
+                $pdo->commit();
+                $notice = sr_t('community::action.admin.report_status_updated');
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                if ($exception instanceof RuntimeException && $exception->getMessage() === 'report_target_action_failed') {
+                    $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
+                } else {
+                    sr_log_exception($exception, 'community_report_status_failed');
+                    $errors[] = '신고 상태 저장 중 오류가 발생했습니다.';
+                }
             }
-        }
-
-        if ($errors === []) {
-            sr_community_update_report_status($pdo, $reportId, $status, (int) $account['id'], (string) $reviewNote);
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.report.status_updated',
-                'target_type' => 'community_report',
-                'target_id' => (string) $reportId,
-                'result' => 'success',
-                'message' => 'Community report status updated.',
-                'metadata' => [
-                    'before_status' => (string) $report['status'],
-                    'after_status' => $status,
-                    'review_note_present' => trim((string) $reviewNote) !== '',
-                    'target_type' => (string) $report['target_type'],
-                    'target_id' => (int) $report['target_id'],
-                    'reported_account_id' => (int) $report['reported_account_id'],
-                    'target_action' => $targetActionResult ?? ['action_key' => 'none', 'applied' => false],
-                ],
-            ]);
-            $notice = sr_t('community::action.admin.report_status_updated');
         }
     }
 
