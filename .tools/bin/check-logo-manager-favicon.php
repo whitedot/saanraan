@@ -99,6 +99,12 @@ function sr_logo_manager_favicon_check_assert(bool $condition, string $message):
     }
 }
 
+function sr_logo_manager_favicon_check_assert_disabled_tag(string $html, string $message): void
+{
+    sr_logo_manager_favicon_check_assert(str_contains($html, 'data:image/svg+xml'), $message . ' disabled data icon must render');
+    sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/'), $message . ' stale uploaded URL must not render');
+}
+
 function sr_logo_manager_favicon_check_pdo(): PDO
 {
     $pdo = new PDO('sqlite::memory:');
@@ -230,7 +236,7 @@ sr_logo_manager_favicon_check_insert_logo($pdo, [
     'public_url' => '/uploads/favicon-disabled.png',
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert($html === '', 'disabled public.favicon logo must not render favicon links even when public symbol is enabled');
+sr_logo_manager_favicon_check_assert_disabled_tag($html, 'disabled public.favicon logo');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
@@ -244,7 +250,7 @@ sr_logo_manager_favicon_check_insert_logo($pdo, [
     'public_url' => '/uploads/favicon-future.png',
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert($html === '', 'past or future public.favicon logos must not render favicon links');
+sr_logo_manager_favicon_check_assert_disabled_tag($html, 'past or future public.favicon logos');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
@@ -287,6 +293,21 @@ $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-32.png'), 'active favicon variant must render when available');
 sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-original.png'), 'active variant set must replace original favicon fallback');
 sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-disabled'), 'disabled logo variants must not render through favicon link tag');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 9,
+    'public_url' => '/uploads/favicon-transition.png',
+]);
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-transition.png'), 'active favicon must render before disabling');
+$pdo->exec("UPDATE sr_logo_manager_logos SET status = 'disabled' WHERE id = 9");
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert_disabled_tag($html, 'favicon disabled after active state transition');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert($html === '', 'empty favicon configuration should not render disabled data icon');
 
 if ($errors !== []) {
     fwrite(STDERR, "logo manager favicon checks failed:\n");
