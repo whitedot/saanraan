@@ -321,7 +321,7 @@ function sr_admin_shell_class_attr(string $class): string
     return implode(' ', $tokens);
 }
 
-function sr_admin_stylesheet_tag(?PDO $pdo = null): string
+function sr_admin_stylesheet_tag(?PDO $pdo = null, ?string $currentPath = null, array $extraModuleKeys = []): string
 {
     $tags = [
         '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
@@ -336,7 +336,7 @@ function sr_admin_stylesheet_tag(?PDO $pdo = null): string
     ];
 
     if ($pdo instanceof PDO) {
-        foreach (sr_admin_module_stylesheet_paths($pdo) as $stylesheet) {
+        foreach (sr_admin_module_stylesheet_paths($pdo, $currentPath, $extraModuleKeys) as $stylesheet) {
             $tags[] = '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url($stylesheet)) . '">';
         }
     }
@@ -344,10 +344,10 @@ function sr_admin_stylesheet_tag(?PDO $pdo = null): string
     return implode(PHP_EOL, $tags);
 }
 
-function sr_admin_module_stylesheet_paths(PDO $pdo): array
+function sr_admin_module_stylesheet_paths(PDO $pdo, ?string $currentPath = null, array $extraModuleKeys = []): array
 {
     $stylesheets = [];
-    foreach (sr_enabled_module_keys($pdo) as $moduleKey) {
+    foreach (sr_admin_stylesheet_module_keys($pdo, $currentPath, $extraModuleKeys) as $moduleKey) {
         $admin = sr_admin_module_admin_metadata($moduleKey);
         $declared = $admin['stylesheets'] ?? [];
         if (!is_array($declared)) {
@@ -363,6 +363,111 @@ function sr_admin_module_stylesheet_paths(PDO $pdo): array
     }
 
     return array_values($stylesheets);
+}
+
+function sr_admin_stylesheet_module_keys(PDO $pdo, ?string $currentPath = null, array $extraModuleKeys = []): array
+{
+    $currentPath = $currentPath !== null ? trim($currentPath) : sr_request_path();
+    $moduleKeys = [];
+
+    if ($currentPath === '/admin') {
+        $moduleKeys = sr_admin_dashboard_stylesheet_module_keys($pdo);
+    } else {
+        $moduleKey = sr_admin_current_page_module_key($pdo, $currentPath);
+        if ($moduleKey !== '' && $moduleKey !== 'admin') {
+            $moduleKeys[$moduleKey] = $moduleKey;
+        }
+    }
+
+    foreach ($extraModuleKeys as $moduleKey) {
+        if (!is_string($moduleKey) || !sr_is_safe_module_key($moduleKey) || $moduleKey === 'admin') {
+            continue;
+        }
+
+        $moduleKeys[$moduleKey] = $moduleKey;
+    }
+
+    $enabled = array_fill_keys(sr_enabled_module_keys($pdo), true);
+    foreach (array_keys($moduleKeys) as $moduleKey) {
+        if (empty($enabled[$moduleKey])) {
+            unset($moduleKeys[$moduleKey]);
+        }
+    }
+
+    return array_values($moduleKeys);
+}
+
+function sr_admin_current_page_module_key(PDO $pdo, string $currentPath): string
+{
+    $currentPath = trim($currentPath);
+    if ($currentPath === '' || !str_starts_with($currentPath, '/admin')) {
+        return '';
+    }
+
+    $matchedModuleKey = '';
+    $matchedPath = '';
+    foreach (sr_admin_navigation_source_groups($pdo) as $group) {
+        foreach ((array) ($group['module_groups'] ?? []) as $moduleGroup) {
+            if (!is_array($moduleGroup)) {
+                continue;
+            }
+
+            $moduleKey = (string) ($moduleGroup['module_key'] ?? '');
+            if ($moduleKey === '') {
+                continue;
+            }
+
+            foreach ((array) ($moduleGroup['items'] ?? []) as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $path = trim((string) ($item['path'] ?? ''));
+                if ($path === '' || !sr_admin_shell_path_matches($currentPath, $path)) {
+                    continue;
+                }
+
+                if ($matchedPath === '' || strlen($path) > strlen($matchedPath)) {
+                    $matchedPath = $path;
+                    $matchedModuleKey = $moduleKey;
+                }
+            }
+        }
+    }
+
+    if ($matchedModuleKey !== '' || $currentPath !== '/admin/ui-kit') {
+        return $matchedModuleKey;
+    }
+
+    return 'admin';
+}
+
+function sr_admin_dashboard_stylesheet_module_keys(PDO $pdo): array
+{
+    if (!function_exists('sr_admin_dashboard_module_sections')) {
+        $dashboardHelper = SR_ROOT . '/modules/admin/helpers/dashboard.php';
+        if (is_file($dashboardHelper)) {
+            require_once $dashboardHelper;
+        }
+    }
+
+    if (!function_exists('sr_admin_dashboard_module_sections')) {
+        return [];
+    }
+
+    $moduleKeys = [];
+    foreach (sr_admin_dashboard_module_sections($pdo) as $section) {
+        if (!is_array($section)) {
+            continue;
+        }
+
+        $moduleKey = (string) ($section['module_key'] ?? '');
+        if ($moduleKey !== '' && $moduleKey !== 'admin' && sr_is_safe_module_key($moduleKey)) {
+            $moduleKeys[$moduleKey] = $moduleKey;
+        }
+    }
+
+    return $moduleKeys;
 }
 
 function sr_admin_module_stylesheet_path(string $moduleKey, mixed $stylesheet): string
