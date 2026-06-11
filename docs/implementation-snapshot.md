@@ -101,7 +101,7 @@
 
 감사 로그 조회 화면 `/admin/audit-logs`는 이벤트 유형, 대상 유형, 대상 식별값, 처리자 계정 ID, 처리자 유형, IP, 처리 결과, 날짜 범위 필터를 제공한다. metadata JSON은 민감 키와 민감 문자열을 마스킹한 뒤 상세 모달에 표시하고, 모달에는 원본 이벤트/대상 식별자, 처리자, 결과, IP, user agent를 함께 보여 운영 조사 맥락을 확인할 수 있게 한다. 별도 로그 export는 아직 제공하지 않으며, 보존/삭제는 `/admin/retention`의 감사 로그 보관일 정책을 따른다.
 
-게시글 리액션은 마일스톤 8 기준으로 DB와 UI를 새로 추가하지 않는다. 현재 사용자 반응 표면은 커뮤니티 게시글/시리즈 스크랩과 콘텐츠 완료 버튼으로 유지하며, 새 리액션 도입은 중복 집계 정책, 개인정보 보존 기간, 신고/운영 정책이 확정될 때 별도 마일스톤에서 다룬다.
+게시글 리액션은 마일스톤 8 기준으로 DB와 UI를 새로 추가하지 않았다. 이슈 #326 검토 이후 반응/추천은 커뮤니티 전용 기능이 아니라 공식 선택 모듈 `reaction` 후보로 다룬다. 1차 target allowlist는 `content/content`와 `community/post`로 좁히고, 대상 모듈은 `reaction-targets.php` 계약으로 단건/batch resolve, target 상태, 공개 열람 가능 여부, 적용 preset/key를 제공해야 한다. 반응 원장의 권위 소스는 `sr_reaction_records`이며 익명 write는 허용하지 않고 탈퇴/익명화 cleanup에서는 계정의 reaction record를 삭제한다. 집계 캐시, 알림, 보상 연결, 랭킹/SEO 반영, 퀴즈/설문/댓글/시리즈 target 확장은 후속 범위다. 현재 사용자 반응 표면은 커뮤니티 게시글/시리즈 스크랩과 콘텐츠 완료 버튼으로 유지하며, reaction은 이 기능들을 대신하지 않는다.
 
 마일스톤 2 퀴즈 보상 모듈은 `quiz` 서비스 모듈로 구현했다. 현재 반영 범위는 모듈 메타데이터, `/quiz` 공개 진입점, `/quiz/{quiz_key}` 풀이/제출/자동 채점, 퀴즈 공개 레이아웃 후보와 환경설정의 레이아웃/테마/사이트 메뉴 슬롯 선택, `/admin/quiz` CRUD와 복사 및 관리자 사용자 화면 미리보기, `/admin/quiz/settings` 환경설정, `/admin/quiz/manual` 운영자 매뉴얼, `/admin/quiz/attempts` 시도/보상 조회, `/admin/quiz/comments` 댓글 관리, 공개 기간/회원 그룹/시도 제한 검증, 단일/복수 선택 문제, 총점/카테고리 결과 규칙, `comments_enabled` 기반 공개 댓글 작성/수정/삭제와 비밀 댓글, `content/content_item`과 `community/community_post` source 연결, 콘텐츠/커뮤니티 상세 퀴즈 CTA/모달/page fallback, `sr_quiz_*` 설치/업데이트 스키마, 개인정보 export/cleanup 계약, 자산 원장 reference 조회 callable, 쿠폰 지급 provider와 쿠폰 정의 읽기 참조 계약, 통과 보상 지급, 댓글 멘션 알림, `.tools/bin/check-quiz-consistency.php` 정합성 검사다. 계획 기준은 [퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)를 따른다.
 
