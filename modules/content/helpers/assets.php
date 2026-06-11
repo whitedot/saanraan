@@ -114,11 +114,15 @@ function sr_content_asset_rounding_policy_version(): string
 
 function sr_content_asset_settlement_kind_for_use(int $amount, int $settlementAmount, string $purchasePowerSnapshotJson): string
 {
-    if ($settlementAmount > 0 || $purchasePowerSnapshotJson !== '') {
+    if ($settlementAmount > 0) {
         return 'paid';
     }
 
-    return $amount === 0 ? 'paid_settled_zero' : 'legacy_unknown';
+    if ($amount === 0) {
+        return 'paid_settled_zero';
+    }
+
+    return $purchasePowerSnapshotJson !== '' ? 'paid' : 'legacy_unknown';
 }
 
 function sr_content_asset_settlement_kind_for_action(string $direction, int $amount, int $settlementAmount, string $purchasePowerSnapshotJson): string

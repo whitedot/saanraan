@@ -737,11 +737,15 @@ function sr_community_asset_settlement_kind(string $direction, int $amount, int 
         return 'free';
     }
 
-    if ($settlementAmount > 0 || $purchasePowerSnapshotJson !== '') {
+    if ($settlementAmount > 0) {
         return 'paid';
     }
 
-    return $amount === 0 ? 'paid_settled_zero' : 'legacy_unknown';
+    if ($amount === 0) {
+        return 'paid_settled_zero';
+    }
+
+    return $purchasePowerSnapshotJson !== '' ? 'paid' : 'legacy_unknown';
 }
 
 function sr_community_asset_confirmation_session_key(string $eventKey, string $subjectType, int $accountId, int $subjectId): string

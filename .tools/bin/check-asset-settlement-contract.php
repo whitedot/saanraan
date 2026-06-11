@@ -138,6 +138,16 @@ foreach ($settlementSchemaFiles as $settlementSchemaFile) {
     ]);
 }
 
+sr_asset_settlement_check_contains('modules/content/helpers/assets.php', [
+    'if ($settlementAmount > 0) {' . "\n" . '        return \'paid\';' . "\n" . '    }' . "\n\n" . '    if ($amount === 0) {' . "\n" . '        return \'paid_settled_zero\';',
+    'return $purchasePowerSnapshotJson !== \'\' ? \'paid\' : \'legacy_unknown\';',
+]);
+
+sr_asset_settlement_check_contains('modules/community/helpers/assets.php', [
+    'if ($settlementAmount > 0) {' . "\n" . '        return \'paid\';' . "\n" . '    }' . "\n\n" . '    if ($amount === 0) {' . "\n" . '        return \'paid_settled_zero\';',
+    'return $purchasePowerSnapshotJson !== \'\' ? \'paid\' : \'legacy_unknown\';',
+]);
+
 foreach (['modules/content/privacy-export.php', 'modules/community/privacy-export.php'] as $privacyExportFile) {
     $privacyExport = file_get_contents($privacyExportFile);
     if (!is_string($privacyExport)) {
