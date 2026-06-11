@@ -25,7 +25,7 @@ if (!function_exists('sr_community_privacy_asset_settlement_summary')) {
                 'settlement_units' => (int) ($snapshot['settlement_units'] ?? 0),
                 'settlement_currency' => (string) ($snapshot['settlement_currency'] ?? ''),
                 'currency_min_unit' => (int) ($snapshot['currency_min_unit'] ?? 0),
-                'policy_version' => (string) ($snapshot['policy_version'] ?? ''),
+                'rounding_policy_version' => (string) ($snapshot['rounding_policy_version'] ?? ($snapshot['policy_version'] ?? '')),
             ],
         ];
     }

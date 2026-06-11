@@ -132,6 +132,18 @@ foreach ($settlementSchemaFiles as $settlementSchemaFile) {
     ]);
 }
 
+foreach (['modules/content/privacy-export.php', 'modules/community/privacy-export.php'] as $privacyExportFile) {
+    $privacyExport = file_get_contents($privacyExportFile);
+    if (!is_string($privacyExport)) {
+        $errors[] = 'cannot read privacy export file: ' . $privacyExportFile;
+        continue;
+    }
+
+    if (str_contains($privacyExport, "'policy_version' =>")) {
+        $errors[] = $privacyExportFile . ' must expose rounding_policy_version instead of policy_version in privacy export summaries';
+    }
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "asset settlement contract checks failed:\n");
     foreach ($errors as $error) {
