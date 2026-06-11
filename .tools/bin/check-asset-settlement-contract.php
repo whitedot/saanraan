@@ -115,6 +115,12 @@ if (!is_string($memberAssetsHelper)) {
 } elseif (!str_contains($memberAssetsHelper, 'strcmp((string) ($left[\'module_key\'] ?? \'\'), (string) ($right[\'module_key\'] ?? \'\'))')) {
     $errors[] = 'member asset definition sorting must keep deterministic module_key tiebreak for equal deduction_order';
 }
+if (is_string($memberAssetsHelper) && !str_contains($memberAssetsHelper, "'rounding_policy_version' => 'asset_settlement_rounding_v1'")) {
+    $errors[] = 'member purchase power snapshot must write rounding_policy_version';
+}
+if (is_string($memberAssetsHelper) && str_contains($memberAssetsHelper, "'policy_version' => 'asset_settlement_v1'")) {
+    $errors[] = 'member purchase power snapshot must not write legacy policy_version';
+}
 
 $settlementSchemaFiles = [
     'modules/content/install.sql',
@@ -142,6 +148,12 @@ foreach (['modules/content/privacy-export.php', 'modules/community/privacy-expor
     if (str_contains($privacyExport, "'policy_version' =>")) {
         $errors[] = $privacyExportFile . ' must expose rounding_policy_version instead of policy_version in privacy export summaries';
     }
+}
+
+foreach (['modules/content/updates/2026.06.020.sql', 'modules/community/updates/2026.06.020.sql'] as $settlementUpdateFile) {
+    sr_asset_settlement_check_contains($settlementUpdateFile, [
+        'REPLACE(REPLACE(purchase_power_snapshot_json, \'"policy_version":"asset_settlement_v1"\', \'"rounding_policy_version":"asset_settlement_rounding_v1"\'), \'"policy_version": "asset_settlement_v1"\', \'"rounding_policy_version": "asset_settlement_rounding_v1"\')',
+    ]);
 }
 
 if ($errors !== []) {

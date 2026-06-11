@@ -14,6 +14,7 @@ SET settlement_kind = CASE
         WHEN amount = 0 THEN 'legacy_unknown'
         ELSE 'paid'
     END,
+    purchase_power_snapshot_json = REPLACE(REPLACE(purchase_power_snapshot_json, '"policy_version":"asset_settlement_v1"', '"rounding_policy_version":"asset_settlement_rounding_v1"'), '"policy_version": "asset_settlement_v1"', '"rounding_policy_version": "asset_settlement_rounding_v1"'),
     snapshot_schema_version = 'asset_settlement_snapshot_v1',
     rounding_policy_version = 'asset_settlement_rounding_v1';
 
@@ -24,6 +25,7 @@ SET settlement_kind = CASE
         WHEN amount = 0 THEN 'legacy_unknown'
         ELSE 'paid'
     END,
+    purchase_power_snapshot_json = REPLACE(REPLACE(purchase_power_snapshot_json, '"policy_version":"asset_settlement_v1"', '"rounding_policy_version":"asset_settlement_rounding_v1"'), '"policy_version": "asset_settlement_v1"', '"rounding_policy_version": "asset_settlement_rounding_v1"'),
     snapshot_schema_version = 'asset_settlement_snapshot_v1',
     rounding_policy_version = 'asset_settlement_rounding_v1';
 

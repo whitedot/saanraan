@@ -149,7 +149,7 @@ function sr_member_asset_purchase_power_snapshot(array $asset, string $settlemen
         'settlement_units' => max(1, (int) ($purchasePower['settlement_units'] ?? 1)),
         'settlement_currency' => $currency,
         'currency_min_unit' => $minUnit > 0 ? $minUnit : 1,
-        'policy_version' => 'asset_settlement_v1',
+        'rounding_policy_version' => 'asset_settlement_rounding_v1',
         'asset_label' => (string) ($asset['label'] ?? ''),
         'asset_unit_label' => (string) ($asset['unit_label'] ?? ''),
     ];
