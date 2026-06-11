@@ -228,6 +228,11 @@ sr_survey_check_not_contains(
     "sr_get_string('reward'",
     'Survey completion page must not trust reward status from query string'
 );
+sr_survey_check_contains(
+    'modules/survey/skins/basic/complete.php',
+    'is_array($submitResult ?? null)',
+    'Survey completion page must tolerate redirected completion without a submit result'
+);
 
 if ($errors !== []) {
     foreach ($errors as $error) {
