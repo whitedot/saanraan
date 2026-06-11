@@ -251,7 +251,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('admin_settings_public_layout_key', sr_t('admin::ui.text.974e65f4'), $siteSettingsHelp['public_layout']['id'], $siteSettingsHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">
-                                    <?php foreach (sr_public_layout_options($pdo) as $layoutKey => $layoutOption) { ?>
+                                    <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
                                         <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $values['public_layout_key'] === (string) $layoutKey ? ' selected' : ''; ?>>
                                             <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
                                         </option>

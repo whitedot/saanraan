@@ -23,6 +23,7 @@ $adminEditorKey = sr_admin_editor_key($pdo, $adminSettings);
 $adminEditorOptions = sr_editor_options($pdo);
 $adminIconDefaults = sr_admin_material_icon_names();
 $adminIconOverrides = sr_admin_icon_custom_map($pdo);
+$publicLayoutOptions = sr_admin_public_layout_options($pdo);
 $timezoneOptions = timezone_identifiers_list();
 $localeOptions = sr_available_locale_options($site ?? null);
 $values = array_merge($values, [

@@ -629,6 +629,104 @@ function sr_admin_site_setting_values(?array $site, ?PDO $pdo = null): array
     ];
 }
 
+function sr_admin_public_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
+{
+    $options = sr_public_layout_options($pdo, $includeInstalledModules);
+    if (count($options) < 2) {
+        return $options;
+    }
+
+    $moduleOrder = sr_admin_sidebar_module_order_map($pdo);
+    $defaultKey = sr_public_layout_default_key();
+
+    uasort($options, static function (array $left, array $right) use ($moduleOrder, $defaultKey): int {
+        $leftKey = (string) ($left['key'] ?? '');
+        $rightKey = (string) ($right['key'] ?? '');
+
+        if ($leftKey === $defaultKey || $rightKey === $defaultKey) {
+            return ($leftKey === $defaultKey ? 0 : 1) <=> ($rightKey === $defaultKey ? 0 : 1);
+        }
+
+        $leftModuleKey = sr_admin_public_layout_provider_module_key($leftKey, $left);
+        $rightModuleKey = sr_admin_public_layout_provider_module_key($rightKey, $right);
+
+        return [
+            (int) ($moduleOrder[$leftModuleKey] ?? 100000),
+            (string) ($left['provider_label'] ?? ''),
+            (string) ($left['label'] ?? $leftKey),
+            $leftKey,
+        ] <=> [
+            (int) ($moduleOrder[$rightModuleKey] ?? 100000),
+            (string) ($right['provider_label'] ?? ''),
+            (string) ($right['label'] ?? $rightKey),
+            $rightKey,
+        ];
+    });
+
+    return $options;
+}
+
+function sr_admin_public_layout_provider_module_key(string $layoutKey, array $layoutOption): string
+{
+    $moduleKey = (string) ($layoutOption['provider_module_key'] ?? '');
+    if (sr_is_safe_module_key($moduleKey) || $moduleKey === 'core') {
+        return $moduleKey;
+    }
+
+    $separatorPosition = strpos($layoutKey, '.');
+    if ($separatorPosition === false) {
+        return '';
+    }
+
+    $moduleKey = substr($layoutKey, 0, $separatorPosition);
+    return is_string($moduleKey) && sr_is_safe_module_key($moduleKey) ? $moduleKey : '';
+}
+
+function sr_admin_sidebar_module_order_map(PDO $pdo): array
+{
+    if (!function_exists('sr_admin_navigation_groups') && !function_exists('sr_admin_navigation_source_groups')) {
+        return [];
+    }
+
+    $orderMap = [];
+    $position = 0;
+    $groups = [];
+
+    try {
+        if (function_exists('sr_admin_navigation_groups')) {
+            $groups = sr_admin_navigation_groups($pdo);
+        }
+    } catch (Throwable $exception) {
+        $groups = [];
+    }
+
+    if ($groups === [] && function_exists('sr_admin_navigation_source_groups')) {
+        try {
+            $groups = sr_admin_navigation_source_groups($pdo);
+        } catch (Throwable $exception) {
+            $groups = [];
+        }
+    }
+
+    foreach ($groups as $category) {
+        foreach ((array) ($category['module_groups'] ?? []) as $moduleGroup) {
+            if (!is_array($moduleGroup)) {
+                continue;
+            }
+
+            $moduleKey = (string) ($moduleGroup['module_key'] ?? '');
+            if ($moduleKey === '' || isset($orderMap[$moduleKey])) {
+                continue;
+            }
+
+            $orderMap[$moduleKey] = $position;
+            $position++;
+        }
+    }
+
+    return $orderMap;
+}
+
 function sr_admin_previous_site_setting_values(?array $site, ?PDO $pdo = null): array
 {
     return [
@@ -762,7 +860,7 @@ function sr_admin_handle_settings_post(
             $errors[] = '회원 전용 모드를 사용하려면 회원 모듈이 활성화되어 있어야 합니다.';
         }
 
-        if (!isset(sr_public_layout_options($pdo)[$values['public_layout_key']])) {
+        if (!isset(sr_admin_public_layout_options($pdo)[$values['public_layout_key']])) {
             $errors[] = '공통 레이아웃 값이 올바르지 않습니다.';
         }
 
