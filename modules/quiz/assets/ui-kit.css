@@ -1,6 +1,6 @@
 /*
  * Quiz UI Kit preview adjustments.
- * Shared sample layout and kit primitives are loaded from /assets/public-ui-kit.css.
+ * Used only by the quiz UI Kit preview, not by quiz public runtime pages.
  */
 
 .quiz-ui-kit-frame {

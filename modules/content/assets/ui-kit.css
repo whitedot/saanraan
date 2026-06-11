@@ -1,6 +1,6 @@
 /*
  * Content UI Kit preview adjustments.
- * Shared sample layout and kit primitives are loaded from /assets/public-ui-kit.css.
+ * Used only by the content UI Kit preview, not by content public runtime pages.
  */
 
 .content-ui-kit-samples .content-public {

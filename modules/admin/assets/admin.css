@@ -842,6 +842,27 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
     color: var(--text-strong);
 }
 
+.filtering,
+.admin-ui-scope .admin-ui-filter {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+}
+
+.filtering-card > .filtering-fields {
+    padding: 0;
+}
+
+.filtering-body {
+    border-top: 0;
+    padding: 0;
+}
+
+.filtering-card > .filtering-actions {
+    padding: calc(var(--spacing) * 3) 0 0;
+}
+
 .filtering-form.filtering-plain > .filtering-fields,
 .filtering-form > .filtering-fields[class*="-search-grid"],
 .filtering-form > .filtering-fields[class*="-filter-grid"] {
