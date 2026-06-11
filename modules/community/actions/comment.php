@@ -31,6 +31,9 @@ $errors = sr_community_validate_comment_input($values);
 $parentValidation = sr_community_validate_comment_parent($pdo, $postId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
 $errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
+if (is_array($board)) {
+    $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, ['comment']));
+}
 
 if ($errors === [] && sr_community_comment_rate_limited($pdo, (int) $account['id'], $settings)) {
     $errors[] = sr_t('community::action.rate_limit.comment');
@@ -55,6 +58,7 @@ if ($errors !== []) {
 
 $values['parent_comment'] = $parentComment;
 $commentId = sr_community_create_comment($pdo, $postId, (int) $account['id'], $values);
+$privacyConsentRecordCount = 0;
 $commentChargeResult = sr_community_asset_event_required($commentChargeConfig)
     ? sr_community_run_asset_event($pdo, $commentChargeConfig, (int) $account['id'], 'comment_write_charge', 'community.comment', $commentId, 'use', 'community.comment.write')
     : ['allowed' => true, 'processed' => false];
@@ -63,6 +67,9 @@ if (empty($commentChargeResult['allowed'])) {
     $_SESSION['sr_community_comment_errors'] = [(string) ($commentChargeResult['message'] ?? sr_t('community::action.error.comment_charge_failed'))];
     sr_redirect('/community/post?id=' . (string) $postId . '#comments');
 }
+$privacyConsentRecordCount = is_array($board)
+    ? sr_community_record_submission_consents($pdo, (int) $board['id'], (int) $account['id'], 'community.comment', $commentId, ['comment'], $board)
+    : 0;
 $commentRewardResult = sr_community_asset_event_required($commentRewardConfig)
     ? sr_community_run_asset_event($pdo, $commentRewardConfig, (int) $account['id'], 'comment_reward', 'community.comment', $commentId, 'grant', 'community.comment.reward')
     : ['allowed' => true, 'processed' => false];
@@ -85,6 +92,7 @@ sr_audit_log($pdo, [
         'community_score_value' => (int) ($levelSnapshot['score_value'] ?? 0),
         'asset_comment_charge_processed' => !empty($commentChargeResult['processed']),
         'asset_comment_reward_processed' => !empty($commentRewardResult['processed']),
+        'privacy_consent_record_count' => $privacyConsentRecordCount,
     ], sr_community_member_group_evaluation_metadata($groupEvaluationSummary)),
 ]);
 $postAuthorNotificationCreated = false;

@@ -21,6 +21,7 @@ require_once SR_ROOT . '/modules/community/helpers/board-copy.php';
 require_once SR_ROOT . '/modules/community/helpers/board-copy-jobs.php';
 require_once SR_ROOT . '/modules/community/helpers/seo.php';
 require_once SR_ROOT . '/modules/community/helpers/board-managers.php';
+require_once SR_ROOT . '/modules/community/helpers/privacy-consents.php';
 require_once SR_ROOT . '/modules/embed_manager/helpers.php';
 
 function sr_community_coupon_target_search(PDO $pdo, string $targetType, string $keyword, int $limit = 20): array

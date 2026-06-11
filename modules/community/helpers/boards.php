@@ -80,6 +80,13 @@ function sr_community_board_group_setting_keys(): array
         'popup_layer_list_id',
         'popup_layer_view_id',
         'popup_layer_form_id',
+        'privacy_consent_enabled',
+        'privacy_consent_title',
+        'privacy_consent_body',
+        'privacy_consent_version',
+        'privacy_consent_require_post',
+        'privacy_consent_require_comment',
+        'privacy_consent_require_attachment_upload',
         'seo_title',
         'seo_description',
         'og_title',
@@ -155,6 +162,13 @@ function sr_community_board_group_default_settings(array $settings): array
         'file_attachment_max_bytes' => (string) min(20971520, max(1024, (int) ($settings['file_attachment_max_bytes'] ?? 5242880))),
         'file_attachment_max_count' => (string) min(5, max(0, (int) ($settings['file_attachment_max_count'] ?? 3))),
         'file_allowed_extensions' => (string) $fileAllowedExtensions,
+        'privacy_consent_enabled' => !empty($settings['privacy_consent_enabled']) ? '1' : '0',
+        'privacy_consent_title' => (string) ($settings['privacy_consent_title'] ?? '개인정보 수집 및 이용동의'),
+        'privacy_consent_body' => (string) ($settings['privacy_consent_body'] ?? ''),
+        'privacy_consent_version' => (string) ($settings['privacy_consent_version'] ?? '1'),
+        'privacy_consent_require_post' => !empty($settings['privacy_consent_require_post']) ? '1' : '0',
+        'privacy_consent_require_comment' => !empty($settings['privacy_consent_require_comment']) ? '1' : '0',
+        'privacy_consent_require_attachment_upload' => !empty($settings['privacy_consent_require_attachment_upload']) ? '1' : '0',
     ];
 
     foreach (sr_community_public_display_setting_labels() as $settingKey => $settingLabel) {
@@ -312,7 +326,7 @@ function sr_community_board_setting_value_type(string $settingKey): string
         return 'int';
     }
 
-    if (in_array($settingKey, ['file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled')) {
+    if (in_array($settingKey, ['file_uploads_enabled'], true) || str_ends_with($settingKey, '_enabled') || str_starts_with($settingKey, 'privacy_consent_require_')) {
         return 'bool';
     }
 

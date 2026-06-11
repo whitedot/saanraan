@@ -200,6 +200,8 @@ $communityBoardSectionNavItems = [
     'community-board-section-basic' => '기본 정보',
     'community-board-section-seo' => 'SEO/OG',
     'community-board-section-policy' => '접근/작성',
+    'community-board-section-privacy-consent' => '개인정보 동의',
+    'community-board-section-policy-attachments' => '첨부',
     'community-board-section-banner' => '배너',
     'community-board-section-popup' => '팝업',
     'community-board-section-assets' => '포인트/금액',
@@ -654,6 +656,59 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $settingSourceRadioHtml('source_level_comment_score', $boardSettingSource($formBoard, 'level_comment_score')); ?>
                 </div>
             </div>
+        </section>
+
+        <section id="community-board-section-privacy-consent" class="admin-card card" data-admin-section-anchor>
+            <h2>개인정보 수집 및 이용동의</h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_privacy_consent_enabled">동의 사용</label>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="community_admin_boards_privacy_consent_enabled">
+                        <input id="community_admin_boards_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'privacy_consent_enabled', '0') === '1' ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('이 게시판 제출 흐름에 개인정보 수집 및 이용동의를 표시하고 서버에서 검증'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_privacy_consent_title">동의 제목</label>
+                <div class="admin-form-field">
+                    <input id="community_admin_boards_privacy_consent_title" type="text" name="privacy_consent_title" maxlength="120" value="<?php echo sr_e($boardField($formBoard, 'privacy_consent_title', '개인정보 수집 및 이용동의')); ?>" class="form-input form-control-full">
+                    <?php echo $settingSourceRadioHtml('source_privacy_consent_title', $boardSettingSource($formBoard, 'privacy_consent_title')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_privacy_consent_version">동의 버전</label>
+                <div class="admin-form-field">
+                    <input id="community_admin_boards_privacy_consent_version" type="text" name="privacy_consent_version" maxlength="60" value="<?php echo sr_e($boardField($formBoard, 'privacy_consent_version', '1')); ?>" class="form-input">
+                    <?php echo $settingSourceRadioHtml('source_privacy_consent_version', $boardSettingSource($formBoard, 'privacy_consent_version')); ?>
+                    <p class="admin-form-help">문구 변경 시 버전을 올리면 제출 당시 snapshot과 현재 문구를 구분할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_privacy_consent_body">동의 본문</label>
+                <div class="admin-form-field">
+                    <textarea id="community_admin_boards_privacy_consent_body" name="privacy_consent_body" rows="6" class="form-input form-control-full"><?php echo sr_e($boardField($formBoard, 'privacy_consent_body', '')); ?></textarea>
+                    <?php echo $settingSourceRadioHtml('source_privacy_consent_body', $boardSettingSource($formBoard, 'privacy_consent_body')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label">적용 대상</span>
+                <div class="admin-form-field">
+                    <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
+                        <?php $privacyConsentSettingKey = 'privacy_consent_require_' . $privacyConsentTargetKey; ?>
+                        <label class="admin-form-check form-label" for="community_admin_boards_<?php echo sr_e($privacyConsentSettingKey); ?>">
+                            <input id="community_admin_boards_<?php echo sr_e($privacyConsentSettingKey); ?>" type="checkbox" name="<?php echo sr_e($privacyConsentSettingKey); ?>" value="1" class="form-checkbox"<?php echo $boardField($formBoard, $privacyConsentSettingKey, '0') === '1' ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html(sr_community_privacy_consent_label($privacyConsentTargetKey)); ?>
+                        </label>
+                        <?php echo $settingSourceRadioHtml('source_' . $privacyConsentSettingKey, $boardSettingSource($formBoard, $privacyConsentSettingKey)); ?>
+                    <?php } ?>
+                </div>
+            </div>
+        </section>
+
+        <section id="community-board-section-policy-attachments" class="admin-card card" data-admin-section-anchor>
+            <h2>첨부</h2>
             <div class="admin-form-row">
                 <div class="form-label admin-form-label-help"><?php echo $communityBoardHelpButtonHtml(sr_t('community::ui.text.c3bd14cb'), $communityBoardHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.c3bd14cb')); ?></span></div>
                 <div class="admin-form-field">

@@ -103,6 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $errors = sr_community_validate_post_input($values);
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
+    $privacyConsentActionKeys = ['post'];
+    $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
     if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
         $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
     }
@@ -124,6 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($errors === []) {
         sr_community_update_post_content($pdo, $postId, $values, (int) $account['id']);
+        $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], (int) $account['id'], 'community.post', $postId, $privacyConsentActionKeys, $board);
         if ((string) $seriesValues['series_mode'] === 'new') {
             $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
                 'title' => (string) $seriesValues['new_series_title'],
@@ -150,6 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'message' => 'Community post updated by author.',
             'metadata' => [
                 'board_key' => (string) $post['board_key'],
+                'privacy_consent_record_count' => $privacyConsentRecordCount,
             ],
         ]);
         $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.post_updated');

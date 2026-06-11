@@ -58,6 +58,7 @@ return static function (PDO $pdo, int $accountId): array {
         'access_entitlements' => [],
         'asset_logs' => [],
         'publisher_reward_logs' => [],
+        'submission_consents' => [],
     ];
 
     if ($accountId < 1) {
@@ -263,12 +264,27 @@ return static function (PDO $pdo, int $accountId): array {
             'downloader_role_account_id' => $accountId,
         ]);
         $empty['publisher_reward_logs'] = $stmt->fetchAll();
+
+        if (function_exists('sr_community_submission_consents_table_exists') && sr_community_submission_consents_table_exists($pdo)) {
+            $stmt = $pdo->prepare(
+                'SELECT id, board_id, subject_type, subject_id, action_key, account_id,
+                        consent_title_snapshot, consent_body_snapshot, consent_version_snapshot,
+                        consent_required, consent_accepted, created_at
+                 FROM sr_community_submission_consents
+                 WHERE account_id = :account_id
+                 ORDER BY id ASC
+                 LIMIT 1000'
+            );
+            $stmt->execute(['account_id' => $accountId]);
+            $empty['submission_consents'] = $stmt->fetchAll();
+        }
     } catch (Throwable $exception) {
         $empty['level'] = [];
         $empty['level_logs'] = [];
         $empty['access_entitlements'] = [];
         $empty['asset_logs'] = [];
         $empty['publisher_reward_logs'] = [];
+        $empty['submission_consents'] = [];
     }
 
     return $empty;

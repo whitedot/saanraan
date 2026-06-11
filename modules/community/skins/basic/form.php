@@ -12,6 +12,13 @@ $fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) 
 $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $secretPostsEnabled = !empty($secretPostsEnabled);
+$communityPrivacyConsentDisplayTargets = ['post'];
+$communityPrivacyConsentBrowserRequired = sr_community_privacy_consent_required_for($pdo, $board, 'post');
+if (!isset($postIdField)
+    && ($imageUploadEnabled || $fileUploadEnabled)
+    && sr_community_privacy_consent_required_for($pdo, $board, 'attachment_upload')) {
+    $communityPrivacyConsentDisplayTargets[] = 'attachment_upload';
+}
 $ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
 $communityEditorToolbarPreset = $pdo instanceof PDO ? sr_community_post_toolbar_preset($pdo, $settings) : 'community_post_basic';
 $editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
@@ -192,6 +199,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     </small>
                 </p>
             <?php } ?>
+            <?php echo sr_community_privacy_consent_field_html($pdo, $board, $communityPrivacyConsentDisplayTargets, $communityPrivacyConsentBrowserRequired, isset($postIdField) ? 'post_edit' : 'post_write'); ?>
             <button type="submit"><?php echo sr_e($submitLabel); ?></button>
         </form>
 

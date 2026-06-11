@@ -53,6 +53,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $seriesMetadataCount = 0;
     $seriesScrapDeletedCount = 0;
     $authorSnapshotAnonymizedCount = 0;
+    $submissionConsentAnonymizedCount = 0;
 
     foreach (['sr_community_posts', 'sr_community_comments'] as $tableName) {
         if (!$columnExists($pdo, $tableName, 'author_public_name_snapshot')) {
@@ -104,6 +105,18 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         }
     }
 
+    if ($columnExists($pdo, 'sr_community_submission_consents', 'account_id')) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_submission_consents
+             SET account_id = NULL,
+                 ip_hash = NULL,
+                 user_agent_hash = NULL
+             WHERE account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $submissionConsentAnonymizedCount = $stmt->rowCount();
+    }
+
     return [
         'cleaned' => true,
         'event_type' => (string) ($context['event_type'] ?? ''),
@@ -112,6 +125,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_level_log_deleted_count' => (int) ($levelCleanup['level_log_deleted_count'] ?? 0),
         'community_access_entitlement_anonymized_count' => $entitlementCount,
         'community_author_snapshot_anonymized_count' => $authorSnapshotAnonymizedCount,
+        'community_submission_consent_anonymized_count' => $submissionConsentAnonymizedCount,
         'community_series_scrap_deleted_count' => $seriesScrapDeletedCount,
         'community_series_metadata_anonymized_count' => $seriesMetadataCount,
     ];

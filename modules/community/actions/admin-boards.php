@@ -456,6 +456,14 @@ if (sr_request_method() === 'POST') {
         $categoryRequired = ($_POST['category_required'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
+        $privacyConsentTitle = trim(sr_post_string('privacy_consent_title', 120));
+        $privacyConsentBodyInput = sr_post_string_without_truncation('privacy_consent_body', 5000);
+        $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
+        $privacyConsentVersion = trim(sr_post_string('privacy_consent_version', 60));
+        $privacyConsentRequirePost = ($_POST['privacy_consent_require_post'] ?? '') === '1';
+        $privacyConsentRequireComment = ($_POST['privacy_consent_require_comment'] ?? '') === '1';
+        $privacyConsentRequireAttachmentUpload = ($_POST['privacy_consent_require_attachment_upload'] ?? '') === '1';
         $boardSeoValues = [
             'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
             'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
@@ -662,6 +670,28 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        if (!is_string($privacyConsentBodyInput)) {
+            $errors[] = '개인정보 수집 및 이용동의 본문이 너무 깁니다.';
+            $privacyConsentBody = '';
+        }
+        if ($privacyConsentEnabled) {
+            if (!sr_community_submission_consents_table_exists($pdo)) {
+                $errors[] = '개인정보 수집 및 이용동의 스키마 업데이트가 아직 적용되지 않았습니다.';
+            }
+            if ($privacyConsentTitle === '') {
+                $errors[] = '개인정보 수집 및 이용동의 제목을 입력해 주세요.';
+            }
+            if ($privacyConsentBody === '') {
+                $errors[] = '개인정보 수집 및 이용동의 본문을 입력해 주세요.';
+            }
+            if ($privacyConsentVersion === '') {
+                $errors[] = '개인정보 수집 및 이용동의 버전을 입력해 주세요.';
+            }
+            if (!$privacyConsentRequirePost && !$privacyConsentRequireComment && !$privacyConsentRequireAttachmentUpload) {
+                $errors[] = '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.';
+            }
+        }
+
         if ($boardSeoValues['og_image_url'] !== '' && !sr_is_http_url($boardSeoValues['og_image_url']) && !sr_is_safe_relative_url($boardSeoValues['og_image_url'])) {
             $errors[] = '게시판 OG 이미지 URL은 http(s) URL 또는 /로 시작하는 내부 경로만 입력해 주세요.';
         }
@@ -774,6 +804,13 @@ if (sr_request_method() === 'POST') {
                 'category_required' => $categoryRequired ? '1' : '0',
                 'secret_posts_enabled' => $secretPostsEnabled ? '1' : '0',
                 'secret_comments_enabled' => $secretCommentsEnabled ? '1' : '0',
+                'privacy_consent_enabled' => $privacyConsentEnabled ? '1' : '0',
+                'privacy_consent_title' => $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의',
+                'privacy_consent_body' => $privacyConsentBody,
+                'privacy_consent_version' => $privacyConsentVersion !== '' ? $privacyConsentVersion : '1',
+                'privacy_consent_require_post' => $privacyConsentRequirePost ? '1' : '0',
+                'privacy_consent_require_comment' => $privacyConsentRequireComment ? '1' : '0',
+                'privacy_consent_require_attachment_upload' => $privacyConsentRequireAttachmentUpload ? '1' : '0',
                 'level_post_score' => (string) $levelPostScore,
                 'level_comment_score' => (string) $levelCommentScore,
                 'image_uploads_enabled' => $imageUploadsEnabled ? '1' : '0',
@@ -1099,6 +1136,12 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
     $board['post_editor'] = sr_community_post_editor_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'post_editor') ?? 'textarea'));
     $board['effective_post_editor'] = sr_community_effective_post_editor($pdo, $board, $settings);
+    foreach (sr_community_privacy_consent_setting_keys() as $privacyConsentSettingKey) {
+        $defaultValue = in_array($privacyConsentSettingKey, ['privacy_consent_title', 'privacy_consent_version'], true)
+            ? ($privacyConsentSettingKey === 'privacy_consent_title' ? '개인정보 수집 및 이용동의' : '1')
+            : '0';
+        $board[$privacyConsentSettingKey] = sr_community_effective_board_setting($pdo, $board, (string) $privacyConsentSettingKey, $defaultValue);
+    }
     foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
         $board['source_' . $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], (string) $assetSettingKey);
     }

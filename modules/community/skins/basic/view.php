@@ -339,6 +339,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                             <span><?php echo sr_e('비밀 댓글'); ?></span>
                                                         </label>
                                                     <?php } ?>
+                                                    <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_reply_' . (string) $comment['id']); ?>
                                                     <button type="submit"><?php echo sr_e('답글 작성'); ?></button>
                                                 </form>
                                             </details>
@@ -436,6 +437,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <span><?php echo sr_e('비밀 댓글'); ?></span>
                         </label>
                     <?php } ?>
+                    <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_new'); ?>
                     <button type="submit"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
                 </form>
             <?php } elseif ($commentUnavailableMessage !== '') { ?>
