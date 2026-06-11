@@ -282,7 +282,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .admin-form-row>.admin-form-field.admin-policy-set-field>.admin-asset-setting-scope-inline>.admin-setting-source-options{justify-content:flex-end;margin-left:0}
 .admin-form .admin-policy-set-field>.admin-check-list{align-self:flex-start;justify-content:flex-start;margin-top:0;order:1}
 .admin-form .admin-policy-set-field>.admin-form-help{flex-basis:100%;margin-top:0;order:3;text-align:left}
-.admin-form .admin-policy-set-field>.admin-select-badge-list{flex:1 1 22rem;order:1}
+.admin-form .admin-policy-set-field>.admin-select-badge-list{align-content:center;flex:1 1 22rem;min-height:calc(var(--spacing) * 9.25);order:1}
 .admin-site-name-reference-line{align-items:end;display:flex;gap:calc(var(--spacing) * 2);max-width:100%;width:100%}
 .admin-site-name-reference-line>.form-input{flex:0 1 auto;min-width:0;width:fit-content}
 .admin-site-name-reference-action{display:flex;flex:0 0 auto;justify-content:flex-start;margin-top:0}
@@ -299,7 +299,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-setting-source-line-end{justify-content:flex-end;min-height:0}
 .admin-setting-source-line-end>.admin-setting-source-options{margin-left:0}
 .admin-page-file-charge-control{width:100%}
-.admin-page-file-charge-main{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
+.admin-page-file-charge-main{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
 .admin-page-file-charge-main>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
 .admin-page-file-charge-main>.admin-setting-source-options{margin-left:auto}
 .admin-page-file-charge-assets{min-width:0}
@@ -307,18 +307,18 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-page-file-charge-assets>.admin-form-help{margin-top:calc(var(--spacing) * 1)}
 .admin-page-file-charge-amount{width:10rem}
 .admin-page-file-charge-policy{width:auto}
-.admin-asset-setting-line{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
+.admin-asset-setting-line{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 3);width:100%}
 .admin-form .admin-form-row>.admin-form-field>.admin-asset-setting-line{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-form-check{min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-line>.admin-setting-source-options{margin-left:0}
 .admin-asset-setting-control{display:flex;flex:0 1 auto;flex-direction:column;gap:calc(var(--spacing) * 1.25);min-width:min(100%,18rem)}
 .admin-asset-setting-control-full{flex:1 1 32rem;min-width:min(100%,28rem)}
-.admin-asset-setting-primary{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
+.admin-asset-setting-primary{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.25) calc(var(--spacing) * 2)}
 .admin-asset-setting-primary>.admin-form-check{min-height:auto}
 .admin-asset-setting-target{min-width:0;--admin-asset-amount-width:7rem}
 .admin-asset-setting-target>.admin-check-list{align-items:flex-start;margin-top:0;min-height:calc(var(--spacing) * 9.25)}
 .admin-asset-setting-target>.form-select{min-width:8rem}
-.admin-asset-single-setting-target{align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
+.admin-asset-single-setting-target{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5)}
 .admin-asset-single-setting-target>.form-select{min-width:8rem;width:auto}
 .admin-asset-single-amount-group{width:auto}
 .admin-asset-setting-amount{text-align:right;width:var(--admin-asset-amount-width, 6rem)}
