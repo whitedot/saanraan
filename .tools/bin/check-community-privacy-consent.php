@@ -28,6 +28,8 @@ $mustContain('modules/community/helpers/privacy-consents.php', [
     'sr_community_privacy_consent_validation_errors',
     'sr_community_record_submission_consents',
     'sr_community_submission_consents_table_exists',
+    '$requiredActionKeys = sr_community_privacy_consent_required_actions($pdo, $board, $actionKeys)',
+    'foreach ($requiredActionKeys as $actionKey)',
     '$idSuffix',
 ]);
 $mustContain('modules/community/helpers/boards.php', [

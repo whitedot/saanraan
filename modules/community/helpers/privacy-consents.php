@@ -171,6 +171,10 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
     if (empty($config['enabled'])) {
         return 0;
     }
+    $requiredActionKeys = sr_community_privacy_consent_required_actions($pdo, $board, $actionKeys);
+    if ($requiredActionKeys === []) {
+        return 0;
+    }
 
     $inserted = 0;
     $now = sr_now();
@@ -180,7 +184,7 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
          VALUES
             (:board_id, :subject_type, :subject_id, :action_key, :account_id, :consent_title_snapshot, :consent_body_snapshot, :consent_version_snapshot, :consent_required, :consent_accepted, :ip_hash, :user_agent_hash, :created_at)'
     );
-    foreach (array_values(array_unique(array_map('strval', $actionKeys))) as $actionKey) {
+    foreach ($requiredActionKeys as $actionKey) {
         if (!in_array($actionKey, sr_community_privacy_consent_target_keys(), true)) {
             continue;
         }
