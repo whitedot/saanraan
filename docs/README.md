@@ -4,7 +4,9 @@
 
 ## 문서 배치
 
-`docs/` 루트에는 자주 참조하는 현재 기준 문서를 둔다. 외부 소개나 운영자 기능 안내에 바로 활용할 기능 목록은 [산란 특장점 소개](operator-feature-list.md)를 기준으로 한다. 구현 전 계획은 `docs/plans/`, 일회성 점검 기록은 `docs/records/`에 둔다.
+`docs/` 루트에는 자주 참조하는 현재 기준 문서를 둔다. 외부 소개, 운영자 안내, 신입 담당자 인수인계에 바로 활용할 기능과 편의 설명은 [산란 특장점 소개](operator-feature-list.md)를 기준으로 한다. 구현 전 계획은 `docs/plans/`, 일회성 점검 기록은 `docs/records/`에 둔다.
+
+[산란 특장점 소개](operator-feature-list.md)는 기술 명세가 아니라 운영자가 이해하기 쉬운 기능 설명서다. 어떤 모듈이 어떤 업무를 맡는지, 회원·콘텐츠·커뮤니티·참여 기능·자산·쿠폰·알림·개인정보·사이트 운영 기능이 어떤 편의를 제공하는지 제품 소개 문장에 가깝게 정리한다. 반대로 DB 컬럼, 요청 매핑, 관리자 화면별 상세 필드는 Wiki 또는 [1.0 전 구현 스냅샷](implementation-snapshot.md)을 우선한다.
 
 계획 문서가 실제 구현으로 바뀌면 완료된 기준은 관련 유지 문서나 모듈 README로 옮기고, 계획 문서는 삭제하거나 아직 남은 계획만 남긴다. 점검 기록은 같은 기준으로 반복 확인할 필요가 있는 경우에만 유지한다.
 
@@ -24,7 +26,7 @@
 | --- | --- |
 | [1.0 범위 잠금 기준](1.0-scope.md) | 1.0 전 안정화 범위와 제외 범위 |
 | [1.0 전 구현 스냅샷](implementation-snapshot.md) | Wiki 구현 명세 정리 전 임시 핵심 표면 |
-| [산란 특장점 소개](operator-feature-list.md) | 현재 구현 기능과 장점을 소개하기 위한 기능 목록 |
+| [산란 특장점 소개](operator-feature-list.md) | 운영자와 신입 담당자가 이해하기 쉬운 현재 구현 기능·편의 소개 |
 | [핵심 설계 결정](core-decisions.md) | 최상위 설계 결정 |
 | [모듈 작성 가이드](module-guide.md) | 모듈 계약과 작성 기준 |
 | [모듈 배치와 업데이트 기준](module-update-policy.md) | 모듈 설치/업데이트 기준 |
@@ -71,6 +73,7 @@
 - [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md)
 - [회원 마이그레이션 계획](plans/member-migration-plan.md)
 - [결제 플러그인 계획](plans/payment-plugin-plan.md)
+- [마일스톤 2 퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)
 - [마일스톤 13 읽기 참조 계약 계획](plans/read-reference-contract-plan.md)
 - [보상 부정 수급 공통 기준 초안](plans/reward-abuse-common-standards.md)
 - [설문 모듈 MVP/의존성 지도](plans/survey-module-mvp-map.md): 구현 완료 후에도 설문 보상/통계/개인정보 정합성 기준을 빠르게 확인하기 위해 유지
@@ -86,11 +89,22 @@
 - [이슈 #42 전체 정합성 점검 기록 - 2026-05-28](records/issue-42-full-review-2026-05-28.md)
 - [릴리스 게이트 점검 기록 - 2026-05-31](records/release-gate-check-2026-05-31.md)
 - [마일스톤 4 링크 카드 구현 기록 - 2026-06-01](records/milestone-4-link-card-2026-06-01.md)
+- [마일스톤 8 콘텐츠·커뮤니티 운영 정합성 구현 기록 - 2026-06-01](records/milestone-8-community-category-2026-06-01.md)
+- [마일스톤 8 리액션 범위 결정 - 2026-06-01](records/milestone-8-reaction-decision-2026-06-01.md)
 - [마일스톤 10 기능 테스트 결과 기록 - 2026-06-02](records/milestone-10-test-results-2026-06-02.md)
 - [마일스톤 11 정합성 테스트 결과 기록 - 2026-06-02](records/milestone-11-consistency-test-results-2026-06-02.md)
+- [마일스톤 15 QA 실행 기록 - 2026-06-03](records/milestone-15-qa-results-2026-06-03.md)
 - [마일스톤 16 운영 항목 복사 구현 기록 - 2026-06-04](records/milestone-16-operational-copy-2026-06-04.md)
-- [마일스톤 18-20 보상·퀴즈·설문 구현 기록 - 2026-06-07](records/milestone-18-20-reward-quiz-survey-2026-06-07.md)
+- [이슈 #209 게시판·콘텐츠 운영 단위 삭제 기록 - 2026-06-04](records/issue-209-domain-delete-2026-06-04.md)
 - [이슈 #210 CKEditor 업로드 파일 관리 정책 점검 기록 - 2026-06-05](records/issue-210-ckeditor-upload-policy-2026-06-05.md)
+- [이슈 #214 콘텐츠 커버 이미지 구현 기록 - 2026-06-06](records/issue-214-content-cover-image-2026-06-06.md)
+- [이슈 #221 알림 이벤트 검토 기록 - 2026-06-06](records/issue-221-notification-events-2026-06-06.md)
+- [마일스톤 18-20 보상·퀴즈·설문 구현 기록 - 2026-06-07](records/milestone-18-20-reward-quiz-survey-2026-06-07.md)
+- [이슈 #260 관리자 독립 form 조사 및 안내 계획 - 2026-06-08](records/issue-260-admin-independent-forms-2026-06-08.md)
+- [이슈 #261 긴 관리자 폼 섹션 내비게이션 계획 - 2026-06-08](records/issue-261-long-admin-forms-2026-06-08.md)
+- [이슈 #303 삭제 글 댓글 보존 정책 점검 - 2026-06-10](records/issue-303-delete-retention-policy-2026-06-10.md)
+- [이슈 #115 settlement 기반 복합 차감 계약 결정 - 2026-06-11](records/issue-115-settlement-contract-2026-06-11.md)
+- [이슈 #326 공통 리액션 정책 결정 - 2026-06-11](records/issue-326-reaction-policy-2026-06-11.md)
 - [마일스톤 28 통화·정산 정책 기록 - 2026-06-11](records/milestone-28-currency-settlement-policy-2026-06-11.md)
 
 ## Wiki로 충분한 문서
