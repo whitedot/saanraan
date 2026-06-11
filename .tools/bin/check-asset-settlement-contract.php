@@ -148,6 +148,10 @@ sr_asset_settlement_check_contains('modules/community/helpers/assets.php', [
     'return $purchasePowerSnapshotJson !== \'\' ? \'paid\' : \'legacy_unknown\';',
 ]);
 
+sr_asset_settlement_check_contains('modules/content/helpers/files.php', [
+    'al.settlement_amount, ":", al.settlement_currency, ":", al.settlement_kind, ":", al.snapshot_schema_version, ":", al.rounding_policy_version',
+]);
+
 foreach (['modules/content/privacy-export.php', 'modules/community/privacy-export.php'] as $privacyExportFile) {
     $privacyExport = file_get_contents($privacyExportFile);
     if (!is_string($privacyExport)) {
