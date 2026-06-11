@@ -12,4 +12,9 @@ return [
     'credit_type' => 'deposit',
     'refund_type' => 'refund',
     'deduction_order' => 30,
+    'purchase_power' => [
+        'asset_units' => 1,
+        'settlement_units' => 1,
+        'settlement_currency' => 'KRW',
+    ],
 ];

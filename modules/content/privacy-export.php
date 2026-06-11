@@ -2,6 +2,46 @@
 
 declare(strict_types=1);
 
+if (!function_exists('sr_content_privacy_asset_settlement_summary')) {
+    function sr_content_privacy_asset_settlement_summary(array $row): array
+    {
+        $snapshot = [];
+        $snapshotJson = (string) ($row['purchase_power_snapshot_json'] ?? '');
+        if ($snapshotJson !== '') {
+            $decoded = json_decode($snapshotJson, true);
+            $snapshot = is_array($decoded) ? $decoded : [];
+        }
+
+        return [
+            'asset_module' => (string) ($row['asset_module'] ?? ''),
+            'asset_amount' => (int) ($row['amount'] ?? 0),
+            'settlement_amount' => (int) ($row['settlement_amount'] ?? 0),
+            'settlement_currency' => (string) ($row['settlement_currency'] ?? ''),
+            'purchase_power' => [
+                'asset_units' => (int) ($snapshot['asset_units'] ?? 0),
+                'settlement_units' => (int) ($snapshot['settlement_units'] ?? 0),
+                'settlement_currency' => (string) ($snapshot['settlement_currency'] ?? ''),
+                'currency_min_unit' => (int) ($snapshot['currency_min_unit'] ?? 0),
+                'policy_version' => (string) ($snapshot['policy_version'] ?? ''),
+            ],
+        ];
+    }
+}
+
+if (!function_exists('sr_content_privacy_add_asset_settlement_summaries')) {
+    function sr_content_privacy_add_asset_settlement_summaries(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            if (is_array($row)) {
+                $row['settlement_summary'] = sr_content_privacy_asset_settlement_summary($row);
+            }
+        }
+        unset($row);
+
+        return $rows;
+    }
+}
+
 return static function (PDO $pdo, int $accountId): array {
     if ($accountId < 1) {
         return [
@@ -39,6 +79,7 @@ return static function (PDO $pdo, int $accountId): array {
     $stmt = $pdo->prepare(
         'SELECT l.id, l.content_id, p.slug, p.title, l.account_id, l.asset_module, l.transaction_id,
                 l.reference_type, l.reference_id, l.access_kind, l.charge_policy, l.amount,
+                l.settlement_amount, l.settlement_currency, l.purchase_power_snapshot_json,
                 l.group_policy_snapshot_json, l.created_at
          FROM sr_content_asset_access_logs l
          LEFT JOIN sr_content_items p ON p.id = l.content_id
@@ -48,7 +89,7 @@ return static function (PDO $pdo, int $accountId): array {
     );
     $stmt->execute(['account_id' => $accountId]);
 
-    $accessLogs = $stmt->fetchAll();
+    $accessLogs = sr_content_privacy_add_asset_settlement_summaries($stmt->fetchAll());
 
     $fileDownloadLogs = [];
     if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
@@ -79,6 +120,7 @@ return static function (PDO $pdo, int $accountId): array {
     $stmt = $pdo->prepare(
         'SELECT l.id, l.content_id, p.slug, p.title, l.account_id, l.asset_module, l.transaction_id,
                 l.reference_type, l.reference_id, l.action_key, l.direction, l.amount,
+                l.settlement_amount, l.settlement_currency, l.purchase_power_snapshot_json,
                 l.group_policy_snapshot_json, l.created_at
          FROM sr_content_asset_action_logs l
          LEFT JOIN sr_content_items p ON p.id = l.content_id
@@ -87,6 +129,7 @@ return static function (PDO $pdo, int $accountId): array {
          LIMIT 1000'
     );
     $stmt->execute(['account_id' => $accountId]);
+    $actionLogs = sr_content_privacy_add_asset_settlement_summaries($stmt->fetchAll());
 
     $submissions = [];
     if (function_exists('sr_content_optional_table_exists') && sr_content_optional_table_exists($pdo, 'sr_content_submissions')) {
@@ -191,7 +234,7 @@ return static function (PDO $pdo, int $accountId): array {
         'access_entitlements' => $accessEntitlements,
         'asset_access_logs' => $accessLogs,
         'file_download_logs' => $fileDownloadLogs,
-        'asset_action_logs' => $stmt->fetchAll(),
+        'asset_action_logs' => $actionLogs,
         'submissions' => $submissions,
         'author_applications' => $authorApplications,
         'author_reward_logs' => $authorRewardLogs,

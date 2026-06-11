@@ -4,6 +4,7 @@ $assetConfirmationMessage = (string) ($assetConfirmationMessage ?? sr_content_as
 $assetConfirmationAction = (string) ($assetConfirmationAction ?? '/content');
 $assetConfirmationId = (int) ($assetConfirmationId ?? 0);
 $assetConfirmationContentId = (int) ($assetConfirmationContentId ?? 0);
+$assetConfirmationRequestToken = (string) ($assetConfirmationRequestToken ?? '');
 $assetConfirmationTitle = is_array($file ?? null)
     ? (string) (($file['title'] ?? '') ?: sr_t('content::ui.text.0a4ca9bc'))
     : sr_t('content::ui.text.0a4ca9bc');
@@ -23,6 +24,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
+            <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
             <?php if ($assetConfirmationContentId > 0) { ?>
                 <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
             <?php } ?>

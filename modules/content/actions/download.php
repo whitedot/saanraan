@@ -61,13 +61,14 @@ $downloadAlreadyRecorded = false;
 if (sr_content_file_download_required($file)) {
     $account = sr_member_require_login($pdo);
     $downloadAccountId = (int) $account['id'];
-    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST');
+    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', sr_post_string('asset_request_token', 40));
     if (empty($downloadAccess['allowed'])) {
         if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
             $assetConfirmationMessage = (string) ($downloadAccess['message'] ?? sr_content_asset_confirmation_required_message());
             $assetConfirmationAction = '/content/download';
             $assetConfirmationId = (int) $file['id'];
             $assetConfirmationContentId = (int) ($file['content_id'] ?? 0);
+            $assetConfirmationRequestToken = (string) ($downloadAccess['confirmation_request_token'] ?? '');
             include SR_ROOT . '/modules/content/views/asset-confirmation.php';
             return;
         }

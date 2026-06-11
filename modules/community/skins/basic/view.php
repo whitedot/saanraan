@@ -138,6 +138,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <form method="post" action="<?php echo sr_e(sr_url('/community/post')); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
+                    <input type="hidden" name="asset_request_token" value="<?php echo sr_e((string) ($paidReadConfirmationRequestToken ?? '')); ?>">
                     <button type="submit"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
                 </form>
             </article>

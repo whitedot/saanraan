@@ -73,6 +73,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <?php if ((string) ($pageAccess['error_key'] ?? '') === 'asset_confirmation_required') { ?>
                     <form method="post" action="<?php echo sr_e(sr_url(sr_content_path((string) $page['slug']))); ?>">
                         <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="asset_request_token" value="<?php echo sr_e((string) ($pageAccess['confirmation_request_token'] ?? '')); ?>">
                         <button type="submit" class="btn btn-solid-primary">
                             <?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?>
                         </button>

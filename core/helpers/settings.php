@@ -16,11 +16,50 @@ function sr_load_site(PDO $pdo): ?array
         'timezone' => (string) ($settings['site.timezone'] ?? 'Asia/Seoul'),
         'default_locale' => (string) ($settings['site.default_locale'] ?? 'ko'),
         'supported_locales' => (string) ($settings['site.supported_locales'] ?? (string) ($settings['site.default_locale'] ?? 'ko')),
+        'default_currency' => sr_site_default_currency($pdo),
         'status' => (string) ($settings['site.status'] ?? 'active'),
         'member_only_enabled' => in_array((string) ($settings['site.member_only_enabled'] ?? '0'), ['1', 'true', 'yes', 'on'], true),
         'home_path' => (string) ($settings['site.home_path'] ?? '/'),
         'public_layout_key' => $publicLayoutKey,
     ];
+}
+
+function sr_known_currency_min_units(): array
+{
+    return [
+        'KRW' => 1,
+        'USD' => 1,
+    ];
+}
+
+function sr_normalize_currency_code(string $currency): string
+{
+    return strtoupper(trim($currency));
+}
+
+function sr_currency_min_unit(string $currency): int
+{
+    $currency = sr_normalize_currency_code($currency);
+    $minUnits = sr_known_currency_min_units();
+
+    return (int) ($minUnits[$currency] ?? 0);
+}
+
+function sr_currency_is_known(string $currency): bool
+{
+    return sr_currency_min_unit($currency) > 0;
+}
+
+function sr_site_default_currency(?PDO $pdo = null): string
+{
+    $currency = 'KRW';
+    if ($pdo instanceof PDO) {
+        $settings = sr_site_settings($pdo);
+        $currency = (string) ($settings['site.default_currency'] ?? $currency);
+    }
+
+    $currency = sr_normalize_currency_code($currency);
+    return sr_currency_is_known($currency) ? $currency : 'KRW';
 }
 
 function sr_enabled_module_keys(PDO $pdo): array

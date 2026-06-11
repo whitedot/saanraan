@@ -12,4 +12,9 @@ return [
     'credit_type' => 'grant',
     'refund_type' => 'refund',
     'deduction_order' => 20,
+    'purchase_power' => [
+        'asset_units' => 1,
+        'settlement_units' => 1,
+        'settlement_currency' => 'KRW',
+    ],
 ];

@@ -107,6 +107,52 @@ function sr_content_asset_confirmation_session_key(string $accessKind, int $acco
     return $accessKind . ':' . (string) $accountId . ':' . (string) $subjectId;
 }
 
+function sr_content_asset_confirmation_request_token(string $accessKind, int $accountId, int $subjectId, string $fingerprint): string
+{
+    if ($accountId < 1 || $subjectId < 1 || $fingerprint === '') {
+        return '';
+    }
+
+    if (!isset($_SESSION['sr_content_asset_confirmation_requests']) || !is_array($_SESSION['sr_content_asset_confirmation_requests'])) {
+        $_SESSION['sr_content_asset_confirmation_requests'] = [];
+    }
+
+    $key = sr_content_asset_confirmation_session_key($accessKind, $accountId, $subjectId);
+    $session = is_array($_SESSION['sr_content_asset_confirmation_requests'][$key] ?? null) ? $_SESSION['sr_content_asset_confirmation_requests'][$key] : [];
+    $createdAt = (int) ($session['created_at'] ?? 0);
+    $sessionFingerprint = (string) ($session['fingerprint'] ?? '');
+    $token = (string) ($session['token'] ?? '');
+    if ($createdAt >= time() - 300 && $token !== '' && hash_equals($sessionFingerprint, $fingerprint)) {
+        return $token;
+    }
+
+    $token = bin2hex(random_bytes(16));
+    $_SESSION['sr_content_asset_confirmation_requests'][$key] = [
+        'created_at' => time(),
+        'fingerprint' => $fingerprint,
+        'token' => $token,
+    ];
+
+    return $token;
+}
+
+function sr_content_asset_confirmation_request_token_valid(string $accessKind, int $accountId, int $subjectId, string $fingerprint, string $token): bool
+{
+    if ($token === '' || preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+        return false;
+    }
+
+    $key = sr_content_asset_confirmation_session_key($accessKind, $accountId, $subjectId);
+    $sessions = is_array($_SESSION['sr_content_asset_confirmation_requests'] ?? null) ? $_SESSION['sr_content_asset_confirmation_requests'] : [];
+    $session = isset($sessions[$key]) && is_array($sessions[$key]) ? $sessions[$key] : [];
+    $createdAt = (int) ($session['created_at'] ?? 0);
+
+    return $createdAt >= time() - 300
+        && $fingerprint !== ''
+        && hash_equals((string) ($session['fingerprint'] ?? ''), $fingerprint)
+        && hash_equals((string) ($session['token'] ?? ''), $token);
+}
+
 function sr_content_asset_confirmation_fingerprint(string $accessKind, string $chargePolicy, string $assetModuleValue, int $amount, array $amounts = [], string $policySnapshotJson = ''): string
 {
     ksort($amounts, SORT_STRING);
@@ -900,6 +946,23 @@ function sr_content_asset_amount_allocations(array $amounts): array
     return $allocations;
 }
 
+function sr_content_asset_settlement_currency(PDO $pdo, array $source = []): string
+{
+    $currency = (string) ($source['asset_settlement_currency'] ?? '');
+    if ($currency === '') {
+        $currency = function_exists('sr_site_default_currency') ? sr_site_default_currency($pdo) : 'KRW';
+    }
+    $currency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($currency) : strtoupper(trim($currency));
+
+    return function_exists('sr_currency_is_known') && sr_currency_is_known($currency) ? $currency : 'KRW';
+}
+
+function sr_content_asset_purchase_power_snapshot_json(array $snapshot): string
+{
+    $encoded = json_encode($snapshot, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return is_string($encoded) ? $encoded : '{}';
+}
+
 function sr_content_allocate_asset_use_by_amounts(PDO $pdo, array $amounts, int $accountId): array
 {
     $allocations = [];
@@ -918,6 +981,25 @@ function sr_content_allocate_asset_use_by_amounts(PDO $pdo, array $amounts, int 
     }
 
     return $allocations;
+}
+
+function sr_content_allocate_asset_settlement_use(PDO $pdo, array $assetModules, int $accountId, int $settlementAmount, string $settlementCurrency): array
+{
+    require_once SR_ROOT . '/modules/member/helpers/assets.php';
+
+    $assets = sr_content_asset_modules($pdo);
+    $plan = sr_member_asset_settlement_plan(
+        $pdo,
+        $assets,
+        static function (PDO $pdo, string $assetModule) use ($accountId): int {
+            return sr_content_asset_balance($pdo, $assetModule, $accountId);
+        },
+        sr_content_asset_module_keys_from_value($assetModules),
+        $settlementAmount,
+        $settlementCurrency
+    );
+
+    return !empty($plan['ok']) ? (array) ($plan['allocations'] ?? []) : [];
 }
 
 function sr_content_normalize_asset_values(array $values, bool $coerceInvalid = true): array
@@ -1444,13 +1526,13 @@ function sr_content_allocate_asset_use(PDO $pdo, array $assetModules, int $accou
     return $remaining === 0 ? $allocations : [];
 }
 
-function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'content.view', ?string $referenceId = null, string $accessKind = 'view', string $groupPolicySnapshotJson = ''): bool
+function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, int $amount, string $chargePolicy, string $dedupeKey, string $referenceType = 'content.view', ?string $referenceId = null, string $accessKind = 'view', string $groupPolicySnapshotJson = '', int $settlementAmount = 0, string $settlementCurrency = 'KRW', string $purchasePowerSnapshotJson = ''): bool
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_access_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, log_status, group_policy_snapshot_json, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, access_kind, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :access_kind, :charge_policy, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -1461,6 +1543,9 @@ function sr_content_insert_asset_access_placeholder(PDO $pdo, int $pageId, int $
         'access_kind' => $accessKind,
         'charge_policy' => $chargePolicy,
         'amount' => $amount,
+        'settlement_amount' => max(0, $settlementAmount),
+        'settlement_currency' => sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => $settlementCurrency]),
+        'purchase_power_snapshot_json' => $purchasePowerSnapshotJson,
         'log_status' => sr_content_asset_log_status_pending(),
         'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,
@@ -1525,23 +1610,24 @@ function sr_content_asset_access_result(PDO $pdo, bool $allowed, bool $charged, 
     ], $extra);
 }
 
-function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, string $referenceType, string $assetModule, int $accountId, int $subjectId, string $accessKind = 'view'): string
+function sr_content_asset_access_dedupe_key_for_policy(string $chargePolicy, string $referenceType, string $assetModule, int $accountId, int $subjectId, string $accessKind = 'view', string $requestToken = ''): string
 {
     if ($chargePolicy === 'once') {
         return sr_content_asset_access_dedupe_key($assetModule, $accountId, $subjectId, $accessKind);
     }
 
-    return $referenceType . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . bin2hex(random_bytes(8));
+    $requestToken = preg_match('/\A[a-f0-9]{32}\z/', $requestToken) === 1 ? $requestToken : bin2hex(random_bytes(16));
+    return $referenceType . ':' . $assetModule . ':' . (string) $accountId . ':' . (string) $subjectId . ':' . $requestToken;
 }
 
-function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true): array
+function sr_content_charge_view_access(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = ''): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process): array {
-        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $page, $accountId, $process, $requestToken): array {
+        return sr_content_charge_view_access_once($pdo, $page, $accountId, $process, $requestToken);
     });
 }
 
-function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true): array
+function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountId, bool $process = true, string $requestToken = ''): array
 {
     $pageId = (int) ($page['id'] ?? 0);
     $assetModules = sr_content_asset_module_keys_from_value($page['asset_module'] ?? '');
@@ -1566,6 +1652,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     $amounts = $policyAmounts['amounts'];
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
+    $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($page['asset_access_settlement_currency'] ?? '')]);
     $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('view', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $pageId)) {
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
@@ -1576,12 +1663,24 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+            'error_key' => 'asset_confirmation_required',
+            'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
+            'confirmation_fingerprint' => $confirmationFingerprint,
+        ]);
+    }
+
+    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !sr_content_asset_confirmation_request_token_valid('view', $accountId, $pageId, $confirmationFingerprint, $requestToken)) {
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+            'error_key' => 'asset_confirmation_required',
+            'confirmation_request_token' => sr_content_asset_confirmation_request_token('view', $accountId, $pageId, $confirmationFingerprint),
+            'confirmation_fingerprint' => $confirmationFingerprint,
+        ]);
     }
 
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
-        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId);
+        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId, 'view', $requestToken);
         $startedTransaction = !$pdo->inTransaction();
         if ($startedTransaction) {
             $pdo->beginTransaction();
@@ -1651,9 +1750,7 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '쿠폰 접근권 처리에 실패했습니다.');
     }
 
-    $allocations = $amounts !== []
-        ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId)
-        : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
+    $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
     if ($allocations === []) {
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 항목의 잔액이 부족해 콘텐츠를 열람할 수 없습니다.');
     }
@@ -1667,10 +1764,13 @@ function sr_content_charge_view_access_once(PDO $pdo, array $page, int $accountI
     try {
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
-            $allocatedAmount = (int) $allocation['amount'];
+            $allocatedAmount = (int) ($allocation['asset_amount'] ?? $allocation['amount']);
+            $allocatedSettlementAmount = (int) ($allocation['settlement_amount'] ?? 0);
+            $allocationSettlementCurrency = (string) ($allocation['settlement_currency'] ?? $settlementCurrency);
+            $purchasePowerSnapshotJson = sr_content_asset_purchase_power_snapshot_json(is_array($allocation['purchase_power_snapshot'] ?? null) ? $allocation['purchase_power_snapshot'] : []);
             $assetOption = sr_content_asset_modules($pdo)[$assetModule];
-            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId);
-            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.view', null, 'view', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []));
+            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.view', $assetModule, $accountId, $pageId, 'view', $requestToken);
+            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.view', null, 'view', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []), $allocatedSettlementAmount, $allocationSettlementCurrency, $purchasePowerSnapshotJson);
             if (!$inserted) {
                 if ($chargePolicy === 'once') {
                     throw new RuntimeException('Incomplete or duplicate content asset access.');
@@ -1746,14 +1846,14 @@ function sr_content_file_download_required(array $file): bool
         && (int) ($file['asset_download_amount'] ?? 0) > 0;
 }
 
-function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true): array
+function sr_content_charge_file_download(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = ''): array
 {
-    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process): array {
-        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process);
+    return sr_content_asset_retry_operation($pdo, static function () use ($pdo, $file, $accountId, $process, $requestToken): array {
+        return sr_content_charge_file_download_once($pdo, $file, $accountId, $process, $requestToken);
     });
 }
 
-function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true): array
+function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accountId, bool $process = true, string $requestToken = ''): array
 {
     $pageId = (int) ($file['content_id'] ?? 0);
     $fileId = (int) ($file['id'] ?? 0);
@@ -1779,6 +1879,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     $amounts = $policyAmounts['amounts'];
     $amount = (int) $policyAmounts['amount'];
     $policySnapshotJson = sr_content_asset_group_policy_snapshot_json($policyAmounts['snapshots']);
+    $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($file['asset_download_settlement_currency'] ?? '')]);
     $confirmationFingerprint = sr_content_asset_confirmation_fingerprint('download', $chargePolicy, $assetModuleValue, $amount, $amounts, $policySnapshotJson);
     if ($chargePolicy === 'once' && sr_content_once_access_already_granted($pdo, $assetModules, $accountId, $fileId, 'download')) {
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['already_paid' => true]);
@@ -1789,12 +1890,24 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, $amount, '', ['confirmed_access' => true]);
         }
 
-        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), ['error_key' => 'asset_confirmation_required']);
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+            'error_key' => 'asset_confirmation_required',
+            'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
+            'confirmation_fingerprint' => $confirmationFingerprint,
+        ]);
+    }
+
+    if (sr_content_asset_policy_requires_confirmation($chargePolicy) && $process && !sr_content_asset_confirmation_request_token_valid('download', $accountId, $fileId, $confirmationFingerprint, $requestToken)) {
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, sr_content_asset_confirmation_required_message(), [
+            'error_key' => 'asset_confirmation_required',
+            'confirmation_request_token' => sr_content_asset_confirmation_request_token('download', $accountId, $fileId, $confirmationFingerprint),
+            'confirmation_fingerprint' => $confirmationFingerprint,
+        ]);
     }
 
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
-        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download');
+        $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download', $requestToken);
         $accessLogIds = [];
         $startedTransaction = !$pdo->inTransaction();
         if ($startedTransaction) {
@@ -1827,9 +1940,7 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
     }
 
-    $allocations = $amounts !== []
-        ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId)
-        : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount);
+    $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);
     if ($allocations === []) {
         return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '선택한 항목의 잔액이 부족해 파일을 다운로드할 수 없습니다.');
     }
@@ -1844,10 +1955,13 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
     try {
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
-            $allocatedAmount = (int) $allocation['amount'];
+            $allocatedAmount = (int) ($allocation['asset_amount'] ?? $allocation['amount']);
+            $allocatedSettlementAmount = (int) ($allocation['settlement_amount'] ?? 0);
+            $allocationSettlementCurrency = (string) ($allocation['settlement_currency'] ?? $settlementCurrency);
+            $purchasePowerSnapshotJson = sr_content_asset_purchase_power_snapshot_json(is_array($allocation['purchase_power_snapshot'] ?? null) ? $allocation['purchase_power_snapshot'] : []);
             $assetOption = sr_content_asset_modules($pdo)[$assetModule];
-            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download');
-            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []));
+            $dedupeKey = sr_content_asset_access_dedupe_key_for_policy($chargePolicy, 'content.download', $assetModule, $accountId, $fileId, 'download', $requestToken);
+            $inserted = sr_content_insert_asset_access_placeholder($pdo, $pageId, $accountId, $assetModule, $allocatedAmount, $chargePolicy, $dedupeKey, 'content.download', (string) $fileId, 'download', sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []), $allocatedSettlementAmount, $allocationSettlementCurrency, $purchasePowerSnapshotJson);
             if (!$inserted) {
                 if ($chargePolicy === 'once') {
                     throw new RuntimeException('Incomplete or duplicate content file asset access.');
@@ -1939,13 +2053,13 @@ function sr_content_has_completed_asset_action_for_modules(PDO $pdo, array $asse
     return false;
 }
 
-function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, string $direction, int $amount, string $dedupeKey, string $groupPolicySnapshotJson = ''): bool
+function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $accountId, string $assetModule, string $direction, int $amount, string $dedupeKey, string $groupPolicySnapshotJson = '', int $settlementAmount = 0, string $settlementCurrency = 'KRW', string $purchasePowerSnapshotJson = ''): bool
 {
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO sr_content_asset_action_logs
-            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, log_status, group_policy_snapshot_json, dedupe_key, created_at)
+            (content_id, account_id, asset_module, transaction_id, reference_type, reference_id, action_key, direction, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
-            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
+            (:content_id, :account_id, :asset_module, 0, :reference_type, :reference_id, :action_key, :direction, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -1956,6 +2070,9 @@ function sr_content_insert_asset_action_placeholder(PDO $pdo, int $pageId, int $
         'action_key' => 'complete',
         'direction' => $direction,
         'amount' => $amount,
+        'settlement_amount' => max(0, $settlementAmount),
+        'settlement_currency' => sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => $settlementCurrency]),
+        'purchase_power_snapshot_json' => $purchasePowerSnapshotJson,
         'log_status' => sr_content_asset_log_status_pending(),
         'group_policy_snapshot_json' => $groupPolicySnapshotJson,
         'dedupe_key' => $dedupeKey,
@@ -2063,6 +2180,7 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
     $policyAmounts = sr_content_asset_amounts_with_group_policy($pdo, $accountId, $assetModules, $baseActionAmounts, $amount, $page['asset_action_group_policies_json'] ?? '', (int) ($page['asset_action_policy_set_id'] ?? 0), $direction === 'use' ? 'use' : 'grant');
     $amounts = $policyAmounts['amounts'];
     $amount = (int) $policyAmounts['amount'];
+    $settlementCurrency = sr_content_asset_settlement_currency($pdo, ['asset_settlement_currency' => (string) ($page['asset_action_settlement_currency'] ?? '')]);
     if ($amount <= 0) {
         $assetModule = (string) ($assetModules[0] ?? $assetModuleValue);
         $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
@@ -2112,7 +2230,7 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
     }
 
     $allocations = $direction === 'use'
-        ? ($amounts !== [] ? sr_content_allocate_asset_use_by_amounts($pdo, $amounts, $accountId) : sr_content_allocate_asset_use($pdo, $assetModules, $accountId, $amount))
+        ? sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency)
         : sr_content_asset_amount_allocations($amounts !== [] ? $amounts : [(string) $assetModules[0] => $amount]);
     if ($direction === 'use' && $allocations === []) {
         return [
@@ -2134,9 +2252,12 @@ function sr_content_run_asset_action_once(PDO $pdo, array $page, int $accountId)
     try {
         foreach ($allocations as $allocation) {
             $assetModule = (string) $allocation['asset_module'];
-            $allocatedAmount = (int) $allocation['amount'];
+            $allocatedAmount = (int) ($allocation['asset_amount'] ?? $allocation['amount']);
+            $allocatedSettlementAmount = $direction === 'use' ? (int) ($allocation['settlement_amount'] ?? 0) : 0;
+            $allocationSettlementCurrency = $direction === 'use' ? (string) ($allocation['settlement_currency'] ?? $settlementCurrency) : $settlementCurrency;
+            $purchasePowerSnapshotJson = $direction === 'use' ? sr_content_asset_purchase_power_snapshot_json(is_array($allocation['purchase_power_snapshot'] ?? null) ? $allocation['purchase_power_snapshot'] : []) : '';
             $dedupeKey = sr_content_asset_action_dedupe_key($assetModule, $accountId, $pageId);
-            $inserted = sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, $allocatedAmount, $dedupeKey, sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []));
+            $inserted = sr_content_insert_asset_action_placeholder($pdo, $pageId, $accountId, $assetModule, $direction, $allocatedAmount, $dedupeKey, sr_content_asset_group_policy_snapshot_json(isset($policyAmounts['snapshots'][$assetModule]) ? [$policyAmounts['snapshots'][$assetModule]] : []), $allocatedSettlementAmount, $allocationSettlementCurrency, $purchasePowerSnapshotJson);
             if (!$inserted) {
                 continue;
             }

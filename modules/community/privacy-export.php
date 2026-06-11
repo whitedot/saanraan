@@ -2,6 +2,46 @@
 
 declare(strict_types=1);
 
+if (!function_exists('sr_community_privacy_asset_settlement_summary')) {
+    function sr_community_privacy_asset_settlement_summary(array $row): array
+    {
+        $snapshot = [];
+        $snapshotJson = (string) ($row['purchase_power_snapshot_json'] ?? '');
+        if ($snapshotJson !== '') {
+            $decoded = json_decode($snapshotJson, true);
+            $snapshot = is_array($decoded) ? $decoded : [];
+        }
+
+        return [
+            'asset_module' => (string) ($row['asset_module'] ?? ''),
+            'asset_amount' => (int) ($row['amount'] ?? 0),
+            'settlement_amount' => (int) ($row['settlement_amount'] ?? 0),
+            'settlement_currency' => (string) ($row['settlement_currency'] ?? ''),
+            'purchase_power' => [
+                'asset_units' => (int) ($snapshot['asset_units'] ?? 0),
+                'settlement_units' => (int) ($snapshot['settlement_units'] ?? 0),
+                'settlement_currency' => (string) ($snapshot['settlement_currency'] ?? ''),
+                'currency_min_unit' => (int) ($snapshot['currency_min_unit'] ?? 0),
+                'policy_version' => (string) ($snapshot['policy_version'] ?? ''),
+            ],
+        ];
+    }
+}
+
+if (!function_exists('sr_community_privacy_add_asset_settlement_summaries')) {
+    function sr_community_privacy_add_asset_settlement_summaries(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            if (is_array($row)) {
+                $row['settlement_summary'] = sr_community_privacy_asset_settlement_summary($row);
+            }
+        }
+        unset($row);
+
+        return $rows;
+    }
+}
+
 return static function (PDO $pdo, int $accountId): array {
     $empty = [
         'posts' => [],
@@ -195,14 +235,14 @@ return static function (PDO $pdo, int $accountId): array {
         }
 
         $stmt = $pdo->prepare(
-            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, group_policy_snapshot_json, created_at
+            'SELECT id, account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, group_policy_snapshot_json, created_at
              FROM sr_community_asset_logs
              WHERE account_id = :account_id
              ORDER BY id ASC
              LIMIT 1000'
         );
         $stmt->execute(['account_id' => $accountId]);
-        $empty['asset_logs'] = $stmt->fetchAll();
+        $empty['asset_logs'] = sr_community_privacy_add_asset_settlement_summaries($stmt->fetchAll());
 
         $stmt = $pdo->prepare(
             'SELECT id, charge_asset_log_id, charge_transaction_id, reward_transaction_id, reversal_transaction_id,

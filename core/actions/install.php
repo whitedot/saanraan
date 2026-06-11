@@ -114,7 +114,7 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.06.018',
+        'version' => '2026.06.019',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
@@ -132,7 +132,7 @@ $optionalModules = [
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.06.017',
+        'version' => '2026.06.018',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],
@@ -568,6 +568,7 @@ if (sr_request_method() === 'POST') {
                 'site.timezone' => ['value' => $values['timezone'], 'type' => 'string'],
                 'site.default_locale' => ['value' => $values['default_locale'], 'type' => 'string'],
                 'site.supported_locales' => ['value' => $values['default_locale'], 'type' => 'string'],
+                'site.default_currency' => ['value' => 'KRW', 'type' => 'string'],
                 'site.status' => ['value' => 'active', 'type' => 'string'],
                 'site.member_only_enabled' => ['value' => '0', 'type' => 'bool'],
                 'site.home_path' => ['value' => $values['main_page_path'], 'type' => 'string'],

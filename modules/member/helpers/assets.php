@@ -99,6 +99,7 @@ function sr_member_ledger_asset_definitions(?PDO $pdo = null): array
             'credit_type' => (string) ($contract['credit_type'] ?? 'grant'),
             'refund_type' => (string) ($contract['refund_type'] ?? 'refund'),
             'deduction_order' => (int) ($contract['deduction_order'] ?? 100),
+            'purchase_power' => sr_member_asset_purchase_power_from_contract($pdo, $contract),
         ];
     }
 
@@ -108,6 +109,149 @@ function sr_member_ledger_asset_definitions(?PDO $pdo = null): array
     });
 
     return $assets;
+}
+
+function sr_member_asset_purchase_power_from_contract(?PDO $pdo, array $contract): array
+{
+    $defaultCurrency = function_exists('sr_site_default_currency') ? sr_site_default_currency($pdo) : 'KRW';
+    $purchasePower = is_array($contract['purchase_power'] ?? null) ? $contract['purchase_power'] : [];
+    $assetUnits = (int) ($purchasePower['asset_units'] ?? 1);
+    $settlementUnits = (int) ($purchasePower['settlement_units'] ?? 1);
+    $settlementCurrency = function_exists('sr_normalize_currency_code')
+        ? sr_normalize_currency_code((string) ($purchasePower['settlement_currency'] ?? $defaultCurrency))
+        : strtoupper(trim((string) ($purchasePower['settlement_currency'] ?? $defaultCurrency)));
+
+    if ($assetUnits < 1) {
+        $assetUnits = 1;
+    }
+    if ($settlementUnits < 1) {
+        $settlementUnits = 1;
+    }
+    if (function_exists('sr_currency_is_known') && !sr_currency_is_known($settlementCurrency)) {
+        $settlementCurrency = $defaultCurrency;
+    }
+
+    return [
+        'asset_units' => $assetUnits,
+        'settlement_units' => $settlementUnits,
+        'settlement_currency' => $settlementCurrency,
+    ];
+}
+
+function sr_member_asset_purchase_power_snapshot(array $asset, string $settlementCurrency, ?PDO $pdo = null): array
+{
+    $purchasePower = is_array($asset['purchase_power'] ?? null) ? $asset['purchase_power'] : sr_member_asset_purchase_power_from_contract($pdo, []);
+    $currency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency));
+    $minUnit = function_exists('sr_currency_min_unit') ? sr_currency_min_unit($currency) : 1;
+
+    return [
+        'asset_units' => max(1, (int) ($purchasePower['asset_units'] ?? 1)),
+        'settlement_units' => max(1, (int) ($purchasePower['settlement_units'] ?? 1)),
+        'settlement_currency' => $currency,
+        'currency_min_unit' => $minUnit > 0 ? $minUnit : 1,
+        'policy_version' => 'asset_settlement_v1',
+        'asset_label' => (string) ($asset['label'] ?? ''),
+        'asset_unit_label' => (string) ($asset['unit_label'] ?? ''),
+    ];
+}
+
+function sr_member_asset_settlement_step(int $assetUnits, int $settlementUnits): int
+{
+    $assetUnits = max(1, $assetUnits);
+    $settlementUnits = max(1, $settlementUnits);
+    $a = $assetUnits;
+    $b = $settlementUnits;
+    while ($b !== 0) {
+        $tmp = $a % $b;
+        $a = $b;
+        $b = $tmp;
+    }
+
+    return max(1, intdiv($settlementUnits, max(1, $a)));
+}
+
+function sr_member_asset_settlement_plan(PDO $pdo, array $assets, callable $balanceFunction, array $assetModules, int $settlementAmount, string $settlementCurrency): array
+{
+    $settlementAmount = max(0, $settlementAmount);
+    $settlementCurrency = function_exists('sr_normalize_currency_code') ? sr_normalize_currency_code($settlementCurrency) : strtoupper(trim($settlementCurrency));
+    $minUnit = function_exists('sr_currency_min_unit') ? sr_currency_min_unit($settlementCurrency) : 1;
+    if ($settlementAmount < 1) {
+        return ['ok' => true, 'allocations' => [], 'settlement_amount' => 0, 'settlement_currency' => $settlementCurrency, 'message' => ''];
+    }
+    if ($minUnit < 1) {
+        return ['ok' => false, 'allocations' => [], 'settlement_amount' => $settlementAmount, 'settlement_currency' => $settlementCurrency, 'message' => 'Unknown settlement currency.'];
+    }
+
+    $remaining = $settlementAmount;
+    $allocations = [];
+    foreach ($assetModules as $assetModule) {
+        $assetModule = (string) $assetModule;
+        if (!isset($assets[$assetModule])) {
+            continue;
+        }
+
+        $asset = $assets[$assetModule];
+        $purchasePower = is_array($asset['purchase_power'] ?? null) ? $asset['purchase_power'] : [];
+        $assetUnits = max(1, (int) ($purchasePower['asset_units'] ?? 1));
+        $settlementUnits = max(1, (int) ($purchasePower['settlement_units'] ?? 1));
+        $assetCurrency = function_exists('sr_normalize_currency_code')
+            ? sr_normalize_currency_code((string) ($purchasePower['settlement_currency'] ?? $settlementCurrency))
+            : strtoupper(trim((string) ($purchasePower['settlement_currency'] ?? $settlementCurrency)));
+        if ($assetCurrency !== $settlementCurrency) {
+            return ['ok' => false, 'allocations' => [], 'settlement_amount' => $settlementAmount, 'settlement_currency' => $settlementCurrency, 'message' => 'Asset settlement currency does not match price currency.'];
+        }
+
+        $balance = max(0, (int) $balanceFunction($pdo, $assetModule));
+        if ($balance < 1) {
+            continue;
+        }
+
+        $maxSettlement = intdiv($balance * $settlementUnits, $assetUnits);
+        if ($maxSettlement < 1) {
+            continue;
+        }
+
+        $settlementStep = sr_member_asset_settlement_step($assetUnits, $settlementUnits);
+        $settlementUse = min($remaining, $maxSettlement);
+        $settlementUse -= $settlementUse % $settlementStep;
+        if ($settlementUse < 1) {
+            continue;
+        }
+
+        $assetAmountNumerator = $settlementUse * $assetUnits;
+        if ($assetAmountNumerator % $settlementUnits !== 0) {
+            continue;
+        }
+        $assetAmount = intdiv($assetAmountNumerator, $settlementUnits);
+        if ($assetAmount < 1 || $assetAmount > $balance) {
+            continue;
+        }
+
+        $snapshot = sr_member_asset_purchase_power_snapshot($asset, $settlementCurrency, $pdo);
+        $snapshot['balance_snapshot'] = $balance;
+        $snapshot['settlement_step'] = $settlementStep;
+        $allocations[] = [
+            'asset_module' => $assetModule,
+            'amount' => $assetAmount,
+            'asset_amount' => $assetAmount,
+            'settlement_amount' => $settlementUse,
+            'settlement_currency' => $settlementCurrency,
+            'purchase_power_snapshot' => $snapshot,
+        ];
+        $remaining -= $settlementUse;
+        if ($remaining === 0) {
+            break;
+        }
+    }
+
+    return [
+        'ok' => $remaining === 0,
+        'allocations' => $remaining === 0 ? $allocations : [],
+        'settlement_amount' => $settlementAmount,
+        'settlement_currency' => $settlementCurrency,
+        'remaining_settlement_amount' => $remaining,
+        'message' => $remaining === 0 ? '' : 'Settlement amount cannot be covered exactly.',
+    ];
 }
 
 function sr_member_withdrawal_asset_contract_definitions(PDO $pdo): array

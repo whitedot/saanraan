@@ -97,6 +97,7 @@ $canViewPostBody = sr_community_account_can_view_post_body($pdo, $post, is_array
 $secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_secret_comments_enabled($pdo, $postBoard, $settings) : false;
 $assetReadNotices = [];
 $paidReadConfirmationRequired = false;
+$paidReadConfirmationRequestToken = '';
 if ($canViewPostBody && is_array($postBoard)) {
     $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
     $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
@@ -140,12 +141,14 @@ if ($canViewPostBody && is_array($postBoard)) {
                     (int) $post['id'],
                     'use',
                     'community.post.read',
-                    sr_request_method() === 'POST'
+                    sr_request_method() === 'POST',
+                    sr_post_string('asset_request_token', 40)
                 );
         }
         if (empty($paidReadResult['allowed'])) {
             if ((string) ($paidReadResult['error_key'] ?? '') === 'asset_confirmation_required') {
                 $paidReadConfirmationRequired = true;
+                $paidReadConfirmationRequestToken = (string) ($paidReadResult['confirmation_request_token'] ?? '');
                 $assetReadNotices[] = (string) ($paidReadResult['message'] ?? sr_community_asset_confirmation_required_message());
             } else {
                 sr_render_error(403, (string) ($paidReadResult['message'] ?? sr_t('community::action.error.paid_read_post_failed')));

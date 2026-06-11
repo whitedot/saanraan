@@ -139,7 +139,8 @@ if (is_array($board)) {
                         (int) $post['id'],
                         'use',
                         'community.post.read',
-                        sr_request_method() === 'POST'
+                        sr_request_method() === 'POST',
+                        sr_post_string('asset_request_token', 40)
                     );
             }
             if (empty($paidReadResult['allowed'])) {
@@ -147,6 +148,7 @@ if (is_array($board)) {
                     $assetConfirmationMessage = (string) ($paidReadResult['message'] ?? sr_community_asset_confirmation_required_message());
                     $assetConfirmationAction = '/community/attachment';
                     $assetConfirmationId = (int) $attachment['id'];
+                    $assetConfirmationRequestToken = (string) ($paidReadResult['confirmation_request_token'] ?? '');
                     include SR_ROOT . '/modules/community/views/asset-confirmation.php';
                     return;
                 }
@@ -179,13 +181,15 @@ if ($disposition === 'attachment' && is_array($board)) {
             (int) $attachment['id'],
             'use',
             'community.attachment.download',
-            sr_request_method() === 'POST'
+            sr_request_method() === 'POST',
+            sr_post_string('asset_request_token', 40)
         );
         if (empty($downloadResult['allowed'])) {
             if ((string) ($downloadResult['error_key'] ?? '') === 'asset_confirmation_required') {
                 $assetConfirmationMessage = (string) ($downloadResult['message'] ?? sr_community_asset_confirmation_required_message());
                 $assetConfirmationAction = '/community/attachment';
                 $assetConfirmationId = (int) $attachment['id'];
+                $assetConfirmationRequestToken = (string) ($downloadResult['confirmation_request_token'] ?? '');
                 if ($paidReadConfirmationFingerprint !== '' && $paidReadBridgeCreatedAt > 0) {
                     sr_community_mark_attachment_paid_read_bridge((int) $account['id'], (int) $attachment['id'], $paidReadConfirmationFingerprint, $paidReadBridgeCreatedAt);
                 }

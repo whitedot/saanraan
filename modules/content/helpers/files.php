@@ -870,7 +870,7 @@ function sr_content_admin_file_download_logs(PDO $pdo, array $filters, int $limi
                 a.email,
                 a.display_name,
                 rb.display_name AS refunded_by_display_name,
-                GROUP_CONCAT(CONCAT(al.asset_module, ":", al.transaction_id, ":", al.amount, ":", COALESCE(al.group_policy_snapshot_json, "")) ORDER BY al.id ASC SEPARATOR "\n") AS access_log_summary
+                GROUP_CONCAT(CONCAT(al.asset_module, ":", al.transaction_id, ":", al.amount, ":", al.settlement_amount, ":", al.settlement_currency, ":", COALESCE(al.group_policy_snapshot_json, "")) ORDER BY al.id ASC SEPARATOR "\n") AS access_log_summary
          FROM sr_content_file_download_logs d
          LEFT JOIN sr_content_items p ON p.id = d.content_id
          LEFT JOIN sr_content_files f ON f.id = d.file_id
