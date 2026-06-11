@@ -390,7 +390,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
     <?php } ?>
 <?php } else { ?>
-    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="게시판 설정 섹션" data-admin-section-nav>
+    <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="게시판 설정 섹션">
         <?php $communityBoardSectionNavIndex = 0; ?>
         <?php foreach ($communityBoardSectionNavItems as $sectionId => $sectionLabel) { ?>
             <a href="#<?php echo sr_e((string) $sectionId); ?>" class="tab-trigger-underline-justified<?php echo $communityBoardSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $communityBoardSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>

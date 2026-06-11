@@ -378,7 +378,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'content-section-files' => '파일',
     ];
     ?>
-    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="콘텐츠 설정 섹션" data-admin-section-nav>
+    <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="콘텐츠 설정 섹션">
         <?php $contentSectionNavIndex = 0; ?>
         <?php foreach ($contentSectionNavItems as $contentSectionId => $contentSectionLabel) { ?>
             <a href="#<?php echo sr_e((string) $contentSectionId); ?>" class="tab-trigger-underline-justified<?php echo $contentSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $contentSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>

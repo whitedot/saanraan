@@ -342,7 +342,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $communityBoardGroupSectionNavItems['community-board-group-section-danger'] = '위험 작업';
     }
     ?>
-    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="게시판 그룹 설정 섹션" data-admin-section-nav>
+    <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="게시판 그룹 설정 섹션">
         <?php $communityBoardGroupSectionNavIndex = 0; ?>
         <?php foreach ($communityBoardGroupSectionNavItems as $communityBoardGroupSectionId => $communityBoardGroupSectionLabel) { ?>
             <a href="#<?php echo sr_e((string) $communityBoardGroupSectionId); ?>" class="tab-trigger-underline-justified<?php echo $communityBoardGroupSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $communityBoardGroupSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>

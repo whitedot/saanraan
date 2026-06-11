@@ -578,7 +578,7 @@ $quizSectionNavItems = [
     'quiz-section-links' => '연결 대상',
 ];
 ?>
-<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="퀴즈 설정 섹션" data-admin-section-nav>
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="퀴즈 설정 섹션">
     <?php $quizSectionNavIndex = 0; ?>
     <?php foreach ($quizSectionNavItems as $quizSectionId => $quizSectionLabel) { ?>
         <a href="#<?php echo sr_e((string) $quizSectionId); ?>" class="tab-trigger-underline-justified<?php echo $quizSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $quizSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>

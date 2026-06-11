@@ -154,7 +154,7 @@ $communitySettingsSectionNavItems = [
     'community-settings-section-display' => '공개 화면',
 ];
 ?>
-<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="커뮤니티 설정 섹션" data-admin-section-nav>
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="커뮤니티 설정 섹션">
     <?php $communitySettingsSectionNavIndex = 0; ?>
     <?php foreach ($communitySettingsSectionNavItems as $communitySettingsSectionId => $communitySettingsSectionLabel) { ?>
         <a href="#<?php echo sr_e((string) $communitySettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $communitySettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $communitySettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>

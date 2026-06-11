@@ -38,7 +38,7 @@
 
 ## 공통 UI 기준
 
-- 앵커 내비게이션 wrapper는 `admin-section-nav admin-anchor-tabs tab-nav-justified`를 사용한다.
+- 앵커 내비게이션 wrapper는 `sticky-tabs anchor-tabs tab-nav-justified`를 사용한다.
 - 각 링크는 UI kit 탭 trigger인 `tab-trigger-underline-justified`를 사용한다.
 - 탭 trigger 글자 크기는 UI kit 공통에서 14px 수준으로 맞춘다.
 - JS는 현재 스크롤 위치에 맞춰 `active`와 `aria-current="location"`만 보강한다.

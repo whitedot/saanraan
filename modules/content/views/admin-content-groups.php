@@ -258,7 +258,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $contentGroupSectionNavItems['content-group-section-danger'] = '위험 작업';
     }
     ?>
-    <nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="콘텐츠 그룹 설정 섹션" data-admin-section-nav>
+    <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="콘텐츠 그룹 설정 섹션">
         <?php $contentGroupSectionNavIndex = 0; ?>
         <?php foreach ($contentGroupSectionNavItems as $contentGroupSectionId => $contentGroupSectionLabel) { ?>
             <a href="#<?php echo sr_e((string) $contentGroupSectionId); ?>" class="tab-trigger-underline-justified<?php echo $contentGroupSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $contentGroupSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>

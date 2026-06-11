@@ -641,7 +641,7 @@
 
 /* Modal overlay tweaks */
 .overlay {
-    z-index: var(--admin-z-overlay, 300) !important;
+    z-index: var(--admin-z-overlay, 2000) !important;
 }
 
 .admin-ui-kit-samples .overlay.overlay-open.ui-kit-state-hidden,

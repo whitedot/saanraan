@@ -137,6 +137,44 @@
 
                         <div class="card">
                             <div class="card-header">
+                                <h4 class="card-title">스티키 섹션 탭</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="sample-note ui-kit-space-after-4">긴 관리자 폼에서 섹션 이동에 사용하는 전역 sticky 탭입니다.</p>
+
+                                <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="스티키 섹션 탭 샘플">
+                                    <a href="#admin-ui-kit-sticky-section-basic" class="tab-trigger-underline-justified active" aria-current="location">
+                                        기본 정보
+                                    </a>
+                                    <a href="#admin-ui-kit-sticky-section-policy" class="tab-trigger-underline-justified">
+                                        운영 정책
+                                    </a>
+                                    <a href="#admin-ui-kit-sticky-section-advanced" class="tab-trigger-underline-justified">
+                                        고급 설정
+                                    </a>
+                                </nav>
+
+                                <div class="ui-kit-stack-4">
+                                    <section id="admin-ui-kit-sticky-section-basic" class="sample-frame ui-kit-radius-md ui-kit-pad-4" data-admin-section-anchor>
+                                        <h5 class="sample-body-md ui-kit-space-after-2">기본 정보</h5>
+                                        <p>섹션 제목과 입력 폼이 이어지는 관리자 화면의 기준 간격을 확인합니다.</p>
+                                    </section>
+                                    <section id="admin-ui-kit-sticky-section-policy" class="sample-frame ui-kit-radius-md ui-kit-pad-4" data-admin-section-anchor>
+                                        <h5 class="sample-body-md ui-kit-space-after-2">운영 정책</h5>
+                                        <p>탭은 상단 관리자 바 아래에 고정되고, 모바일에서는 2열 그리드로 전환됩니다.</p>
+                                    </section>
+                                    <section id="admin-ui-kit-sticky-section-advanced" class="sample-frame ui-kit-radius-md ui-kit-pad-4" data-admin-section-anchor>
+                                        <h5 class="sample-body-md ui-kit-space-after-2">고급 설정</h5>
+                                        <p>활성 항목은 <code>aria-current="location"</code>과 동일한 시각 상태를 사용합니다.</p>
+                                    </section>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end card-->
+
+                        <div class="card">
+                            <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.9d8322f6')); ?></h4>
                             </div>
 

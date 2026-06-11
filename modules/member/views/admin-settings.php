@@ -84,7 +84,7 @@ $memberSettingsSectionNavItems = [
     'member-settings-section-email' => '이메일',
 ];
 ?>
-<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="회원 설정 섹션" data-admin-section-nav>
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="회원 설정 섹션">
     <?php $memberSettingsSectionNavIndex = 0; ?>
     <?php foreach ($memberSettingsSectionNavItems as $memberSettingsSectionId => $memberSettingsSectionLabel) { ?>
         <a href="#<?php echo sr_e((string) $memberSettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $memberSettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $memberSettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>

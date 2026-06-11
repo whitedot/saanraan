@@ -16,7 +16,7 @@ $notificationSettingsSectionNavItems = [
     'notification-settings-section-http-api' => 'HTTP API',
 ];
 ?>
-<nav class="admin-section-nav admin-anchor-tabs tab-nav-justified" aria-label="알림 설정 섹션" data-admin-section-nav>
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="알림 설정 섹션">
     <?php $notificationSettingsSectionNavIndex = 0; ?>
     <?php foreach ($notificationSettingsSectionNavItems as $notificationSettingsSectionId => $notificationSettingsSectionLabel) { ?>
         <a href="#<?php echo sr_e((string) $notificationSettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $notificationSettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $notificationSettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
