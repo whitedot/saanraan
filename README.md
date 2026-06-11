@@ -94,6 +94,7 @@ php .tools/bin/check.php
 | 목적 | 문서 |
 | --- | --- |
 | 문서 구분 | [저장소 문서 기준](docs/README.md) |
+| 기능 소개 | [산란 특장점 소개](docs/operator-feature-list.md) |
 | 1.0 범위 | [1.0 범위 잠금 기준](docs/1.0-scope.md) |
 | 구현 스냅샷 | [1.0 전 구현 스냅샷](docs/implementation-snapshot.md) |
 | 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
