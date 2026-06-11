@@ -366,34 +366,39 @@ function sr_clear_operational_marker(string $filename): void
 function sr_audit_log(PDO $pdo, array $data): void
 {
     try {
-        $metadata = $data['metadata'] ?? null;
-        $metadataJson = null;
-        if (is_array($metadata) && $metadata !== []) {
-            $encoded = json_encode(sr_audit_metadata_sanitize($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            $metadataJson = is_string($encoded) ? $encoded : null;
-        }
-
-        $stmt = $pdo->prepare(
-            'INSERT INTO sr_audit_logs
-                (actor_account_id, actor_type, event_type, target_type, target_id, result, ip_address, user_agent, message, metadata_json, created_at)
-             VALUES
-                (:actor_account_id, :actor_type, :event_type, :target_type, :target_id, :result, :ip_address, :user_agent, :message, :metadata_json, :created_at)'
-        );
-        $stmt->execute([
-            'actor_account_id' => isset($data['actor_account_id']) ? (int) $data['actor_account_id'] : null,
-            'actor_type' => (string) ($data['actor_type'] ?? 'system'),
-            'event_type' => (string) ($data['event_type'] ?? ''),
-            'target_type' => (string) ($data['target_type'] ?? ''),
-            'target_id' => (string) ($data['target_id'] ?? ''),
-            'result' => (string) ($data['result'] ?? 'success'),
-            'ip_address' => sr_client_ip(),
-            'user_agent' => sr_client_user_agent(),
-            'message' => sr_log_sensitive_text_sanitize(sr_log_line_value((string) ($data['message'] ?? ''), 1000)),
-            'metadata_json' => $metadataJson,
-            'created_at' => sr_now(),
-        ]);
+        sr_audit_log_required($pdo, $data);
     } catch (Throwable $ignored) {
     }
+}
+
+function sr_audit_log_required(PDO $pdo, array $data): void
+{
+    $metadata = $data['metadata'] ?? null;
+    $metadataJson = null;
+    if (is_array($metadata) && $metadata !== []) {
+        $encoded = json_encode(sr_audit_metadata_sanitize($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $metadataJson = is_string($encoded) ? $encoded : null;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_audit_logs
+            (actor_account_id, actor_type, event_type, target_type, target_id, result, ip_address, user_agent, message, metadata_json, created_at)
+         VALUES
+            (:actor_account_id, :actor_type, :event_type, :target_type, :target_id, :result, :ip_address, :user_agent, :message, :metadata_json, :created_at)'
+    );
+    $stmt->execute([
+        'actor_account_id' => isset($data['actor_account_id']) ? (int) $data['actor_account_id'] : null,
+        'actor_type' => (string) ($data['actor_type'] ?? 'system'),
+        'event_type' => (string) ($data['event_type'] ?? ''),
+        'target_type' => (string) ($data['target_type'] ?? ''),
+        'target_id' => (string) ($data['target_id'] ?? ''),
+        'result' => (string) ($data['result'] ?? 'success'),
+        'ip_address' => sr_client_ip(),
+        'user_agent' => sr_client_user_agent(),
+        'message' => sr_log_sensitive_text_sanitize(sr_log_line_value((string) ($data['message'] ?? ''), 1000)),
+        'metadata_json' => $metadataJson,
+        'created_at' => sr_now(),
+    ]);
 }
 
 function sr_audit_metadata_sanitize(mixed $value, string $key = ''): mixed

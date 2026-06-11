@@ -488,7 +488,7 @@ function sr_community_update_report_status(PDO $pdo, int $reportId, string $stat
     ]);
 }
 
-function sr_community_apply_report_target_action(PDO $pdo, array $report, string $actionKey, int $adminAccountId): array
+function sr_community_apply_report_target_action(PDO $pdo, array $report, string $actionKey, int $adminAccountId, bool $requireAuditLog = false): array
 {
     $targetType = (string) ($report['target_type'] ?? '');
     $targetId = (int) ($report['target_id'] ?? 0);
@@ -509,7 +509,7 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
         $updatedAttachmentCount = in_array($status, ['hidden', 'deleted'], true)
             ? sr_community_update_post_attachments_status($pdo, $targetId, $status)
             : 0;
-        sr_audit_log($pdo, [
+        sr_community_report_target_action_audit_log($pdo, [
             'actor_account_id' => $adminAccountId,
             'actor_type' => 'admin',
             'event_type' => 'community.report.target_post_action',
@@ -523,7 +523,7 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
                 'after_status' => $status,
                 'updated_attachment_count' => $updatedAttachmentCount,
             ],
-        ]);
+        ], $requireAuditLog);
         return ['action_key' => $actionKey, 'applied' => true, 'target_status' => $status];
     }
 
@@ -534,7 +534,7 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
             return ['action_key' => $actionKey, 'applied' => false, 'error' => 'target_not_found'];
         }
         sr_community_update_comment_status($pdo, $targetId, $status);
-        sr_audit_log($pdo, [
+        sr_community_report_target_action_audit_log($pdo, [
             'actor_account_id' => $adminAccountId,
             'actor_type' => 'admin',
             'event_type' => 'community.report.target_comment_action',
@@ -548,7 +548,7 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
                 'after_status' => $status,
                 'post_id' => (int) ($comment['post_id'] ?? 0),
             ],
-        ]);
+        ], $requireAuditLog);
         return ['action_key' => $actionKey, 'applied' => true, 'target_status' => $status];
     }
 
@@ -558,7 +558,7 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
             return ['action_key' => $actionKey, 'applied' => false, 'error' => 'account_action_unavailable'];
         }
         sr_member_update_status($pdo, $reportedAccountId, 'suspended');
-        sr_audit_log($pdo, [
+        sr_community_report_target_action_audit_log($pdo, [
             'actor_account_id' => $adminAccountId,
             'actor_type' => 'admin',
             'event_type' => 'community.report.reported_account_suspended',
@@ -571,9 +571,19 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
                 'reported_target_type' => $targetType,
                 'reported_target_id' => $targetId,
             ],
-        ]);
+        ], $requireAuditLog);
         return ['action_key' => $actionKey, 'applied' => true, 'account_status' => 'suspended'];
     }
 
     return ['action_key' => $actionKey, 'applied' => false, 'error' => 'unsupported_action'];
+}
+
+function sr_community_report_target_action_audit_log(PDO $pdo, array $data, bool $required): void
+{
+    if ($required && function_exists('sr_audit_log_required')) {
+        sr_audit_log_required($pdo, $data);
+        return;
+    }
+
+    sr_audit_log($pdo, $data);
 }

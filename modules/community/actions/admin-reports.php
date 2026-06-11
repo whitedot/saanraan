@@ -159,7 +159,7 @@ if (sr_request_method() === 'POST') {
                     }
                     $mappedTargetAction = sr_community_report_batch_target_action_for_report($normalizedTargetAction, (string) ($report['target_type'] ?? ''));
                     if ($mappedTargetAction !== '' && $mappedTargetAction !== 'none') {
-                        $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $mappedTargetAction, (int) $account['id']);
+                        $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $mappedTargetAction, (int) $account['id'], true);
                         $targetActionResults[] = [
                             'report_id' => $selectedId,
                             'target_type' => (string) ($report['target_type'] ?? ''),
@@ -176,9 +176,7 @@ if (sr_request_method() === 'POST') {
                     }
                     $processedCount++;
                 }
-                $pdo->commit();
-
-                sr_audit_log($pdo, [
+                sr_audit_log_required($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'community.report.bulk_status_updated',
@@ -200,6 +198,7 @@ if (sr_request_method() === 'POST') {
                         'selected_ids' => $selectedIds,
                     ],
                 ]);
+                $pdo->commit();
 
                 $notice = '신고 ' . number_format($processedCount) . '건을 처리했습니다.';
                 if ($statusChangedCount > 0) {
@@ -258,12 +257,37 @@ if (sr_request_method() === 'POST') {
         if ($errors === []) {
             try {
                 $pdo->beginTransaction();
-                $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $normalizedTargetAction, (int) $account['id']);
+                $singleLockStmt = $pdo->prepare('SELECT status FROM sr_community_reports WHERE id = :id FOR UPDATE');
+                $singleLockStmt->execute(['id' => $reportId]);
+                $currentReport = $singleLockStmt->fetch();
+                if (!is_array($currentReport) || (string) ($currentReport['status'] ?? '') !== (string) $report['status']) {
+                    throw new RuntimeException('report_status_conflict');
+                }
+
+                $now = sr_now();
+                $singleStatusStmt = $pdo->prepare(
+                    'UPDATE sr_community_reports
+                     SET status = :status,
+                         reviewer_account_id = :reviewer_account_id,
+                         review_note = :review_note,
+                         reviewed_at = :reviewed_at,
+                         updated_at = :updated_at
+                     WHERE id = :id'
+                );
+                $singleStatusStmt->execute([
+                    'status' => $status,
+                    'reviewer_account_id' => (int) $account['id'],
+                    'review_note' => trim((string) $reviewNote),
+                    'reviewed_at' => $now,
+                    'updated_at' => $now,
+                    'id' => $reportId,
+                ]);
+
+                $targetActionResult = sr_community_apply_report_target_action($pdo, $report, $normalizedTargetAction, (int) $account['id'], true);
                 if (!empty($targetActionResult['error'])) {
                     throw new RuntimeException('report_target_action_failed');
                 }
-                sr_community_update_report_status($pdo, $reportId, $status, (int) $account['id'], (string) $reviewNote);
-                sr_audit_log($pdo, [
+                sr_audit_log_required($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
                     'event_type' => 'community.report.status_updated',
@@ -287,7 +311,9 @@ if (sr_request_method() === 'POST') {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                if ($exception instanceof RuntimeException && $exception->getMessage() === 'report_target_action_failed') {
+                if ($exception instanceof RuntimeException && $exception->getMessage() === 'report_status_conflict') {
+                    $errors[] = '신고 상태가 바뀌었거나 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 처리하세요.';
+                } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'report_target_action_failed') {
                     $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
                 } else {
                     sr_log_exception($exception, 'community_report_status_failed');

@@ -702,7 +702,10 @@ sr_community_release_file_contains('modules/community/actions/admin-posts.php', 
 sr_community_release_file_contains('modules/community/actions/admin-reports.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/reports', 'view')",
     '$allowedStatuses = sr_community_report_statuses()',
-    'sr_community_update_report_status($pdo, $reportId, $status, (int) $account[\'id\'], (string) $reviewNote)',
+    'SELECT status FROM sr_community_reports WHERE id = :id FOR UPDATE',
+    "throw new RuntimeException('report_status_conflict')",
+    'sr_community_apply_report_target_action($pdo, $report, $normalizedTargetAction, (int) $account[\'id\'], true)',
+    'sr_audit_log_required($pdo, [',
     "'event_type' => 'community.report.status_updated'",
 ], 'Community admin report policy');
 
