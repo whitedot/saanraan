@@ -108,6 +108,15 @@ sr_milestone_28_check_contains('modules/community/updates/2026.06.021.sql', [
     "SET version = '2026.06.021'",
 ]);
 
+foreach (['modules/point/member-assets.php', 'modules/reward/member-assets.php', 'modules/deposit/member-assets.php'] as $memberAssetFile) {
+    $memberAssetContract = file_get_contents($memberAssetFile);
+    if (!is_string($memberAssetContract)) {
+        $errors[] = 'cannot read member asset contract: ' . $memberAssetFile;
+    } elseif (str_contains($memberAssetContract, "'settlement_currency' => 'KRW'")) {
+        $errors[] = $memberAssetFile . ' must let default purchase power currency fall back to site.default_currency';
+    }
+}
+
 sr_milestone_28_check_contains('modules/admin/views/settings.php', [
     '<span class="form-label">기본 통화</span>',
     '일반 설정 저장으로 변경되지 않습니다',

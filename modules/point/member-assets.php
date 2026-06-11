@@ -17,6 +17,5 @@ return [
     'purchase_power' => [
         'asset_units' => 1,
         'settlement_units' => 1,
-        'settlement_currency' => 'KRW',
     ],
 ];
