@@ -38,9 +38,6 @@ if ($errors !== []) {
 $values['parent_comment'] = $parentComment;
 $commentId = sr_survey_create_comment($pdo, $surveyId, (int) $account['id'], $values);
 $mentionExcludeAccountIds = [(int) $account['id']];
-if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0) {
-    $mentionExcludeAccountIds[] = (int) $parentComment['author_account_id'];
-}
 $mentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
     ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
     : sr_survey_create_comment_mention_notifications(
