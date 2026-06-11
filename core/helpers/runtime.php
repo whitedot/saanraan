@@ -581,7 +581,9 @@ function sr_base_path(): string
 
 function sr_is_installed(): bool
 {
-    return is_file(SR_ROOT . '/config/config.php') && is_file(SR_ROOT . '/storage/installed.lock');
+    $configFile = SR_ROOT . '/config/config.php';
+
+    return is_file($configFile) && is_readable($configFile) && is_file(SR_ROOT . '/storage/installed.lock');
 }
 
 function sr_is_safe_table_prefix(string $prefix): bool
@@ -670,6 +672,9 @@ function sr_load_config(): array
     $configFile = SR_ROOT . '/config/config.php';
     if (!is_file($configFile)) {
         throw new RuntimeException('Config file does not exist.');
+    }
+    if (!is_readable($configFile)) {
+        throw new RuntimeException('Config file is not readable.');
     }
 
     $config = include $configFile;

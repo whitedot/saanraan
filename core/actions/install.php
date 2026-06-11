@@ -275,9 +275,11 @@ if (is_file($previousInstallFailurePath) && is_readable($previousInstallFailureP
 
 $configPath = SR_ROOT . '/config/config.php';
 $installedLockPath = SR_ROOT . '/storage/installed.lock';
+$configReadable = !is_file($configPath) || is_readable($configPath);
 $configWritable = is_file($configPath)
     ? is_writable($configPath)
     : (is_dir(SR_ROOT . '/config') ? is_writable(SR_ROOT . '/config') : is_writable(SR_ROOT));
+$configAccessible = $configReadable && $configWritable;
 $storageWritable = is_dir(SR_ROOT . '/storage')
     ? is_writable(SR_ROOT . '/storage')
     : is_writable(SR_ROOT);
@@ -299,9 +301,9 @@ $installChecks = [
     ],
     [
         'label' => sr_t('install.check.config.label'),
-        'status' => $configWritable ? 'ok' : 'error',
-        'message' => $configWritable ? 'config/config.php 생성 가능' : 'config/config.php를 만들 수 없습니다.',
-        'guide' => $configWritable ? '설치 시 DB 접속 정보와 앱 비밀값을 config/config.php에 저장합니다. 설치 후에는 이 파일이 웹에서 직접 열리지 않도록 차단하세요.' : 'FTP 또는 호스팅 파일 관리자에서 config 디렉터리를 만든 뒤 쓰기 권한을 주세요. 보통 755로 충분하며, 공유호스팅에서 계속 실패하면 설치 중에만 775 또는 777을 임시로 적용하고 설치 후 755로 되돌리세요.',
+        'status' => $configAccessible ? 'ok' : 'error',
+        'message' => $configAccessible ? 'config/config.php 생성 가능' : ($configReadable ? 'config/config.php를 만들 수 없습니다.' : 'config/config.php를 읽을 수 없습니다.'),
+        'guide' => $configAccessible ? '설치 시 DB 접속 정보와 앱 비밀값을 config/config.php에 저장합니다. 설치 후에는 이 파일이 웹에서 직접 열리지 않도록 차단하세요.' : ($configReadable ? 'FTP 또는 호스팅 파일 관리자에서 config 디렉터리를 만든 뒤 쓰기 권한을 주세요. 보통 755로 충분하며, 공유호스팅에서 계속 실패하면 설치 중에만 775 또는 777을 임시로 적용하고 설치 후 755로 되돌리세요.' : 'config/config.php의 소유자와 권한을 PHP 실행 사용자가 읽을 수 있게 조정하세요. 예: 웹서버/PHP 사용자 소유의 600, 또는 같은 그룹 읽기 권한.'),
     ],
     [
         'label' => sr_t('install.check.storage.label'),
@@ -380,7 +382,9 @@ if (sr_request_method() === 'POST') {
         $addInstallError('PHP 8.1 이상에서만 설치할 수 있습니다.', 'environment');
     }
 
-    if (!$configWritable) {
+    if (!$configReadable) {
+        $addInstallError('config/config.php를 현재 PHP 실행 사용자가 읽을 수 있도록 소유자와 권한을 확인하세요.', 'environment');
+    } elseif (!$configWritable) {
         $addInstallError('config/config.php 파일을 만들 수 있도록 config 디렉터리 권한을 확인하세요.', 'environment');
     }
 
