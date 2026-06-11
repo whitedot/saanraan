@@ -1,6 +1,6 @@
 # 1.0 전 구현 스냅샷
 
-이 문서는 GitHub Wiki 구현 명세를 1.0 배포 정리 때 맞추기 전까지 저장소 안에서 현재 구현의 핵심 표면을 빠르게 확인하기 위한 임시 스냅샷이다. 최종 DB 명세, 관리자 화면별 필드 가이드, 온보딩 문서는 Wiki를 우선한다. 운영자나 신입 담당자가 기능과 편의를 빠르게 이해해야 할 때는 [산란 특장점 소개](operator-feature-list.md)를 먼저 보고, 이 문서는 요청 경로, DB 테이블, 모듈 표면을 대조하는 기술 보조 자료로 사용한다.
+이 문서는 GitHub Wiki 구현 명세를 1.0 배포 정리 때 맞추기 전까지 저장소 안에서 현재 구현의 핵심 표면을 빠르게 확인하기 위한 임시 스냅샷이다. 최종 DB 명세, 관리자 화면별 필드 가이드, 온보딩 문서는 Wiki를 우선한다. 기능과 특장점 요약은 [산란 특장점 소개](operator-feature-list.md)를 기준으로 하고, 이 문서는 요청 경로, DB 테이블, 모듈 표면을 대조하는 기술 보조 자료로 사용한다.
 
 ## 런타임 기준
 
@@ -93,7 +93,7 @@
 
 콘텐츠와 커뮤니티 시리즈는 각 모듈이 소유한다. 콘텐츠는 `sr_content_series`와 `sr_content_series_items`, 커뮤니티는 `sr_community_series`와 `sr_community_series_items`를 사용한다. 시리즈 상태는 운영 대기/노출/숨김/보관/삭제를 구분하되 공개 렌더링은 `active` 상태와 `active` 항목만 사용한다. 공개 범위는 `public`, `member`, `private`이며, 커뮤니티 private 시리즈는 소유자만 볼 수 있고 콘텐츠 private 시리즈는 공개 출력에서 제외한다. 콘텐츠 시리즈는 `/admin/content/series`에서 만들고 콘텐츠 편집 화면에서 회차로 연결한다. 콘텐츠 그룹은 목록 페이지, 메뉴 후보, 새 콘텐츠 기본값, 그룹/전체 복사 범위를 위한 운영 묶음이고, 콘텐츠 시리즈는 회차 표시와 이전/다음 이동을 위한 읽기 흐름이다. 한 콘텐츠는 콘텐츠 그룹에 속하면서 동시에 하나의 시리즈 회차로 연결될 수 있으며 두 정렬 기준은 서로 영향을 주지 않는다. 커뮤니티 시리즈는 회원이 `/community/series`에서 만들거나 글 작성/수정 중 새로 만들 수 있고, 관리자는 `/admin/community/series`에서 상태와 공개 범위를 조정한다. 공개 글/콘텐츠는 본문 다음에 시리즈 내비게이션을 렌더링하고, 이후 기존 출력 슬롯과 댓글/액션 흐름이 이어진다. 커뮤니티 시리즈 스크랩은 `sr_community_series_scraps`에 게시글 스크랩과 분리해 저장하며, `/community/scraps`에서 게시글 스크랩과 별도 섹션으로 표시한다. hidden, archived, deleted 상태가 되거나 게시판 읽기 권한이 사라진 시리즈는 목록에서 열람 불가 항목으로 남기되 해제할 수 있다.
 
-운영 항목 복사는 콘텐츠, 커뮤니티 게시판, 배너, 팝업레이어 모듈이 각자 소유한다. 콘텐츠와 게시판 복사는 기본적으로 시리즈 연결을 복사하지 않지만, 운영자가 선택하면 원본 시리즈에 사본 항목을 섞지 않고 새 시리즈 사본과 새 항목을 만든다. 커뮤니티 게시판 전체 복사가 동기 상한을 넘으면 `sr_community_board_copy_jobs`와 `sr_community_board_copy_job_maps`를 사용하는 `/admin/community/board-copy-jobs` 배치 화면에서 prepare, board, posts, comments, attachments, verify 단계를 버튼 반복으로 처리할 수 있다. 배치 복사 대상 게시판은 완료 후에도 `disabled`로 남는다.
+운영 항목 복사는 콘텐츠, 커뮤니티 게시판, 배너, 팝업레이어 모듈이 각자 소유한다. 콘텐츠와 게시판 복사는 기본적으로 시리즈 연결을 복사하지 않지만, 시리즈 복사 옵션을 선택하면 원본 시리즈에 사본 항목을 섞지 않고 새 시리즈 사본과 새 항목을 만든다. 커뮤니티 게시판 전체 복사가 동기 상한을 넘으면 `sr_community_board_copy_jobs`와 `sr_community_board_copy_job_maps`를 사용하는 `/admin/community/board-copy-jobs` 배치 화면에서 prepare, board, posts, comments, attachments, verify 단계를 버튼 반복으로 처리할 수 있다. 배치 복사 대상 게시판은 완료 후에도 `disabled`로 남는다.
 
 회원 콘텐츠 소유권은 해시가 아니라 내부 계정 ID로 저장한다. 커뮤니티 게시글/댓글 작성자와 커뮤니티 시리즈 소유자는 편집, 삭제, private 시리즈 열람 같은 권한 판정에 직접 쓰이므로 탈퇴 cleanup에서 null로 바꾸지 않고 회원 계정 행 자체를 익명화한다. 콘텐츠/커뮤니티 시리즈의 `created_by`, `updated_by`, `moderated_by`, 시리즈 항목 `created_by`처럼 nullable 운영 메타데이터는 privacy cleanup에서 null 처리한다.
 
