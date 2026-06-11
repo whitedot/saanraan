@@ -595,6 +595,28 @@ function sr_check_php_lint(): void
     }
 }
 
+function sr_check_admin_anchor_tabs_scroll_spy(): void
+{
+    $script = file_get_contents('modules/admin/assets/admin-shell.js');
+    if (!is_string($script)) {
+        sr_check_add_error('Admin shell script cannot be read.');
+        return;
+    }
+
+    foreach ([
+        "document.querySelectorAll('.sticky-tabs.anchor-tabs')",
+        'initAnchorTabsScrollSpy',
+        'setAnchorTabActive',
+        "link.setAttribute('aria-current', 'location')",
+        "window.addEventListener('scroll', requestSync, { passive: true })",
+        'anchorTabs.forEach(initAnchorTabsScrollSpy)',
+    ] as $marker) {
+        if (!str_contains($script, $marker)) {
+            sr_check_add_error('Admin anchor tabs scroll spy marker missing: ' . $marker);
+        }
+    }
+}
+
 sr_check_run('git diff --check');
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-retention-targets.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-auth-runtime.php'));
@@ -624,6 +646,7 @@ sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
 sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();
+sr_check_admin_anchor_tabs_scroll_spy();
 sr_check_php_lint();
 
 if ($errors !== []) {

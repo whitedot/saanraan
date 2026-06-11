@@ -35,6 +35,7 @@ window.AdminShell = {
         const memberRuleDefinitions = Array.prototype.slice.call(document.querySelectorAll('[data-member-rule-definition]'));
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
         const dashboardSectionsRoot = document.querySelector('[data-admin-dashboard-sections]');
+        const anchorTabs = Array.prototype.slice.call(document.querySelectorAll('.sticky-tabs.anchor-tabs'));
         const assetEnablePreviousValues = new WeakMap();
         const assetEnableTouchedRoots = new WeakSet();
         let hideScrollbarTimer = null;
@@ -259,6 +260,94 @@ window.AdminShell = {
 
             const message = '사용/과금 체크가 꺼진 항목에 선택된 포인트/금액 항목이 있습니다. 저장하면 해당 선택은 적용되지 않습니다. 그래도 저장할까요?';
             return window.confirm(message);
+        };
+
+        const cssNumberValue = value => {
+            const number = parseFloat(String(value || '0'));
+            return Number.isFinite(number) ? number : 0;
+        };
+
+        const adminStickyOffset = () => {
+            const rootStyle = window.getComputedStyle(document.documentElement);
+            const shellBarHeight = cssNumberValue(rootStyle.getPropertyValue('--admin-shell-bar-height'));
+            const tabsHeight = cssNumberValue(rootStyle.getPropertyValue('--config-tabs-height')) || 52;
+            return shellBarHeight + tabsHeight + 12;
+        };
+
+        const setAnchorTabActive = (tabs, activeLink) => {
+            Array.prototype.slice.call(tabs.querySelectorAll('a[href^="#"]')).forEach(link => {
+                const active = link === activeLink;
+                link.classList.toggle('active', active);
+                if (active) {
+                    link.setAttribute('aria-current', 'location');
+                    if (typeof link.scrollIntoView === 'function') {
+                        link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                    }
+                } else {
+                    link.removeAttribute('aria-current');
+                }
+            });
+        };
+
+        const initAnchorTabsScrollSpy = tabs => {
+            const links = Array.prototype.slice.call(tabs.querySelectorAll('a[href^="#"]'));
+            const pairs = links.map(link => {
+                const hash = link.getAttribute('href') || '';
+                let section = null;
+                try {
+                    section = hash.length > 1 ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
+                } catch (error) {
+                    section = hash.length > 1 ? document.getElementById(hash.slice(1)) : null;
+                }
+
+                return section ? { link, section } : null;
+            }).filter(Boolean);
+
+            if (pairs.length === 0) {
+                return;
+            }
+
+            const activePairFromScroll = () => {
+                const probeY = adminStickyOffset() + Math.min(96, window.innerHeight * 0.25);
+                let activePair = pairs[0];
+                pairs.forEach(pair => {
+                    const rect = pair.section.getBoundingClientRect();
+                    if (rect.top <= probeY) {
+                        activePair = pair;
+                    }
+                });
+
+                if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+                    activePair = pairs[pairs.length - 1];
+                }
+
+                return activePair;
+            };
+
+            let ticking = false;
+            const sync = () => {
+                ticking = false;
+                const activePair = activePairFromScroll();
+                setAnchorTabActive(tabs, activePair ? activePair.link : pairs[0].link);
+            };
+            const requestSync = () => {
+                if (ticking) {
+                    return;
+                }
+                ticking = true;
+                window.requestAnimationFrame(sync);
+            };
+
+            links.forEach(link => {
+                link.addEventListener('click', () => {
+                    setAnchorTabActive(tabs, link);
+                });
+            });
+
+            sync();
+            window.addEventListener('scroll', requestSync, { passive: true });
+            window.addEventListener('resize', requestSync);
+            window.addEventListener('hashchange', requestSync);
         };
 
         const ensureToastStack = () => {
@@ -1043,6 +1132,8 @@ window.AdminShell = {
                 });
             });
         }
+
+        anchorTabs.forEach(initAnchorTabsScrollSpy);
 
         if (toastStack) {
             const closeToast = toast => {
