@@ -83,6 +83,8 @@ $mustContain('modules/community/privacy-export.php', [
     'submission_consents',
     'sr_community_submission_consents',
     'consent_version_snapshot',
+    'ip_hash',
+    'user_agent_hash',
 ]);
 $mustContain('modules/community/privacy-cleanup.php', [
     'sr_community_submission_consents',
