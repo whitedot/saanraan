@@ -22,6 +22,7 @@ return [
         'modules' => ['member', 'admin'],
     ],
     'settings' => [
+        'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,
         'default_consent_required' => 0,

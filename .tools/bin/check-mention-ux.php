@@ -82,8 +82,8 @@ foreach ([
 foreach ([
     '/modules/community/skins/basic/view.php',
     '/modules/content/views/content.php',
-    '/modules/quiz/actions/view.php',
-    '/modules/survey/actions/view.php',
+    '/modules/quiz/skins/basic/view.php',
+    '/modules/survey/skins/basic/view.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, 'data-sr-mention-input'), 'comment view should enable mention input: ' . $viewPath);

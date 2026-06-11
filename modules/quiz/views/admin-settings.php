@@ -71,6 +71,14 @@ $quizSettingsHelp = [
             '테마 변경은 퀴즈 내용, 정답, 보상 지급 기록에 영향을 주지 않습니다.',
         ]),
     ],
+    'skin_key' => [
+        'id' => 'quiz-settings-help-skin-key',
+        'title' => '퀴즈 스킨',
+        'body_html' => $quizSettingsHelpBodyHtml([
+            '퀴즈 공개 목록, 상세/응시, 결과 화면의 본문 view 묶음입니다.',
+            '허용된 스킨 key만 저장하고, 누락된 view는 기본 스킨으로 대체합니다.',
+        ]),
+    ],
     'default_status' => [
         'id' => 'quiz-settings-help-default-status',
         'title' => '기본 상태',
@@ -257,6 +265,19 @@ $quizSettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="admin-form-help">퀴즈 목록, 문제, 선택지, 결과 화면의 표현 방식을 선택합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('quiz_settings_skin_key', '퀴즈 스킨', $quizSettingsHelp['skin_key']['id'], $quizSettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <select id="quiz_settings_skin_key" name="skin_key" class="form-select" required>
+                        <?php foreach (sr_quiz_skin_options() as $skinKey => $skinLabel) { ?>
+                            <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($settings['skin_key'] ?? 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $skinLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">선택한 공개 레이아웃 안쪽의 퀴즈 본문 출력 스킨입니다.</p>
                 </div>
             </div>
             <?php foreach ($quizLayoutMenuFields as $quizLayoutMenuSettingKey => $quizLayoutMenuField) { ?>

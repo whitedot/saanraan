@@ -49,7 +49,7 @@ sr_embed_contract_contains('modules/embed_manager/helpers.php', 'function sr_emb
 sr_embed_contract_contains('modules/embed_manager/helpers.php', '본문 임베드 표시 방식이 지원되지 않습니다.');
 sr_embed_contract_contains('modules/content/helpers.php', 'sr_embed_manager_render_body_html($pdo');
 sr_embed_contract_contains('modules/community/helpers/posts.php', 'sr_embed_manager_render_body_html($pdo');
-sr_embed_contract_contains('modules/survey/actions/view.php', 'return_to');
+sr_embed_contract_contains('modules/survey/skins/basic/view.php', 'return_to');
 
 if ($errors !== []) {
     fwrite(STDERR, "embed manager contract checks failed:\n");

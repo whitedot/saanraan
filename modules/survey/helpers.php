@@ -163,6 +163,7 @@ function sr_survey_member_group_keys_json(array $groupKeys): string
 function sr_survey_default_settings(): array
 {
     return [
+        'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,
         'default_consent_required' => 0,
@@ -172,10 +173,29 @@ function sr_survey_default_settings(): array
     ];
 }
 
+function sr_survey_skin_options(): array
+{
+    return [
+        'basic' => '기본형',
+    ];
+}
+
+function sr_survey_skin_views(): array
+{
+    return ['home', 'view', 'complete'];
+}
+
+function sr_survey_skin_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    return isset(sr_survey_skin_options()[$value]) ? $value : 'basic';
+}
+
 function sr_survey_normalize_settings(array $settings): array
 {
     $defaults = sr_survey_default_settings();
     $normalized = array_merge($defaults, $settings);
+    $normalized['skin_key'] = sr_survey_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_survey_statuses(), true) ? (string) $normalized['default_status'] : (string) $defaults['default_status'];
     $normalized['default_login_required'] = !empty($normalized['default_login_required']) ? 1 : 0;
     $normalized['default_consent_required'] = !empty($normalized['default_consent_required']) ? 1 : 0;
@@ -194,6 +214,7 @@ function sr_survey_settings(PDO $pdo): array
 function sr_survey_settings_from_post(): array
 {
     return sr_survey_normalize_settings([
+        'skin_key' => sr_survey_clean_key(sr_post_string('skin_key', 40), 40),
         'default_status' => sr_post_string('default_status', 20),
         'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
         'default_consent_required' => ($_POST['default_consent_required'] ?? '') === '1',
@@ -206,11 +227,54 @@ function sr_survey_settings_from_post(): array
 function sr_survey_settings_validation_errors(array $settings): array
 {
     $errors = [];
+    if (!isset(sr_survey_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
+        $errors[] = '설문 스킨 값이 올바르지 않습니다.';
+    }
     if ((string) ($settings['default_response_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_response_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응답 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
     }
 
     return $errors;
+}
+
+function sr_survey_public_layout_context(array $settings, array $context = []): array
+{
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/survey/assets/public.css';
+    $context['stylesheets'] = array_values(array_unique($stylesheets));
+    $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
+    $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
+    $context['body_class'] = trim($bodyClass . ' survey-theme-basic survey-skin-' . $skinKey);
+
+    return $context;
+}
+
+function sr_survey_skin_view_file(array $settings, string $view): string
+{
+    if (!in_array($view, sr_survey_skin_views(), true)) {
+        throw new InvalidArgumentException('Unknown survey skin view.');
+    }
+
+    $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
+    $file = SR_ROOT . '/modules/survey/skins/' . $skinKey . '/' . $view . '.php';
+    if ($skinKey !== 'basic' && is_file($file)) {
+        return $file;
+    }
+
+    $fallback = SR_ROOT . '/modules/survey/skins/basic/' . $view . '.php';
+    if ($skinKey !== 'basic' || !is_file($file)) {
+        error_log('survey_skin_fallback module=survey skin_key=' . $skinKey . ' view=' . $view . ' fallback_file=' . $fallback);
+    }
+    if (!is_file($fallback)) {
+        throw new RuntimeException('Default survey skin view is missing: ' . $view);
+    }
+
+    return $fallback;
+}
+
+function sr_survey_render_skin(PDO $pdo, array $settings, string $view): void
+{
+    include sr_survey_skin_view_file($settings, $view);
 }
 
 function sr_survey_save_settings(PDO $pdo, array $settings): void

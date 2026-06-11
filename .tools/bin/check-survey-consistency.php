@@ -154,14 +154,14 @@ foreach (['member-assets.php', 'notification-events.php'] as $needle) {
 
 foreach (['other_answers[', 'sr-survey-other-input'] as $needle) {
     sr_survey_check_contains(
-        'modules/survey/actions/view.php',
+        'modules/survey/skins/basic/view.php',
         $needle,
         'Survey public form must collect text for selected other choices'
     );
 }
 foreach (['survey-comments', 'sr_survey_comments', 'sr_member_mention_plain_text_html', 'data-sr-mention-input'] as $needle) {
     sr_survey_check_contains(
-        'modules/survey/actions/view.php',
+        'modules/survey/skins/basic/view.php',
         $needle,
         'Survey public page must render comment mentions and mention input'
     );
@@ -224,7 +224,7 @@ foreach (['/admin/surveys/comments', 'sr_survey_admin_comments', 'sr_survey_upda
 }
 
 sr_survey_check_not_contains(
-    'modules/survey/actions/view.php',
+    'modules/survey/skins/basic/view.php',
     "sr_get_string('reward'",
     'Survey completion page must not trust reward status from query string'
 );

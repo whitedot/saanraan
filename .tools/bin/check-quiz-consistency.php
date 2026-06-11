@@ -129,7 +129,7 @@ function sr_quiz_check_paths_and_admin(): void
         '/admin/quiz/attempts',
         '/admin/quiz/comments',
     ]);
-    sr_quiz_check_file_contains('modules/quiz/actions/view.php', [
+    sr_quiz_check_file_contains('modules/quiz/skins/basic/view.php', [
         'rawurldecode($quizKey)',
         'sr_quiz_key_is_valid($quizKey)',
         'sr_require_csrf()',
@@ -199,7 +199,7 @@ function sr_quiz_check_paths_and_admin(): void
         'reward_module',
         'content_source_ids',
     ]);
-    sr_quiz_check_file_contains('modules/quiz/actions/view.php', [
+    sr_quiz_check_file_contains('modules/quiz/skins/basic/view.php', [
         '$submitResult[\'display_score\']',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/comment.php', [

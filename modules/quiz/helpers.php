@@ -159,6 +159,7 @@ function sr_quiz_default_settings(): array
     return [
         'layout_key' => 'quiz.basic',
         'theme_key' => 'basic',
+        'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
         'layout_tertiary_menu_key' => '',
@@ -198,6 +199,24 @@ function sr_quiz_theme_key(string $value): string
     return isset(sr_quiz_theme_options()[$value]) ? $value : 'basic';
 }
 
+function sr_quiz_skin_options(): array
+{
+    return [
+        'basic' => '기본형',
+    ];
+}
+
+function sr_quiz_skin_views(): array
+{
+    return ['home', 'view', 'result'];
+}
+
+function sr_quiz_skin_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    return isset(sr_quiz_skin_options()[$value]) ? $value : 'basic';
+}
+
 function sr_quiz_clean_theme_key(string $value): string
 {
     $value = strtolower(trim($value));
@@ -228,6 +247,7 @@ function sr_quiz_normalize_settings(array $settings): array
 
     $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
     $normalized['theme_key'] = sr_quiz_theme_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
+    $normalized['skin_key'] = sr_quiz_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     foreach (sr_quiz_layout_menu_slots() as $settingKey) {
         $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
     }
@@ -287,11 +307,13 @@ function sr_quiz_settings(PDO $pdo): array
 function sr_quiz_settings_from_post(): array
 {
     $themeKey = sr_quiz_clean_theme_key(sr_post_string('theme_key', 40));
+    $skinKey = sr_quiz_clean_theme_key(sr_post_string('skin_key', 40));
     $rewardProvider = sr_quiz_clean_key(sr_post_string('default_reward_provider', 30), 30);
     $rewardDedupeScope = sr_quiz_clean_key(sr_post_string('default_reward_dedupe_scope', 20), 20);
     $settings = sr_quiz_normalize_settings([
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'theme_key' => $themeKey,
+        'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_secondary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
         'layout_tertiary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_tertiary_menu_key', 60)),
@@ -315,6 +337,7 @@ function sr_quiz_settings_from_post(): array
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
     $settings['theme_key'] = $themeKey;
+    $settings['skin_key'] = $skinKey;
     $settings['default_reward_provider'] = $rewardProvider;
     $settings['default_reward_dedupe_scope'] = $rewardDedupeScope;
 
@@ -329,6 +352,9 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     }
     if (!isset(sr_quiz_theme_options()[(string) ($settings['theme_key'] ?? '')])) {
         $errors[] = '퀴즈 테마 값이 올바르지 않습니다.';
+    }
+    if (!isset(sr_quiz_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
+        $errors[] = '퀴즈 스킨 값이 올바르지 않습니다.';
     }
     $siteMenuOptions = [];
     if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
@@ -379,8 +405,9 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $stylesheets[] = '/modules/quiz/assets/public.css';
     $context['stylesheets'] = $stylesheets;
     $themeKey = sr_quiz_theme_key((string) ($settings['theme_key'] ?? 'basic'));
+    $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
-    $context['body_class'] = trim($bodyClass . ' sr-quiz-theme-' . $themeKey);
+    $context['body_class'] = trim($bodyClass . ' sr-quiz-theme-' . $themeKey . ' quiz-theme-' . $themeKey . ' quiz-skin-' . $skinKey);
 
     $siteMenus = [];
     foreach (sr_quiz_layout_menu_slots() as $slotKey => $settingKey) {
@@ -389,6 +416,34 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
 
     return $context;
+}
+
+function sr_quiz_skin_view_file(array $settings, string $view): string
+{
+    if (!in_array($view, sr_quiz_skin_views(), true)) {
+        throw new InvalidArgumentException('Unknown quiz skin view.');
+    }
+
+    $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
+    $file = SR_ROOT . '/modules/quiz/skins/' . $skinKey . '/' . $view . '.php';
+    if ($skinKey !== 'basic' && is_file($file)) {
+        return $file;
+    }
+
+    $fallback = SR_ROOT . '/modules/quiz/skins/basic/' . $view . '.php';
+    if ($skinKey !== 'basic' || !is_file($file)) {
+        error_log('quiz_skin_fallback module=quiz skin_key=' . $skinKey . ' view=' . $view . ' fallback_file=' . $fallback);
+    }
+    if (!is_file($fallback)) {
+        throw new RuntimeException('Default quiz skin view is missing: ' . $view);
+    }
+
+    return $fallback;
+}
+
+function sr_quiz_render_skin(PDO $pdo, array $settings, string $view): void
+{
+    include sr_quiz_skin_view_file($settings, $view);
 }
 
 function sr_quiz_save_settings(PDO $pdo, array $settings): void

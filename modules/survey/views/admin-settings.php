@@ -42,6 +42,14 @@ $surveySettingsHelp = [
             '관리자 목록과 응답 목록의 페이지 크기는 관리자 공통 페이징 설정을 계속 사용합니다.',
         ]),
     ],
+    'skin_key' => [
+        'id' => 'survey-settings-help-skin-key',
+        'title' => '설문 스킨',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '설문 공개 목록, 상세/응답, 완료 화면의 본문 view 묶음입니다.',
+            '허용된 스킨 key만 저장하고, 누락된 view는 기본 스킨으로 대체합니다.',
+        ]),
+    ],
     'default_login_required' => [
         'id' => 'survey-settings-help-default-login-required',
         'title' => '로그인 필요',
@@ -67,9 +75,22 @@ $surveySettingsHelp = [
 
     <section class="admin-card card">
         <div class="card-header">
-            <h2 class="card-title">새 설문 기본값</h2>
+            <h2 class="card-title">공개 화면/새 설문 기본값</h2>
         </div>
         <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_skin_key', '설문 스킨', $surveySettingsHelp['skin_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <select id="survey_settings_skin_key" name="skin_key" class="form-select" required>
+                        <?php foreach (sr_survey_skin_options() as $skinKey => $skinLabel) { ?>
+                            <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($settings['skin_key'] ?? 'basic') === (string) $skinKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $skinLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">공개 레이아웃 안쪽의 설문 본문 출력 스킨입니다.</p>
+                </div>
+            </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_default_status', '기본 상태', $surveySettingsHelp['default_status']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">

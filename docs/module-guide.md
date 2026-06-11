@@ -207,6 +207,8 @@ return [
 
 커뮤니티 게시판 스킨은 게시판 유형별 기능 차이가 자연스럽기 때문에 선택 action 계약을 허용한다. 관리자 스킨, 회원 스킨, 배너 스킨, 팝업레이어 스킨, 공개 레이아웃, 커뮤니티 레이아웃은 현재 표시 전용 계약으로 유지한다. 이 표시 전용 계약들은 필수 view가 없는 option을 선택 목록에서 제외하고, 저장된 key가 무효가 되면 기본 option으로 fallback한다. 기본 필수 view가 없으면 설치 오류로 본다.
 
+퀴즈와 설문 공개 화면도 모듈별 스킨 key를 설정으로 저장한다. 기본 key는 `basic`이고, 옵션 source of truth는 각각 `sr_quiz_skin_options()`, `sr_survey_skin_options()`다. 퀴즈 스킨 필수 view는 `home`, `view`, `result`이고, 설문 스킨 필수 view는 `home`, `view`, `complete`다. 공개 action은 설정된 `skin_key`와 내부 view 이름을 helper가 검증한 파일 경로로 매핑한 뒤 include한다. 스킨 또는 view 파일이 없으면 해당 view만 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file을 남긴다. 스킨 출력은 기존 공개 레이아웃 안쪽 본문을 대체하며, 퀴즈는 `quiz-theme-*`와 `quiz-skin-*`, 설문은 `survey-theme-basic`과 `survey-skin-*` class hook을 유지해야 한다. 퀴즈 결과와 설문 완료 스킨은 보상 지급 결과 안내 surface를 빠뜨리지 않아야 한다.
+
 ## 3. 이름 규칙
 
 `module_key`는 `\A[a-z][a-z0-9_]{1,39}\z` 형식을 사용한다. 즉 영문 소문자로 시작하고, 전체 길이는 2-40자이며, 이후 문자는 영문 소문자, 숫자, 밑줄만 허용한다.

@@ -617,6 +617,29 @@ function sr_check_admin_anchor_tabs_scroll_spy(): void
     }
 }
 
+function sr_check_quiz_survey_skin_files(): void
+{
+    $contracts = [
+        'quiz' => ['home', 'view', 'result'],
+        'survey' => ['home', 'view', 'complete'],
+    ];
+
+    foreach ($contracts as $moduleKey => $views) {
+        $skinDir = 'modules/' . $moduleKey . '/skins/basic';
+        if (!is_dir($skinDir)) {
+            sr_check_add_error('Default skin directory is missing: ' . $skinDir);
+            continue;
+        }
+
+        foreach ($views as $view) {
+            $file = $skinDir . '/' . $view . '.php';
+            if (!is_file($file)) {
+                sr_check_add_error('Default skin view is missing: ' . $file);
+            }
+        }
+    }
+}
+
 sr_check_run('git diff --check');
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-retention-targets.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-auth-runtime.php'));
@@ -649,6 +672,7 @@ sr_check_module_versions_and_updates();
 sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();
 sr_check_admin_anchor_tabs_scroll_spy();
+sr_check_quiz_survey_skin_files();
 sr_check_php_lint();
 
 if ($errors !== []) {
