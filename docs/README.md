@@ -91,6 +91,7 @@
 - [마일스톤 16 운영 항목 복사 구현 기록 - 2026-06-04](records/milestone-16-operational-copy-2026-06-04.md)
 - [마일스톤 18-20 보상·퀴즈·설문 구현 기록 - 2026-06-07](records/milestone-18-20-reward-quiz-survey-2026-06-07.md)
 - [이슈 #210 CKEditor 업로드 파일 관리 정책 점검 기록 - 2026-06-05](records/issue-210-ckeditor-upload-policy-2026-06-05.md)
+- [마일스톤 28 통화·정산 정책 기록 - 2026-06-11](records/milestone-28-currency-settlement-policy-2026-06-11.md)
 
 ## Wiki로 충분한 문서
 
