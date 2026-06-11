@@ -57,6 +57,33 @@ sr_milestone_28_check_contains('docs/README.md', [
     '마일스톤 28 통화·정산 정책 기록 - 2026-06-11',
 ]);
 
+sr_milestone_28_check_contains('core/views/install.php', [
+    'name="default_currency"',
+    'array_keys(sr_known_currency_min_units())',
+    'data-summary-source="default_currency"',
+    'data-summary-target="default_currency"',
+    '기존 가격과 로그는 이 값으로 변환되지 않습니다',
+]);
+
+sr_milestone_28_check_contains('core/actions/install.php', [
+    '$values[\'default_currency\'] = sr_normalize_currency_code($values[\'default_currency\']);',
+    'if (!sr_currency_is_known($values[\'default_currency\']))',
+    '\'site.default_currency\' => [\'value\' => $values[\'default_currency\'], \'type\' => \'string\']',
+]);
+
+sr_milestone_28_check_contains('modules/admin/views/settings.php', [
+    '<span class="form-label">기본 통화</span>',
+    '일반 설정 저장으로 변경되지 않습니다',
+    '기존 가격, 로그, 구매력 snapshot은 변환하지 않습니다',
+]);
+
+$adminSettingsHelper = file_get_contents('modules/admin/helpers/settings.php');
+if (!is_string($adminSettingsHelper)) {
+    $errors[] = 'cannot read modules/admin/helpers/settings.php for default currency lock check';
+} elseif (str_contains($adminSettingsHelper, "'site.default_currency' => ['value' =>")) {
+    $errors[] = 'admin settings save must not write site.default_currency after install';
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "milestone 28 currency policy checks failed:\n");
     foreach ($errors as $error) {
