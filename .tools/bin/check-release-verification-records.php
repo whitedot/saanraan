@@ -60,6 +60,7 @@ function sr_release_verification_record_required_gate_labels(): array
         '새 설치 또는 업데이트 적용',
         '`php .tools/bin/reconcile-assets.php`',
         '`php .tools/bin/ops-status.php`',
+        '`php .tools/bin/expire-points.php --dry-run`',
         '/admin/assets/reconciliation',
         '/admin/operations',
         '인증 smoke',
@@ -135,6 +136,7 @@ function sr_release_verification_record_required_gate_rows_have_unresolved(strin
         '| 새 설치 또는 업데이트 적용 | TODO |',
         '| `php .tools/bin/reconcile-assets.php` | TODO |',
         '| `php .tools/bin/ops-status.php` | TODO |',
+        '| `php .tools/bin/expire-points.php --dry-run` | TODO |',
         '| /admin/assets/reconciliation | TODO |',
         '| /admin/operations | TODO |',
         '| 인증 smoke | TODO |',
@@ -287,6 +289,7 @@ function sr_release_verification_record_fixture(string $requiredGateResult, stri
 | 새 설치 또는 업데이트 적용 | ' . $requiredGateResult . ' | fixture | fixture |
 | `php .tools/bin/reconcile-assets.php` | ' . $requiredGateResult . ' | fixture | fixture |
 | `php .tools/bin/ops-status.php` | ' . $requiredGateResult . ' | fixture | fixture |
+| `php .tools/bin/expire-points.php --dry-run` | ' . $requiredGateResult . ' | fixture | fixture |
 | /admin/assets/reconciliation | ' . $requiredGateResult . ' | fixture | fixture |
 | /admin/operations | ' . $requiredGateResult . ' | fixture | fixture |
 | 인증 smoke | ' . $requiredGateResult . ' | fixture | fixture |
