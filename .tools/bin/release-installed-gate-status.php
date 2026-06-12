@@ -26,8 +26,11 @@ $smokeIdentifier = (string) (getenv('SR_SMOKE_IDENTIFIER') ?: '');
 $smokePassword = (string) (getenv('SR_SMOKE_PASSWORD') ?: '');
 $adminIdentifier = (string) (getenv('SR_SMOKE_ADMIN_IDENTIFIER') ?: '');
 $adminPassword = (string) (getenv('SR_SMOKE_ADMIN_PASSWORD') ?: '');
+$assetDedupeTable = (string) (getenv('SR_SMOKE_EXPECT_DEDUPE_TABLE') ?: '');
+$assetDedupeKey = (string) (getenv('SR_SMOKE_EXPECT_DEDUPE_KEY') ?: '');
 $accountSmokeCredentialStatus = sr_release_gate_status_pair_status($smokeIdentifier, $smokePassword);
 $adminSmokeCredentialStatus = sr_release_gate_status_pair_status($adminIdentifier, $adminPassword);
+$assetDedupeExpectationStatus = sr_release_gate_status_pair_status($assetDedupeTable, $assetDedupeKey);
 $configPath = $root . '/config/config.php';
 $lockPath = $root . '/storage/installed.lock';
 $configExists = is_file($configPath);
@@ -248,7 +251,7 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $account
     ];
 }
 
-function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, bool $runAssetSmoke, bool $allowMutationSmoke): array
+function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, string $assetDedupeExpectationStatus, bool $runAssetSmoke, bool $allowMutationSmoke): array
 {
     $formPath = (string) (getenv('SR_SMOKE_FORM_PATH') ?: '');
 
@@ -280,6 +283,19 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accoun
             'result' => '미실행',
             'environment' => $baseUrl,
             'memo' => 'requires SR_SMOKE_FORM_PATH for disposable paid target data',
+        ];
+    }
+
+    if ($assetDedupeExpectationStatus !== 'configured') {
+        $dedupeMemo = $assetDedupeExpectationStatus === 'incomplete'
+            ? 'SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY must be provided together for dedupe row count evidence'
+            : 'requires SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY for dedupe row count evidence';
+
+        return [
+            'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => $dedupeMemo,
         ];
     }
 
@@ -460,7 +476,7 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
     'verify the read-only operations screen, allowed delays, and overdue markers'
 );
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAuthSmoke, $allowMutationSmoke);
-$gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAssetSmoke, $allowMutationSmoke);
+$gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $assetDedupeExpectationStatus, $runAssetSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_privacy_gate($runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
 $gates[] = [
@@ -490,6 +506,7 @@ echo 'base-url: ' . ($baseUrl === '' ? '-' : $baseUrl) . "\n";
 echo 'browser-qa-base-url: ' . ($browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl) . "\n";
 echo 'account-smoke-credentials: ' . $accountSmokeCredentialStatus . "\n";
 echo 'admin-smoke-credentials: ' . $adminSmokeCredentialStatus . "\n";
+echo 'asset-dedupe-expectation: ' . $assetDedupeExpectationStatus . "\n";
 echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
 echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
 echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";

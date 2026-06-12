@@ -73,6 +73,7 @@ foreach ([
     'browser-qa-base-url:',
     'account-smoke-credentials: missing',
     'admin-smoke-credentials: missing',
+    'asset-dedupe-expectation: missing',
     'run-readonly: no',
     'run-browser-qa: no',
     'run-auth-smoke: no',
@@ -212,10 +213,67 @@ $assetMissingFormOutput = sr_installed_gate_status_exec([
 ]);
 foreach ([
     'account-smoke-credentials: configured',
+    'asset-dedupe-expectation: missing',
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_FORM_PATH for disposable paid target data",
 ] as $marker) {
     if ($assetMissingFormOutput !== '' && !str_contains($assetMissingFormOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status asset missing form output marker missing: ' . $marker);
+    }
+}
+
+$assetDedupeMissingOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    'SR_SMOKE_FORM_PATH=/paid/form',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'asset-dedupe-expectation: missing',
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY",
+] as $marker) {
+    if ($assetDedupeMissingOutput !== '' && !str_contains($assetDedupeMissingOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status asset dedupe missing output marker missing: ' . $marker);
+    }
+}
+
+$assetDedupeIncompleteTableOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    'SR_SMOKE_FORM_PATH=/paid/form',
+    'SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'asset-dedupe-expectation: incomplete',
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY must be provided together",
+] as $marker) {
+    if ($assetDedupeIncompleteTableOutput !== '' && !str_contains($assetDedupeIncompleteTableOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status asset dedupe-table-only output marker missing: ' . $marker);
+    }
+}
+
+$assetDedupeIncompleteKeyOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    'SR_SMOKE_FORM_PATH=/paid/form',
+    'SR_SMOKE_EXPECT_DEDUPE_KEY=fixture:dedupe',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'asset-dedupe-expectation: incomplete',
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY must be provided together",
+] as $marker) {
+    if ($assetDedupeIncompleteKeyOutput !== '' && !str_contains($assetDedupeIncompleteKeyOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status asset dedupe-key-only output marker missing: ' . $marker);
     }
 }
 
@@ -244,6 +302,8 @@ $assetMutationBlockedOutput = sr_installed_gate_status_exec([
     'SR_SMOKE_IDENTIFIER=member',
     'SR_SMOKE_PASSWORD=12341234',
     'SR_SMOKE_FORM_PATH=/paid/form',
+    'SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs',
+    'SR_SMOKE_EXPECT_DEDUPE_KEY=fixture:dedupe',
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
     '--run-asset-smoke',
@@ -282,12 +342,15 @@ $assetReadyOutput = sr_installed_gate_status_exec([
     'SR_SMOKE_IDENTIFIER=member',
     'SR_SMOKE_PASSWORD=12341234',
     'SR_SMOKE_FORM_PATH=/paid/form',
+    'SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs',
+    'SR_SMOKE_EXPECT_DEDUPE_KEY=fixture:dedupe',
     'SR_SMOKE_ALLOW_MUTATION=1',
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
 ]);
 foreach ([
     'mutation-smoke-allowed: yes',
+    'asset-dedupe-expectation: configured',
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=asset idempotency smoke is configured; rerun with --run-asset-smoke",
 ] as $marker) {
     if ($assetReadyOutput !== '' && !str_contains($assetReadyOutput, $marker)) {
@@ -346,6 +409,10 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_SMOKE_ADMIN_PASSWORD',
     'SR_SMOKE_IDENTIFIER',
     'SR_SMOKE_PASSWORD',
+    'SR_SMOKE_EXPECT_DEDUPE_TABLE',
+    'SR_SMOKE_EXPECT_DEDUPE_KEY',
+    'asset-dedupe-expectation',
+    'dedupe row count evidence',
     'incomplete',
     'config/config.php is not readable by current user',
     'sr_release_gate_status_pair_status',
