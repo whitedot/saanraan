@@ -788,7 +788,14 @@ function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetI
     $stmt = $pdo->prepare(
         'UPDATE sr_community_board_copy_job_maps
          SET target_id = :target_id, status = :status, error_text = :error_text, created_storage_driver = :driver, created_storage_key = :storage_key, updated_at = :updated_at
-         WHERE id = :id' . ($jobId > 0 ? ' AND job_id = :job_id' : '')
+         WHERE id = :id' . ($jobId > 0 ? " AND job_id = :job_id
+           AND EXISTS (
+               SELECT 1
+               FROM sr_community_board_copy_jobs
+               WHERE id = :job_id
+                 AND status = 'running'
+                 AND lock_token = :lock_token
+           )" : '')
     );
     $params = [
         'target_id' => $targetId,
@@ -801,8 +808,20 @@ function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetI
     ];
     if ($jobId > 0) {
         $params['job_id'] = $jobId;
+        $params['lock_token'] = $lockToken;
     }
     $stmt->execute($params);
+    if ($jobId > 0 && $stmt->rowCount() < 1) {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
+        $check = $pdo->prepare('SELECT COUNT(*) FROM sr_community_board_copy_job_maps WHERE id = :id AND job_id = :job_id');
+        $check->execute([
+            'id' => $mapId,
+            'job_id' => $jobId,
+        ]);
+        if ((int) $check->fetchColumn() !== 1) {
+            throw new RuntimeException('복사 작업 항목을 찾을 수 없습니다.');
+        }
+    }
 }
 
 function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
