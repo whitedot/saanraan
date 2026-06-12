@@ -106,7 +106,7 @@ foreach ([
 $riskGateMarkers = [
     'R-01 자산/쿠폰/유료 접근권' => ['reconciliation', 'mutation smoke', '동시성 fixture', '관리자 정정/복구 확인'],
     'R-02 HTML sanitizer/CKEditor' => ['sanitizer fixture', 'Purifier 로드 상태', 'fallback sanitizer fixture', 'check-browser-qa.php', 'ckeditor-browser-smoke.spec.js', 'CKEditor asset/fallback browser smoke', 'CKEditor upload/save browser smoke'],
-    'R-03 공유호스팅 queue/cron/배치' => ['ops-status.php', '/admin/operations', '지연/실패 row 확인'],
+    'R-03 공유호스팅 queue/cron/배치' => ['ops-status.php', 'expire-points.php --dry-run', '/admin/operations', '지연/실패 row 확인'],
     'R-04 개인정보 export/cleanup 계약' => ['privacy matrix', 'export/cleanup smoke', '운영 보존 데이터 검토'],
     'R-05 넓은 번들 모듈 표면' => ['module status', 'beta smoke 기록', '등급 상향 근거'],
     'R-06 커스텀 요청/보안 contract' => ['security baseline', 'admin action security', '인증/권한 smoke', '보안 헤더'],
