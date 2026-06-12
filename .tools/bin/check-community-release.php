@@ -144,6 +144,28 @@ function sr_community_release_wrapper_action(string $path, array $requiredNeedle
     }
 }
 
+function sr_community_release_command(array $command, int $expectedExitCode, array $markers, string $label): void
+{
+    $parts = [];
+    foreach ($command as $part) {
+        $parts[] = escapeshellarg($part);
+    }
+
+    $output = [];
+    exec(implode(' ', $parts) . ' 2>&1', $output, $exitCode);
+    $text = implode("\n", $output);
+    if ($exitCode !== $expectedExitCode) {
+        sr_community_release_error($label . ' expected exit ' . (string) $expectedExitCode . ', got ' . (string) $exitCode . ': ' . $text);
+        return;
+    }
+
+    foreach ($markers as $marker) {
+        if (!str_contains($text, $marker)) {
+            sr_community_release_error($label . ' output must contain: ' . $marker);
+        }
+    }
+}
+
 $module = sr_community_release_array_file('modules/community/module.php');
 $paths = sr_community_release_array_file('modules/community/paths.php');
 $adminMenu = sr_community_release_array_file('modules/community/admin-menu.php');
@@ -172,6 +194,62 @@ sr_community_release_file_contains('.tools/bin/smoke-http.php', [
     '$expectCommunity = getenv(\'SR_SMOKE_EXPECT_COMMUNITY\') === \'1\'',
     'returned 404 while SR_SMOKE_EXPECT_COMMUNITY=1',
 ], 'Community installed HTTP smoke mode');
+sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    'reporter_identifier and reporter_password must be provided together.',
+    'admin_identifier and admin_password must be provided together.',
+    'recipient_password requires recipient_identifier.',
+], 'Community authenticated smoke configuration guards');
+sr_community_release_command(
+    [
+        'env',
+        'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+        'SR_SMOKE_IDENTIFIER=writer',
+        'SR_SMOKE_PASSWORD=12341234',
+        'SR_SMOKE_REPORTER_IDENTIFIER=reporter',
+        PHP_BINARY,
+        '.tools/bin/smoke-community-auth.php',
+    ],
+    2,
+    [
+        'saanraan authenticated community smoke configuration failed:',
+        'reporter_identifier and reporter_password must be provided together.',
+    ],
+    'Community authenticated smoke reporter credential pair guard'
+);
+sr_community_release_command(
+    [
+        'env',
+        'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+        'SR_SMOKE_IDENTIFIER=writer',
+        'SR_SMOKE_PASSWORD=12341234',
+        'SR_SMOKE_ADMIN_PASSWORD=12341234',
+        PHP_BINARY,
+        '.tools/bin/smoke-community-auth.php',
+    ],
+    2,
+    [
+        'saanraan authenticated community smoke configuration failed:',
+        'admin_identifier and admin_password must be provided together.',
+    ],
+    'Community authenticated smoke admin credential pair guard'
+);
+sr_community_release_command(
+    [
+        'env',
+        'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+        'SR_SMOKE_IDENTIFIER=writer',
+        'SR_SMOKE_PASSWORD=12341234',
+        'SR_SMOKE_RECIPIENT_PASSWORD=12341234',
+        PHP_BINARY,
+        '.tools/bin/smoke-community-auth.php',
+    ],
+    2,
+    [
+        'saanraan authenticated community smoke configuration failed:',
+        'recipient_password requires recipient_identifier.',
+    ],
+    'Community authenticated smoke recipient password guard'
+);
 
 $requiredPackageEntries = [
     'actions',
