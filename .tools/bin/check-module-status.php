@@ -130,6 +130,24 @@ foreach ($expectedEvidenceMarkers as $moduleKey => $markers) {
     }
 }
 
+$expectedRemainingMarkers = [
+    'privacy' => ['release-installed-gate-status.php', '개인정보 export/cleanup 설치 DB smoke'],
+    'ckeditor' => ['release-installed-gate-status.php', 'CKEditor upload/save browser smoke'],
+];
+
+foreach ($expectedRemainingMarkers as $moduleKey => $markers) {
+    if (!isset($bundleRows[$moduleKey])) {
+        continue;
+    }
+
+    $remaining = (string) $bundleRows[$moduleKey]['remaining'];
+    foreach ($markers as $marker) {
+        if (!str_contains($remaining, $marker)) {
+            sr_module_status_error('Module status remaining marker missing for ' . $moduleKey . ': ' . $marker);
+        }
+    }
+}
+
 if (is_string($improvementRecord)
     && preg_match_all('/^\| `([a-z0-9_]+)` \| `([^`]+)` \| `([^`]+)` \|/m', $improvementRecord, $matches, PREG_SET_ORDER) > 0
 ) {

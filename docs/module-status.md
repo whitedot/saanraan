@@ -36,8 +36,8 @@
 | 서비스 | `survey` | `beta` | `check-survey-consistency.php`, `check-survey-response-runtime.php`, `check-survey-reward-runtime.php`, `check-survey-statistics-runtime.php`, `check-survey-export-runtime.php`, 응답 제출 runtime fixture, CSV export runtime fixture, privacy runtime fixture, 보상 지급 runtime fixture, 통계 runtime fixture | 개인정보 설치 DB smoke, 브라우저 수동 smoke |
 | 서비스 | `embed_manager` | `beta` | `check-embed-manager-contracts.php`, embed refs sync runtime fixture, private/broken 렌더링 fixture, sanitizer marker fixture | CKEditor 삽입, refs 동기화, broken/private 렌더링 smoke |
 | 운영 | `notification` | `beta` | `check-mention-ux.php`, `check-notification-runtime.php`, 이벤트 템플릿 runtime fixture, delivery queue fixture, 운영 상태 기준 | delivery queue, 실패 재시도, 이벤트 템플릿 smoke |
-| 운영 | `privacy` | `stable-candidate` | `check-privacy-contract-matrix.php`, `check-privacy-export-runtime.php`, `check-privacy-cleanup-runtime.php`, smoke 기준 | 사본 제공/탈퇴 수동 smoke |
-| 플러그인 | `ckeditor` | `beta` | `check-rich-text-sanitizer.php`, `check-htmlpurifier-runtime.php`, `check-ckeditor-assets.php`, `check-browser-qa.php`, `ckeditor-browser-smoke.spec.js`, HTML Purifier 배치/캐시 경로, rich text sanitizer fixture, 브라우저 asset 로딩/fallback smoke, upload adapter request contract smoke | 설치 DB 서버 업로드 action, 저장 HTML sanitizer, 권한별 본문 이미지 smoke |
+| 운영 | `privacy` | `stable-candidate` | `check-privacy-contract-matrix.php`, `check-privacy-export-runtime.php`, `check-privacy-cleanup-runtime.php`, smoke 기준 | `release-installed-gate-status.php` 개인정보 export/cleanup 설치 DB smoke, 사본 제공/탈퇴 수동 smoke |
+| 플러그인 | `ckeditor` | `beta` | `check-rich-text-sanitizer.php`, `check-htmlpurifier-runtime.php`, `check-ckeditor-assets.php`, `check-browser-qa.php`, `ckeditor-browser-smoke.spec.js`, HTML Purifier 배치/캐시 경로, rich text sanitizer fixture, 브라우저 asset 로딩/fallback smoke, upload adapter request contract smoke | `release-installed-gate-status.php` CKEditor upload/save browser smoke, 설치 DB 서버 업로드 action, 저장 HTML sanitizer, 권한별 본문 이미지 smoke |
 
 ## 1.0 제외 계획
 
