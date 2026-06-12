@@ -120,6 +120,31 @@ function sr_operational_status_fixture_check(PDO $pdo): void
     if ((int) ($summary['ok'] ?? 0) !== 1 || (int) ($summary['warning'] ?? 0) !== 1 || (int) ($summary['overdue'] ?? 0) !== 1 || (int) ($summary['skipped'] ?? 0) !== 1 || (int) ($summary['error'] ?? 0) !== 1 || (int) ($summary['total_count'] ?? 0) !== 3) {
         sr_operational_status_error('Fixture operational summary totals mismatch.');
     }
+
+    $line = sr_admin_operational_status_cli_row_line([
+        'label' => 'fixture.queue.pending',
+        'status' => 'warning',
+        'count' => 3,
+        'delay_tolerance' => "  1시간\n",
+        'oldest_at' => '',
+    ]);
+    if ($line !== "fixture.queue.pending\tstatus=warning\tcount=3\tallowed_delay=1시간\toldest_at=-") {
+        sr_operational_status_error('Fixture operational CLI row line should normalize values.');
+    }
+
+    $skippedLine = sr_admin_operational_status_cli_row_line([
+        'label' => 'fixture.queue.skipped',
+        'status' => 'skipped',
+        'message' => "module disabled\nwith detail\tand spacing",
+    ]);
+    if ($skippedLine !== "fixture.queue.skipped\tskipped\tmodule disabled with detail and spacing") {
+        sr_operational_status_error('Fixture operational CLI skipped line should stay single-line.');
+    }
+
+    $summaryLine = sr_admin_operational_status_cli_summary_line($summary);
+    if ($summaryLine !== "summary\tok=1\twarning=1\toverdue=1\tskipped=1\terror=1\ttotal_count=3") {
+        sr_operational_status_error('Fixture operational CLI summary line mismatch.');
+    }
 }
 
 function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
@@ -373,7 +398,8 @@ foreach ([
 foreach ([
     'sr_is_installed()',
     'sr_admin_operational_status_rows($pdo)',
-    'sr_ops_status_print_summary(sr_admin_operational_status_summary($rows))',
+    'sr_admin_operational_status_cli_row_line($row)',
+    'sr_admin_operational_status_cli_summary_line(sr_admin_operational_status_summary($rows))',
 ] as $marker) {
     if (is_string($tool) && !str_contains($tool, $marker)) {
         sr_operational_status_error('ops-status.php is missing marker: ' . $marker);
@@ -422,6 +448,8 @@ foreach ([
     "preg_replace('/\\bNOW\\(\\)/i', 'CURRENT_TIMESTAMP', \$where)",
     'function sr_admin_operational_status_age_seconds(string $value): ?int',
     'function sr_admin_operational_status_safe_where(string $value): bool',
+    'function sr_admin_operational_status_cli_row_line(array $row): string',
+    'function sr_admin_operational_status_cli_summary_line(array $summary): string',
     "'overdue' => 0",
     'COUNT(*) AS item_count',
     'MIN(',

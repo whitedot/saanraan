@@ -291,3 +291,35 @@ function sr_admin_operational_status_summary(array $rows): array
 
     return $summary;
 }
+
+function sr_admin_operational_status_cli_row_line(array $row): string
+{
+    $label = (string) ($row['label'] ?? '');
+    $status = (string) ($row['status'] ?? 'error');
+    if ($status === 'skipped' || $status === 'error') {
+        return $label . "\t" . $status . "\t" . sr_admin_operational_status_single_line((string) ($row['message'] ?? ''));
+    }
+
+    return $label
+        . "\tstatus=" . $status
+        . "\tcount=" . (int) ($row['count'] ?? 0)
+        . "\tallowed_delay=" . sr_admin_operational_status_cli_value((string) ($row['delay_tolerance'] ?? ''))
+        . "\toldest_at=" . sr_admin_operational_status_cli_value((string) ($row['oldest_at'] ?? ''));
+}
+
+function sr_admin_operational_status_cli_summary_line(array $summary): string
+{
+    return 'summary'
+        . "\tok=" . (int) ($summary['ok'] ?? 0)
+        . "\twarning=" . (int) ($summary['warning'] ?? 0)
+        . "\toverdue=" . (int) ($summary['overdue'] ?? 0)
+        . "\tskipped=" . (int) ($summary['skipped'] ?? 0)
+        . "\terror=" . (int) ($summary['error'] ?? 0)
+        . "\ttotal_count=" . (int) ($summary['total_count'] ?? 0);
+}
+
+function sr_admin_operational_status_cli_value(string $value): string
+{
+    $value = trim($value);
+    return $value === '' ? '-' : sr_admin_operational_status_single_line($value);
+}
