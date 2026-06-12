@@ -472,6 +472,73 @@ foreach ([
     }
 }
 
+$maskedUrlOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://rawuser:rawpass@127.0.0.1:1/with-auth',
+    'SR_BROWSER_QA_BASE_URL=http://browseruser:browserpass@127.0.0.1:2/browser-auth',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'base-url: http://***:***@127.0.0.1:1/with-auth',
+    'browser-qa-base-url: http://***:***@127.0.0.1:2/browser-auth',
+    "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://***:***@127.0.0.1:1/with-auth",
+    "gate\tCKEditor asset/fallback browser smoke\tresult=수동 확인 필요\tenvironment=http://***:***@127.0.0.1:2/browser-auth",
+] as $marker) {
+    if ($maskedUrlOutput !== '' && !str_contains($maskedUrlOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status masked URL output marker missing: ' . $marker);
+    }
+}
+foreach (['rawuser', 'rawpass', 'browseruser', 'browserpass'] as $secretMarker) {
+    if ($maskedUrlOutput !== '' && str_contains($maskedUrlOutput, $secretMarker)) {
+        sr_installed_gate_status_error('Installed gate status text output must mask URL userinfo: ' . $secretMarker);
+    }
+}
+
+$maskedUrlMarkdownOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://rawuser:rawpass@127.0.0.1:1/with-auth',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--markdown-table',
+]);
+foreach (['http://***:***@127.0.0.1:1/with-auth'] as $marker) {
+    if ($maskedUrlMarkdownOutput !== '' && !str_contains($maskedUrlMarkdownOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status markdown output masked URL marker missing: ' . $marker);
+    }
+}
+foreach (['rawuser', 'rawpass'] as $secretMarker) {
+    if ($maskedUrlMarkdownOutput !== '' && str_contains($maskedUrlMarkdownOutput, $secretMarker)) {
+        sr_installed_gate_status_error('Installed gate status markdown output must mask URL userinfo: ' . $secretMarker);
+    }
+}
+
+$maskedUrlJsonOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://rawuser:rawpass@127.0.0.1:1/with-auth',
+    'SR_BROWSER_QA_BASE_URL=http://browseruser:browserpass@127.0.0.1:2/browser-auth',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--json',
+]);
+if ($maskedUrlJsonOutput !== '' && !is_array(json_decode($maskedUrlJsonOutput, true))) {
+    sr_installed_gate_status_error('Installed gate status masked URL JSON output is invalid.');
+}
+foreach ([
+    '"base_url": "http://***:***@127.0.0.1:1/with-auth"',
+    '"browser_qa_base_url": "http://***:***@127.0.0.1:2/browser-auth"',
+    '"environment": "http://***:***@127.0.0.1:1/with-auth"',
+] as $marker) {
+    if ($maskedUrlJsonOutput !== '' && !str_contains($maskedUrlJsonOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status JSON output masked URL marker missing: ' . $marker);
+    }
+}
+foreach (['rawuser', 'rawpass', 'browseruser', 'browserpass'] as $secretMarker) {
+    if ($maskedUrlJsonOutput !== '' && str_contains($maskedUrlJsonOutput, $secretMarker)) {
+        sr_installed_gate_status_error('Installed gate status JSON output must mask URL userinfo: ' . $secretMarker);
+    }
+}
+
 $adminIncompleteIdentifierOutput = sr_installed_gate_status_exec([
     'env',
     'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
@@ -924,6 +991,7 @@ sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     '알 수 없는 옵션',
     'exit 2',
     '`--markdown-table`과 `--json`은 서로 배타적인 출력 형식',
+    'URL userinfo를 출력 전에 마스킹',
     'php .tools/bin/release-installed-gate-status.php --json',
     '--fail-on-unresolved',
     '--run-readonly',

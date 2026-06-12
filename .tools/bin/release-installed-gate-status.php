@@ -243,6 +243,46 @@ function sr_release_gate_status_single_line(string $value): string
     return $normalized === '' ? '-' : substr($normalized, 0, 220);
 }
 
+function sr_release_gate_status_mask_url_userinfo(string $url): string
+{
+    if ($url === '') {
+        return '';
+    }
+
+    $parts = parse_url($url);
+    if (!is_array($parts) || !isset($parts['host']) || (!isset($parts['user']) && !isset($parts['pass']))) {
+        return $url;
+    }
+
+    $masked = '';
+    if (isset($parts['scheme'])) {
+        $masked .= (string) $parts['scheme'] . '://';
+    } else {
+        $masked .= '//';
+    }
+
+    $masked .= '***';
+    if (isset($parts['pass'])) {
+        $masked .= ':***';
+    }
+    $masked .= '@' . (string) $parts['host'];
+
+    if (isset($parts['port'])) {
+        $masked .= ':' . (string) $parts['port'];
+    }
+    if (isset($parts['path'])) {
+        $masked .= (string) $parts['path'];
+    }
+    if (isset($parts['query'])) {
+        $masked .= '?' . (string) $parts['query'];
+    }
+    if (isset($parts['fragment'])) {
+        $masked .= '#' . (string) $parts['fragment'];
+    }
+
+    return $masked;
+}
+
 function sr_release_gate_status_file_mode(string $path): string
 {
     if (!file_exists($path)) {
@@ -358,6 +398,8 @@ function sr_release_gate_status_readonly_command_gate(string $gate, string $comm
 
 function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowserQa): array
 {
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
     if ($baseUrl === '') {
         return [
             'gate' => 'CKEditor asset/fallback browser smoke',
@@ -371,7 +413,7 @@ function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowse
         return [
             'gate' => 'CKEditor asset/fallback browser smoke',
             'result' => '수동 확인 필요',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'browser QA available; rerun with --run-browser-qa to execute npm --prefix .tools/browser-qa run test:ckeditor',
         ];
     }
@@ -384,13 +426,15 @@ function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowse
     return [
         'gate' => 'CKEditor asset/fallback browser smoke',
         'result' => $exitCode === 0 ? '통과' : '실패',
-        'environment' => $baseUrl,
+        'environment' => $displayBaseUrl,
         'memo' => 'npm --prefix .tools/browser-qa run test:ckeditor exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
     ];
 }
 
 function sr_release_gate_status_ckeditor_upload_save_gate(string $baseUrl, string $adminSmokeCredentialStatus, bool $allowMutationSmoke): array
 {
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
     if ($baseUrl === '') {
         return [
             'gate' => 'CKEditor upload/save browser smoke',
@@ -408,7 +452,7 @@ function sr_release_gate_status_ckeditor_upload_save_gate(string $baseUrl, strin
         return [
             'gate' => 'CKEditor upload/save browser smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => $credentialMemo,
         ];
     }
@@ -417,7 +461,7 @@ function sr_release_gate_status_ckeditor_upload_save_gate(string $baseUrl, strin
         return [
             'gate' => 'CKEditor upload/save browser smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'upload/save browser smoke creates or updates content; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
         ];
     }
@@ -425,13 +469,15 @@ function sr_release_gate_status_ckeditor_upload_save_gate(string $baseUrl, strin
     return [
         'gate' => 'CKEditor upload/save browser smoke',
         'result' => '수동 확인 필요',
-        'environment' => $baseUrl,
+        'environment' => $displayBaseUrl,
         'memo' => 'administrator session and mutation guard configured; manually verify upload adapter, saved HTML sanitizer, and body image access checks',
     ];
 }
 
 function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, bool $runAuthSmoke, bool $allowMutationSmoke): array
 {
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
     if ($baseUrl === '') {
         return [
             'gate' => '인증 smoke',
@@ -449,7 +495,7 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $account
         return [
             'gate' => '인증 smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => $credentialMemo,
         ];
     }
@@ -458,7 +504,7 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $account
         return [
             'gate' => '인증 smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'authenticated smoke creates data; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
         ];
     }
@@ -467,7 +513,7 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $account
         return [
             'gate' => '인증 smoke',
             'result' => '수동 확인 필요',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'authenticated smoke is configured; rerun with --run-auth-smoke to execute smoke-community-auth.php',
         ];
     }
@@ -478,13 +524,15 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $account
     return [
         'gate' => '인증 smoke',
         'result' => $exitCode === 0 ? '통과' : '실패',
-        'environment' => $baseUrl,
+        'environment' => $displayBaseUrl,
         'memo' => 'smoke-community-auth.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
     ];
 }
 
 function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSmokeCredentialStatus, bool $runQuizSmoke, bool $allowMutationSmoke): array
 {
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
     if ($baseUrl === '') {
         return [
             'gate' => '퀴즈 E2E smoke',
@@ -502,7 +550,7 @@ function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSm
         return [
             'gate' => '퀴즈 E2E smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => $credentialMemo,
         ];
     }
@@ -511,7 +559,7 @@ function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSm
         return [
             'gate' => '퀴즈 E2E smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
         ];
     }
@@ -520,7 +568,7 @@ function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSm
         return [
             'gate' => '퀴즈 E2E smoke',
             'result' => '수동 확인 필요',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'quiz E2E smoke is configured; rerun with --run-quiz-smoke to execute smoke-quiz-e2e.php',
         ];
     }
@@ -531,7 +579,7 @@ function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSm
     return [
         'gate' => '퀴즈 E2E smoke',
         'result' => $exitCode === 0 ? '통과' : '실패',
-        'environment' => $baseUrl,
+        'environment' => $displayBaseUrl,
         'memo' => 'smoke-quiz-e2e.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
     ];
 }
@@ -539,6 +587,7 @@ function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSm
 function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, string $assetDedupeExpectationStatus, bool $runAssetSmoke, bool $allowMutationSmoke): array
 {
     $formPath = (string) (getenv('SR_SMOKE_FORM_PATH') ?: '');
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
 
     if ($baseUrl === '') {
         return [
@@ -557,7 +606,7 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accoun
         return [
             'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => $credentialMemo,
         ];
     }
@@ -566,7 +615,7 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accoun
         return [
             'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'requires SR_SMOKE_FORM_PATH for disposable paid target data',
         ];
     }
@@ -579,7 +628,7 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accoun
         return [
             'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => $dedupeMemo,
         ];
     }
@@ -588,7 +637,7 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accoun
         return [
             'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'asset idempotency smoke creates financial-like records; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
         ];
     }
@@ -597,7 +646,7 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accoun
         return [
             'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
             'result' => '수동 확인 필요',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'asset idempotency smoke is configured; rerun with --run-asset-smoke to execute smoke-asset-idempotency-http.php',
         ];
     }
@@ -608,13 +657,15 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accoun
     return [
         'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
         'result' => $exitCode === 0 ? '통과' : '실패',
-        'environment' => $baseUrl,
+        'environment' => $displayBaseUrl,
         'memo' => 'smoke-asset-idempotency-http.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
     ];
 }
 
 function sr_release_gate_status_admin_readonly_gate(string $gate, string $baseUrl, string $adminSmokeCredentialStatus, string $memo): array
 {
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
     if ($baseUrl === '') {
         return [
             'gate' => $gate,
@@ -632,7 +683,7 @@ function sr_release_gate_status_admin_readonly_gate(string $gate, string $baseUr
         return [
             'gate' => $gate,
             'result' => '미실행',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => $credentialMemo . '; ' . $memo,
         ];
     }
@@ -640,18 +691,20 @@ function sr_release_gate_status_admin_readonly_gate(string $gate, string $baseUr
     return [
         'gate' => $gate,
         'result' => '수동 확인 필요',
-        'environment' => $baseUrl,
+        'environment' => $displayBaseUrl,
         'memo' => 'administrator session configured; ' . $memo,
     ];
 }
 
 function sr_release_gate_status_privacy_gate(string $baseUrl, string $accountSmokeCredentialStatus, bool $allowMutationSmoke, bool $runPrivacyFixtures): array
 {
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
     if ($baseUrl !== '' && $accountSmokeCredentialStatus === 'configured' && $allowMutationSmoke && !$runPrivacyFixtures) {
         return [
             'gate' => '개인정보 export/cleanup smoke',
             'result' => '수동 확인 필요',
-            'environment' => $baseUrl,
+            'environment' => $displayBaseUrl,
             'memo' => 'disposable account and mutation guard configured; manually verify installed DB export and cleanup smoke',
         ];
     }
@@ -670,7 +723,7 @@ function sr_release_gate_status_privacy_gate(string $baseUrl, string $accountSmo
         return [
             'gate' => '개인정보 export/cleanup smoke',
             'result' => '미실행',
-            'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
+            'environment' => $baseUrl === '' ? 'base URL missing' : $displayBaseUrl,
             'memo' => $memo,
         ];
     }
@@ -693,12 +746,14 @@ function sr_release_gate_status_privacy_gate(string $baseUrl, string $accountSmo
 
 function sr_release_gate_status_performance_gate(string $baseUrl, bool $performanceReviewReady, bool $runPerformanceFixtures): array
 {
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
     if (!$runPerformanceFixtures) {
         if ($baseUrl !== '' && $performanceReviewReady) {
             return [
                 'gate' => '성능 수동 점검',
                 'result' => '수동 확인 필요',
-                'environment' => $baseUrl,
+                'environment' => $displayBaseUrl,
                 'memo' => 'representative data is marked ready; manually verify slow admin lists, sitemap, privacy export bounds, and query plans',
             ];
         }
@@ -712,7 +767,7 @@ function sr_release_gate_status_performance_gate(string $baseUrl, bool $performa
         return [
             'gate' => '성능 수동 점검',
             'result' => '미실행',
-            'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
+            'environment' => $baseUrl === '' ? 'base URL missing' : $displayBaseUrl,
             'memo' => $memo,
         ];
     }
@@ -825,8 +880,8 @@ $metadata = [
     'config_mode' => sr_release_gate_status_file_mode($configPath),
     'config_owner_group' => sr_release_gate_status_file_owner_group($configPath),
     'sr_is_installed' => $isInstalled ? 'yes' : 'no',
-    'base_url' => $baseUrl === '' ? '-' : $baseUrl,
-    'browser_qa_base_url' => $browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl,
+    'base_url' => $baseUrl === '' ? '-' : sr_release_gate_status_mask_url_userinfo($baseUrl),
+    'browser_qa_base_url' => $browserQaBaseUrl === '' ? '-' : sr_release_gate_status_mask_url_userinfo($browserQaBaseUrl),
     'account_smoke_credentials' => $accountSmokeCredentialStatus,
     'admin_smoke_credentials' => $adminSmokeCredentialStatus,
     'asset_dedupe_expectation' => $assetDedupeExpectationStatus,
