@@ -51,6 +51,12 @@ if ($unknownArgs !== []) {
     exit(2);
 }
 
+if ($markdownTable && $jsonOutput) {
+    fwrite(STDERR, "release-installed-gate-status output options are mutually exclusive: --markdown-table, --json\n");
+    fwrite(STDERR, "Run php .tools/bin/release-installed-gate-status.php --help for supported options.\n");
+    exit(2);
+}
+
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -90,6 +96,9 @@ Options:
   --run-privacy-fixtures      Record SQLite privacy contract fixtures as partial evidence.
   --run-performance-fixtures  Record static/runtime performance fixtures as partial evidence.
   --help                      Show this help.
+
+Output:
+  --markdown-table and --json are mutually exclusive.
 
 Environment:
   SR_SMOKE_BASE_URL                 Local/staging base URL for HTTP and manual gates.

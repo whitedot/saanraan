@@ -389,6 +389,24 @@ foreach ([
     }
 }
 
+$conflictingOutputOption = sr_installed_gate_status_exec_result([
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--markdown-table',
+    '--json',
+]);
+if ((int) $conflictingOutputOption['exit_code'] !== 2) {
+    sr_installed_gate_status_error('Installed gate status conflicting output options must exit 2.');
+}
+foreach ([
+    'output options are mutually exclusive: --markdown-table, --json',
+    'release-installed-gate-status.php --help',
+] as $marker) {
+    if (!str_contains((string) $conflictingOutputOption['output'], $marker)) {
+        sr_installed_gate_status_error('Installed gate status conflicting output option marker missing: ' . $marker);
+    }
+}
+
 $helpOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--help']);
 foreach ([
     'Usage:',
@@ -402,6 +420,7 @@ foreach ([
     '--run-asset-smoke',
     '--run-privacy-fixtures',
     '--run-performance-fixtures',
+    '--markdown-table and --json are mutually exclusive',
     'SR_SMOKE_BASE_URL',
     'SR_BROWSER_QA_BASE_URL',
     'SR_SMOKE_IDENTIFIER',
@@ -904,6 +923,7 @@ sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     'php .tools/bin/release-installed-gate-status.php --help',
     '알 수 없는 옵션',
     'exit 2',
+    '`--markdown-table`과 `--json`은 서로 배타적인 출력 형식',
     'php .tools/bin/release-installed-gate-status.php --json',
     '--fail-on-unresolved',
     '--run-readonly',
