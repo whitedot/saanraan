@@ -1281,8 +1281,15 @@ function sr_logo_manager_url_with_cache_version(string $url, string $version): s
         return $url;
     }
 
+    $fragment = '';
+    $fragmentPosition = strpos($url, '#');
+    if ($fragmentPosition !== false) {
+        $fragment = substr($url, $fragmentPosition);
+        $url = substr($url, 0, $fragmentPosition);
+    }
+
     $separator = str_contains($url, '?') ? '&' : '?';
-    return $url . $separator . 'v=' . rawurlencode($version);
+    return $url . $separator . 'v=' . rawurlencode($version) . $fragment;
 }
 
 function sr_logo_manager_disabled_favicon_link_tag(string $version = '0'): string

@@ -232,6 +232,14 @@ sr_logo_manager_favicon_check_assert(str_contains($html, 'rel="apple-touch-icon"
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-active.png'), 'active favicon link must contain active logo URL');
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-active.png'), 'favicon links must not require use_as_public_symbol');
 sr_logo_manager_favicon_check_assert(str_contains($html, '?v='), 'active favicon links must include cache-busting version query');
+sr_logo_manager_favicon_check_assert(
+    sr_logo_manager_url_with_cache_version('/uploads/favicon-active.png#icon', 'review') === '/uploads/favicon-active.png?v=review#icon',
+    'cache-busting version query must be inserted before URL fragments'
+);
+sr_logo_manager_favicon_check_assert(
+    sr_logo_manager_url_with_cache_version('/uploads/favicon-active.png?size=32#icon', 'review') === '/uploads/favicon-active.png?size=32&v=review#icon',
+    'cache-busting version query must preserve existing query strings before URL fragments'
+);
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
@@ -274,6 +282,64 @@ sr_logo_manager_favicon_check_insert_logo($pdo, [
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-window.png'), 'current dated favicon candidate must outrank default candidate');
 sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-default.png'), 'only the selected active favicon candidate should render');
+sr_logo_manager_favicon_check_assert(str_contains($html, '?v='), 'selected priority favicon candidate must include cache-busting version query');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 60,
+    'starts_at' => '2026-06-10 00:00:00',
+    'ends_at' => '2026-06-10 23:59:59',
+    'sort_order' => 1,
+    'public_url' => '/uploads/favicon-wide-window.png',
+]);
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 61,
+    'starts_at' => '2026-06-10 10:00:00',
+    'ends_at' => '2026-06-10 14:00:00',
+    'sort_order' => 99,
+    'public_url' => '/uploads/favicon-short-window.png',
+]);
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-short-window.png'), 'shorter dated favicon window must outrank lower sort order wider window');
+sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-wide-window.png'), 'wider dated favicon window must not render when shorter window is active');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 62,
+    'starts_at' => '2026-06-10 00:00:00',
+    'ends_at' => '2026-06-10 23:59:59',
+    'sort_order' => 10,
+    'public_url' => '/uploads/favicon-sort-low.png',
+]);
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 63,
+    'starts_at' => '2026-06-10 00:00:00',
+    'ends_at' => '2026-06-10 23:59:59',
+    'sort_order' => 20,
+    'public_url' => '/uploads/favicon-sort-high.png',
+]);
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-sort-low.png'), 'lower sort order favicon must win when date window length is equal');
+sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-sort-high.png'), 'higher sort order favicon must not render when equal window lower sort candidate exists');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 64,
+    'starts_at' => '2026-06-10 00:00:00',
+    'ends_at' => '2026-06-10 23:59:59',
+    'sort_order' => 10,
+    'public_url' => '/uploads/favicon-start-early.png',
+]);
+sr_logo_manager_favicon_check_insert_logo($pdo, [
+    'id' => 65,
+    'starts_at' => '2026-06-10 01:00:00',
+    'ends_at' => '2026-06-11 00:59:59',
+    'sort_order' => 10,
+    'public_url' => '/uploads/favicon-start-late.png',
+]);
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-start-late.png'), 'later start favicon must win when date window length and sort order are equal');
+sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-start-early.png'), 'earlier start favicon must not render when equal window later start candidate exists');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
