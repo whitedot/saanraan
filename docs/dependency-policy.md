@@ -32,7 +32,7 @@ modules/htmlpurifier/vendor/ezyang/htmlpurifier/library/HTMLPurifier.auto.php
 
 1.0 기준 배치 결정:
 
-1. 개발/릴리스 준비 환경에서 `modules/htmlpurifier/` 기준으로 Composer를 실행해 `ezyang/htmlpurifier` 버전을 고정해 받는다.
+1. 개발/릴리스 준비 환경에서 `modules/htmlpurifier/` 기준으로 `composer install --no-dev --prefer-dist`를 실행해 `composer.lock`에 고정된 `ezyang/htmlpurifier` 버전을 재현한다. 버전을 올릴 때만 `composer update ezyang/htmlpurifier --no-dev --prefer-dist`를 실행한다.
 2. 기본 배포 zip에는 `modules/htmlpurifier/vendor/ezyang/htmlpurifier/`와 autoload 파일을 함께 포함한다.
 3. 배포물에는 `modules/htmlpurifier/DEPENDENCY.md`, HTML Purifier의 라이선스 파일, 버전 파일을 포함한다.
 4. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`를 사용한다.

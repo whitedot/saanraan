@@ -15,7 +15,8 @@
 
 ## 갱신 절차
 
-1. 이 디렉터리에서 `composer update ezyang/htmlpurifier --no-dev --prefer-dist`를 실행한다.
-2. `composer.lock`, `vendor/ezyang/htmlpurifier/VERSION`, `vendor/ezyang/htmlpurifier/LICENSE`를 확인한다.
-3. 이 파일의 버전, source reference, license 값을 갱신한다.
-4. `php .tools/bin/check-htmlpurifier-vendor-integrity.php`, `php .tools/bin/check-dependency-policy.php`, `php .tools/bin/check-rich-text-sanitizer.php`를 실행한다.
+1. 같은 버전을 재현해 배포물을 만들 때는 이 디렉터리에서 `composer install --no-dev --prefer-dist`를 실행한다.
+2. HTML Purifier 버전을 올릴 때만 `composer update ezyang/htmlpurifier --no-dev --prefer-dist`를 실행한다.
+3. `composer.lock`, `vendor/ezyang/htmlpurifier/VERSION`, `vendor/ezyang/htmlpurifier/LICENSE`를 확인한다.
+4. 이 파일의 버전, source reference, license 값을 갱신한다.
+5. `php .tools/bin/check-htmlpurifier-vendor-integrity.php`, `php .tools/bin/check-dependency-policy.php`, `php .tools/bin/check-rich-text-sanitizer.php`를 실행한다.

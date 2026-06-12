@@ -131,6 +131,8 @@ foreach ([
     'LGPL-2.1-or-later',
     'vendor/ezyang/htmlpurifier/LICENSE',
     'vendor/ezyang/htmlpurifier/VERSION',
+    'composer install --no-dev --prefer-dist',
+    'composer update ezyang/htmlpurifier --no-dev --prefer-dist',
 ] as $marker) {
     if (is_string($htmlPurifierDependencyContent) && !str_contains($htmlPurifierDependencyContent, $marker)) {
         sr_dependency_policy_error('HTML Purifier dependency record is missing marker: ' . $marker);
