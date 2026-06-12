@@ -424,7 +424,7 @@ function sr_reward_reclaim_target(PDO $pdo, int $accountId, int $transactionId, 
         'SELECT id, account_id, amount, transaction_type, reason, created_at
          FROM sr_reward_transactions
          WHERE id = :id AND account_id = :account_id
-         LIMIT 1' . ($lock ? ' FOR UPDATE' : '')
+         LIMIT 1' . ($lock ? sr_ledger_for_update_clause($pdo) : '')
     );
     $stmt->execute([
         'id' => $transactionId,
@@ -449,7 +449,7 @@ function sr_reward_reclaimed_amount_for_target(PDO $pdo, int $accountId, int $tr
                AND transaction_type = 'reclaim'
                AND reference_type = 'reclaim'
                AND reference_id = :reference_id
-             FOR UPDATE"
+             " . sr_ledger_for_update_clause($pdo)
         );
         $stmt->execute([
             'account_id' => $accountId,
@@ -732,7 +732,7 @@ function sr_reward_create_withdrawal_request(PDO $pdo, int $accountId, array $da
     }
 
     try {
-        $stmt = $pdo->prepare('SELECT balance FROM sr_reward_balances WHERE account_id = :account_id LIMIT 1 FOR UPDATE');
+        $stmt = $pdo->prepare('SELECT balance FROM sr_reward_balances WHERE account_id = :account_id LIMIT 1' . sr_ledger_for_update_clause($pdo));
         $stmt->execute(['account_id' => $accountId]);
         $row = $stmt->fetch();
         $balance = is_array($row) ? (int) ($row['balance'] ?? 0) : 0;
@@ -934,7 +934,7 @@ function sr_reward_complete_withdrawal_request(PDO $pdo, int $requestId, int $ad
 
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('SELECT * FROM sr_reward_withdrawal_requests WHERE id = :id LIMIT 1 FOR UPDATE');
+        $stmt = $pdo->prepare('SELECT * FROM sr_reward_withdrawal_requests WHERE id = :id LIMIT 1' . sr_ledger_for_update_clause($pdo));
         $stmt->execute(['id' => $requestId]);
         $request = $stmt->fetch();
         if (!is_array($request) || (string) ($request['status'] ?? '') !== 'pending') {

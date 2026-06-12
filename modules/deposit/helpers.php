@@ -520,7 +520,7 @@ function sr_deposit_create_refund_request(PDO $pdo, int $accountId, array $data)
     }
 
     try {
-        $stmt = $pdo->prepare('SELECT balance FROM sr_deposit_balances WHERE account_id = :account_id LIMIT 1 FOR UPDATE');
+        $stmt = $pdo->prepare('SELECT balance FROM sr_deposit_balances WHERE account_id = :account_id LIMIT 1' . sr_ledger_for_update_clause($pdo));
         $stmt->execute(['account_id' => $accountId]);
         $row = $stmt->fetch();
         $balance = is_array($row) ? (int) ($row['balance'] ?? 0) : 0;
@@ -722,7 +722,7 @@ function sr_deposit_complete_refund_request(PDO $pdo, int $requestId, int $admin
 
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('SELECT * FROM sr_deposit_refund_requests WHERE id = :id LIMIT 1 FOR UPDATE');
+        $stmt = $pdo->prepare('SELECT * FROM sr_deposit_refund_requests WHERE id = :id LIMIT 1' . sr_ledger_for_update_clause($pdo));
         $stmt->execute(['id' => $requestId]);
         $request = $stmt->fetch();
         if (!is_array($request) || (string) ($request['status'] ?? '') !== 'pending') {

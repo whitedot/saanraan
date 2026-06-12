@@ -4,7 +4,64 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
+if (!defined('SR_ROOT')) {
+    define('SR_ROOT', $root);
+}
 $errors = [];
+
+if (!function_exists('sr_now')) {
+    function sr_now(): string
+    {
+        return '2026-06-12 12:00:00';
+    }
+}
+
+if (!function_exists('sr_t')) {
+    function sr_t(string $key): string
+    {
+        return $key;
+    }
+}
+
+if (!function_exists('sr_module_settings')) {
+    function sr_module_settings(PDO $pdo, string $moduleKey): array
+    {
+        if ($moduleKey === 'reward') {
+            return [
+                'withdrawal_requests_enabled' => '1',
+                'withdrawal_allowed_group_keys_json' => '["__all__"]',
+            ];
+        }
+        if ($moduleKey === 'deposit') {
+            return [
+                'refund_requests_enabled' => '1',
+                'refund_allowed_group_keys_json' => '["__all__"]',
+            ];
+        }
+
+        return [];
+    }
+}
+
+if (!function_exists('sr_member_account_in_any_group')) {
+    function sr_member_account_in_any_group(PDO $pdo, int $accountId, array $groupKeys): bool
+    {
+        return false;
+    }
+}
+
+if (!function_exists('sr_module_contract_function')) {
+    function sr_module_contract_function(PDO $pdo, string $moduleKey, string $contractFile, string $functionKey): string
+    {
+        return '';
+    }
+}
+
+if (!function_exists('sr_log_exception')) {
+    function sr_log_exception(Throwable $exception, string $context = ''): void
+    {
+    }
+}
 
 function sr_reward_check_file(string $path, array $needles): string
 {
@@ -35,6 +92,195 @@ function sr_reward_check_order(string $path, string $firstNeedle, string $second
     $second = strpos($content, $secondNeedle);
     if ($first === false || $second === false || $first >= $second) {
         $errors[] = $path . ' must contain marker order: ' . $firstNeedle . ' before ' . $secondNeedle;
+    }
+}
+
+function sr_reward_abuse_runtime_pdo(): PDO
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec(
+        'CREATE TABLE sr_reward_balances (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL UNIQUE,
+            balance INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_reward_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            balance_after INTEGER NOT NULL,
+            transaction_type TEXT NOT NULL,
+            reason TEXT NOT NULL DEFAULT \'\',
+            reference_type TEXT NOT NULL DEFAULT \'\',
+            reference_id TEXT NOT NULL DEFAULT \'\',
+            created_by_account_id INTEGER NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_reward_withdrawal_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            bank_name TEXT NOT NULL,
+            bank_account_number TEXT NOT NULL,
+            bank_account_holder TEXT NOT NULL,
+            requester_note TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT \'pending\',
+            admin_note TEXT NOT NULL DEFAULT \'\',
+            transaction_id INTEGER NULL,
+            processed_by_account_id INTEGER NULL,
+            requested_at TEXT NOT NULL,
+            processed_at TEXT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_deposit_balances (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL UNIQUE,
+            balance INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_deposit_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            balance_after INTEGER NOT NULL,
+            transaction_type TEXT NOT NULL,
+            reason TEXT NOT NULL DEFAULT \'\',
+            reference_type TEXT NOT NULL DEFAULT \'\',
+            reference_id TEXT NOT NULL DEFAULT \'\',
+            created_by_account_id INTEGER NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_deposit_refund_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            bank_name TEXT NOT NULL,
+            bank_account_number TEXT NOT NULL,
+            bank_account_holder TEXT NOT NULL,
+            requester_note TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT \'pending\',
+            admin_note TEXT NOT NULL DEFAULT \'\',
+            transaction_id INTEGER NULL,
+            processed_by_account_id INTEGER NULL,
+            requested_at TEXT NOT NULL,
+            processed_at TEXT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+
+    return $pdo;
+}
+
+function sr_reward_abuse_runtime_scalar(PDO $pdo, string $sql, array $params = []): mixed
+{
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchColumn();
+}
+
+function sr_reward_abuse_runtime_check(): void
+{
+    global $errors;
+
+    require_once SR_ROOT . '/modules/reward/helpers.php';
+    require_once SR_ROOT . '/modules/deposit/helpers.php';
+
+    $pdo = sr_reward_abuse_runtime_pdo();
+
+    $grantId = sr_reward_create_transaction($pdo, [
+        'account_id' => 7,
+        'amount' => 100,
+        'transaction_type' => 'grant',
+        'reason' => 'runtime grant',
+        'reference_type' => 'fixture',
+        'reference_id' => 'grant-1',
+        'created_by_account_id' => 99,
+    ]);
+    sr_reward_create_transaction($pdo, [
+        'account_id' => 7,
+        'amount' => -40,
+        'transaction_type' => 'reclaim',
+        'reason' => 'runtime reclaim',
+        'reference_type' => 'reclaim',
+        'reference_id' => sr_reward_reclaim_reference_id($grantId),
+        'created_by_account_id' => 99,
+    ]);
+    if (sr_reward_reclaim_remaining_amount($pdo, 7, $grantId) !== 60) {
+        $errors[] = 'reward reclaim runtime fixture must calculate remaining reclaim amount.';
+    }
+    if (sr_reward_validate_reclaim_transaction($pdo, 7, -61, 'reclaim', sr_reward_reclaim_reference_id($grantId), true) !== 'reward::action.admin.reclaim_amount_exceeds_target') {
+        $errors[] = 'reward reclaim runtime fixture must reject locked reclaim amounts above the remaining target.';
+    }
+    if (sr_reward_validate_reclaim_transaction($pdo, 7, -60, 'reclaim', sr_reward_reclaim_reference_id($grantId), true) !== null) {
+        $errors[] = 'reward reclaim runtime fixture must allow locked reclaim amounts up to the remaining target.';
+    }
+
+    sr_deposit_create_transaction($pdo, [
+        'account_id' => 7,
+        'amount' => 10000,
+        'transaction_type' => 'deposit',
+        'reason' => 'runtime deposit',
+        'reference_type' => 'fixture',
+        'reference_id' => 'deposit-1',
+        'created_by_account_id' => 99,
+    ]);
+    $requestId = sr_deposit_create_refund_request($pdo, 7, [
+        'amount' => 6000,
+        'bank_name' => 'Bank',
+        'bank_account_number' => '111-222',
+        'bank_account_holder' => 'Holder',
+        'requester_note' => 'runtime request',
+    ]);
+    if (sr_deposit_refund_available_amount($pdo, 7) !== 4000) {
+        $errors[] = 'deposit refund runtime fixture must subtract pending refund requests from available amount.';
+    }
+    try {
+        sr_deposit_create_refund_request($pdo, 7, [
+            'amount' => 5000,
+            'bank_name' => 'Bank',
+            'bank_account_number' => '333-444',
+            'bank_account_holder' => 'Holder',
+            'requester_note' => 'runtime request over available',
+        ]);
+        $errors[] = 'deposit refund runtime fixture must reject requests above balance minus pending refunds.';
+    } catch (RuntimeException $exception) {
+        if ($exception->getMessage() !== 'Deposit refund amount exceeds available balance.') {
+            $errors[] = 'deposit refund runtime fixture rejected over-available request with unexpected error.';
+        }
+    }
+
+    $transactionId = sr_deposit_complete_refund_request($pdo, $requestId, 99, 'paid');
+    if ($transactionId <= 0) {
+        $errors[] = 'deposit refund runtime fixture must create a withdrawal transaction when completed.';
+    }
+    if ((string) sr_reward_abuse_runtime_scalar($pdo, 'SELECT status FROM sr_deposit_refund_requests WHERE id = :id', ['id' => $requestId]) !== 'completed') {
+        $errors[] = 'deposit refund runtime fixture must mark completed requests.';
+    }
+    if ((int) sr_reward_abuse_runtime_scalar($pdo, 'SELECT balance FROM sr_deposit_balances WHERE account_id = 7') !== 4000) {
+        $errors[] = 'deposit refund runtime fixture must reduce balance by completed request amount.';
+    }
+    try {
+        sr_deposit_complete_refund_request($pdo, $requestId, 99, 'paid again');
+        $errors[] = 'deposit refund runtime fixture must reject completing the same request twice.';
+    } catch (RuntimeException $exception) {
+        if ($exception->getMessage() !== 'Deposit refund request is not pending.') {
+            $errors[] = 'deposit refund runtime fixture rejected duplicate completion with unexpected error.';
+        }
     }
 }
 
@@ -115,14 +361,14 @@ sr_reward_check_file('modules/reward/helpers.php', [
     'reference_id',
     'sr_reward_account_can_request_withdrawal',
     'sr_reward_complete_withdrawal_request',
-    'FOR UPDATE',
+    'sr_ledger_for_update_clause($pdo)',
 ]);
 sr_reward_check_file('modules/deposit/helpers.php', [
     'reference_type',
     'reference_id',
     'sr_deposit_account_can_request_refund',
     'sr_deposit_complete_refund_request',
-    'FOR UPDATE',
+    'sr_ledger_for_update_clause($pdo)',
 ]);
 sr_reward_check_file('modules/asset_exchange/helpers.php', [
     'exchange_group_id',
@@ -171,6 +417,12 @@ sr_reward_check_file('modules/community/helpers/assets.php', [
 ]);
 sr_reward_check_order('modules/community/actions/attachment.php', 'sr_community_run_asset_event(', 'sr_redirect_trusted_external($downloadUrl)');
 sr_reward_check_order('modules/community/actions/attachment.php', 'sr_community_run_asset_event(', 'readfile($filePath)');
+
+if (extension_loaded('pdo_sqlite')) {
+    sr_reward_abuse_runtime_check();
+} else {
+    $errors[] = 'pdo_sqlite extension is required for reward abuse runtime checks.';
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "reward abuse standard checks failed:\n");
