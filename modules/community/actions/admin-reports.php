@@ -40,11 +40,14 @@ if (sr_request_method() === 'POST') {
         $operationKey = sr_post_string('operation_key', 80);
         $targetStatus = sr_post_string('target_status', 30);
         $targetAction = sr_post_string('target_action', 40);
+        $reporterAction = sr_post_string('reporter_action', 40);
         $reviewNote = sr_post_string_without_truncation('review_note', 1000);
         $rawSelectedIds = $_POST['selected_report_ids'] ?? [];
         $selectedIds = sr_admin_positive_int_list_from_input($rawSelectedIds, $hasInvalidSelectedId);
         $normalizedTargetAction = $targetAction === '' ? 'none' : $targetAction;
+        $normalizedReporterAction = $reporterAction === '' ? 'none' : $reporterAction;
         $batchTargetActionOptions = sr_community_report_batch_target_action_options();
+        $reporterActionOptions = sr_community_report_reporter_action_options();
 
         if ($operationKey !== 'community.report_set_status') {
             $errors[] = '허용되지 않은 신고 일괄 작업입니다.';
@@ -55,9 +58,16 @@ if (sr_request_method() === 'POST') {
         if (!array_key_exists($normalizedTargetAction, $batchTargetActionOptions)) {
             $errors[] = '신고 대상 조치 값이 올바르지 않습니다.';
         }
+        if (!array_key_exists($normalizedReporterAction, $reporterActionOptions)) {
+            $errors[] = '신고자 조치 값이 올바르지 않습니다.';
+        }
         $targetActionPolicyError = sr_community_report_target_action_policy_error($targetStatus, $normalizedTargetAction);
         if ($targetActionPolicyError !== '') {
             $errors[] = $targetActionPolicyError;
+        }
+        $reporterActionPolicyError = sr_community_report_reporter_action_policy_error($targetStatus, $normalizedReporterAction);
+        if ($reporterActionPolicyError !== '') {
+            $errors[] = $reporterActionPolicyError;
         }
         if ($selectedIds === []) {
             $errors[] = '상태를 변경할 신고를 선택하세요.';
@@ -86,7 +96,7 @@ if (sr_request_method() === 'POST') {
                 $params[$paramKey] = $selectedId;
             }
             $stmt = $pdo->prepare(
-                'SELECT id, status, target_type, target_id, reported_account_id
+                'SELECT id, status, target_type, target_id, reporter_account_id, reported_account_id
                  FROM sr_community_reports
                  WHERE id IN (' . implode(', ', $placeholders) . ')'
             );
@@ -120,7 +130,9 @@ if (sr_request_method() === 'POST') {
             $statusChangedCount = 0;
             $sameStatusCount = 0;
             $targetActionAppliedCount = 0;
+            $reporterActionAppliedCount = 0;
             $targetActionResults = [];
+            $reporterActionResults = [];
             $batchFailureMessage = '';
             $reviewNoteValue = trim((string) $reviewNote);
             try {
@@ -174,6 +186,21 @@ if (sr_request_method() === 'POST') {
                             $targetActionAppliedCount++;
                         }
                     }
+                    if ($normalizedReporterAction !== 'none') {
+                        $reporterActionResult = sr_community_apply_report_reporter_action($pdo, $report, $normalizedReporterAction, (int) $account['id'], true);
+                        $reporterActionResults[] = [
+                            'report_id' => $selectedId,
+                            'reporter_account_id' => (int) ($report['reporter_account_id'] ?? 0),
+                            'result' => $reporterActionResult,
+                        ];
+                        if (!empty($reporterActionResult['error'])) {
+                            $batchFailureMessage = '신고자 조치를 적용하지 못했습니다.';
+                            throw new RuntimeException($batchFailureMessage);
+                        }
+                        if (!empty($reporterActionResult['applied'])) {
+                            $reporterActionAppliedCount++;
+                        }
+                    }
                     $processedCount++;
                 }
                 sr_audit_log_required($pdo, [
@@ -188,12 +215,15 @@ if (sr_request_method() === 'POST') {
                         'operation_key' => $operationKey,
                         'target_status' => $targetStatus,
                         'target_action' => $normalizedTargetAction,
+                        'reporter_action' => $normalizedReporterAction,
                         'requested_count' => count($selectedIds),
                         'changed_count' => $statusChangedCount,
                         'processed_count' => $processedCount,
                         'same_status_count' => $sameStatusCount,
                         'target_action_applied_count' => $targetActionAppliedCount,
+                        'reporter_action_applied_count' => $reporterActionAppliedCount,
                         'target_action_results' => $targetActionResults,
+                        'reporter_action_results' => $reporterActionResults,
                         'review_note_present' => $reviewNoteValue !== '',
                         'selected_ids' => $selectedIds,
                     ],
@@ -209,6 +239,9 @@ if (sr_request_method() === 'POST') {
                 }
                 if ($targetActionAppliedCount > 0) {
                     $notice .= ' 대상 조치 ' . number_format($targetActionAppliedCount) . '건.';
+                }
+                if ($reporterActionAppliedCount > 0) {
+                    $notice .= ' 신고자 조치 ' . number_format($reporterActionAppliedCount) . '건.';
                 }
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
@@ -227,6 +260,7 @@ if (sr_request_method() === 'POST') {
         $reportId = preg_match('/\A[1-9][0-9]*\z/', $reportIdValue) === 1 ? (int) $reportIdValue : 0;
         $status = sr_post_string('status', 30);
         $targetAction = sr_post_string('target_action', 40);
+        $reporterAction = sr_post_string('reporter_action', 40);
         $reviewNote = sr_post_string_without_truncation('review_note', 1000);
         $report = sr_community_report_by_id($pdo, $reportId);
 
@@ -239,6 +273,7 @@ if (sr_request_method() === 'POST') {
         }
 
         $normalizedTargetAction = $targetAction === '' ? 'none' : $targetAction;
+        $normalizedReporterAction = $reporterAction === '' ? 'none' : $reporterAction;
         if ($reviewNote === null) {
             $errors[] = sr_t('community::action.admin.review_note_too_long');
             $reviewNote = '';
@@ -249,9 +284,16 @@ if (sr_request_method() === 'POST') {
         if (is_array($report) && !array_key_exists($normalizedTargetAction, sr_community_report_target_action_options((string) $report['target_type']))) {
             $errors[] = '신고 대상 조치 값이 올바르지 않습니다.';
         }
+        if (!array_key_exists($normalizedReporterAction, sr_community_report_reporter_action_options())) {
+            $errors[] = '신고자 조치 값이 올바르지 않습니다.';
+        }
         $targetActionPolicyError = sr_community_report_target_action_policy_error($status, $normalizedTargetAction);
         if ($targetActionPolicyError !== '') {
             $errors[] = $targetActionPolicyError;
+        }
+        $reporterActionPolicyError = sr_community_report_reporter_action_policy_error($status, $normalizedReporterAction);
+        if ($reporterActionPolicyError !== '') {
+            $errors[] = $reporterActionPolicyError;
         }
 
         if ($errors === []) {
@@ -287,6 +329,10 @@ if (sr_request_method() === 'POST') {
                 if (!empty($targetActionResult['error'])) {
                     throw new RuntimeException('report_target_action_failed');
                 }
+                $reporterActionResult = sr_community_apply_report_reporter_action($pdo, $report, $normalizedReporterAction, (int) $account['id'], true);
+                if (!empty($reporterActionResult['error'])) {
+                    throw new RuntimeException('report_reporter_action_failed');
+                }
                 sr_audit_log_required($pdo, [
                     'actor_account_id' => (int) $account['id'],
                     'actor_type' => 'admin',
@@ -302,7 +348,9 @@ if (sr_request_method() === 'POST') {
                         'target_type' => (string) $report['target_type'],
                         'target_id' => (int) $report['target_id'],
                         'reported_account_id' => (int) $report['reported_account_id'],
+                        'reporter_account_id' => (int) $report['reporter_account_id'],
                         'target_action' => $targetActionResult,
+                        'reporter_action' => $reporterActionResult,
                     ],
                 ]);
                 $pdo->commit();
@@ -315,6 +363,8 @@ if (sr_request_method() === 'POST') {
                     $errors[] = '신고 상태가 바뀌었거나 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 처리하세요.';
                 } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'report_target_action_failed') {
                     $errors[] = '신고 대상 조치를 적용하지 못했습니다.';
+                } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'report_reporter_action_failed') {
+                    $errors[] = '신고자 조치를 적용하지 못했습니다.';
                 } else {
                     sr_log_exception($exception, 'community_report_status_failed');
                     $errors[] = '신고 상태 저장 중 오류가 발생했습니다.';

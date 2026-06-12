@@ -44,7 +44,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="filtering-field admin-community-report-filter-field">
                 <label for="community_admin_reports_field" class="filtering-label">검색조건</label>
                 <select id="community_admin_reports_field" name="field" class="form-select filtering-input">
-                    <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'target' => sr_t('community::ui.text.8c609deb'), 'reporter' => sr_t('community::ui.text.84780e6f'), 'reported' => sr_t('community::ui.member.7a284377'), 'reviewer' => sr_t('community::ui.text.750086e9'), 'memo' => sr_t('community::ui.text.c8a14bcd')] as $fieldValue => $fieldLabel) { ?>
+                    <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'target' => sr_t('community::ui.text.8c609deb'), 'reporter' => sr_t('community::ui.text.84780e6f'), 'reported' => '게시자', 'reviewer' => sr_t('community::ui.text.750086e9'), 'memo' => sr_t('community::ui.text.c8a14bcd')] as $fieldValue => $fieldLabel) { ?>
                         <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($reportListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                             <?php echo sr_e($fieldLabel); ?>
                         </option>
@@ -114,8 +114,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-report-bulk-status-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
-                            <p class="admin-summary-meta"><strong data-community-report-bulk-modal-count>0</strong>개 신고를 <strong data-community-report-bulk-modal-status>선택한 상태</strong>(으)로 변경합니다. 대상 조치: <strong data-community-report-bulk-modal-action>대상 조치 없음</strong></p>
-                            <p class="admin-form-help">대상 조치를 선택하면 처리 완료 상태로 저장할 때 선택한 신고 대상에 함께 적용합니다.</p>
+                            <p class="admin-summary-meta" data-community-report-bulk-modal-summary><strong data-community-report-bulk-modal-count>0</strong>개 신고를 선택한 상태로 변경합니다.</p>
+                            <p class="admin-form-help">대상 조치는 처리 완료 상태, 허위신고자 조치는 기각 상태로 저장할 때만 실행합니다.</p>
                             <div class="admin-form-row">
                                 <label for="community_report_bulk_target_action" class="form-label">대상 조치</label>
                                 <div class="admin-form-field">
@@ -125,6 +125,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php } ?>
                                     </select>
                                     <small class="admin-form-help">숨김/삭제는 게시글과 댓글 신고에만 적용할 수 있습니다. 쪽지 신고가 섞여 있으면 서버에서 거부됩니다.</small>
+                                </div>
+                            </div>
+                            <div class="admin-form-row">
+                                <label for="community_report_bulk_reporter_action" class="form-label">신고자 조치</label>
+                                <div class="admin-form-field">
+                                    <select id="community_report_bulk_reporter_action" name="reporter_action" class="form-select" data-community-report-bulk-reporter-action>
+                                        <?php foreach (sr_community_report_reporter_action_options() as $actionKey => $actionLabel) { ?>
+                                            <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                    <small class="admin-form-help">허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행됩니다.</small>
                                 </div>
                             </div>
                             <div class="admin-form-row">
@@ -157,7 +168,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th><?php echo sr_e(sr_t('community::ui.text.ab9442a2')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.status.e10195a1')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.84780e6f')); ?></th>
-                <th><?php echo sr_e(sr_t('community::ui.member.7a284377')); ?></th>
+                <th>게시자</th>
                 <th><?php echo sr_e(sr_t('community::ui.text.c8a14bcd')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.ebc9b96e')); ?></th>
                 <th><?php echo sr_e(sr_t('community::ui.text.750086e9')); ?></th>
@@ -268,6 +279,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $reportProcessStatusId = 'community_admin_report_status_' . (string) $reportId;
         $reportProcessReviewNoteId = 'community_admin_report_review_note_' . (string) $reportId;
         $reportProcessTargetActionId = 'community_admin_report_target_action_' . (string) $reportId;
+        $reportProcessReporterActionId = 'community_admin_report_reporter_action_' . (string) $reportId;
         $targetType = (string) ($report['target_type'] ?? '');
         $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
         $targetId = (int) ($report['target_id'] ?? 0);
@@ -307,7 +319,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
                                     <?php } ?>
                                 </select>
-                                <small class="admin-form-help">대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행됩니다. 기각은 이미 적용된 게시글/댓글/회원 조치를 되돌리지 않습니다.</small>
+                                <small class="admin-form-help">대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행됩니다. 기각은 이미 적용된 게시글/댓글/게시자 조치를 되돌리지 않습니다.</small>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <label for="<?php echo sr_e($reportProcessReporterActionId); ?>" class="form-label">신고자 조치</label>
+                            <div class="admin-form-field">
+                                <select id="<?php echo sr_e($reportProcessReporterActionId); ?>" name="reporter_action" class="form-select">
+                                    <?php foreach (sr_community_report_reporter_action_options() as $actionKey => $actionLabel) { ?>
+                                        <option value="<?php echo sr_e((string) $actionKey); ?>"><?php echo sr_e((string) $actionLabel); ?></option>
+                                    <?php } ?>
+                                </select>
+                                <small class="admin-form-help">허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행됩니다.</small>
                             </div>
                         </div>
                         <div class="admin-form-row">
@@ -340,9 +363,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var clear = document.querySelector('[data-community-report-bulk-clear]');
     var targetStatusInput = document.querySelector('[data-community-report-bulk-target-status]');
     var modalCountNode = document.querySelector('[data-community-report-bulk-modal-count]');
-    var modalStatusNode = document.querySelector('[data-community-report-bulk-modal-status]');
-    var modalActionNode = document.querySelector('[data-community-report-bulk-modal-action]');
+    var modalSummaryNode = document.querySelector('[data-community-report-bulk-modal-summary]');
     var bulkTargetAction = document.querySelector('[data-community-report-bulk-target-action]');
+    var bulkReporterAction = document.querySelector('[data-community-report-bulk-reporter-action]');
     var selectAll = document.querySelector('[data-community-report-select-all]');
     var rowChecks = Array.prototype.slice.call(document.querySelectorAll('[data-community-report-row-select]'));
 
@@ -350,6 +373,59 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return rowChecks.filter(function (input) {
             return input.checked && !input.disabled;
         });
+    };
+
+    var selectedOptionText = function (select, fallback) {
+        if (!select || !select.options || select.selectedIndex < 0 || !select.options[select.selectedIndex]) {
+            return fallback;
+        }
+
+        return select.options[select.selectedIndex].text || fallback;
+    };
+
+    var statusParticle = function (label) {
+        if (!label) {
+            return '로';
+        }
+        var code = label.charCodeAt(label.length - 1);
+        if (code < 0xAC00 || code > 0xD7A3) {
+            return '로';
+        }
+        var jong = (code - 0xAC00) % 28;
+
+        return jong > 0 && jong !== 8 ? '으로' : '로';
+    };
+
+    var syncBulkSummary = function () {
+        if (!modalSummaryNode) {
+            return;
+        }
+
+        var selectedCount = checkedRows().length;
+        var targetStatus = targetStatusInput ? targetStatusInput.value : '';
+        var statusLabel = '선택한 상태';
+        var activeButton = submitButtons.find(function (button) {
+            return (button.getAttribute('data-target-status') || '') === targetStatus;
+        });
+        if (activeButton) {
+            statusLabel = activeButton.getAttribute('data-status-label') || activeButton.textContent.replace(/\s+/g, ' ').trim() || statusLabel;
+        }
+
+        var targetActionValue = bulkTargetAction ? bulkTargetAction.value : 'none';
+        var reporterActionValue = bulkReporterAction ? bulkReporterAction.value : 'none';
+        var actionLabel = '';
+        if (targetStatus === 'resolved' && targetActionValue !== 'none') {
+            actionLabel = selectedOptionText(bulkTargetAction, '대상 조치');
+        } else if (targetStatus === 'dismissed' && reporterActionValue !== 'none') {
+            actionLabel = selectedOptionText(bulkReporterAction, '신고자 조치');
+        }
+
+        if (actionLabel !== '') {
+            modalSummaryNode.textContent = String(selectedCount) + '개 신고를 ' + actionLabel + ' 조치로 변경(' + statusLabel + ')합니다.';
+            return;
+        }
+
+        modalSummaryNode.textContent = String(selectedCount) + '개 신고를 ' + statusLabel + statusParticle(statusLabel) + ' 변경합니다.';
     };
 
     var syncBulkState = function () {
@@ -360,6 +436,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (modalCountNode) {
             modalCountNode.textContent = String(selectedCount);
         }
+        syncBulkSummary();
         submitButtons.forEach(function (button) {
             button.disabled = selectedCount < 1;
         });
@@ -398,9 +475,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (targetStatusInput) {
                 targetStatusInput.value = targetStatus;
             }
-            if (modalStatusNode) {
-                modalStatusNode.textContent = statusLabel || '선택한 상태';
-            }
             if (modalCountNode) {
                 modalCountNode.textContent = String(selectedCount);
             }
@@ -409,17 +483,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 if (targetStatus !== 'resolved') {
                     bulkTargetAction.value = 'none';
                 }
-                if (modalActionNode) {
-                    modalActionNode.textContent = bulkTargetAction.options[bulkTargetAction.selectedIndex] ? bulkTargetAction.options[bulkTargetAction.selectedIndex].text : '대상 조치 없음';
+            }
+            if (bulkReporterAction) {
+                bulkReporterAction.disabled = targetStatus !== 'dismissed';
+                if (targetStatus !== 'dismissed') {
+                    bulkReporterAction.value = 'none';
                 }
             }
+            syncBulkSummary();
         });
     });
     if (bulkTargetAction) {
         bulkTargetAction.addEventListener('change', function () {
-            if (modalActionNode) {
-                modalActionNode.textContent = bulkTargetAction.options[bulkTargetAction.selectedIndex] ? bulkTargetAction.options[bulkTargetAction.selectedIndex].text : '대상 조치 없음';
-            }
+            syncBulkSummary();
+        });
+    }
+    if (bulkReporterAction) {
+        bulkReporterAction.addEventListener('change', function () {
+            syncBulkSummary();
         });
     }
     if (clear) {
@@ -451,7 +532,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     document.querySelectorAll('[id^="community-report-process-modal-"]').forEach(function (modal) {
         var status = modal.querySelector('select[name="status"]');
         var targetAction = modal.querySelector('select[name="target_action"]');
-        if (!status || !targetAction) {
+        var reporterAction = modal.querySelector('select[name="reporter_action"]');
+        if (!status || !targetAction || !reporterAction) {
             return;
         }
         var syncPolicyHelp = function () {
@@ -461,6 +543,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (status.value !== 'resolved') {
                 targetAction.value = 'none';
             }
+            targetAction.disabled = status.value !== 'resolved';
+            if (status.value !== 'dismissed') {
+                reporterAction.value = 'none';
+            }
+            reporterAction.disabled = status.value !== 'dismissed';
         };
         status.addEventListener('change', syncPolicyHelp);
         syncPolicyHelp();

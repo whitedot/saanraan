@@ -32,7 +32,9 @@ function sr_community_report_target_action_options(string $targetType): array
             'none' => '대상 조치 없음',
             'hide_post' => '게시글 숨김',
             'delete_post' => '게시글 삭제',
-            'suspend_reported_account' => '피신고 회원 정지',
+            'hide_post_suspend_publisher' => '게시글 숨김+게시자 정지',
+            'delete_post_suspend_publisher' => '게시글 삭제+게시자 정지',
+            'suspend_reported_account' => '게시자 정지',
         ];
     }
     if ($targetType === 'comment') {
@@ -40,13 +42,15 @@ function sr_community_report_target_action_options(string $targetType): array
             'none' => '대상 조치 없음',
             'hide_comment' => '댓글 숨김',
             'delete_comment' => '댓글 삭제',
-            'suspend_reported_account' => '피신고 회원 정지',
+            'hide_comment_suspend_publisher' => '댓글 숨김+게시자 정지',
+            'delete_comment_suspend_publisher' => '댓글 삭제+게시자 정지',
+            'suspend_reported_account' => '게시자 정지',
         ];
     }
     if ($targetType === 'message') {
         return [
             'none' => '대상 조치 없음',
-            'suspend_reported_account' => '피신고 회원 정지',
+            'suspend_reported_account' => '게시자 정지',
         ];
     }
 
@@ -59,7 +63,9 @@ function sr_community_report_batch_target_action_options(): array
         'none' => '대상 조치 없음',
         'hide_target' => '게시글/댓글 숨김',
         'delete_target' => '게시글/댓글 삭제',
-        'suspend_reported_account' => '피신고 회원 정지',
+        'hide_target_suspend_publisher' => '게시글/댓글 숨김+게시자 정지',
+        'delete_target_suspend_publisher' => '게시글/댓글 삭제+게시자 정지',
+        'suspend_reported_account' => '게시자 정지',
     ];
 }
 
@@ -82,6 +88,15 @@ function sr_community_report_batch_target_action_for_report(string $batchActionK
         }
     }
 
+    if ($batchActionKey === 'hide_target_suspend_publisher') {
+        if ($targetType === 'post') {
+            return 'hide_post_suspend_publisher';
+        }
+        if ($targetType === 'comment') {
+            return 'hide_comment_suspend_publisher';
+        }
+    }
+
     if ($batchActionKey === 'delete_target') {
         if ($targetType === 'post') {
             return 'delete_post';
@@ -91,7 +106,24 @@ function sr_community_report_batch_target_action_for_report(string $batchActionK
         }
     }
 
+    if ($batchActionKey === 'delete_target_suspend_publisher') {
+        if ($targetType === 'post') {
+            return 'delete_post_suspend_publisher';
+        }
+        if ($targetType === 'comment') {
+            return 'delete_comment_suspend_publisher';
+        }
+    }
+
     return '';
+}
+
+function sr_community_report_reporter_action_options(): array
+{
+    return [
+        'none' => '신고자 조치 없음',
+        'suspend_reporter_account' => '허위신고자 정지',
+    ];
 }
 
 function sr_community_report_status_policy_descriptions(): array
@@ -112,6 +144,19 @@ function sr_community_report_target_action_policy_error(string $status, string $
 
     if ($status !== 'resolved') {
         return '대상 조치는 신고 상태를 처리 완료로 저장할 때만 실행할 수 있습니다.';
+    }
+
+    return '';
+}
+
+function sr_community_report_reporter_action_policy_error(string $status, string $actionKey): string
+{
+    if ($actionKey === '' || $actionKey === 'none') {
+        return '';
+    }
+
+    if ($status !== 'dismissed') {
+        return '허위신고자 조치는 신고 상태를 기각으로 저장할 때만 실행할 수 있습니다.';
     }
 
     return '';
@@ -499,6 +544,38 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
         return ['action_key' => $actionKey, 'applied' => false, 'error' => 'invalid_action'];
     }
 
+    $combinedActions = [
+        'hide_post_suspend_publisher' => ['hide_post', 'suspend_reported_account'],
+        'delete_post_suspend_publisher' => ['delete_post', 'suspend_reported_account'],
+        'hide_comment_suspend_publisher' => ['hide_comment', 'suspend_reported_account'],
+        'delete_comment_suspend_publisher' => ['delete_comment', 'suspend_reported_account'],
+    ];
+    if (array_key_exists($actionKey, $combinedActions)) {
+        $results = [];
+        $applied = false;
+        foreach ($combinedActions[$actionKey] as $childActionKey) {
+            $childResult = sr_community_apply_report_target_action($pdo, $report, $childActionKey, $adminAccountId, $requireAuditLog);
+            $results[] = $childResult;
+            if (!empty($childResult['error'])) {
+                return [
+                    'action_key' => $actionKey,
+                    'applied' => $applied,
+                    'error' => (string) $childResult['error'],
+                    'results' => $results,
+                ];
+            }
+            if (!empty($childResult['applied'])) {
+                $applied = true;
+            }
+        }
+
+        return [
+            'action_key' => $actionKey,
+            'applied' => $applied,
+            'results' => $results,
+        ];
+    }
+
     if ($targetType === 'post' && in_array($actionKey, ['hide_post', 'delete_post'], true)) {
         $status = $actionKey === 'hide_post' ? 'hidden' : 'deleted';
         $post = sr_community_admin_post_by_id($pdo, $targetId);
@@ -570,6 +647,44 @@ function sr_community_apply_report_target_action(PDO $pdo, array $report, string
                 'report_id' => (int) ($report['id'] ?? 0),
                 'reported_target_type' => $targetType,
                 'reported_target_id' => $targetId,
+            ],
+        ], $requireAuditLog);
+        return ['action_key' => $actionKey, 'applied' => true, 'account_status' => 'suspended'];
+    }
+
+    return ['action_key' => $actionKey, 'applied' => false, 'error' => 'unsupported_action'];
+}
+
+function sr_community_apply_report_reporter_action(PDO $pdo, array $report, string $actionKey, int $adminAccountId, bool $requireAuditLog = false): array
+{
+    $targetType = (string) ($report['target_type'] ?? '');
+    $targetId = (int) ($report['target_id'] ?? 0);
+    if ($actionKey === '' || $actionKey === 'none') {
+        return ['action_key' => 'none', 'applied' => false];
+    }
+    if (!array_key_exists($actionKey, sr_community_report_reporter_action_options())) {
+        return ['action_key' => $actionKey, 'applied' => false, 'error' => 'invalid_action'];
+    }
+
+    if ($actionKey === 'suspend_reporter_account') {
+        $reporterAccountId = (int) ($report['reporter_account_id'] ?? 0);
+        if ($reporterAccountId < 1 || !function_exists('sr_member_update_status')) {
+            return ['action_key' => $actionKey, 'applied' => false, 'error' => 'account_action_unavailable'];
+        }
+        sr_member_update_status($pdo, $reporterAccountId, 'suspended');
+        sr_community_report_target_action_audit_log($pdo, [
+            'actor_account_id' => $adminAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'community.report.reporter_account_suspended',
+            'target_type' => 'member_account',
+            'target_id' => (string) $reporterAccountId,
+            'result' => 'success',
+            'message' => 'Reporter account suspended from dismissed community report.',
+            'metadata' => [
+                'report_id' => (int) ($report['id'] ?? 0),
+                'reported_target_type' => $targetType,
+                'reported_target_id' => $targetId,
+                'reported_account_id' => (int) ($report['reported_account_id'] ?? 0),
             ],
         ], $requireAuditLog);
         return ['action_key' => $actionKey, 'applied' => true, 'account_status' => 'suspended'];
