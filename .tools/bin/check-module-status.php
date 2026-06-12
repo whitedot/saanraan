@@ -131,6 +131,11 @@ foreach ($expectedEvidenceMarkers as $moduleKey => $markers) {
 }
 
 $expectedRemainingMarkers = [
+    'asset_ledger' => ['release-installed-gate-status.php --run-readonly', '설치 DB reconciliation 실행 기록'],
+    'point' => ['release-installed-gate-status.php --run-readonly', '설치 DB 만료 dry-run'],
+    'coupon' => ['release-installed-gate-status.php', '자산/쿠폰/유료 접근권 mutation smoke'],
+    'community' => ['release-installed-gate-status.php', '인증 smoke', '자산/쿠폰/유료 접근권 mutation smoke'],
+    'quiz' => ['release-installed-gate-status.php', '퀴즈 E2E smoke'],
     'privacy' => ['release-installed-gate-status.php', '개인정보 export/cleanup 설치 DB smoke'],
     'ckeditor' => ['release-installed-gate-status.php', 'CKEditor upload/save browser smoke'],
 ];
