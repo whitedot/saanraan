@@ -281,7 +281,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <table class="table admin-asset-balance-table">
             <thead class="ui-table-head">
                 <tr>
-                    <th>회원 정보</th>
                     <th<?php echo sr_admin_sort_aria('member', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.member.e335b899'), 'member', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.status.e10195a1'), 'status', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('balance', $balanceSort); ?>><?php echo sr_admin_sort_header_html(sr_t('point::ui.text.b099377c'), 'balance', $balanceSort, sr_admin_asset_balance_sort_options(), sr_admin_asset_balance_default_sort()); ?></th>
@@ -292,18 +291,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php if ($balances === []) { ?>
                     <tr>
-                        <td colspan="6" class="admin-empty-state"><?php echo sr_e($pointDisplayName . ' 잔액이 없습니다.'); ?></td>
+                        <td colspan="5" class="admin-empty-state"><?php echo sr_e($pointDisplayName . ' 잔액이 없습니다.'); ?></td>
                     </tr>
                 <?php } else { ?>
                     <?php foreach ($balances as $balance) { ?>
                         <tr>
-                            <td><a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $balance['account_id']))); ?>" class="btn btn-sm btn-solid-light">회원 정보</a></td>
                             <td><?php echo sr_e(sr_admin_member_display_name_preview($balance)); ?><br><?php echo sr_e(sr_admin_member_email_display($balance)); ?></td>
                             <td><?php echo sr_e(sr_admin_code_label((string) $balance['status'], 'member_status')); ?></td>
                             <td><?php echo sr_e(number_format((int) $balance['balance'])); ?> <?php echo sr_e($pointUnitLabel); ?></td>
                             <td><?php echo sr_point_time_html((string) $balance['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
+                                    <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $balance['account_id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="회원 정보 바로가기" title="회원 정보 바로가기"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                                     <a href="<?php echo sr_e(sr_url('/admin/points/transactions?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('point::ui.text.754ef98b')); ?></a>
                                     <?php $pointBalanceAdjustModalId = 'point-adjust-modal-' . (int) ($balance['account_id'] ?? 0); ?>
                                     <a href="<?php echo sr_e(sr_url('/admin/points/balances?account_identifier=' . rawurlencode((string) $balance['account_public_hash']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('point::ui.text.b9d9b240')); ?>" title="<?php echo sr_e(sr_t('point::ui.text.b9d9b240')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointBalanceAdjustModalId); ?>" data-overlay="#<?php echo sr_e($pointBalanceAdjustModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
