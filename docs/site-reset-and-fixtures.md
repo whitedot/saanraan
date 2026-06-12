@@ -28,6 +28,16 @@
 
 초기화 전에는 현재 DB가 로컬 또는 스테이징인지 확인한다. `config/config.php`가 운영 도메인, 운영 DB 이름, 운영 storage를 가리키면 실행하지 않는다.
 
+`.tools/bin/seed-dummy-http.php`를 사용할 때는 다음처럼 mutation 허용 플래그를 명시한다. 이 스크립트는 회원, 콘텐츠, 커뮤니티, 배너, 팝업레이어, 쿠폰, 알림 데이터를 실제 HTTP 경로로 만들고 일부 표시 데이터를 정리할 수 있으므로 기본 실행은 거부한다.
+
+```sh
+SR_SEED_ALLOW_MUTATION=1 \
+SR_SEED_BASE_URL=http://127.0.0.1:8080 \
+SR_SEED_ADMIN_IDENTIFIER=admin \
+SR_SEED_ADMIN_PASSWORD='password' \
+php .tools/bin/seed-dummy-http.php
+```
+
 ## 관리자 계정 기준
 
 더미 데이터 등록에 사용할 관리자 계정은 최소 하나만 필요하다.

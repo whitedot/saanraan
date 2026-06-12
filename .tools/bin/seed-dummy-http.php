@@ -18,10 +18,18 @@ $skipCommunity = in_array(strtolower((string) getenv('SR_SEED_SKIP_COMMUNITY')),
 $skipOperations = in_array(strtolower((string) getenv('SR_SEED_SKIP_OPERATIONS')), ['1', 'true', 'yes', 'on'], true);
 $ensureFreeBoard = in_array(strtolower((string) getenv('SR_SEED_ENSURE_FREE_BOARD')), ['1', 'true', 'yes', 'on'], true);
 $trimDisplay = in_array(strtolower((string) getenv('SR_SEED_TRIM_DISPLAY')), ['1', 'true', 'yes', 'on'], true);
+$allowMutation = getenv('SR_SEED_ALLOW_MUTATION') === '1';
 
 if ($baseUrl === '' || $adminPassword === '') {
-    fwrite(STDERR, "Usage: php .tools/bin/seed-dummy-http.php <base-url> <admin-identifier> <admin-password> [count]\n");
+    fwrite(STDERR, "Usage: SR_SEED_ALLOW_MUTATION=1 php .tools/bin/seed-dummy-http.php <base-url> <admin-identifier> <admin-password> [count]\n");
+    fwrite(STDERR, "Env: SR_SEED_ALLOW_MUTATION=1 SR_SEED_BASE_URL SR_SEED_ADMIN_IDENTIFIER SR_SEED_ADMIN_PASSWORD SR_SEED_COUNT SR_SEED_RUN_KEY\n");
     exit(1);
+}
+
+if (!$allowMutation) {
+    fwrite(STDERR, "saanraan dummy HTTP seed refused to run because it creates and trims QA data. Set SR_SEED_ALLOW_MUTATION=1 only on local or staging disposable data.\n");
+    fwrite(STDERR, "Usage: SR_SEED_ALLOW_MUTATION=1 php .tools/bin/seed-dummy-http.php <base-url> <admin-identifier> <admin-password> [count]\n");
+    exit(2);
 }
 
 $count = max(10, min(15, $count));

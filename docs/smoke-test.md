@@ -355,6 +355,16 @@ php .tools/bin/smoke-community-auth.php
 
 관리자 계정 외 사이트 데이터를 비우고 다시 채우는 기준은 [사이트 초기화와 더미 데이터 기준](site-reset-and-fixtures.md)을 따른다. 더미 데이터는 DB 직접 insert 대신 실제 등록/저장 HTTP 경로를 사용하고, 기본 검수 세트는 주요 도메인별 10-15건을 만든다.
 
+실제 HTTP 경로 기반 더미 데이터 시더는 로컬 또는 staging disposable 데이터에서만 다음처럼 실행한다.
+
+```sh
+SR_SEED_ALLOW_MUTATION=1 \
+SR_SEED_BASE_URL=http://127.0.0.1:8080 \
+SR_SEED_ADMIN_IDENTIFIER=admin \
+SR_SEED_ADMIN_PASSWORD='password' \
+php .tools/bin/seed-dummy-http.php
+```
+
 더미 데이터 준비 후에는 다음을 기록한다.
 
 ```text
