@@ -12,8 +12,11 @@ if (!defined('SR_ROOT')) {
 
 require_once $root . '/core/helpers/runtime.php';
 
-$runReadonly = in_array('--run-readonly', array_slice($argv, 1), true);
+$args = array_slice($argv, 1);
+$runReadonly = in_array('--run-readonly', $args, true);
+$runBrowserQa = in_array('--run-browser-qa', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
+$browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $configPath = $root . '/config/config.php';
 $lockPath = $root . '/storage/installed.lock';
 $configExists = is_file($configPath);
@@ -135,6 +138,39 @@ function sr_release_gate_status_readonly_command_gate(string $gate, string $comm
     ];
 }
 
+function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowserQa): array
+{
+    if ($baseUrl === '') {
+        return [
+            'gate' => 'CKEditor asset/fallback browser smoke',
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_BROWSER_QA_BASE_URL or SR_SMOKE_BASE_URL and run with --run-browser-qa',
+        ];
+    }
+
+    if (!$runBrowserQa) {
+        return [
+            'gate' => 'CKEditor asset/fallback browser smoke',
+            'result' => '수동 확인 필요',
+            'environment' => $baseUrl,
+            'memo' => 'browser QA available; rerun with --run-browser-qa to execute npm --prefix .tools/browser-qa run test:ckeditor',
+        ];
+    }
+
+    putenv('SR_BROWSER_QA_BASE_URL=' . $baseUrl);
+    $_ENV['SR_BROWSER_QA_BASE_URL'] = $baseUrl;
+    $result = sr_release_gate_status_command(['npm', '--prefix', '.tools/browser-qa', 'run', 'test:ckeditor']);
+    $exitCode = (int) $result['exit_code'];
+
+    return [
+        'gate' => 'CKEditor asset/fallback browser smoke',
+        'result' => $exitCode === 0 ? '통과' : '실패',
+        'environment' => $baseUrl,
+        'memo' => 'npm --prefix .tools/browser-qa run test:ckeditor exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
+    ];
+}
+
 $unavailableReason = '';
 if (!$configExists) {
     $unavailableReason = 'config/config.php missing';
@@ -198,12 +234,7 @@ $gates[] = [
     'environment' => 'local/staging dummy account',
     'memo' => 'requires disposable account data because cleanup mutates records',
 ];
-$gates[] = [
-    'gate' => 'CKEditor asset/fallback browser smoke',
-    'result' => $baseUrl === '' ? '미실행' : '수동 확인 필요',
-    'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
-    'memo' => $baseUrl === '' ? 'set SR_BROWSER_QA_BASE_URL or SR_SMOKE_BASE_URL and run ckeditor-browser-smoke.spec.js' : 'run ckeditor-browser-smoke.spec.js with Playwright; installed DB is not required',
-];
+$gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
 $gates[] = [
     'gate' => 'CKEditor upload/save browser smoke',
     'result' => '미실행',
@@ -233,7 +264,9 @@ echo 'config-mode: ' . sr_release_gate_status_file_mode($configPath) . "\n";
 echo 'config-owner-group: ' . sr_release_gate_status_file_owner_group($configPath) . "\n";
 echo 'sr-is-installed: ' . ($isInstalled ? 'yes' : 'no') . "\n";
 echo 'base-url: ' . ($baseUrl === '' ? '-' : $baseUrl) . "\n";
+echo 'browser-qa-base-url: ' . ($browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl) . "\n";
 echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
+echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
 foreach ($gates as $gate) {
     echo sr_release_gate_status_line(
         (string) ($gate['gate'] ?? ''),
