@@ -21,6 +21,7 @@ $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $runPrivacyFixtures = in_array('--run-privacy-fixtures', $args, true);
 $runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
 $markdownTable = in_array('--markdown-table', $args, true);
+$showHelp = in_array('--help', $args, true) || in_array('-h', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -40,6 +41,49 @@ $configExists = is_file($configPath);
 $configReadable = is_readable($configPath);
 $lockExists = is_file($lockPath);
 $isInstalled = sr_is_installed();
+
+function sr_release_gate_status_help(): string
+{
+    return <<<'TEXT'
+release-installed-gate-status-version: 1
+Usage:
+  php .tools/bin/release-installed-gate-status.php [options]
+
+Options:
+  --markdown-table            Print only the installed DB gate table as Markdown.
+  --run-readonly              Execute installed DB read-only CLI gates.
+  --run-browser-qa            Execute CKEditor asset/fallback browser smoke.
+  --run-auth-smoke            Execute authenticated community smoke.
+  --run-quiz-smoke            Execute quiz E2E smoke.
+  --run-asset-smoke           Execute asset idempotency HTTP smoke.
+  --run-privacy-fixtures      Record SQLite privacy contract fixtures as partial evidence.
+  --run-performance-fixtures  Record static/runtime performance fixtures as partial evidence.
+  --help                      Show this help.
+
+Environment:
+  SR_SMOKE_BASE_URL                 Local/staging base URL for HTTP and manual gates.
+  SR_BROWSER_QA_BASE_URL            Optional browser QA base URL override.
+  SR_SMOKE_IDENTIFIER               Disposable account identifier.
+  SR_SMOKE_PASSWORD                 Disposable account password.
+  SR_SMOKE_ADMIN_IDENTIFIER         Local/staging administrator identifier.
+  SR_SMOKE_ADMIN_PASSWORD           Local/staging administrator password.
+  SR_SMOKE_ALLOW_MUTATION=1         Required before mutation smoke can run.
+  SR_SMOKE_FORM_PATH                Disposable paid target form path for asset smoke.
+  SR_SMOKE_EXPECT_DEDUPE_TABLE      Dedupe table for asset smoke row count evidence.
+  SR_SMOKE_EXPECT_DEDUPE_KEY        Dedupe key for asset smoke row count evidence.
+  SR_PERFORMANCE_REVIEW_READY=1     Mark representative local/staging data as ready.
+
+Safety:
+  Do not run mutation smoke against production data. If config/config.php is not readable
+  by the current CLI user, keep the file permissions tight and rerun as the web-server
+  user or a local/staging-only execution user.
+TEXT;
+}
+
+if ($showHelp) {
+    echo sr_release_gate_status_help();
+    exit(0);
+}
 
 function sr_release_gate_status_line(string $gate, string $result, string $environment, string $memo): string
 {

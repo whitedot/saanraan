@@ -196,6 +196,38 @@ foreach ([
     }
 }
 
+$helpOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--help']);
+foreach ([
+    'Usage:',
+    '--markdown-table',
+    '--run-readonly',
+    '--run-browser-qa',
+    '--run-auth-smoke',
+    '--run-quiz-smoke',
+    '--run-asset-smoke',
+    '--run-privacy-fixtures',
+    '--run-performance-fixtures',
+    'SR_SMOKE_BASE_URL',
+    'SR_BROWSER_QA_BASE_URL',
+    'SR_SMOKE_IDENTIFIER',
+    'SR_SMOKE_PASSWORD',
+    'SR_SMOKE_ADMIN_IDENTIFIER',
+    'SR_SMOKE_ADMIN_PASSWORD',
+    'SR_SMOKE_ALLOW_MUTATION=1',
+    'SR_SMOKE_FORM_PATH',
+    'SR_SMOKE_EXPECT_DEDUPE_TABLE',
+    'SR_SMOKE_EXPECT_DEDUPE_KEY',
+    'SR_PERFORMANCE_REVIEW_READY=1',
+    'Do not run mutation smoke against production data',
+    'config/config.php is not readable',
+    'web-server',
+    'local/staging-only execution user',
+] as $marker) {
+    if ($helpOutput !== '' && !str_contains($helpOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status help output marker missing: ' . $marker);
+    }
+}
+
 $baseOnlyOutput = sr_installed_gate_status_exec([
     'env',
     'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
@@ -569,6 +601,7 @@ foreach ([
 sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-status.php', [
     'release-installed-gate-status-version: 1',
     'unresolved-gates',
+    '--help',
     '--markdown-table',
     '--run-readonly',
     '--run-browser-qa',
@@ -639,6 +672,7 @@ sr_installed_gate_status_require_markers('docs/verification-status.md', [
 
 sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     'php .tools/bin/release-installed-gate-status.php',
+    'php .tools/bin/release-installed-gate-status.php --help',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
