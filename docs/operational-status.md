@@ -79,11 +79,12 @@ DB에서 balance row, 거래 row, `balance_after`를 직접 UPDATE하는 응급 
 cron을 사용할 수 있는 환경에서는 다음을 후보로 둔다. cron이 없으면 관리자 수동 실행 또는 사용자 요청 시점 처리 기준을 문서화한다.
 
 ```sh
+php .tools/bin/expire-points.php --dry-run
 php .tools/bin/expire-points.php
 php .tools/bin/ops-status.php
 ```
 
-`ops-status.php`는 read-only라 자동 실행해도 데이터를 바꾸지 않는다. 출력 결과를 운영 로그에 남기면 지연 증가 추세를 확인할 수 있다. `expire-points.php`는 만료 대상 포인트를 실제 `expire` 원장 거래로 차감하는 변경 명령이므로 운영 DB에서는 실행 전 `ops-status.php`나 관리자 운영 상태 화면에서 대상 규모를 먼저 확인한다.
+`ops-status.php`는 read-only라 자동 실행해도 데이터를 바꾸지 않는다. 출력 결과를 운영 로그에 남기면 지연 증가 추세를 확인할 수 있다. `expire-points.php --dry-run`은 만료 대상 건수와 금액만 출력하고 원장을 만들지 않는다. `expire-points.php`는 만료 대상 포인트를 실제 `expire` 원장 거래로 차감하는 변경 명령이므로 운영 DB에서는 실행 전 `ops-status.php`, `expire-points.php --dry-run`, 또는 관리자 운영 상태 화면에서 대상 규모를 먼저 확인한다.
 
 ## 기록 기준
 

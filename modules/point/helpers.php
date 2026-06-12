@@ -889,6 +889,35 @@ function sr_point_consume_expiring_grants(PDO $pdo, int $accountId, int $amount,
     return $consumed;
 }
 
+function sr_point_expire_due_preview_transactions(PDO $pdo, int $limit = 200, ?string $now = null): array
+{
+    $limit = max(1, min(1000, $limit));
+    $now = $now ?? sr_now();
+    $stmt = $pdo->prepare(
+        'SELECT id, expires_remaining
+         FROM sr_point_transactions
+         WHERE amount > 0
+           AND expires_at IS NOT NULL
+           AND expires_at <= :now_value
+           AND expires_remaining > 0
+         ORDER BY expires_at ASC, id ASC
+         LIMIT ' . $limit
+    );
+    $stmt->execute(['now_value' => $now]);
+
+    $dueCount = 0;
+    $dueAmount = 0;
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $dueCount++;
+        $dueAmount += max(0, (int) ($row['expires_remaining'] ?? 0));
+    }
+
+    return [
+        'due_count' => $dueCount,
+        'due_amount' => $dueAmount,
+    ];
+}
+
 function sr_point_expire_due_transactions(PDO $pdo, int $limit = 200, ?string $now = null): array
 {
     $limit = max(1, min(1000, $limit));

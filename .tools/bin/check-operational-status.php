@@ -253,6 +253,15 @@ function sr_operational_status_point_expiration_fixture_check(PDO $pdo): void
         'created_at' => '2026-06-01 12:00:00',
     ]);
 
+    $preview = sr_point_expire_due_preview_transactions($pdo, 10, $now);
+    if ((int) ($preview['due_count'] ?? 0) !== 1 || (int) ($preview['due_amount'] ?? 0) !== 80) {
+        sr_operational_status_error('Point expiration preview fixture should count due remaining grants without expiring them.');
+    }
+    $expireRowsBefore = (int) $pdo->query("SELECT COUNT(*) FROM sr_point_transactions WHERE transaction_type = 'expire'")->fetchColumn();
+    if ($expireRowsBefore !== 0) {
+        sr_operational_status_error('Point expiration preview fixture should not create expire ledger transactions.');
+    }
+
     $result = sr_point_expire_due_transactions($pdo, 10, $now);
     if ((int) ($result['expired_count'] ?? 0) !== 1 || (int) ($result['expired_amount'] ?? 0) !== 80) {
         sr_operational_status_error('Point expiration fixture should expire only due remaining grants.');
@@ -374,8 +383,14 @@ foreach ([
 foreach ([
     'sr_is_installed()',
     "require_once SR_ROOT . '/modules/point/helpers.php'",
+    '--dry-run',
+    'sr_point_expire_due_preview_transactions($pdo, $limit)',
+    'dry_run=yes',
+    'due_count=',
+    'due_amount=',
     'sr_module_enabled($pdo, \'point\')',
     'sr_point_expire_due_transactions($pdo, $limit)',
+    'dry_run=no',
     'expired_count=',
     'expired_amount=',
 ] as $marker) {
@@ -388,6 +403,7 @@ foreach ([
     'sr_ledger_insert_ignore_into_clause($pdo)',
     'sr_ledger_for_update_clause($pdo)',
     'function sr_point_expire_due_transactions(PDO $pdo',
+    'function sr_point_expire_due_preview_transactions(PDO $pdo',
     'function sr_point_expire_grant_transaction(PDO $pdo',
 ] as $marker) {
     $pointHelper = is_file('modules/point/helpers.php') ? file_get_contents('modules/point/helpers.php') : false;

@@ -14,7 +14,14 @@ if (!sr_is_installed()) {
     exit(2);
 }
 
-$limit = isset($argv[1]) ? (int) $argv[1] : 200;
+$dryRun = in_array('--dry-run', array_slice($argv, 1), true);
+$limit = 200;
+foreach (array_slice($argv, 1) as $argument) {
+    if ($argument !== '--dry-run') {
+        $limit = (int) $argument;
+        break;
+    }
+}
 $limit = max(1, min(1000, $limit));
 
 try {
@@ -28,7 +35,16 @@ try {
         exit(2);
     }
 
+    if ($dryRun) {
+        $preview = sr_point_expire_due_preview_transactions($pdo, $limit);
+        echo 'dry_run=yes' . "\n";
+        echo 'due_count=' . (int) $preview['due_count'] . "\n";
+        echo 'due_amount=' . (int) $preview['due_amount'] . "\n";
+        exit(0);
+    }
+
     $result = sr_point_expire_due_transactions($pdo, $limit);
+    echo 'dry_run=no' . "\n";
     echo 'expired_count=' . (int) $result['expired_count'] . "\n";
     echo 'expired_amount=' . (int) $result['expired_amount'] . "\n";
 } catch (Throwable $exception) {
