@@ -39,7 +39,7 @@
 | `php .tools/bin/check-tool-gate-coverage.php` | TODO | 새 `check-*.php` 도구의 통합 게이트 연결 확인 |
 | `php .tools/bin/check-release-verification-records.php` | TODO | 검증 기록 section, 최종 판정, 설치 DB 게이트 판정 규칙 확인 |
 | `php .tools/bin/check-doc-links.php` | TODO | 문서 링크와 `.tools/bin/*.php` 명령 참조 존재 확인 |
-| `php .tools/bin/check-module-status.php` | TODO | 번들 모듈 상태표와 module.php 일치, 상태 근거 확인 |
+| `php .tools/bin/check-module-status.php` | TODO | 번들 모듈 상태표와 module.php 일치, 상태 근거, 1.0 전 보강 기준 확인 |
 | `php .tools/bin/check-risk-register.php` | TODO | 리스크 등록부 상태, 증거, 후속 기준 확인 |
 | `php .tools/bin/check-positioning.php` | TODO | README/특장점/포지셔닝 문서의 사용 판단 기준과 과장 금지 문구 확인 |
 | `php .tools/bin/check-installed-gate-status.php` | TODO | 설치 DB 게이트 상태표 도구와 문서 marker 확인 |
@@ -166,7 +166,7 @@ php .tools/bin/ops-status.php
 | R-02 HTML sanitizer/CKEditor | sanitizer fixture, Purifier 로드 상태, fallback sanitizer fixture, `check-browser-qa.php`, `ckeditor-browser-smoke.spec.js`, CKEditor asset/fallback browser smoke, CKEditor upload/save browser smoke | TODO | TODO |
 | R-03 공유호스팅 queue/cron/배치 | `ops-status.php`, `expire-points.php --dry-run`, `/admin/operations`, board copy job lock fixture, 지연/실패 row 확인 | TODO | TODO |
 | R-04 개인정보 export/cleanup 계약 | privacy matrix, export/cleanup smoke, 운영 보존 데이터 검토 | TODO | TODO |
-| R-05 넓은 번들 모듈 표면 | module status, beta smoke 기록, 등급 상향 근거 | TODO | TODO |
+| R-05 넓은 번들 모듈 표면 | module status, `check-module-status.php`, `release-installed-gate-status.php`, asset_ledger/point/coupon/community/quiz/privacy/ckeditor 설치 게이트 연결, beta smoke 기록, 등급 상향 근거 | TODO | TODO |
 | R-06 커스텀 요청/보안 contract | security baseline, request contract runtime, admin action security, 인증/권한 smoke, 보안 헤더 | TODO | TODO |
 | R-07 외부 의존성/vendored asset | dependency policy, `modules/htmlpurifier/DEPENDENCY.md`, vendor integrity, release package dry-run, dry-run manifest, Purifier 로드 상태, CKEditor self-hosted asset, fallback sanitizer fixture | TODO | TODO |
 | R-08 배포 보호 | deployment protection, HTTP 보호 경로 smoke, Apache/nginx 확인 | TODO | TODO |
