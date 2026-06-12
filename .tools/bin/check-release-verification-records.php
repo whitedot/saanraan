@@ -81,11 +81,38 @@ function sr_release_verification_record_required_gate_result(string $requiredGat
     return trim((string) $matches[1]);
 }
 
-function sr_release_verification_record_has_unresolved_required_gate(string $content): bool
+function sr_release_verification_record_required_gate_row(string $requiredGate, string $label): ?array
+{
+    $quoted = preg_quote($label, '/');
+    if (preg_match('/^\|\s*' . $quoted . '\s*\|\s*([^|\n]+?)\s*\|\s*([^|\n]*?)\s*\|\s*([^|\n]*?)\s*\|/mu', $requiredGate, $matches) !== 1) {
+        return null;
+    }
+
+    return [
+        'result' => trim((string) $matches[1]),
+        'environment' => trim((string) $matches[2]),
+        'memo' => trim((string) $matches[3]),
+    ];
+}
+
+function sr_release_verification_record_gate_missing_flag(string $content): string
+{
+    $section = sr_release_verification_record_section($content, '판정');
+    if ($section === '') {
+        return '';
+    }
+
+    if (preg_match('/릴리스 후보 필수 설치 DB 게이트 미실행 여부:\s*\n\s*-\s*(없음|있음)/u', $section, $matches) === 1) {
+        return $matches[1];
+    }
+
+    return '';
+}
+
+function sr_release_verification_record_required_gate_rows_have_unresolved(string $content): bool
 {
     $requiredGate = sr_release_verification_record_section($content, '릴리스 후보 필수 설치 DB 게이트');
     $failureLimits = sr_release_verification_record_section($content, '실패와 제한');
-    $verdict = sr_release_verification_record_section($content, '판정');
     $gateAndLimitText = $requiredGate . "\n" . $failureLimits;
 
     if ($requiredGate === '') {
@@ -123,7 +150,61 @@ function sr_release_verification_record_has_unresolved_required_gate(string $con
         }
     }
 
-    return str_contains($verdict, '릴리스 후보 필수 설치 DB 게이트 미실행 여부:' . "\n\n" . '- 있음');
+    return false;
+}
+
+function sr_release_verification_record_has_unresolved_required_gate(string $content): bool
+{
+    if (sr_release_verification_record_required_gate_rows_have_unresolved($content)) {
+        return true;
+    }
+
+    return sr_release_verification_record_gate_missing_flag($content) === '있음';
+}
+
+function sr_release_verification_record_check_required_gate_details(string $file, string $content): void
+{
+    $requiredGate = sr_release_verification_record_section($content, '릴리스 후보 필수 설치 DB 게이트');
+    if ($requiredGate === '') {
+        return;
+    }
+
+    foreach (sr_release_verification_record_required_gate_labels() as $label) {
+        $row = sr_release_verification_record_required_gate_row($requiredGate, $label);
+        if ($row === null) {
+            continue;
+        }
+
+        if ($row['result'] === '통과') {
+            continue;
+        }
+
+        foreach (['environment', 'memo'] as $field) {
+            if ($row[$field] === '' || $row[$field] === 'TODO' || str_contains($row[$field], 'TODO')) {
+                sr_release_verification_record_error(
+                    'Unresolved installed DB gate must record concrete ' . $field . ' in ' . $file . ': ' . $label
+                );
+            }
+        }
+    }
+}
+
+function sr_release_verification_record_check_missing_flag_consistency(string $file, string $content): void
+{
+    $flag = sr_release_verification_record_gate_missing_flag($content);
+    if ($flag === '') {
+        sr_release_verification_record_error('Installed DB gate missing flag is absent or invalid in ' . $file);
+        return;
+    }
+
+    $hasUnresolvedGate = sr_release_verification_record_required_gate_rows_have_unresolved($content);
+    if ($hasUnresolvedGate && $flag !== '있음') {
+        sr_release_verification_record_error('Installed DB gate missing flag must be 있음 while a required gate is unresolved in ' . $file);
+    }
+
+    if (!$hasUnresolvedGate && $flag !== '없음') {
+        sr_release_verification_record_error('Installed DB gate missing flag must be 없음 when all required gates passed in ' . $file);
+    }
 }
 
 function sr_release_verification_record_check_required_gate_rows(string $file, string $content): void
@@ -298,6 +379,18 @@ function sr_release_verification_record_self_test(): void
             sr_release_verification_record_error('Release verification record self-test failed: ' . $label);
         }
     }
+
+    $flagMismatchFixture = str_replace(
+        '릴리스 후보 필수 설치 DB 게이트 미실행 여부:' . "\n\n" . '- 있음',
+        '릴리스 후보 필수 설치 DB 게이트 미실행 여부:' . "\n\n" . '- 없음',
+        sr_release_verification_record_fixture('TODO', '있음', '조건부 통과')
+    );
+    $beforeCount = count($GLOBALS['errors']);
+    sr_release_verification_record_check_missing_flag_consistency('docs/records/release-verification-fixture.md', $flagMismatchFixture);
+    if (count($GLOBALS['errors']) !== $beforeCount + 1) {
+        sr_release_verification_record_error('Release verification record self-test failed: missing flag mismatch check');
+    }
+    array_pop($GLOBALS['errors']);
 }
 
 sr_release_verification_record_self_test();
@@ -358,6 +451,8 @@ foreach ($records as $record) {
     }
 
     sr_release_verification_record_check_required_gate_rows($record, $content);
+    sr_release_verification_record_check_required_gate_details($record, $content);
+    sr_release_verification_record_check_missing_flag_consistency($record, $content);
 
     foreach ([
         'R-01 자산/쿠폰/유료 접근권',

@@ -101,7 +101,7 @@
 | `php .tools/bin/check-operational-status.php` | 통과 | 운영 상태 신호, 허용 지연, 지연 초과 상태, CLI summary 출력, 관리자 화면/CLI 계약 점검. SQLite fixture로 `ok`, `warning`, `overdue`, `skipped`, `error` 판정, summary count, 안전하지 않은 table/age column 식별자, 세미콜론/SQL 주석/DDL·DML 키워드가 있는 `where` 조건 거부, notification delivery, community board copy, point expiration 일부 번들 신호의 실제 count/overdue 계산을 점검. 포인트 만료 수동 CLI 경로는 만료 대상 지급분 하나만 `expire` 음수 거래로 차감하고 원 지급 row를 닫으며 재실행 중복 차감이 없음을 확인 |
 | `php .tools/bin/check-module-status.php` | 통과 | 번들 모듈과 상태표 행 일치, 상태 값, 현재 증거, 1.0 전 보강 기준, 주요 고위험 모듈별 자동 증거 marker, 개선 기록의 기존 상태와 `module-status.md` 현재 상태 일치, `beta` 모듈별 구체 smoke/수동/reconciliation/브라우저/동시성 보강 대상 점검 |
 | `php .tools/bin/check-verification-template.php` | 통과 | 릴리스 후보 필수 설치 DB 게이트와 미실행 판정 기준 점검 |
-| `php .tools/bin/check-release-verification-records.php` | 통과 | 검증 기록 section, 최종 판정, 리스크 row, 릴리스 후보 필수 설치 DB 게이트 행별 결과가 모두 `통과`가 아닐 때 `통과` 판정 금지, 개선 기록의 비릴리스 후보 조건부 판정 점검, 판정 규칙 self-test |
+| `php .tools/bin/check-release-verification-records.php` | 통과 | 검증 기록 section, 최종 판정, 리스크 row, 릴리스 후보 필수 설치 DB 게이트 행별 결과가 모두 `통과`가 아닐 때 `통과` 판정 금지, 미해결 설치 DB 게이트의 환경/메모 누락 금지, 미실행 여부 플래그 일치, 개선 기록의 비릴리스 후보 조건부 판정 점검, 판정 규칙 self-test |
 | `php .tools/bin/check-installed-gate-status.php` | 통과 | 설치 DB 게이트 상태표 도구의 출력 형식, `config-mode`/`config-owner-group` 출력, 필수 게이트 행, `--run-readonly`, `--run-browser-qa`, `--run-auth-smoke`, `--run-asset-smoke`, `--run-privacy-fixtures`, `--run-performance-fixtures`, `SR_SMOKE_ALLOW_MUTATION=1` 안내, 문서 marker 확인 |
 | `php .tools/bin/check-positioning.php` | 통과 | README, 특장점 문서, 포지셔닝 기준, 리스크 레지스터, 릴리스 검증 템플릿의 사용 판단 기준 marker와 대체 CMS/완성된 플랫폼/실시간 보장 같은 과장 문구 금지 기준 확인 |
 | `php .tools/bin/check-doc-links.php` | 통과 | 문서 링크와 `.tools/bin/*.php` 명령 참조 존재 여부 점검 통과 |
@@ -280,6 +280,10 @@ saanraan HTTP smoke checks completed.
 
 - 현재 변경 묶음은 정적 점검과 미설치 HTTP smoke 기준으로 통과했다.
 - 이 기록만으로 1.0 릴리스 후보 또는 운영 배포 가능 판정을 내리지는 않는다.
+
+릴리스 후보 필수 설치 DB 게이트 미실행 여부:
+
+- 있음
 
 후속 작업:
 
