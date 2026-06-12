@@ -880,6 +880,11 @@ sr_installed_gate_status_require_markers('docs/release-verification-template.md'
     'php .tools/bin/release-installed-gate-status.php --json',
     '--fail-on-unresolved',
     'php .tools/bin/release-installed-gate-status.php --run-readonly',
+    'php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved',
+    'php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved',
+    'SR_SMOKE_ADMIN_IDENTIFIER',
+    'SR_SMOKE_ADMIN_PASSWORD',
+    '권한을 넓히지 말고',
     'php .tools/bin/expire-points.php --dry-run',
     '설치 DB 게이트 상태표',
 ]);
@@ -889,6 +894,9 @@ sr_installed_gate_status_require_markers('docs/verification-status.md', [
     '설치 DB 게이트 상태표',
     'gate-result-summary',
     'unresolved-gates',
+    'php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved',
+    'php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved',
+    '권한을 넓히지 말고',
 ]);
 
 sr_installed_gate_status_require_markers('docs/smoke-test.md', [
