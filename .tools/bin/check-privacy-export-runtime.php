@@ -11,6 +11,13 @@ if (!defined('SR_ROOT')) {
 
 $errors = [];
 
+if (!function_exists('sr_normalize_identifier')) {
+    function sr_normalize_identifier(string $value): string
+    {
+        return strtolower(trim($value));
+    }
+}
+
 function sr_privacy_export_runtime_error(string $message): void
 {
     global $errors;
@@ -597,10 +604,105 @@ function sr_privacy_export_runtime_check_community(): void
     sr_privacy_export_runtime_assert(($result['submission_consents'][0]['ip_hash'] ?? '') === 'ip7', 'community export must include target submission consent hashes.');
 }
 
+function sr_privacy_export_runtime_check_retained_modules(): void
+{
+    $pdo = sr_privacy_export_runtime_pdo();
+    $pdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY, email TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_member_accounts (id, email) VALUES (7, 'member7@example.test'), (8, 'member8@example.test')");
+
+    $pdo->exec('CREATE TABLE sr_asset_exchange_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL, exchange_group_id TEXT NOT NULL, from_module_key TEXT NOT NULL, to_module_key TEXT NOT NULL, request_amount INTEGER NOT NULL, deposit_amount INTEGER NOT NULL, fee_amount INTEGER NOT NULL, status TEXT NOT NULL, failure_reason TEXT NOT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_asset_exchange_logs (account_id, exchange_group_id, from_module_key, to_module_key, request_amount, deposit_amount, fee_amount, status, failure_reason, created_at) VALUES (7, 'ex7', 'reward', 'deposit', 100, 90, 10, 'completed', '', ''), (8, 'ex8', 'reward', 'deposit', 200, 180, 20, 'completed', '', '')");
+
+    $pdo->exec('CREATE TABLE sr_coupon_definitions (id INTEGER PRIMARY KEY, coupon_key TEXT NOT NULL, title TEXT NOT NULL, target_type TEXT NOT NULL, target_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_coupon_issues (id INTEGER PRIMARY KEY, coupon_definition_id INTEGER NOT NULL, account_id INTEGER NOT NULL, status TEXT NOT NULL, issued_reason TEXT NOT NULL, issued_at TEXT NOT NULL, expires_at TEXT NULL, used_count INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_coupon_redemptions (id INTEGER PRIMARY KEY, coupon_definition_id INTEGER NOT NULL, account_id INTEGER NOT NULL, target_type TEXT NOT NULL, target_id INTEGER NOT NULL, reference_module TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, status TEXT NOT NULL, redeemed_at TEXT NOT NULL, refunded_at TEXT NULL, refunded_by_account_id INTEGER NULL, refund_note TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_coupon_definitions (id, coupon_key, title, target_type, target_id) VALUES (1, 'coupon7', 'Coupon 7', 'content', 10), (2, 'coupon8', 'Coupon 8', 'content', 20)");
+    $pdo->exec("INSERT INTO sr_coupon_issues (id, coupon_definition_id, account_id, status, issued_reason, issued_at, expires_at, used_count) VALUES (1, 1, 7, 'active', 'manual', '', NULL, 1), (2, 2, 8, 'active', 'manual', '', NULL, 1)");
+    $pdo->exec("INSERT INTO sr_coupon_redemptions (id, coupon_definition_id, account_id, target_type, target_id, reference_module, reference_type, reference_id, status, redeemed_at, refunded_at, refunded_by_account_id, refund_note) VALUES (1, 1, 7, 'content', 10, 'content', 'download', '5', 'refunded', '', '', 99, 'refund7'), (2, 2, 8, 'content', 20, 'content', 'download', '6', 'used', '', NULL, NULL, '')");
+
+    $pdo->exec('CREATE TABLE sr_deposit_balances (account_id INTEGER PRIMARY KEY, balance INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_deposit_transactions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, amount INTEGER NOT NULL, balance_after INTEGER NOT NULL, transaction_type TEXT NOT NULL, reason TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, created_by_account_id INTEGER NULL, created_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_deposit_refund_requests (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, amount INTEGER NOT NULL, bank_name TEXT NOT NULL, bank_account_number TEXT NOT NULL, bank_account_holder TEXT NOT NULL, requester_note TEXT NOT NULL, status TEXT NOT NULL, admin_note TEXT NOT NULL, transaction_id INTEGER NULL, processed_by_account_id INTEGER NULL, requested_at TEXT NOT NULL, processed_at TEXT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_deposit_balances (account_id, balance, created_at, updated_at) VALUES (7, 500, '', ''), (8, 800, '', '')");
+    $pdo->exec("INSERT INTO sr_deposit_transactions (id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at) VALUES (1, 7, 500, 500, 'admin_adjust', 'reason7', 'manual', '7', 99, ''), (2, 8, 800, 800, 'admin_adjust', 'reason8', 'manual', '8', 99, '')");
+    $pdo->exec("INSERT INTO sr_deposit_refund_requests (id, account_id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, admin_note, transaction_id, processed_by_account_id, requested_at, processed_at, updated_at) VALUES (1, 7, 300, 'Bank7', '111-7', 'Holder7', 'note7', 'completed', 'admin7', 1, 99, '', '', ''), (2, 8, 400, 'Bank8', '111-8', 'Holder8', 'note8', 'pending', '', NULL, NULL, '', NULL, '')");
+
+    $pdo->exec('CREATE TABLE sr_notification_deliveries (id INTEGER PRIMARY KEY, notification_id INTEGER NOT NULL, channel TEXT NOT NULL, recipient TEXT NOT NULL, status TEXT NOT NULL, provider_message_id TEXT NOT NULL, error_message TEXT NOT NULL, attempted_at TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_notification_reads (id INTEGER PRIMARY KEY, notification_id INTEGER NOT NULL, account_id INTEGER NOT NULL, read_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_notifications (id INTEGER PRIMARY KEY, account_id INTEGER NULL, audience TEXT NOT NULL, title TEXT NOT NULL, body_text TEXT NOT NULL, body_format TEXT NOT NULL, link_url TEXT NOT NULL, status TEXT NOT NULL, read_at TEXT NULL, created_by_account_id INTEGER NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_notifications (id, account_id, audience, title, body_text, body_format, link_url, status, read_at, created_by_account_id, created_at, updated_at) VALUES (1, 7, 'account', 'N7', 'body7', 'plain', '/n7', 'active', NULL, 99, '', ''), (2, 8, 'account', 'N8', 'body8', 'plain', '/n8', 'active', NULL, 99, '', ''), (3, NULL, 'all', 'All', 'body all', 'plain', '/all', 'active', NULL, 99, '', '')");
+    $pdo->exec("INSERT INTO sr_notification_reads (notification_id, account_id, read_at) VALUES (3, 7, '')");
+    $pdo->exec("INSERT INTO sr_notification_deliveries (id, notification_id, channel, recipient, status, provider_message_id, error_message, attempted_at, created_at, updated_at) VALUES (1, 1, 'email', 'member7@example.test', 'failed', 'provider7', 'error7', '', '', ''), (2, 2, 'email', 'member8@example.test', 'failed', 'provider8', 'error8', '', '', ''), (3, 3, 'site', '', 'queued', '', '', NULL, '', ''), (4, 3, 'email', 'member7@example.test', 'queued', '', '', NULL, '', ''), (5, 3, 'email', 'member8@example.test', 'queued', '', '', NULL, '', '')");
+
+    $pdo->exec('CREATE TABLE sr_point_balances (account_id INTEGER PRIMARY KEY, balance INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_point_transactions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, amount INTEGER NOT NULL, balance_after INTEGER NOT NULL, transaction_type TEXT NOT NULL, reason TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, created_by_account_id INTEGER NULL, expires_at TEXT NULL, expires_remaining INTEGER NOT NULL, expired_at TEXT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_point_expiration_consumptions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, consume_transaction_id INTEGER NOT NULL, source_transaction_id INTEGER NOT NULL, amount INTEGER NOT NULL, source_expires_at TEXT NOT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_point_balances (account_id, balance, created_at, updated_at) VALUES (7, 70, '', ''), (8, 80, '', '')");
+    $pdo->exec("INSERT INTO sr_point_transactions (id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at) VALUES (1, 7, 100, 100, 'earn', 'earn7', 'quiz', '1', 99, '2026-12-31', 30, NULL, ''), (2, 8, 100, 100, 'earn', 'earn8', 'quiz', '2', 99, '2026-12-31', 30, NULL, '')");
+    $pdo->exec("INSERT INTO sr_point_expiration_consumptions (id, account_id, consume_transaction_id, source_transaction_id, amount, source_expires_at, created_at) VALUES (1, 7, 3, 1, 30, '2026-12-31', ''), (2, 8, 4, 2, 30, '2026-12-31', '')");
+
+    $pdo->exec('CREATE TABLE sr_reward_balances (account_id INTEGER PRIMARY KEY, balance INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_reward_transactions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, amount INTEGER NOT NULL, balance_after INTEGER NOT NULL, transaction_type TEXT NOT NULL, reason TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, created_by_account_id INTEGER NULL, created_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_reward_withdrawal_requests (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, amount INTEGER NOT NULL, bank_name TEXT NOT NULL, bank_account_number TEXT NOT NULL, bank_account_holder TEXT NOT NULL, requester_note TEXT NOT NULL, status TEXT NOT NULL, admin_note TEXT NOT NULL, transaction_id INTEGER NULL, processed_by_account_id INTEGER NULL, requested_at TEXT NOT NULL, processed_at TEXT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_reward_balances (account_id, balance, created_at, updated_at) VALUES (7, 700, '', ''), (8, 800, '', '')");
+    $pdo->exec("INSERT INTO sr_reward_transactions (id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, created_at) VALUES (1, 7, 700, 700, 'earn', 'reward7', 'community', '7', 99, ''), (2, 8, 800, 800, 'earn', 'reward8', 'community', '8', 99, '')");
+    $pdo->exec("INSERT INTO sr_reward_withdrawal_requests (id, account_id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, admin_note, transaction_id, processed_by_account_id, requested_at, processed_at, updated_at) VALUES (1, 7, 600, 'RewardBank7', '222-7', 'RewardHolder7', 'note7', 'completed', 'admin7', 1, 99, '', '', ''), (2, 8, 500, 'RewardBank8', '222-8', 'RewardHolder8', 'note8', 'pending', '', NULL, NULL, '', NULL, '')");
+
+    $assetExchangeExport = include 'modules/asset_exchange/privacy-export.php';
+    $couponExport = include 'modules/coupon/privacy-export.php';
+    $depositExport = include 'modules/deposit/privacy-export.php';
+    $notificationExport = include 'modules/notification/privacy-export.php';
+    $pointExport = include 'modules/point/privacy-export.php';
+    $rewardExport = include 'modules/reward/privacy-export.php';
+
+    foreach ([
+        'asset_exchange' => $assetExchangeExport,
+        'coupon' => $couponExport,
+        'deposit' => $depositExport,
+        'notification' => $notificationExport,
+        'point' => $pointExport,
+        'reward' => $rewardExport,
+    ] as $moduleKey => $export) {
+        sr_privacy_export_runtime_assert(is_callable($export), $moduleKey . ' retained privacy export contract must be callable.');
+    }
+
+    $assetExchange = $assetExchangeExport($pdo, 7);
+    sr_privacy_export_runtime_assert(count($assetExchange['asset_exchange_logs'] ?? []) === 1 && ($assetExchange['asset_exchange_logs'][0]['exchange_group_id'] ?? '') === 'ex7', 'asset_exchange retained export must include only target exchange logs.');
+    sr_privacy_export_runtime_assert(array_key_exists('fee_amount', $assetExchange['asset_exchange_logs'][0] ?? []), 'asset_exchange retained export must include fee evidence.');
+
+    $coupon = $couponExport($pdo, 7);
+    sr_privacy_export_runtime_assert(count($coupon['coupon_issues'] ?? []) === 1 && ($coupon['coupon_issues'][0]['coupon_key'] ?? '') === 'coupon7', 'coupon retained export must include only target issues.');
+    sr_privacy_export_runtime_assert(count($coupon['coupon_redemptions'] ?? []) === 1 && (int) ($coupon['coupon_redemptions'][0]['refunded_by_account_id'] ?? 0) === 99, 'coupon retained export must include refund operator evidence.');
+
+    $deposit = $depositExport($pdo, 7);
+    sr_privacy_export_runtime_assert((int) ($deposit['balance']['balance'] ?? 0) === 500, 'deposit retained export must include target balance.');
+    sr_privacy_export_runtime_assert(count($deposit['transactions'] ?? []) === 1 && (int) ($deposit['transactions'][0]['created_by_account_id'] ?? 0) === 99, 'deposit retained export must include target transaction operator.');
+    sr_privacy_export_runtime_assert(count($deposit['refund_requests'] ?? []) === 1 && ($deposit['refund_requests'][0]['bank_account_number'] ?? '') === '111-7', 'deposit retained export must include target refund account evidence.');
+
+    $notification = $notificationExport($pdo, 7);
+    sr_privacy_export_runtime_assert(count($notification['notifications'] ?? []) === 2, 'notification retained export must include account and all-audience notifications.');
+    sr_privacy_export_runtime_assert(count($notification['reads'] ?? []) === 1, 'notification retained export must include target read rows.');
+    sr_privacy_export_runtime_assert(count($notification['deliveries'] ?? []) === 3, 'notification retained export must include site deliveries, account delivery, and target email delivery only.');
+    $deliveryRecipients = array_map(static fn (array $row): string => (string) ($row['recipient'] ?? ''), $notification['deliveries'] ?? []);
+    sr_privacy_export_runtime_assert(in_array('member7@example.test', $deliveryRecipients, true) && !in_array('member8@example.test', $deliveryRecipients, true), 'notification retained export must not include other account email deliveries.');
+    sr_privacy_export_runtime_assert(in_array('provider7', array_map(static fn (array $row): string => (string) ($row['provider_message_id'] ?? ''), $notification['deliveries'] ?? []), true), 'notification retained export must include provider message evidence.');
+
+    $point = $pointExport($pdo, 7);
+    sr_privacy_export_runtime_assert((int) ($point['balance']['balance'] ?? 0) === 70, 'point retained export must include target balance.');
+    sr_privacy_export_runtime_assert(count($point['transactions'] ?? []) === 1 && ($point['transactions'][0]['expires_at'] ?? '') === '2026-12-31', 'point retained export must include target expiration evidence.');
+    sr_privacy_export_runtime_assert(count($point['expiration_consumptions'] ?? []) === 1 && (int) ($point['expiration_consumptions'][0]['source_transaction_id'] ?? 0) === 1, 'point retained export must include target expiration consumption mapping.');
+
+    $reward = $rewardExport($pdo, 7);
+    sr_privacy_export_runtime_assert((int) ($reward['balance']['balance'] ?? 0) === 700, 'reward retained export must include target balance.');
+    sr_privacy_export_runtime_assert(count($reward['transactions'] ?? []) === 1 && (int) ($reward['transactions'][0]['created_by_account_id'] ?? 0) === 99, 'reward retained export must include target transaction operator.');
+    sr_privacy_export_runtime_assert(count($reward['withdrawal_requests'] ?? []) === 1 && ($reward['withdrawal_requests'][0]['bank_account_number'] ?? '') === '222-7', 'reward retained export must include target withdrawal account evidence.');
+}
+
 sr_privacy_export_runtime_check_quiz();
 sr_privacy_export_runtime_check_survey();
 sr_privacy_export_runtime_check_content();
 sr_privacy_export_runtime_check_community();
+sr_privacy_export_runtime_check_retained_modules();
 
 if ($errors !== []) {
     fwrite(STDERR, "privacy export runtime checks failed:\n");
