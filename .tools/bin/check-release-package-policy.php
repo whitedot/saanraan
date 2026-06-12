@@ -107,6 +107,8 @@ foreach ([
         'release-installed-gate-status.php',
         'release-package-dry-run.php --manifest',
         'manifest-sha256',
+        'composer install --no-dev --prefer-dist',
+        'composer update ezyang/htmlpurifier --no-dev --prefer-dist',
         'GitHub source zip',
         'modules/htmlpurifier/vendor/ezyang/htmlpurifier/',
         'modules/htmlpurifier/DEPENDENCY.md',
