@@ -146,11 +146,21 @@ php .tools/bin/release-installed-gate-status.php
 => config-mode: 0600
 => config-owner-group: www-data:www-data
 => sr-is-installed: no
+=> gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0
 => unresolved-gates: 13
 
 php .tools/bin/release-installed-gate-status.php --markdown-table
 => 현재 CLI 사용자가 `config/config.php`를 읽지 못해 read-only 설치 DB 게이트 4개가 `환경 미준비`, base URL/계정/더미 데이터가 필요한 9개 게이트가 `미실행`인 Markdown 표를 출력
 => unresolved-gates: 13과 같은 13개 행을 아래 설치 DB 게이트 표에 전사
+
+php .tools/bin/release-installed-gate-status.php --json
+=> result_counts: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0
+=> unresolved_gates: 13
+
+php .tools/bin/release-installed-gate-status.php --fail-on-unresolved
+=> gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0
+=> unresolved-gates: 13
+=> exit 1
 
 SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-gate-status.php --run-browser-qa
 => browser-qa-base-url: http://127.0.0.1:8082
@@ -161,7 +171,7 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 
 ## 릴리스 후보 필수 설치 DB 게이트
 
-이번 기록은 릴리스 후보 판정이 아니므로 필수 설치 DB 게이트를 통과로 계산하지 않는다. `php .tools/bin/release-installed-gate-status.php`가 현재 환경에서 `installed.lock`은 있으나 `config/config.php`가 현재 CLI 사용자에게 읽히지 않아 `sr-is-installed: no`라고 보고했다. `php .tools/bin/release-installed-gate-status.php --markdown-table` 출력은 같은 13개 미해결 행을 표 형태로 전사할 수 있음을 확인했다. 설치 DB, 인증 계정, 더미 데이터, 브라우저 확인이 필요한 항목은 아래처럼 미실행 또는 환경 미준비로 남긴다.
+이번 기록은 릴리스 후보 판정이 아니므로 필수 설치 DB 게이트를 통과로 계산하지 않는다. `php .tools/bin/release-installed-gate-status.php`가 현재 환경에서 `installed.lock`은 있으나 `config/config.php`가 현재 CLI 사용자에게 읽히지 않아 `sr-is-installed: no`라고 보고했다. `php .tools/bin/release-installed-gate-status.php --markdown-table` 출력은 같은 13개 미해결 행을 표 형태로 전사할 수 있음을 확인했고, `php .tools/bin/release-installed-gate-status.php --json` 출력은 같은 분포를 구조화 증거로 남긴다. `--fail-on-unresolved`는 현재 미해결 13개 상태를 exit 1로 반환하므로 CI/릴리스 스크립트에서 릴리스 통과 오판을 막는 자동화 게이트로 쓸 수 있다. 설치 DB, 인증 계정, 더미 데이터, 브라우저 확인이 필요한 항목은 아래처럼 미실행 또는 환경 미준비로 남긴다.
 
 | 게이트 | 결과 | 환경 | 메모 |
 | --- | --- | --- | --- |
