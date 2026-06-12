@@ -40,6 +40,10 @@ if ($title === '') {
 
 if ($errors === []) {
     $now = sr_now();
+    $sourceBodyText = (string) ($sourcePopup['body_text'] ?? '');
+    if ((string) ($sourcePopup['body_format'] ?? 'plain') === 'html') {
+        $sourceBodyText = sr_sanitize_rich_text_html($sourceBodyText);
+    }
     try {
         $pdo->beginTransaction();
         $stmt = $pdo->prepare(
@@ -50,7 +54,7 @@ if ($errors === []) {
         );
         $stmt->execute([
             'title' => $title,
-            'body_text' => (string) ($sourcePopup['body_text'] ?? ''),
+            'body_text' => $sourceBodyText,
             'body_format' => (string) ($sourcePopup['body_format'] ?? 'plain') === 'html' ? 'html' : 'plain',
             'status' => 'draft',
             'skin_key' => (string) ($sourcePopup['skin_key'] ?? 'basic'),
@@ -62,8 +66,8 @@ if ($errors === []) {
         ]);
         $newPopupId = (int) $pdo->lastInsertId();
         if ((string) ($sourcePopup['body_format'] ?? 'plain') === 'html') {
-            $bodyText = sr_popup_layer_clone_body_files($popupId, $newPopupId, (string) ($sourcePopup['body_text'] ?? ''));
-            if ($bodyText !== (string) ($sourcePopup['body_text'] ?? '')) {
+            $bodyText = sr_sanitize_rich_text_html(sr_popup_layer_clone_body_files($popupId, $newPopupId, $sourceBodyText));
+            if ($bodyText !== $sourceBodyText) {
                 $pdo->prepare('UPDATE sr_popup_layers SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                     'body_text' => $bodyText,
                     'updated_at' => $now,

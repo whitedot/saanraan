@@ -1,0 +1,9 @@
+{
+  "name": "saanraan/htmlpurifier",
+  "description": "Optional HTML Purifier package path for saanraan rich text sanitization.",
+  "type": "saanraan-module",
+  "license": "MIT",
+  "require": {
+    "ezyang/htmlpurifier": "^4.19"
+  }
+}

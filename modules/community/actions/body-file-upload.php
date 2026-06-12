@@ -6,13 +6,9 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
 try {
     if (sr_request_method() !== 'POST') {
-        http_response_code(405);
-        echo json_encode(['error' => ['message' => '허용되지 않는 요청입니다.']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        sr_finish_response();
+        sr_json_response(['error' => ['message' => '허용되지 않는 요청입니다.']], 405);
     }
 
     $account = sr_member_require_login($pdo);
@@ -44,25 +40,23 @@ try {
         throw new RuntimeException((string) $privacyConsentErrors[0]);
     }
 
-    $stored = sr_community_upload_body_file($pdo, (int) $account['id'], $board, $upload, sr_post_string('upload_token', 64), $post);
+    $uploadToken = sr_post_string_without_truncation('upload_token', 32) ?? '';
+    $stored = sr_community_upload_body_file($pdo, (int) $account['id'], $board, $upload, $uploadToken, $post);
     try {
         sr_community_cleanup_expired_body_files($pdo, 5);
     } catch (Throwable $cleanupException) {
         sr_log_exception($cleanupException, 'community_body_file_opportunistic_cleanup_failed');
     }
-    echo json_encode([
+    sr_json_response([
         'url' => (string) $stored['url'],
         'width' => (int) ($stored['width'] ?? 0),
         'height' => (int) ($stored['height'] ?? 0),
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ]);
 } catch (Throwable $exception) {
     sr_log_exception($exception, 'community_body_file_upload_failed');
-    http_response_code(400);
-    echo json_encode([
+    sr_json_response([
         'error' => [
             'message' => $exception instanceof RuntimeException ? $exception->getMessage() : '본문 이미지 업로드를 처리할 수 없습니다.',
         ],
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ], 400);
 }
-
-sr_finish_response();

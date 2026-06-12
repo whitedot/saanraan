@@ -169,6 +169,69 @@ function sr_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function sr_json_response(mixed $payload, int $statusCode = 200, array $headers = []): void
+{
+    if ($statusCode !== 200) {
+        http_response_code($statusCode);
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+    foreach ($headers as $header) {
+        if (is_string($header) && sr_response_header_is_allowed($header)) {
+            header($header);
+        }
+    }
+
+    $encoded = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    if (!is_string($encoded)) {
+        http_response_code(500);
+        $encoded = '{"ok":false,"message":"JSON response encoding failed."}';
+    }
+
+    echo $encoded;
+    sr_finish_response();
+}
+
+function sr_js_json_encode(mixed $value): string
+{
+    $encoded = json_encode(
+        $value,
+        JSON_UNESCAPED_UNICODE
+            | JSON_UNESCAPED_SLASHES
+            | JSON_HEX_TAG
+            | JSON_HEX_AMP
+            | JSON_HEX_APOS
+            | JSON_HEX_QUOT
+            | JSON_INVALID_UTF8_SUBSTITUTE
+    );
+
+    return is_string($encoded) ? $encoded : 'null';
+}
+
+function sr_response_header_is_allowed(string $header): bool
+{
+    if (preg_match('/[\x00-\x1F\x7F]/', $header) === 1) {
+        return false;
+    }
+
+    $header = strtolower(ltrim($header));
+    foreach ([
+        'cache-control:',
+        'content-disposition:',
+        'content-length:',
+        'content-security-policy:',
+        'content-type:',
+        'pragma:',
+        'x-content-type-options:',
+    ] as $prefix) {
+        if (str_starts_with($header, $prefix)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function sr_linkify_plain_text_urls(string $value): string
 {
     if ($value === '') {
@@ -237,6 +300,148 @@ function sr_rich_text_allowed_html_tags(): array
 
 function sr_sanitize_rich_text_html(string $html): string
 {
+    $purifiedHtml = sr_sanitize_rich_text_html_with_purifier($html);
+    if (is_string($purifiedHtml)) {
+        $html = $purifiedHtml;
+    }
+
+    return sr_sanitize_rich_text_html_fallback($html);
+}
+
+function sr_sanitize_rich_text_html_with_purifier(string $html): ?string
+{
+    if (!sr_rich_text_purifier_available()) {
+        return null;
+    }
+
+    try {
+        $config = sr_rich_text_purifier_config();
+        $purifier = new HTMLPurifier($config);
+        $purifiedHtml = $purifier->purify($html);
+        return is_string($purifiedHtml) ? $purifiedHtml : null;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'rich_text_html_purifier');
+        return null;
+    }
+}
+
+function sr_rich_text_purifier_config(): HTMLPurifier_Config
+{
+    $config = HTMLPurifier_Config::createDefault();
+    $config->set('Core.Encoding', 'UTF-8');
+    $config->set('HTML.Doctype', 'HTML 4.01 Transitional');
+    $config->set('HTML.Allowed', 'p,br,strong,em,u,s,blockquote,ul,ol,li,a[href|rel],h2,h3,span[class|data-sr-embed-manager-ref|data-sr-embed-manager-target-module|data-sr-embed-manager-target-type|data-sr-embed-manager-target-id|data-sr-embed-manager-variant|data-sr-embed-manager-label],img[src|alt|width|height]');
+    $config->set('Attr.AllowedClasses', ['sr-embed-manager-marker']);
+    $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
+    $config->set('HTML.Nofollow', true);
+    $config->set('HTML.TargetBlank', false);
+
+    $cacheDir = sr_rich_text_purifier_cache_dir();
+    if ($cacheDir !== '') {
+        $config->set('Cache.SerializerPath', $cacheDir);
+    } else {
+        $config->set('Cache.DefinitionImpl', null);
+    }
+
+    $config->set('HTML.DefinitionID', 'saanraan-rich-text');
+    $config->set('HTML.DefinitionRev', 1);
+    $definition = $config->maybeGetRawHTMLDefinition();
+    if ($definition !== null) {
+        foreach (['data-sr-embed-manager-ref', 'data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-target-id', 'data-sr-embed-manager-variant', 'data-sr-embed-manager-label'] as $attributeName) {
+            $definition->addAttribute('span', $attributeName, 'Text');
+        }
+    }
+
+    return $config;
+}
+
+function sr_rich_text_purifier_status(): array
+{
+    $autoloadPath = '';
+    foreach (sr_rich_text_purifier_autoload_paths() as $path) {
+        if (is_file($path)) {
+            $autoloadPath = $path;
+            break;
+        }
+    }
+
+    $available = sr_rich_text_purifier_available();
+    $cacheDir = sr_rich_text_purifier_cache_dir();
+    $definitionImpl = '';
+    if ($available) {
+        try {
+            $config = sr_rich_text_purifier_config();
+            $definitionImpl = (string) $config->get('Cache.DefinitionImpl');
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'rich_text_html_purifier_status');
+        }
+    }
+
+    return [
+        'available' => $available,
+        'version' => $available && class_exists('HTMLPurifier') ? (string) HTMLPurifier::VERSION : '',
+        'autoload_path' => $autoloadPath !== '' ? sr_rich_text_purifier_relative_path($autoloadPath) : '',
+        'cache_dir' => $cacheDir !== '' ? sr_rich_text_purifier_relative_path($cacheDir) : '',
+        'cache_writable' => $cacheDir !== '' && is_writable($cacheDir),
+        'definition_impl' => $definitionImpl,
+    ];
+}
+
+function sr_rich_text_purifier_relative_path(string $path): string
+{
+    $root = rtrim(str_replace('\\', '/', SR_ROOT), '/');
+    $normalizedPath = str_replace('\\', '/', $path);
+    if ($root !== '' && str_starts_with($normalizedPath, $root . '/')) {
+        return substr($normalizedPath, strlen($root) + 1);
+    }
+
+    return $normalizedPath;
+}
+
+function sr_rich_text_purifier_available(): bool
+{
+    if (class_exists('HTMLPurifier') && class_exists('HTMLPurifier_Config')) {
+        return true;
+    }
+
+    foreach (sr_rich_text_purifier_autoload_paths() as $path) {
+        if (is_file($path)) {
+            require_once $path;
+            if (class_exists('HTMLPurifier') && class_exists('HTMLPurifier_Config')) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function sr_rich_text_purifier_autoload_paths(): array
+{
+    return [
+        SR_ROOT . '/modules/htmlpurifier/vendor/autoload.php',
+        SR_ROOT . '/modules/htmlpurifier/vendor/ezyang/htmlpurifier/library/HTMLPurifier.auto.php',
+        SR_ROOT . '/vendor/autoload.php',
+        SR_ROOT . '/vendor/ezyang/htmlpurifier/library/HTMLPurifier.auto.php',
+    ];
+}
+
+function sr_rich_text_purifier_cache_dir(): string
+{
+    $cacheDir = SR_ROOT . '/storage/cache/htmlpurifier';
+    if (is_dir($cacheDir)) {
+        return is_writable($cacheDir) ? $cacheDir : '';
+    }
+
+    if (is_dir(SR_ROOT . '/storage') && is_writable(SR_ROOT . '/storage')) {
+        return mkdir($cacheDir, 0755, true) || is_dir($cacheDir) ? $cacheDir : '';
+    }
+
+    return '';
+}
+
+function sr_sanitize_rich_text_html_fallback(string $html): string
+{
     if (!class_exists('DOMDocument')) {
         return sr_plain_text_html(strip_tags($html));
     }
@@ -299,6 +504,9 @@ function sr_sanitize_rich_text_html_node(DOMNode $node): string
     }
 
     $attributes = sr_sanitize_rich_text_html_attributes($node, $tagName, $allowedTags[$tagName]);
+    if ($tagName === 'a' && $attributes === '') {
+        return $children;
+    }
     if ($tagName === 'img') {
         return $attributes === '' ? '' : '<img' . $attributes . '>';
     }
@@ -1037,6 +1245,18 @@ function sr_redirect(string $url): void
 
 function sr_redirect_external(string $url): void
 {
+    if (!sr_is_public_http_url($url)) {
+        sr_render_error(500, sr_t('error.external_redirect_invalid'));
+    }
+
+    sr_enforce_request_contract('before_redirect');
+
+    header('Location: ' . $url, true, 302);
+    sr_finish_response();
+}
+
+function sr_redirect_trusted_external(string $url): void
+{
     if (!sr_is_http_url($url)) {
         sr_render_error(500, sr_t('error.external_redirect_invalid'));
     }
@@ -1132,13 +1352,31 @@ function sr_get_string_without_truncation(string $key, int $maxLength): ?string
     return strlen($value) <= $maxLength ? $value : null;
 }
 
-function sr_send_download_headers(string $contentType, string $filename): void
+function sr_send_download_headers(string $contentType, string $filename, string $disposition = 'attachment', ?int $contentLength = null, string $cacheControl = 'no-store, no-cache, must-revalidate'): void
 {
     header('Content-Type: ' . sr_download_content_type($contentType));
-    header('Content-Disposition: attachment; filename="' . sr_download_filename($filename) . '"');
+    header('Content-Disposition: ' . sr_download_content_disposition($filename, $disposition));
+    if ($contentLength !== null && $contentLength > 0) {
+        header('Content-Length: ' . (string) $contentLength);
+    }
     header('X-Content-Type-Options: nosniff');
-    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Cache-Control: ' . sr_download_cache_control($cacheControl));
     header('Pragma: no-cache');
+}
+
+function sr_send_file_headers(string $contentType, ?int $contentLength = null, string $cacheControl = 'private, max-age=300', array $headers = []): void
+{
+    header('Content-Type: ' . sr_download_content_type($contentType));
+    if ($contentLength !== null && $contentLength > 0) {
+        header('Content-Length: ' . (string) $contentLength);
+    }
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: ' . sr_download_cache_control($cacheControl));
+    foreach ($headers as $header) {
+        if (is_string($header) && sr_response_header_is_allowed($header)) {
+            header($header);
+        }
+    }
 }
 
 function sr_download_content_type(string $contentType): string
@@ -1169,6 +1407,30 @@ function sr_download_filename(string $filename): string
     }
 
     return substr($filename, 0, 120);
+}
+
+function sr_download_content_disposition(string $filename, string $disposition = 'attachment'): string
+{
+    $disposition = strtolower(trim($disposition));
+    if (!in_array($disposition, ['attachment', 'inline'], true)) {
+        $disposition = 'attachment';
+    }
+
+    return $disposition . '; filename="' . sr_download_filename($filename) . '"';
+}
+
+function sr_download_cache_control(string $cacheControl): string
+{
+    $cacheControl = trim($cacheControl);
+    if ($cacheControl === '' || preg_match('/[\x00-\x1F\x7F]/', $cacheControl) === 1) {
+        return 'no-store, no-cache, must-revalidate';
+    }
+
+    if (preg_match('/\A[A-Za-z0-9][A-Za-z0-9\s,=_\-;]*\z/', $cacheControl) !== 1) {
+        return 'no-store, no-cache, must-revalidate';
+    }
+
+    return $cacheControl;
 }
 
 function sr_absolute_url(?array $site, string $path): string

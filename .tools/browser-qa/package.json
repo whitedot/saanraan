@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "test": "playwright test -c playwright.config.js",
+    "test:ckeditor": "playwright test -c playwright.config.js tests/ckeditor-browser-smoke.spec.js --project=chromium-full",
+    "test:core": "playwright test -c playwright.config.js --project=chromium-full"
+  },
   "devDependencies": {
     "@axe-core/playwright": "4.11.0",
     "@playwright/test": "1.60.0"

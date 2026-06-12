@@ -17,6 +17,11 @@ function sr_popup_layer_body_file_upload_max_bytes(): int
     return 5 * 1024 * 1024;
 }
 
+function sr_popup_layer_body_file_temporary_ttl_seconds(): int
+{
+    return 86400;
+}
+
 function sr_popup_layer_body_file_upload_url(): string
 {
     return sr_url('/admin/popup-layers/body-files/upload');
@@ -284,6 +289,52 @@ function sr_popup_layer_cleanup_body_files_for_deleted_layers(array $popupLayerI
     return $deleted;
 }
 
+function sr_popup_layer_cleanup_expired_body_files(PDO $pdo, int $limit = 10): array
+{
+    unset($pdo);
+    $limit = max(1, min(50, $limit));
+    $root = SR_ROOT . '/storage/popup_layer/body/tmp';
+    if (!is_dir($root)) {
+        return ['deleted' => 0, 'failed' => 0];
+    }
+
+    $deleted = 0;
+    $failed = 0;
+    $expiresBefore = time() - sr_popup_layer_body_file_temporary_ttl_seconds();
+    foreach (scandir($root) ?: [] as $token) {
+        if ($deleted + $failed >= $limit || !is_string($token) || preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+            continue;
+        }
+        $directory = $root . '/' . $token;
+        if (!is_dir($directory) || filemtime($directory) > $expiresBefore) {
+            continue;
+        }
+        foreach (scandir($directory) ?: [] as $entry) {
+            if ($deleted + $failed >= $limit || !is_string($entry) || $entry === '.' || $entry === '..') {
+                continue;
+            }
+            $cleanEntry = sr_popup_layer_body_file_clean_name($entry);
+            if ($cleanEntry === '') {
+                continue;
+            }
+            $path = $directory . '/' . $cleanEntry;
+            if (is_file($path) && filemtime($path) > $expiresBefore) {
+                continue;
+            }
+            $key = 'popup_layer/body/tmp/' . $token . '/' . $cleanEntry;
+            if (sr_storage_delete('local', $key)) {
+                $deleted++;
+            } else {
+                $failed++;
+                sr_log_exception(new RuntimeException('만료된 팝업레이어 임시 본문 이미지 정리에 실패했습니다: ' . $key), 'popup_layer_body_file_tmp_cleanup_failed');
+            }
+        }
+        @rmdir($directory);
+    }
+
+    return ['deleted' => $deleted, 'failed' => $failed];
+}
+
 function sr_popup_layer_send_body_file(PDO $pdo, int $popupLayerId, string $fileName, string $tmpToken = ''): void
 {
     if ($tmpToken !== '') {
@@ -310,10 +361,7 @@ function sr_popup_layer_send_body_file(PDO $pdo, int $popupLayerId, string $file
     if (!is_string($path)) {
         sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
     }
-    header('Content-Type: ' . $mimeType);
-    header('Content-Length: ' . (string) (int) ($head['content_length'] ?? 0));
-    header('X-Content-Type-Options: nosniff');
-    header('Cache-Control: private, max-age=300');
+    sr_send_file_headers($mimeType, (int) ($head['content_length'] ?? 0), 'private, max-age=300');
     readfile($path);
     sr_finish_response();
 }

@@ -162,6 +162,18 @@ function sr_community_author_public_name_snapshot_column_exists(PDO $pdo, string
     }
 
     try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $pdo->query('PRAGMA table_info(' . $tableName . ')');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                if ((string) ($row['name'] ?? '') === 'author_public_name_snapshot') {
+                    $exists[$cacheKey] = true;
+                    return true;
+                }
+            }
+            $exists[$cacheKey] = false;
+            return false;
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*)
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -334,6 +346,18 @@ function sr_community_post_secret_column_exists(PDO $pdo): bool
     }
 
     try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $pdo->query('PRAGMA table_info(sr_community_posts)');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                if ((string) ($row['name'] ?? '') === 'is_secret') {
+                    $existsByConnection[$key] = true;
+                    return true;
+                }
+            }
+            $existsByConnection[$key] = false;
+            return false;
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*)
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -403,6 +427,16 @@ function sr_community_comment_thread_columns_exist(PDO $pdo): bool
     }
 
     try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $columns = [];
+            $stmt = $pdo->query('PRAGMA table_info(sr_community_comments)');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                $columns[(string) ($row['name'] ?? '')] = true;
+            }
+            $existsByConnection[$key] = isset($columns['parent_comment_id'], $columns['thread_root_id'], $columns['depth']);
+            return $existsByConnection[$key];
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*)
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -433,6 +467,18 @@ function sr_community_comment_secret_column_exists(PDO $pdo): bool
     }
 
     try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $pdo->query('PRAGMA table_info(sr_community_comments)');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                if ((string) ($row['name'] ?? '') === 'is_secret') {
+                    $existsByConnection[$key] = true;
+                    return true;
+                }
+            }
+            $existsByConnection[$key] = false;
+            return false;
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*)
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -1991,153 +2037,10 @@ function sr_community_body_text_is_empty(string $bodyText, string $bodyFormat): 
 
 function sr_community_allowed_post_html_tags(): array
 {
-    return [
-        'p' => [],
-        'br' => [],
-        'strong' => [],
-        'em' => [],
-        'u' => [],
-        's' => [],
-        'blockquote' => [],
-        'ul' => [],
-        'ol' => [],
-        'li' => [],
-        'a' => ['href'],
-        'h2' => [],
-        'h3' => [],
-        'span' => ['class', 'data-sr-embed-manager-ref', 'data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-target-id', 'data-sr-embed-manager-variant', 'data-sr-embed-manager-label'],
-        'img' => ['src', 'alt', 'width', 'height'],
-    ];
+    return sr_rich_text_allowed_html_tags();
 }
 
 function sr_community_sanitize_post_html(string $html): string
 {
-    if (!class_exists('DOMDocument')) {
-        return sr_community_plain_text_html(strip_tags($html));
-    }
-
-    $document = new DOMDocument('1.0', 'UTF-8');
-    $previous = libxml_use_internal_errors(true);
-    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-community-html-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-    libxml_clear_errors();
-    libxml_use_internal_errors($previous);
-    if (!$loaded) {
-        return '';
-    }
-
-    $root = null;
-    foreach ($document->getElementsByTagName('div') as $div) {
-        if ($div instanceof DOMElement && $div->getAttribute('id') === 'sr-community-html-root') {
-            $root = $div;
-            break;
-        }
-    }
-    if (!$root instanceof DOMElement) {
-        return '';
-    }
-
-    $output = '';
-    foreach ($root->childNodes as $child) {
-        $output .= sr_community_sanitize_post_html_node($child);
-    }
-
-    return trim($output);
-}
-
-function sr_community_sanitize_post_html_node(DOMNode $node): string
-{
-    if ($node instanceof DOMText) {
-        return sr_e($node->wholeText);
-    }
-
-    if (!$node instanceof DOMElement) {
-        return '';
-    }
-
-    $tagName = strtolower($node->tagName);
-    if (in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed', 'form'], true)) {
-        return '';
-    }
-
-    $allowedTags = sr_community_allowed_post_html_tags();
-    $children = '';
-    foreach ($node->childNodes as $child) {
-        $children .= sr_community_sanitize_post_html_node($child);
-    }
-
-    if (!isset($allowedTags[$tagName])) {
-        return $children;
-    }
-
-    if ($tagName === 'br') {
-        return '<br>';
-    }
-
-    $attributes = sr_community_sanitize_post_html_attributes($node, $tagName, $allowedTags[$tagName]);
-    if ($tagName === 'img') {
-        return $attributes === '' ? '' : '<img' . $attributes . '>';
-    }
-
-    return '<' . $tagName . $attributes . '>' . $children . '</' . $tagName . '>';
-}
-
-function sr_community_sanitize_post_html_attributes(DOMElement $node, string $tagName, array $allowedAttributes): string
-{
-    $attributes = '';
-    foreach ($allowedAttributes as $attributeName) {
-        if (!$node->hasAttribute($attributeName)) {
-            continue;
-        }
-
-        $value = trim($node->getAttribute($attributeName));
-        if ($attributeName === 'href' || $attributeName === 'src') {
-            if (!sr_is_safe_relative_url($value) && !sr_is_http_url($value)) {
-                continue;
-            }
-            if ($attributeName === 'src' && sr_is_http_url($value) && strtolower((string) parse_url($value, PHP_URL_SCHEME)) !== 'https') {
-                continue;
-            }
-        } elseif ($attributeName === 'width' || $attributeName === 'height') {
-            if (preg_match('/\A[1-9][0-9]{0,3}\z/', $value) !== 1) {
-                continue;
-            }
-        } elseif ($attributeName === 'alt') {
-            $value = function_exists('mb_substr') ? mb_substr($value, 0, 160) : substr($value, 0, 160);
-        } elseif ($tagName === 'span' && $attributeName === 'class') {
-            $classes = preg_split('/\s+/', $value) ?: [];
-            $allowedClasses = [];
-            foreach ($classes as $className) {
-                if ($className === 'sr-embed-manager-marker') {
-                    $allowedClasses[] = $className;
-                }
-            }
-            if ($allowedClasses === []) {
-                continue;
-            }
-            $value = implode(' ', $allowedClasses);
-        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-ref') {
-            if (preg_match('/\Aem_[a-z0-9_]{6,70}\z/', $value) !== 1) {
-                continue;
-            }
-        } elseif ($tagName === 'span' && in_array($attributeName, ['data-sr-embed-manager-target-module', 'data-sr-embed-manager-target-type', 'data-sr-embed-manager-variant'], true)) {
-            if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) !== 1) {
-                continue;
-            }
-        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-target-id') {
-            if (preg_match('/\A[1-9][0-9]{0,19}\z/', $value) !== 1) {
-                continue;
-            }
-        } elseif ($tagName === 'span' && $attributeName === 'data-sr-embed-manager-label') {
-            $value = preg_replace('/\s+/', ' ', $value) ?? '';
-            $value = function_exists('mb_substr') ? mb_substr($value, 0, 120) : substr($value, 0, 120);
-        }
-
-        $attributes .= ' ' . $attributeName . '="' . sr_e($value) . '"';
-    }
-
-    if ($tagName === 'a' && $attributes !== '') {
-        $attributes .= ' rel="nofollow noopener noreferrer"';
-    }
-
-    return $attributes;
+    return sr_sanitize_rich_text_html($html);
 }

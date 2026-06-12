@@ -156,10 +156,7 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'default'): arr
 
 function sr_ckeditor_public_assets_html(PDO $pdo, string $presetKey = 'default'): string
 {
-    $configJson = json_encode(sr_ckeditor_public_config($pdo, $presetKey), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-    if (!is_string($configJson)) {
-        $configJson = '{}';
-    }
+    $configJson = sr_js_json_encode(sr_ckeditor_public_config($pdo, $presetKey));
 
     return '<script type="application/json" id="sr-ckeditor-config">' . $configJson . '</script>' . PHP_EOL
         . '<script src="' . sr_e(sr_asset_url('/modules/ckeditor/assets/saanraan-ckeditor.js')) . '" defer></script>';

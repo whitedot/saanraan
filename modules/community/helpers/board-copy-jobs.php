@@ -141,7 +141,7 @@ function sr_community_board_copy_job_run(PDO $pdo, int $jobId, int $accountId, a
             throw new RuntimeException('복사 작업을 찾을 수 없습니다.');
         }
         $stage = (string) ($job['stage'] ?? 'prepare');
-        $result = sr_community_board_copy_job_run_stage($pdo, $job, $accountId, $limits);
+        $result = sr_community_board_copy_job_run_stage($pdo, $job, $accountId, $limits, $token);
         $releaseStatus = !empty($result['done']) ? (string) ($result['status'] ?? 'running') : 'running';
         $releaseStage = (string) ($result['stage'] ?? $stage);
         $completedAtSql = $releaseStatus === 'completed' ? ', completed_at = :completed_at' : '';
@@ -180,34 +180,52 @@ function sr_community_board_copy_job_run(PDO $pdo, int $jobId, int $accountId, a
     }
 }
 
-function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accountId, array $limits): array
+function sr_community_board_copy_job_assert_lock(PDO $pdo, int $jobId, string $lockToken): void
+{
+    if ($jobId < 1 || $lockToken === '') {
+        throw new RuntimeException('복사 작업 lock token이 없습니다.');
+    }
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM sr_community_board_copy_jobs WHERE id = :id AND status = 'running' AND lock_token = :lock_token");
+    $stmt->execute([
+        'id' => $jobId,
+        'lock_token' => $lockToken,
+    ]);
+    if ((int) $stmt->fetchColumn() !== 1) {
+        throw new RuntimeException('복사 작업 lock이 만료되었거나 다른 요청이 이어받았습니다.');
+    }
+}
+
+function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accountId, array $limits, string $lockToken): array
 {
     $stage = (string) ($job['stage'] ?? 'prepare');
+    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     if ($stage === 'prepare') {
-        sr_community_board_copy_job_prepare($pdo, $job);
-        sr_community_board_copy_job_refresh_counts($pdo, $job);
+        sr_community_board_copy_job_prepare($pdo, $job, $lockToken);
+        sr_community_board_copy_job_refresh_counts($pdo, $job, $lockToken);
         return ['done' => false, 'stage' => 'board', 'status' => 'running', 'message' => '복사 대상 목록을 준비했습니다.'];
     }
     if ($stage === 'board') {
-        sr_community_board_copy_job_create_board($pdo, $job);
+        sr_community_board_copy_job_create_board($pdo, $job, $lockToken);
         return ['done' => false, 'stage' => 'posts', 'status' => 'running', 'message' => '대상 게시판과 카테고리를 만들었습니다.'];
     }
     if ($stage === 'posts') {
-        return sr_community_board_copy_job_copy_posts($pdo, $job, (int) ($limits['posts'] ?? 50));
+        return sr_community_board_copy_job_copy_posts($pdo, $job, (int) ($limits['posts'] ?? 50), $lockToken);
     }
     if ($stage === 'comments') {
-        return sr_community_board_copy_job_copy_comments($pdo, $job, (int) ($limits['comments'] ?? 300));
+        return sr_community_board_copy_job_copy_comments($pdo, $job, (int) ($limits['comments'] ?? 300), $lockToken);
     }
     if ($stage === 'link_refs') {
-        return sr_community_board_copy_job_skip_link_refs($pdo, $job);
+        return sr_community_board_copy_job_skip_link_refs($pdo, $job, $lockToken);
     }
     if ($stage === 'attachments') {
-        return sr_community_board_copy_job_copy_attachments($pdo, $job, (int) ($limits['attachments'] ?? 50));
+        return sr_community_board_copy_job_copy_attachments($pdo, $job, (int) ($limits['attachments'] ?? 50), $lockToken);
     }
     if ($stage === 'series') {
-        return sr_community_board_copy_job_copy_series($pdo, $job);
+        return sr_community_board_copy_job_copy_series($pdo, $job, $lockToken);
     }
     if ($stage === 'verify') {
+        sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
         sr_community_board_copy_job_verify($pdo, $job);
         return ['done' => false, 'stage' => 'complete', 'status' => 'running', 'message' => '복사 결과를 확인했습니다.'];
     }
@@ -215,7 +233,7 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
         return ['done' => true, 'stage' => 'complete', 'status' => 'completed', 'message' => '게시판 배치 복사가 완료되었습니다.'];
     }
     if ($stage === 'cleanup') {
-        $cleanupFailed = sr_community_board_copy_job_cleanup($pdo, $job);
+        $cleanupFailed = sr_community_board_copy_job_cleanup($pdo, $job, $lockToken);
         if ($cleanupFailed > 0) {
             return [
                 'done' => true,
@@ -231,10 +249,11 @@ function sr_community_board_copy_job_run_stage(PDO $pdo, array $job, int $accoun
     throw new RuntimeException('복사 작업 단계가 올바르지 않습니다.');
 }
 
-function sr_community_board_copy_job_prepare(PDO $pdo, array $job): void
+function sr_community_board_copy_job_prepare(PDO $pdo, array $job, string $lockToken): void
 {
     $jobId = (int) $job['id'];
     $boardId = (int) $job['source_board_id'];
+    sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
     $now = sr_now();
     $insert = $pdo->prepare(
         'INSERT IGNORE INTO sr_community_board_copy_job_maps (job_id, entity_type, source_id, status, created_at, updated_at)
@@ -252,9 +271,11 @@ function sr_community_board_copy_job_prepare(PDO $pdo, array $job): void
         $sources['series_item'] = 'SELECT si.id FROM sr_community_series_items si INNER JOIN sr_community_posts p ON p.id = si.post_id INNER JOIN sr_community_series s ON s.id = si.series_id WHERE s.board_id = :board_id AND p.board_id = s.board_id ORDER BY si.id ASC';
     }
     foreach ($sources as $type => $sql) {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['board_id' => $boardId]);
         foreach ($stmt->fetchAll() as $row) {
+            sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
             $insert->execute([
                 'job_id' => $jobId,
                 'entity_type' => $type,
@@ -267,9 +288,10 @@ function sr_community_board_copy_job_prepare(PDO $pdo, array $job): void
     }
 }
 
-function sr_community_board_copy_job_refresh_counts(PDO $pdo, array $job): void
+function sr_community_board_copy_job_refresh_counts(PDO $pdo, array $job, string $lockToken): void
 {
     $jobId = (int) $job['id'];
+    sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
     $counts = sr_community_board_copy_job_json($job, 'counts_json');
     foreach ([
         'post' => 'posts',
@@ -301,11 +323,12 @@ function sr_community_board_copy_job_refresh_counts(PDO $pdo, array $job): void
         ]);
 }
 
-function sr_community_board_copy_job_create_board(PDO $pdo, array $job): void
+function sr_community_board_copy_job_create_board(PDO $pdo, array $job, string $lockToken): void
 {
     if ((int) ($job['target_board_id'] ?? 0) > 0) {
         return;
     }
+    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     $source = sr_community_board_by_id($pdo, (int) $job['source_board_id']);
     if (!is_array($source)) {
         throw new RuntimeException('원본 게시판을 찾을 수 없습니다.');
@@ -336,6 +359,7 @@ function sr_community_board_copy_job_create_board(PDO $pdo, array $job): void
         );
         $updateMap = $pdo->prepare("UPDATE sr_community_board_copy_job_maps SET target_id = :target_id, status = 'copied', updated_at = :updated_at WHERE job_id = :job_id AND entity_type = 'category' AND source_id = :source_id");
         foreach ($stmt->fetchAll() as $category) {
+            sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
             $insert->execute([
                 'board_id' => $newBoardId,
                 'category_key' => (string) $category['category_key'],
@@ -353,6 +377,7 @@ function sr_community_board_copy_job_create_board(PDO $pdo, array $job): void
                 'source_id' => (int) $category['id'],
             ]);
         }
+        sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
         $pdo->prepare('UPDATE sr_community_board_copy_jobs SET target_board_id = :target_board_id, updated_at = :updated_at WHERE id = :id')
             ->execute(['target_board_id' => $newBoardId, 'updated_at' => $now, 'id' => (int) $job['id']]);
         $pdo->commit();
@@ -426,8 +451,9 @@ function sr_community_board_copy_job_stage_for_map_type(string $type): string
     ][$type] ?? $type;
 }
 
-function sr_community_board_copy_job_skip_link_refs(PDO $pdo, array $job): array
+function sr_community_board_copy_job_skip_link_refs(PDO $pdo, array $job, string $lockToken): array
 {
+    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     $stmt = $pdo->prepare(
         "UPDATE sr_community_board_copy_job_maps
          SET status = 'skipped', updated_at = :updated_at
@@ -448,8 +474,9 @@ function sr_community_board_copy_job_skip_link_refs(PDO $pdo, array $job): array
     ];
 }
 
-function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit): array
+function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit, string $lockToken): array
 {
+    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     $targetBoardId = sr_community_board_copy_job_target_board_id($pdo, $job);
     if ($targetBoardId < 1) {
         throw new RuntimeException('대상 게시판이 아직 생성되지 않았습니다.');
@@ -470,15 +497,16 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
     );
     $processed = 0;
     foreach ($maps as $map) {
+        sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
         $stmt = $pdo->prepare('SELECT * FROM sr_community_posts WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => (int) $map['source_id']]);
         $post = $stmt->fetch();
         if (!is_array($post)) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped', '', '', '', (int) $job['id'], $lockToken);
             continue;
         }
         if (sr_link_card_token_rejection_errors((string) ($post['body_text'] ?? '')) !== []) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', 'legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다.');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', 'legacy 링크 카드 토큰이 남아 있는 게시글은 복사할 수 없습니다.', '', '', (int) $job['id'], $lockToken);
             continue;
         }
         $params = [
@@ -505,6 +533,9 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
         if ($secretColumnSql !== '') {
             $params['is_secret'] = (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
+        if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+            $params['body_text'] = sr_community_sanitize_post_html((string) $params['body_text']);
+        }
         $createdBodyFiles = [];
         $newPostId = 0;
         $pdo->beginTransaction();
@@ -512,9 +543,10 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             $insert->execute($params);
             $newPostId = (int) $pdo->lastInsertId();
             if ((string) ($post['body_format'] ?? 'plain') === 'html') {
-                $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text'], $createdBodyFiles);
+                $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $params['body_text'], $createdBodyFiles);
                 $bodyText = sr_embed_manager_rewrite_body_refs_for_copy($pdo, 'community', 'post', (int) $post['id'], 'body', 'community', 'post', $newPostId, 'body', $bodyText, (int) $post['author_account_id']);
-                if ($bodyText !== (string) $post['body_text']) {
+                $bodyText = sr_community_sanitize_post_html($bodyText);
+                if ($bodyText !== (string) $params['body_text']) {
                     $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                         'body_text' => $bodyText,
                         'updated_at' => (string) $post['updated_at'],
@@ -526,7 +558,7 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             } else {
                 sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $newPostId, 'body', '', (int) $post['author_account_id']);
             }
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newPostId, 'copied');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newPostId, 'copied', '', '', '', (int) $job['id'], $lockToken);
             $pdo->commit();
             $processed++;
         } catch (Throwable $exception) {
@@ -534,15 +566,16 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
                 $pdo->rollBack();
             }
             sr_community_cleanup_storage_file_refs($pdo, $createdBodyFiles, 'body_file_clone_rollback', isset($newPostId) ? (int) $newPostId : 0, '게시판 복사 실패 후 본문 이미지 저장소 정리에 실패했습니다.');
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', $exception->getMessage());
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', $exception->getMessage(), '', '', (int) $job['id'], $lockToken);
         }
     }
 
     return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'post', 'comments', $processed);
 }
 
-function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $limit): array
+function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $limit, string $lockToken): array
 {
+    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     $maps = sr_community_board_copy_job_pending_maps($pdo, (int) $job['id'], 'comment', $limit);
     $authorSnapshotColumnSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments') ? 'author_public_name_snapshot, ' : '';
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
@@ -556,16 +589,17 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
     );
     $processed = 0;
     foreach ($maps as $map) {
+        sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
         $stmt = $pdo->prepare('SELECT * FROM sr_community_comments WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => (int) $map['source_id']]);
         $comment = $stmt->fetch();
         if (!is_array($comment)) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped', '', '', '', (int) $job['id'], $lockToken);
             continue;
         }
         $newPostId = sr_community_board_copy_job_map_target($pdo, (int) $job['id'], 'post', (int) $comment['post_id']);
         if ($newPostId < 1) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', '게시글 매핑을 찾을 수 없습니다.');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', '게시글 매핑을 찾을 수 없습니다.', '', '', (int) $job['id'], $lockToken);
             continue;
         }
         $params = [
@@ -583,15 +617,16 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
             $params['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
         $insert->execute($params);
-        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied');
+        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied', '', '', '', (int) $job['id'], $lockToken);
         $processed++;
     }
 
     return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'comment', 'attachments', $processed);
 }
 
-function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int $limit): array
+function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int $limit, string $lockToken): array
 {
+    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     $maps = sr_community_board_copy_job_pending_maps($pdo, (int) $job['id'], 'attachment', $limit);
     $insert = $pdo->prepare(
         'INSERT INTO sr_community_attachments
@@ -601,16 +636,17 @@ function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int 
     );
     $processed = 0;
     foreach ($maps as $map) {
+        sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
         $stmt = $pdo->prepare('SELECT * FROM sr_community_attachments WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => (int) $map['source_id']]);
         $attachment = $stmt->fetch();
         if (!is_array($attachment)) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped', '', '', '', (int) $job['id'], $lockToken);
             continue;
         }
         $newPostId = sr_community_board_copy_job_map_target($pdo, (int) $job['id'], 'post', (int) $attachment['post_id']);
         if ($newPostId < 1) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', '게시글 매핑을 찾을 수 없습니다.');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', '게시글 매핑을 찾을 수 없습니다.', '', '', (int) $job['id'], $lockToken);
             continue;
         }
         $driver = sr_community_attachment_storage_driver($attachment);
@@ -637,10 +673,10 @@ function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int 
                 'status' => (string) ($attachment['status'] ?? 'active'),
                 'created_at' => (string) $attachment['created_at'],
             ]);
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied', '', $driver, $targetKey);
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied', '', $driver, $targetKey, (int) $job['id'], $lockToken);
             $processed++;
         } catch (Throwable $exception) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', $exception->getMessage());
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', $exception->getMessage(), '', '', (int) $job['id'], $lockToken);
         }
     }
 
@@ -648,8 +684,9 @@ function sr_community_board_copy_job_copy_attachments(PDO $pdo, array $job, int 
     return sr_community_board_copy_job_stage_result($pdo, (int) $job['id'], 'attachment', !empty($options['copy_series']) ? 'series' : 'verify', $processed);
 }
 
-function sr_community_board_copy_job_copy_series(PDO $pdo, array $job): array
+function sr_community_board_copy_job_copy_series(PDO $pdo, array $job, string $lockToken): array
 {
+    sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
     if (!sr_community_series_supported($pdo)) {
         return ['done' => false, 'stage' => 'verify', 'status' => 'running', 'message' => '시리즈 테이블이 없어 다음 단계로 이동합니다.'];
     }
@@ -668,11 +705,12 @@ function sr_community_board_copy_job_copy_series(PDO $pdo, array $job): array
             (:board_id, :owner_account_id, :title, :description, :status, :visibility, :admin_note, :created_by, :updated_by, :moderated_by, :moderated_at, :created_at, :updated_at)'
     );
     foreach (sr_community_board_copy_job_pending_maps($pdo, $jobId, 'series', 1000) as $map) {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
         $stmt = $pdo->prepare('SELECT * FROM sr_community_series WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => (int) $map['source_id']]);
         $series = $stmt->fetch();
         if (!is_array($series)) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped', '', '', '', $jobId, $lockToken);
             continue;
         }
         $seriesTitle = sr_community_clean_single_line((string) ($seriesTitles[(string) (int) $series['id']] ?? $seriesTitles[(int) $series['id']] ?? ''), 160);
@@ -694,7 +732,7 @@ function sr_community_board_copy_job_copy_series(PDO $pdo, array $job): array
             'created_at' => (string) ($series['created_at'] ?? $now),
             'updated_at' => (string) ($series['updated_at'] ?? $now),
         ]);
-        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied');
+        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied', '', '', '', $jobId, $lockToken);
     }
 
     $insertItem = $pdo->prepare(
@@ -704,17 +742,18 @@ function sr_community_board_copy_job_copy_series(PDO $pdo, array $job): array
             (:series_id, :post_id, :active_post_id, :episode_label, :item_status, :sort_order, :created_by, :created_at, :updated_at)'
     );
     foreach (sr_community_board_copy_job_pending_maps($pdo, $jobId, 'series_item', 1000) as $map) {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
         $stmt = $pdo->prepare('SELECT * FROM sr_community_series_items WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => (int) $map['source_id']]);
         $item = $stmt->fetch();
         if (!is_array($item)) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'skipped', '', '', '', $jobId, $lockToken);
             continue;
         }
         $newSeriesId = sr_community_board_copy_job_map_target($pdo, $jobId, 'series', (int) $item['series_id']);
         $newPostId = sr_community_board_copy_job_map_target($pdo, $jobId, 'post', (int) $item['post_id']);
         if ($newSeriesId < 1 || $newPostId < 1) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', '시리즈 또는 게시글 매핑을 찾을 수 없습니다.');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], 0, 'failed', '시리즈 또는 게시글 매핑을 찾을 수 없습니다.', '', '', $jobId, $lockToken);
             continue;
         }
         $insertItem->execute([
@@ -728,7 +767,7 @@ function sr_community_board_copy_job_copy_series(PDO $pdo, array $job): array
             'created_at' => (string) ($item['created_at'] ?? $now),
             'updated_at' => (string) ($item['updated_at'] ?? $now),
         ]);
-        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied');
+        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied', '', '', '', $jobId, $lockToken);
     }
 
     $seriesResult = sr_community_board_copy_job_stage_result($pdo, $jobId, 'series', 'verify', 0);
@@ -738,17 +777,20 @@ function sr_community_board_copy_job_copy_series(PDO $pdo, array $job): array
     return sr_community_board_copy_job_stage_result($pdo, $jobId, 'series_item', 'verify', 0);
 }
 
-function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetId, string $status, string $errorText = '', string $driver = '', string $key = ''): void
+function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetId, string $status, string $errorText = '', string $driver = '', string $key = '', int $jobId = 0, string $lockToken = ''): void
 {
     if (!in_array($status, sr_community_board_copy_map_statuses(), true)) {
         $status = 'failed';
     }
+    if ($jobId > 0 || $lockToken !== '') {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
+    }
     $stmt = $pdo->prepare(
         'UPDATE sr_community_board_copy_job_maps
          SET target_id = :target_id, status = :status, error_text = :error_text, created_storage_driver = :driver, created_storage_key = :storage_key, updated_at = :updated_at
-         WHERE id = :id'
+         WHERE id = :id' . ($jobId > 0 ? ' AND job_id = :job_id' : '')
     );
-    $stmt->execute([
+    $params = [
         'target_id' => $targetId,
         'status' => $status,
         'error_text' => $errorText,
@@ -756,7 +798,11 @@ function sr_community_board_copy_job_mark_map(PDO $pdo, int $mapId, int $targetI
         'storage_key' => $key,
         'updated_at' => sr_now(),
         'id' => $mapId,
-    ]);
+    ];
+    if ($jobId > 0) {
+        $params['job_id'] = $jobId;
+    }
+    $stmt->execute($params);
 }
 
 function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
@@ -814,18 +860,20 @@ function sr_community_board_copy_job_verify(PDO $pdo, array $job): void
     }
 }
 
-function sr_community_board_copy_job_cleanup(PDO $pdo, array $job): int
+function sr_community_board_copy_job_cleanup(PDO $pdo, array $job, string $lockToken): int
 {
     $jobId = (int) $job['id'];
+    sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
     $failed = 0;
     $stmt = $pdo->prepare("SELECT * FROM sr_community_board_copy_job_maps WHERE job_id = :job_id AND created_storage_driver <> '' AND created_storage_key <> '' AND status <> 'cleaned' ORDER BY id DESC");
     $stmt->execute(['job_id' => $jobId]);
     foreach ($stmt->fetchAll() as $map) {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
         if (sr_storage_delete((string) $map['created_storage_driver'], (string) $map['created_storage_key'])) {
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleaned');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleaned', '', '', '', $jobId, $lockToken);
         } else {
             $failed++;
-            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleanup_failed', '파일 삭제 실패');
+            sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $map['target_id'], 'cleanup_failed', '파일 삭제 실패', '', '', $jobId, $lockToken);
         }
     }
     if ($failed > 0) {
@@ -834,6 +882,7 @@ function sr_community_board_copy_job_cleanup(PDO $pdo, array $job): int
 
     $targetBoardId = sr_community_board_copy_job_target_board_id($pdo, $job);
     if ($targetBoardId > 0) {
+        sr_community_board_copy_job_assert_lock($pdo, $jobId, $lockToken);
         $stmt = $pdo->prepare('SELECT id FROM sr_community_posts WHERE board_id = :board_id');
         $stmt->execute(['board_id' => $targetBoardId]);
         $postIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));

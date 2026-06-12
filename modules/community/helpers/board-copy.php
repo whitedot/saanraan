@@ -409,11 +409,15 @@ function sr_community_copy_board_posts(PDO $pdo, int $sourceBoardId, int $newBoa
         if ($secretColumnSql !== '') {
             $params['is_secret'] = (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0;
         }
+        if ((string) ($post['body_format'] ?? 'plain') === 'html') {
+            $params['body_text'] = sr_community_sanitize_post_html((string) $params['body_text']);
+        }
         $insertPost->execute($params);
         $newPostId = (int) $pdo->lastInsertId();
         if ((string) ($post['body_format'] ?? 'plain') === 'html') {
-            $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $post['body_text'], $createdFiles);
-            if ($bodyText !== (string) $post['body_text']) {
+            $bodyText = sr_community_clone_body_files($pdo, (int) $post['id'], $newPostId, (string) $params['body_text'], $createdFiles);
+            $bodyText = sr_community_sanitize_post_html($bodyText);
+            if ($bodyText !== (string) $params['body_text']) {
                 $pdo->prepare('UPDATE sr_community_posts SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
                     'body_text' => $bodyText,
                     'updated_at' => $now,

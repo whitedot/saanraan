@@ -370,10 +370,7 @@ function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, s
         sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
     }
 
-    header('Content-Type: ' . $mimeType);
-    header('Content-Length: ' . (string) (int) ($head['content_length'] ?? 0));
-    header('X-Content-Type-Options: nosniff');
-    header('Cache-Control: private, max-age=300');
+    sr_send_file_headers($mimeType, (int) ($head['content_length'] ?? 0), 'private, max-age=300');
     readfile($path);
     sr_finish_response();
 }

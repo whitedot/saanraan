@@ -3308,12 +3308,47 @@ function sr_content_homepage_path_is_available(PDO $pdo, string $homePath): ?boo
 
 function sr_content_coupon_target_search(PDO $pdo, string $targetType, string $keyword, int $limit = 20): array
 {
-    if ($targetType !== 'content') {
+    if (!in_array($targetType, ['content', 'content_file'], true)) {
         return [];
     }
 
     $keyword = sr_content_clean_text($keyword, 120);
     $limit = max(1, min(30, $limit));
+    if ($targetType === 'content_file') {
+        $where = $keyword === '' ? '1 = 1' : '(f.id = :id OR f.title LIKE :keyword_title OR f.original_name LIKE :keyword_original)';
+        $params = [];
+        if ($keyword !== '') {
+            $keywordLike = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword) . '%';
+            $params = [
+                'id' => preg_match('/\A[1-9][0-9]*\z/', $keyword) === 1 ? (int) $keyword : 0,
+                'keyword_title' => $keywordLike,
+                'keyword_original' => $keywordLike,
+            ];
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT f.id, f.content_id, f.title, f.original_name, f.status, f.updated_at, c.title AS content_title
+             FROM sr_content_files f
+             LEFT JOIN sr_content_items c ON c.id = f.content_id
+             WHERE ' . $where . '
+             ORDER BY f.id DESC
+             LIMIT ' . $limit
+        );
+        $stmt->execute($params);
+
+        return array_map(static function (array $row): array {
+            return [
+                'reference_type' => 'content_file',
+                'reference_id' => (string) (int) ($row['id'] ?? 0),
+                'title' => (string) ($row['title'] ?? ''),
+                'reason' => '다운로드 파일 #' . (string) (int) ($row['id'] ?? 0),
+                'member_name' => '콘텐츠: ' . (string) ($row['content_title'] ?? ''),
+                'member_email' => '상태: ' . (string) ($row['status'] ?? ''),
+                'created_at' => (string) ($row['updated_at'] ?? ''),
+            ];
+        }, $stmt->fetchAll());
+    }
+
     $where = $keyword === '' ? '1 = 1' : "(id = :id OR title LIKE :keyword_title ESCAPE '\\\\' OR slug LIKE :keyword_slug ESCAPE '\\\\')";
     $params = [];
     if ($keyword !== '') {
@@ -3397,8 +3432,22 @@ function sr_content_coupon_revoke_access(PDO $pdo, int $accountId, string $dedup
 
 function sr_content_coupon_target_health(PDO $pdo, string $targetType, string $targetId): array
 {
-    if ($targetType !== 'content' || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+    if (!in_array($targetType, ['content', 'content_file'], true) || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
         return ['status' => 'unknown', 'message' => '콘텐츠 대상 형식이 올바르지 않습니다.'];
+    }
+
+    if ($targetType === 'content_file') {
+        $stmt = $pdo->prepare('SELECT id, status FROM sr_content_files WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => (int) $targetId]);
+        $row = $stmt->fetch();
+        if (!is_array($row)) {
+            return ['status' => 'missing_target', 'message' => '다운로드 파일을 찾을 수 없습니다.'];
+        }
+
+        $status = (string) ($row['status'] ?? '');
+        return $status === 'active'
+            ? ['status' => 'ok', 'policy_status' => $status]
+            : ['status' => 'disabled_target', 'policy_status' => $status, 'message' => '다운로드 파일이 사용 상태가 아닙니다.'];
     }
 
     $stmt = $pdo->prepare('SELECT id, status FROM sr_content_items WHERE id = :id LIMIT 1');
@@ -3416,8 +3465,12 @@ function sr_content_coupon_target_health(PDO $pdo, string $targetType, string $t
 
 function sr_content_coupon_target_admin_url(string $targetType, string $targetId): string
 {
-    if ($targetType !== 'content' || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+    if (!in_array($targetType, ['content', 'content_file'], true) || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
         return '';
+    }
+
+    if ($targetType === 'content_file') {
+        return '/admin/content/files?id=' . rawurlencode($targetId);
     }
 
     return '/admin/content/edit?id=' . rawurlencode($targetId);
@@ -4256,6 +4309,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
         $copy['status'] = 'draft';
         $copy['scheduled_publish_at'] = '';
         $copy['published_at'] = null;
+        if ((string) ($copy['body_format'] ?? 'plain') === 'html') {
+            $copy['body_text'] = sr_sanitize_rich_text_html((string) ($copy['body_text'] ?? ''));
+        }
 
         $stmt = $pdo->prepare(
             'INSERT INTO sr_content_items
@@ -4302,6 +4358,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
         $newContentId = (int) $pdo->lastInsertId();
         if ((string) ($copy['body_format'] ?? 'plain') === 'html') {
             $rewrittenBodyText = sr_embed_manager_rewrite_body_refs_for_copy($pdo, 'content', 'content', $sourceContentId, 'body', 'content', 'content', $newContentId, 'body', (string) ($copy['body_text'] ?? ''), $accountId);
+            $rewrittenBodyText = sr_sanitize_rich_text_html($rewrittenBodyText);
             if ($rewrittenBodyText !== (string) ($copy['body_text'] ?? '')) {
                 $copy['body_text'] = $rewrittenBodyText;
                 $pdo->prepare('UPDATE sr_content_items SET body_text = :body_text, updated_at = :updated_at WHERE id = :id')->execute([
@@ -4329,42 +4386,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'source_content_id' => $sourceContentId,
         ]);
 
-        $stmt = $pdo->prepare(
-            "INSERT INTO sr_content_file_links
-                (content_id, file_id, sort_order, status, created_at, updated_at)
-             SELECT :new_content_id, linked_files.file_id, linked_files.sort_order, 'active', :created_at, :updated_at
-             FROM (
-                SELECT l.file_id, l.sort_order
-                FROM sr_content_file_links l
-                INNER JOIN sr_content_files f ON f.id = l.file_id AND f.status = 'active'
-                WHERE l.content_id = :source_link_content_id
-                  AND l.status = 'active'
-                UNION ALL
-                SELECT f.id AS file_id, 0 AS sort_order
-                FROM sr_content_files f
-                WHERE f.content_id = :source_legacy_content_id
-                  AND f.status = 'active'
-                  AND NOT EXISTS (
-                      SELECT 1
-                      FROM sr_content_file_links existing_link
-                      WHERE existing_link.content_id = :source_existing_link_content_id
-                        AND existing_link.file_id = f.id
-                        AND existing_link.status = 'active'
-                  )
-             ) linked_files
-             ON DUPLICATE KEY UPDATE
-                sort_order = VALUES(sort_order),
-                status = 'active',
-                updated_at = VALUES(updated_at)"
-        );
-        $stmt->execute([
-            'new_content_id' => $newContentId,
-            'created_at' => $now,
-            'updated_at' => $now,
-            'source_link_content_id' => $sourceContentId,
-            'source_legacy_content_id' => $sourceContentId,
-            'source_existing_link_content_id' => $sourceContentId,
-        ]);
+        sr_content_copy_file_links($pdo, $sourceContentId, $newContentId, $now);
 
         sr_content_record_revision($pdo, $newContentId, $copy, $accountId, $now);
         if (!empty($values['copy_series'])) {
@@ -4379,6 +4401,85 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
     }
 
     return $newContentId;
+}
+
+function sr_content_copy_file_links(PDO $pdo, int $sourceContentId, int $newContentId, string $now): void
+{
+    if ($sourceContentId < 1 || $newContentId < 1 || !sr_content_optional_table_exists($pdo, 'sr_content_file_links') || !sr_content_optional_table_exists($pdo, 'sr_content_files')) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT linked_files.file_id, linked_files.sort_order
+         FROM (
+            SELECT l.file_id, l.sort_order
+            FROM sr_content_file_links l
+            INNER JOIN sr_content_files f ON f.id = l.file_id AND f.status = \'active\'
+            WHERE l.content_id = :source_link_content_id
+              AND l.status = \'active\'
+            UNION ALL
+            SELECT f.id AS file_id, 0 AS sort_order
+            FROM sr_content_files f
+            WHERE f.content_id = :source_legacy_content_id
+              AND f.status = \'active\'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM sr_content_file_links existing_link
+                  WHERE existing_link.content_id = :source_existing_link_content_id
+                    AND existing_link.file_id = f.id
+                    AND existing_link.status = \'active\'
+              )
+         ) linked_files
+         ORDER BY linked_files.sort_order ASC, linked_files.file_id ASC'
+    );
+    $stmt->execute([
+        'source_link_content_id' => $sourceContentId,
+        'source_legacy_content_id' => $sourceContentId,
+        'source_existing_link_content_id' => $sourceContentId,
+    ]);
+    $rows = $stmt->fetchAll();
+    if ($rows === []) {
+        return;
+    }
+
+    $driver = '';
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable $exception) {
+        $driver = '';
+    }
+    $upsertSql = 'INSERT INTO sr_content_file_links
+            (content_id, file_id, sort_order, status, created_at, updated_at)
+         VALUES
+            (:content_id, :file_id, :sort_order, \'active\', :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            sort_order = VALUES(sort_order),
+            status = \'active\',
+            updated_at = VALUES(updated_at)';
+    if ($driver === 'sqlite') {
+        $upsertSql = 'INSERT INTO sr_content_file_links
+                (content_id, file_id, sort_order, status, created_at, updated_at)
+             VALUES
+                (:content_id, :file_id, :sort_order, \'active\', :created_at, :updated_at)
+             ON CONFLICT(content_id, file_id) DO UPDATE SET
+                sort_order = excluded.sort_order,
+                status = \'active\',
+                updated_at = excluded.updated_at';
+    }
+    $upsert = $pdo->prepare($upsertSql);
+    foreach ($rows as $row) {
+        $fileId = (int) ($row['file_id'] ?? 0);
+        if ($fileId < 1) {
+            continue;
+        }
+        $upsert->execute([
+            'content_id' => $newContentId,
+            'file_id' => $fileId,
+            'sort_order' => (int) ($row['sort_order'] ?? 0),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
 }
 
 function sr_content_copy_series_for_content(PDO $pdo, int $sourceContentId, int $newContentId, int $accountId, string $now): array
@@ -4688,6 +4789,11 @@ function sr_content_delete_redacted(PDO $pdo, int $pageId, int $accountId): arra
         if (sr_content_optional_table_exists($pdo, 'sr_content_link_refs')) {
             $stmt = $pdo->prepare('DELETE FROM sr_content_link_refs WHERE content_id = :content_id');
             $stmt->execute(['content_id' => $pageId]);
+        }
+
+        if (sr_content_optional_table_exists($pdo, 'sr_content_series_items')) {
+            $stmt = $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id = ? OR active_content_id = ?');
+            $stmt->execute([$pageId, $pageId]);
         }
 
         sr_embed_manager_sync_body_refs($pdo, 'content', 'content', $pageId, 'body', '', $accountId);
