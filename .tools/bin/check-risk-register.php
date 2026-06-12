@@ -294,6 +294,9 @@ if ($verificationRecord !== '') {
         'release-preflight.php',
         'release-package-dry-run.php',
         'fallback sanitizer fixture',
+        'CKEditor upload/save browser smoke',
+        '개인정보 export/cleanup smoke',
+        'SR_PERFORMANCE_REVIEW_READY=1',
         'dry-run',
         'manifest',
     ], $errors);
