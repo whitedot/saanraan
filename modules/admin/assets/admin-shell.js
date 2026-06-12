@@ -274,14 +274,30 @@ window.AdminShell = {
             return shellBarHeight + tabsHeight + 12;
         };
 
-        const setAnchorTabActive = (tabs, activeLink) => {
+        const scrollAnchorTabIntoView = (tabs, activeLink) => {
+            if (!tabs || !activeLink || typeof tabs.scrollTo !== 'function') {
+                return;
+            }
+
+            const tabsRect = tabs.getBoundingClientRect();
+            const linkRect = activeLink.getBoundingClientRect();
+            const overflowLeft = linkRect.left - tabsRect.left;
+            const overflowRight = linkRect.right - tabsRect.right;
+            if (overflowLeft < 0) {
+                tabs.scrollTo({ left: tabs.scrollLeft + overflowLeft - 8, behavior: 'smooth' });
+            } else if (overflowRight > 0) {
+                tabs.scrollTo({ left: tabs.scrollLeft + overflowRight + 8, behavior: 'smooth' });
+            }
+        };
+
+        const setAnchorTabActive = (tabs, activeLink, options = {}) => {
             Array.prototype.slice.call(tabs.querySelectorAll('a[href^="#"]')).forEach(link => {
                 const active = link === activeLink;
                 link.classList.toggle('active', active);
                 if (active) {
                     link.setAttribute('aria-current', 'location');
-                    if (typeof link.scrollIntoView === 'function') {
-                        link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                    if (options.scrollTabIntoView) {
+                        scrollAnchorTabIntoView(tabs, link);
                     }
                 } else {
                     link.removeAttribute('aria-current');
@@ -340,7 +356,7 @@ window.AdminShell = {
 
             links.forEach(link => {
                 link.addEventListener('click', () => {
-                    setAnchorTabActive(tabs, link);
+                    setAnchorTabActive(tabs, link, { scrollTabIntoView: true });
                 });
             });
 

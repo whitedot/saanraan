@@ -26,6 +26,12 @@
     margin-bottom: calc(var(--spacing) * 1.25);
 }
 
+.admin-ui-kit-samples .sticky-tabs.anchor-tabs {
+    position: relative;
+    top: auto;
+    z-index: auto;
+}
+
 .ui-kit-preview-frame {
     border: 0;
     display: block;
