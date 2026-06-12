@@ -105,6 +105,7 @@ sr_risk_register_check_contains('docs/risk-register.md', [
     'php .tools/bin/check.php',
     '.tools/bin/reconcile-assets.php',
     '.tools/bin/ops-status.php',
+    '.tools/bin/expire-points.php --dry-run',
 ], $errors);
 
 $riskRegister = sr_risk_register_read('docs/risk-register.md', $errors);
@@ -148,8 +149,10 @@ $expectedRows = [
         'operational-status.md',
         'performance-policy.md',
         '.tools/bin/ops-status.php',
+        '.tools/bin/expire-points.php --dry-run',
         '/admin/operations',
         '.tools/bin/check-operational-status.php',
+        '포인트 만료 dry-run preview',
         '설치 DB 또는 staging',
     ]],
     'R-04' => ['mitigating', [
