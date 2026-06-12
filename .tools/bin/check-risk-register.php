@@ -186,8 +186,11 @@ $expectedRows = [
         'security-model.md',
         'security-baseline-evidence.md',
         '.tools/bin/check-security-baseline.php',
+        '.tools/bin/check-request-contract-runtime.php',
         '.tools/bin/check-admin-action-security.php',
         '.tools/bin/check-auth-runtime.php',
+        '.tools/bin/release-installed-gate-status.php',
+        '인증 smoke readiness 게이트',
         '보안 헤더',
     ]],
     'R-07' => ['watch', [
