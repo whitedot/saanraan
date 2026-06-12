@@ -21,6 +21,7 @@ $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $runPrivacyFixtures = in_array('--run-privacy-fixtures', $args, true);
 $runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
 $markdownTable = in_array('--markdown-table', $args, true);
+$jsonOutput = in_array('--json', $args, true);
 $showHelp = in_array('--help', $args, true) || in_array('-h', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
@@ -51,6 +52,7 @@ Usage:
 
 Options:
   --markdown-table            Print only the installed DB gate table as Markdown.
+  --json                      Print metadata, gates, summary, and unresolved count as JSON.
   --run-readonly              Execute installed DB read-only CLI gates.
   --run-browser-qa            Execute CKEditor asset/fallback browser smoke.
   --run-auth-smoke            Execute authenticated community smoke.
@@ -145,6 +147,44 @@ function sr_release_gate_status_result_summary(array $gates): string
     }
 
     return implode(', ', $parts);
+}
+
+function sr_release_gate_status_result_counts(array $gates): array
+{
+    $order = ['통과', '부분 확인', '수동 확인 필요', '미실행', '환경 미준비', '실패'];
+    $counts = [];
+    foreach ($order as $result) {
+        $counts[$result] = 0;
+    }
+
+    foreach ($gates as $gate) {
+        $result = (string) ($gate['result'] ?? '');
+        if ($result === '') {
+            $result = '-';
+        }
+
+        if (!array_key_exists($result, $counts)) {
+            $counts[$result] = 0;
+        }
+
+        $counts[$result]++;
+    }
+
+    return $counts;
+}
+
+function sr_release_gate_status_json(array $metadata, array $gates, int $unresolved): string
+{
+    $payload = [
+        'version' => 1,
+        'metadata' => $metadata,
+        'gates' => $gates,
+        'result_counts' => sr_release_gate_status_result_counts($gates),
+        'result_summary' => sr_release_gate_status_result_summary($gates),
+        'unresolved_gates' => $unresolved,
+    ];
+    $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return is_string($json) ? $json . "\n" : '';
 }
 
 function sr_release_gate_status_single_line(string $value): string
@@ -728,33 +768,73 @@ foreach ($gates as $gate) {
     }
 }
 
+$metadata = [
+    'php_version' => PHP_VERSION,
+    'installed_lock' => $lockExists ? 'present' : 'missing',
+    'config_file' => $configExists ? 'present' : 'missing',
+    'config_readable' => $configReadable ? 'yes' : 'no',
+    'config_mode' => sr_release_gate_status_file_mode($configPath),
+    'config_owner_group' => sr_release_gate_status_file_owner_group($configPath),
+    'sr_is_installed' => $isInstalled ? 'yes' : 'no',
+    'base_url' => $baseUrl === '' ? '-' : $baseUrl,
+    'browser_qa_base_url' => $browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl,
+    'account_smoke_credentials' => $accountSmokeCredentialStatus,
+    'admin_smoke_credentials' => $adminSmokeCredentialStatus,
+    'asset_dedupe_expectation' => $assetDedupeExpectationStatus,
+    'run_readonly' => $runReadonly ? 'yes' : 'no',
+    'run_browser_qa' => $runBrowserQa ? 'yes' : 'no',
+    'run_auth_smoke' => $runAuthSmoke ? 'yes' : 'no',
+    'run_quiz_smoke' => $runQuizSmoke ? 'yes' : 'no',
+    'run_asset_smoke' => $runAssetSmoke ? 'yes' : 'no',
+    'run_privacy_fixtures' => $runPrivacyFixtures ? 'yes' : 'no',
+    'run_performance_fixtures' => $runPerformanceFixtures ? 'yes' : 'no',
+    'performance_review_ready' => $performanceReviewReady ? 'yes' : 'no',
+    'mutation_smoke_allowed' => $allowMutationSmoke ? 'yes' : 'no',
+];
+$metadataOutputKeys = [
+    'php_version' => 'php-version',
+    'installed_lock' => 'installed-lock',
+    'config_file' => 'config-file',
+    'config_readable' => 'config-readable',
+    'config_mode' => 'config-mode',
+    'config_owner_group' => 'config-owner-group',
+    'sr_is_installed' => 'sr-is-installed',
+    'base_url' => 'base-url',
+    'browser_qa_base_url' => 'browser-qa-base-url',
+    'account_smoke_credentials' => 'account-smoke-credentials',
+    'admin_smoke_credentials' => 'admin-smoke-credentials',
+    'asset_dedupe_expectation' => 'asset-dedupe-expectation',
+    'run_readonly' => 'run-readonly',
+    'run_browser_qa' => 'run-browser-qa',
+    'run_auth_smoke' => 'run-auth-smoke',
+    'run_quiz_smoke' => 'run-quiz-smoke',
+    'run_asset_smoke' => 'run-asset-smoke',
+    'run_privacy_fixtures' => 'run-privacy-fixtures',
+    'run_performance_fixtures' => 'run-performance-fixtures',
+    'performance_review_ready' => 'performance-review-ready',
+    'mutation_smoke_allowed' => 'mutation-smoke-allowed',
+];
+
 if ($markdownTable) {
     echo sr_release_gate_status_markdown_table($gates);
     exit(0);
 }
 
+if ($jsonOutput) {
+    $json = sr_release_gate_status_json($metadata, $gates, $unresolved);
+    if ($json === '') {
+        fwrite(STDERR, "release-installed-gate-status JSON encoding failed.\n");
+        exit(1);
+    }
+
+    echo $json;
+    exit(0);
+}
+
 echo "release-installed-gate-status-version: 1\n";
-echo 'php-version: ' . PHP_VERSION . "\n";
-echo 'installed-lock: ' . ($lockExists ? 'present' : 'missing') . "\n";
-echo 'config-file: ' . ($configExists ? 'present' : 'missing') . "\n";
-echo 'config-readable: ' . ($configReadable ? 'yes' : 'no') . "\n";
-echo 'config-mode: ' . sr_release_gate_status_file_mode($configPath) . "\n";
-echo 'config-owner-group: ' . sr_release_gate_status_file_owner_group($configPath) . "\n";
-echo 'sr-is-installed: ' . ($isInstalled ? 'yes' : 'no') . "\n";
-echo 'base-url: ' . ($baseUrl === '' ? '-' : $baseUrl) . "\n";
-echo 'browser-qa-base-url: ' . ($browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl) . "\n";
-echo 'account-smoke-credentials: ' . $accountSmokeCredentialStatus . "\n";
-echo 'admin-smoke-credentials: ' . $adminSmokeCredentialStatus . "\n";
-echo 'asset-dedupe-expectation: ' . $assetDedupeExpectationStatus . "\n";
-echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
-echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
-echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";
-echo 'run-quiz-smoke: ' . ($runQuizSmoke ? 'yes' : 'no') . "\n";
-echo 'run-asset-smoke: ' . ($runAssetSmoke ? 'yes' : 'no') . "\n";
-echo 'run-privacy-fixtures: ' . ($runPrivacyFixtures ? 'yes' : 'no') . "\n";
-echo 'run-performance-fixtures: ' . ($runPerformanceFixtures ? 'yes' : 'no') . "\n";
-echo 'performance-review-ready: ' . ($performanceReviewReady ? 'yes' : 'no') . "\n";
-echo 'mutation-smoke-allowed: ' . ($allowMutationSmoke ? 'yes' : 'no') . "\n";
+foreach ($metadata as $key => $value) {
+    echo ($metadataOutputKeys[$key] ?? str_replace('_', '-', $key)) . ': ' . $value . "\n";
+}
 foreach ($gates as $gate) {
     echo sr_release_gate_status_line(
         (string) ($gate['gate'] ?? ''),

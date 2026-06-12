@@ -193,6 +193,96 @@ function sr_installed_gate_status_assert_markdown_table(string $label, string $o
     }
 }
 
+function sr_installed_gate_status_assert_json(string $label, string $output): void
+{
+    if ($output === '') {
+        return;
+    }
+
+    $decoded = json_decode($output, true);
+    if (!is_array($decoded)) {
+        sr_installed_gate_status_error('Installed gate status JSON output is invalid: ' . $label);
+        return;
+    }
+
+    if (($decoded['version'] ?? null) !== 1) {
+        sr_installed_gate_status_error('Installed gate status JSON version mismatch: ' . $label);
+    }
+
+    $metadata = $decoded['metadata'] ?? null;
+    if (!is_array($metadata)) {
+        sr_installed_gate_status_error('Installed gate status JSON metadata is missing: ' . $label);
+        return;
+    }
+
+    foreach ([
+        'config_readable' => 'no',
+        'config_mode' => '0600',
+        'config_owner_group' => 'www-data:www-data',
+        'sr_is_installed' => 'no',
+        'run_readonly' => 'no',
+        'mutation_smoke_allowed' => 'no',
+    ] as $key => $expectedValue) {
+        if (($metadata[$key] ?? null) !== $expectedValue) {
+            sr_installed_gate_status_error('Installed gate status JSON metadata mismatch for ' . $label . ': ' . $key);
+        }
+    }
+
+    $gates = $decoded['gates'] ?? null;
+    if (!is_array($gates) || count($gates) !== 13) {
+        sr_installed_gate_status_error('Installed gate status JSON gates must contain 13 rows: ' . $label);
+        return;
+    }
+
+    $counts = [
+        '통과' => 0,
+        '부분 확인' => 0,
+        '수동 확인 필요' => 0,
+        '미실행' => 0,
+        '환경 미준비' => 0,
+        '실패' => 0,
+    ];
+    foreach ($gates as $gate) {
+        if (!is_array($gate)) {
+            sr_installed_gate_status_error('Installed gate status JSON gate row is not an object: ' . $label);
+            continue;
+        }
+
+        foreach (['gate', 'result', 'environment', 'memo'] as $field) {
+            if (!is_string($gate[$field] ?? null) || $gate[$field] === '') {
+                sr_installed_gate_status_error('Installed gate status JSON gate row missing field ' . $field . ': ' . $label);
+            }
+        }
+
+        $result = (string) ($gate['result'] ?? '');
+        if (!array_key_exists($result, $counts)) {
+            $counts[$result] = 0;
+        }
+
+        $counts[$result]++;
+    }
+
+    $jsonCounts = $decoded['result_counts'] ?? null;
+    if (!is_array($jsonCounts)) {
+        sr_installed_gate_status_error('Installed gate status JSON result_counts is missing: ' . $label);
+        return;
+    }
+
+    foreach ($counts as $result => $count) {
+        if (($jsonCounts[$result] ?? null) !== $count) {
+            sr_installed_gate_status_error('Installed gate status JSON result_counts mismatch for ' . $label . ': ' . $result);
+        }
+    }
+
+    if (($decoded['result_summary'] ?? '') !== '통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0') {
+        sr_installed_gate_status_error('Installed gate status JSON result_summary mismatch: ' . $label);
+    }
+
+    if (($decoded['unresolved_gates'] ?? null) !== 13) {
+        sr_installed_gate_status_error('Installed gate status JSON unresolved_gates mismatch: ' . $label);
+    }
+}
+
 $output = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php']);
 sr_installed_gate_status_assert_unresolved_count('default output', $output);
 sr_installed_gate_status_assert_result_summary('default output', $output);
@@ -250,10 +340,14 @@ foreach ([
     }
 }
 
+$jsonOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--json']);
+sr_installed_gate_status_assert_json('default JSON output', $jsonOutput);
+
 $helpOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--help']);
 foreach ([
     'Usage:',
     '--markdown-table',
+    '--json',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
@@ -663,6 +757,9 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'unresolved-gates',
     'gate-result-summary',
     'sr_release_gate_status_result_summary',
+    'sr_release_gate_status_json',
+    'sr_release_gate_status_result_counts',
+    '--json',
     '--help',
     '--markdown-table',
     '--run-readonly',
@@ -680,8 +777,8 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_SMOKE_EXPECT_DEDUPE_TABLE',
     'SR_SMOKE_EXPECT_DEDUPE_KEY',
     'SR_PERFORMANCE_REVIEW_READY',
-    'performance-review-ready',
-    'asset-dedupe-expectation',
+    'performance_review_ready',
+    'asset_dedupe_expectation',
     'dedupe row count evidence',
     'incomplete',
     'config/config.php is not readable by current user',
@@ -722,6 +819,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
 sr_installed_gate_status_require_markers('docs/release-verification-template.md', [
     'php .tools/bin/release-installed-gate-status.php',
     'php .tools/bin/release-installed-gate-status.php --markdown-table',
+    'php .tools/bin/release-installed-gate-status.php --json',
     'php .tools/bin/release-installed-gate-status.php --run-readonly',
     'php .tools/bin/expire-points.php --dry-run',
     '설치 DB 게이트 상태표',
@@ -737,6 +835,7 @@ sr_installed_gate_status_require_markers('docs/verification-status.md', [
 sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     'php .tools/bin/release-installed-gate-status.php',
     'php .tools/bin/release-installed-gate-status.php --help',
+    'php .tools/bin/release-installed-gate-status.php --json',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
