@@ -19,7 +19,7 @@ function sr_asset_http_smoke_bool(string $key): bool
 function sr_asset_http_smoke_usage(): string
 {
     return "Usage: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_BASE_URL=http://127.0.0.1:8080 SR_SMOKE_IDENTIFIER=writer@example.com SR_SMOKE_PASSWORD=password SR_SMOKE_FORM_PATH=/content/view?slug=paid SR_SMOKE_POST_PATH=/content/view?slug=paid SR_SMOKE_EXTRA_POST='asset_confirm=1' php .tools/bin/smoke-asset-idempotency-http.php\n"
-        . "Optional: SR_SMOKE_PARALLEL_REQUESTS=6 SR_SMOKE_TOKEN_FIELD=asset_request_token SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs SR_SMOKE_EXPECT_DEDUPE_KEY='...' SR_SMOKE_EXPECT_DEDUPE_COLUMN=dedupe_key\n"
+        . "Optional: SR_SMOKE_PARALLEL_REQUESTS=6 SR_SMOKE_TOKEN_FIELD=asset_request_token SR_SMOKE_SUCCESS_STATUSES=200,302,303 SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs SR_SMOKE_EXPECT_DEDUPE_KEY='...' SR_SMOKE_EXPECT_DEDUPE_COLUMN=dedupe_key SR_SMOKE_EXPECT_DEDUPE_FRESH=1\n"
         . "This smoke performs mutating duplicate POST requests. Run only against local or staging disposable data.\n";
 }
 
@@ -179,6 +179,27 @@ function sr_asset_http_smoke_parse_extra_post(string $encoded): array
     return array_map(static fn ($value): string => (string) $value, $result);
 }
 
+function sr_asset_http_smoke_parse_statuses(string $encoded): array
+{
+    $statuses = [];
+    foreach (explode(',', $encoded) as $status) {
+        $status = trim($status);
+        if ($status === '') {
+            continue;
+        }
+        if (!preg_match('/\A[1-5][0-9]{2}\z/', $status)) {
+            sr_asset_http_smoke_fail('SR_SMOKE_SUCCESS_STATUSES contains an invalid HTTP status: ' . $status, 2);
+        }
+        $statuses[(int) $status] = true;
+    }
+
+    if ($statuses === []) {
+        sr_asset_http_smoke_fail('SR_SMOKE_SUCCESS_STATUSES must contain at least one HTTP status.', 2);
+    }
+
+    return $statuses;
+}
+
 function sr_asset_http_smoke_parallel_posts(string $baseUrl, string $path, array $postData, array $cookies, int $requestCount): array
 {
     if (!function_exists('curl_multi_init')) {
@@ -267,9 +288,11 @@ $postPath = sr_asset_http_smoke_env('SR_SMOKE_POST_PATH', $formPath);
 $tokenField = sr_asset_http_smoke_env('SR_SMOKE_TOKEN_FIELD', 'asset_request_token');
 $extraPost = sr_asset_http_smoke_parse_extra_post(sr_asset_http_smoke_env('SR_SMOKE_EXTRA_POST'));
 $requestCount = max(2, min(12, (int) sr_asset_http_smoke_env('SR_SMOKE_PARALLEL_REQUESTS', '6')));
+$successStatuses = sr_asset_http_smoke_parse_statuses(sr_asset_http_smoke_env('SR_SMOKE_SUCCESS_STATUSES', '200,201,204,302,303'));
 $expectedTable = sr_asset_http_smoke_env('SR_SMOKE_EXPECT_DEDUPE_TABLE');
 $expectedColumn = sr_asset_http_smoke_env('SR_SMOKE_EXPECT_DEDUPE_COLUMN', 'dedupe_key');
 $expectedDedupeKey = sr_asset_http_smoke_env('SR_SMOKE_EXPECT_DEDUPE_KEY');
+$expectFreshDedupe = sr_asset_http_smoke_bool('SR_SMOKE_EXPECT_DEDUPE_FRESH') || sr_asset_http_smoke_env('SR_SMOKE_EXPECT_DEDUPE_FRESH', '1') === '1';
 
 if (!sr_asset_http_smoke_bool('SR_SMOKE_ALLOW_MUTATION')) {
     fwrite(STDERR, sr_asset_http_smoke_usage());
@@ -278,6 +301,9 @@ if (!sr_asset_http_smoke_bool('SR_SMOKE_ALLOW_MUTATION')) {
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $identifier === '' || $password === '' || $formPath === '' || $postPath === '') {
     fwrite(STDERR, sr_asset_http_smoke_usage());
     exit(2);
+}
+if (($expectedTable === '') !== ($expectedDedupeKey === '')) {
+    sr_asset_http_smoke_fail('SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY must be provided together.', 2);
 }
 
 $cookies = [];
@@ -308,9 +334,14 @@ $afterCount = sr_asset_http_smoke_dedupe_count($expectedTable, $expectedColumn, 
 
 $statusCounts = [];
 $failureBodies = 0;
+$successCount = 0;
 foreach ($responses as $response) {
-    $status = (string) ($response['status'] ?? 0);
+    $statusCode = (int) ($response['status'] ?? 0);
+    $status = (string) $statusCode;
     $statusCounts[$status] = ($statusCounts[$status] ?? 0) + 1;
+    if (isset($successStatuses[$statusCode])) {
+        $successCount++;
+    }
     $body = (string) ($response['body'] ?? '');
     if (($response['error'] ?? '') !== '' || str_contains($body, 'Fatal error') || str_contains($body, 'Stack trace')) {
         $failureBodies++;
@@ -321,8 +352,17 @@ if ($failureBodies > 0) {
     sr_asset_http_smoke_fail('One or more parallel POST responses contained a transport or PHP failure.');
 }
 
-if ($afterCount !== null && $afterCount > 1) {
-    sr_asset_http_smoke_fail('Expected at most one dedupe row for ' . $expectedDedupeKey . ', got ' . (string) $afterCount . '.');
+if ($successCount < 1) {
+    sr_asset_http_smoke_fail('Expected at least one successful POST response, got status counts ' . json_encode($statusCounts, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '.');
+}
+
+if ($afterCount !== null) {
+    if ($expectFreshDedupe && $beforeCount !== 0) {
+        sr_asset_http_smoke_fail('Expected a fresh dedupe key before the smoke, got existing count ' . (string) $beforeCount . ' for ' . $expectedDedupeKey . '.');
+    }
+    if ($afterCount !== 1) {
+        sr_asset_http_smoke_fail('Expected exactly one dedupe row for ' . $expectedDedupeKey . ', got ' . (string) $afterCount . '.');
+    }
 }
 
 echo "asset-idempotency-http-smoke-version: 1\n";
@@ -330,10 +370,13 @@ echo "base-url: " . $baseUrl . "\n";
 echo "form-path: " . $formPath . "\n";
 echo "post-path: " . $postPath . "\n";
 echo "parallel-requests: " . (string) $requestCount . "\n";
+echo "success-statuses: " . implode(',', array_map('strval', array_keys($successStatuses))) . "\n";
+echo "success-count: " . (string) $successCount . "\n";
 echo "status-counts: " . json_encode($statusCounts, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
 if ($afterCount !== null) {
     echo "dedupe-table: " . $expectedTable . "\n";
     echo "dedupe-key: " . $expectedDedupeKey . "\n";
+    echo "dedupe-fresh-required: " . ($expectFreshDedupe ? 'yes' : 'no') . "\n";
     echo "dedupe-count-before: " . (string) $beforeCount . "\n";
     echo "dedupe-count-after: " . (string) $afterCount . "\n";
 }
