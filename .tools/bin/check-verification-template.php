@@ -235,6 +235,7 @@ if (is_string($verificationStatus)) {
         'release-installed-gate-status.php --run-readonly --fail-on-unresolved',
         'release-installed-gate-status.php --json --fail-on-unresolved',
         '권한을 넓히지 말고',
+        '1.0 전 보완 대상',
         'smoke-asset-idempotency-http.php',
         'dedupe row count',
         'CKEditor 서버 업로드 action',

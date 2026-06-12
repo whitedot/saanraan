@@ -660,6 +660,7 @@ foreach ([
         'release-installed-gate-status.php --json --fail-on-unresolved',
         'Handoff:',
         '권한을 넓히지 말고',
+        '웹 서버 사용자 또는 로컬/staging 전용 실행 사용자',
         'SR_SMOKE_ADMIN_IDENTIFIER',
         'SR_SMOKE_ADMIN_PASSWORD',
         'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0',

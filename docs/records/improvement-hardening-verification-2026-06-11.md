@@ -311,7 +311,9 @@ saanraan HTTP smoke checks completed.
 후속 작업:
 
 - HTML Purifier와 CKEditor asset 포함 배포 빌드 절차에서 vendor/license/version 포함과 `release-preflight.php` 출력값을 확인한다.
-- 설치 로컬 DB에서 `reconcile-assets.php`, `ops-status.php`, `expire-points.php --dry-run`, 인증 smoke를 실행한다.
+- 설치 로컬 DB에서 `release-installed-gate-status.php --run-readonly --fail-on-unresolved`를 실행해 `reconcile-assets.php`, `ops-status.php`, `expire-points.php --dry-run` 결과를 한 번에 기록한다. 현재 CLI 사용자가 `config/config.php`를 읽지 못하면 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 다시 실행한다.
+- 로컬/staging base URL과 관리자 계정이 준비되면 `SR_SMOKE_BASE_URL`, `SR_SMOKE_ADMIN_IDENTIFIER`, `SR_SMOKE_ADMIN_PASSWORD`를 지정하고 `release-installed-gate-status.php --json --fail-on-unresolved` 출력으로 구조화 증거를 남긴다.
+- 설치 로컬 DB에서 인증 smoke를 실행한다.
 - 설치 로컬 DB에서 `/admin/assets/reconciliation`과 `/admin/operations` 화면을 확인한다.
 - 로컬/staging 더미 유료 대상에서 `smoke-asset-idempotency-http.php` 병렬 mutation smoke와 dedupe row count를 기록한다.
 - 설치 DB에서 CKEditor 업로드 adapter, 저장 HTML sanitizer, 권한별 본문 이미지 접근 smoke를 날짜별 기록으로 남긴다.
