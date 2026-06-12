@@ -457,14 +457,33 @@ function sr_release_gate_status_admin_readonly_gate(string $gate, string $baseUr
     ];
 }
 
-function sr_release_gate_status_privacy_gate(bool $runPrivacyFixtures): array
+function sr_release_gate_status_privacy_gate(string $baseUrl, string $accountSmokeCredentialStatus, bool $allowMutationSmoke, bool $runPrivacyFixtures): array
 {
+    if ($baseUrl !== '' && $accountSmokeCredentialStatus === 'configured' && $allowMutationSmoke && !$runPrivacyFixtures) {
+        return [
+            'gate' => '개인정보 export/cleanup smoke',
+            'result' => '수동 확인 필요',
+            'environment' => $baseUrl,
+            'memo' => 'disposable account and mutation guard configured; manually verify installed DB export and cleanup smoke',
+        ];
+    }
+
     if (!$runPrivacyFixtures) {
+        if ($baseUrl === '') {
+            $memo = 'set SR_SMOKE_BASE_URL, disposable account credentials, and SR_SMOKE_ALLOW_MUTATION=1 for installed DB smoke; use --run-privacy-fixtures only for SQLite contract fixtures';
+        } elseif ($accountSmokeCredentialStatus === 'incomplete') {
+            $memo = 'SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together for disposable account data';
+        } elseif ($accountSmokeCredentialStatus === 'missing') {
+            $memo = 'requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for disposable account data';
+        } else {
+            $memo = 'privacy cleanup can mutate data; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data';
+        }
+
         return [
             'gate' => '개인정보 export/cleanup smoke',
             'result' => '미실행',
-            'environment' => 'local/staging dummy account',
-            'memo' => 'requires disposable account data for installed DB smoke; use --run-privacy-fixtures only for SQLite contract fixtures',
+            'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
+            'memo' => $memo,
         ];
     }
 
@@ -583,7 +602,7 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAuthSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_quiz_smoke_gate($baseUrl, $adminSmokeCredentialStatus, $runQuizSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $assetDedupeExpectationStatus, $runAssetSmoke, $allowMutationSmoke);
-$gates[] = sr_release_gate_status_privacy_gate($runPrivacyFixtures);
+$gates[] = sr_release_gate_status_privacy_gate($baseUrl, $accountSmokeCredentialStatus, $allowMutationSmoke, $runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
 $gates[] = sr_release_gate_status_ckeditor_upload_save_gate($baseUrl, $adminSmokeCredentialStatus, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_performance_gate($runPerformanceFixtures);

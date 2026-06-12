@@ -116,6 +116,7 @@ foreach ([
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
+    "gate\t개인정보 export/cleanup smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for disposable account data",
 ] as $marker) {
     if ($baseOnlyOutput !== '' && !str_contains($baseOnlyOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status base-url-only output marker missing: ' . $marker);
@@ -191,6 +192,7 @@ foreach ([
     'account-smoke-credentials: incomplete',
     "gate\t인증 smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
+    "gate\t개인정보 export/cleanup smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
 ] as $marker) {
     if ($accountIncompleteIdentifierOutput !== '' && !str_contains($accountIncompleteIdentifierOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status account-identifier-only output marker missing: ' . $marker);
@@ -208,6 +210,7 @@ foreach ([
     'account-smoke-credentials: incomplete',
     "gate\t인증 smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
+    "gate\t개인정보 export/cleanup smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
 ] as $marker) {
     if ($accountIncompletePasswordOutput !== '' && !str_contains($accountIncompletePasswordOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status account-password-only output marker missing: ' . $marker);
@@ -226,6 +229,7 @@ foreach ([
     'account-smoke-credentials: configured',
     'asset-dedupe-expectation: missing',
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_FORM_PATH for disposable paid target data",
+    "gate\t개인정보 export/cleanup smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=privacy cleanup can mutate data; set SR_SMOKE_ALLOW_MUTATION=1",
 ] as $marker) {
     if ($assetMissingFormOutput !== '' && !str_contains($assetMissingFormOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status asset missing form output marker missing: ' . $marker);
@@ -360,6 +364,7 @@ $authReadyOutput = sr_installed_gate_status_exec([
 foreach ([
     'mutation-smoke-allowed: yes',
     "gate\t인증 smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=authenticated smoke is configured; rerun with --run-auth-smoke",
+    "gate\t개인정보 export/cleanup smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=disposable account and mutation guard configured; manually verify installed DB export and cleanup smoke",
 ] as $marker) {
     if ($authReadyOutput !== '' && !str_contains($authReadyOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status auth ready output marker missing: ' . $marker);
@@ -481,6 +486,9 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'smoke-asset-idempotency-http.php',
     'check-privacy-export-runtime.php',
     'check-privacy-cleanup-runtime.php',
+    'sr_release_gate_status_privacy_gate($baseUrl, $accountSmokeCredentialStatus, $allowMutationSmoke, $runPrivacyFixtures)',
+    'privacy cleanup can mutate data',
+    'disposable account and mutation guard configured',
     'check-performance-policy.php',
     'check-performance-baseline.php',
     'check-admin-pagination-runtime.php',
