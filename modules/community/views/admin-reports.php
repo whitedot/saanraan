@@ -114,7 +114,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#community-report-bulk-status-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
-                            <p class="admin-summary-meta" data-community-report-bulk-modal-summary><strong data-community-report-bulk-modal-count>0</strong>개 신고를 선택한 상태로 변경합니다.</p>
                             <p class="admin-form-help">대상 조치는 처리 완료 상태, 허위신고자 조치는 기각 상태로 저장할 때만 실행합니다.</p>
                             <div class="admin-form-row">
                                 <label for="community_report_bulk_target_action" class="form-label">대상 조치</label>
@@ -144,6 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <textarea id="community_report_bulk_review_note" name="review_note" rows="5" class="form-textarea" maxlength="1000" required data-overlay-focus></textarea>
                                 </div>
                             </div>
+                            <div class="alert alert-warning community-report-bulk-summary-alert" role="alert" data-community-report-bulk-modal-summary><strong data-community-report-bulk-modal-count>0</strong>개 신고를 선택한 상태로 변경합니다.</div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-report-bulk-status-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
