@@ -320,16 +320,47 @@ sr_notification_runtime_assert(
     'notification delivery transition must reject unknown target.'
 );
 
+$pdo->exec(
+    "INSERT INTO sr_notification_deliveries
+        (notification_id, channel, recipient, status, provider_message_id, error_message, attempted_at, created_at, updated_at)
+     VALUES
+        (1, 'email', 'retry@example.test', 'failed', 'provider-before', 'error-before', '2026-06-11 11:00:00', '2026-06-11 10:00:00', '2026-06-11 11:00:00'),
+        (1, 'email', 'sent@example.test', 'queued', 'provider-queued', 'error-queued', NULL, '2026-06-11 10:00:00', '2026-06-11 10:00:00'),
+        (1, 'email', 'stale@example.test', 'sent', 'provider-sent', '', '2026-06-11 11:30:00', '2026-06-11 10:00:00', '2026-06-11 11:30:00'),
+        (1, 'site', '', 'queued', '', '', NULL, '2026-06-11 10:00:00', '2026-06-11 10:00:00')"
+);
+
+$retryDeliveryId = (int) sr_notification_runtime_scalar($pdo, "SELECT id FROM sr_notification_deliveries WHERE recipient = 'retry@example.test'");
+$retryResult = sr_notification_update_delivery_status($pdo, $retryDeliveryId, 'queued', '2026-06-11 12:30:00');
+sr_notification_runtime_assert(!empty($retryResult['ok']) && ($retryResult['operation'] ?? '') === 'retry', 'notification delivery retry helper must report retry operation.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT status FROM sr_notification_deliveries WHERE id = :id', ['id' => $retryDeliveryId]) === 'queued', 'notification delivery retry helper must requeue failed delivery.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT provider_message_id FROM sr_notification_deliveries WHERE id = :id', ['id' => $retryDeliveryId]) === '', 'notification delivery retry helper must clear provider message id.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT error_message FROM sr_notification_deliveries WHERE id = :id', ['id' => $retryDeliveryId]) === '', 'notification delivery retry helper must clear error message.');
+sr_notification_runtime_assert(sr_notification_runtime_scalar($pdo, 'SELECT attempted_at FROM sr_notification_deliveries WHERE id = :id', ['id' => $retryDeliveryId]) === null, 'notification delivery retry helper must clear attempted_at.');
+
+$sentDeliveryId = (int) sr_notification_runtime_scalar($pdo, "SELECT id FROM sr_notification_deliveries WHERE recipient = 'sent@example.test'");
+$sentResult = sr_notification_update_delivery_status($pdo, $sentDeliveryId, 'sent', '2026-06-11 12:31:00');
+sr_notification_runtime_assert(!empty($sentResult['ok']) && ($sentResult['operation'] ?? '') === 'mark_sent', 'notification delivery status helper must report manual sent operation.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT attempted_at FROM sr_notification_deliveries WHERE id = :id', ['id' => $sentDeliveryId]) === '2026-06-11 12:31:00', 'notification delivery sent helper must set attempted_at.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT error_message FROM sr_notification_deliveries WHERE id = :id', ['id' => $sentDeliveryId]) === '', 'notification delivery sent helper must clear error message.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT provider_message_id FROM sr_notification_deliveries WHERE id = :id', ['id' => $sentDeliveryId]) === 'provider-queued', 'notification delivery sent helper must keep provider message id.');
+
+$staleDeliveryId = (int) sr_notification_runtime_scalar($pdo, "SELECT id FROM sr_notification_deliveries WHERE recipient = 'stale@example.test'");
+$staleResult = sr_notification_update_delivery_status_row($pdo, $staleDeliveryId, 'queued', 'failed', '2026-06-11 12:32:00');
+sr_notification_runtime_assert(empty($staleResult['ok']) && ($staleResult['error'] ?? '') === 'changed', 'notification delivery helper must reject stale before_status updates.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT status FROM sr_notification_deliveries WHERE id = :id', ['id' => $staleDeliveryId]) === 'sent', 'notification delivery stale helper must not mutate changed row.');
+
+$siteDeliveryId = (int) sr_notification_runtime_scalar($pdo, "SELECT id FROM sr_notification_deliveries WHERE channel = 'site' ORDER BY id DESC LIMIT 1");
+$siteResult = sr_notification_update_delivery_status($pdo, $siteDeliveryId, 'queued', '2026-06-11 12:33:00');
+sr_notification_runtime_assert(empty($siteResult['ok']) && ($siteResult['error'] ?? '') === 'not_found', 'notification delivery helper must not expose site deliveries for manual status updates.');
+
 $adminAction = file_get_contents($root . '/modules/notification/actions/admin-notifications.php');
 $adminView = file_get_contents($root . '/modules/notification/views/admin-notifications.php');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];"), 'notification delivery admin action must allow queued/sent/failed/canceled statuses.');
-sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'UPDATE sr_notification_deliveries'), 'notification delivery admin action must update delivery status rows.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'delivery_status'"), 'notification delivery admin action must expose delivery status updates.');
-sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'sr_notification_delivery_status_transition($beforeStatus, $status)'), 'notification delivery admin action must enforce delivery status transitions.');
-sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "provider_message_id = COALESCE(:provider_message_id, provider_message_id)"), 'notification delivery retry must be able to clear provider message id.');
-sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "error_message = COALESCE(:error_message, error_message)"), 'notification delivery retry must be able to clear error message.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'sr_notification_update_delivery_status($pdo, $deliveryId, $status, sr_now())'), 'notification delivery admin action must use the shared status update helper.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'before_status' => \$beforeStatus"), 'notification delivery audit log must include before_status.');
-sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'operation' => (string) (\$transition['operation'] ?? '')"), 'notification delivery audit log must include operation.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'operation' => \$operation"), 'notification delivery audit log must include operation.');
 sr_notification_runtime_assert(is_string($adminView) && str_contains($adminView, 'sr_notification_delivery_status_transition($deliveryStatus, $status)'), 'notification delivery admin view must only render allowed transition buttons.');
 
 if ($errors !== []) {

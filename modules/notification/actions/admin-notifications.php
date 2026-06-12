@@ -157,62 +157,23 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare("SELECT id, status FROM sr_notification_deliveries WHERE id = :id AND channel <> 'site' LIMIT 1");
-            $stmt->execute(['id' => $deliveryId]);
-            $deliveryRow = $stmt->fetch();
-            if (!is_array($deliveryRow)) {
-                $errors[] = '발송 항목을 찾을 수 없습니다.';
+            $deliveryStatusResult = sr_notification_update_delivery_status($pdo, $deliveryId, $status, sr_now());
+            if (empty($deliveryStatusResult['ok'])) {
+                if (($deliveryStatusResult['error'] ?? '') === 'not_found') {
+                    $errors[] = '발송 항목을 찾을 수 없습니다.';
+                } elseif (($deliveryStatusResult['error'] ?? '') === 'changed') {
+                    $errors[] = '발송 항목 상태가 바뀌었습니다. 목록을 새로고침한 뒤 다시 시도하세요.';
+                } else {
+                    $errors[] = '허용되지 않은 발송 상태 변경입니다.';
+                }
             }
         }
 
         if ($errors === []) {
-            $beforeStatus = (string) ($deliveryRow['status'] ?? '');
-            $transition = sr_notification_delivery_status_transition($beforeStatus, $status);
-            if (empty($transition['allowed'])) {
+            $beforeStatus = (string) ($deliveryStatusResult['before_status'] ?? '');
+            $operation = (string) ($deliveryStatusResult['operation'] ?? '');
+            if ($beforeStatus === '' || $operation === '') {
                 $errors[] = '허용되지 않은 발송 상태 변경입니다.';
-            }
-        }
-
-        if ($errors === []) {
-            $now = sr_now();
-            $attemptedAt = in_array($status, ['sent', 'failed'], true) ? $now : null;
-            $clearAttemptedAt = 0;
-            $providerMessageId = null;
-            $errorMessage = null;
-            if ((string) ($transition['operation'] ?? '') === 'retry') {
-                $clearAttemptedAt = 1;
-                $providerMessageId = '';
-                $errorMessage = '';
-            } elseif ($status === 'sent') {
-                $errorMessage = '';
-            }
-
-            $stmt = $pdo->prepare(
-                'UPDATE sr_notification_deliveries
-                 SET status = :status,
-                     attempted_at = CASE
-                         WHEN :clear_attempted_at = 1 THEN NULL
-                         WHEN :attempted_at IS NOT NULL THEN :attempted_at
-                         ELSE attempted_at
-                     END,
-                     provider_message_id = COALESCE(:provider_message_id, provider_message_id),
-                     error_message = COALESCE(:error_message, error_message),
-                     updated_at = :updated_at
-                 WHERE id = :id
-                   AND status = :before_status'
-            );
-            $stmt->execute([
-                'status' => $status,
-                'attempted_at' => $attemptedAt,
-                'clear_attempted_at' => $clearAttemptedAt,
-                'provider_message_id' => $providerMessageId,
-                'error_message' => $errorMessage,
-                'updated_at' => $now,
-                'id' => $deliveryId,
-                'before_status' => $beforeStatus,
-            ]);
-            if ($stmt->rowCount() < 1) {
-                $errors[] = '발송 항목 상태가 바뀌었습니다. 목록을 새로고침한 뒤 다시 시도하세요.';
             }
         }
 
@@ -245,7 +206,7 @@ if (sr_request_method() === 'POST') {
                 'metadata' => [
                     'before_status' => $beforeStatus,
                     'status' => $status,
-                    'operation' => (string) ($transition['operation'] ?? ''),
+                    'operation' => $operation,
                 ],
             ]);
 

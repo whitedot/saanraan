@@ -51,6 +51,93 @@ function sr_notification_delivery_status_transition(string $currentStatus, strin
     return ['allowed' => false, 'operation' => ''];
 }
 
+function sr_notification_update_delivery_status_row(PDO $pdo, int $deliveryId, string $beforeStatus, string $targetStatus, string $now): array
+{
+    $transition = sr_notification_delivery_status_transition($beforeStatus, $targetStatus);
+    if (empty($transition['allowed'])) {
+        return [
+            'ok' => false,
+            'error' => 'invalid_transition',
+            'before_status' => $beforeStatus,
+            'status' => $targetStatus,
+            'operation' => '',
+        ];
+    }
+
+    $attemptedAt = in_array($targetStatus, ['sent', 'failed'], true) ? $now : null;
+    $clearAttemptedAt = 0;
+    $providerMessageId = null;
+    $errorMessage = null;
+    if ((string) ($transition['operation'] ?? '') === 'retry') {
+        $clearAttemptedAt = 1;
+        $providerMessageId = '';
+        $errorMessage = '';
+    } elseif ($targetStatus === 'sent') {
+        $errorMessage = '';
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_notification_deliveries
+         SET status = :status,
+             attempted_at = CASE
+                 WHEN CAST(:clear_attempted_at AS INTEGER) = 1 THEN NULL
+                 WHEN :attempted_at IS NOT NULL THEN :attempted_at
+                 ELSE attempted_at
+             END,
+             provider_message_id = COALESCE(:provider_message_id, provider_message_id),
+             error_message = COALESCE(:error_message, error_message),
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = :before_status'
+    );
+    $stmt->execute([
+        'status' => $targetStatus,
+        'attempted_at' => $attemptedAt,
+        'clear_attempted_at' => $clearAttemptedAt,
+        'provider_message_id' => $providerMessageId,
+        'error_message' => $errorMessage,
+        'updated_at' => $now,
+        'id' => $deliveryId,
+        'before_status' => $beforeStatus,
+    ]);
+
+    if ($stmt->rowCount() < 1) {
+        return [
+            'ok' => false,
+            'error' => 'changed',
+            'before_status' => $beforeStatus,
+            'status' => $targetStatus,
+            'operation' => (string) ($transition['operation'] ?? ''),
+        ];
+    }
+
+    return [
+        'ok' => true,
+        'error' => '',
+        'before_status' => $beforeStatus,
+        'status' => $targetStatus,
+        'operation' => (string) ($transition['operation'] ?? ''),
+    ];
+}
+
+function sr_notification_update_delivery_status(PDO $pdo, int $deliveryId, string $targetStatus, string $now): array
+{
+    $stmt = $pdo->prepare("SELECT id, status FROM sr_notification_deliveries WHERE id = :id AND channel <> 'site' LIMIT 1");
+    $stmt->execute(['id' => $deliveryId]);
+    $deliveryRow = $stmt->fetch();
+    if (!is_array($deliveryRow)) {
+        return [
+            'ok' => false,
+            'error' => 'not_found',
+            'before_status' => '',
+            'status' => $targetStatus,
+            'operation' => '',
+        ];
+    }
+
+    return sr_notification_update_delivery_status_row($pdo, $deliveryId, (string) ($deliveryRow['status'] ?? ''), $targetStatus, $now);
+}
+
 function sr_notification_body_html(array $notification): string
 {
     return sr_body_text_html($notification);
