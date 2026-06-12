@@ -71,6 +71,7 @@ foreach ([
     'config-owner-group:',
     'sr-is-installed:',
     'browser-qa-base-url:',
+    'admin-smoke-credentials: missing',
     'run-readonly: no',
     'run-browser-qa: no',
     'run-auth-smoke: no',
@@ -94,6 +95,41 @@ foreach ([
 ] as $marker) {
     if ($output !== '' && !str_contains($output, $marker)) {
         sr_installed_gate_status_error('Installed gate status output marker missing: ' . $marker);
+    }
+}
+
+$baseOnlyOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'base-url: http://127.0.0.1:1',
+    'admin-smoke-credentials: missing',
+    "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
+    "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
+] as $marker) {
+    if ($baseOnlyOutput !== '' && !str_contains($baseOnlyOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status base-url-only output marker missing: ' . $marker);
+    }
+}
+
+$adminConfiguredOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
+    'SR_SMOKE_ADMIN_PASSWORD=12341234',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'admin-smoke-credentials: configured',
+    "gate\t/admin/assets/reconciliation\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
+    "gate\t/admin/operations\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
+] as $marker) {
+    if ($adminConfiguredOutput !== '' && !str_contains($adminConfiguredOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status admin-configured output marker missing: ' . $marker);
     }
 }
 
@@ -128,7 +164,10 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     '--run-privacy-fixtures',
     '--run-performance-fixtures',
     'SR_SMOKE_ALLOW_MUTATION',
+    'SR_SMOKE_ADMIN_IDENTIFIER',
+    'SR_SMOKE_ADMIN_PASSWORD',
     'config/config.php is not readable by current user',
+    'sr_release_gate_status_admin_readonly_gate',
     'sr_release_gate_status_file_mode',
     'sr_release_gate_status_file_owner_group',
     'set SR_SMOKE_BASE_URL and use an administrator session',

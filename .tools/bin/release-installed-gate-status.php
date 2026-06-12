@@ -22,6 +22,9 @@ $runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
+$adminIdentifier = (string) (getenv('SR_SMOKE_ADMIN_IDENTIFIER') ?: '');
+$adminPassword = (string) (getenv('SR_SMOKE_ADMIN_PASSWORD') ?: '');
+$hasAdminSmokeCredentials = $adminIdentifier !== '' && $adminPassword !== '';
 $configPath = $root . '/config/config.php';
 $lockPath = $root . '/storage/installed.lock';
 $configExists = is_file($configPath);
@@ -281,6 +284,34 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, bool $runAsset
     ];
 }
 
+function sr_release_gate_status_admin_readonly_gate(string $gate, string $baseUrl, bool $hasAdminSmokeCredentials, string $memo): array
+{
+    if ($baseUrl === '') {
+        return [
+            'gate' => $gate,
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen',
+        ];
+    }
+
+    if (!$hasAdminSmokeCredentials) {
+        return [
+            'gate' => $gate,
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD for administrator session; ' . $memo,
+        ];
+    }
+
+    return [
+        'gate' => $gate,
+        'result' => '수동 확인 필요',
+        'environment' => $baseUrl,
+        'memo' => 'administrator session configured; ' . $memo,
+    ];
+}
+
 function sr_release_gate_status_privacy_gate(bool $runPrivacyFixtures): array
 {
     if (!$runPrivacyFixtures) {
@@ -384,18 +415,18 @@ $gates[] = sr_release_gate_status_readonly_command_gate(
     $runReadonly,
     $unavailableReason
 );
-$gates[] = [
-    'gate' => '/admin/assets/reconciliation',
-    'result' => $baseUrl === '' ? '미실행' : '수동 확인 필요',
-    'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
-    'memo' => $baseUrl === '' ? 'set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen' : 'administrator session required',
-];
-$gates[] = [
-    'gate' => '/admin/operations',
-    'result' => $baseUrl === '' ? '미실행' : '수동 확인 필요',
-    'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
-    'memo' => $baseUrl === '' ? 'set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen' : 'administrator session required',
-];
+$gates[] = sr_release_gate_status_admin_readonly_gate(
+    '/admin/assets/reconciliation',
+    $baseUrl,
+    $hasAdminSmokeCredentials,
+    'verify the read-only reconciliation screen and compare it with reconcile-assets.php output'
+);
+$gates[] = sr_release_gate_status_admin_readonly_gate(
+    '/admin/operations',
+    $baseUrl,
+    $hasAdminSmokeCredentials,
+    'verify the read-only operations screen, allowed delays, and overdue markers'
+);
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $runAuthSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $runAssetSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_privacy_gate($runPrivacyFixtures);
@@ -425,6 +456,7 @@ echo 'config-owner-group: ' . sr_release_gate_status_file_owner_group($configPat
 echo 'sr-is-installed: ' . ($isInstalled ? 'yes' : 'no') . "\n";
 echo 'base-url: ' . ($baseUrl === '' ? '-' : $baseUrl) . "\n";
 echo 'browser-qa-base-url: ' . ($browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl) . "\n";
+echo 'admin-smoke-credentials: ' . ($hasAdminSmokeCredentials ? 'configured' : 'missing') . "\n";
 echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
 echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
 echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";
