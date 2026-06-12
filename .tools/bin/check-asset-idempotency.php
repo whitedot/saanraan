@@ -571,6 +571,7 @@ sr_asset_idempotency_contains('docs/smoke-test.md', [
 
 sr_asset_idempotency_contains('.tools/bin/smoke-asset-idempotency-http.php', [
     'SR_SMOKE_ALLOW_MUTATION',
+    'SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL',
     'SR_SMOKE_FORM_PATH',
     'SR_SMOKE_POST_PATH',
     'SR_SMOKE_SUCCESS_STATUSES',
@@ -588,6 +589,8 @@ sr_asset_idempotency_contains('.tools/bin/smoke-asset-idempotency-http.php', [
     'asset_request_token',
     'This smoke performs mutating duplicate POST requests',
     'Run only against local or staging disposable data',
+    'Public-looking base URL requires SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1',
+    'sr_asset_http_smoke_requires_public_mutation_override',
 ]);
 
 sr_asset_idempotency_command(
@@ -614,6 +617,25 @@ sr_asset_idempotency_command(
         'SR_SMOKE_SUCCESS_STATUSES contains an invalid HTTP status',
     ],
     'asset HTTP smoke success status validation'
+);
+
+sr_asset_idempotency_command(
+    [
+        'env',
+        'SR_SMOKE_ALLOW_MUTATION=1',
+        'SR_SMOKE_BASE_URL=https://example.com',
+        'SR_SMOKE_IDENTIFIER=member',
+        'SR_SMOKE_PASSWORD=12341234',
+        'SR_SMOKE_FORM_PATH=/paid-fixture',
+        PHP_BINARY,
+        '.tools/bin/smoke-asset-idempotency-http.php',
+    ],
+    2,
+    [
+        'Public-looking base URL requires SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1',
+        'Use only local/staging disposable data.',
+    ],
+    'asset HTTP smoke public mutation URL guard'
 );
 
 sr_asset_idempotency_command(

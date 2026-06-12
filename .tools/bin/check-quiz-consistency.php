@@ -298,7 +298,10 @@ function sr_quiz_check_paths_and_admin(): void
     ]);
     sr_quiz_check_file_contains('.tools/bin/smoke-quiz-e2e.php', [
         'SR_SMOKE_ALLOW_MUTATION=1',
+        'SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1',
         'saanraan quiz E2E smoke refused to run because it creates quiz and attempt data.',
+        'saanraan quiz E2E smoke refused to run against a public-looking base URL.',
+        'sr_quiz_e2e_requires_public_mutation_override',
         'SR_SMOKE_ADMIN_IDENTIFIER',
         'SR_SMOKE_ADMIN_PASSWORD',
         'sr_quiz_e2e_choice',
@@ -322,6 +325,23 @@ function sr_quiz_check_paths_and_admin(): void
             'SR_SMOKE_ALLOW_MUTATION=1',
         ],
         'Quiz E2E smoke mutation guard'
+    );
+    sr_quiz_check_command(
+        [
+            'env',
+            'SR_SMOKE_ALLOW_MUTATION=1',
+            'SR_SMOKE_BASE_URL=https://example.com',
+            'SR_SMOKE_ADMIN_IDENTIFIER=admin',
+            'SR_SMOKE_ADMIN_PASSWORD=12341234',
+            PHP_BINARY,
+            '.tools/bin/smoke-quiz-e2e.php',
+        ],
+        2,
+        [
+            'saanraan quiz E2E smoke refused to run against a public-looking base URL.',
+            'SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1',
+        ],
+        'Quiz E2E smoke public mutation URL guard'
     );
 }
 

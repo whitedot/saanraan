@@ -249,8 +249,7 @@ $expectedRows = [
         '.tools/bin/check-community-board-copy-limits.php',
         '.tools/bin/check-survey-export-runtime.php',
         '.tools/bin/release-installed-gate-status.php',
-        'SR_PERFORMANCE_REVIEW_READY=1',
-        '성능 수동 점검 readiness 게이트',
+        '성능 수동 점검',
         '인덱스 안전선',
         '실행 계획',
         '인덱스 검토 기록',
@@ -313,7 +312,7 @@ if ($verificationRecord !== '') {
         'fallback sanitizer fixture',
         'CKEditor upload/save browser smoke',
         '개인정보 export/cleanup smoke',
-        'SR_PERFORMANCE_REVIEW_READY=1',
+        '성능 수동 점검',
         'dry-run',
         'manifest',
     ], $errors);

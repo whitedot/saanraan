@@ -45,6 +45,14 @@ function sr_release_package_file_exists(string $file, array &$errors): void
     }
 }
 
+function sr_release_package_file_executable(string $file, array &$errors): void
+{
+    sr_release_package_file_exists($file, $errors);
+    if (is_file($file) && !is_executable($file)) {
+        $errors[] = 'Release package executable tool is not executable: ' . $file;
+    }
+}
+
 function sr_release_package_file_absent(string $file, array &$errors): void
 {
     if (is_file($file) || is_dir($file)) {
@@ -85,6 +93,13 @@ foreach ([
 }
 
 foreach ([
+    '.tools/bin/smoke-privacy-export-cleanup.php',
+    '.tools/bin/smoke-ckeditor-upload-save.php',
+] as $file) {
+    sr_release_package_file_executable($file, $errors);
+}
+
+foreach ([
     'docs/release-process.md' => [
         '릴리스 zip은 현재 저장소의 파일 구조를 보존해야 한다',
         '포함 기준',
@@ -120,6 +135,7 @@ foreach ([
         'unresolved_gates',
         'release-package-dry-run.php --manifest',
         'manifest-sha256',
+        '설치 DB smoke용 `.tools/bin/smoke-*.php` 도구 중 릴리스 검증 절차에서 직접 실행하는 파일은 패키지 정책 점검에서 실행권한도 확인한다',
         'composer install --no-dev --prefer-dist',
         'composer update ezyang/htmlpurifier --no-dev --prefer-dist',
         'GitHub source zip',
@@ -316,6 +332,8 @@ if ($manifest !== '') {
         '.tools/bin/check-tool-gate-coverage.php',
         '.tools/bin/check-release-verification-records.php',
         '.tools/bin/release-installed-gate-status.php',
+        '.tools/bin/smoke-privacy-export-cleanup.php',
+        '.tools/bin/smoke-ckeditor-upload-save.php',
     ] as $requiredManifestFile) {
         if (preg_match('/^[a-f0-9]{64}  ' . preg_quote($requiredManifestFile, '/') . '$/m', $manifest) !== 1) {
             $errors[] = 'Release package dry-run manifest is missing required file hash: ' . $requiredManifestFile;

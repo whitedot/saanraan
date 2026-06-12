@@ -119,7 +119,35 @@ function seed_csrf(string $path): string
 function seed_post(string $csrfPath, string $postPath, array $data): void
 {
     $data['csrf_token'] = seed_csrf($csrfPath);
-    seed_http('POST', $postPath, $data);
+    $response = seed_http('POST', $postPath, $data);
+    $messages = seed_response_error_messages((string) $response['body']);
+    if ($messages !== []) {
+        throw new RuntimeException('POST ' . $postPath . ' returned form errors: ' . implode(' / ', $messages));
+    }
+}
+
+function seed_response_error_messages(string $body): array
+{
+    $messages = [];
+    $patterns = [
+        '/<div\b[^>]*class="[^"]*\badmin-flash-message-error\b[^"]*"[^>]*>.*?<\/div>/is',
+        '/<ul\b[^>]*class="[^"]*\bpublic-ui-feedback-error\b[^"]*"[^>]*>.*?<\/ul>/is',
+        '/<main\b[^>]*>.*?<h1\b[^>]*>회원가입<\/h1>.*?(<ul\b[^>]*>.*?<\/ul>).*?<form\b/is',
+    ];
+    foreach ($patterns as $pattern) {
+        if (preg_match_all($pattern, $body, $matches) === false) {
+            continue;
+        }
+        $errorHtmlList = isset($matches[1]) && $matches[1] !== [] ? $matches[1] : $matches[0];
+        foreach ($errorHtmlList as $errorHtml) {
+            $message = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $errorHtml), ENT_QUOTES, 'UTF-8')) ?? '');
+            if ($message !== '') {
+                $messages[] = $message;
+            }
+        }
+    }
+
+    return array_values(array_unique($messages));
 }
 
 function seed_reset_session(): void
@@ -256,6 +284,10 @@ if ($ensureFreeBoard) {
                 $data['source_' . $settingKey] = 'board';
             }
         }
+        $data['paid_attachment_download_publisher_reward_enabled'] = '0';
+        $data['paid_attachment_download_publisher_reward_rate'] = '0';
+        $data['source_paid_attachment_download_publisher_reward_enabled'] = 'board';
+        $data['source_paid_attachment_download_publisher_reward_rate'] = 'board';
         $beforeFreeBoard = seed_count($pdo, 'sr_community_boards');
         seed_post('/admin/community/boards/new', '/admin/community/boards/create', $data);
         seed_ensure_created($pdo, 'community_free_board', 'sr_community_boards', $beforeFreeBoard, 1);
@@ -405,6 +437,8 @@ if (!$skipCommunity) {
             $data['group_' . $assetPrefix . '_asset_module'] = '';
             $data['group_' . $assetPrefix . '_amount'] = '0';
         }
+        $data['group_paid_attachment_download_publisher_reward_enabled'] = '0';
+        $data['group_paid_attachment_download_publisher_reward_rate'] = '0';
         seed_post('/admin/community/board-groups/new', '/admin/community/board-groups', $data);
     }
     seed_ensure_created($pdo, 'community_board_groups', 'sr_community_board_groups', $beforeBoardGroups, $count);
@@ -457,6 +491,10 @@ if (!$skipCommunity) {
                 $data['source_' . $settingKey] = 'board';
             }
         }
+        $data['paid_attachment_download_publisher_reward_enabled'] = '0';
+        $data['paid_attachment_download_publisher_reward_rate'] = '0';
+        $data['source_paid_attachment_download_publisher_reward_enabled'] = 'board';
+        $data['source_paid_attachment_download_publisher_reward_rate'] = 'board';
         seed_post('/admin/community/boards/new', '/admin/community/boards/create', $data);
     }
     seed_ensure_created($pdo, 'community_boards', 'sr_community_boards', $beforeBoards, $count);

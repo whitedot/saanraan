@@ -516,7 +516,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                     <ol>
                         <li>설정 파일 작성 준비</li>
                         <li>DB 연결 및 코어 스키마 설치</li>
-                        <li>필수 모듈 설치: member → admin → privacy</li>
+                        <li>필수 모듈 설치: member → admin → asset_ledger → privacy</li>
                         <li>선택 모듈 설치</li>
                         <li>사이트 설정 저장</li>
                         <li>관리자 계정과 owner 권한 생성</li>

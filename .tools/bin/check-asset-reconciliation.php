@@ -87,6 +87,16 @@ sr_asset_reconciliation_check_file_contains('modules/asset_ledger/admin-menu.php
     '/admin/assets/reconciliation',
 ]);
 
+sr_asset_reconciliation_check_file_contains('core/actions/install.php', [
+    "'asset_ledger' => [",
+    "'label' => '잔액 처리 기반'",
+    '포인트, 적립금, 예치금의 공통 잔액 처리와 원장 정합성 점검 기반을 제공합니다.',
+]);
+
+sr_asset_reconciliation_check_file_contains('core/views/install.php', [
+    'member → admin → asset_ledger → privacy',
+]);
+
 sr_asset_reconciliation_check_file_contains('modules/asset_ledger/actions/admin-assets-reconciliation.php', [
     'sr_member_require_login($pdo)',
     'sr_admin_require_permission($pdo',

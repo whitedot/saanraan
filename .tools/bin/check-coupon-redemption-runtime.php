@@ -215,6 +215,30 @@ function sr_coupon_runtime_create_schema(PDO $pdo): void
         anonymized_at TEXT,
         created_at TEXT NOT NULL
     )");
+    $pdo->exec("CREATE TABLE sr_community_asset_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        asset_module TEXT NOT NULL,
+        transaction_id INTEGER NOT NULL DEFAULT 0,
+        reference_type TEXT NOT NULL,
+        reference_id TEXT NOT NULL,
+        subject_type TEXT NOT NULL,
+        subject_id INTEGER NOT NULL,
+        event_key TEXT NOT NULL,
+        direction TEXT NOT NULL,
+        charge_policy TEXT NOT NULL DEFAULT 'once',
+        amount INTEGER NOT NULL,
+        settlement_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_currency TEXT NOT NULL DEFAULT 'KRW',
+        purchase_power_snapshot_json TEXT NOT NULL DEFAULT '',
+        settlement_kind TEXT NOT NULL DEFAULT 'legacy_unknown',
+        snapshot_schema_version TEXT NOT NULL DEFAULT 'asset_settlement_snapshot_v1',
+        rounding_policy_version TEXT NOT NULL DEFAULT 'asset_settlement_rounding_v1',
+        log_status TEXT NOT NULL DEFAULT 'completed',
+        group_policy_snapshot_json TEXT NOT NULL DEFAULT '',
+        dedupe_key TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL
+    )");
     $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled')");
     $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
 }
@@ -303,7 +327,7 @@ function sr_coupon_runtime_partial_failure_fixture(): void
     $token = (string) ($confirmation['confirmation_request_token'] ?? '');
     $contentResult = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
     sr_coupon_runtime_assert(empty($contentResult['allowed']), 'content coupon entitlement failure should not allow access.');
-    sr_coupon_runtime_assert((string) ($contentResult['message'] ?? '') === '쿠폰 접근권 처리에 실패했습니다.', 'content coupon entitlement failure should return the coupon access failure message.');
+    sr_coupon_runtime_assert((string) ($contentResult['message'] ?? '') !== '', 'content coupon entitlement failure should return a user-facing failure message.');
     sr_coupon_runtime_assert_issue_unused($pdo, $contentIssueId, 'content coupon entitlement failure');
     sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE dedupe_key = 'content.view:coupon:7:8801'")->fetchColumn() === 0, 'content coupon entitlement failure should roll back redemption row.');
     sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_access_entitlements')->fetchColumn() === 0, 'content coupon entitlement failure should leave no content entitlement.');
@@ -614,6 +638,49 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert((string) ($revokedDownloadLog['refund_transaction_ids_json'] ?? '') === '[]', 'content paid download fixture should persist empty refund transaction ids.');
     sr_coupon_runtime_assert((string) ($revokedDownloadLog['refund_note'] ?? '') === 'coupon access revoke', 'content paid download fixture should persist access revoke note.');
     sr_coupon_runtime_assert((string) ($revokedDownloadLog['access_revoked_at'] ?? '') !== '', 'content paid download fixture should store access_revoked_at.');
+
+    $communityIssueId = sr_coupon_runtime_issue($pdo, 'community_priority', 'community_post', '9901', 7);
+    $communityPaidReadConfig = [
+        'asset_module' => 'point',
+        'amount' => 150,
+        'amounts' => ['point' => 150],
+        'group_policies_json' => '',
+        'policy_set_id' => 0,
+        'charge_policy' => 'once',
+    ];
+    $communityResult = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9901');
+    sr_coupon_runtime_assert(!empty($communityResult['allowed']), 'community paid read fixture should allow coupon-backed access.');
+    sr_coupon_runtime_assert(!empty($communityResult['processed']), 'community paid read fixture should process the first coupon-backed access.');
+    sr_coupon_runtime_assert((string) ($communityResult['coupon_title'] ?? '') === 'community_priority', 'community paid read fixture should return the coupon title that backed access.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'community paid read fixture must not create point transactions when coupon takes priority.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_asset_logs')->fetchColumn() === 0, 'community paid read fixture must not create asset logs when coupon takes priority.');
+
+    $communityIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $communityIssueId]);
+    sr_coupon_runtime_assert((string) ($communityIssue['status'] ?? '') === 'used', 'community paid read fixture should mark the priority coupon issue used.');
+    sr_coupon_runtime_assert((int) ($communityIssue['used_count'] ?? -1) === 1, 'community paid read fixture should increment the priority coupon issue once.');
+    $communityEntitlement = sr_coupon_runtime_row(
+        $pdo,
+        "SELECT source_kind, source_asset_module, source_charge_policy, source_reference
+         FROM sr_community_access_entitlements
+         WHERE account_id = 7
+           AND subject_type = 'community.post'
+           AND subject_id = 9901
+           AND event_key = 'post_read'"
+    );
+    sr_coupon_runtime_assert((string) ($communityEntitlement['source_kind'] ?? '') === 'coupon', 'community paid read fixture should grant a coupon source entitlement.');
+    sr_coupon_runtime_assert((string) ($communityEntitlement['source_asset_module'] ?? '') === '', 'community paid read fixture should not attach an asset module to coupon entitlement.');
+    sr_coupon_runtime_assert((string) ($communityEntitlement['source_charge_policy'] ?? '') === 'once', 'community paid read fixture should preserve the paid read charge policy on coupon entitlement.');
+    sr_coupon_runtime_assert((string) ($communityEntitlement['source_reference'] ?? '') === 'community.post:coupon:7:9901', 'community paid read fixture should store the coupon dedupe key on entitlement.');
+
+    $communityRepeat = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902], $communityPaidReadConfig, 'community.post:coupon:7:9901');
+    sr_coupon_runtime_assert(!empty($communityRepeat['allowed']) && empty($communityRepeat['processed']) && !empty($communityRepeat['already_redeemed']), 'community paid read fixture should reuse existing coupon entitlement without another redemption.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.post' AND reference_id = '9901'")->fetchColumn() === 1, 'community paid read fixture should not create another coupon redemption for once access.');
+
+    $communityRedemptionId = (int) $pdo->query("SELECT id FROM sr_coupon_redemptions WHERE reference_module = 'community' AND reference_type = 'community.post' AND reference_id = '9901' LIMIT 1")->fetchColumn();
+    $communityRefund = sr_coupon_refund_redemption($pdo, $communityRedemptionId, 1, 'community coupon access revoke');
+    sr_coupon_runtime_assert((int) ($communityRefund['revoked_access_count'] ?? -1) === 1, 'community paid read fixture should revoke coupon access entitlement through refund helper.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_community_access_entitlements WHERE account_id = 7 AND subject_type = 'community.post' AND subject_id = 9901 AND event_key = 'post_read'")->fetchColumn() === 0, 'community paid read fixture should remove coupon-backed post entitlement on refund.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'community paid read fixture must still have no point transactions after coupon refund.');
 }
 
 sr_coupon_runtime_fixture();

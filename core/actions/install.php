@@ -26,6 +26,12 @@ $requiredModules = [
         'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],
+    'asset_ledger' => [
+        'name' => '잔액 처리 기반',
+        'version' => '2026.06.001',
+        'label' => '잔액 처리 기반',
+        'description' => '포인트, 적립금, 예치금의 공통 잔액 처리와 원장 정합성 점검 기반을 제공합니다.',
+    ],
     'privacy' => [
         'name' => '개인정보',
         'version' => '2026.05.001',

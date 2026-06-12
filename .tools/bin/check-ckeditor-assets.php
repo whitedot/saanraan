@@ -10,6 +10,8 @@ if (!defined('SR_ROOT')) {
 }
 
 require_once $root . '/core/helpers.php';
+require_once $root . '/modules/admin/helpers.php';
+require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/popup_layer/helpers/body-files.php';
 
 $errors = [];
@@ -154,6 +156,56 @@ function sr_ckeditor_assets_check_popup_layer_tmp_cleanup_fixture(): void
     }
 }
 
+function sr_ckeditor_assets_check_content_body_file_access_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec('CREATE TABLE sr_admin_account_roles (account_id INTEGER NOT NULL, role_key TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_admin_account_permissions (account_id INTEGER NOT NULL, menu_path TEXT NOT NULL, action_key TEXT NOT NULL)');
+
+    $publishedFree = [
+        'id' => 1,
+        'status' => 'published',
+        'asset_access_enabled' => 0,
+        'asset_access_amount' => 0,
+    ];
+    $publishedPaid = [
+        'id' => 2,
+        'status' => 'published',
+        'asset_access_enabled' => 1,
+        'asset_access_amount' => 100,
+    ];
+    $draft = [
+        'id' => 3,
+        'status' => 'draft',
+        'asset_access_enabled' => 0,
+        'asset_access_amount' => 0,
+    ];
+
+    sr_ckeditor_assets_assert(
+        sr_content_can_access_body_file($pdo, $publishedFree, null),
+        'Content body file access fixture should allow public free published content.'
+    );
+    sr_ckeditor_assets_assert(
+        !sr_content_can_access_body_file($pdo, $publishedPaid, null),
+        'Content body file access fixture should block anonymous access to paid published content body files.'
+    );
+    sr_ckeditor_assets_assert(
+        !sr_content_can_access_body_file($pdo, $draft, null),
+        'Content body file access fixture should block anonymous access to draft content body files.'
+    );
+    sr_ckeditor_assets_assert(
+        !sr_content_can_access_body_file($pdo, $draft, ['id' => 7]),
+        'Content body file access fixture should block non-admin member access to draft content body files.'
+    );
+
+    $pdo->exec("INSERT INTO sr_admin_account_roles (account_id, role_key) VALUES (7, 'owner')");
+    sr_ckeditor_assets_assert(
+        sr_content_can_access_body_file($pdo, $draft, ['id' => 7]),
+        'Content body file access fixture should allow content view admins to access draft content body files.'
+    );
+}
+
 foreach ([
     'modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
     'modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
@@ -169,6 +221,7 @@ foreach ([
 }
 
 sr_ckeditor_assets_node_syntax_check('modules/ckeditor/assets/saanraan-ckeditor.js');
+sr_ckeditor_assets_check_content_body_file_access_fixture();
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/vendor/ckeditor5/README.md', [
     'CKEditor 5',
@@ -225,6 +278,23 @@ sr_ckeditor_assets_require_markers('modules/content/actions/admin-body-file-uplo
     "sr_post_string_without_truncation('upload_token', 32) ?? ''",
     'sr_content_upload_body_file($pdo',
     'sr_content_cleanup_expired_body_files($pdo, 5)',
+]);
+
+sr_ckeditor_assets_require_markers('modules/content/helpers/body-files.php', [
+    'function sr_content_send_body_file(PDO $pdo, int $contentId, string $fileName, string $tmpToken = \'\'): void',
+    'sr_member_current_account($pdo)',
+    'sr_admin_has_permission($pdo, (int) $account[\'id\'], \'/admin/content\', \'edit\')',
+    '!sr_content_body_file_token_is_valid($tmpToken)',
+    'sr_content_body_file_tmp_key($tmpToken, $fileName)',
+    'sr_content_can_access_body_file($pdo, $page, is_array($account) ? $account : null)',
+    'sr_content_body_file_content_key($contentId, $fileName)',
+    'function sr_content_can_access_body_file(PDO $pdo, array $page, ?array $account): bool',
+    '(string) ($page[\'status\'] ?? \'\') !== \'published\'',
+    'sr_admin_has_permission($pdo, (int) $account[\'id\'], \'/admin/content\', \'view\')',
+    '!sr_content_asset_access_required($page)',
+    'if (!is_array($account))',
+    'sr_content_charge_view_access($pdo, $page, (int) $account[\'id\'], false)',
+    'return !empty($access[\'allowed\']);',
 ]);
 
 sr_ckeditor_assets_require_markers('modules/community/skins/basic/form.php', [

@@ -61,14 +61,43 @@ foreach ($integrated as $file) {
     }
 }
 
+$releaseGateStatus = is_file('.tools/bin/release-installed-gate-status.php')
+    ? file_get_contents('.tools/bin/release-installed-gate-status.php')
+    : false;
+$smokeTestDoc = is_file('docs/smoke-test.md') ? file_get_contents('docs/smoke-test.md') : false;
+if (!is_string($releaseGateStatus)) {
+    $errors[] = 'Required smoke gate file is missing or unreadable: .tools/bin/release-installed-gate-status.php';
+}
+if (!is_string($smokeTestDoc)) {
+    $errors[] = 'Required smoke documentation is missing or unreadable: docs/smoke-test.md';
+}
+
+$allSmokeTools = glob('.tools/bin/smoke-*.php');
+if (!is_array($allSmokeTools)) {
+    $errors[] = 'Unable to list smoke tools in .tools/bin.';
+    $allSmokeTools = [];
+}
+
+foreach ($allSmokeTools as $path) {
+    $file = basename($path);
+    if (is_string($releaseGateStatus) && !str_contains($releaseGateStatus, $file)) {
+        $errors[] = 'Smoke tool is not connected to release-installed-gate-status.php: ' . $file;
+    }
+    if (is_string($smokeTestDoc) && !str_contains($smokeTestDoc, $file)) {
+        $errors[] = 'Smoke tool is not documented in docs/smoke-test.md: ' . $file;
+    }
+}
+
 foreach ([
     'docs/contribution-guide.md' => [
         'check-tool-gate-coverage.php',
         '새 `check-*.php`',
+        '새 `smoke-*.php`',
         '통합 게이트',
     ],
     'docs/verification-status.md' => [
         'check-tool-gate-coverage.php',
+        '`smoke-*.php`',
         '통합 게이트',
     ],
 ] as $file => $markers) {

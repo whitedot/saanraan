@@ -21,7 +21,33 @@ function sr_auth_smoke_argument(array $argv, int $index, string $environmentKey,
 function sr_auth_smoke_usage(): string
 {
     return "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password] [admin_identifier] [admin_password] [recipient_password]\n"
-        . "Env: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_BASE_URL SR_SMOKE_IDENTIFIER SR_SMOKE_PASSWORD SR_SMOKE_BOARD_KEY SR_SMOKE_RECIPIENT_IDENTIFIER SR_SMOKE_POST_ID SR_SMOKE_REPORTER_IDENTIFIER SR_SMOKE_REPORTER_PASSWORD SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_RECIPIENT_PASSWORD\n";
+        . "Env: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1 SR_SMOKE_BASE_URL SR_SMOKE_IDENTIFIER SR_SMOKE_PASSWORD SR_SMOKE_BOARD_KEY SR_SMOKE_RECIPIENT_IDENTIFIER SR_SMOKE_POST_ID SR_SMOKE_REPORTER_IDENTIFIER SR_SMOKE_REPORTER_PASSWORD SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_RECIPIENT_PASSWORD\n";
+}
+
+function sr_auth_smoke_requires_public_mutation_override(string $baseUrl): bool
+{
+    $host = parse_url($baseUrl, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return true;
+    }
+
+    $host = strtolower(trim($host, '[]'));
+    if ($host === 'localhost' || $host === '127.0.0.1' || $host === '::1') {
+        return false;
+    }
+    if (preg_match('/\A127\./', $host) === 1 || preg_match('/\A10\./', $host) === 1 || preg_match('/\A192\.168\./', $host) === 1) {
+        return false;
+    }
+    if (preg_match('/\A172\.(1[6-9]|2[0-9]|3[0-1])\./', $host) === 1) {
+        return false;
+    }
+    foreach (['.localhost', '.local', '.test', '.invalid'] as $suffix) {
+        if (str_ends_with($host, $suffix)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 $allowMutation = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -62,6 +88,11 @@ if ($configurationErrors !== []) {
 
 if (!$allowMutation) {
     fwrite(STDERR, "saanraan authenticated community smoke refused to run because it creates community data. Set SR_SMOKE_ALLOW_MUTATION=1 only on local or staging disposable data.\n");
+    fwrite(STDERR, sr_auth_smoke_usage());
+    exit(2);
+}
+if (sr_auth_smoke_requires_public_mutation_override($baseUrl) && getenv('SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL') !== '1') {
+    fwrite(STDERR, "saanraan authenticated community smoke refused to run against a public-looking base URL. Set SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1 only for staging disposable data.\n");
     fwrite(STDERR, sr_auth_smoke_usage());
     exit(2);
 }

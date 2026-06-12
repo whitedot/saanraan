@@ -21,7 +21,33 @@ function sr_quiz_e2e_argument(array $argv, int $index, string $environmentKey, s
 function sr_quiz_e2e_usage(): string
 {
     return "Usage: php .tools/bin/smoke-quiz-e2e.php http://127.0.0.1:8080 admin_identifier admin_password [reward_module]\n"
-        . "Env: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_BASE_URL SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_QUIZ_REWARD_MODULE\n";
+        . "Env: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1 SR_SMOKE_BASE_URL SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_QUIZ_REWARD_MODULE\n";
+}
+
+function sr_quiz_e2e_requires_public_mutation_override(string $baseUrl): bool
+{
+    $host = parse_url($baseUrl, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return true;
+    }
+
+    $host = strtolower(trim($host, '[]'));
+    if ($host === 'localhost' || $host === '127.0.0.1' || $host === '::1') {
+        return false;
+    }
+    if (preg_match('/\A127\./', $host) === 1 || preg_match('/\A10\./', $host) === 1 || preg_match('/\A192\.168\./', $host) === 1) {
+        return false;
+    }
+    if (preg_match('/\A172\.(1[6-9]|2[0-9]|3[0-1])\./', $host) === 1) {
+        return false;
+    }
+    foreach (['.localhost', '.local', '.test', '.invalid'] as $suffix) {
+        if (str_ends_with($host, $suffix)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 $allowMutation = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -37,6 +63,11 @@ if (!$allowMutation) {
 }
 
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $adminIdentifier === '' || $adminPassword === '') {
+    fwrite(STDERR, sr_quiz_e2e_usage());
+    exit(2);
+}
+if (sr_quiz_e2e_requires_public_mutation_override($baseUrl) && getenv('SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL') !== '1') {
+    fwrite(STDERR, "saanraan quiz E2E smoke refused to run against a public-looking base URL. Set SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1 only for staging disposable data.\n");
     fwrite(STDERR, sr_quiz_e2e_usage());
     exit(2);
 }

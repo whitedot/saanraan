@@ -59,7 +59,17 @@ rich text sanitizer payload 회귀 점검
 php .tools/bin/release-installed-gate-status.php
 ```
 
-필요한 옵션과 환경 변수는 `php .tools/bin/release-installed-gate-status.php --help`로 먼저 확인한다. 상태표 도구는 알 수 없는 옵션을 exit 2로 거부하므로 릴리스 자동화의 오타를 조용히 무시하지 않는다. `--markdown-table`과 `--json`은 서로 배타적인 출력 형식이므로 함께 지정하면 exit 2로 실패해야 한다. 기록 표에 붙일 Markdown 표가 필요하면 `php .tools/bin/release-installed-gate-status.php --markdown-table`을 실행하고, 자동화/보관용 구조화 증거가 필요하면 `php .tools/bin/release-installed-gate-status.php --json`을 실행한다. 상태표 도구는 `SR_SMOKE_BASE_URL`과 `SR_BROWSER_QA_BASE_URL`의 URL userinfo를 metadata, gate 환경값, 실행 출력 요약에 남기기 전에 마스킹해야 한다. CI나 릴리스 스크립트에서 미해결 게이트를 실패로 다루려면 `--fail-on-unresolved`를 함께 지정한다. 설치 DB를 읽을 수 있는 로컬/staging 실행 사용자라면 `--run-readonly`로 `reconcile-assets.php`, `ops-status.php`, `expire-points.php --dry-run`까지 함께 기록한다. 현재 CLI 사용자가 `config/config.php`를 읽지 못하면 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 `php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved`를 다시 실행한다. 로컬/staging HTTP와 관리자 계정이 준비된 경우에는 `SR_SMOKE_BASE_URL`, `SR_SMOKE_ADMIN_IDENTIFIER`, `SR_SMOKE_ADMIN_PASSWORD`를 지정한 뒤 `php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved`로 구조화 증거를 남긴다. base URL이 준비된 환경에서는 `--run-http-smoke`로 기본 route, 보안 헤더, 보호 경로 HTTP smoke를 상태표 안에서 실행하고, `--run-browser-qa`로 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke를 실행할 수 있다. 인증, 퀴즈 E2E, 자산/쿠폰/유료 접근권 mutation smoke는 각각 `--run-auth-smoke`, `--run-quiz-smoke`, `--run-asset-smoke`를 쓰되, 로컬/staging disposable 데이터와 `SR_SMOKE_ALLOW_MUTATION=1`, 필요한 계정/관리자 계정, 자산 smoke의 `SR_SMOKE_FORM_PATH`와 `SR_SMOKE_EXPECT_DEDUPE_TABLE`/`SR_SMOKE_EXPECT_DEDUPE_KEY`가 모두 준비된 경우에만 실행한다. `--run-privacy-fixtures`와 `--run-performance-fixtures`는 SQLite/static fixture를 `부분 확인`으로 남길 뿐 설치 DB 개인정보 smoke나 대표 데이터 성능 수동 점검을 대체하지 않는다.
+필요한 옵션과 환경 변수는 `php .tools/bin/release-installed-gate-status.php --help`로 먼저 확인한다. 상태표 도구는 알 수 없는 옵션을 exit 2로 거부하므로 릴리스 자동화의 오타를 조용히 무시하지 않는다. `--markdown-table`과 `--json`은 서로 배타적인 출력 형식이므로 함께 지정하면 exit 2로 실패해야 한다. 기록 표에 붙일 Markdown 표가 필요하면 `php .tools/bin/release-installed-gate-status.php --markdown-table`을 실행하고, 자동화/보관용 구조화 증거가 필요하면 `php .tools/bin/release-installed-gate-status.php --json`을 실행한다. 상태표 도구는 `SR_SMOKE_BASE_URL`과 `SR_BROWSER_QA_BASE_URL`의 URL userinfo를 metadata, gate 환경값, 실행 출력 요약에 남기기 전에 마스킹해야 한다. 실행 출력 요약은 한국어, 체크마크 등 멀티바이트 문자가 포함되거나 길이 제한으로 잘릴 때도 UTF-8 안전한 단일 라인 문자열이어야 하며, `--json` 출력은 `json_decode()` 가능한 구조화 증거로 남아야 한다. CI나 릴리스 스크립트에서 미해결 게이트를 실패로 다루려면 `--fail-on-unresolved`를 함께 지정한다. 설치 DB를 읽을 수 있는 로컬/staging 실행 사용자라면 `--run-readonly`로 `reconcile-assets.php`, `ops-status.php`, `expire-points.php --dry-run`까지 함께 기록한다. 현재 CLI 사용자가 `config/config.php`를 읽지 못하면 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 `php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved`를 다시 실행한다. 로컬/staging HTTP와 관리자 계정이 준비된 경우에는 `SR_SMOKE_BASE_URL`, `SR_SMOKE_ADMIN_IDENTIFIER`, `SR_SMOKE_ADMIN_PASSWORD`를 지정한 뒤 `php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved`로 구조화 증거를 남긴다. 관리자 read-only 화면도 같은 자격 증명으로 `--run-admin-readonly`를 추가하면 `/admin/assets/reconciliation`과 `/admin/operations`를 로그인 세션으로 GET하고 기대 화면 문구를 확인할 수 있다. base URL이 준비된 환경에서는 `--run-http-smoke`로 기본 route, 보안 헤더, 보호 경로 HTTP smoke를 상태표 안에서 실행하고, `--run-browser-qa`로 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke를 실행할 수 있다. 기존 설치본 업데이트 흐름은 로컬/staging disposable DB에서 `SR_SMOKE_ALLOW_MUTATION=1`, 관리자 계정, `--run-update-smoke`를 함께 지정해 `smoke-update-apply.php`로 확인한다. 이 smoke는 기본적으로 `coupon 2026.05.003`의 `sr_schema_versions` 행을 지워 pending 상태를 만들고 `/admin/updates` POST, 적용 이력 복원, 감사 로그, 모듈 버전 동기화를 확인한다. 인증, 퀴즈 E2E, 자산/쿠폰/유료 접근권, 개인정보 export/cleanup, CKEditor upload/save mutation smoke는 각각 `--run-auth-smoke`, `--run-quiz-smoke`, `--run-asset-smoke`, `--run-privacy-smoke`, `--run-ckeditor-upload-save-smoke`를 쓰되, 로컬/staging disposable 데이터와 `SR_SMOKE_ALLOW_MUTATION=1`, 필요한 계정/관리자 계정, 자산 smoke의 `SR_SMOKE_FORM_PATH`와 `SR_SMOKE_EXPECT_DEDUPE_TABLE`/`SR_SMOKE_EXPECT_DEDUPE_KEY`가 모두 준비된 경우에만 실행한다. 개인정보 smoke는 대상 계정을 탈퇴/익명화하고, CKEditor upload/save smoke는 disposable 콘텐츠와 본문 이미지를 만든다. public-looking base URL에서 mutation smoke를 실행해야 하는 staging 환경은 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 함께 지정해야 한다. `--run-privacy-fixtures`와 `--run-performance-fixtures`는 SQLite/static fixture를 `부분 확인`으로 남길 뿐 설치 DB 개인정보 smoke나 대표 데이터 성능 수동 점검을 대체하지 않는다.
+
+```sh
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_ADMIN_IDENTIFIER=admin \
+SR_SMOKE_ADMIN_PASSWORD=12341234 \
+SR_SMOKE_ALLOW_MUTATION=1 \
+php .tools/bin/release-installed-gate-status.php --run-update-smoke
+```
+
+개인정보 export/cleanup smoke 하니스 자체는 `check-installed-gate-status.php`의 mock HTTP fixture로 로그인, export JSON 필수 key와 기본 타입(`exported_at`, `account_id`, `privacy_requests`, `module_exports.member`), 탈퇴 redirect, 탈퇴 후 기존 세션의 `/account` 접근 차단, 재로그인 차단 확인 흐름을 점검한다. 이 fixture는 설치 DB smoke 성공 기록을 대체하지 않고, 스크립트의 HTTP 계약 회귀를 잡기 위한 보조 증거다.
 
 고부하 관리자 작업을 확인할 때는 production 데이터에서 파괴적 smoke test를 실행하지 않는다. 재계산/복사/삭제/저장소 정리 테스트는 local 또는 staging 더미 데이터로 수행하고, 소량/중량/대량 기준에서 부하 등급 안내, 확인 문구 서버 거부, 배치 진행/재시도 상태, 감사 로그 metadata가 남는지 확인한다. 작업 테이블형은 lock 만료 takeover 뒤 이전 `lock_token`의 늦은 쓰기를 거부하는지 확인하고, 재시도 시 대상 단위 완료 마커/map/dedupe로 중복 원장·중복 발송·중복 복사가 생기지 않는지 확인한다. 도메인 쓰기와 map/cursor/count 갱신이 같은 원자적 경계 안에 있는지, query snapshot drift가 절대 50건 이상 또는 10% 이상일 때 재확인 필요 상태로 멈추는지도 확인한다. timeout 유사 상황은 테스트 전용 sleep, 낮은 `max_execution_time`, batch 실패 주입, 중간 요청 중단으로 확인한다. 즉시 제한형 선택 기반 일괄 작업은 선택 없음, 허용되지 않은 `operation_key`, 허용되지 않은 상태, 존재하지 않는 ID, 100건 초과, 이미 같은 상태인 행 건너뜀, 감사 로그 metadata를 확인한다.
 
@@ -149,7 +159,7 @@ settlement 기반 복합 차감을 도입한 환경에서는 확인 token 재시
 자산 환전 모듈을 활성화한 환경에서는 `/admin/asset-exchange`에서 활성 자산 모듈 간 정책을 저장하고, 같은 자산 조합 중복과 필수값/환전 비율/최소·최대 금액/수수료 설정이 서버에서 검증되는지 확인한다. 환전 비율은 `100:1` 같은 `출금 기준량:입금 환산량` 형식으로 입력하며 잘못된 형식이 거부되어야 한다. 수수료 적용이 `사용 안 함`이면 수수료 설정 입력이 숨겨지고 저장값도 비워져야 한다. 수수료를 적용할 때는 정률 또는 정액 중 하나만 설정할 수 있어야 하며, 정률 수수료는 기준값 100의 퍼센트 숫자 하나로 계산되어야 한다. 수수료와 정렬순서 숫자 필드는 빈 값과 잘못된 숫자 형식이 구분되어야 하고 저장 실패 후 입력값이 유지되어야 한다. 활성 양방향 무수수료 정책은 반복 환전으로 가치가 증가하는 반올림/비율 조합이 서버 저장에서 거부되는지 확인한다. `/account/asset-exchange`에서 예상 출금액, 입금액, 수수료, 최종 증가액을 확인한 뒤 확정하면 출금 자산 원장 `exchange_out`, 입금 자산 원장 `exchange_in`, 수수료가 있는 경우 `exchange_fee`가 같은 환전 묶음 ID로 남고, 성공/실패 후 새로고침으로 중복 실행되지 않아야 한다. `/admin/asset-exchange/logs`에서 완료 환전 묶음 정정 버튼을 실행하면 CSRF와 관리자 edit 권한을 거쳐 반대 원장 거래, 정정 로그, `asset_exchange.log.corrected` 감사 로그가 남는지 확인한다. 이미 정정된 묶음이나 실패/정정 로그는 다시 정정되지 않아야 한다. 확정 토큰은 예상 금액의 정책/금액/quote에 묶여야 하며 만료되거나 다른 금액으로 바뀐 제출은 거부되어야 한다. 짧은 시간 반복 실행은 계정 단위 제한으로 막히는지 확인한다. `sr_asset_exchange_logs.deposit_amount`에는 수수료 차감 후 최종 증가액이 저장되어야 하며, 성공 시 비율/반올림/수수료 스냅샷이 저장되고 잔액 부족 같은 실행 실패 시 실패 사유가 관리자/회원 로그 화면에 표시되는지 확인한다. 자산 모듈을 비활성화하면 신규 정책 후보에서 제외되고 기존 정책 목록에는 실행 불가 상태가 표시되며, 기존 정책 수정 화면에서 비활성 자산 선택값이 유지되고 중지 상태로 저장할 수 있는지 확인한다.
 적립금/예치금 모듈을 활성화한 환경에서는 `/account/rewards`의 출금 신청과 `/account/deposits`의 환불 신청이 로그인/CSRF를 요구하고, 최소 금액/최대 금액/필수 계좌 정보/대기 신청액을 제외한 신청 가능액을 서버에서 검증하는지 확인한다. `/admin/rewards/settings`에서 출금 신청 사용을 끄거나 `/admin/deposits/settings`에서 환불 신청 사용을 끄면 회원 화면의 신청 폼이 숨겨지고 직접 POST도 거부되어야 한다. `/admin/rewards/settings`와 `/admin/deposits/settings`에서 신청 사용을 켠 뒤 신청 대상으로 전체 회원을 지정하면 활성 회원에게 신청 폼이 표시되고, 회원 그룹을 지정하면 해당 그룹 소속 회원에게만 신청 폼이 표시되며 직접 POST도 같은 기준으로 검증되어야 한다. 전체 회원 선택 뱃지를 삭제하면 대상 선택 컨트롤이 다시 활성화되어야 한다. 지정 대상을 모두 해제하면 어떤 회원도 출금 또는 환불 신청을 할 수 없어야 한다. 신청 전 회원 그룹 자동 평가가 실행되어 최신 그룹 소속 기준으로 판정되는지 확인한다. 신청 후 같은 화면의 신청 내역에 대기 상태가 표시되고, 대기 상태 신청만 회원이 취소할 수 있어야 한다. `/admin/rewards/withdrawal-requests`와 `/admin/deposits/refund-requests`는 view/edit 권한을 확인하고, 상태 필터 그룹 버튼이 전체/대기/완료/거부/취소 목록을 전환하며 검색 조건/검색어가 회원, 계좌, 메모, 신청/거래 번호를 필터링하는지 확인한다. 처리 메모 없이는 개별 완료와 일괄처리가 저장되지 않아야 하며, 개별 거부는 별도 모달의 거부 사유 없이는 저장되지 않아야 한다. 일괄처리는 현재 필터와 검색 조건에 맞는 대기 신청만 대상으로 하며 100건 초과 시 서버에서 거부되어야 한다. 완료 처리는 각 원장에 `withdraw` 음수 거래를 만들고 신청 상태를 완료로 바꾸며, 거부와 회원 취소는 원장 거래를 만들지 않아야 한다. `/admin/rewards/transactions`의 회수는 대상 양수 거래의 남은 금액까지만 가능해야 하며, 잔액 조정 모달에는 회수 유형이 보이지 않고 회수 거래에는 환불 버튼이 없어야 한다. 개인정보 사본 제공에는 신청 계좌 정보와 처리 이력이 포함되어야 한다.
 콘텐츠 업데이트 후 기존 `/admin/content/settings` 권한 보유 운영자에게 `/admin/content/asset-policy-sets`의 같은 액션 권한이 승계되는지 확인. 콘텐츠 회원 그룹별 설정 목록에서 이름, Key, 상태, 수정일 헤더 정렬이 허용 목록 기반으로 동작하는지 확인
-콘텐츠 유료 열람 환경에서 쿠폰·이용권 모듈이 활성화되어 있고 대상 콘텐츠 쿠폰이 있으면 확인 POST 이후 금액성 자산 차감보다 쿠폰 사용이 먼저 적용되는지 확인. 같은 콘텐츠 재열람은 `dedupe_key` 기준으로 중복 사용되지 않아야 한다. 쿠폰 사용 row를 만든 뒤 접근권 부여가 실패하면 사용 row와 `used_count`가 함께 rollback되어야 하며, 접근권 없이 쿠폰만 소모된 상태가 남으면 안 된다. 만료된 active 쿠폰 지급 건은 계정/관리자 목록 조회나 사용 처리 시 `expired` 상태로 전이되어야 한다. `/admin/coupons`의 `쿠폰 추가` 모달에서 쿠폰 키는 영문 소문자로 시작하는 key 형식만 저장되고, 대상 번호 검색 스택 모달로 사용처별 대상을 선택할 수 있으며, 중복 키와 숫자가 아닌 사용 가능 횟수는 서버 검증에서 거부되어야 한다. `/admin/coupons`의 상태/사용처/검색어 필터, 헤더 정렬, 개별 `지급하기` 모달의 회원 검색, 전체, 그룹 지급이 동작하고, `/admin/coupons/issues`에서 상태/사용처/회원/쿠폰 검색어 필터, 헤더 정렬, 지급 취소가 동작해야 한다. `/admin/coupons/redemptions`에서 상태/환급 정책/사용처/회원/쿠폰 검색어 필터, 헤더 정렬, 환급 가능 쿠폰 사용 내역의 사유 필수 수동 환불이 동작해야 한다. DB 업데이트 전 상태에서는 사용 내역 목록이 500 없이 열리고 환불 실행은 업데이트 필요 오류로 막혀야 한다. 쿠폰 사용 환불 후 해당 `dedupe_key`로 부여된 콘텐츠/커뮤니티 접근권이 회수되고, 같은 세션의 커뮤니티 첨부 직접 접근도 회수된 접근권을 우회하지 않아야 한다. 알림 모듈이 활성화되어 있으면 환불 알림이 생성되어야 한다
+콘텐츠 유료 열람, 콘텐츠 유료 다운로드, 커뮤니티 유료 게시글 열람 환경에서 쿠폰·이용권 모듈이 활성화되어 있고 대상 쿠폰이 있으면 확인 POST 이후 금액성 자산 차감보다 쿠폰 사용이 먼저 적용되는지 확인. 같은 대상 재열람은 `dedupe_key` 기준으로 중복 사용되지 않아야 한다. 쿠폰 사용 row를 만든 뒤 접근권 부여가 실패하면 사용 row와 `used_count`가 함께 rollback되어야 하며, 접근권 없이 쿠폰만 소모된 상태가 남으면 안 된다. 만료된 active 쿠폰 지급 건은 계정/관리자 목록 조회나 사용 처리 시 `expired` 상태로 전이되어야 한다. `/admin/coupons`의 `쿠폰 추가` 모달에서 쿠폰 키는 영문 소문자로 시작하는 key 형식만 저장되고, 대상 번호 검색 스택 모달로 사용처별 대상을 선택할 수 있으며, 중복 키와 숫자가 아닌 사용 가능 횟수는 서버 검증에서 거부되어야 한다. `/admin/coupons`의 상태/사용처/검색어 필터, 헤더 정렬, 개별 `지급하기` 모달의 회원 검색, 전체, 그룹 지급이 동작하고, `/admin/coupons/issues`에서 상태/사용처/회원/쿠폰 검색어 필터, 헤더 정렬, 지급 취소가 동작해야 한다. `/admin/coupons/redemptions`에서 상태/환급 정책/사용처/회원/쿠폰 검색어 필터, 헤더 정렬, 환급 가능 쿠폰 사용 내역의 사유 필수 수동 환불이 동작해야 한다. DB 업데이트 전 상태에서는 사용 내역 목록이 500 없이 열리고 환불 실행은 업데이트 필요 오류로 막혀야 한다. 쿠폰 사용 환불 후 해당 `dedupe_key`로 부여된 콘텐츠/커뮤니티 접근권이 회수되고, 같은 세션의 커뮤니티 첨부 직접 접근도 회수된 접근권을 우회하지 않아야 한다. 알림 모듈이 활성화되어 있으면 환불 알림이 생성되어야 한다
 /community 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `SR_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
 /community/board?key=free 응답이 500 없이 열리거나 설치/비활성 상태에서 허용된 응답으로 막히는지 확인. `SR_SMOKE_EXPECT_COMMUNITY=1`이면 404는 실패로 본다.
 /community/group?key={group_key} 응답이 500 없이 열리고 사용 상태인 게시판 그룹의 설명과 접근 가능한 게시판 목록이 표시되는지 확인한다. 커뮤니티 주 메뉴 슬롯을 사용 안 함으로 설정하면 사용 상태인 게시판 그룹이 주 메뉴 fallback으로 표시되고, 그룹이 하나도 없을 때만 게시판 fallback이 표시되어야 한다.
@@ -167,17 +177,27 @@ settlement 기반 복합 차감을 도입한 환경에서는 확인 token 재시
 커뮤니티 자산 관리자 설정을 바꾼 환경에서는 커뮤니티 전역, 게시판 그룹, 게시판 수정 화면의 `자산 변경 이력` 링크에서 대상별 변경 로그가 보이는지 확인. 게시판 그룹에서 새 게시판을 추가하면 게시판 그룹의 기본값이 입력폼에 복사되고, 게시판 상태와 스킨은 그룹 설정값으로 바뀌지 않으며 `그룹` 적용 범위는 자동 선택되지 않는지 확인. 게시판 수정 화면에서 `그룹`/`전체` 적용을 선택하면 현재 편집값이 대상 게시판에 한 번 복사되고, 전역 설정이나 게시판 그룹 설정 변경 후에는 기존 게시판의 자산 설정과 유효 동작이 바뀌지 않아야 한다. 게시판을 다른 그룹으로 옮기더라도 저장된 게시판 자산 설정은 현재 게시판 값으로 유지되어야 한다
 CKEditor 플러그인을 활성화한 환경에서는 콘텐츠 본문, 커뮤니티 게시글, 팝업레이어 본문, 관리자 본문 textarea가 설정에 따라 에디터로 강화되고, 초기화 성공 시에만 `body_format=html`로 저장되는지 확인. 직접 호스팅 모드는 `modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js`와 `ckeditor5.css`를 로드해야 한다. CKEditor 설정 화면의 기본 툴바 구성은 명시 preset이 없는 CKEditor textarea의 fallback으로 적용되고, 콘텐츠 환경설정의 툴바 구성은 콘텐츠 본문 입력 화면에, 커뮤니티 환경설정의 툴바 구성은 커뮤니티 게시글 작성/수정 화면에 적용되는지 확인한다. CKEditor asset 로딩을 실패시킨 경우에는 일반 textarea 제출이 유지되고 서버가 `plain` 저장으로 fallback해야 한다. 악성 HTML은 저장/출력 과정에서 허용 태그와 속성만 남아야 한다. 콘텐츠/커뮤니티/팝업레이어 복사 경로도 기존 HTML을 그대로 신뢰하지 않고 새 레코드 저장 전과 본문 이미지/임베드 참조 재작성 후 최종 본문을 다시 정화해야 한다. HTML Purifier가 배치된 환경에서는 Purifier 경로와 내부 fallback canonicalizer가 함께 payload fixture를 통과해야 하며, Purifier가 없는 환경에서는 내부 fallback sanitizer fixture가 통과해야 한다. 콘텐츠/커뮤니티/팝업레이어 본문 이미지 업로드는 권한, CSRF, upload token을 요구하고, upload token은 허용 길이를 넘으면 잘라서 검증하지 않고 거부해야 한다. 저장 전 temporary 이미지는 업로드 권한이 있는 현재 사용자에게 보이며, 저장 후 정화된 HTML에 남은 프록시 URL만 소유 모듈의 로컬 경로로 이동되어야 한다. 각 업로드 action은 만료된 임시 본문 이미지를 소량 opportunistic cleanup으로 정리해야 한다. 유료/비공개 콘텐츠와 권한 제한 게시글의 본문 이미지 프록시는 소유 모듈 접근 정책을 우회하지 않아야 하며, 본문에서 제거되거나 레코드가 삭제된 이미지는 소유 모듈 저장 경로 기준으로 정리되어야 한다. 관리자 설정형 rich textarea에는 소유 모듈이 subject key와 삭제 정책을 명시한 경우에만 upload endpoint가 붙는지 확인한다.
 
-설치 DB 없이 브라우저 asset 로딩과 upload adapter request contract만 확인할 때는 로컬 dev-router를 띄운 뒤 다음 Playwright smoke를 실행한다. 이 명령은 `.tools/browser-qa/tests/ckeditor-browser-smoke.spec.js`를 실행하며, self-hosted CKEditor JS/CSS와 산란 loader를 실제 브라우저에서 로드하고, 초기화 성공 시 `body_format=html` hidden input이 붙는지와 번들 로딩 실패 시 textarea fallback이 유지되는지를 확인한다. 또한 mock upload endpoint로 CKEditor upload adapter가 이미지 field, `csrf_token`, `upload_token`, 커뮤니티 개인정보 동의 field를 multipart 요청에 포함하고, 서버 성공/오류 JSON을 올바르게 처리하는지 확인한다. 실제 업로드 action 권한, 저장 HTML sanitizer, 권한별 본문 이미지 접근은 설치 DB가 있는 CKEditor 브라우저 smoke에서 별도로 확인한다.
+설치 DB 없이 브라우저 asset 로딩과 upload adapter request contract만 확인할 때는 로컬 dev-router를 띄운 뒤 다음 Playwright smoke를 실행한다. 이 명령은 `.tools/browser-qa/tests/ckeditor-browser-smoke.spec.js`를 실행하며, self-hosted CKEditor JS/CSS와 산란 loader를 실제 브라우저에서 로드하고, 초기화 성공 시 `body_format=html` hidden input이 붙는지와 번들 로딩 실패 시 textarea fallback이 유지되는지를 확인한다. 또한 mock upload endpoint로 CKEditor upload adapter가 이미지 field, `csrf_token`, `upload_token`, 커뮤니티 개인정보 동의 field를 multipart 요청에 포함하고, 서버 성공/오류 JSON을 올바르게 처리하는지 확인한다. 실제 업로드 action 권한, 저장 HTML sanitizer, 임시/저장 후 본문 이미지 접근은 설치 DB가 있는 CKEditor smoke에서 별도로 확인한다.
 
 ```sh
 SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8080 \
   npm --prefix .tools/browser-qa run test:ckeditor
 ```
+
+설치 DB와 disposable 관리자 계정이 준비된 로컬/staging에서는 다음 smoke로 콘텐츠 관리자 본문 textarea의 CKEditor upload 속성, 서버 업로드 action, 저장 HTML sanitizer, 임시 이미지 비로그인 차단, 저장 후 공개 이미지 접근, 저장 후 최종 본문 이미지 URL을 확인한다. 저장 HTML sanitizer 판정은 공개 레이아웃의 정상 script asset이 아니라 콘텐츠 본문 영역에 차단 payload가 남는지를 기준으로 한다. 같은 하니스는 유료 공개 콘텐츠도 저장해 접근권 부여 전 비로그인/로그인 세션의 본문 이미지 접근이 차단되고, 테스트 접근권 부여 뒤 본문 이미지가 열리는지 확인한다. 별도 draft 콘텐츠도 저장해 관리자 미리보기에서는 본문 이미지가 보이고, 비로그인 사용자는 draft 페이지와 저장 후 본문 이미지에 접근할 수 없는지 확인한다. 이 스크립트는 공개/유료/draft 콘텐츠와 본문 이미지를 만들고, 설치 DB를 읽을 수 있는 환경에서는 테스트 접근권을 부여하므로 운영 DB에서 실행하지 않는다. 하니스 자체는 `check-installed-gate-status.php`의 mock HTTP fixture로 로그인, 업로드, 저장, 이미지 접근 확인 흐름을 점검한다. `check-ckeditor-assets.php`는 SQLite fixture로 공개 무료 콘텐츠 본문 이미지 허용, 유료 콘텐츠 비로그인 차단, 비공개 콘텐츠 관리자 접근 분기를 확인한다.
+
+```sh
+SR_SMOKE_ALLOW_MUTATION=1 \
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_ADMIN_IDENTIFIER=admin \
+SR_SMOKE_ADMIN_PASSWORD=12341234 \
+php .tools/bin/smoke-ckeditor-upload-save.php
+```
 알림 모듈이 활성화된 환경에서는 포인트/적립금/예치금 거래와 쿠폰 지급/사용/상태 변경 후 회원 대상 사이트 알림이 생성되는지 확인. 포인트 환경설정에서 기본 유효기간을 1일 이상으로 저장한 뒤 `grant` 지급 거래를 만들면 거래 목록과 회원 화면에 유효기간이 표시되고, 기본 유효기간 입력 옆에 `일` 단위가 표시되는지 확인한다. 사용/차감 거래가 가장 먼저 만료되는 지급분의 만료 가능 잔여량을 줄이고 `sr_point_expiration_consumptions`에 소비 매핑을 남기는지도 확인한다. 포인트 환불 모달의 환불 유효기간 기본값은 `환불 참조 원거래의 유효기간`이어야 하며, 환불 건마다 `환불 시점부터 기본 유효기간 계산`으로 바꿀 수 있어야 한다. 사용/차감 거래를 환불할 때 기본값은 소비 매핑의 원 지급 유효기간을 따라야 하고, 여러 유효기간 지급분이 복원되면 환불 거래가 유효기간별로 나뉘어야 하며, 이미 환불한 수량과 합쳐 원거래 수량을 넘으면 서버에서 거부되어야 한다. 포인트/적립금/예치금 조정 모달에는 환불 거래 유형이 일반 선택지로 보이지 않아야 하고, 참조 없는 환불 POST, 양수 원거래 환불 POST, 원거래 잔여 환불 가능액을 넘는 환불 POST는 서버에서 거부되어야 한다. 콘텐츠 파일 다운로드 수동 환불 모달도 포인트 환불 유효기간 기준을 환불 건마다 선택할 수 있어야 한다. 기한이 지난 지급분은 `/admin/points/settings`의 `수동 만료 실행` 버튼, `php .tools/bin/expire-points.php` 실행, 또는 다음 포인트 거래 전에 `expire` 거래로 차감되어야 하며, 기존 업데이트 전 거래처럼 `expires_at`이 없는 거래는 자동 만료되지 않아야 한다. 적립금 관리자 조정에서 지급 원거래에는 환불 버튼이 보이지 않고 회수 버튼만 제공되어야 한다. 예치금 지급/예치 원거래에는 환불 버튼이 보이지 않아야 하며, 회원에게 예치금을 내보내는 처리는 출금 또는 예치금 환불 신청 완료 흐름으로 처리되어야 한다. `회수` 유형은 음수 금액만 허용하고, 회수 대상 원거래를 참조해야 하며, 같은 대상의 누적 회수액이 원거래 금액을 넘으면 서버에서 거부되어야 한다. 회수 성공 후 회원 알림 제목이 적립금 회수로 생성되어야 한다. 알림 모듈을 비활성화한 환경에서는 같은 자산 처리가 알림 실패 없이 성공해야 한다. 포인트/적립금/예치금 관리자 수동 조정은 1,000,000 초과 시 처리자와 다른 편집 권한 보유 승인자 식별자와 승인 사유가 없으면 거부되고, 10,000,000 초과 1회 조정 또는 관리자별 일일 10,000,000 초과 조정은 서버에서 거부되는지 확인
 설치 DB에서 `/admin/assets/reconciliation`이 열리고 포인트/적립금/예치금의 잔액 행, 거래 합계, 마지막 거래 잔액 점검 결과가 read-only로 표시되는지 확인한다. 같은 환경에서 `php .tools/bin/reconcile-assets.php` 결과와 관리자 화면 요약이 일치해야 한다. 불일치가 있는 더미 데이터에서는 자동 정정 없이 유형과 계정 ID만 표시되어야 한다.
 콘텐츠 유료 열람/다운로드, 콘텐츠 완료 버튼, 커뮤니티 유료 열람/첨부 다운로드/작성·댓글 자산 처리의 중복 POST는 원장 거래 전에 `dedupe_key` unique가 있는 pending placeholder를 먼저 만들고, 성공 후 completed로 바뀌어야 한다. 같은 확인 token으로 두 번 제출하면 중복 원장 거래가 생기지 않아야 하며, 실패 또는 rollback 후에는 pending placeholder가 남아 다음 시도가 현재 상태로 재평가되어야 한다.
 
-설치 DB와 더미 유료 대상이 준비된 로컬/staging에서는 같은 확인 token의 병렬 HTTP 제출을 다음 하니스로 확인할 수 있다. 이 스크립트는 mutation을 수행하므로 `SR_SMOKE_ALLOW_MUTATION=1`을 명시해야 하고 운영 DB에서 실행하지 않는다. 대상 화면에서 `csrf_token`과 `asset_request_token`을 읽어 같은 세션으로 병렬 POST를 보내며, 기본 성공 HTTP 상태는 `200,201,204,302,303`이다. 모든 병렬 응답은 `SR_SMOKE_SUCCESS_STATUSES` 안에 있어야 하며, 500이나 예상 밖 4xx/3xx가 하나라도 있으면 실패한다. `SR_SMOKE_EXPECT_DEDUPE_TABLE`과 `SR_SMOKE_EXPECT_DEDUPE_KEY`를 주면 기본적으로 fresh dedupe key를 요구하고, 실행 전 row count 0개와 실행 후 정확히 1개를 확인한다.
+설치 DB와 더미 유료 대상이 준비된 로컬/staging에서는 같은 확인 token의 병렬 HTTP 제출을 다음 하니스로 확인할 수 있다. 이 스크립트는 mutation을 수행하므로 `SR_SMOKE_ALLOW_MUTATION=1`을 명시해야 하고 운영 DB에서 실행하지 않는다. public-looking base URL에서는 staging disposable 데이터임을 다시 확인하기 위해 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 요구한다. 대상 화면에서 `csrf_token`과 `asset_request_token`을 읽어 같은 세션으로 병렬 POST를 보내며, 기본 성공 HTTP 상태는 `200,201,204,302,303`이다. 모든 병렬 응답은 `SR_SMOKE_SUCCESS_STATUSES` 안에 있어야 하며, 500이나 예상 밖 4xx/3xx가 하나라도 있으면 실패한다. `SR_SMOKE_EXPECT_DEDUPE_TABLE`과 `SR_SMOKE_EXPECT_DEDUPE_KEY`를 주면 기본적으로 fresh dedupe key를 요구하고, 실행 전 row count 0개와 실행 후 정확히 1개를 확인한다. 하니스 자체는 `check-installed-gate-status.php`의 mock HTTP fixture로 로그인, form token 추출, 병렬 POST, status 집계 흐름을 점검하지만, 설치 DB dedupe row count나 실제 원장 중복 방지 증거를 대체하지 않는다.
 
 ```sh
 SR_SMOKE_ALLOW_MUTATION=1 \
@@ -255,7 +275,21 @@ SR_SMOKE_PASSWORD='password' \
 php .tools/bin/smoke-community-auth.php
 ```
 
-스크립트는 mutation 안전장치로 기본 실행을 거부하고 `SR_SMOKE_ALLOW_MUTATION=1`을 요구한다.
+스크립트는 mutation 안전장치로 기본 실행을 거부하고 `SR_SMOKE_ALLOW_MUTATION=1`을 요구한다. public-looking base URL에서는 staging disposable 데이터임을 다시 확인하기 위해 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 요구한다.
+
+## 개인정보 Export/Cleanup 스모크
+
+로컬 또는 스테이징에서 탈퇴시켜도 되는 disposable 계정이 준비되어 있으면 개인정보 사본 제공과 탈퇴/익명화 흐름을 함께 확인한다. 이 검사는 대상 계정을 실제로 탈퇴 처리하므로 운영 DB에서 실행하지 않는다.
+
+```sh
+SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_ALLOW_MUTATION=1 \
+SR_SMOKE_IDENTIFIER=privacy_smoke \
+SR_SMOKE_PASSWORD='password' \
+php .tools/bin/smoke-privacy-export-cleanup.php
+```
+
+스크립트는 `/account/privacy-export`의 JSON 구조와 `member` module export를 확인한 뒤 `/account/withdraw`를 POST하고, 기존 자격증명으로 다시 로그인할 수 없는지 확인한다. public-looking base URL에서는 staging disposable 데이터임을 다시 확인하기 위해 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 요구한다. 탈퇴 확인 문구가 바뀐 환경은 `SR_SMOKE_WITHDRAW_CONFIRM_TEXT`로 지정한다.
 
 ## 읽기 참조 계약 스모크
 
@@ -282,7 +316,7 @@ SR_SMOKE_ADMIN_PASSWORD='12341234' \
 php .tools/bin/smoke-quiz-e2e.php
 ```
 
-활성 자산 보상 후보를 명시해야 하면 `SR_SMOKE_QUIZ_REWARD_MODULE=point`처럼 지정한다. 스크립트는 mutation 안전장치로 기본 실행을 거부하고 `SR_SMOKE_ALLOW_MUTATION=1`을 요구한다. 관리자 퀴즈 생성, 복수/단일 선택 제출, 통과 결과, 보상 지급, 회원당 1회 재응시 차단을 확인한다.
+활성 자산 보상 후보를 명시해야 하면 `SR_SMOKE_QUIZ_REWARD_MODULE=point`처럼 지정한다. 스크립트는 mutation 안전장치로 기본 실행을 거부하고 `SR_SMOKE_ALLOW_MUTATION=1`을 요구한다. public-looking base URL에서는 staging disposable 데이터임을 다시 확인하기 위해 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 요구한다. 관리자 퀴즈 생성, 복수/단일 선택 제출, 통과 결과, 보상 지급, 회원당 1회 재응시 차단을 확인한다.
 
 적립금 보상 회수는 `/admin/quiz/attempts`에서 grant별 회수 가능액과 회수 버튼이 보이는지 확인한다. 회수 모달은 `intent=reclaim_reward`, `grant_id`, `amount`, `reason`, `return_to`를 보내며, 서버가 CSRF와 편집 권한을 확인하고 grant 기준 원장 거래, 회수 가능액, 적립금 `reclaim` 참조를 트랜잭션 안에서 다시 검증해야 한다.
 
@@ -371,6 +405,8 @@ SR_SEED_ADMIN_IDENTIFIER=admin \
 SR_SEED_ADMIN_PASSWORD='password' \
 php .tools/bin/seed-dummy-http.php
 ```
+
+시더는 각 POST 응답의 관리자 오류, 공개 피드백 오류, 회원가입 오류 목록을 발견하면 즉시 실패로 보고해야 한다. 도메인별 생성 전/후 카운트가 기대 증가량보다 작으면 성공 redirect처럼 보인 응답도 실패로 본다.
 
 더미 데이터 준비 후에는 다음을 기록한다.
 

@@ -16,10 +16,36 @@ function sr_asset_http_smoke_bool(string $key): bool
     return in_array(strtolower(sr_asset_http_smoke_env($key)), ['1', 'true', 'yes', 'on'], true);
 }
 
+function sr_asset_http_smoke_requires_public_mutation_override(string $baseUrl): bool
+{
+    $host = parse_url($baseUrl, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        return true;
+    }
+
+    $host = strtolower(trim($host, '[]'));
+    if ($host === 'localhost' || $host === '127.0.0.1' || $host === '::1') {
+        return false;
+    }
+    if (preg_match('/\A127\./', $host) === 1 || preg_match('/\A10\./', $host) === 1 || preg_match('/\A192\.168\./', $host) === 1) {
+        return false;
+    }
+    if (preg_match('/\A172\.(1[6-9]|2[0-9]|3[0-1])\./', $host) === 1) {
+        return false;
+    }
+    foreach (['.localhost', '.local', '.test', '.invalid'] as $suffix) {
+        if (str_ends_with($host, $suffix)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function sr_asset_http_smoke_usage(): string
 {
     return "Usage: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_BASE_URL=http://127.0.0.1:8080 SR_SMOKE_IDENTIFIER=writer@example.com SR_SMOKE_PASSWORD=password SR_SMOKE_FORM_PATH=/content/view?slug=paid SR_SMOKE_POST_PATH=/content/view?slug=paid SR_SMOKE_EXTRA_POST='asset_confirm=1' php .tools/bin/smoke-asset-idempotency-http.php\n"
-        . "Optional: SR_SMOKE_PARALLEL_REQUESTS=6 SR_SMOKE_TOKEN_FIELD=asset_request_token SR_SMOKE_SUCCESS_STATUSES=200,302,303 SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs SR_SMOKE_EXPECT_DEDUPE_KEY='...' SR_SMOKE_EXPECT_DEDUPE_COLUMN=dedupe_key SR_SMOKE_EXPECT_DEDUPE_FRESH=1\n"
+        . "Optional: SR_SMOKE_PARALLEL_REQUESTS=6 SR_SMOKE_TOKEN_FIELD=asset_request_token SR_SMOKE_SUCCESS_STATUSES=200,302,303 SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs SR_SMOKE_EXPECT_DEDUPE_KEY='...' SR_SMOKE_EXPECT_DEDUPE_COLUMN=dedupe_key SR_SMOKE_EXPECT_DEDUPE_FRESH=1 SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1\n"
         . "This smoke performs mutating duplicate POST requests. Run only against local or staging disposable data.\n";
 }
 
@@ -301,6 +327,9 @@ if (!sr_asset_http_smoke_bool('SR_SMOKE_ALLOW_MUTATION')) {
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $identifier === '' || $password === '' || $formPath === '' || $postPath === '') {
     fwrite(STDERR, sr_asset_http_smoke_usage());
     exit(2);
+}
+if (sr_asset_http_smoke_requires_public_mutation_override($baseUrl) && !sr_asset_http_smoke_bool('SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL')) {
+    sr_asset_http_smoke_fail('Public-looking base URL requires SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1 in addition to SR_SMOKE_ALLOW_MUTATION=1. Use only local/staging disposable data.', 2);
 }
 if (($expectedTable === '') !== ($expectedDedupeKey === '')) {
     sr_asset_http_smoke_fail('SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY must be provided together.', 2);
