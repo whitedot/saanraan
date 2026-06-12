@@ -219,11 +219,45 @@ function sr_asset_exchange_runtime_rollback_case(): void
     sr_asset_exchange_runtime_assert(sr_asset_exchange_runtime_count($pdo, 'sr_asset_exchange_logs') === 0, 'Asset exchange rollback must leave no completed log.');
 }
 
+function sr_asset_exchange_runtime_failure_log_case(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_asset_exchange_runtime_schema($pdo);
+    sr_asset_exchange_runtime_seed($pdo, 123, 500);
+
+    $reason = str_repeat('실패 사유 ', 80);
+    $logId = sr_asset_exchange_record_failure($pdo, sr_asset_exchange_runtime_policy(), 123, 100, $reason, 9001);
+    sr_asset_exchange_runtime_assert(is_int($logId) && $logId > 0, 'Asset exchange failure log must return a log id.');
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_runtime_balance($pdo, 'sr_reward_balances', 123) === 500, 'Asset exchange failure log must not change the source balance.');
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_runtime_balance($pdo, 'sr_deposit_balances', 123) === 0, 'Asset exchange failure log must not change the destination balance.');
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_runtime_count($pdo, 'sr_reward_transactions') === 0, 'Asset exchange failure log must not create source transactions.');
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_runtime_count($pdo, 'sr_deposit_transactions') === 0, 'Asset exchange failure log must not create destination transactions.');
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_asset_exchange_logs WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $logId]);
+    $log = $stmt->fetch();
+    sr_asset_exchange_runtime_assert(is_array($log), 'Asset exchange failure log must be readable.');
+    if (is_array($log)) {
+        sr_asset_exchange_runtime_assert((string) ($log['status'] ?? '') === 'failed', 'Asset exchange failure log must store failed status.');
+        sr_asset_exchange_runtime_assert((int) ($log['request_amount'] ?? 0) === 100, 'Asset exchange failure log must store request amount.');
+        sr_asset_exchange_runtime_assert((int) ($log['deposit_amount'] ?? 0) === 0, 'Asset exchange failure log must not store a destination amount.');
+        sr_asset_exchange_runtime_assert((int) ($log['fee_amount'] ?? 0) === 0, 'Asset exchange failure log must not store a fee amount.');
+        sr_asset_exchange_runtime_assert((string) ($log['failure_reason'] ?? '') !== '', 'Asset exchange failure log must store a failure reason.');
+        $failureReasonLength = function_exists('mb_strlen') ? mb_strlen((string) ($log['failure_reason'] ?? '')) : strlen((string) ($log['failure_reason'] ?? ''));
+        sr_asset_exchange_runtime_assert($failureReasonLength <= 255, 'Asset exchange failure log must clamp failure reason length.');
+        sr_asset_exchange_runtime_assert((int) ($log['created_by_account_id'] ?? 0) === 9001, 'Asset exchange failure log must store operator evidence.');
+        sr_asset_exchange_runtime_assert(($log['from_transaction_id'] ?? null) === null && ($log['to_transaction_id'] ?? null) === null && ($log['fee_transaction_id'] ?? null) === null, 'Asset exchange failure log must not link nonexistent transactions.');
+    }
+}
+
 if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_error('pdo_sqlite extension is required for asset exchange runtime checks.');
 } else {
     sr_asset_exchange_runtime_success_case();
     sr_asset_exchange_runtime_rollback_case();
+    sr_asset_exchange_runtime_failure_log_case();
 }
 
 if ($errors !== []) {
