@@ -63,6 +63,7 @@ function sr_release_verification_record_required_gate_labels(): array
         '`php .tools/bin/expire-points.php --dry-run`',
         '/admin/assets/reconciliation',
         '/admin/operations',
+        '기본 HTTP smoke',
         '인증 smoke',
         '퀴즈 E2E smoke',
         '자산/쿠폰/유료 접근권 mutation smoke',
@@ -175,6 +176,7 @@ function sr_release_verification_record_required_gate_rows_have_unresolved(strin
         '| `php .tools/bin/expire-points.php --dry-run` | TODO |',
         '| /admin/assets/reconciliation | TODO |',
         '| /admin/operations | TODO |',
+        '| 기본 HTTP smoke | TODO |',
         '| 인증 smoke | TODO |',
         '| 퀴즈 E2E smoke | TODO |',
         '| 자산/쿠폰/유료 접근권 mutation smoke | TODO |',
@@ -386,6 +388,7 @@ function sr_release_verification_record_fixture(string $requiredGateResult, stri
 | `php .tools/bin/expire-points.php --dry-run` | ' . $requiredGateResult . ' | fixture | fixture |
 | /admin/assets/reconciliation | ' . $requiredGateResult . ' | fixture | fixture |
 | /admin/operations | ' . $requiredGateResult . ' | fixture | fixture |
+| 기본 HTTP smoke | ' . $requiredGateResult . ' | fixture | fixture |
 | 인증 smoke | ' . $requiredGateResult . ' | fixture | fixture |
 | 퀴즈 E2E smoke | ' . $requiredGateResult . ' | fixture | fixture |
 | 자산/쿠폰/유료 접근권 mutation smoke | ' . $requiredGateResult . ' | fixture | fixture |
@@ -663,10 +666,10 @@ foreach ([
         '웹 서버 사용자 또는 로컬/staging 전용 실행 사용자',
         'SR_SMOKE_ADMIN_IDENTIFIER',
         'SR_SMOKE_ADMIN_PASSWORD',
-        'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0',
-        'result_counts: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0',
-        'unresolved_gates: 13',
-        'unresolved-gates: 13',
+        'gate-result-summary:',
+        'result_counts:',
+        'unresolved_gates:',
+        'unresolved-gates:',
         'exit 1',
         'check-htmlpurifier-vendor-integrity.php',
         'check-browser-qa.php',

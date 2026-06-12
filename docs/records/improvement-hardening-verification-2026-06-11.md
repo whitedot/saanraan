@@ -187,6 +187,7 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 | `php .tools/bin/expire-points.php --dry-run` | 환경 미준비 | 미설치 로컬 환경 | `saanraan is not installed.`와 exit 2 반환 |
 | /admin/assets/reconciliation | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
 | /admin/operations | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
+| 기본 HTTP smoke | 통과 | 미설치 로컬 HTTP base URL | HTTP Smoke 섹션의 `smoke-http.php` install-mode 실행으로 route, 보안 헤더, 보호 경로 확인 |
 | 인증 smoke | 안전 거부 확인 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php`는 `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 커뮤니티 데이터 생성은 미실행 |
 | 퀴즈 E2E smoke | 안전 거부 확인 | 설치 DB + 관리자 계정 없음 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 퀴즈 생성/응시는 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB + 더미 데이터 없음 | SQLite fixture만 확인 |
