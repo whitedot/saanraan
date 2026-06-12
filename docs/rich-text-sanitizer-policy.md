@@ -83,7 +83,7 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 
 CKEditor가 만드는 문단, 제목, 인용, 목록, 링크, 본문 이미지는 서버 allowlist 안에서 보존되어야 한다. 다만 CKEditor 내부 class, 목록 보조 `data-*`, inline style, 링크 `target`, 클라이언트가 보낸 `rel` 값은 저장 신뢰 대상이 아니므로 제거한다. 링크 `rel`은 서버가 `nofollow noopener noreferrer`로 다시 작성한다.
 
-`.tools/bin/check-rich-text-sanitizer.php`는 공통 sanitizer와 커뮤니티 게시글 sanitizer 양쪽에서 XSS payload, namespace/URL 우회 payload, 다음 CKEditor식 fixture가 같은 canonical HTML로 정화되는지 확인한다. 또한 커뮤니티 wrapper가 `sr_sanitize_rich_text_html()`을 호출해 Purifier 선행 정화와 fallback canonicalizer 경로를 공유하는지도 확인한다.
+`.tools/bin/check-rich-text-sanitizer.php`는 공통 sanitizer와 커뮤니티 게시글 sanitizer 양쪽에서 XSS payload, namespace/URL 우회 payload, 다음 CKEditor식 fixture가 같은 canonical HTML로 정화되는지 확인한다. 또한 커뮤니티 wrapper가 `sr_sanitize_rich_text_html()`을 호출해 hard-drop 컨테이너 제거, Purifier 1차 정화, fallback canonicalizer 경로를 공유하는지도 확인한다.
 
 - `h2`, `p`, `strong`, `em`, `u`, `s`
 - `blockquote` 안의 `p`

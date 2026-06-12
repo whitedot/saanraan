@@ -119,6 +119,14 @@ sr_rich_text_policy_contains('docs/README.md', [
 sr_rich_text_policy_contains('docs/verification-status.md', [
     'rich-text-sanitizer-policy.md',
     '허용 목록',
+    'hard-drop 컨테이너 제거',
+    'Purifier 1차 정화',
+]);
+
+sr_rich_text_policy_contains('docs/security-model.md', [
+    'hard-drop 컨테이너를 먼저 제거',
+    'Purifier를 1차 정화 엔진',
+    '같은 hard-drop 제거 뒤 내부 DOM 기반 sanitizer',
 ]);
 
 sr_rich_text_policy_contains('docs/risk-register.md', [
@@ -127,6 +135,7 @@ sr_rich_text_policy_contains('docs/risk-register.md', [
 ]);
 
 sr_rich_text_policy_contains('core/helpers/output.php', [
+    'sr_strip_rich_text_dropped_containers($html)',
     'HTML.Allowed',
     'Attr.AllowedClasses',
     'URI.AllowedSchemes',
