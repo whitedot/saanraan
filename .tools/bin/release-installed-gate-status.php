@@ -118,6 +118,35 @@ function sr_release_gate_status_markdown_table(array $gates): string
     return implode("\n", $lines) . "\n";
 }
 
+function sr_release_gate_status_result_summary(array $gates): string
+{
+    $order = ['통과', '부분 확인', '수동 확인 필요', '미실행', '환경 미준비', '실패'];
+    $counts = [];
+    foreach ($order as $result) {
+        $counts[$result] = 0;
+    }
+
+    foreach ($gates as $gate) {
+        $result = (string) ($gate['result'] ?? '');
+        if ($result === '') {
+            $result = '-';
+        }
+
+        if (!array_key_exists($result, $counts)) {
+            $counts[$result] = 0;
+        }
+
+        $counts[$result]++;
+    }
+
+    $parts = [];
+    foreach ($counts as $result => $count) {
+        $parts[] = $result . '=' . (string) $count;
+    }
+
+    return implode(', ', $parts);
+}
+
 function sr_release_gate_status_single_line(string $value): string
 {
     $normalized = preg_replace('/\s+/', ' ', trim($value));
@@ -734,5 +763,6 @@ foreach ($gates as $gate) {
         (string) ($gate['memo'] ?? '')
     ) . "\n";
 }
+echo 'gate-result-summary: ' . sr_release_gate_status_result_summary($gates) . "\n";
 echo 'unresolved-gates: ' . (string) $unresolved . "\n";
 echo "release installed gate status completed.\n";

@@ -95,6 +95,58 @@ function sr_installed_gate_status_assert_unresolved_count(string $label, string 
     }
 }
 
+function sr_installed_gate_status_assert_result_summary(string $label, string $output): void
+{
+    if ($output === '') {
+        return;
+    }
+
+    if (preg_match_all('/^gate\t[^\n]*\tresult=([^\t\n]+)/m', $output, $matches) === false) {
+        sr_installed_gate_status_error('Installed gate status output cannot be parsed for summary: ' . $label);
+        return;
+    }
+
+    $expected = [
+        '통과' => 0,
+        '부분 확인' => 0,
+        '수동 확인 필요' => 0,
+        '미실행' => 0,
+        '환경 미준비' => 0,
+        '실패' => 0,
+    ];
+    foreach (($matches[1] ?? []) as $result) {
+        if (!array_key_exists($result, $expected)) {
+            $expected[$result] = 0;
+        }
+
+        $expected[$result]++;
+    }
+
+    if (preg_match('/^gate-result-summary: (.+)$/m', $output, $summaryMatches) !== 1) {
+        sr_installed_gate_status_error('Installed gate status output missing gate-result-summary: ' . $label);
+        return;
+    }
+
+    $actual = [];
+    foreach (explode(',', (string) $summaryMatches[1]) as $part) {
+        $pieces = explode('=', trim($part), 2);
+        if (count($pieces) !== 2) {
+            continue;
+        }
+
+        $actual[trim($pieces[0])] = (int) trim($pieces[1]);
+    }
+
+    foreach ($expected as $result => $count) {
+        if (($actual[$result] ?? null) !== $count) {
+            sr_installed_gate_status_error(
+                'Installed gate status result summary mismatch for ' . $label . ': ' . $result
+                . ' expected ' . (string) $count . ', got ' . (array_key_exists($result, $actual) ? (string) $actual[$result] : 'missing')
+            );
+        }
+    }
+}
+
 function sr_installed_gate_status_assert_markdown_table(string $label, string $output): void
 {
     if ($output === '') {
@@ -143,6 +195,7 @@ function sr_installed_gate_status_assert_markdown_table(string $label, string $o
 
 $output = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php']);
 sr_installed_gate_status_assert_unresolved_count('default output', $output);
+sr_installed_gate_status_assert_result_summary('default output', $output);
 foreach ([
     'release-installed-gate-status-version: 1',
     'installed-lock:',
@@ -176,6 +229,7 @@ foreach ([
     "gate\tCKEditor asset/fallback browser smoke\t",
     "gate\tCKEditor upload/save browser smoke\t",
     "gate\t성능 수동 점검\t",
+    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0',
     'unresolved-gates:',
     'release installed gate status completed.',
 ] as $marker) {
@@ -235,6 +289,7 @@ $baseOnlyOutput = sr_installed_gate_status_exec([
     '.tools/bin/release-installed-gate-status.php',
 ]);
 sr_installed_gate_status_assert_unresolved_count('base-url-only output', $baseOnlyOutput);
+sr_installed_gate_status_assert_result_summary('base-url-only output', $baseOnlyOutput);
 foreach ([
     'base-url: http://127.0.0.1:1',
     'admin-smoke-credentials: missing',
@@ -297,6 +352,7 @@ $adminConfiguredOutput = sr_installed_gate_status_exec([
     '.tools/bin/release-installed-gate-status.php',
 ]);
 sr_installed_gate_status_assert_unresolved_count('admin-configured output', $adminConfiguredOutput);
+sr_installed_gate_status_assert_result_summary('admin-configured output', $adminConfiguredOutput);
 foreach ([
     'admin-smoke-credentials: configured',
     "gate\t/admin/assets/reconciliation\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
@@ -490,6 +546,7 @@ $authReadyOutput = sr_installed_gate_status_exec([
     '.tools/bin/release-installed-gate-status.php',
 ]);
 sr_installed_gate_status_assert_unresolved_count('auth-ready output', $authReadyOutput);
+sr_installed_gate_status_assert_result_summary('auth-ready output', $authReadyOutput);
 foreach ([
     'mutation-smoke-allowed: yes',
     "gate\t인증 smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=authenticated smoke is configured; rerun with --run-auth-smoke",
@@ -510,6 +567,7 @@ $quizReadyOutput = sr_installed_gate_status_exec([
     '.tools/bin/release-installed-gate-status.php',
 ]);
 sr_installed_gate_status_assert_unresolved_count('quiz-ready output', $quizReadyOutput);
+sr_installed_gate_status_assert_result_summary('quiz-ready output', $quizReadyOutput);
 foreach ([
     'mutation-smoke-allowed: yes',
     "gate\t퀴즈 E2E smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke is configured; rerun with --run-quiz-smoke",
@@ -533,6 +591,7 @@ $assetReadyOutput = sr_installed_gate_status_exec([
     '.tools/bin/release-installed-gate-status.php',
 ]);
 sr_installed_gate_status_assert_unresolved_count('asset-ready output', $assetReadyOutput);
+sr_installed_gate_status_assert_result_summary('asset-ready output', $assetReadyOutput);
 foreach ([
     'mutation-smoke-allowed: yes',
     'asset-dedupe-expectation: configured',
@@ -582,6 +641,7 @@ $fixtureOutput = sr_installed_gate_status_exec([
     '--run-performance-fixtures',
 ]);
 sr_installed_gate_status_assert_unresolved_count('fixture output', $fixtureOutput);
+sr_installed_gate_status_assert_result_summary('fixture output', $fixtureOutput);
 foreach ([
     'run-privacy-fixtures: yes',
     'run-performance-fixtures: yes',
@@ -601,6 +661,8 @@ foreach ([
 sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-status.php', [
     'release-installed-gate-status-version: 1',
     'unresolved-gates',
+    'gate-result-summary',
+    'sr_release_gate_status_result_summary',
     '--help',
     '--markdown-table',
     '--run-readonly',
@@ -668,6 +730,8 @@ sr_installed_gate_status_require_markers('docs/release-verification-template.md'
 sr_installed_gate_status_require_markers('docs/verification-status.md', [
     'php .tools/bin/release-installed-gate-status.php',
     '설치 DB 게이트 상태표',
+    'gate-result-summary',
+    'unresolved-gates',
 ]);
 
 sr_installed_gate_status_require_markers('docs/smoke-test.md', [
