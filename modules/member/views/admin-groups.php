@@ -632,7 +632,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                                                 </td>
                                                 <td><?php echo sr_e(sr_admin_event_type_label((string) $log['event_type'])); ?></td>
                                                 <td><?php echo sr_e((string) $log['message']); ?></td>
-                                                <td><?php echo sr_e((string) $log['created_at']); ?></td>
+                                                <td><?php echo sr_admin_time_html((string) $log['created_at']); ?></td>
                                             </tr>
                                         <?php } ?>
                                     </tbody>

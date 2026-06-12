@@ -245,7 +245,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 )); ?>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_e((string) ($report['reviewed_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-community-report-date-cell"><?php echo sr_community_time_html((string) ($report['reviewed_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <?php if ($canViewAuditLogs && trim((string) ($report['reviewed_at'] ?? '')) !== '') { ?>

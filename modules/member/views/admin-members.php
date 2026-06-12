@@ -369,10 +369,10 @@ foreach ($allowedStatuses as $status) {
                             <td class="admin-table-nowrap"><?php echo sr_e(trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '-'); ?></td>
                         <?php } ?>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
-                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['email_verified_at'] ?? '')); ?></td>
-                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) ($member['last_login_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_admin_time_html((string) ($member['email_verified_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_admin_time_html((string) ($member['last_login_at'] ?? '')); ?></td>
                         <td class="admin-table-nowrap admin-member-session-cell"><?php echo sr_e((string) $member['active_session_count']); ?></td>
-                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_e((string) $member['created_at']); ?></td>
+                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_admin_time_html((string) $member['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>

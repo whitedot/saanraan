@@ -169,6 +169,26 @@ function sr_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function sr_time_tooltip_html(?string $value, string $label, string $emptyText = ''): string
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return sr_e($emptyText);
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $exactValue = date('Y-m-d H:i:s', $timestamp);
+    $machineValue = date('Y-m-d\TH:i:sP', $timestamp);
+
+    return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
+        . sr_e($label)
+        . '</time>';
+}
+
 function sr_json_response(mixed $payload, int $statusCode = 200, array $headers = []): void
 {
     if ($statusCode !== 200) {

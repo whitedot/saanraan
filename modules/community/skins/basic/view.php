@@ -303,7 +303,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <?php echo sr_e(sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
                                 <?php if ($communityCommentCreatedAt !== '') { ?>
                                     /
-                                    <time datetime="<?php echo sr_e($communityCommentCreatedAt); ?>" title="<?php echo sr_e($communityCommentCreatedAt); ?>"><?php echo sr_e(sr_community_relative_time_label($communityCommentCreatedAt)); ?></time>
+                                    <?php echo sr_community_time_html($communityCommentCreatedAt); ?>
                                 <?php } ?>
                                 <?php if ((int) ($comment['is_secret'] ?? 0) === 1) { ?>
                                     / <?php echo sr_e('비밀'); ?>

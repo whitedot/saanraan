@@ -939,8 +939,7 @@ function sr_community_time_html(?string $value, string $emptyText = ''): string
         return sr_e($emptyText);
     }
 
-    $machineValue = date('c', strtotime($exactValue) ?: time());
-    return '<time datetime="' . sr_e($machineValue) . '" title="' . sr_e($exactValue) . '">' . sr_e(sr_community_relative_time_label($exactValue)) . '</time>';
+    return sr_time_tooltip_html($exactValue, sr_community_relative_time_label($exactValue));
 }
 
 function sr_community_publisher_reward_config(PDO $pdo, array $board, array $settings): array

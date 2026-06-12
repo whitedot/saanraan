@@ -79,7 +79,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ((string) ($ref['status'] ?? '') === 'active' ? 'is-normal' : 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label((string) ($ref['status'] ?? ''), 'embed_manager_status')); ?></span></td>
-                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($ref['updated_at'] ?? '')); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($ref['updated_at'] ?? '')); ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>

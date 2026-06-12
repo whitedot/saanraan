@@ -545,7 +545,7 @@ function sr_quiz_time_html(string $value): string
         $relative = floor($diff / 31536000) . '년 전';
     }
 
-    return '<time datetime="' . sr_e($value) . '" title="' . sr_e($value) . '">' . sr_e($relative) . '</time>';
+    return sr_time_tooltip_html($value, (string) $relative);
 }
 
 function sr_quiz_attempt_status_label(string $status): string
