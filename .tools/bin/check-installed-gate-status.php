@@ -97,6 +97,29 @@ foreach ([
     }
 }
 
+$fixtureOutput = sr_installed_gate_status_exec([
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--run-privacy-fixtures',
+    '--run-performance-fixtures',
+]);
+foreach ([
+    'run-privacy-fixtures: yes',
+    'run-performance-fixtures: yes',
+    "gate\t개인정보 export/cleanup smoke\tresult=부분 확인\tenvironment=SQLite contract fixtures",
+    "gate\t성능 수동 점검\tresult=부분 확인\tenvironment=static and SQLite runtime fixtures",
+    'installed DB smoke still required',
+    'installed DB performance review still required',
+    'privacy export runtime checks completed.',
+    'privacy cleanup runtime checks completed.',
+    'performance policy checks completed.',
+    'performance baseline checks completed.',
+] as $marker) {
+    if ($fixtureOutput !== '' && !str_contains($fixtureOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status fixture output marker missing: ' . $marker);
+    }
+}
+
 sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-status.php', [
     'release-installed-gate-status-version: 1',
     '--run-readonly',
