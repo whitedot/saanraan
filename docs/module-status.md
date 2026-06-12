@@ -20,7 +20,7 @@
 | 시스템 | `admin` | `stable-candidate` | `check-admin-action-security.php`, `check-admin-navigation-runtime.php`, 관리자 action 보안 정적 점검, 관리자 메뉴/route runtime fixture, HTTP smoke 기준 | 브라우저 수동 점검 기록 |
 | 시스템 | `asset_ledger` | `stable-candidate` | 숨김 기반 모듈 정책 문서, 자산 모듈 lifecycle 점검, `check-asset-reconciliation.php`와 read-only 관리자 reconciliation 화면 | 설치 DB reconciliation 실행 기록과 함께 확인 |
 | 회원 | `member` | `stable-candidate` | 인증 런타임 점검, 회원 auth policy 점검, 기본 HTTP smoke 기준 | 인증 smoke와 관리자 회원 화면 수동 기록 |
-| 회원 | `point` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, reward abuse 기준, read-only reconciliation CLI | 원장 reconciliation 실행 기록, 만료/환불/동시성 smoke |
+| 회원 | `point` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, reward abuse 기준, read-only reconciliation CLI, 포인트 만료 dry-run fixture | 원장 reconciliation 실행 기록, 설치 DB 만료 dry-run, 환불/동시성 smoke |
 | 회원 | `reward` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, reward abuse 기준, read-only reconciliation CLI | 원장 reconciliation 실행 기록, 출금/회수/동시성 smoke |
 | 회원 | `deposit` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, read-only reconciliation CLI | 원장 reconciliation 실행 기록, 환불/출금/동시성 smoke |
 | 회원 | `asset_exchange` | `beta` | `check-asset-exchange-logs.php`, `check-asset-exchange-runtime.php`, 환전 정책/로그 점검, 완료 묶음 정정 fixture, 실행 성공/rollback runtime fixture, 순환 가치 증가 방지 기준 | 동시 실행, 설치 DB 수수료/실패 복구 smoke |
