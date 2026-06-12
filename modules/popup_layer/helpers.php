@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 require_once SR_ROOT . '/modules/popup_layer/helpers/body-files.php';
 
 function sr_popup_layer_available_targets(PDO $pdo): array
@@ -606,46 +608,17 @@ function sr_popup_layer_close_script(): string
 
 function sr_popup_layer_clean_single_line(string $value, int $maxLength): string
 {
-    $value = trim(str_replace(["\r", "\n"], ' ', $value));
-    if (function_exists('mb_substr')) {
-        return mb_substr($value, 0, $maxLength);
-    }
-
-    return substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_popup_layer_clean_text(string $value, int $maxLength): string
 {
-    $value = str_replace(["\r\n", "\r"], "\n", $value);
-    if (function_exists('mb_substr')) {
-        return trim(mb_substr($value, 0, $maxLength));
-    }
-
-    return trim(substr($value, 0, $maxLength));
+    return sr_clean_text($value, $maxLength);
 }
 
 function sr_popup_layer_clean_admin_datetime(string $value): ?string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return null;
-    }
-
-    if (preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}\z/', $value) !== 1) {
-        return null;
-    }
-
-    $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
-    $dateErrors = DateTimeImmutable::getLastErrors();
-    if (
-        !$date instanceof DateTimeImmutable
-        || (is_array($dateErrors) && ((int) ($dateErrors['warning_count'] ?? 0) > 0 || (int) ($dateErrors['error_count'] ?? 0) > 0))
-        || $date->format('Y-m-d\TH:i') !== $value
-    ) {
-        return null;
-    }
-
-    return $date->format('Y-m-d H:i:00');
+    return sr_clean_admin_datetime($value, false);
 }
 
 function sr_popup_layer_admin_datetime_value(?string $value): string
@@ -663,34 +636,7 @@ function sr_popup_layer_admin_datetime_value(?string $value): string
 
 function sr_popup_layer_time_html(string $value): string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return '';
-    }
-
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return sr_e($value);
-    }
-
-    $diff = time() - $timestamp;
-    if ($diff < 0) {
-        $relative = date('Y-m-d H:i', $timestamp);
-    } elseif ($diff < 60) {
-        $relative = '방금 전';
-    } elseif ($diff < 3600) {
-        $relative = floor($diff / 60) . '분 전';
-    } elseif ($diff < 86400) {
-        $relative = floor($diff / 3600) . '시간 전';
-    } elseif ($diff < 2592000) {
-        $relative = floor($diff / 86400) . '일 전';
-    } elseif ($diff < 31536000) {
-        $relative = floor($diff / 2592000) . '개월 전';
-    } else {
-        $relative = floor($diff / 31536000) . '년 전';
-    }
-
-    return sr_time_tooltip_html($value, (string) $relative);
+    return sr_relative_time_html($value);
 }
 
 function sr_popup_layer_clean_subject_id(string $value): string

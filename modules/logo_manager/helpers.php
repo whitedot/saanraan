@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 function sr_logo_manager_default_position_options(): array
 {
     return [
@@ -246,8 +248,7 @@ function sr_logo_manager_site_setting_reference_admin_url(array $row, array $con
 
 function sr_logo_manager_clean_single_line(string $value, int $maxLength): string
 {
-    $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
-    return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_logo_manager_clean_url(string $value): string
@@ -275,15 +276,7 @@ function sr_logo_manager_clean_sort_order(string $value): ?int
 
 function sr_logo_manager_format_bytes(int $bytes): string
 {
-    if ($bytes >= 1048576) {
-        return number_format($bytes / 1048576, 1) . ' MB';
-    }
-
-    if ($bytes >= 1024) {
-        return number_format($bytes / 1024, 1) . ' KB';
-    }
-
-    return number_format(max(0, $bytes)) . ' bytes';
+    return sr_format_bytes($bytes);
 }
 
 function sr_logo_manager_upload_was_provided(mixed $file): bool
@@ -293,13 +286,7 @@ function sr_logo_manager_upload_was_provided(mixed $file): bool
 
 function sr_logo_manager_image_format_for_mime(string $mimeType): string
 {
-    return match (strtolower(trim($mimeType))) {
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/webp' => 'webp',
-        'image/svg+xml' => 'svg',
-        default => '',
-    };
+    return sr_image_format_for_mime($mimeType, true);
 }
 
 function sr_logo_manager_image_mime_is_allowed(string $mimeType): bool
@@ -685,22 +672,7 @@ function sr_logo_manager_url_for_output(string $url): string
 
 function sr_logo_manager_clean_admin_datetime(string $value): ?string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return null;
-    }
-
-    $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
-    $dateErrors = DateTimeImmutable::getLastErrors();
-    if (
-        !$date instanceof DateTimeImmutable
-        || (is_array($dateErrors) && ((int) ($dateErrors['warning_count'] ?? 0) > 0 || (int) ($dateErrors['error_count'] ?? 0) > 0))
-        || $date->format('Y-m-d\TH:i') !== $value
-    ) {
-        return null;
-    }
-
-    return $date->format('Y-m-d H:i:00');
+    return sr_clean_admin_datetime($value, false);
 }
 
 function sr_logo_manager_admin_datetime_value(mixed $value): string

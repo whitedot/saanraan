@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+
 function sr_community_board_copy_modes(): array
 {
     return [
@@ -35,8 +37,7 @@ function sr_community_board_copy_suggestion(array $board): array
 
 function sr_community_clean_single_line(string $value, int $maxLength): string
 {
-    $value = trim(preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $value)) ?? '');
-    return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_community_board_copy_counts(PDO $pdo, int $boardId): array

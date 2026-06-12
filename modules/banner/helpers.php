@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 function sr_banner_clean_single_line(string $value, int $maxLength): string
 {
-    $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
-    return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_banner_clean_text(string $value, int $maxLength): string
 {
-    $value = trim($value);
-    return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
+    return sr_clean_text($value, $maxLength);
 }
 
 function sr_banner_clean_url(string $value): string
@@ -41,15 +41,7 @@ function sr_banner_image_upload_max_bytes(): int
 
 function sr_banner_format_bytes(int $bytes): string
 {
-    if ($bytes >= 1048576) {
-        return number_format($bytes / 1048576, 1) . ' MB';
-    }
-
-    if ($bytes >= 1024) {
-        return number_format($bytes / 1024, 1) . ' KB';
-    }
-
-    return number_format(max(0, $bytes)) . ' bytes';
+    return sr_format_bytes($bytes);
 }
 
 function sr_banner_image_upload_was_provided(mixed $file): bool
@@ -59,12 +51,7 @@ function sr_banner_image_upload_was_provided(mixed $file): bool
 
 function sr_banner_image_format_for_mime(string $mimeType): string
 {
-    return match (strtolower(trim($mimeType))) {
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/webp' => 'webp',
-        default => '',
-    };
+    return sr_image_format_for_mime($mimeType);
 }
 
 function sr_banner_image_mime_is_allowed(string $mimeType): bool
@@ -196,13 +183,7 @@ function sr_banner_delete_uploaded_image(array $uploadedImage): void
 
 function sr_banner_clean_admin_datetime(string $value): ?string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return null;
-    }
-
-    $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
-    return $date instanceof DateTimeImmutable ? $date->format('Y-m-d H:i:00') : null;
+    return sr_clean_admin_datetime($value, false);
 }
 
 function sr_banner_admin_datetime_value(mixed $value): string

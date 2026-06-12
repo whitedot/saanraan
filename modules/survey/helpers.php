@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 function sr_survey_key_is_valid(string $key): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,63}\z/', $key) === 1;
@@ -37,14 +39,12 @@ function sr_survey_clean_key(string $value, int $maxLength = 64): string
 
 function sr_survey_clean_text(string $value, int $maxLength): string
 {
-    $value = trim(str_replace(["\r\n", "\r"], "\n", $value));
-    return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
+    return sr_clean_text($value, $maxLength);
 }
 
 function sr_survey_clean_single_line(string $value, int $maxLength): string
 {
-    $value = preg_replace('/\s+/', ' ', trim($value)) ?? '';
-    return function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_survey_statuses(): array
@@ -456,58 +456,17 @@ function sr_survey_reward_dedupe_scopes(): array
 
 function sr_survey_clean_admin_datetime(string $value): ?string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return null;
-    }
-    if (preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}\z/', $value) !== 1) {
-        return null;
-    }
-    $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
-    $errors = DateTimeImmutable::getLastErrors();
-    if (!$date instanceof DateTimeImmutable || (is_array($errors) && ((int) ($errors['warning_count'] ?? 0) > 0 || (int) ($errors['error_count'] ?? 0) > 0))) {
-        return null;
-    }
-
-    return $date->format('Y-m-d H:i:s');
+    return sr_clean_admin_datetime($value);
 }
 
 function sr_survey_datetime_local_value(mixed $value): string
 {
-    $timestamp = strtotime((string) $value);
-    return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
+    return sr_datetime_local_value($value);
 }
 
 function sr_survey_time_html(string $value): string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return '';
-    }
-
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return sr_e($value);
-    }
-
-    $diff = time() - $timestamp;
-    if ($diff < 0) {
-        $relative = date('Y-m-d H:i', $timestamp);
-    } elseif ($diff < 60) {
-        $relative = '방금 전';
-    } elseif ($diff < 3600) {
-        $relative = floor($diff / 60) . '분 전';
-    } elseif ($diff < 86400) {
-        $relative = floor($diff / 3600) . '시간 전';
-    } elseif ($diff < 2592000) {
-        $relative = floor($diff / 86400) . '일 전';
-    } elseif ($diff < 31536000) {
-        $relative = floor($diff / 2592000) . '개월 전';
-    } else {
-        $relative = floor($diff / 31536000) . '년 전';
-    }
-
-    return sr_time_tooltip_html($value, (string) $relative);
+    return sr_relative_time_html($value);
 }
 
 function sr_survey_public_window_is_open(array $survey, ?string $now = null): bool

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 function sr_asset_exchange_execute_rate_limit_bucket(): string
 {
     return 'asset_exchange.execute.account';
@@ -123,53 +125,12 @@ function sr_asset_exchange_record_execute_attempt(PDO $pdo, int $accountId): voi
 
 function sr_asset_exchange_relative_time_label(string $dateTime): string
 {
-    $timestamp = strtotime($dateTime);
-    if ($timestamp === false) {
-        return $dateTime;
-    }
-
-    $seconds = time() - $timestamp;
-    $isFuture = $seconds < 0;
-    $diff = abs($seconds);
-    $suffix = $isFuture ? ' 후' : ' 전';
-
-    if ($diff < 60) {
-        return $isFuture ? '잠시 후' : '방금 전';
-    }
-    if ($diff < 3600) {
-        return (string) floor($diff / 60) . '분' . $suffix;
-    }
-    if ($diff < 86400) {
-        return (string) floor($diff / 3600) . '시간' . $suffix;
-    }
-    if ($diff < 2592000) {
-        return (string) floor($diff / 86400) . '일' . $suffix;
-    }
-    if ($diff < 31536000) {
-        return (string) floor($diff / 2592000) . '개월' . $suffix;
-    }
-
-    return (string) floor($diff / 31536000) . '년' . $suffix;
+    return sr_relative_time_label($dateTime);
 }
 
 function sr_asset_exchange_time_html(?string $value, string $emptyText = ''): string
 {
-    $value = trim((string) $value);
-    if ($value === '') {
-        return sr_e($emptyText);
-    }
-
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return sr_e($value);
-    }
-
-    $exactValue = date('Y-m-d H:i:s', $timestamp);
-    $machineValue = date('Y-m-d\TH:i:sP', $timestamp);
-
-    return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
-        . sr_e(sr_asset_exchange_relative_time_label($exactValue))
-        . '</time>';
+    return sr_relative_time_html($value, $emptyText);
 }
 
 function sr_asset_exchange_log_status_label(string $status): string
@@ -1253,12 +1214,7 @@ function sr_asset_exchange_int_string(mixed $value): int
 
 function sr_asset_exchange_clean_text(string $value, int $maxLength): string
 {
-    $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
-    if (function_exists('mb_substr')) {
-        return mb_substr($value, 0, $maxLength);
-    }
-
-    return substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_asset_exchange_clean_reference_id(string $value, int $maxLength): string

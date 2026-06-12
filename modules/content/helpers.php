@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 require_once SR_ROOT . '/modules/content/helpers/assets.php';
 require_once SR_ROOT . '/modules/content/helpers/body-files.php';
 require_once SR_ROOT . '/modules/content/helpers/files.php';
@@ -17,32 +19,12 @@ function sr_content_allowed_statuses(): array
 
 function sr_content_datetime_local_value(?string $value): string
 {
-    $value = trim((string) $value);
-    if ($value === '') {
-        return '';
-    }
-
-    $timestamp = strtotime($value);
-    return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
+    return sr_datetime_local_value($value);
 }
 
 function sr_content_time_html(?string $value, string $emptyText = ''): string
 {
-    $value = trim((string) $value);
-    if ($value === '') {
-        return sr_e($emptyText);
-    }
-
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return sr_e($value);
-    }
-
-    $exactValue = date('Y-m-d H:i:s', $timestamp);
-    $machineValue = date('Y-m-d\TH:i:sP', $timestamp);
-    return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
-        . sr_e(sr_content_relative_time_label($exactValue))
-        . '</time>';
+    return sr_relative_time_html($value, $emptyText);
 }
 
 function sr_content_scheduled_publish_at_from_post(): string
@@ -650,22 +632,12 @@ function sr_content_reserved_slugs(): array
 
 function sr_content_clean_single_line(string $value, int $maxLength): string
 {
-    $value = trim(preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $value)) ?? '');
-    if (function_exists('mb_substr')) {
-        return mb_substr($value, 0, $maxLength);
-    }
-
-    return substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_content_clean_text(string $value, int $maxLength): string
 {
-    $value = str_replace(["\r\n", "\r"], "\n", $value);
-    if (function_exists('mb_substr')) {
-        return trim(mb_substr($value, 0, $maxLength));
-    }
-
-    return trim(substr($value, 0, $maxLength));
+    return sr_clean_text($value, $maxLength);
 }
 
 function sr_content_clean_cover_image_url(string $value): string
@@ -690,12 +662,7 @@ function sr_content_cover_image_upload_was_provided(mixed $file): bool
 
 function sr_content_cover_image_format_for_mime(string $mimeType): string
 {
-    return match (strtolower(trim($mimeType))) {
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/webp' => 'webp',
-        default => '',
-    };
+    return sr_image_format_for_mime($mimeType);
 }
 
 function sr_content_cover_image_mime_is_allowed(string $mimeType): bool

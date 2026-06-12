@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/common.php';
 require_once SR_ROOT . '/core/helpers/module-metadata.php';
 
 function sr_parse_upload_size(string $value): int
@@ -26,19 +27,6 @@ function sr_parse_upload_size(string $value): int
     }
 
     return (int) $number;
-}
-
-function sr_format_bytes(int $bytes): string
-{
-    if ($bytes >= 1024 * 1024) {
-        return number_format($bytes / 1024 / 1024, 1) . ' MB';
-    }
-
-    if ($bytes >= 1024) {
-        return number_format($bytes / 1024, 1) . ' KB';
-    }
-
-    return (string) $bytes . ' bytes';
 }
 
 function sr_runtime_is_production(?array $config = null): bool

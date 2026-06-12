@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+
 function sr_community_asset_modules(?PDO $pdo = null): array
 {
     require_once SR_ROOT . '/modules/member/helpers/assets.php';
@@ -934,12 +936,7 @@ function sr_community_publisher_reward_status_label(string $status): string
 
 function sr_community_time_html(?string $value, string $emptyText = ''): string
 {
-    $exactValue = trim((string) $value);
-    if ($exactValue === '') {
-        return sr_e($emptyText);
-    }
-
-    return sr_time_tooltip_html($exactValue, sr_community_relative_time_label($exactValue));
+    return sr_relative_time_html($value, $emptyText);
 }
 
 function sr_community_publisher_reward_config(PDO $pdo, array $board, array $settings): array

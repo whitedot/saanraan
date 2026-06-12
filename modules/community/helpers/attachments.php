@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+
 function sr_community_attachment_for_read(PDO $pdo, int $attachmentId, ?array $account): ?array
 {
     if ($attachmentId < 1) {
@@ -469,15 +471,7 @@ function sr_community_file_mime_types_for_extensions(array $extensions): array
 
 function sr_community_format_bytes(int $bytes): string
 {
-    if ($bytes >= 1048576) {
-        return number_format($bytes / 1048576, 1) . ' MB';
-    }
-
-    if ($bytes >= 1024) {
-        return number_format($bytes / 1024, 1) . ' KB';
-    }
-
-    return number_format(max(0, $bytes)) . ' bytes';
+    return sr_format_bytes($bytes);
 }
 
 function sr_community_attachment_file_path(array $attachment): ?string

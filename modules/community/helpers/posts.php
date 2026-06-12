@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+
 function sr_community_public_board_by_key(PDO $pdo, string $boardKey): ?array
 {
     $board = sr_community_board_by_key($pdo, $boardKey);
@@ -594,29 +596,7 @@ function sr_community_account_can_hide_comment(PDO $pdo, array $comment, array $
 
 function sr_community_relative_time_label(string $dateTime): string
 {
-    $timestamp = strtotime($dateTime);
-    if ($timestamp === false) {
-        return $dateTime;
-    }
-
-    $diff = max(0, time() - $timestamp);
-    if ($diff < 60) {
-        return '방금 전';
-    }
-    if ($diff < 3600) {
-        return (string) floor($diff / 60) . '분 전';
-    }
-    if ($diff < 86400) {
-        return (string) floor($diff / 3600) . '시간 전';
-    }
-    if ($diff < 2592000) {
-        return (string) floor($diff / 86400) . '일 전';
-    }
-    if ($diff < 31536000) {
-        return (string) floor($diff / 2592000) . '개월 전';
-    }
-
-    return (string) floor($diff / 31536000) . '년 전';
+    return sr_relative_time_label($dateTime);
 }
 
 function sr_community_post_statuses(): array

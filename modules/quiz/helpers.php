@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 function sr_quiz_key_is_valid(string $key): bool
 {
     return preg_match('/\A[a-z][a-z0-9_]{1,63}\z/', $key) === 1;
@@ -35,22 +37,12 @@ function sr_quiz_internal_return_path(string $value): string
 
 function sr_quiz_clean_text(string $value, int $maxLength): string
 {
-    $value = trim(str_replace(["\r\n", "\r"], "\n", $value));
-    if (function_exists('mb_substr')) {
-        return mb_substr($value, 0, $maxLength);
-    }
-
-    return substr($value, 0, $maxLength);
+    return sr_clean_text($value, $maxLength);
 }
 
 function sr_quiz_clean_single_line(string $value, int $maxLength): string
 {
-    $value = preg_replace('/\s+/', ' ', trim($value)) ?? '';
-    if (function_exists('mb_substr')) {
-        return mb_substr($value, 0, $maxLength);
-    }
-
-    return substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_quiz_statuses(): array
@@ -483,69 +475,17 @@ function sr_quiz_save_settings(PDO $pdo, array $settings): void
 
 function sr_quiz_clean_admin_datetime(string $value): ?string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return null;
-    }
-
-    if (preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}\z/', $value) !== 1) {
-        return null;
-    }
-
-    $date = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $value);
-    $dateErrors = DateTimeImmutable::getLastErrors();
-    if (
-        !$date instanceof DateTimeImmutable
-        || (is_array($dateErrors) && ((int) ($dateErrors['warning_count'] ?? 0) > 0 || (int) ($dateErrors['error_count'] ?? 0) > 0))
-        || $date->format('Y-m-d\TH:i') !== $value
-    ) {
-        return null;
-    }
-
-    return $date->format('Y-m-d H:i:s');
+    return sr_clean_admin_datetime($value);
 }
 
 function sr_quiz_datetime_local_value(mixed $value): string
 {
-    $value = trim((string) $value);
-    if ($value === '') {
-        return '';
-    }
-
-    $timestamp = strtotime($value);
-    return $timestamp === false ? '' : date('Y-m-d\TH:i', $timestamp);
+    return sr_datetime_local_value($value);
 }
 
 function sr_quiz_time_html(string $value): string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return '';
-    }
-
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return sr_e($value);
-    }
-
-    $diff = time() - $timestamp;
-    if ($diff < 0) {
-        $relative = date('Y-m-d H:i', $timestamp);
-    } elseif ($diff < 60) {
-        $relative = '방금 전';
-    } elseif ($diff < 3600) {
-        $relative = floor($diff / 60) . '분 전';
-    } elseif ($diff < 86400) {
-        $relative = floor($diff / 3600) . '시간 전';
-    } elseif ($diff < 2592000) {
-        $relative = floor($diff / 86400) . '일 전';
-    } elseif ($diff < 31536000) {
-        $relative = floor($diff / 2592000) . '개월 전';
-    } else {
-        $relative = floor($diff / 31536000) . '년 전';
-    }
-
-    return sr_time_tooltip_html($value, (string) $relative);
+    return sr_relative_time_html($value);
 }
 
 function sr_quiz_attempt_status_label(string $status): string

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+
 function sr_member_empty_profile(): array
 {
     return [
@@ -148,15 +150,7 @@ function sr_member_avatar_upload_max_bytes(): int
 
 function sr_member_format_bytes(int $bytes): string
 {
-    if ($bytes >= 1048576) {
-        return number_format($bytes / 1048576, 1) . ' MB';
-    }
-
-    if ($bytes >= 1024) {
-        return number_format($bytes / 1024, 1) . ' KB';
-    }
-
-    return number_format(max(0, $bytes)) . ' bytes';
+    return sr_format_bytes($bytes);
 }
 
 function sr_member_avatar_upload_was_provided(mixed $file): bool
@@ -166,12 +160,7 @@ function sr_member_avatar_upload_was_provided(mixed $file): bool
 
 function sr_member_avatar_format_for_mime(string $mimeType): string
 {
-    return match (strtolower(trim($mimeType))) {
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/webp' => 'webp',
-        default => '',
-    };
+    return sr_image_format_for_mime($mimeType);
 }
 
 function sr_member_avatar_mime_is_allowed(string $mimeType): bool

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/common.php';
+
 function sr_set_locale(string $locale): void
 {
     if (preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $locale) !== 1) {
@@ -187,6 +189,22 @@ function sr_time_tooltip_html(?string $value, string $label, string $emptyText =
     return '<time class="sr-time-tooltip" datetime="' . sr_e($machineValue) . '" tabindex="0" data-sr-time-tooltip data-sr-time-tooltip-label="' . sr_e($exactValue) . '" aria-label="' . sr_e('정확한 일시: ' . $exactValue) . '">'
         . sr_e($label)
         . '</time>';
+}
+
+function sr_relative_time_html(?string $value, string $emptyText = ''): string
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return sr_e($emptyText);
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return sr_e($value);
+    }
+
+    $exactValue = date('Y-m-d H:i:s', $timestamp);
+    return sr_time_tooltip_html($exactValue, sr_relative_time_label($exactValue));
 }
 
 function sr_json_response(mixed $payload, int $statusCode = 200, array $headers = []): void

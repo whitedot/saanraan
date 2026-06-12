@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+
 function sr_admin_form_label_help_html(string $forId, string $label, string $modalId, string $helpLabel = '설명 보기', bool $required = false): string
 {
     $forId = trim($forId);
@@ -41,49 +43,12 @@ function sr_admin_help_modal_html(string $modalId, string $title, string $bodyHt
 
 function sr_admin_relative_time_label(string $dateTime): string
 {
-    $timestamp = strtotime($dateTime);
-    if ($timestamp === false) {
-        return $dateTime;
-    }
-
-    $seconds = time() - $timestamp;
-    $isFuture = $seconds < 0;
-    $diff = abs($seconds);
-    $suffix = $isFuture ? ' 후' : ' 전';
-
-    if ($diff < 60) {
-        return $isFuture ? '잠시 후' : '방금 전';
-    }
-    if ($diff < 3600) {
-        return (string) floor($diff / 60) . '분' . $suffix;
-    }
-    if ($diff < 86400) {
-        return (string) floor($diff / 3600) . '시간' . $suffix;
-    }
-    if ($diff < 2592000) {
-        return (string) floor($diff / 86400) . '일' . $suffix;
-    }
-    if ($diff < 31536000) {
-        return (string) floor($diff / 2592000) . '개월' . $suffix;
-    }
-
-    return (string) floor($diff / 31536000) . '년' . $suffix;
+    return sr_relative_time_label($dateTime);
 }
 
 function sr_admin_time_html(?string $value, string $emptyText = ''): string
 {
-    $value = trim((string) $value);
-    if ($value === '') {
-        return sr_e($emptyText);
-    }
-
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return sr_e($value);
-    }
-
-    $exactValue = date('Y-m-d H:i:s', $timestamp);
-    return sr_time_tooltip_html($exactValue, sr_admin_relative_time_label($exactValue));
+    return sr_relative_time_html($value, $emptyText);
 }
 
 function sr_admin_read_reference_count(array $referenceResult): int

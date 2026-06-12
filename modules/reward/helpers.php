@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+
 require_once SR_ROOT . '/modules/asset_ledger/helpers.php';
 
 function sr_reward_balance(PDO $pdo, int $accountId): int
@@ -624,12 +626,7 @@ function sr_reward_clean_reference_id(string $value, int $maxLength): string
 
 function sr_reward_clean_text(string $value, int $maxLength): string
 {
-    $value = trim(preg_replace('/\s+/', ' ', $value) ?? '');
-    if (function_exists('mb_substr')) {
-        return mb_substr($value, 0, $maxLength);
-    }
-
-    return substr($value, 0, $maxLength);
+    return sr_clean_single_line($value, $maxLength);
 }
 
 function sr_reward_pending_withdrawal_amount(PDO $pdo, int $accountId): int
@@ -669,34 +666,7 @@ function sr_reward_request_status_label(string $status): string
 
 function sr_reward_time_html(string $value): string
 {
-    $value = trim($value);
-    if ($value === '') {
-        return '';
-    }
-
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return sr_e($value);
-    }
-
-    $diff = time() - $timestamp;
-    if ($diff < 0) {
-        $relative = date('Y-m-d H:i', $timestamp);
-    } elseif ($diff < 60) {
-        $relative = '방금 전';
-    } elseif ($diff < 3600) {
-        $relative = floor($diff / 60) . '분 전';
-    } elseif ($diff < 86400) {
-        $relative = floor($diff / 3600) . '시간 전';
-    } elseif ($diff < 2592000) {
-        $relative = floor($diff / 86400) . '일 전';
-    } elseif ($diff < 31536000) {
-        $relative = floor($diff / 2592000) . '개월 전';
-    } else {
-        $relative = floor($diff / 31536000) . '년 전';
-    }
-
-    return sr_time_tooltip_html($value, (string) $relative);
+    return sr_relative_time_html($value);
 }
 
 function sr_reward_create_withdrawal_request(PDO $pdo, int $accountId, array $data): int
