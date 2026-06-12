@@ -17,6 +17,7 @@ $runReadonly = in_array('--run-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
 $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
+$runPrivacyFixtures = in_array('--run-privacy-fixtures', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -279,6 +280,33 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, bool $runAsset
     ];
 }
 
+function sr_release_gate_status_privacy_gate(bool $runPrivacyFixtures): array
+{
+    if (!$runPrivacyFixtures) {
+        return [
+            'gate' => '개인정보 export/cleanup smoke',
+            'result' => '미실행',
+            'environment' => 'local/staging dummy account',
+            'memo' => 'requires disposable account data for installed DB smoke; use --run-privacy-fixtures only for SQLite contract fixtures',
+        ];
+    }
+
+    $exportResult = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/check-privacy-export-runtime.php']);
+    $cleanupResult = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/check-privacy-cleanup-runtime.php']);
+    $exportExitCode = (int) $exportResult['exit_code'];
+    $cleanupExitCode = (int) $cleanupResult['exit_code'];
+    $passed = $exportExitCode === 0 && $cleanupExitCode === 0;
+
+    return [
+        'gate' => '개인정보 export/cleanup smoke',
+        'result' => $passed ? '부분 확인' : '실패',
+        'environment' => 'SQLite contract fixtures',
+        'memo' => 'installed DB smoke still required; export fixture exit ' . (string) $exportExitCode
+            . ', cleanup fixture exit ' . (string) $cleanupExitCode
+            . '; ' . sr_release_gate_status_single_line((string) $exportResult['output'] . ' ' . (string) $cleanupResult['output']),
+    ];
+}
+
 $unavailableReason = '';
 if (!$configExists) {
     $unavailableReason = 'config/config.php missing';
@@ -326,12 +354,7 @@ $gates[] = [
 ];
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $runAuthSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $runAssetSmoke, $allowMutationSmoke);
-$gates[] = [
-    'gate' => '개인정보 export/cleanup smoke',
-    'result' => '미실행',
-    'environment' => 'local/staging dummy account',
-    'memo' => 'requires disposable account data because cleanup mutates records',
-];
+$gates[] = sr_release_gate_status_privacy_gate($runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
 $gates[] = [
     'gate' => 'CKEditor upload/save browser smoke',
@@ -367,6 +390,7 @@ echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
 echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
 echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";
 echo 'run-asset-smoke: ' . ($runAssetSmoke ? 'yes' : 'no') . "\n";
+echo 'run-privacy-fixtures: ' . ($runPrivacyFixtures ? 'yes' : 'no') . "\n";
 echo 'mutation-smoke-allowed: ' . ($allowMutationSmoke ? 'yes' : 'no') . "\n";
 foreach ($gates as $gate) {
     echo sr_release_gate_status_line(
