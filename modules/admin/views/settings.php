@@ -401,7 +401,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </div>
     </div>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme" data-admin-currency-change-form data-current-currency="<?php echo sr_e((string) $currencyChangeCurrentCurrency); ?>">
+    <?php if (!empty($currencyChangeCanSubmit)) { ?>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/settings')); ?>" class="admin-form ui-form-theme" data-admin-currency-change-form data-current-currency="<?php echo sr_e((string) $currencyChangeCurrentCurrency); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="currency_change">
             <div class="admin-form-row">
@@ -439,7 +440,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-actions">
                 <button type="submit" class="btn btn-outline-danger"><?php echo sr_material_icon_html('currency_exchange'); ?>기본 통화 변경</button>
             </div>
-    </form>
+        </form>
+    <?php } else { ?>
+        <p class="admin-form-help">현재 기본 통화와 다른 알려진 통화 후보가 없어 변경 작업을 실행할 수 없습니다.</p>
+    <?php } ?>
 </section>
 <?php } ?>
 
