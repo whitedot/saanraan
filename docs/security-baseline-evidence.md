@@ -1,0 +1,34 @@
+# 보안 베이스라인 증거표
+
+이 문서는 산란의 자작 보안 컴포넌트가 어떤 구현 파일과 자동 점검으로 받쳐지는지 고정한다. 목적은 "직접 만들었다"는 사실을 숨기는 것이 아니라, 직접 만든 부분을 좁은 기준과 반복 가능한 증거에 묶는 것이다.
+
+이 표는 운영 보안 감사를 대체하지 않는다. 새 보안 helper를 추가하거나 기존 helper의 책임을 바꾸면 이 문서와 `.tools/bin/check-security-baseline.php`를 함께 갱신한다.
+
+## 기준표
+
+| 영역 | 구현 기준 | 주요 구현 | 자동 증거 |
+| --- | --- | --- | --- |
+| 세션 쿠키 | `HttpOnly`, `Secure`, `SameSite=Lax`, strict/use-only-cookie 설정을 적용한다. | `core/helpers/runtime.php::sr_start_session()` | `.tools/bin/check-auth-runtime.php`, `.tools/bin/check-runtime-helpers.php` |
+| DB 세션 | PHP session id 원문을 저장하지 않고 `session_id_hash`로 저장하며, lock을 잡지 못하면 fail-closed한다. | `core/helpers/runtime.php::SrDatabaseSessionHandler` | `.tools/bin/check-auth-runtime.php` |
+| 회원 세션 | 로그인과 고위험 회전 시 `session_regenerate_id(true)`를 실행하고 CSRF 토큰을 갱신한다. | `modules/member/helpers/sessions.php` | `.tools/bin/check-member-auth-policy.php`, `.tools/bin/check-auth-runtime.php` |
+| CSRF | 모든 POST action은 `sr_require_csrf()`를 호출해야 하며, 토큰 비교는 `hash_equals()`를 사용한다. 정상 POST는 contract를 완료하고, 잘못된 token은 guard 차단으로 종료한다. | `core/helpers/output.php::sr_require_csrf()` | `.tools/bin/check-admin-action-security.php`, `.tools/bin/check-request-contract-runtime.php`, dispatch contract |
+| 요청 contract | POST, 관리자 로그인, 관리자 권한 helper 호출 누락을 action 종료, redirect 직전, 응답 종료 직전에 실패로 처리한다. 공개 GET은 guard 없이 완료되고, 관리자 GET은 로그인/권한 mark가 있어야 완료된다. | `core/helpers/ops.php::sr_start_request_contract()`, `sr_enforce_request_contract()` | `.tools/bin/check-admin-action-security.php`, `.tools/bin/check-request-contract-runtime.php`, HTTP smoke |
+| 응답 종료 | action은 직접 `exit`, `die`, `header('Location: ...')`를 쓰지 않고 `sr_redirect()`, `sr_render_error()`, `sr_finish_response()`를 사용한다. `sr_redirect()`와 `sr_finish_response()`는 request contract를 통과한 뒤에만 응답을 끝낸다. `header()`를 직접 써야 하는 파일/이미지/download 응답은 allowlisted 응답 메타 헤더 리터럴로 시작해야 하며, 동적 헤더 이름은 허용하지 않는다. JSON action 응답은 직접 `header('Content-Type: application/json')`와 `echo json_encode()`를 쓰지 않고 `sr_json_response()`로 content type, UTF-8 대체 인코딩, 추가 응답 헤더 allowlist, 응답 종료를 통과한다. | `core/helpers/output.php`, `core/helpers/ops.php`, `modules/*/actions/*.php` | `.tools/bin/check-admin-action-security.php`, `.tools/bin/check-request-contract-runtime.php`, `.tools/bin/check-output-helpers.php` |
+| 다운로드 헤더 | 파일 다운로드와 첨부 streaming 응답은 `sr_send_download_headers()`와 `sr_download_content_disposition()`으로 content type, disposition, filename, optional length, cache-control을 정규화한다. S3 signed URL의 response disposition도 같은 helper를 사용한다. | `core/helpers/output.php`, `modules/content/actions/download.php`, `modules/community/actions/attachment.php`, `modules/survey/actions/admin-export.php`, `modules/privacy/actions/*.php` | `.tools/bin/check-output-helpers.php`, `.tools/bin/check-paid-download-delivery.php` |
+| 파일 streaming 헤더 | 이미지와 본문 이미지 proxy 응답은 `sr_send_file_headers()`로 content type, optional length, nosniff, cache-control, 추가 CSP allowlist를 정규화한다. | `core/helpers/output.php`, `modules/*/actions/*image.php`, `modules/*/helpers/body-files.php` | `.tools/bin/check-output-helpers.php`, `.tools/bin/check-performance-baseline.php` |
+| JS 값 주입 | `<script>`나 inline JS handler에 넣는 PHP 값은 직접 `json_encode()`를 쓰지 않고 `sr_js_json_encode()`를 사용해 `</script>`, quote, ampersand, invalid UTF-8을 안전하게 처리한다. | `core/helpers/output.php`, `core/views/*.php`, `modules/*/views/*.php`, `modules/ckeditor/helpers.php` | `.tools/bin/check-output-helpers.php` |
+| rate limit | rate key와 subject hash는 app key가 있으면 HMAC으로 만들고, 원문 subject를 저장하지 않으며, 만료 window 안에서 count/increment한다. 만료된 row는 다음 증가 때 1로 재시작한다. | `core/helpers/runtime.php::sr_rate_limit_*()`, `modules/member/helpers/throttle.php` | `.tools/bin/check-auth-runtime.php`, `.tools/bin/check-runtime-helpers.php` |
+| 민감 token 입력 | 로그인 식별자, 이메일 검증 token, 비밀번호 재설정 token, 알림 읽음 redirect token, 가입/재설정 비밀번호와 이메일은 허용 길이를 넘으면 잘라서 조회/검증하지 않고 거부한다. 배열 입력도 거부한다. | `core/helpers/output.php::sr_get_string_without_truncation()`, `sr_post_string_without_truncation()`, `modules/member/actions/*.php`, `modules/notification/actions/account-notification-read.php` | `.tools/bin/check-member-auth-policy.php`, `.tools/bin/check-notification-runtime.php` |
+| 토큰 hash/HMAC | 다운로드 token은 목적, 대상, 만료 시각에 묶고 HMAC hash로 검증한다. app key 없는 HMAC은 실패한다. | `core/helpers/upload.php::sr_download_token_*()`, `core/helpers/runtime.php::sr_hmac_hash()` | `.tools/bin/check-upload-helpers.php` |
+| 민감정보 마스킹 | 로그, 감사 metadata, 운영 marker, debug 오류 메시지의 password/token/secret-like 값을 마스킹한다. | `core/helpers/ops.php::sr_log_sensitive_text_sanitize()`, `sr_audit_metadata_sanitize()` | `.tools/bin/check-auth-runtime.php`, `.tools/bin/check-admin-action-security.php` |
+| 로그 파일 쓰기 실패 | `storage/logs/error.log`에 쓸 수 없어도 PHP warning을 화면으로 흘리지 않고 fallback `error_log()`에 마스킹된 예외 요약만 남긴다. | `core/helpers/ops.php::sr_log_exception()` | `.tools/bin/check-security-baseline.php` |
+| 보안 헤더 | `nosniff`, `SAMEORIGIN`, `Referrer-Policy`, 기본 CSP, no-store를 전송한다. HTTPS production에서는 HSTS를 전송한다. | `core/helpers/runtime.php::sr_send_security_headers()` | `.tools/bin/check-security-baseline.php`, `.tools/bin/smoke-http.php` |
+| 내부 URL/redirect | 내부 redirect는 안전한 상대 URL만 허용한다. 사용자/관리자 입력 외부 redirect는 `sr_redirect_external()`에서 public network 검증을 통과해야 하며, S3 public/presigned URL처럼 서버 설정과 저장소 helper가 만든 URL만 `sr_redirect_trusted_external()` 경로를 사용한다. output helper runtime fixture는 public IP URL 허용, private loopback URL 거부, trusted local storage URL 허용, trusted non-HTTP URL 거부를 subprocess로 확인한다. | `core/helpers/output.php::sr_redirect()`, `core/helpers/output.php::sr_redirect_external()`, `core/helpers/output.php::sr_redirect_trusted_external()`, `core/helpers/output.php::sr_is_safe_relative_url()`, `core/helpers/runtime.php::sr_is_public_http_url()` | `.tools/bin/check-security-baseline.php`, `.tools/bin/check-runtime-helpers.php`, `.tools/bin/check-output-helpers.php`, `.tools/bin/check-auth-runtime.php` |
+
+## 갱신 기준
+
+- 새 POST route를 추가하면 `paths.php` 등록 action이 `sr_require_csrf()`를 호출하고 `.tools/bin/check-admin-action-security.php`를 통과해야 한다.
+- 새 로그인, 재인증, 토큰, 다운로드, 파일 접근 흐름을 추가하면 이 표의 어느 영역에 속하는지 먼저 확인한다. 민감 token 입력은 길이 초과 원문을 truncate해서 같은 hash/계정 조회에 쓰지 않는다.
+- 새 rate limit bucket을 추가할 때 subject 원문이 로그나 화면에 노출되지 않는지 확인한다.
+- 보안 헤더, CSP, trusted proxy, public URL 검증 기준을 바꾸면 HTTP smoke와 배포 보호 기준도 함께 확인한다.
+- 이 표는 코드 구현의 존재를 확인하는 기준이다. 동시성, 브라우저 상호작용, 실제 배포 헤더는 별도 smoke 또는 수동 점검 기록으로 증명한다.

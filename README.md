@@ -3,6 +3,7 @@
 산란은 빛이 흩어지고, 생명이 퍼져 나가는 일입니다.
 saanraan(산란)은 PHP 웹 솔루션에서 궁금했던 구조를 직접 구현하고 검증해 보는 탐구형 코드베이스입니다.
 작은 CMS를 목표로 시작했지만, 지금은 회원, 관리자, 콘텐츠, 커뮤니티, 참여 기능, 자산, 운영 보조 기능이 실제로 어떻게 맞물리는지 검증하는 회원 중심 모듈형 베이스에 가깝습니다.
+그누보드나 라이믹스처럼 오래 운영된 국내 CMS 생태계를 정면으로 대체하기보다, 저가형 PHP 웹호스팅에서 요청 흐름과 모듈 경계를 직접 읽고 고칠 수 있는 구조를 우선합니다.
 
 - 절차형 PHP 기반.
 - 읽히는 요청 흐름과 모듈 경계 중심.
@@ -23,7 +24,7 @@ saanraan(산란)은 PHP 웹 솔루션에서 궁금했던 구조를 직접 구현
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅, PHP-FPM 기반 nginx |
-| 보안 피드백 | `kimminsup@gmail.com` |
+| 보안 제보 | [SECURITY.md](SECURITY.md), `kimminsup@gmail.com` |
 
 ## 사용 판단 기준
 
@@ -39,7 +40,7 @@ saanraan(산란)은 PHP 웹 솔루션에서 궁금했던 구조를 직접 구현
 
 산란은 아직 정식 릴리스보다 개발 베이스에 가깝습니다. 다만 단순 골격 단계는 지나, 설치/관리자/회원/콘텐츠/커뮤니티/참여 기능/자산/운영 보조 흐름을 실제 파일과 DB 테이블로 검증하며 확장하는 중입니다. 기능을 적게 유지하는 것보다, 기능이 늘어나도 요청 흐름과 책임 경계를 파일에서 따라갈 수 있게 두는 일을 더 중요한 기준으로 삼습니다.
 
-[산란 특장점 소개](docs/operator-feature-list.md)는 회원, 콘텐츠, 커뮤니티, 퀴즈, 설문, 자산, 쿠폰, 알림, 개인정보, 사이트 운영 기능이 제공하는 주요 기능과 편의를 정리합니다.
+[산란 특장점 소개](docs/operator-feature-list.md)는 회원, 콘텐츠, 커뮤니티, 퀴즈, 설문, 자산, 쿠폰, 알림, 개인정보, 사이트 운영 기능이 제공하는 주요 기능과 편의를 정리합니다. 기능 목록은 구현 표면을 보여 주는 문서이며, 릴리스 판단에는 [모듈 상태 등급](docs/module-status.md)과 [검증 상태와 증거 기준](docs/verification-status.md)을 함께 봅니다.
 
 구현된 기반:
 
@@ -66,7 +67,9 @@ saanraan(산란)은 PHP 웹 솔루션에서 궁금했던 구조를 직접 구현
 
 ## 번들 모듈
 
-| 분류 | 모듈 | 상태 |
+상태 등급은 기능 구현 여부가 아니라 검증 증거 수준이다. 각 모듈의 `stable-candidate`/`beta` 판단과 1.0 전 보강 기준은 [모듈 상태 등급](docs/module-status.md)을 기준으로 한다.
+
+| 분류 | 모듈 | 기능 요약 |
 | --- | --- | --- |
 | 시스템 | `admin` | 관리자 대시보드, 권한, 메뉴, 모듈 관리, 업데이트 |
 | 시스템 | `asset_ledger` | 숨김 기반 잔액 처리 primitive, 자산 모듈 자동 준비 |
@@ -88,9 +91,11 @@ saanraan(산란)은 PHP 웹 솔루션에서 궁금했던 구조를 직접 구현
 ```bash
 find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n 1 php -l
 php .tools/bin/check.php
+php .tools/bin/reconcile-assets.php
+php .tools/bin/ops-status.php
 ```
 
-현재 `php -l` 전체 문법 검사와 `php .tools/bin/check.php` 통합 정책 점검은 통과하는 상태입니다. 변경 후에는 두 명령을 다시 실행하고, HTTP/브라우저 스모크 점검이 필요한 변경인지 함께 판단합니다.
+현재 `php -l` 전체 문법 검사와 `php .tools/bin/check.php` 통합 정책 점검은 통과하는 상태입니다. `php .tools/bin/reconcile-assets.php`는 설치된 로컬 또는 스테이징 DB에서 자산 모듈 balance/transaction 정합성을 read-only로 확인할 때 사용합니다. `php .tools/bin/ops-status.php`는 알림 delivery, 저장소 정리 실패, 게시판 복사, 보상 지급, 포인트 만료 같은 운영 지연 신호를 read-only로 확인할 때 사용합니다. 변경 후에는 관련 명령을 다시 실행하고, HTTP/브라우저 스모크 점검이 필요한 변경인지 함께 판단합니다.
 
 ## 주요 문서
 
@@ -100,18 +105,24 @@ php .tools/bin/check.php
 | 특장점 소개 | [산란 특장점 소개](docs/operator-feature-list.md) |
 | 1.0 범위 | [1.0 범위 잠금 기준](docs/1.0-scope.md) |
 | 구현 스냅샷 | [1.0 전 구현 스냅샷](docs/implementation-snapshot.md) |
+| 상태 등급 | [모듈 상태 등급](docs/module-status.md), [검증 상태와 증거 기준](docs/verification-status.md) |
+| 리스크 | [프로젝트 리스크 레지스터](docs/risk-register.md) |
 | 설계 결정 | [핵심 설계 결정](docs/core-decisions.md) |
 | 모듈 개발 | [모듈 작성 가이드](docs/module-guide.md), [모듈 배치와 업데이트 기준](docs/module-update-policy.md) |
-| 보안 | [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [DB 접근 정책](docs/database-access-policy.md) |
+| 보안 | [SECURITY.md](SECURITY.md), [산란 보안 모델](docs/security-model.md), [보안 체크리스트](docs/security-checklist.md), [보안 제보와 처리 기준](docs/security-response-policy.md), [DB 접근 정책](docs/database-access-policy.md) |
+| 의존성 | [외부 의존성 배치 기준](docs/dependency-policy.md) |
+| 성능 | [성능과 캐시 기준](docs/performance-policy.md) |
+| 기여 | [기여 기준](CONTRIBUTING.md), [기여자 작업 기준](docs/contribution-guide.md) |
 | 배포와 릴리스 | [배포 보호 기준](docs/deployment-protection.md), [릴리스 절차](docs/release-process.md) |
-| 검증 | [스모크 테스트 기준](docs/smoke-test.md), [수동 화면 점검 체크리스트](manual-check.md) |
+| 검증 | [스모크 테스트 기준](docs/smoke-test.md), [운영 상태 점검 기준](docs/operational-status.md), [수동 화면 점검 체크리스트](manual-check.md) |
+| 사용 판단 | [산란 포지셔닝 기준](docs/positioning.md) |
 | 예제 | [sample_module](examples/sample_module/README.md) |
 
 구현 상태를 설명하는 DB 명세, 관리자 화면별 항목 설명, 개발자 가이드는 GitHub Wiki를 우선합니다. 저장소의 `docs/`는 설계 결정, 정책, 점검 기준, 구현 전 계획 문서를 보관합니다.
 
-## 보안 피드백
+## 보안 제보
 
-- 보안 취약점 또는 민감한 운영 위험: `kimminsup@gmail.com`
+- 보안 취약점 또는 민감한 운영 위험: [SECURITY.md](SECURITY.md), `kimminsup@gmail.com`
 - 공개 이슈 등록 전 사전 제보 권장.
 
 ## 라이선스

@@ -27,17 +27,31 @@
 | [1.0 범위 잠금 기준](1.0-scope.md) | 1.0 전 안정화 범위와 제외 범위 |
 | [1.0 전 구현 스냅샷](implementation-snapshot.md) | Wiki 구현 명세 정리 전 임시 핵심 표면 |
 | [산란 특장점 소개](operator-feature-list.md) | 현재 구현 기능과 특장점 요약 |
+| [산란 포지셔닝 기준](positioning.md) | 경쟁 범위와 사용 판단 기준 |
+| [검증 상태와 증거 기준](verification-status.md) | 기능 목록을 운영 신뢰로 연결하기 위한 증거 기준 |
+| [모듈 상태 등급](module-status.md) | 번들 모듈별 운영 신뢰 등급과 1.0 전 보강 기준 |
+| [프로젝트 리스크 레지스터](risk-register.md) | 주요 공개 리스크와 완화 증거 |
+| [릴리스 검증 기록 템플릿](release-verification-template.md) | 날짜별 검증 기록 작성 양식 |
 | [핵심 설계 결정](core-decisions.md) | 최상위 설계 결정 |
 | [모듈 작성 가이드](module-guide.md) | 모듈 계약과 작성 기준 |
 | [모듈 배치와 업데이트 기준](module-update-policy.md) | 모듈 설치/업데이트 기준 |
 | [커스터마이징과 업데이트 충돌 가이드](customization-guide.md) | 배포판 모듈 커스터마이징과 업데이트 병합 비용 |
 | [DB 접근 정책](database-access-policy.md) | SQL 작성과 DB 접근 정책 |
+| [외부 의존성 배치 기준](dependency-policy.md) | vendored asset과 선택 라이브러리 배치 기준 |
+| [성능과 캐시 기준](performance-policy.md) | 공유호스팅 성능, 캐시 허용/금지 기준 |
+| [성능 베이스라인 증거표](performance-baseline-evidence.md) | 관리자 목록, 캐시 경로, sitemap/export 상한 정적 기준 |
+| [기여자 작업 기준](contribution-guide.md) | 변경 범위, 고위험 작업, 검증 증거 기준 |
 | [산란 보안 모델](security-model.md) | 보안 책임 경계 |
 | [보안 체크리스트](security-checklist.md) | 변경 검토 체크리스트 |
+| [보안 제보와 처리 기준](security-response-policy.md) | 취약점 제보, triage, 수정 증거 기준 |
+| [보안 베이스라인 증거표](security-baseline-evidence.md) | 자작 보안 컴포넌트 구현 위치와 자동 점검 연결 |
+| [개인정보 계약 매트릭스](privacy-contract-matrix.md) | 번들 모듈별 개인정보 export/cleanup 책임과 보존 판단 |
+| [Rich Text Sanitizer 정책](rich-text-sanitizer-policy.md) | HTML 본문 허용 태그와 속성 기준 |
 | [배포 보호 기준](deployment-protection.md) | 운영 서버 직접 접근 차단 기준 |
 | [nginx 샘플 설정](deployment/nginx-saanraan.conf) | PHP-FPM 기반 nginx 배포 예시 |
 | [릴리스 절차](release-process.md) | 릴리스 준비와 배포 절차 |
 | [스모크 테스트 기준](smoke-test.md) | 배포 전후 최소 검증 |
+| [운영 상태 점검 기준](operational-status.md) | queue/cron/배치 지연 신호 확인 기준 |
 | [사이트 초기화와 더미 데이터 기준](site-reset-and-fixtures.md) | QA 환경 초기화와 실제 등록 경로 기반 더미 데이터 기준 |
 | [관리자 UI 작성 기준](admin-ui-guide.md) | 관리자 화면 공통 UI 작성 기준 |
 | [관리자 목록 컬럼 기준](admin-list-columns.md) | 관리자 목록별 노출 컬럼과 좁은 화면 기준 |
@@ -106,6 +120,8 @@
 - [이슈 #115 settlement 기반 복합 차감 계약 결정 - 2026-06-11](records/issue-115-settlement-contract-2026-06-11.md)
 - [이슈 #326 공통 리액션 정책 결정 - 2026-06-11](records/issue-326-reaction-policy-2026-06-11.md)
 - [마일스톤 28 통화·정산 정책 기록 - 2026-06-11](records/milestone-28-currency-settlement-policy-2026-06-11.md)
+- [개선 보강 검증 기록 - 2026-06-11](records/improvement-hardening-verification-2026-06-11.md)
+- [HTML Purifier 배포 방식 결정 - 2026-06-11](records/htmlpurifier-packaging-decision-2026-06-11.md)
 
 ## Wiki로 충분한 문서
 

@@ -126,6 +126,7 @@
 - 내부 키는 `embed_manager`, 운영자 표시명과 메뉴명은 `임베드 매니저`다.
 - 관리자 사이드메뉴는 `service` 카테고리의 마지막 쪽에 둔다. 기본값은 `category_order=30`, `menu_order=990`이고, 운영자 메뉴 오버라이드는 기존 정책대로 최종 적용한다.
 - CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, `embed_manager`는 저장/참조/렌더링 정책을 가진 기능 모듈로 서비스 분류에 둔다.
+- rich text HTML 정화는 HTML Purifier가 배치된 환경에서는 Purifier adapter를 먼저 사용하고, 없으면 내부 DOM sanitizer를 fallback으로 사용한다. 코어 public helper 이름은 유지해 콘텐츠, 알림, 팝업레이어 같은 호출부가 sanitizer 구현 선택을 직접 알지 않게 한다. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`처럼 운영 쓰기 경로를 사용한다.
 - 콘텐츠/커뮤니티 CKEditor 검색 삽입은 본문 안의 제한된 marker와 `sr_embed_manager_refs`를 함께 사용한다. 일반 textarea fallback은 텍스트 링크만 삽입하므로 refs 동기화 대상이 아니다.
 - 본문 marker는 예를 들어 `<span class="sr-embed-manager-marker" data-sr-embed-manager-ref="em_8f3k2" data-sr-embed-manager-target-module="content" data-sr-embed-manager-target-type="content" data-sr-embed-manager-target-id="1"></span>`처럼 sanitizer가 허용하는 제한된 마크업만 사용한다.
 - refs는 삭제/복사 차단을 자동 강제하는 hidden 원장이 아니라 임베드 렌더링과 관리자 점검을 위한 명시적 참조다. 대상 삭제나 비활성화는 기본적으로 refs 때문에 자동 차단하지 않고, 공개 렌더링에서 숨김 또는 관리자 점검 상태로 다룬다.
@@ -228,7 +229,9 @@ semantic contract: 어떤 대상에 어떤 작업을 허용할지 판단
 
 코어는 call-site contract를 강화합니다. `POST` action의 `sr_require_csrf()`, 관리자 action의 `sr_member_require_login()`과 `sr_admin_require_permission()` 또는 `sr_admin_require_owner()` 호출 누락은 정적 검사와 dispatch contract에서 잡습니다. 하지만 어떤 메뉴 경로와 작업 권한을 요구할지, 소유자만 수정 가능한 대상인지, 도메인 상태 전이가 올바른지는 모듈 action과 helper가 명시적으로 책임집니다.
 
-action 파일은 응답 종료를 `sr_redirect()`, `sr_render_error()`, `sr_finish_response()`로 통과시킵니다. 직접 `exit`/`die` 호출이나 `header('Location: ...')` 직접 호출은 요청 contract를 우회하므로 사용하지 않습니다.
+action 파일은 응답 종료를 `sr_redirect()`, `sr_render_error()`, `sr_finish_response()`로 통과시킵니다. JSON action 응답은 `sr_json_response()`로 content type, UTF-8 대체 인코딩, 추가 응답 헤더 allowlist, 응답 종료를 함께 처리합니다. 직접 `exit`/`die` 호출이나 `header('Location: ...')` 직접 호출은 요청 contract를 우회하므로 사용하지 않습니다.
+
+HTML view 또는 inline JavaScript handler에 PHP 값을 주입할 때는 직접 `json_encode()`를 쓰지 않고 `sr_js_json_encode()`를 사용합니다. 이 helper는 JSON HEX flags와 invalid UTF-8 대체를 함께 적용해 script parser 경계가 데이터 값으로 깨지지 않게 합니다.
 
 ## 1-2. DB 접근은 PDO prepared statement를 기본으로 한다
 
@@ -521,7 +524,7 @@ SEO 관리자 설정
 번역 병합 캐시
 ```
 
-설정 조회 helper의 요청 단위 메모리 캐시는 현재 구현에 포함됩니다. 파일 캐시는 `storage/cache`의 웹 직접 접근 차단 기준을 운영 환경별로 확인한 뒤 선택 적용합니다.
+설정 조회 helper의 요청 단위 메모리 캐시는 현재 구현에 포함됩니다. 파일 캐시는 `storage/cache`의 웹 직접 접근 차단 기준을 운영 환경별로 확인한 뒤 선택 적용합니다. 구체적인 허용/금지 기준은 [성능과 캐시 기준](performance-policy.md)을 따릅니다.
 
 ## 14. 모듈 간 영향은 계약 파일로 연결한다
 

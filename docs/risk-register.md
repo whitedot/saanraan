@@ -1,0 +1,35 @@
+# 프로젝트 리스크 레지스터
+
+이 문서는 saanraan의 1.0 전 공개 리스크를 한곳에 모은다. 목적은 위험을 제거했다고 주장하는 것이 아니라, 어떤 위험을 알고 있고 어떤 증거로 낮추고 있으며 무엇이 아직 남았는지 분리하는 것이다.
+
+상태 값:
+
+| 상태 | 의미 |
+| --- | --- |
+| `open` | 영향이 크고 완화 증거가 부족하다. |
+| `mitigating` | 완화 장치와 검증 기준이 있으나 운영 증거가 더 필요하다. |
+| `watch` | 현재 기준은 있으나 변경 때마다 회귀 여부를 봐야 한다. |
+| `accepted-for-1.0` | 1.0에서 한계를 명시하고 받아들이는 제약이다. |
+
+## 현재 주요 리스크
+
+| ID | 영역 | 상태 | 리스크 | 현재 완화 증거 | 1.0 전 남은 일 |
+| --- | --- | --- | --- | --- | --- |
+| R-01 | 자산/쿠폰/유료 접근권 | `mitigating` | 동시 요청, 부분 실패, 중복 지급/차감, 장부 불일치 | [검증 상태와 증거 기준](verification-status.md), [스모크 테스트 기준](smoke-test.md), [운영 상태 점검 기준](operational-status.md)의 자산 불일치 대응 절차, `.tools/bin/reconcile-assets.php`, `/admin/assets/reconciliation`, `.tools/bin/check-asset-reconciliation.php`, `.tools/bin/check-asset-idempotency.php`, `.tools/bin/smoke-asset-idempotency-http.php` 설치 DB 병렬 HTTP 동시 제출 fixture 하니스, `.tools/bin/check-asset-deadlock-retry.php`, `.tools/bin/check-paid-download-delivery.php`, `.tools/bin/check-asset-exchange-logs.php`, `.tools/bin/check-asset-exchange-runtime.php`, `.tools/bin/check-asset-settlement-contract.php`, `.tools/bin/check-coupon-redemption-runtime.php`의 쿠폰 접근권 부분 실패 rollback fixture, `.tools/bin/check-member-assets-transaction-contract.php`, `pcntl` 병렬 프로세스 동일 `dedupe_key` claim fixture, `php .tools/bin/check.php` | 설치 DB에서 reconciliation 기록, `smoke-asset-idempotency-http.php` 병렬 HTTP 동시 제출 실행 기록, 관리자 정정/복구 절차 smoke 기록 |
+| R-02 | HTML sanitizer/CKEditor | `mitigating` | 저장형 XSS, 허용 속성 우회, 임베드 marker 오용 | [산란 보안 모델](security-model.md), [Rich Text Sanitizer 정책](rich-text-sanitizer-policy.md), [외부 의존성 배치 기준](dependency-policy.md), `.tools/bin/check-rich-text-sanitizer.php`, `.tools/bin/check-htmlpurifier-runtime.php`, `.tools/bin/check-htmlpurifier-vendor-integrity.php`, `.tools/bin/check-rich-text-sanitizer-policy.php`, `.tools/bin/check-ckeditor-assets.php`, `.tools/bin/check-browser-qa.php`, `ckeditor-browser-smoke.spec.js`의 브라우저 asset 로딩/fallback smoke와 upload adapter request contract smoke | 설치 DB에서 CKEditor 서버 업로드 action, 저장 HTML sanitizer, 권한별 본문 이미지 smoke 기록 |
+| R-03 | 공유호스팅 queue/cron/배치 | `accepted-for-1.0` | 상시 worker 부재로 예약/발송/정리 지연, timeout, 중복 실행 | [운영 상태 점검 기준](operational-status.md), [성능과 캐시 기준](performance-policy.md), `.tools/bin/ops-status.php`, `/admin/operations`, `.tools/bin/check-operational-status.php`, `.tools/bin/check-community-board-copy-job-lock.php`, [스모크 테스트 기준](smoke-test.md) | 설치 DB 또는 staging에서 실제 지연/실패 rows 기준 운영자 화면과 CLI 출력 기록 |
+| R-04 | 개인정보 export/cleanup 계약 | `mitigating` | 모듈 추가 시 개인정보 사본 제공 또는 탈퇴 cleanup 누락 | [모듈 작성 가이드](module-guide.md), [산란 보안 모델](security-model.md), [개인정보 계약 매트릭스](privacy-contract-matrix.md), `.tools/bin/check-privacy-contract-matrix.php`, `.tools/bin/check-privacy-export-runtime.php`, `.tools/bin/check-privacy-cleanup-runtime.php`, `export_retained` 고위험 필드 기준, `php .tools/bin/check.php` 계약 점검 | 모듈별 사본 제공/탈퇴 수동 smoke 기록, 운영 보존 데이터의 실제 마스킹/보존기간 정책 검토, 누락 시 릴리스 차단 기준 유지 |
+| R-05 | 넓은 번들 모듈 표면 | `mitigating` | 많은 모듈이 같은 릴리스에서 함께 움직이며 검증 증거가 얕아질 수 있음 | [모듈 상태 등급](module-status.md), [검증 상태와 증거 기준](verification-status.md), [기여자 작업 기준](contribution-guide.md) | `beta` 모듈별 smoke/수동 기록, 상태 등급 상향 근거 기록 |
+| R-06 | 커스텀 요청/보안 contract | `watch` | 직접 만든 dispatch/contract/helper의 호출 누락 또는 우회 | [산란 보안 모델](security-model.md), [보안 베이스라인 증거표](security-baseline-evidence.md), `.tools/bin/check-security-baseline.php`, `.tools/bin/check-request-contract-runtime.php`, `.tools/bin/check-admin-action-security.php`, `.tools/bin/check-auth-runtime.php`, `php .tools/bin/check.php` | 새 action 추가 시 contract check 유지, 인증/권한 smoke 기록, 실제 배포 보안 헤더 확인 |
+| R-07 | 외부 의존성/vendored asset | `watch` | 공유호스팅 배포에서 Composer/vendor 누락, 라이선스/버전 drift | [외부 의존성 배치 기준](dependency-policy.md), `modules/htmlpurifier/DEPENDENCY.md`, `.tools/bin/check-dependency-policy.php`, `.tools/bin/check-htmlpurifier-vendor-integrity.php`, `.tools/bin/check-htmlpurifier-runtime.php`, `.tools/bin/check-ckeditor-assets.php`, `.tools/bin/check-release-package-policy.php`, `.tools/bin/release-preflight.php`, `.tools/bin/release-package-dry-run.php` | 릴리스 후보에서 배포 zip 포함 여부, dry-run manifest, Purifier 로드 상태, CKEditor asset 포함 여부와 cache 경로 기록 |
+| R-08 | 배포 보호 | `watch` | `config/`, `storage/`, `database/`, `.tools/`, `.git` 직접 노출 | [배포 보호 기준](deployment-protection.md), [스모크 테스트 기준](smoke-test.md), HTTP smoke 보호 경로 검사, `.tools/bin/check-deployment-protection.php`, `.tools/bin/check-deployment-config.php` | 실제 Apache/nginx 배포에서 보호 규칙 확인 기록 |
+| R-09 | 문서/Wiki 지연 | `accepted-for-1.0` | 저장소 구현과 Wiki 상세 명세가 일시적으로 어긋날 수 있음 | [저장소 문서 기준](README.md), [1.0 전 구현 스냅샷](implementation-snapshot.md), [릴리스 절차](release-process.md) | 1.0 배포 정리에서 Wiki DB/관리자/요청 흐름 명세 갱신 |
+| R-10 | 국내 CMS 대비 신뢰 증거 | `mitigating` | 장기 운영 사례, 플러그인 생태계, 다수 유지보수자 증거 부족 | [산란 포지셔닝 기준](positioning.md), [모듈 상태 등급](module-status.md), [릴리스 검증 기록 템플릿](release-verification-template.md), `.tools/bin/check-positioning.php`, `.tools/bin/check-release-verification-records.php` | 릴리스 후보별 검증 기록 누적, “대체재”가 아닌 사용 판단 기준 유지 |
+| R-11 | 성능/캐시 기준 | `mitigating` | 공유호스팅에서 무제한 목록, 잘못된 HTML 캐시, sitemap/export 과다 조회가 병목이나 개인정보 오염을 만들 수 있음 | [성능과 캐시 기준](performance-policy.md), [성능 베이스라인 증거표](performance-baseline-evidence.md), `.tools/bin/check-performance-policy.php`, `.tools/bin/check-performance-baseline.php`, `.tools/bin/check-admin-pagination-runtime.php`, `.tools/bin/check-community-board-copy-limits.php`, `.tools/bin/check-survey-export-runtime.php`, 인덱스 안전선 | 설치 DB 기준 느린 화면 수동 점검, 실제 DB 실행 계획과 인덱스 검토 기록 |
+
+## 갱신 기준
+
+- 새 고위험 기능을 추가하면 이 문서에 리스크 row를 추가하거나 기존 row에 포함한다.
+- `open` 또는 `mitigating` 상태를 낮추려면 문서 링크가 아니라 실제 실행 기록, fixture, smoke, 수동 점검 기록을 근거로 남긴다.
+- 1.0에서 받아들이는 제약은 `accepted-for-1.0`으로 표시하되, README나 관련 운영 문서에서 사용자가 오해하지 않게 설명한다.
+- 리스크가 닫혔다고 판단해도 관련 회귀 체크가 남아 있으면 `watch`로 유지한다.

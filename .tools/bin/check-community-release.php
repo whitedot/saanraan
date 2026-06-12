@@ -544,7 +544,8 @@ sr_community_release_file_contains('modules/community/actions/attachment.php', [
     "sr_community_asset_event_config(\$pdo, \$board, \$settings, 'paid_attachment_download', 'once')",
     "sr_community_run_asset_event(",
     "sr_storage_signed_url('s3', \$storageKey, 300, [",
-    "header('X-Content-Type-Options: nosniff')",
+    "'response-content-disposition' => sr_download_content_disposition((string) \$attachment['original_name'], \$disposition)",
+    "sr_send_download_headers(\$mimeType, (string) \$attachment['original_name'], \$disposition, \$recordedSize, 'private, no-store, no-cache, must-revalidate')",
 ], 'Community attachment download policy');
 
 sr_community_release_file_contains('modules/community/actions/write.php', [
