@@ -295,6 +295,22 @@ foreach ([
     }
 }
 
+$browserQaFailureOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--run-browser-qa',
+]);
+foreach ([
+    'run-browser-qa: yes',
+    "gate\tCKEditor asset/fallback browser smoke\tresult=실패\tenvironment=http://127.0.0.1:1\tmemo=npm --prefix .tools/browser-qa run test:ckeditor exit",
+] as $marker) {
+    if ($browserQaFailureOutput !== '' && !str_contains($browserQaFailureOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status browser QA failure output marker missing: ' . $marker);
+    }
+}
+
 $fixtureOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
