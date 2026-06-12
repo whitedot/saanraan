@@ -56,7 +56,7 @@
 | `php .tools/bin/smoke-asset-idempotency-http.php` | TODO | 설치 DB 더미 유료 대상에서 `SR_SMOKE_ALLOW_MUTATION=1`로 같은 확인 token 병렬 POST와 dedupe row count 확인 |
 | `php .tools/bin/check-release-package-policy.php` | TODO | 릴리스 산출물 포함/제외 기준과 vendored dependency 기준 |
 | `php .tools/bin/release-preflight.php` | TODO | Purifier 로드 상태, dependency version, cache 경로, CKEditor self-hosted asset, dry-run manifest 요약 |
-| `php .tools/bin/release-installed-gate-status.php` | TODO | 설치 DB 게이트 상태표 생성. 설치 DB에서 read-only CLI 게이트까지 실행하려면 `php .tools/bin/release-installed-gate-status.php --run-readonly` 사용. 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke까지 상태표에서 실행하려면 base URL을 지정하고 `--run-browser-qa` 사용 |
+| `php .tools/bin/release-installed-gate-status.php` | TODO | 설치 DB 게이트 상태표 생성. 설치 DB에서 read-only CLI 게이트까지 실행하려면 `php .tools/bin/release-installed-gate-status.php --run-readonly` 사용. 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke까지 상태표에서 실행하려면 base URL을 지정하고 `--run-browser-qa` 사용. 인증 smoke는 로컬/staging disposable 데이터에서 `SR_SMOKE_ALLOW_MUTATION=1`과 테스트 계정을 지정한 뒤 `--run-auth-smoke` 사용 |
 | `php .tools/bin/release-package-dry-run.php` | TODO | 직접 제작 zip 후보 파일 목록의 필수/금지 경로 점검 |
 | `php .tools/bin/release-package-dry-run.php --manifest` | TODO | 직접 제작 zip 후보 파일 집합 hash 기록 |
 | 기타 점검 | TODO |  |
@@ -71,7 +71,7 @@ TODO
 
 릴리스 후보 판정에서는 미설치 install-mode smoke만으로 통과 처리하지 않는다. 다음 항목은 새 설치 또는 기존 로컬/staging DB에서 실행하고, 실행하지 못한 경우 최종 판정을 `조건부 통과` 또는 `판정 보류`로 낮춘다. 필수 설치 DB 게이트 표에서 하나라도 `통과`가 아니면 릴리스 후보 최종 판정을 `통과`로 기록하지 않는다. 운영 DB에서는 파괴적이거나 mutation이 있는 smoke를 실행하지 않는다.
 
-먼저 `php .tools/bin/release-installed-gate-status.php`를 실행해 설치 DB 게이트 상태표를 만든다. 현재 CLI 사용자가 `config/config.php`를 읽을 수 있고 설치 lock이 있으면 read-only CLI 게이트는 `php .tools/bin/release-installed-gate-status.php --run-readonly`로 함께 실행할 수 있다. `SR_BROWSER_QA_BASE_URL` 또는 `SR_SMOKE_BASE_URL`이 있으면 `php .tools/bin/release-installed-gate-status.php --run-browser-qa`로 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke도 상태표 안에서 실행할 수 있다. 이 도구는 `config-mode`와 `config-owner-group`도 출력하므로, 공유호스팅 보안 권한 때문에 현재 CLI 사용자가 설치 DB를 읽지 못하는 경우에는 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 다시 점검한다. 이 도구의 출력은 아래 표를 대체하지 않고, 표의 결과와 미실행 사유를 빠뜨리지 않기 위한 보조 증거다.
+먼저 `php .tools/bin/release-installed-gate-status.php`를 실행해 설치 DB 게이트 상태표를 만든다. 현재 CLI 사용자가 `config/config.php`를 읽을 수 있고 설치 lock이 있으면 read-only CLI 게이트는 `php .tools/bin/release-installed-gate-status.php --run-readonly`로 함께 실행할 수 있다. `SR_BROWSER_QA_BASE_URL` 또는 `SR_SMOKE_BASE_URL`이 있으면 `php .tools/bin/release-installed-gate-status.php --run-browser-qa`로 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke도 상태표 안에서 실행할 수 있다. 인증 smoke는 게시글, 댓글, 쪽지 같은 데이터를 만들 수 있으므로 로컬/staging disposable 데이터에서만 `SR_SMOKE_ALLOW_MUTATION=1`, `SR_SMOKE_IDENTIFIER`, `SR_SMOKE_PASSWORD`를 지정하고 `php .tools/bin/release-installed-gate-status.php --run-auth-smoke`로 실행한다. 이 도구는 `config-mode`와 `config-owner-group`도 출력하므로, 공유호스팅 보안 권한 때문에 현재 CLI 사용자가 설치 DB를 읽지 못하는 경우에는 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 다시 점검한다. 이 도구의 출력은 아래 표를 대체하지 않고, 표의 결과와 미실행 사유를 빠뜨리지 않기 위한 보조 증거다.
 
 | 게이트 | 결과 | 환경 | 메모 |
 | --- | --- | --- | --- |

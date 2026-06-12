@@ -15,8 +15,10 @@ require_once $root . '/core/helpers/runtime.php';
 $args = array_slice($argv, 1);
 $runReadonly = in_array('--run-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
+$runAuthSmoke = in_array('--run-auth-smoke', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
+$allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
 $configPath = $root . '/config/config.php';
 $lockPath = $root . '/storage/installed.lock';
 $configExists = is_file($configPath);
@@ -171,6 +173,58 @@ function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowse
     ];
 }
 
+function sr_release_gate_status_auth_smoke_gate(string $baseUrl, bool $runAuthSmoke, bool $allowMutationSmoke): array
+{
+    $identifier = (string) (getenv('SR_SMOKE_IDENTIFIER') ?: '');
+    $password = (string) (getenv('SR_SMOKE_PASSWORD') ?: '');
+
+    if ($baseUrl === '') {
+        return [
+            'gate' => '인증 smoke',
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_SMOKE_BASE_URL for local/staging authenticated smoke; do not run against production',
+        ];
+    }
+
+    if ($identifier === '' || $password === '') {
+        return [
+            'gate' => '인증 smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for a local/staging test account',
+        ];
+    }
+
+    if (!$allowMutationSmoke) {
+        return [
+            'gate' => '인증 smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'authenticated smoke creates data; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
+        ];
+    }
+
+    if (!$runAuthSmoke) {
+        return [
+            'gate' => '인증 smoke',
+            'result' => '수동 확인 필요',
+            'environment' => $baseUrl,
+            'memo' => 'authenticated smoke is configured; rerun with --run-auth-smoke to execute smoke-community-auth.php',
+        ];
+    }
+
+    $result = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/smoke-community-auth.php']);
+    $exitCode = (int) $result['exit_code'];
+
+    return [
+        'gate' => '인증 smoke',
+        'result' => $exitCode === 0 ? '통과' : '실패',
+        'environment' => $baseUrl,
+        'memo' => 'smoke-community-auth.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
+    ];
+}
+
 $unavailableReason = '';
 if (!$configExists) {
     $unavailableReason = 'config/config.php missing';
@@ -216,12 +270,7 @@ $gates[] = [
     'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
     'memo' => $baseUrl === '' ? 'set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen' : 'administrator session required',
 ];
-$gates[] = [
-    'gate' => '인증 smoke',
-    'result' => '미실행',
-    'environment' => 'local/staging test account',
-    'memo' => 'requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD; do not run against production',
-];
+$gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $runAuthSmoke, $allowMutationSmoke);
 $gates[] = [
     'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
     'result' => '미실행',
@@ -267,6 +316,8 @@ echo 'base-url: ' . ($baseUrl === '' ? '-' : $baseUrl) . "\n";
 echo 'browser-qa-base-url: ' . ($browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl) . "\n";
 echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
 echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
+echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";
+echo 'mutation-smoke-allowed: ' . ($allowMutationSmoke ? 'yes' : 'no') . "\n";
 foreach ($gates as $gate) {
     echo sr_release_gate_status_line(
         (string) ($gate['gate'] ?? ''),
