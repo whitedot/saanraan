@@ -174,6 +174,7 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8080 \
 ```sh
 SR_SMOKE_ALLOW_MUTATION=1 \
 SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_ALLOW_MUTATION=1 \
 SR_SMOKE_IDENTIFIER=writer@example.com \
 SR_SMOKE_PASSWORD='password' \
 SR_SMOKE_FORM_PATH='/content/view?slug=paid-fixture' \
