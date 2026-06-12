@@ -20,6 +20,7 @@ $runQuizSmoke = in_array('--run-quiz-smoke', $args, true);
 $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $runPrivacyFixtures = in_array('--run-privacy-fixtures', $args, true);
 $runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
+$markdownTable = in_array('--markdown-table', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -47,6 +48,30 @@ function sr_release_gate_status_line(string $gate, string $result, string $envir
         . "\tresult=" . sr_release_gate_status_single_line($result)
         . "\tenvironment=" . sr_release_gate_status_single_line($environment)
         . "\tmemo=" . sr_release_gate_status_single_line($memo);
+}
+
+function sr_release_gate_status_markdown_cell(string $value): string
+{
+    $value = sr_release_gate_status_single_line($value);
+    return str_replace(['\\', '|'], ['\\\\', '\\|'], $value);
+}
+
+function sr_release_gate_status_markdown_table(array $gates): string
+{
+    $lines = [
+        '| 게이트 | 결과 | 환경 | 메모 |',
+        '| --- | --- | --- | --- |',
+    ];
+
+    foreach ($gates as $gate) {
+        $lines[] = '| '
+            . sr_release_gate_status_markdown_cell((string) ($gate['gate'] ?? '')) . ' | '
+            . sr_release_gate_status_markdown_cell((string) ($gate['result'] ?? '')) . ' | '
+            . sr_release_gate_status_markdown_cell((string) ($gate['environment'] ?? '')) . ' | '
+            . sr_release_gate_status_markdown_cell((string) ($gate['memo'] ?? '')) . ' |';
+    }
+
+    return implode("\n", $lines) . "\n";
 }
 
 function sr_release_gate_status_single_line(string $value): string
@@ -628,6 +653,11 @@ foreach ($gates as $gate) {
     if (($gate['result'] ?? '') !== '통과') {
         $unresolved++;
     }
+}
+
+if ($markdownTable) {
+    echo sr_release_gate_status_markdown_table($gates);
+    exit(0);
 }
 
 echo "release-installed-gate-status-version: 1\n";

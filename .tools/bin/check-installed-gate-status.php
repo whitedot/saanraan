@@ -95,6 +95,52 @@ function sr_installed_gate_status_assert_unresolved_count(string $label, string 
     }
 }
 
+function sr_installed_gate_status_assert_markdown_table(string $label, string $output): void
+{
+    if ($output === '') {
+        return;
+    }
+
+    if (!str_starts_with($output, "| 게이트 | 결과 | 환경 | 메모 |\n| --- | --- | --- | --- |\n")) {
+        sr_installed_gate_status_error('Installed gate status markdown table header is invalid: ' . $label);
+    }
+
+    if (preg_match_all('/^\|\s*(.*?)\s*\|\s*([^|\n]+?)\s*\|\s*([^|\n]*?)\s*\|\s*([^|\n]*?)\s*\|$/m', $output, $matches) === false) {
+        sr_installed_gate_status_error('Installed gate status markdown table cannot be parsed: ' . $label);
+        return;
+    }
+
+    $labels = [];
+    foreach (($matches[1] ?? []) as $rawLabel) {
+        $labelText = trim((string) $rawLabel);
+        if ($labelText === '게이트' || $labelText === '---') {
+            continue;
+        }
+
+        $labels[] = $labelText;
+    }
+
+    $expectedLabels = [
+        '새 설치 또는 업데이트 적용',
+        '`php .tools/bin/reconcile-assets.php`',
+        '`php .tools/bin/ops-status.php`',
+        '`php .tools/bin/expire-points.php --dry-run`',
+        '/admin/assets/reconciliation',
+        '/admin/operations',
+        '인증 smoke',
+        '퀴즈 E2E smoke',
+        '자산/쿠폰/유료 접근권 mutation smoke',
+        '개인정보 export/cleanup smoke',
+        'CKEditor asset/fallback browser smoke',
+        'CKEditor upload/save browser smoke',
+        '성능 수동 점검',
+    ];
+
+    if ($labels !== $expectedLabels) {
+        sr_installed_gate_status_error('Installed gate status markdown rows must match template order for ' . $label);
+    }
+}
+
 $output = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php']);
 sr_installed_gate_status_assert_unresolved_count('default output', $output);
 foreach ([
@@ -135,6 +181,18 @@ foreach ([
 ] as $marker) {
     if ($output !== '' && !str_contains($output, $marker)) {
         sr_installed_gate_status_error('Installed gate status output marker missing: ' . $marker);
+    }
+}
+
+$markdownOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--markdown-table']);
+sr_installed_gate_status_assert_markdown_table('default markdown output', $markdownOutput);
+foreach ([
+    '| 새 설치 또는 업데이트 적용 | 환경 미준비 | current tree | config/config.php is not readable by current user |',
+    '| /admin/assets/reconciliation | 미실행 | base URL missing | set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen |',
+    '| 성능 수동 점검 | 미실행 | base URL missing | set SR_SMOKE_BASE_URL and SR_PERFORMANCE_REVIEW_READY=1 after representative local/staging data is prepared; use --run-performance-fixtures only for static/runtime fixtures |',
+] as $marker) {
+    if ($markdownOutput !== '' && !str_contains($markdownOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status markdown output marker missing: ' . $marker);
     }
 }
 
@@ -511,6 +569,7 @@ foreach ([
 sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-status.php', [
     'release-installed-gate-status-version: 1',
     'unresolved-gates',
+    '--markdown-table',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
@@ -567,6 +626,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
 
 sr_installed_gate_status_require_markers('docs/release-verification-template.md', [
     'php .tools/bin/release-installed-gate-status.php',
+    'php .tools/bin/release-installed-gate-status.php --markdown-table',
     'php .tools/bin/release-installed-gate-status.php --run-readonly',
     'php .tools/bin/expire-points.php --dry-run',
     '설치 DB 게이트 상태표',
