@@ -115,6 +115,7 @@ foreach ([
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
+    "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
 ] as $marker) {
     if ($baseOnlyOutput !== '' && !str_contains($baseOnlyOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status base-url-only output marker missing: ' . $marker);
@@ -133,6 +134,7 @@ foreach ([
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+    "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
 ] as $marker) {
     if ($adminIncompleteIdentifierOutput !== '' && !str_contains($adminIncompleteIdentifierOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status admin-identifier-only output marker missing: ' . $marker);
@@ -151,6 +153,7 @@ foreach ([
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+    "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
 ] as $marker) {
     if ($adminIncompletePasswordOutput !== '' && !str_contains($adminIncompletePasswordOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status admin-password-only output marker missing: ' . $marker);
@@ -170,6 +173,7 @@ foreach ([
     "gate\t/admin/assets/reconciliation\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
     "gate\t/admin/operations\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
     "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1",
+    "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=upload/save browser smoke creates or updates content; set SR_SMOKE_ALLOW_MUTATION=1",
 ] as $marker) {
     if ($adminConfiguredOutput !== '' && !str_contains($adminConfiguredOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status admin-configured output marker missing: ' . $marker);
@@ -374,6 +378,7 @@ $quizReadyOutput = sr_installed_gate_status_exec([
 foreach ([
     'mutation-smoke-allowed: yes',
     "gate\t퀴즈 E2E smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke is configured; rerun with --run-quiz-smoke",
+    "gate\tCKEditor upload/save browser smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session and mutation guard configured; manually verify upload adapter, saved HTML sanitizer, and body image access checks",
 ] as $marker) {
     if ($quizReadyOutput !== '' && !str_contains($quizReadyOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status quiz ready output marker missing: ' . $marker);
@@ -462,6 +467,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'config/config.php is not readable by current user',
     'sr_release_gate_status_pair_status',
     'sr_release_gate_status_admin_readonly_gate',
+    'sr_release_gate_status_ckeditor_upload_save_gate',
     'sr_release_gate_status_file_mode',
     'sr_release_gate_status_file_owner_group',
     'expire-points.php',
@@ -483,6 +489,8 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'installed DB performance review still required',
     'installed DB smoke still required',
     'upload adapter, saved HTML sanitizer',
+    'upload/save browser smoke creates or updates content',
+    'administrator session and mutation guard configured',
     'do not run against production',
 ]);
 

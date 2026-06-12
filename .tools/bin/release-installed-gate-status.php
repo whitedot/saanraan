@@ -201,6 +201,47 @@ function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowse
     ];
 }
 
+function sr_release_gate_status_ckeditor_upload_save_gate(string $baseUrl, string $adminSmokeCredentialStatus, bool $allowMutationSmoke): array
+{
+    if ($baseUrl === '') {
+        return [
+            'gate' => 'CKEditor upload/save browser smoke',
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_SMOKE_BASE_URL, administrator credentials, and SR_SMOKE_ALLOW_MUTATION=1 for local/staging browser smoke',
+        ];
+    }
+
+    if ($adminSmokeCredentialStatus !== 'configured') {
+        $credentialMemo = $adminSmokeCredentialStatus === 'incomplete'
+            ? 'SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together'
+            : 'requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD';
+
+        return [
+            'gate' => 'CKEditor upload/save browser smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => $credentialMemo,
+        ];
+    }
+
+    if (!$allowMutationSmoke) {
+        return [
+            'gate' => 'CKEditor upload/save browser smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'upload/save browser smoke creates or updates content; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
+        ];
+    }
+
+    return [
+        'gate' => 'CKEditor upload/save browser smoke',
+        'result' => '수동 확인 필요',
+        'environment' => $baseUrl,
+        'memo' => 'administrator session and mutation guard configured; manually verify upload adapter, saved HTML sanitizer, and body image access checks',
+    ];
+}
+
 function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, bool $runAuthSmoke, bool $allowMutationSmoke): array
 {
     if ($baseUrl === '') {
@@ -544,12 +585,7 @@ $gates[] = sr_release_gate_status_quiz_smoke_gate($baseUrl, $adminSmokeCredentia
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $assetDedupeExpectationStatus, $runAssetSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_privacy_gate($runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
-$gates[] = [
-    'gate' => 'CKEditor upload/save browser smoke',
-    'result' => '미실행',
-    'environment' => 'browser + installed DB',
-    'memo' => 'requires browser session, installed DB, upload adapter, saved HTML sanitizer, and body image access checks',
-];
+$gates[] = sr_release_gate_status_ckeditor_upload_save_gate($baseUrl, $adminSmokeCredentialStatus, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_performance_gate($runPerformanceFixtures);
 
 $unresolved = 0;
