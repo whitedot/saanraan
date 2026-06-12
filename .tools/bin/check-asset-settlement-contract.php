@@ -9,8 +9,10 @@ if (!defined('SR_ROOT')) {
     define('SR_ROOT', $root);
 }
 
-require_once $root . '/core/helpers/settings.php';
+require_once $root . '/core/helpers.php';
 require_once $root . '/modules/member/helpers/assets.php';
+require_once $root . '/modules/content/helpers.php';
+require_once $root . '/modules/community/helpers.php';
 
 $errors = [];
 
@@ -104,6 +106,14 @@ function sr_asset_settlement_check_runtime_fixture(): void
     $unknownCurrency = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, ['point'], 10, 'XXX');
     sr_asset_settlement_check_assert(!((bool) ($unknownCurrency['ok'] ?? false)), 'unknown settlement currency should fail closed.');
     sr_asset_settlement_check_assert(str_contains((string) ($unknownCurrency['message'] ?? ''), 'Unknown settlement currency'), 'unknown currency failure should be explicit.');
+
+    $contentModules = sr_content_asset_module_keys_from_value(['deposit', 'unknown', 'point', 'reward', 'point']);
+    sr_asset_settlement_check_assert($contentModules === ['point', 'reward', 'deposit'], 'content asset module input should normalize to deterministic deduction order.');
+    sr_asset_settlement_check_assert(sr_content_asset_module_value_from_keys(['deposit', 'point', 'reward', 'point']) === 'point,reward,deposit', 'content asset module value should serialize in deterministic deduction order.');
+
+    $communityModules = sr_community_asset_module_keys_from_value('deposit point reward point unknown', true);
+    sr_asset_settlement_check_assert($communityModules === ['point', 'reward', 'deposit'], 'community asset module input should normalize to deterministic deduction order.');
+    sr_asset_settlement_check_assert(sr_community_asset_module_value_from_keys(['deposit', 'point', 'reward', 'point'], true) === 'point,reward,deposit', 'community asset module value should serialize in deterministic deduction order.');
 }
 
 sr_asset_settlement_check_contains('docs/core-decisions.md', [
