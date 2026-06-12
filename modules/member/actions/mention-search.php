@@ -12,11 +12,8 @@ $limit = preg_match('/\A[1-9][0-9]*\z/', $limitValue) === 1 ? (int) $limitValue 
 $limit = max(1, min(20, $limit));
 $query = trim($query);
 
-header('Content-Type: application/json; charset=utf-8');
-
 if ($query === '' || (function_exists('mb_strlen') ? mb_strlen($query, 'UTF-8') : strlen($query)) < 1) {
-    echo json_encode(['items' => []], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-    sr_finish_response();
+    sr_json_response(['items' => []]);
 }
 
 $accountId = (int) ($account['id'] ?? 0);
@@ -31,12 +28,10 @@ if (
         || ($ipSubject !== '' && sr_rate_limit_count($pdo, 'member.mention_search.ip', $ipSubject, $windowSeconds) >= 240)
     )
 ) {
-    http_response_code(429);
-    echo json_encode([
+    sr_json_response([
         'items' => [],
         'message' => '검색 요청이 많습니다. 잠시 후 다시 시도하세요.',
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-    sr_finish_response();
+    ], 429);
 }
 
 if ($useRateLimits && $accountSubject !== '') {
@@ -47,7 +42,6 @@ if ($useRateLimits && $ipSubject !== '') {
 }
 
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
-echo json_encode([
+sr_json_response([
     'items' => sr_member_mention_search_rows($pdo, $runtimeConfig, $query, $limit, [$accountId]),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-sr_finish_response();
+]);

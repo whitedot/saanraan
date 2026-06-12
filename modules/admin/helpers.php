@@ -12,6 +12,7 @@ require_once SR_ROOT . '/modules/admin/helpers/updates.php';
 require_once SR_ROOT . '/modules/admin/helpers/module-sources.php';
 require_once SR_ROOT . '/modules/admin/helpers/module-actions.php';
 require_once SR_ROOT . '/modules/admin/helpers/retention.php';
+require_once SR_ROOT . '/modules/admin/helpers/operational-status.php';
 require_once SR_ROOT . '/modules/admin/helpers/dashboard.php';
 require_once SR_ROOT . '/modules/admin/helpers/settings.php';
 require_once SR_ROOT . '/modules/admin/helpers/homepage.php';

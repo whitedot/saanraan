@@ -23,7 +23,7 @@ if ($driver === 's3') {
     }
 
     header('Cache-Control: private, max-age=300');
-    sr_redirect_external($url);
+    sr_redirect_trusted_external($url);
 }
 
 $imagePath = sr_storage_local_path($key);
@@ -37,9 +37,6 @@ if (!sr_admin_icon_image_mime_is_allowed($mimeType) || !is_int($sizeBytes)) {
     sr_render_error(404, '요청한 아이콘 이미지를 찾을 수 없습니다.');
 }
 
-header('Content-Type: ' . $mimeType);
-header('Content-Length: ' . (string) $sizeBytes);
-header('Cache-Control: private, max-age=31536000, immutable');
-header('X-Content-Type-Options: nosniff');
+sr_send_file_headers($mimeType, $sizeBytes, 'private, max-age=31536000, immutable');
 readfile($imagePath);
 sr_finish_response();

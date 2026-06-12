@@ -23,7 +23,7 @@ if ($driver === 's3') {
     }
 
     header('Cache-Control: private, max-age=300');
-    sr_redirect_external($url);
+    sr_redirect_trusted_external($url);
 }
 
 $imagePath = sr_storage_local_path($key);
@@ -37,9 +37,6 @@ if (!sr_member_avatar_mime_is_allowed($mimeType) || !is_int($sizeBytes)) {
     sr_render_error(404, sr_t('member::action.avatar.not_found'));
 }
 
-header('Content-Type: ' . $mimeType);
-header('Content-Length: ' . (string) $sizeBytes);
-header('Cache-Control: public, max-age=31536000, immutable');
-header('X-Content-Type-Options: nosniff');
+sr_send_file_headers($mimeType, $sizeBytes, 'public, max-age=31536000, immutable');
 readfile($imagePath);
 sr_finish_response();

@@ -21,7 +21,7 @@ Options -Indexes
     RewriteRule ^(?:config|core|database|docs|examples|storage|modules|\.git|\.tools|\.claude)(?:/|$) - [F,L]
 
     # Block root-only project metadata files.
-    RewriteRule ^(?:AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env)$ - [F,L]
+    RewriteRule ^(?:AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env(?:\..*)?)$ - [F,L]
 
     # Route virtual application paths to the front controller.
     RewriteCond %{REQUEST_FILENAME} !-f

@@ -7,7 +7,7 @@ require_once SR_ROOT . '/modules/notification/helpers.php';
 
 $account = sr_member_require_login($pdo);
 $notificationId = (int) sr_get_string('id', 20);
-$token = sr_get_string('token', 64);
+$token = sr_get_string_without_truncation('token', 32) ?? '';
 
 $nextUrl = sr_notification_mark_read_redirect_link($pdo, $notificationId, (int) $account['id'], $token);
 

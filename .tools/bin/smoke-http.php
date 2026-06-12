@@ -29,12 +29,26 @@ $checks = [
         'label' => 'home or install entry',
         'path' => '/',
         'allowed_statuses' => [200, 302],
+        'required_headers' => [
+            'x-content-type-options' => 'nosniff',
+            'x-frame-options' => 'SAMEORIGIN',
+            'referrer-policy' => 'no-referrer',
+            'content-security-policy' => "default-src 'self'",
+            'cache-control' => 'no-store',
+        ],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
         'label' => 'login route',
         'path' => '/login',
         'allowed_statuses' => [200, 302],
+        'required_headers' => [
+            'x-content-type-options' => 'nosniff',
+            'x-frame-options' => 'SAMEORIGIN',
+            'referrer-policy' => 'no-referrer',
+            'content-security-policy' => "default-src 'self'",
+            'cache-control' => 'no-store',
+        ],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
@@ -65,6 +79,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin operations entry',
+        'path' => '/admin/operations',
+        'allowed_statuses' => [200, 302, 403],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'content missing slug entry',
         'path' => '/content/example',
         'allowed_statuses' => [200, 302, 404],
@@ -80,6 +100,26 @@ $checks = [
         'label' => 'admin content link card targets entry',
         'path' => '/admin/content/link-card-targets?target=community_post&q=test',
         'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'admin asset reconciliation entry',
+        'path' => '/admin/assets/reconciliation',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'admin asset exchange logs entry',
+        'path' => '/admin/asset-exchange/logs',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'admin asset exchange correction action guard',
+        'method' => 'POST',
+        'path' => '/admin/asset-exchange/logs',
+        'body' => 'intent=correct_completed_group&exchange_group_id=fixture_exchange_group',
+        'allowed_statuses' => [200, 302, 400, 403, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
@@ -330,6 +370,40 @@ $checks = [
         ],
     ],
     [
+        'label' => 'ckeditor plugin script',
+        'path' => '/modules/ckeditor/assets/saanraan-ckeditor.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            'window.srCkeditorInstances',
+            'sr-ckeditor-unavailable',
+        ],
+    ],
+    [
+        'label' => 'ckeditor plugin stylesheet',
+        'path' => '/modules/ckeditor/assets/saanraan-ckeditor.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.sr-ckeditor',
+        ],
+    ],
+    [
+        'label' => 'ckeditor self-hosted script',
+        'path' => '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            'CKEditor',
+            'ClassicEditor',
+        ],
+    ],
+    [
+        'label' => 'ckeditor self-hosted stylesheet',
+        'path' => '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.ck',
+        ],
+    ],
+    [
         'label' => 'database SQL protection',
         'path' => '/database/core/install.sql',
         'must_not_expose' => ['CREATE TABLE IF NOT EXISTS sr_site_settings'],
@@ -360,9 +434,19 @@ $checks = [
         'must_not_expose' => ['config-*.tmp.php'],
     ],
     [
+        'label' => 'config file protection',
+        'path' => '/config/config.php',
+        'must_not_expose' => ['db', 'password', 'app_key'],
+    ],
+    [
         'label' => 'storage directory protection',
         'path' => '/storage/.gitignore',
         'must_not_expose' => ['!.gitignore'],
+    ],
+    [
+        'label' => 'installed lock protection',
+        'path' => '/storage/installed.lock',
+        'must_not_expose' => ['installed'],
     ],
     [
         'label' => 'docs protection',
@@ -393,6 +477,11 @@ $checks = [
         'label' => 'repository metadata protection',
         'path' => '/.git/HEAD',
         'must_not_expose' => ['ref: refs/'],
+    ],
+    [
+        'label' => 'environment variant protection',
+        'path' => '/.env.local',
+        'must_not_expose' => ['SR_DB_PASSWORD', 'DB_PASSWORD', 'APP_KEY'],
     ],
 ];
 
@@ -507,6 +596,7 @@ function sr_smoke_fetch(string $url, string $method, string $requestBody = ''): 
         : ($http_response_header ?? []);
     $status = 0;
     $location = '';
+    $headerMap = [];
     foreach ($headers as $header) {
         if (preg_match('#\AHTTP/\S+\s+(\d{3})#', $header, $matches) === 1) {
             $status = (int) $matches[1];
@@ -514,12 +604,17 @@ function sr_smoke_fetch(string $url, string $method, string $requestBody = ''): 
         if (preg_match('#\ALocation:\s*(.+)\z#i', $header, $matches) === 1) {
             $location = trim($matches[1]);
         }
+        if (strpos($header, ':') !== false) {
+            [$name, $value] = explode(':', $header, 2);
+            $headerMap[strtolower(trim($name))] = trim($value);
+        }
     }
 
     return [
         'status' => $status,
         'body' => is_string($body) ? $body : '',
         'location' => $location,
+        'headers' => $headerMap,
     ];
 }
 
@@ -545,8 +640,9 @@ function sr_smoke_location_path(string $location): string
 function sr_smoke_is_install_entry(int $status, string $body): bool
 {
     return $status === 200
-        && str_contains($body, '<title>Saanraan 설치</title>')
-        && str_contains($body, 'Saanraan 실행에 필요한 DB 연결');
+        && str_contains($body, 'sr-install-page')
+        && str_contains($body, 'data-install-current-step')
+        && str_contains($body, 'Saanraan 설치');
 }
 
 function sr_smoke_is_install_csrf_error(int $status, string $body): bool
@@ -594,6 +690,7 @@ foreach ($checks as $check) {
     $response = sr_smoke_fetch($url, $method, (string) ($check['body'] ?? ''));
     $status = (int) $response['status'];
     $body = (string) $response['body'];
+    $headers = is_array($response['headers'] ?? null) ? $response['headers'] : [];
     $locationPath = sr_smoke_location_path((string) $response['location']);
     $label = (string) $check['label'];
     $isInstallEntry = sr_smoke_is_install_entry($status, $body);
@@ -618,9 +715,11 @@ foreach ($checks as $check) {
         $checkErrors[] = $label . ' returned 404 while SR_SMOKE_EXPECT_COMMUNITY=1 for ' . $url;
     }
 
-    foreach ($check['must_contain'] ?? [] as $needle) {
-        if (!str_contains($body, (string) $needle)) {
-            $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for ' . $url;
+    if (!$isInstallEntry && !$isInstallPostCsrfError) {
+        foreach ($check['must_contain'] ?? [] as $needle) {
+            if (!str_contains($body, (string) $needle)) {
+                $checkErrors[] = $label . ' did not contain expected text "' . (string) $needle . '" for ' . $url;
+            }
         }
     }
 
@@ -668,7 +767,16 @@ foreach ($checks as $check) {
         }
     }
 
-    if ($status === 302 && isset($check['redirect_path_prefixes']) && is_array($check['redirect_path_prefixes'])) {
+    foreach ($check['required_headers'] ?? [] as $headerName => $expectedValuePart) {
+        $headerName = strtolower(trim((string) $headerName));
+        $expectedValuePart = (string) $expectedValuePart;
+        $actualHeader = (string) ($headers[$headerName] ?? '');
+        if ($actualHeader === '' || !str_contains($actualHeader, $expectedValuePart)) {
+            $checkErrors[] = $label . ' missing required response header "' . $headerName . ': ' . $expectedValuePart . '" for ' . $url;
+        }
+    }
+
+    if (!$isInstallEntry && $status === 302 && isset($check['redirect_path_prefixes']) && is_array($check['redirect_path_prefixes'])) {
         $matchedRedirect = false;
         foreach ($check['redirect_path_prefixes'] as $prefix) {
             $prefix = (string) $prefix;

@@ -1325,16 +1325,25 @@ function sr_rate_limit_increment(PDO $pdo, string $bucket, string $subject, int 
             sr_rate_limit_collect_garbage($pdo);
         }
 
-        $stmt = $pdo->prepare(
-            'INSERT INTO sr_rate_limits
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $sql = $driver === 'sqlite'
+            ? 'INSERT INTO sr_rate_limits
+                (rate_key, bucket, subject_hash, attempt_count, expires_at, created_at, updated_at)
+             VALUES
+                (:rate_key, :bucket, :subject_hash, 1, :expires_at, :created_at, :updated_at)
+             ON CONFLICT(rate_key) DO UPDATE SET
+                attempt_count = CASE WHEN expires_at < excluded.updated_at THEN 1 ELSE attempt_count + 1 END,
+                expires_at = CASE WHEN expires_at < excluded.updated_at THEN excluded.expires_at ELSE expires_at END,
+                updated_at = excluded.updated_at'
+            : 'INSERT INTO sr_rate_limits
                 (rate_key, bucket, subject_hash, attempt_count, expires_at, created_at, updated_at)
              VALUES
                 (:rate_key, :bucket, :subject_hash, 1, :expires_at, :created_at, :updated_at)
              ON DUPLICATE KEY UPDATE
                 attempt_count = IF(expires_at < VALUES(updated_at), 1, attempt_count + 1),
                 expires_at = IF(expires_at < VALUES(updated_at), VALUES(expires_at), expires_at),
-                updated_at = VALUES(updated_at)'
-        );
+                updated_at = VALUES(updated_at)';
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([
             'rate_key' => sr_rate_limit_key($bucket, $subject),
             'bucket' => $bucket,

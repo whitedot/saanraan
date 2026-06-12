@@ -1,0 +1,481 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__, 2);
+chdir($root);
+define('SR_ROOT', $root);
+
+require_once $root . '/core/helpers.php';
+require_once $root . '/modules/admin/helpers/operational-status.php';
+require_once $root . '/modules/point/helpers.php';
+
+$errors = [];
+
+function sr_operational_status_error(string $message): void
+{
+    global $errors;
+    $errors[] = $message;
+}
+
+function sr_operational_status_fixture_check(PDO $pdo): void
+{
+    $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('fixture_mod', 'enabled')");
+    $pdo->exec('CREATE TABLE sr_fixture_operation_queue (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
+
+    $baseCheck = [
+        'label' => 'fixture.queue.pending',
+        'title' => 'Fixture queue pending',
+        'module' => 'fixture_mod',
+        'table' => 'sr_fixture_operation_queue',
+        'where' => "status = 'pending'",
+        'age_column' => 'updated_at',
+        'delay_tolerance' => '1시간',
+        'warn_after_seconds' => 3600,
+        'followup' => 'fixture followup',
+    ];
+
+    $row = sr_admin_operational_status_row($pdo, $baseCheck);
+    if ((string) ($row['status'] ?? '') !== 'ok' || (int) ($row['count'] ?? -1) !== 0) {
+        sr_operational_status_error('Fixture empty queue should be ok with count 0.');
+    }
+
+    $recentAt = date('Y-m-d H:i:s', time() - 300);
+    $stmt = $pdo->prepare('INSERT INTO sr_fixture_operation_queue (status, updated_at) VALUES (:status, :updated_at)');
+    $stmt->execute(['status' => 'pending', 'updated_at' => $recentAt]);
+    $row = sr_admin_operational_status_row($pdo, $baseCheck);
+    if ((string) ($row['status'] ?? '') !== 'warning' || (int) ($row['count'] ?? 0) !== 1 || !is_int($row['age_seconds'] ?? null)) {
+        sr_operational_status_error('Fixture recent pending queue should be warning with age_seconds.');
+    }
+
+    $oldAt = date('Y-m-d H:i:s', time() - 7200);
+    $stmt->execute(['status' => 'pending', 'updated_at' => $oldAt]);
+    $row = sr_admin_operational_status_row($pdo, $baseCheck);
+    if ((string) ($row['status'] ?? '') !== 'overdue' || (int) ($row['count'] ?? 0) !== 2 || (string) ($row['oldest_at'] ?? '') !== $oldAt) {
+        sr_operational_status_error('Fixture old pending queue should be overdue and use oldest timestamp.');
+    }
+
+    $stmt->execute(['status' => 'failed', 'updated_at' => date('Y-m-d H:i:s')]);
+    $failedCheck = $baseCheck;
+    $failedCheck['label'] = 'fixture.queue.failed';
+    $failedCheck['where'] = "status = 'failed'";
+    $failedCheck['delay_tolerance'] = '즉시';
+    $failedCheck['warn_after_seconds'] = 0;
+    $row = sr_admin_operational_status_row($pdo, $failedCheck);
+    if ((string) ($row['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Fixture immediate failure signal should be overdue.');
+    }
+
+    $disabledCheck = $baseCheck;
+    $disabledCheck['module'] = 'disabled_mod';
+    $row = sr_admin_operational_status_row($pdo, $disabledCheck);
+    if ((string) ($row['status'] ?? '') !== 'skipped') {
+        sr_operational_status_error('Fixture disabled module should be skipped.');
+    }
+
+    $unsafeCheck = $baseCheck;
+    $unsafeCheck['table'] = 'sr_fixture_operation_queue;DROP';
+    $row = sr_admin_operational_status_row($pdo, $unsafeCheck);
+    if ((string) ($row['status'] ?? '') !== 'error') {
+        sr_operational_status_error('Fixture unsafe table identifier should be an error.');
+    }
+
+    $unsafeAgeColumnCheck = $baseCheck;
+    $unsafeAgeColumnCheck['age_column'] = 'updated_at;DROP';
+    $row = sr_admin_operational_status_row($pdo, $unsafeAgeColumnCheck);
+    if ((string) ($row['status'] ?? '') !== 'error') {
+        sr_operational_status_error('Fixture unsafe age column identifier should be an error.');
+    }
+
+    $unsafeWhereCheck = $baseCheck;
+    $unsafeWhereCheck['where'] = "status = 'pending'; DROP TABLE sr_modules";
+    $row = sr_admin_operational_status_row($pdo, $unsafeWhereCheck);
+    if ((string) ($row['status'] ?? '') !== 'error') {
+        sr_operational_status_error('Fixture unsafe where predicate should be an error.');
+    }
+
+    $commentWhereCheck = $baseCheck;
+    $commentWhereCheck['where'] = "status = 'pending' -- hide";
+    $row = sr_admin_operational_status_row($pdo, $commentWhereCheck);
+    if ((string) ($row['status'] ?? '') !== 'error') {
+        sr_operational_status_error('Fixture commented where predicate should be an error.');
+    }
+
+    $missingCheck = $baseCheck;
+    $missingCheck['table'] = 'sr_fixture_missing_queue';
+    $row = sr_admin_operational_status_row($pdo, $missingCheck);
+    if ((string) ($row['status'] ?? '') !== 'skipped') {
+        sr_operational_status_error('Fixture missing optional table should be skipped.');
+    }
+
+    $summary = sr_admin_operational_status_summary([
+        ['status' => 'ok', 'count' => 0],
+        ['status' => 'warning', 'count' => 1],
+        ['status' => 'overdue', 'count' => 2],
+        ['status' => 'skipped', 'count' => 0],
+        ['status' => 'error', 'count' => 0],
+    ]);
+    if ((int) ($summary['ok'] ?? 0) !== 1 || (int) ($summary['warning'] ?? 0) !== 1 || (int) ($summary['overdue'] ?? 0) !== 1 || (int) ($summary['skipped'] ?? 0) !== 1 || (int) ($summary['error'] ?? 0) !== 1 || (int) ($summary['total_count'] ?? 0) !== 3) {
+        sr_operational_status_error('Fixture operational summary totals mismatch.');
+    }
+}
+
+function sr_operational_status_bundle_signal_fixture_check(PDO $pdo): void
+{
+    $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+    foreach (['notification', 'community', 'point'] as $moduleKey) {
+        $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, status) VALUES (:module_key, :status)');
+        $stmt->execute(['module_key' => $moduleKey, 'status' => 'enabled']);
+    }
+    $pdo->exec('CREATE TABLE sr_notification_deliveries (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_board_copy_jobs (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_point_transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, expires_at TEXT NULL, expires_remaining INTEGER NOT NULL DEFAULT 0)');
+
+    $oldAt = date('Y-m-d H:i:s', time() - 7200);
+    $recentAt = date('Y-m-d H:i:s', time() - 300);
+    $dueAt = date('Y-m-d H:i:s', time() - 90000);
+    $futureAt = date('Y-m-d H:i:s', time() + 90000);
+
+    $stmt = $pdo->prepare('INSERT INTO sr_notification_deliveries (status, created_at, updated_at) VALUES (:status, :created_at, :updated_at)');
+    $stmt->execute(['status' => 'queued', 'created_at' => $oldAt, 'updated_at' => $oldAt]);
+    $stmt->execute(['status' => 'failed', 'created_at' => $recentAt, 'updated_at' => $recentAt]);
+
+    $stmt = $pdo->prepare('INSERT INTO sr_community_board_copy_jobs (status, updated_at) VALUES (:status, :updated_at)');
+    $stmt->execute(['status' => 'running', 'updated_at' => $oldAt]);
+    $stmt->execute(['status' => 'failed', 'updated_at' => $recentAt]);
+
+    $stmt = $pdo->prepare('INSERT INTO sr_point_transactions (expires_at, expires_remaining) VALUES (:expires_at, :expires_remaining)');
+    $stmt->execute(['expires_at' => $dueAt, 'expires_remaining' => 10]);
+    $stmt->execute(['expires_at' => $futureAt, 'expires_remaining' => 20]);
+    $stmt->execute(['expires_at' => $dueAt, 'expires_remaining' => 0]);
+
+    $rows = sr_admin_operational_status_rows($pdo);
+    $byLabel = [];
+    foreach ($rows as $row) {
+        $byLabel[(string) ($row['label'] ?? '')] = $row;
+    }
+
+    if ((string) ($byLabel['notification.deliveries.queued']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture queued notifications should be overdue.');
+    }
+    if ((int) ($byLabel['notification.deliveries.queued']['count'] ?? 0) !== 1) {
+        sr_operational_status_error('Bundle fixture queued notifications count mismatch.');
+    }
+    if ((string) ($byLabel['notification.deliveries.failed']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture failed notifications should be overdue immediately.');
+    }
+    if ((string) ($byLabel['community.board_copy.active']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture active board copy job should be overdue.');
+    }
+    if ((string) ($byLabel['community.board_copy.failed']['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Bundle fixture failed board copy job should be overdue immediately.');
+    }
+    if ((string) ($byLabel['point.expiration.due']['status'] ?? '') !== 'overdue' || (int) ($byLabel['point.expiration.due']['count'] ?? 0) !== 1) {
+        sr_operational_status_error('Bundle fixture point expiration due signal should count only expired remaining points.');
+    }
+
+    $summary = sr_admin_operational_status_summary($rows);
+    if ((int) ($summary['overdue'] ?? 0) < 5 || (int) ($summary['total_count'] ?? 0) !== 5) {
+        sr_operational_status_error('Bundle fixture operational summary should include overdue signal counts.');
+    }
+}
+
+function sr_operational_status_point_expiration_fixture_check(PDO $pdo): void
+{
+    $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('point', 'enabled'), ('notification', 'disabled')");
+    $pdo->exec(
+        'CREATE TABLE sr_point_balances (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL UNIQUE,
+            balance INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_point_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            balance_after INTEGER NOT NULL,
+            transaction_type TEXT NOT NULL,
+            reason TEXT NOT NULL DEFAULT \'\',
+            reference_type TEXT NOT NULL DEFAULT \'\',
+            reference_id TEXT NOT NULL DEFAULT \'\',
+            created_by_account_id INTEGER NULL,
+            expires_at TEXT NULL,
+            expires_remaining INTEGER NOT NULL DEFAULT 0,
+            expired_at TEXT NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_point_expiration_consumptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            consume_transaction_id INTEGER NOT NULL,
+            source_transaction_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            source_expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )'
+    );
+
+    $now = '2026-06-12 12:00:00';
+    $dueTransactionId = sr_point_insert_ledger_transaction($pdo, [
+        'account_id' => 1,
+        'amount' => 100,
+        'transaction_type' => 'grant',
+        'reason' => 'fixture due grant',
+        'expires_at' => '2026-06-11 12:00:00',
+        'expires_remaining' => 80,
+        'created_at' => '2026-06-01 12:00:00',
+    ]);
+    sr_point_insert_ledger_transaction($pdo, [
+        'account_id' => 1,
+        'amount' => 50,
+        'transaction_type' => 'grant',
+        'reason' => 'fixture future grant',
+        'expires_at' => '2026-06-13 12:00:00',
+        'expires_remaining' => 50,
+        'created_at' => '2026-06-02 12:00:00',
+    ]);
+    sr_point_insert_ledger_transaction($pdo, [
+        'account_id' => 2,
+        'amount' => 30,
+        'transaction_type' => 'grant',
+        'reason' => 'fixture consumed grant',
+        'expires_at' => '2026-06-11 12:00:00',
+        'expires_remaining' => 0,
+        'created_at' => '2026-06-01 12:00:00',
+    ]);
+
+    $result = sr_point_expire_due_transactions($pdo, 10, $now);
+    if ((int) ($result['expired_count'] ?? 0) !== 1 || (int) ($result['expired_amount'] ?? 0) !== 80) {
+        sr_operational_status_error('Point expiration fixture should expire only due remaining grants.');
+    }
+
+    $balance = (int) $pdo->query('SELECT balance FROM sr_point_balances WHERE account_id = 1')->fetchColumn();
+    if ($balance !== 70) {
+        sr_operational_status_error('Point expiration fixture should subtract the expired remaining amount from balance.');
+    }
+
+    $source = $pdo->query('SELECT expires_remaining, expired_at FROM sr_point_transactions WHERE id = ' . (int) $dueTransactionId)->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($source) || (int) ($source['expires_remaining'] ?? -1) !== 0 || (string) ($source['expired_at'] ?? '') !== $now) {
+        sr_operational_status_error('Point expiration fixture should close the source grant expiration fields.');
+    }
+
+    $expire = $pdo->query("SELECT amount, balance_after, transaction_type, reference_type, reference_id FROM sr_point_transactions WHERE transaction_type = 'expire'")->fetch(PDO::FETCH_ASSOC);
+    if (
+        !is_array($expire)
+        || (int) ($expire['amount'] ?? 0) !== -80
+        || (int) ($expire['balance_after'] ?? 0) !== 70
+        || (string) ($expire['reference_type'] ?? '') !== 'point_expiration'
+        || (string) ($expire['reference_id'] ?? '') !== 'point_transaction:' . (string) $dueTransactionId
+    ) {
+        sr_operational_status_error('Point expiration fixture should create a linked expire ledger transaction.');
+    }
+
+    $secondRun = sr_point_expire_due_transactions($pdo, 10, $now);
+    if ((int) ($secondRun['expired_count'] ?? 0) !== 0 || (int) ($secondRun['expired_amount'] ?? 0) !== 0) {
+        sr_operational_status_error('Point expiration fixture should be idempotent after source expiration is closed.');
+    }
+}
+
+$docFile = 'docs/operational-status.md';
+$toolFile = '.tools/bin/ops-status.php';
+$expireToolFile = '.tools/bin/expire-points.php';
+$helperFile = 'modules/admin/helpers/operational-status.php';
+$pathsFile = 'modules/admin/paths.php';
+$navigationFile = 'modules/admin/helpers/navigation.php';
+$viewFile = 'modules/admin/views/operations.php';
+$doc = is_file($docFile) ? file_get_contents($docFile) : false;
+$tool = is_file($toolFile) ? file_get_contents($toolFile) : false;
+$expireTool = is_file($expireToolFile) ? file_get_contents($expireToolFile) : false;
+$helper = is_file($helperFile) ? file_get_contents($helperFile) : false;
+$paths = is_file($pathsFile) ? file_get_contents($pathsFile) : false;
+$navigation = is_file($navigationFile) ? file_get_contents($navigationFile) : false;
+$view = is_file($viewFile) ? file_get_contents($viewFile) : false;
+
+if (!is_string($doc)) {
+    sr_operational_status_error('Operational status document is missing or unreadable.');
+}
+if (!is_string($tool)) {
+    sr_operational_status_error('ops-status.php is missing or unreadable.');
+}
+if (!is_string($expireTool)) {
+    sr_operational_status_error('expire-points.php is missing or unreadable.');
+}
+if (!is_string($helper)) {
+    sr_operational_status_error('Operational status helper is missing or unreadable.');
+}
+if (!is_string($view)) {
+    sr_operational_status_error('Admin operational status view is missing or unreadable.');
+}
+
+$signals = [
+    'notification.deliveries.queued',
+    'notification.deliveries.failed',
+    'content.storage_cleanup.pending',
+    'community.storage_cleanup.pending',
+    'community.board_copy.active',
+    'community.board_copy.failed',
+    'quiz.reward_grants.pending',
+    'quiz.reward_grants.failed',
+    'survey.reward_grants.pending',
+    'survey.reward_grants.failed',
+    'point.expiration.due',
+];
+
+foreach ($signals as $signal) {
+    if (is_string($doc) && !str_contains($doc, $signal)) {
+        sr_operational_status_error('Operational status document is missing signal: ' . $signal);
+    }
+    if (is_string($helper) && !str_contains($helper, $signal)) {
+        sr_operational_status_error('Operational status helper is missing signal: ' . $signal);
+    }
+}
+
+foreach ([
+    'php .tools/bin/ops-status.php',
+    'php .tools/bin/expire-points.php',
+    '/admin/operations',
+    '/admin/assets/reconciliation',
+    '자산 불일치 대응 절차',
+    'balance row를 직접 수정하지 않는다',
+    '환전 묶음 정정',
+    'DB에서 balance row, 거래 row, `balance_after`를 직접 UPDATE',
+    'read-only',
+    '공유호스팅',
+    '허용 지연',
+    '지연 초과',
+    '1시간',
+    '15분',
+    '24시간',
+] as $marker) {
+    if (is_string($doc) && !str_contains($doc, $marker)) {
+        sr_operational_status_error('Operational status document is missing marker: ' . $marker);
+    }
+}
+
+foreach ([
+    'sr_is_installed()',
+    'sr_admin_operational_status_rows($pdo)',
+    'sr_ops_status_print_summary(sr_admin_operational_status_summary($rows))',
+] as $marker) {
+    if (is_string($tool) && !str_contains($tool, $marker)) {
+        sr_operational_status_error('ops-status.php is missing marker: ' . $marker);
+    }
+}
+
+foreach ([
+    'sr_is_installed()',
+    "require_once SR_ROOT . '/modules/point/helpers.php'",
+    'sr_module_enabled($pdo, \'point\')',
+    'sr_point_expire_due_transactions($pdo, $limit)',
+    'expired_count=',
+    'expired_amount=',
+] as $marker) {
+    if (is_string($expireTool) && !str_contains($expireTool, $marker)) {
+        sr_operational_status_error('expire-points.php is missing marker: ' . $marker);
+    }
+}
+
+foreach ([
+    'sr_ledger_insert_ignore_into_clause($pdo)',
+    'sr_ledger_for_update_clause($pdo)',
+    'function sr_point_expire_due_transactions(PDO $pdo',
+    'function sr_point_expire_grant_transaction(PDO $pdo',
+] as $marker) {
+    $pointHelper = is_file('modules/point/helpers.php') ? file_get_contents('modules/point/helpers.php') : false;
+    if (!is_string($pointHelper) || !str_contains($pointHelper, $marker)) {
+        sr_operational_status_error('Point helper expiration marker missing: ' . $marker);
+    }
+}
+
+foreach ([
+    'function sr_admin_operational_status_checks(): array',
+    'function sr_admin_operational_status_rows(PDO $pdo): array',
+    'sr_module_enabled($pdo',
+    'delay_tolerance',
+    'warn_after_seconds',
+    'function sr_admin_operational_status_where_sql(PDO $pdo, string $where): string',
+    "preg_replace('/\\bNOW\\(\\)/i', 'CURRENT_TIMESTAMP', \$where)",
+    'function sr_admin_operational_status_age_seconds(string $value): ?int',
+    'function sr_admin_operational_status_safe_where(string $value): bool',
+    "'overdue' => 0",
+    'COUNT(*) AS item_count',
+    'MIN(',
+    'DROP|GRANT|INSERT|LOAD|OUTFILE|REPLACE|REVOKE|TRUNCATE|UPDATE',
+] as $marker) {
+    if (is_string($helper) && !str_contains($helper, $marker)) {
+        sr_operational_status_error('Operational status helper is missing marker: ' . $marker);
+    }
+}
+
+foreach ([
+    'function sr_community_board_copy_job_assert_lock(PDO $pdo, int $jobId, string $lockToken): void',
+    '복사 작업 lock이 만료되었거나 다른 요청이 이어받았습니다.',
+] as $marker) {
+    $boardCopyJobs = is_file('modules/community/helpers/board-copy-jobs.php') ? file_get_contents('modules/community/helpers/board-copy-jobs.php') : false;
+    if (!is_string($boardCopyJobs) || !str_contains($boardCopyJobs, $marker)) {
+        sr_operational_status_error('Community board copy job lock marker missing: ' . $marker);
+    }
+}
+
+foreach ([
+    "'GET /admin/operations' => 'actions/operations.php'",
+] as $marker) {
+    if (is_string($paths) && !str_contains($paths, $marker)) {
+        sr_operational_status_error('Admin paths are missing operational status route.');
+    }
+}
+
+foreach ([
+    "'path' => '/admin/operations'",
+    '운영 상태',
+] as $marker) {
+    if (is_string($navigation) && !str_contains($navigation, $marker)) {
+        sr_operational_status_error('Admin navigation is missing operational status marker: ' . $marker);
+    }
+}
+
+foreach ([
+    '운영 상태 요약',
+    '지연/실패 신호',
+    '읽기 전용 점검',
+    '지연 초과',
+    '허용 지연',
+    'sr_admin_time_html($operationStatusCheckedAt)',
+] as $marker) {
+    if (is_string($view) && !str_contains($view, $marker)) {
+        sr_operational_status_error('Admin operational status view is missing marker: ' . $marker);
+    }
+}
+
+if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    sr_operational_status_fixture_check($pdo);
+    $bundlePdo = new PDO('sqlite::memory:');
+    $bundlePdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    sr_operational_status_bundle_signal_fixture_check($bundlePdo);
+    $pointExpirationPdo = new PDO('sqlite::memory:');
+    $pointExpirationPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    sr_operational_status_point_expiration_fixture_check($pointExpirationPdo);
+} else {
+    sr_operational_status_error('PDO sqlite driver is required for operational status fixture.');
+}
+
+if ($errors !== []) {
+    fwrite(STDERR, "operational status checks failed:\n");
+    foreach ($errors as $error) {
+        fwrite(STDERR, '- ' . $error . "\n");
+    }
+    exit(1);
+}
+
+echo "operational status checks completed.\n";

@@ -209,6 +209,48 @@ sr_runtime_helper_assert(
     sr_rate_limit_hash('203.0.113.10') === hash_hmac('sha256', '203.0.113.10', 'runtime-helper-test-key'),
     'Rate limit subject hashes should use the app key HMAC when runtime config is available.'
 );
+$ratePdo = new PDO('sqlite::memory:');
+$ratePdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$ratePdo->exec(
+    'CREATE TABLE sr_rate_limits (
+        rate_key TEXT NOT NULL PRIMARY KEY,
+        bucket TEXT NOT NULL,
+        subject_hash TEXT NOT NULL,
+        attempt_count INTEGER NOT NULL DEFAULT 0,
+        expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )'
+);
+sr_rate_limit_increment($ratePdo, 'member.login.ip', '203.0.113.10', 60);
+sr_rate_limit_increment($ratePdo, 'member.login.ip', '203.0.113.10', 60);
+sr_runtime_helper_assert(
+    sr_rate_limit_count($ratePdo, 'member.login.ip', '203.0.113.10', 60) === 2,
+    'Rate limit count should increment within the active window.'
+);
+$rateRow = $ratePdo->query('SELECT rate_key, subject_hash FROM sr_rate_limits LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+sr_runtime_helper_assert(
+    is_array($rateRow)
+        && ($rateRow['rate_key'] ?? '') === hash_hmac('sha256', 'member.login.ip|203.0.113.10', 'runtime-helper-test-key')
+        && ($rateRow['subject_hash'] ?? '') === hash_hmac('sha256', '203.0.113.10', 'runtime-helper-test-key'),
+    'Rate limit table should store HMAC key and subject hash, not raw subject values.'
+);
+$ratePdo->exec("UPDATE sr_rate_limits SET expires_at = '2000-01-01 00:00:00'");
+sr_runtime_helper_assert(
+    sr_rate_limit_count($ratePdo, 'member.login.ip', '203.0.113.10', 60) === 0,
+    'Expired rate limit rows should not count.'
+);
+sr_rate_limit_increment($ratePdo, 'member.login.ip', '203.0.113.10', 60);
+sr_runtime_helper_assert(
+    sr_rate_limit_count($ratePdo, 'member.login.ip', '203.0.113.10', 60) === 1,
+    'Expired rate limit rows should reset to one on the next increment.'
+);
+sr_rate_limit_increment($ratePdo, '', '203.0.113.10', 60);
+sr_rate_limit_increment($ratePdo, 'member.login.ip', '', 60);
+sr_runtime_helper_assert(
+    (int) $ratePdo->query('SELECT COUNT(*) FROM sr_rate_limits')->fetchColumn() === 1,
+    'Invalid rate limit input should not create rows.'
+);
 sr_set_runtime_config([]);
 sr_runtime_helper_assert(
     !sr_is_http_url('https://user@example.com/path'),

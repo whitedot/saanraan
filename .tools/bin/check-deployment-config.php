@@ -8,6 +8,59 @@ $configFile = $root . '/config/config.php';
 $errors = [];
 $warnings = [];
 
+function sr_deployment_config_file_mode(string $path): string
+{
+    if (!file_exists($path)) {
+        return '-';
+    }
+
+    $mode = fileperms($path);
+    if ($mode === false) {
+        return 'unknown';
+    }
+
+    return sprintf('%04o', $mode & 0777);
+}
+
+function sr_deployment_config_user_name(int $id): string
+{
+    if (function_exists('posix_getpwuid')) {
+        $info = posix_getpwuid($id);
+        if (is_array($info) && is_string($info['name'] ?? null) && $info['name'] !== '') {
+            return $info['name'];
+        }
+    }
+
+    return (string) $id;
+}
+
+function sr_deployment_config_group_name(int $id): string
+{
+    if (function_exists('posix_getgrgid')) {
+        $info = posix_getgrgid($id);
+        if (is_array($info) && is_string($info['name'] ?? null) && $info['name'] !== '') {
+            return $info['name'];
+        }
+    }
+
+    return (string) $id;
+}
+
+function sr_deployment_config_file_owner_group(string $path): string
+{
+    if (!file_exists($path)) {
+        return '-';
+    }
+
+    $owner = fileowner($path);
+    $group = filegroup($path);
+    if ($owner === false || $group === false) {
+        return 'unknown';
+    }
+
+    return sr_deployment_config_user_name($owner) . ':' . sr_deployment_config_group_name($group);
+}
+
 if (!is_file($configFile)) {
     echo "config/config.php is not present; deployment config check skipped.\n";
     exit(0);
@@ -21,6 +74,20 @@ if (!is_int($perms)) {
     if (($mode & 0077) !== 0) {
         $errors[] = sprintf('config/config.php must not be readable or writable by group/other; current mode is %04o.', $mode);
     }
+}
+
+if (!is_readable($configFile)) {
+    if ($errors !== []) {
+        foreach ($errors as $error) {
+            fwrite(STDERR, $error . "\n");
+        }
+        exit(1);
+    }
+
+    echo 'config-mode: ' . sr_deployment_config_file_mode($configFile) . "\n";
+    echo 'config-owner-group: ' . sr_deployment_config_file_owner_group($configFile) . "\n";
+    echo "config/config.php is not readable by current user; permission check passed and content check skipped.\n";
+    exit(0);
 }
 
 $config = include $configFile;
@@ -55,4 +122,6 @@ foreach ($warnings as $warning) {
     fwrite(STDERR, 'Warning: ' . $warning . "\n");
 }
 
+echo 'config-mode: ' . sr_deployment_config_file_mode($configFile) . "\n";
+echo 'config-owner-group: ' . sr_deployment_config_file_owner_group($configFile) . "\n";
 echo "Deployment config check passed.\n";

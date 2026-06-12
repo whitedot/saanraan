@@ -12,15 +12,11 @@ sr_require_csrf();
 $colorScheme = sr_post_string('ui_color_scheme', 20);
 $options = sr_color_scheme_options();
 
-header('Content-Type: application/json; charset=utf-8');
-
 if (!isset($options[$colorScheme])) {
-    http_response_code(422);
-    echo json_encode([
+    sr_json_response([
         'ok' => false,
         'errors' => ['관리자 UI 색상 모드 값이 올바르지 않습니다.'],
-    ], JSON_UNESCAPED_UNICODE);
-    sr_finish_response();
+    ], 422);
 }
 
 $adminSettings = sr_admin_settings($pdo);
@@ -47,8 +43,7 @@ if ($colorScheme !== $previousColorScheme) {
     ]);
 }
 
-echo json_encode([
+sr_json_response([
     'ok' => true,
     'ui_color_scheme' => $colorScheme,
-], JSON_UNESCAPED_UNICODE);
-sr_finish_response();
+]);

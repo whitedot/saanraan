@@ -14,6 +14,7 @@ return [
     'POST /admin/modules' => 'actions/modules.php',
     'GET /admin/updates' => 'actions/updates.php',
     'POST /admin/updates' => 'actions/updates.php',
+    'GET /admin/operations' => 'actions/operations.php',
     'GET /admin/roles' => 'actions/roles.php',
     'POST /admin/roles' => 'actions/roles.php',
     'GET /admin/audit-logs' => 'actions/audit-logs.php',

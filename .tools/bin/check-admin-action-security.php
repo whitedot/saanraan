@@ -105,6 +105,86 @@ function sr_admin_action_security_has_location_header(string $content): bool
     return false;
 }
 
+function sr_admin_action_security_has_unsafe_header_call(string $content): bool
+{
+    $allowedHeaderPrefixes = [
+        'cache-control:',
+        'content-disposition:',
+        'content-length:',
+        'content-security-policy:',
+        'content-type:',
+        'pragma:',
+        'x-content-type-options:',
+    ];
+
+    $tokens = token_get_all($content);
+    foreach ($tokens as $i => $token) {
+        if (!is_array($token) || $token[0] !== T_STRING || strtolower($token[1]) !== 'header') {
+            continue;
+        }
+
+        [, $openToken] = sr_admin_action_security_next_code_token($tokens, $i + 1);
+        if ($openToken !== '(') {
+            continue;
+        }
+
+        [, $firstArgument] = sr_admin_action_security_next_code_token($tokens, $i + 2);
+        $literal = is_array($firstArgument) ? sr_admin_action_security_string_literal($firstArgument) : null;
+        if (!is_string($literal)) {
+            return true;
+        }
+
+        $lowerLiteral = strtolower(ltrim($literal));
+        foreach ($allowedHeaderPrefixes as $prefix) {
+            if (str_starts_with($lowerLiteral, $prefix)) {
+                continue 2;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+function sr_admin_action_security_has_direct_json_response(string $content): bool
+{
+    return str_contains($content, 'echo json_encode(')
+        || str_contains($content, "header('Content-Type: application/json")
+        || str_contains($content, 'header("Content-Type: application/json');
+}
+
+function sr_admin_action_security_self_test(): void
+{
+    global $errors;
+
+    $cases = [
+        'raw exit' => [sr_admin_action_security_has_raw_exit('<?php if ($ok) { exit; }'), true],
+        'raw die' => [sr_admin_action_security_has_raw_exit('<?php die("no");'), true],
+        'plain header ignored' => [sr_admin_action_security_has_location_header('<?php header("Content-Type: text/plain");'), false],
+        'location header detected' => [sr_admin_action_security_has_location_header('<?php header("Location: /admin");'), true],
+        'lowercase location header detected' => [sr_admin_action_security_has_location_header('<?php header("location: /admin");'), true],
+        'content type header allowed' => [sr_admin_action_security_has_unsafe_header_call('<?php header("Content-Type: " . $mimeType);'), false],
+        'cache control header allowed' => [sr_admin_action_security_has_unsafe_header_call('<?php header("Cache-Control: no-store");'), false],
+        'direct location header unsafe' => [sr_admin_action_security_has_unsafe_header_call('<?php header("Location: /admin");'), true],
+        'dynamic header unsafe' => [sr_admin_action_security_has_unsafe_header_call('<?php header($headerValue);'), true],
+        'direct json response unsafe' => [sr_admin_action_security_has_direct_json_response('<?php header("Content-Type: application/json; charset=utf-8"); echo json_encode([]);'), true],
+        'json helper response accepted' => [sr_admin_action_security_has_direct_json_response('<?php sr_json_response(["ok" => true]);'), false],
+        'safe action path accepted' => [sr_admin_action_security_path_is_safe('actions/admin-settings.php'), true],
+        'nested safe action path accepted' => [sr_admin_action_security_path_is_safe('actions/admin/settings-save.php'), true],
+        'path traversal rejected' => [sr_admin_action_security_path_is_safe('actions/../admin.php'), false],
+        'backslash path rejected' => [sr_admin_action_security_path_is_safe('actions\\admin.php'), false],
+    ];
+
+    foreach ($cases as $label => [$actual, $expected]) {
+        if ((bool) $actual !== (bool) $expected) {
+            $errors[] = 'Admin action security self-test failed: ' . $label;
+        }
+    }
+}
+
+sr_admin_action_security_self_test();
+
 function sr_admin_action_security_effective_content(string $root, string $content): string
 {
     preg_match_all(
@@ -193,6 +273,14 @@ foreach (sr_admin_action_security_module_dirs($root) as $moduleDir) {
 
         if (sr_admin_action_security_has_location_header($effectiveContent)) {
             $errors[] = 'Action must use sr_redirect() instead of a direct Location header: ' . $route . ' -> ' . $actionFile;
+        }
+
+        if (sr_admin_action_security_has_unsafe_header_call($effectiveContent)) {
+            $errors[] = 'Action header() calls must start with an allowlisted response header literal and must not build dynamic header names: ' . $route . ' -> ' . $actionFile;
+        }
+
+        if (sr_admin_action_security_has_direct_json_response($effectiveContent)) {
+            $errors[] = 'JSON action responses must use sr_json_response() instead of direct JSON headers or echo json_encode(): ' . $route . ' -> ' . $actionFile;
         }
 
         if (strpos($effectiveContent, 'sr_request_contract_mark(') !== false || strpos($effectiveContent, 'sr_request_contract_guard_blocked(') !== false) {
@@ -517,11 +605,14 @@ if (!is_string($coreOutputHelper)) {
 } elseif (
     strpos($coreOutputHelper, "sr_enforce_request_contract('before_redirect')") === false
     || strpos($coreOutputHelper, 'function sr_finish_response') === false
+    || strpos($coreOutputHelper, 'function sr_json_response(mixed $payload') === false
+    || strpos($coreOutputHelper, 'sr_response_header_is_allowed($header)') === false
+    || strpos($coreOutputHelper, 'JSON_INVALID_UTF8_SUBSTITUTE') === false
     || strpos($coreOutputHelper, "sr_enforce_request_contract('before_response_end')") === false
     || strpos($coreOutputHelper, "sr_request_contract_mark('csrf_checked')") === false
     || strpos($coreOutputHelper, "sr_request_contract_guard_blocked('csrf')") === false
 ) {
-    $errors[] = 'Core output helper must enforce the request contract at redirect/response exits and mark CSRF checks.';
+    $errors[] = 'Core output helper must enforce the request contract at redirect/response exits, centralize JSON responses, and mark CSRF checks.';
 }
 
 $memberAccountsHelper = file_get_contents($root . '/modules/member/helpers/accounts.php');

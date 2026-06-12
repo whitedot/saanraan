@@ -44,12 +44,12 @@ foreach ($permissionOptions as $permissionGroupIndex => $permissionGroup) {
         ];
     }
 }
-$permissionPickerJson = json_encode($permissionPickerGroups, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+$permissionPickerJson = sr_js_json_encode($permissionPickerGroups);
 $permissionActionLabels = [];
 foreach ($permissionActions as $actionKey) {
     $permissionActionLabels[(string) $actionKey] = sr_admin_code_label((string) $actionKey, 'admin_permission_action');
 }
-$permissionActionLabelJson = json_encode($permissionActionLabels, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+$permissionActionLabelJson = sr_js_json_encode($permissionActionLabels);
 $permissionSelectedByPath = static function (array $permissionKeys): array {
     $selectedByPath = [];
     foreach ($permissionKeys as $permissionToken) {
@@ -575,8 +575,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 (function () {
     var groups = <?php echo $permissionPickerJson ?: '[]'; ?>;
     var actionLabels = <?php echo $permissionActionLabelJson ?: '{}'; ?>;
-    var actions = <?php echo json_encode(array_values($permissionActions), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
-    var deleteIconHtml = <?php echo json_encode(sr_material_icon_html('delete'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+    var actions = <?php echo sr_js_json_encode(array_values($permissionActions)); ?>;
+    var deleteIconHtml = <?php echo sr_js_json_encode(sr_material_icon_html('delete')); ?>;
     var allGroupsValue = '__all_groups__';
     var allItemsValue = '__all__';
 

@@ -288,7 +288,17 @@ function sr_log_exception(Throwable $exception, string $context): void
             $exception->getLine()
         );
 
-        file_put_contents($logDir . '/error.log', $line, FILE_APPEND | LOCK_EX);
+        $written = @file_put_contents($logDir . '/error.log', $line, FILE_APPEND | LOCK_EX);
+        if ($written === false) {
+            error_log(
+                '[saanraan] failed to write exception log: '
+                . sr_log_sensitive_text_sanitize(sr_log_line_value($context, 120))
+                . ' '
+                . sr_log_line_value(get_class($exception), 120)
+                . ': '
+                . sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))
+            );
+        }
     } catch (Throwable $logException) {
         error_log(
             '[saanraan] failed to write exception log: '

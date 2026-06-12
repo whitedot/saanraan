@@ -13,17 +13,14 @@ $accountId = preg_match('/\A[1-9][0-9]*\z/', $accountIdValue) === 1 ? (int) $acc
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $member = sr_admin_member_by_id($pdo, $accountId);
 
-header('Content-Type: application/json; charset=utf-8');
 if (!is_array($member)) {
-    http_response_code(404);
-    echo json_encode([
+    sr_json_response([
         'ok' => false,
         'message' => '회원 정보를 찾을 수 없습니다.',
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-    sr_finish_response();
+    ], 404);
 }
 
-echo json_encode([
+sr_json_response([
     'ok' => true,
     'member' => [
         'id' => (int) $member['id'],
@@ -40,5 +37,4 @@ echo json_encode([
         'updated_at' => (string) ($member['updated_at'] ?? ''),
         'edit_url' => sr_url('/admin/members/edit?id=' . (string) (int) $member['id']),
     ],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-sr_finish_response();
+]);

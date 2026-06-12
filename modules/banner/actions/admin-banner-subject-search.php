@@ -13,10 +13,8 @@ $availableTargets = sr_banner_available_targets($pdo);
 $allowedTypes = sr_banner_subject_search_types($pdo, $availableTargets);
 $referenceType = sr_get_string('reference_type', 60);
 
-header('Content-Type: application/json; charset=utf-8');
-echo json_encode([
+sr_json_response([
     'items' => array_key_exists($referenceType, $allowedTypes)
         ? sr_banner_subject_search($pdo, $referenceType, sr_get_string('q', 120), 20)
         : [],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-sr_finish_response();
+]);
