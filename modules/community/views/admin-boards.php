@@ -1248,8 +1248,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <label class="form-label" for="community_category_status_new">상태 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                 <div class="admin-form-field">
                                     <select id="community_category_status_new" name="category_status" class="form-select" required>
-                                        <option value="enabled">enabled</option>
-                                        <option value="disabled">disabled</option>
+                                        <option value="enabled">사용</option>
+                                        <option value="disabled">미사용</option>
                                     </select>
                                 </div>
                             </div>
@@ -1306,8 +1306,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-status">상태 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                                     <div class="admin-form-field">
                                         <select id="<?php echo sr_e($categoryModalId); ?>-status" name="category_status" class="form-select" required>
-                                            <option value="enabled"<?php echo (string) $category['status'] === 'enabled' ? ' selected' : ''; ?>>enabled</option>
-                                            <option value="disabled"<?php echo (string) $category['status'] === 'disabled' ? ' selected' : ''; ?>>disabled</option>
+                                            <option value="enabled"<?php echo (string) $category['status'] === 'enabled' ? ' selected' : ''; ?>>사용</option>
+                                            <option value="disabled"<?php echo (string) $category['status'] === 'disabled' ? ' selected' : ''; ?>>미사용</option>
                                         </select>
                                     </div>
                                 </div>

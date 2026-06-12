@@ -8,11 +8,10 @@ $reportStatusCounts = isset($reportStatusCounts) && is_array($reportStatusCounts
 $allowedStatuses = isset($allowedStatuses) && is_array($allowedStatuses) ? $allowedStatuses : [];
 $allowedReasonKeys = isset($allowedReasonKeys) && is_array($allowedReasonKeys) ? $allowedReasonKeys : [];
 $allowedTargetTypes = isset($allowedTargetTypes) && is_array($allowedTargetTypes) ? $allowedTargetTypes : ['post', 'comment', 'message'];
-$reportTargetLabels = [
-    'post' => sr_t('community::ui.text.0b138cfe'),
-    'comment' => sr_t('community::ui.text.c9fff683'),
-    'message' => sr_t('community::ui.text.919bd592'),
-];
+$reportTargetLabels = [];
+foreach ($allowedTargetTypes as $allowedTargetType) {
+    $reportTargetLabels[(string) $allowedTargetType] = sr_community_report_target_type_label((string) $allowedTargetType);
+}
 $reportStatusPolicyDescriptions = sr_community_report_status_policy_descriptions();
 $totalReports = (int) ($reportStatusCounts['total'] ?? count($reports ?? []));
 $selectedReportStatuses = is_array($reportListFilters['status'] ?? null) ? $reportListFilters['status'] : [];

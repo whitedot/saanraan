@@ -20,6 +20,17 @@ function sr_community_report_reason_label(string $reasonKey): string
     return (string) ($labels[$reasonKey] ?? $reasonKey);
 }
 
+function sr_community_report_target_type_label(string $targetType): string
+{
+    $labels = [
+        'post' => sr_t('community::ui.text.0b138cfe'),
+        'comment' => sr_t('community::ui.text.c9fff683'),
+        'message' => sr_t('community::ui.text.919bd592'),
+    ];
+
+    return (string) ($labels[$targetType] ?? $targetType);
+}
+
 function sr_community_report_statuses(): array
 {
     return ['open', 'reviewing', 'resolved', 'dismissed'];

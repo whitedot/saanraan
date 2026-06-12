@@ -148,10 +148,10 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
                                         $adminUrl = (string) ($row['admin_url'] ?? '');
                                         ?>
                                         <tr>
-                                            <td class="admin-table-nowrap"><?php echo sr_e((string) ($row['consumer_module_key'] ?? '')); ?></td>
+                                            <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) ($row['consumer_module_key'] ?? ''), 'module_key')); ?></td>
                                             <td class="admin-table-break">
                                                 <?php echo sr_e((string) ($row['title'] ?? '')); ?><br>
-                                                <span class="admin-summary-meta"><?php echo sr_e((string) ($row['reference_type'] ?? '') . ' #' . (string) ($row['reference_id'] ?? '')); ?></span>
+                                                <span class="admin-summary-meta"><?php echo sr_e(sr_admin_code_label((string) ($row['reference_type'] ?? ''), 'reference_type') . ' #' . (string) ($row['reference_id'] ?? '')); ?></span>
                                             </td>
                                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($statusLabel); ?></span></td>
                                             <td class="admin-table-break"><?php echo sr_e((string) ($row['message'] ?? ($row['policy_status'] ?? ''))); ?></td>

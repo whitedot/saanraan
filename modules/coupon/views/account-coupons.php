@@ -34,7 +34,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                     <br><?php echo sr_e((string) $coupon['description']); ?>
                                 <?php } ?>
                             </td>
-                            <td><?php echo sr_e((string) $coupon['target_type']); ?> <?php echo sr_e((string) $coupon['target_id']); ?></td>
+                            <td><?php echo sr_e(sr_coupon_target_display((string) $coupon['target_type'], (string) $coupon['target_id'], $pdo ?? null)); ?></td>
                             <td><?php echo sr_e((string) $coupon['used_count']); ?> / <?php echo sr_e((string) $coupon['max_uses_per_issue']); ?></td>
                             <td><?php echo $coupon['expires_at'] === null ? sr_e('제한 없음') : sr_coupon_time_html((string) $coupon['expires_at']); ?></td>
                         </tr>

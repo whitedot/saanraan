@@ -21,7 +21,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <dd><?php echo sr_e((string) ($account['nickname'] ?? '')); ?></dd>
             <?php } ?>
             <dt><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></dt>
-            <dd><?php echo sr_e((string) $account['status']); ?></dd>
+            <dd><?php echo sr_e(sr_member_account_status_label((string) $account['status'])); ?></dd>
             <dt><?php echo sr_e(sr_t('member::ui.email.2f905abd')); ?></dt>
             <dd><?php echo sr_e($account['email_verified_at'] === null ? sr_t('member::ui.text.a7800e5d') : (string) $account['email_verified_at']); ?></dd>
         </dl>

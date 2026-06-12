@@ -550,5 +550,5 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
     position: fixed;
     top: 0;
     white-space: nowrap;
-    z-index: 999;
+    z-index: calc(var(--admin-z-overlay, 300) + 1);
 }

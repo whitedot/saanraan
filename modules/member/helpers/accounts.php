@@ -2,6 +2,19 @@
 
 declare(strict_types=1);
 
+function sr_member_account_status_label(string $status): string
+{
+    $labels = [
+        'active' => '정상',
+        'pending' => '대기',
+        'suspended' => '차단',
+        'withdrawn' => '탈퇴',
+        'anonymized' => '익명화',
+    ];
+
+    return $labels[$status] ?? $status;
+}
+
 function sr_member_create_account(PDO $pdo, array $config, array $data): int
 {
     $email = sr_normalize_identifier((string) ($data['email'] ?? ''));

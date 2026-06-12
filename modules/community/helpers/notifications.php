@@ -139,7 +139,7 @@ function sr_community_create_admin_report_notifications(
 
     $createAdminNotificationFunction = sr_community_admin_notification_create_function($pdo);
     $bodyText = sr_t('community::notification.report.body', [
-        'target_type' => $targetType,
+        'target_type' => sr_community_report_target_type_label($targetType),
         'target_id' => (string) $targetId,
         'reason' => sr_community_report_reason_label($reasonKey),
     ]);

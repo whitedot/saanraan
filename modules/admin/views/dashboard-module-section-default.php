@@ -13,7 +13,7 @@ $dashboardLayout = (string) ($dashboardSection['layout'] ?? 'table');
     <div class="card-header">
         <div>
             <h2 class="card-title"><?php echo sr_e((string) ($dashboardSection['title'] ?? sr_t('admin::ui.text.6d2d8bf4'))); ?></h2>
-            <p class="admin-dashboard-meta"><?php echo sr_e((string) ($dashboardSection['module_key'] ?? '')); ?> <?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></p>
+            <p class="admin-dashboard-meta"><?php echo sr_e(sr_admin_code_label((string) ($dashboardSection['module_key'] ?? ''), 'module_key')); ?> <?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></p>
         </div>
     </div>
     <?php if ($dashboardLayout === 'stats') { ?>

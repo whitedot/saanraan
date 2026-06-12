@@ -333,7 +333,7 @@ return [
     'nickname_reset_reason.spam' => '광고 또는 스팸',
     'notification.nickname_reset.body' => '회원 닉네임이 운영 정책에 따라 초기화되었습니다. 사유: {reason} / 새 닉네임: {nickname}',
     'notification.nickname_reset.title' => '회원 닉네임이 초기화되었습니다.',
-    'notification.report.body' => '신고 대상: {target_type} #{target_id} / 사유: {reason}',
+    'notification.report.body' => '{target_type} #{target_id} 신고가 접수되었습니다. 사유: {reason}',
     'notification.report.title' => '새 커뮤니티 신고가 접수되었습니다.',
     'notification.comment_mention.body' => '댓글에서 회원님을 언급했습니다.',
     'notification.comment_mention.title' => '댓글 멘션 알림',

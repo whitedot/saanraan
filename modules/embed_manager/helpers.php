@@ -108,6 +108,52 @@ function sr_embed_manager_allowed_statuses(): array
     return ['active', 'removed', 'broken', 'private', 'deleted'];
 }
 
+function sr_embed_manager_module_label(string $moduleKey): string
+{
+    $labels = [
+        'content' => '콘텐츠',
+        'community' => '커뮤니티',
+        'quiz' => '퀴즈',
+        'survey' => '설문',
+    ];
+
+    return $labels[$moduleKey] ?? $moduleKey;
+}
+
+function sr_embed_manager_target_type_label(string $targetModule, string $targetType): string
+{
+    $labels = [
+        'content' => [
+            'content' => '콘텐츠',
+        ],
+        'community' => [
+            'post' => '게시글',
+        ],
+        'quiz' => [
+            'quiz' => '퀴즈',
+        ],
+        'survey' => [
+            'survey' => '설문',
+        ],
+    ];
+
+    return (string) ($labels[$targetModule][$targetType] ?? $targetType);
+}
+
+function sr_embed_manager_ref_target_label(string $moduleKey, string $targetType, string $targetId): string
+{
+    $label = sr_embed_manager_module_label($moduleKey);
+    $typeLabel = sr_embed_manager_target_type_label($moduleKey, $targetType);
+    if ($typeLabel !== '' && $typeLabel !== $label) {
+        $label .= ' / ' . $typeLabel;
+    }
+    if ($targetId !== '') {
+        $label .= ' #' . $targetId;
+    }
+
+    return $label;
+}
+
 function sr_embed_manager_normalize_contract_target(array $definition): array
 {
     $targetModule = sr_embed_manager_clean_identifier((string) ($definition['target_module'] ?? ''));

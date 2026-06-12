@@ -15,7 +15,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <dt><?php echo sr_e(sr_t('admin::ui.text.2281025b')); ?></dt>
             <dd><?php echo sr_e((string) ($previousUpdateFailure['scope'] !== '' ? $previousUpdateFailure['scope'] : '-')); ?></dd>
             <dt><?php echo sr_e(sr_t('admin::ui.text.6d2d8bf4')); ?></dt>
-            <dd><?php echo sr_e((string) ($previousUpdateFailure['module_key'] !== '' ? $previousUpdateFailure['module_key'] : 'core')); ?></dd>
+            <dd><?php echo sr_e(sr_admin_code_label((string) ($previousUpdateFailure['module_key'] !== '' ? $previousUpdateFailure['module_key'] : 'core'), 'module_key')); ?></dd>
             <dt><?php echo sr_e(sr_t('admin::ui.text.002f73c3')); ?></dt>
             <dd><?php echo sr_e((string) ($previousUpdateFailure['version'] !== '' ? $previousUpdateFailure['version'] : '-')); ?></dd>
             <dt><?php echo sr_e(sr_t('admin::ui.text.374c62d4')); ?></dt>
@@ -47,7 +47,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <tbody>
                 <?php foreach ($moduleVersionDrifts as $drift) { ?>
                     <tr>
-                        <td><?php echo sr_e((string) $drift['module_key']); ?></td>
+                        <td><?php echo sr_e(sr_admin_code_label((string) $drift['module_key'], 'module_key')); ?></td>
                         <td><?php echo sr_e((string) $drift['installed_version']); ?></td>
                         <td><?php echo sr_e((string) $drift['code_version']); ?></td>
                         <td>
@@ -158,7 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php foreach ($schemaVersions as $version) { ?>
                     <tr>
                         <td><?php echo sr_e((string) $version['scope']); ?></td>
-                        <td><?php echo sr_e((string) ($version['module_key'] === '' ? 'core' : $version['module_key'])); ?></td>
+                        <td><?php echo sr_e(sr_admin_code_label((string) ($version['module_key'] === '' ? 'core' : $version['module_key']), 'module_key')); ?></td>
                         <td><?php echo sr_e((string) $version['version']); ?></td>
                         <td><?php echo sr_e((string) $version['applied_at']); ?></td>
                     </tr>

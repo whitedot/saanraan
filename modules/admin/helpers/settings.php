@@ -5,6 +5,28 @@ declare(strict_types=1);
 function sr_admin_code_label_context_options(): array
 {
     return [
+        'module_key' => [
+            'admin' => '관리자',
+            'asset_exchange' => '자산 환전',
+            'asset_ledger' => '자산 원장',
+            'banner' => '배너',
+            'content' => '콘텐츠',
+            'core' => '코어',
+            'coupon' => '쿠폰·이용권',
+            'community' => '커뮤니티',
+            'deposit' => '예치금',
+            'embed_manager' => '임베드 매니저',
+            'logo_manager' => '로고 관리',
+            'member' => '회원',
+            'notification' => '알림',
+            'point' => '포인트',
+            'privacy' => '개인정보',
+            'quiz' => '퀴즈',
+            'reward' => '적립금',
+            'seo' => 'SEO',
+            'site_menu' => '사이트 메뉴',
+            'survey' => '설문',
+        ],
         'member_status' => [
             'active' => '정상',
             'pending' => '대기',
@@ -80,6 +102,9 @@ function sr_admin_code_label_context_options(): array
             'expire' => '만료',
             'reclaim' => '회수',
             'withdraw' => '출금',
+            'exchange_in' => '환전 입금',
+            'exchange_out' => '환전 출금',
+            'exchange_fee' => '환전 수수료',
         ],
         'reference_type' => [
             '' => '없음',
@@ -100,6 +125,7 @@ function sr_admin_code_label_context_options(): array
             'content.action' => '콘텐츠 완료 처리',
             'community.post' => '커뮤니티 게시글',
             'community.comment' => '커뮤니티 댓글',
+            'community.attachment.publisher_reward' => '첨부 다운로드 리워드',
         ],
         'notification_audience' => [
             'account' => '개별 회원',

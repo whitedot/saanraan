@@ -402,6 +402,34 @@ function sr_reward_transaction_type_label(string $transactionType): string
     return $labels[$transactionType] ?? $transactionType;
 }
 
+function sr_reward_reference_type_label(string $referenceType): string
+{
+    if (function_exists('sr_admin_code_label')) {
+        return sr_admin_code_label($referenceType, 'reference_type');
+    }
+
+    $labels = [
+        '' => '없음',
+        'order' => '주문',
+        'payment' => '결제',
+        'refund' => '환불',
+        'reclaim' => '회수',
+        'support_ticket' => '고객문의',
+        'event' => '이벤트',
+        'migration' => '데이터 이관',
+        'reward_withdrawal' => '적립금 출금',
+        'member.withdrawal' => '회원 탈퇴',
+        'content.view' => '콘텐츠 열람',
+        'content.download' => '콘텐츠 다운로드',
+        'content.action' => '콘텐츠 완료 처리',
+        'community.post' => '커뮤니티 게시글',
+        'community.comment' => '커뮤니티 댓글',
+        'community.attachment.publisher_reward' => '첨부 다운로드 리워드',
+    ];
+
+    return $labels[$referenceType] ?? $referenceType;
+}
+
 function sr_reward_reclaim_reference_id(int $transactionId): string
 {
     return 'reward_transaction:' . (string) $transactionId;
@@ -1092,6 +1120,8 @@ function sr_reward_notification_event_function(PDO $pdo): string
 function sr_reward_transaction_notification_metadata(array $transaction): array
 {
     $amount = (int) ($transaction['amount'] ?? 0);
+    $transactionType = (string) ($transaction['transaction_type'] ?? '');
+    $referenceType = (string) ($transaction['reference_type'] ?? '');
 
     return [
         'transaction_id' => (int) ($transaction['id'] ?? 0),
@@ -1100,9 +1130,11 @@ function sr_reward_transaction_notification_metadata(array $transaction): array
         'amount_abs' => number_format(abs($amount)),
         'amount_signed' => ($amount > 0 ? '+' : '') . number_format($amount),
         'balance_after' => number_format((int) ($transaction['balance_after'] ?? 0)),
-        'transaction_type' => (string) ($transaction['transaction_type'] ?? ''),
+        'transaction_type' => $transactionType,
+        'transaction_type_label' => sr_reward_transaction_type_label($transactionType),
         'reason' => (string) ($transaction['reason'] ?? ''),
-        'reference_type' => (string) ($transaction['reference_type'] ?? ''),
+        'reference_type' => $referenceType,
+        'reference_type_label' => sr_reward_reference_type_label($referenceType),
         'reference_id' => (string) ($transaction['reference_id'] ?? ''),
         'created_at' => (string) ($transaction['created_at'] ?? ''),
     ];

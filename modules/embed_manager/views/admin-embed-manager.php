@@ -71,9 +71,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <strong><?php echo sr_e((string) ($ref['ref_key'] ?? '')); ?></strong>
                                 <span class="admin-muted-text"><?php echo sr_e((string) ($ref['variant'] ?? '')); ?></span>
                             </td>
-                            <td class="admin-table-break"><?php echo sr_e((string) ($ref['owner_module'] ?? '')); ?> / <?php echo sr_e((string) ($ref['owner_type'] ?? '')); ?> #<?php echo sr_e((string) ($ref['owner_id'] ?? '')); ?></td>
+                            <td class="admin-table-break"><?php echo sr_e(sr_embed_manager_ref_target_label((string) ($ref['owner_module'] ?? ''), (string) ($ref['owner_type'] ?? ''), (string) ($ref['owner_id'] ?? ''))); ?></td>
                             <td class="admin-table-break">
-                                <?php echo sr_e((string) ($ref['target_module'] ?? '')); ?> / <?php echo sr_e((string) ($ref['target_type'] ?? '')); ?> #<?php echo sr_e((string) ($ref['target_id'] ?? '')); ?>
+                                <?php echo sr_e(sr_embed_manager_ref_target_label((string) ($ref['target_module'] ?? ''), (string) ($ref['target_type'] ?? ''), (string) ($ref['target_id'] ?? ''))); ?>
                                 <?php if ((string) ($ref['label_snapshot'] ?? '') !== '') { ?>
                                     <span class="admin-muted-text"><?php echo sr_e((string) $ref['label_snapshot']); ?></span>
                                 <?php } ?>

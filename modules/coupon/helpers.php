@@ -114,6 +114,51 @@ function sr_coupon_target_types(?PDO $pdo = null): array
     return $targetTypes;
 }
 
+function sr_coupon_target_display(string $targetType, string $targetId, ?PDO $pdo = null): string
+{
+    $targetTypes = sr_coupon_target_types($pdo);
+    $label = (string) ($targetTypes[$targetType] ?? $targetType);
+    if ($targetType === 'all' || $targetId === '') {
+        return $label;
+    }
+
+    return $label . ' #' . $targetId;
+}
+
+function sr_coupon_reference_display(string $moduleKey, string $referenceType, string $referenceId): string
+{
+    $moduleLabels = [
+        'content' => '콘텐츠',
+        'community' => '커뮤니티',
+        'quiz' => '퀴즈',
+        'survey' => '설문',
+    ];
+    $referenceLabels = [
+        'content.view' => '콘텐츠 열람',
+        'content.download' => '콘텐츠 다운로드',
+        'content.action' => '콘텐츠 완료 처리',
+        'community.post' => '커뮤니티 게시글',
+        'community.comment' => '커뮤니티 댓글',
+        'quiz.attempt' => '퀴즈 응시',
+        'survey.response' => '설문 응답',
+    ];
+
+    $parts = [];
+    if ($moduleKey !== '') {
+        $parts[] = (string) ($moduleLabels[$moduleKey] ?? $moduleKey);
+    }
+    if ($referenceType !== '') {
+        $parts[] = function_exists('sr_admin_code_label')
+            ? sr_admin_code_label($referenceType, 'reference_type')
+            : (string) ($referenceLabels[$referenceType] ?? $referenceType);
+    }
+    if ($referenceId !== '') {
+        $parts[] = '#' . $referenceId;
+    }
+
+    return implode(' ', $parts);
+}
+
 function sr_coupon_refundable_policies(): array
 {
     return [

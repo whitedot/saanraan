@@ -7,9 +7,47 @@ function sr_community_board_copy_job_statuses(): array
     return ['pending', 'running', 'paused', 'failed', 'cleanup_required', 'cleaning', 'cancelled', 'completed'];
 }
 
+function sr_community_board_copy_job_status_label(string $status): string
+{
+    $labels = [
+        'pending' => '대기',
+        'running' => '처리 중',
+        'paused' => '일시 중지',
+        'failed' => '실패',
+        'cleanup_required' => '정리 필요',
+        'cleaning' => '정리 중',
+        'cancelled' => '취소됨',
+        'completed' => '완료',
+    ];
+
+    return $labels[$status] ?? $status;
+}
+
 function sr_community_board_copy_job_stages(): array
 {
     return ['prepare', 'board', 'posts', 'comments', 'attachments', 'series', 'verify', 'complete', 'cleanup'];
+}
+
+function sr_community_board_copy_job_stage_label(string $stage): string
+{
+    $labels = [
+        'prepare' => '준비',
+        'board' => '게시판 생성',
+        'posts' => '게시글 복사',
+        'comments' => '댓글 복사',
+        'attachments' => '첨부 복사',
+        'series' => '시리즈 복사',
+        'verify' => '검증',
+        'complete' => '완료',
+        'cleanup' => '정리',
+    ];
+
+    return $labels[$stage] ?? $stage;
+}
+
+function sr_community_board_copy_job_state_label(string $status, string $stage): string
+{
+    return sr_community_board_copy_job_status_label($status) . ' / ' . sr_community_board_copy_job_stage_label($stage);
 }
 
 function sr_community_board_copy_map_statuses(): array

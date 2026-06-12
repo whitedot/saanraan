@@ -179,7 +179,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td><?php echo sr_e((string) $definition['coupon_key']); ?></td>
                         <td><?php echo sr_e((string) $definition['title']); ?></td>
-                        <td><?php echo sr_e((string) ($targetTypes[(string) $definition['target_type']] ?? $definition['target_type'])); ?> <?php echo sr_e((string) $definition['target_id']); ?></td>
+                        <td><?php echo sr_e(sr_coupon_target_display((string) $definition['target_type'], (string) $definition['target_id'], $pdo)); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? sr_coupon_status_label((string) $definition['status']))); ?></span></td>
                         <td class="admin-table-actions-cell">
                             <?php
@@ -652,7 +652,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td><?php echo sr_e(sr_admin_member_display_name_preview($issue)); ?><br><?php echo sr_e(sr_admin_member_email_display($issue)); ?></td>
                         <td><?php echo sr_e((string) $issue['title']); ?><br><code><?php echo sr_e((string) $issue['coupon_key']); ?></code></td>
-                        <td><?php echo sr_e((string) ($targetTypes[(string) ($issue['target_type'] ?? '')] ?? ($issue['target_type'] ?? ''))); ?> <?php echo sr_e((string) ($issue['target_id'] ?? '')); ?></td>
+                        <td><?php echo sr_e(sr_coupon_target_display((string) ($issue['target_type'] ?? ''), (string) ($issue['target_id'] ?? ''), $pdo)); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($issueStatusClasses[(string) $issue['status']] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issue['status'])); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) $issue['used_count']); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) $issue['issued_at']); ?></td>
@@ -779,8 +779,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <code><?php echo sr_e((string) ($redemption['coupon_key'] ?? '')); ?></code>
                         </td>
                         <td>
-                            <?php echo sr_e((string) ($targetTypes[(string) ($redemption['target_type'] ?? '')] ?? ($redemption['target_type'] ?? ''))); ?> #<?php echo sr_e((string) ($redemption['target_id'] ?? '')); ?><br>
-                            <?php echo sr_e((string) ($redemption['reference_module'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_type'] ?? '')); ?> <?php echo sr_e((string) ($redemption['reference_id'] ?? '')); ?>
+                            <?php echo sr_e(sr_coupon_target_display((string) ($redemption['target_type'] ?? ''), (string) ($redemption['target_id'] ?? ''), $pdo)); ?><br>
+                            <?php echo sr_e(sr_coupon_reference_display((string) ($redemption['reference_module'] ?? ''), (string) ($redemption['reference_type'] ?? ''), (string) ($redemption['reference_id'] ?? ''))); ?>
                         </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($redemptionStatusClasses[$redemptionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($redemption['redeemed_at'] ?? '')); ?></td>

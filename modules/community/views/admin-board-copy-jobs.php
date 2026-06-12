@@ -21,7 +21,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2><?php echo sr_e('작업 #' . (string) (int) $job['id']); ?></h2>
         <dl class="admin-meta-list">
             <dt><?php echo sr_e('상태'); ?></dt>
-            <dd><?php echo sr_e((string) $job['status'] . ' / ' . (string) $job['stage']); ?></dd>
+            <dd><?php echo sr_e(sr_community_board_copy_job_state_label((string) $job['status'], (string) $job['stage'])); ?></dd>
             <dt><?php echo sr_e('원본 / 대상'); ?></dt>
             <dd><?php echo sr_e((string) (int) $job['source_board_id'] . ' -> ' . (string) (int) $job['target_board_id']); ?></dd>
             <dt><?php echo sr_e('새 게시판'); ?></dt>
@@ -80,7 +80,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e('#' . (string) (int) $row['id']); ?></td>
                         <td><?php echo sr_e((string) ($row['source_title'] ?? '') . ' #' . (string) (int) $row['source_board_id']); ?></td>
                         <td><?php echo sr_e((string) ($row['target_title'] ?? '') . ' #' . (string) (int) $row['target_board_id']); ?></td>
-                        <td><?php echo sr_e((string) $row['status'] . ' / ' . (string) $row['stage']); ?></td>
+                        <td><?php echo sr_e(sr_community_board_copy_job_state_label((string) $row['status'], (string) $row['stage'])); ?></td>
                         <td><?php echo sr_community_time_html((string) $row['created_at']); ?></td>
                         <td><a href="<?php echo sr_e(sr_url('/admin/community/board-copy-jobs?id=' . rawurlencode((string) (int) $row['id']))); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('열기'); ?></a></td>
                     </tr>
