@@ -71,6 +71,8 @@ if ($ckeditorReadme !== '' && preg_match('/^Version:\s*`([^`]+)`$/m', $ckeditorR
 }
 $purifierStatus = function_exists('sr_rich_text_purifier_status') ? sr_rich_text_purifier_status() : [];
 $purifierAvailable = ($purifierStatus['available'] ?? false) === true;
+$expectedPurifierAutoloadPath = 'modules/htmlpurifier/vendor/autoload.php';
+$expectedPurifierCacheDir = 'storage/cache/htmlpurifier';
 
 if ($purifierVersion === '') {
     $errors[] = 'HTML Purifier VERSION file is empty.';
@@ -82,6 +84,26 @@ if ($purifierVersion !== '' && $dependencyRecord !== '' && !str_contains($depend
 
 if (!is_file($autoloadFile)) {
     $errors[] = 'HTML Purifier module autoload file is missing: ' . $autoloadFile;
+}
+
+if (!$purifierAvailable) {
+    $errors[] = 'HTML Purifier must be loadable for a release preflight.';
+}
+
+if ($purifierVersion !== '' && (string) ($purifierStatus['version'] ?? '') !== $purifierVersion) {
+    $errors[] = 'HTML Purifier runtime version does not match VERSION file: ' . (string) ($purifierStatus['version'] ?? '');
+}
+
+if ((string) ($purifierStatus['autoload_path'] ?? '') !== $expectedPurifierAutoloadPath) {
+    $errors[] = 'HTML Purifier release preflight must use module autoload path: ' . $expectedPurifierAutoloadPath;
+}
+
+if ((string) ($purifierStatus['cache_dir'] ?? '') !== $expectedPurifierCacheDir) {
+    $errors[] = 'HTML Purifier release preflight must use storage cache path: ' . $expectedPurifierCacheDir;
+}
+
+if (($purifierStatus['cache_writable'] ?? false) !== true) {
+    $errors[] = 'HTML Purifier cache directory must be writable for release preflight.';
 }
 
 foreach ($ckeditorFiles as $ckeditorFile) {
