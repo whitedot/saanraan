@@ -5,6 +5,11 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 chdir($root);
+if (!defined('SR_ROOT')) {
+    define('SR_ROOT', $root);
+}
+
+require_once $root . '/core/helpers/output.php';
 
 $errors = [];
 
@@ -43,6 +48,39 @@ function sr_performance_baseline_require_markers(string $file, array $markers): 
         }
     }
 }
+
+function sr_performance_baseline_assert_same(string $label, string $expected, string $actual): void
+{
+    if ($expected !== $actual) {
+        sr_performance_baseline_error($label . ' mismatch: expected ' . $expected . ', got ' . $actual);
+    }
+}
+
+sr_performance_baseline_assert_same(
+    'Download cache-control public immutable policy',
+    'public, max-age=31536000, immutable',
+    sr_download_cache_control(' public, max-age=31536000, immutable ')
+);
+sr_performance_baseline_assert_same(
+    'Download cache-control private no-store policy',
+    'private, no-store, no-cache, must-revalidate',
+    sr_download_cache_control('private, no-store, no-cache, must-revalidate')
+);
+sr_performance_baseline_assert_same(
+    'Download cache-control empty fallback',
+    'no-store, no-cache, must-revalidate',
+    sr_download_cache_control('')
+);
+sr_performance_baseline_assert_same(
+    'Download cache-control control character fallback',
+    'no-store, no-cache, must-revalidate',
+    sr_download_cache_control("private, max-age=300\r\nX-Test: injected")
+);
+sr_performance_baseline_assert_same(
+    'Download cache-control unsafe character fallback',
+    'no-store, no-cache, must-revalidate',
+    sr_download_cache_control('private, max-age=300()')
+);
 
 sr_performance_baseline_require_markers('docs/performance-baseline-evidence.md', [
     '관리자 대형 목록',
