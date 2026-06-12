@@ -20,6 +20,7 @@ $allowedStatuses = sr_community_report_statuses();
 $allowedReasonKeys = sr_community_report_reason_keys();
 $allowedTargetTypes = ['post', 'comment', 'message'];
 $reportListFilters = [
+    'report_id' => sr_admin_get_positive_int('report_id'),
     'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
     'target_type' => sr_admin_get_allowed_array('target_type', $allowedTargetTypes, 30),
     'reason_key' => sr_admin_get_allowed_array('reason_key', $allowedReasonKeys, 30),

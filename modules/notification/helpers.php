@@ -481,6 +481,70 @@ function sr_notification_admin_clean_action_url(string $value): string
     return $value;
 }
 
+function sr_notification_admin_url_with_query(string $url, array $queryValues): string
+{
+    $url = sr_notification_admin_clean_action_url($url);
+    if ($url === '') {
+        return '';
+    }
+
+    $parts = parse_url($url);
+    $path = is_array($parts) && isset($parts['path']) && is_string($parts['path']) ? $parts['path'] : '';
+    if ($path === '') {
+        return $url;
+    }
+
+    $query = [];
+    if (is_array($parts) && isset($parts['query']) && is_string($parts['query']) && $parts['query'] !== '') {
+        parse_str($parts['query'], $query);
+    }
+
+    foreach ($queryValues as $key => $value) {
+        $key = (string) $key;
+        if ($key === '' || is_array($value)) {
+            continue;
+        }
+        $query[$key] = (string) $value;
+    }
+
+    $queryString = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    $fragment = is_array($parts) && isset($parts['fragment']) && is_string($parts['fragment']) && $parts['fragment'] !== ''
+        ? '#' . rawurlencode($parts['fragment'])
+        : '';
+
+    return $path . ($queryString !== '' ? '?' . $queryString : '') . $fragment;
+}
+
+function sr_notification_admin_target_action_url(string $actionUrl, string $targetType, string $targetId): string
+{
+    $actionUrl = sr_notification_admin_clean_action_url($actionUrl);
+    if ($actionUrl === '') {
+        return '';
+    }
+
+    $targetType = sr_notification_clean_single_line($targetType, 80);
+    $targetId = sr_notification_clean_single_line($targetId, 80);
+    if ($targetType === '' || preg_match('/\A[1-9][0-9]*\z/', $targetId) !== 1) {
+        return $actionUrl;
+    }
+
+    $path = parse_url($actionUrl, PHP_URL_PATH);
+    $filterParam = '';
+    if ($targetType === 'community_report' && $path === '/admin/community/reports') {
+        $filterParam = 'report_id';
+    } elseif ($targetType === 'privacy_request' && $path === '/admin/privacy-requests') {
+        $filterParam = 'request_id';
+    } elseif ($targetType === 'content_author_application' && $path === '/admin/content/author-applications') {
+        $filterParam = 'application_id';
+    } elseif ($targetType === 'notification_delivery' && $path === '/admin/notification-deliveries') {
+        $filterParam = 'delivery_id';
+    } elseif ($targetType === 'admin_notification' && $path === '/admin/admin-notifications') {
+        $filterParam = 'notification_id';
+    }
+
+    return $filterParam !== '' ? sr_notification_admin_url_with_query($actionUrl, [$filterParam => $targetId]) : $actionUrl;
+}
+
 function sr_notification_admin_can_view(PDO $pdo, int $accountId, array $notification): bool
 {
     if ($accountId <= 0) {
@@ -567,6 +631,8 @@ function sr_notification_create_admin_notification(PDO $pdo, array $data): ?int
         return null;
     }
 
+    $targetType = sr_notification_clean_single_line((string) ($data['target_type'] ?? ''), 80);
+    $targetId = sr_notification_clean_single_line((string) ($data['target_id'] ?? ''), 80);
     $actionUrl = sr_notification_admin_clean_action_url((string) ($data['action_url'] ?? ''));
     if (trim((string) ($data['action_url'] ?? '')) !== '' && $actionUrl === '') {
         return null;
@@ -580,12 +646,15 @@ function sr_notification_create_admin_notification(PDO $pdo, array $data): ?int
     if ($eventKey !== '' && preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1) {
         $eventKey = '';
     }
+    $actionUrl = sr_notification_admin_target_action_url($actionUrl, $targetType, $targetId);
 
     $permissionPath = sr_notification_admin_clean_permission_path((string) ($data['permission_path'] ?? ''));
     $permissionAction = sr_notification_admin_clean_permission_action((string) ($data['permission_action'] ?? 'view'));
     $dedupeKey = sr_notification_admin_dedupe_key(array_merge($data, [
         'source_module_key' => $sourceModuleKey,
         'event_key' => $eventKey,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
     ]));
     $now = sr_now();
 
@@ -619,8 +688,8 @@ function sr_notification_create_admin_notification(PDO $pdo, array $data): ?int
         'severity' => sr_notification_admin_clean_severity((string) ($data['severity'] ?? 'info')),
         'source_module_key' => $sourceModuleKey,
         'event_key' => $eventKey,
-        'target_type' => sr_notification_clean_single_line((string) ($data['target_type'] ?? ''), 80),
-        'target_id' => sr_notification_clean_single_line((string) ($data['target_id'] ?? ''), 80),
+        'target_type' => $targetType,
+        'target_id' => $targetId,
         'action_url' => $actionUrl,
         'permission_path' => $permissionPath,
         'permission_action' => $permissionAction,
@@ -652,6 +721,7 @@ function sr_notification_admin_filters(array $allowedStatuses, array $allowedSev
     return [
         'status' => sr_admin_get_allowed_single_array('status', $allowedStatuses, 30),
         'severity' => sr_admin_get_allowed_single_array('severity', $allowedSeverities, 30),
+        'notification_id' => sr_admin_get_positive_int('notification_id'),
         'field' => $field,
         'q' => trim(sr_get_string('q', 120)),
     ];
@@ -672,6 +742,10 @@ function sr_notification_admin_query_parts(PDO $pdo, int $accountId, array $filt
         [$condition, $conditionParams] = sr_admin_sql_in_condition('n.severity', 'admin_notification_severity', $filters['severity']);
         $where[] = $condition;
         $params = array_merge($params, $conditionParams);
+    }
+    if ((int) ($filters['notification_id'] ?? 0) > 0) {
+        $where[] = 'n.id = :admin_notification_id';
+        $params['admin_notification_id'] = (int) $filters['notification_id'];
     }
     if (($filters['read'] ?? '') === 'unread') {
         $where[] = 'r.read_at IS NULL';

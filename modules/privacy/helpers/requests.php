@@ -186,6 +186,7 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
 function sr_admin_privacy_request_filters(array $allowedStatuses, array $allowedTypes): array
 {
     $filters = [
+        'request_id' => sr_admin_get_positive_int('request_id'),
         'status' => sr_admin_get_allowed_array('status', $allowedStatuses, 30),
         'request_type' => sr_admin_get_allowed_single_array('request_type', $allowedTypes, 40),
         'field' => sr_get_string('field', 20),
@@ -223,6 +224,11 @@ function sr_admin_privacy_request_query_parts(array $filters): array
 {
     $where = [];
     $params = [];
+
+    if ((int) ($filters['request_id'] ?? 0) > 0) {
+        $where[] = 'id = :request_id';
+        $params['request_id'] = (int) $filters['request_id'];
+    }
 
     if (($filters['status'] ?? []) !== []) {
         [$condition, $conditionParams] = sr_admin_sql_in_condition('status', 'status', $filters['status']);

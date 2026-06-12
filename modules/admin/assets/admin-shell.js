@@ -905,6 +905,75 @@ window.AdminShell = {
             });
         };
 
+        const adminNotificationNumber = text => {
+            const digits = String(text || '').replace(/[^0-9]/g, '');
+            return digits === '' ? 0 : parseInt(digits, 10);
+        };
+
+        const syncAdminNotificationCounts = menu => {
+            if (!menu) {
+                return;
+            }
+
+            const remainingItems = Array.prototype.slice.call(menu.querySelectorAll('.admin-notification-menu-item'));
+            const countLabel = menu.querySelector('[data-admin-notification-count]');
+            const badge = document.querySelector('[data-admin-notification-badge]');
+            const currentCount = countLabel ? adminNotificationNumber(countLabel.textContent) : remainingItems.length;
+            const nextCount = Math.max(0, currentCount - 1);
+            const emptyItem = menu.querySelector('.admin-notification-menu-empty');
+
+            if (countLabel) {
+                countLabel.textContent = nextCount.toLocaleString('ko-KR') + '건';
+            }
+            if (badge) {
+                if (nextCount > 0) {
+                    badge.textContent = String(Math.min(99, nextCount));
+                } else {
+                    badge.remove();
+                }
+            }
+            if (emptyItem && remainingItems.length === 0 && nextCount === 0) {
+                emptyItem.hidden = false;
+            }
+        };
+
+        const markAdminNotificationReadInMenu = form => {
+            if (!form || !window.fetch || !window.FormData) {
+                return false;
+            }
+
+            const item = form.closest('.admin-notification-menu-item');
+            const menu = form.closest('.admin-notification-menu');
+            const submitButton = form.querySelector('button[type="submit"], button:not([type])');
+            if (!item || !menu) {
+                return false;
+            }
+
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+            window.fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('admin notification read request failed');
+                }
+
+                item.remove();
+                syncAdminNotificationCounts(menu);
+            }).catch(() => {
+                form.submit();
+            });
+
+            return true;
+        };
+
         document.addEventListener('click', event => {
             const filteringReset = event.target && event.target.closest
                 ? event.target.closest('[data-filtering-reset]')
@@ -926,6 +995,19 @@ window.AdminShell = {
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
                 closeToolbarDropdowns(null);
+            }
+        });
+
+        document.addEventListener('submit', event => {
+            const readForm = event.target && event.target.closest
+                ? event.target.closest('[data-admin-notification-read-form]')
+                : null;
+            if (!readForm) {
+                return;
+            }
+
+            if (markAdminNotificationReadInMenu(readForm)) {
+                event.preventDefault();
             }
         });
 

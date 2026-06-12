@@ -101,10 +101,8 @@ if (sr_request_method() === 'POST') {
         ]);
     }
 
-    sr_admin_redirect_with_result(
-        sr_admin_action_result($postErrors, $postNotice),
-        sr_admin_post_return_url('/admin/admin-notifications')
-    );
+    sr_admin_flash_result(sr_admin_action_result($postErrors, $postNotice));
+    sr_redirect(sr_admin_post_return_url('/admin/admin-notifications'));
 }
 
 $adminNotificationFilters = sr_notification_admin_filters($allowedAdminNotificationStatuses, $allowedAdminNotificationSeverities);

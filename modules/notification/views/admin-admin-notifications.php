@@ -3,7 +3,7 @@
 $adminPageTitle = '운영 알림';
 $adminPageSubtitle = '관리자 모드에서 조치하거나 확인해야 하는 운영 이벤트를 확인합니다.';
 $adminContainerClass = 'admin-page-admin-notifications admin-ui-scope';
-$adminNotificationFilters = isset($adminNotificationFilters) && is_array($adminNotificationFilters) ? $adminNotificationFilters : ['status' => ['open'], 'severity' => [], 'field' => 'all', 'q' => ''];
+$adminNotificationFilters = isset($adminNotificationFilters) && is_array($adminNotificationFilters) ? $adminNotificationFilters : ['status' => ['open'], 'severity' => [], 'notification_id' => 0, 'field' => 'all', 'q' => ''];
 $adminNotificationStatusCounts = isset($adminNotificationStatusCounts) && is_array($adminNotificationStatusCounts) ? $adminNotificationStatusCounts : [];
 $allowedAdminNotificationStatuses = isset($allowedAdminNotificationStatuses) && is_array($allowedAdminNotificationStatuses) ? $allowedAdminNotificationStatuses : sr_notification_admin_operation_statuses();
 $allowedAdminNotificationSeverities = isset($allowedAdminNotificationSeverities) && is_array($allowedAdminNotificationSeverities) ? $allowedAdminNotificationSeverities : sr_notification_admin_severities();
@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $eventKey = (string) ($adminNotification['event_key'] ?? '');
                 $sourceText = sr_notification_admin_source_label($sourceModuleKey, $eventKey);
                 $targetText = trim((string) ($adminNotification['target_type'] ?? '') . ' #' . (string) ($adminNotification['target_id'] ?? ''), ' #');
-                $actionUrl = sr_notification_admin_clean_action_url((string) ($adminNotification['action_url'] ?? ''));
+                $actionUrl = sr_notification_admin_target_action_url((string) ($adminNotification['action_url'] ?? ''), (string) ($adminNotification['target_type'] ?? ''), (string) ($adminNotification['target_id'] ?? ''));
                 ?>
                 <tr>
                     <td class="admin-table-checkbox-cell admin-notification-select-cell">

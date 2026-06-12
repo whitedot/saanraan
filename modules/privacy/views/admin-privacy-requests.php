@@ -4,6 +4,7 @@ $adminPageTitle = sr_t('privacy::ui.privacy.216d449a');
 $adminPageSubtitle = sr_t('privacy::ui.privacy.status.18ec0f1a');
 $adminContainerClass = 'admin-page-privacy-request-list admin-ui-scope';
 $privacyRequestListFilters = isset($privacyRequestListFilters) && is_array($privacyRequestListFilters) ? $privacyRequestListFilters : [
+    'request_id' => 0,
     'status' => '',
     'request_type' => '',
     'field' => 'all',

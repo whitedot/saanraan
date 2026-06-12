@@ -361,6 +361,11 @@ function sr_community_report_query_parts(array $filters): array
     $where = [];
     $params = [];
 
+    if ((int) ($filters['report_id'] ?? 0) > 0) {
+        $where[] = 'r.id = :report_id';
+        $params['report_id'] = (int) $filters['report_id'];
+    }
+
     if (($filters['status'] ?? []) !== []) {
         [$condition, $conditionParams] = sr_admin_sql_in_condition('r.status', 'status', $filters['status']);
         $where[] = $condition;

@@ -37,7 +37,8 @@ if (sr_request_method() === 'POST') {
     sr_redirect(sr_admin_post_return_url('/admin/content/author-applications'));
 }
 
-$applicationStatusInput = array_key_exists('filter', $_GET) ? ($_GET['status'] ?? []) : ($_GET['status'] ?? ['pending']);
+$applicationIdFilter = sr_admin_get_positive_int('application_id');
+$applicationStatusInput = array_key_exists('filter', $_GET) || $applicationIdFilter > 0 ? ($_GET['status'] ?? []) : ($_GET['status'] ?? ['pending']);
 $applicationStatusValues = is_array($applicationStatusInput) ? $applicationStatusInput : [$applicationStatusInput];
 $applicationStatuses = [];
 foreach ($applicationStatusValues as $applicationStatusValue) {
@@ -50,5 +51,5 @@ $applicationStatuses = array_values(array_unique($applicationStatuses));
 if ($applicationStatusInput === [] || $applicationStatusInput === '') {
     $applicationStatuses = [];
 }
-$contentAuthorApplications = sr_content_author_applications($pdo, $applicationStatuses);
+$contentAuthorApplications = sr_content_author_applications($pdo, $applicationStatuses, $applicationIdFilter);
 include SR_ROOT . '/modules/content/views/admin-content-author-applications.php';

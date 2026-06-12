@@ -1902,14 +1902,18 @@ function sr_content_author_application_by_id(PDO $pdo, int $applicationId): ?arr
     return is_array($row) ? $row : null;
 }
 
-function sr_content_author_applications(PDO $pdo, $statuses = 'pending'): array
+function sr_content_author_applications(PDO $pdo, $statuses = 'pending', int $applicationId = 0): array
 {
     if (!sr_content_optional_table_exists($pdo, 'sr_content_author_applications')) {
         return [];
     }
 
     $params = [];
-    $where = '';
+    $whereParts = [];
+    if ($applicationId > 0) {
+        $whereParts[] = 'a.id = :application_id';
+        $params['application_id'] = $applicationId;
+    }
     $statusValues = is_array($statuses) ? $statuses : [$statuses];
     $selectedStatuses = [];
     foreach ($statusValues as $status) {
@@ -1926,8 +1930,9 @@ function sr_content_author_applications(PDO $pdo, $statuses = 'pending'): array
             $statusPlaceholders[] = ':' . $placeholder;
             $params[$placeholder] = $status;
         }
-        $where = 'WHERE a.status IN (' . implode(', ', $statusPlaceholders) . ')';
+        $whereParts[] = 'a.status IN (' . implode(', ', $statusPlaceholders) . ')';
     }
+    $where = $whereParts !== [] ? 'WHERE ' . implode(' AND ', $whereParts) : '';
     $stmt = $pdo->prepare(
         'SELECT a.*, m.email, m.display_name, m.status AS account_status
          FROM sr_content_author_applications a

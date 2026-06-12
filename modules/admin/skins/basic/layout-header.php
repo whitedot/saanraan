@@ -49,6 +49,7 @@ $adminNotificationSummary = isset($adminShell['admin_notification_summary']) && 
 $adminNotificationUnreadCount = max(0, (int) ($adminNotificationSummary['unread_count'] ?? $adminNotificationSummary['open_count'] ?? 0));
 $adminNotificationItems = isset($adminNotificationSummary['items']) && is_array($adminNotificationSummary['items']) ? $adminNotificationSummary['items'] : [];
 $adminNotificationUrl = (string) ($adminNotificationSummary['url'] ?? sr_url('/admin/admin-notifications'));
+$adminNotificationReturnUrl = sr_admin_current_get_url('/admin');
 $adminBrandLogoHtml = '';
 $adminFaviconHtml = '';
 $adminBrandIconUrl = '';
@@ -248,30 +249,44 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                     <summary class="tnb_icon_btn admin-toolbar-icon-button" aria-label="운영 알림" title="운영 알림">
                                         <?php echo sr_icon('notifications', 'admin-shell-control-icon'); ?>
                                         <?php if ($adminNotificationUnreadCount > 0) { ?>
-                                            <span class="admin-toolbar-badge"><?php echo sr_e((string) min(99, $adminNotificationUnreadCount)); ?></span>
+                                            <span class="admin-toolbar-badge" data-admin-notification-badge><?php echo sr_e((string) min(99, $adminNotificationUnreadCount)); ?></span>
                                         <?php } ?>
                                     </summary>
                                     <div class="admin-toolbar-menu admin-notification-menu" role="menu">
                                         <div class="admin-notification-menu-header">
                                             <strong>운영 알림</strong>
-                                            <span><?php echo sr_e(number_format($adminNotificationUnreadCount)); ?>건</span>
+                                            <span data-admin-notification-count><?php echo sr_e(number_format($adminNotificationUnreadCount)); ?>건</span>
                                         </div>
-                                        <ul>
+                                        <ul data-admin-notification-list>
                                             <?php foreach ($adminNotificationItems as $adminNotificationItem) { ?>
                                                 <?php if (!is_array($adminNotificationItem)) { continue; } ?>
-                                                <?php $adminNotificationItemUrl = function_exists('sr_notification_admin_clean_action_url') ? sr_notification_admin_clean_action_url((string) ($adminNotificationItem['action_url'] ?? '')) : ''; ?>
-                                                <li>
-                                                    <a href="<?php echo sr_e($adminNotificationItemUrl !== '' ? sr_url($adminNotificationItemUrl) : $adminNotificationUrl); ?>">
-                                                        <span><?php echo sr_e((string) ($adminNotificationItem['title'] ?? '')); ?></span>
-                                                        <?php if (function_exists('sr_notification_time_html')) { ?>
-                                                            <small><?php echo sr_notification_time_html((string) ($adminNotificationItem['last_occurred_at'] ?? $adminNotificationItem['created_at'] ?? '')); ?></small>
-                                                        <?php } ?>
-                                                    </a>
+                                                <?php $adminNotificationItemUrl = function_exists('sr_notification_admin_target_action_url') ? sr_notification_admin_target_action_url((string) ($adminNotificationItem['action_url'] ?? ''), (string) ($adminNotificationItem['target_type'] ?? ''), (string) ($adminNotificationItem['target_id'] ?? '')) : ''; ?>
+                                                <?php $adminNotificationItemTargetUrl = $adminNotificationItemUrl !== '' ? $adminNotificationItemUrl : '/admin/admin-notifications'; ?>
+                                                <?php $adminNotificationItemId = (int) ($adminNotificationItem['id'] ?? 0); ?>
+                                                <li class="admin-notification-menu-item">
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>" class="admin-notification-menu-open-form">
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $adminNotificationItemId); ?>">
+                                                        <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationItemTargetUrl); ?>">
+                                                        <button type="submit" name="intent" value="mark_read" class="admin-notification-menu-open">
+                                                            <span><?php echo sr_e((string) ($adminNotificationItem['title'] ?? '')); ?></span>
+                                                            <?php if (function_exists('sr_notification_time_html')) { ?>
+                                                                <small><?php echo sr_notification_time_html((string) ($adminNotificationItem['last_occurred_at'] ?? $adminNotificationItem['created_at'] ?? '')); ?></small>
+                                                            <?php } ?>
+                                                        </button>
+                                                    </form>
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>" class="admin-notification-menu-read-form" data-admin-notification-read-form>
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="intent" value="mark_read">
+                                                        <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $adminNotificationItemId); ?>">
+                                                        <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationReturnUrl); ?>">
+                                                        <button type="submit" class="admin-notification-menu-read-button" aria-label="<?php echo sr_e((string) ($adminNotificationItem['title'] ?? '운영 알림')); ?> 읽음 처리" title="읽음 처리">
+                                                            <?php echo sr_icon('close', 'admin-notification-menu-read-icon'); ?>
+                                                        </button>
+                                                    </form>
                                                 </li>
                                             <?php } ?>
-                                            <?php if ($adminNotificationItems === []) { ?>
-                                                <li class="admin-notification-menu-empty">안 읽은 운영 알림이 없습니다.</li>
-                                            <?php } ?>
+                                            <li class="admin-notification-menu-empty"<?php echo $adminNotificationItems === [] ? '' : ' hidden'; ?>>안 읽은 운영 알림이 없습니다.</li>
                                         </ul>
                                         <a class="admin-notification-menu-all" href="<?php echo sr_e($adminNotificationUrl); ?>">전체 보기</a>
                                     </div>
@@ -293,7 +308,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                     <li>
                                         <a href="<?php echo sr_e((string) $adminShell['profile_url']); ?>">
                                             <?php echo sr_icon('manage_accounts', 'admin-profile-menu-icon'); ?>
-                                            <span><?php echo sr_e(sr_t('admin::ui.text.25914f73')); ?></span>
+                                            <span><?php echo sr_e(sr_t('admin::ui.text.3d4bcbb8')); ?></span>
                                         </a>
                                     </li>
                                     <li>
@@ -301,7 +316,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                             <?php echo sr_csrf_field(); ?>
                                             <button type="submit">
                                                 <?php echo sr_icon('logout', 'admin-profile-menu-icon'); ?>
-                                                <span><?php echo sr_e(sr_t('admin::ui.text.919c1b32')); ?></span>
+                                                <span><?php echo sr_e(sr_t('admin::ui.logout.2bbdc014')); ?></span>
                                             </button>
                                         </form>
                                     </li>

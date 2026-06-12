@@ -66,6 +66,7 @@ $notificationListFilters = [
     'q' => trim(sr_get_string('q', 120)),
 ];
 $deliveryListFilters = [
+    'delivery_id' => sr_admin_get_positive_int('delivery_id'),
     'delivery_channel' => sr_admin_get_allowed_single_array('delivery_channel', $allowedDeliveryChannels, 30),
     'delivery_status' => sr_admin_get_allowed_array('delivery_status', $allowedDeliveryStatuses, 30),
     'field' => sr_get_string('field', 20),
@@ -505,6 +506,10 @@ $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status
                 LEFT JOIN sr_notifications n ON n.id = d.notification_id';
 $deliveryParams = [];
 $deliveryWhere = ["d.channel <> 'site'"];
+if ((int) ($deliveryListFilters['delivery_id'] ?? 0) > 0) {
+    $deliveryWhere[] = 'd.id = :delivery_id';
+    $deliveryParams['delivery_id'] = (int) $deliveryListFilters['delivery_id'];
+}
 if (($deliveryListFilters['delivery_channel'] ?? []) !== []) {
     [$condition, $conditionParams] = sr_admin_sql_in_condition('d.channel', 'delivery_channel', $deliveryListFilters['delivery_channel']);
     $deliveryWhere[] = $condition;

@@ -8,7 +8,7 @@ if ($notificationAdminPage === 'deliveries') {
     $adminContainerClass = 'admin-page-notification-delivery-list admin-ui-scope';
 }
 $notificationListFilters = isset($notificationListFilters) && is_array($notificationListFilters) ? $notificationListFilters : ['audience' => [], 'status' => [], 'field' => 'all', 'q' => ''];
-$deliveryListFilters = isset($deliveryListFilters) && is_array($deliveryListFilters) ? $deliveryListFilters : ['delivery_channel' => [], 'delivery_status' => [], 'field' => 'all', 'q' => ''];
+$deliveryListFilters = isset($deliveryListFilters) && is_array($deliveryListFilters) ? $deliveryListFilters : ['delivery_id' => 0, 'delivery_channel' => [], 'delivery_status' => [], 'field' => 'all', 'q' => ''];
 $notificationStatusCounts = isset($notificationStatusCounts) && is_array($notificationStatusCounts) ? $notificationStatusCounts : [];
 $deliveryStatusCounts = isset($deliveryStatusCounts) && is_array($deliveryStatusCounts) ? $deliveryStatusCounts : [];
 $notificationSort = isset($notificationSort) && is_array($notificationSort) ? $notificationSort : sr_notification_admin_notification_default_sort();
