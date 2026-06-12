@@ -1440,7 +1440,7 @@ body.admin-sidebar-condensed #gnb .admin-nav-panel.hidden{display:block!importan
     color: var(--admin-muted-text);
 }
 
-.admin-toolbar-badge{position:absolute;top:-.35rem;right:-.35rem;min-width:1.15rem;height:1.15rem;padding:0 .28rem;border:2px solid var(--color-card);border-radius:999px;background:var(--color-danger-600);color:#fff;font-size:.65rem;font-weight:700;line-height:calc(1.15rem - 4px);text-align:center}
+.admin-toolbar-badge{position:absolute;top:-.28rem;right:-.28rem;min-width:1.15rem;height:1.15rem;padding:0 .28rem;border:2px solid var(--color-card);border-radius:999px;background:var(--color-danger);color:var(--color-white);font-size:.65rem;font-weight:700;line-height:calc(1.15rem - 4px);text-align:center}
 .admin-notification-dropdown{position:relative}
 .admin-notification-dropdown>summary{cursor:pointer;list-style:none;position:relative}
 .admin-notification-dropdown>summary::-webkit-details-marker{display:none}

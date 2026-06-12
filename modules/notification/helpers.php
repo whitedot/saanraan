@@ -661,6 +661,10 @@ function sr_notification_create_admin_notification(PDO $pdo, array $data): ?int
     $stmt = $pdo->prepare('SELECT id FROM sr_admin_notifications WHERE dedupe_key = :dedupe_key LIMIT 1');
     $stmt->execute(['dedupe_key' => $dedupeKey]);
     $id = (int) $stmt->fetchColumn();
+    if ($id > 0) {
+        $stmt = $pdo->prepare('DELETE FROM sr_admin_notification_reads WHERE notification_id = :notification_id');
+        $stmt->execute(['notification_id' => $id]);
+    }
 
     return $id > 0 ? $id : null;
 }

@@ -253,7 +253,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                     </summary>
                                     <div class="admin-toolbar-menu admin-notification-menu" role="menu">
                                         <div class="admin-notification-menu-header">
-                                            <strong>안읽은 운영 알림</strong>
+                                            <strong>운영 알림</strong>
                                             <span><?php echo sr_e(number_format($adminNotificationUnreadCount)); ?>건</span>
                                         </div>
                                         <ul>

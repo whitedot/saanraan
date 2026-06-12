@@ -356,12 +356,18 @@ sr_notification_runtime_assert(empty($siteResult['ok']) && ($siteResult['error']
 
 $adminAction = file_get_contents($root . '/modules/notification/actions/admin-notifications.php');
 $adminView = file_get_contents($root . '/modules/notification/views/admin-notifications.php');
+$notificationHelpers = file_get_contents($root . '/modules/notification/helpers.php');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];"), 'notification delivery admin action must allow queued/sent/failed/canceled statuses.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'delivery_status'"), 'notification delivery admin action must expose delivery status updates.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'sr_notification_update_delivery_status($pdo, $deliveryId, $status, sr_now())'), 'notification delivery admin action must use the shared status update helper.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'before_status' => \$beforeStatus"), 'notification delivery audit log must include before_status.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'operation' => \$operation"), 'notification delivery audit log must include operation.');
 sr_notification_runtime_assert(is_string($adminView) && str_contains($adminView, 'sr_notification_delivery_status_transition($deliveryStatus, $status)'), 'notification delivery admin view must only render allowed transition buttons.');
+sr_notification_runtime_assert(
+    is_string($notificationHelpers)
+        && str_contains($notificationHelpers, 'DELETE FROM sr_admin_notification_reads WHERE notification_id = :notification_id'),
+    'admin notification duplicate reopen must clear per-account read rows so the topbar unread badge returns.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "notification runtime checks failed:\n");
