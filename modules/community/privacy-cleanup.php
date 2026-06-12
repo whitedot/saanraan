@@ -9,12 +9,28 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
 
     $columnExists = static function (PDO $pdo, string $tableName, string $columnName): bool {
         static $exists = [];
-        $cacheKey = $tableName . '.' . $columnName;
+        if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName) || !preg_match('/\A[a-zA-Z0-9_]+\z/', $columnName)) {
+            return false;
+        }
+
+        $cacheKey = (string) spl_object_id($pdo) . ':' . $tableName . '.' . $columnName;
         if (array_key_exists($cacheKey, $exists)) {
             return $exists[$cacheKey];
         }
 
         try {
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+                $stmt = $pdo->query('PRAGMA table_info(' . $tableName . ')');
+                foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                    if ((string) ($row['name'] ?? '') === $columnName) {
+                        $exists[$cacheKey] = true;
+                        return true;
+                    }
+                }
+                $exists[$cacheKey] = false;
+                return false;
+            }
+
             $stmt = $pdo->prepare(
                 'SELECT COUNT(*)
                  FROM INFORMATION_SCHEMA.COLUMNS

@@ -121,6 +121,7 @@ function sr_quiz_check_paths_and_admin(): void
         'GET /admin/quiz',
         'POST /admin/quiz',
         'GET /admin/quiz/attempts',
+        'POST /admin/quiz/attempts',
         'GET /admin/quiz/comments',
         'POST /admin/quiz/comments',
     ]);
@@ -164,12 +165,17 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_create_comment',
         'sr_quiz_create_comment_mention_notifications',
         'attempt_limit_policy',
-        'LIMIT 1 FOR UPDATE',
+        '$lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === \'sqlite\' ? \'\' : \' FOR UPDATE\';',
         'Quiz to update was not found.',
         '$dedupeScope === \'per_source\'',
         '$dedupeScope === \'per_attempt\'',
         'sr_quiz_issue_coupon_reward_grant',
         'sr_quiz_refresh_reward_grant_for_retry',
+        'sr_quiz_reward_grant_ledger_transaction',
+        'sr_quiz_reward_grant_by_id',
+        'sr_quiz_reward_grant_reclaim_status',
+        'sr_quiz_reclaim_reward_grant',
+        'sr_quiz_admin_reward_grants_for_attempts',
         'reference_type\' => \'quiz_reward',
         '\'choice_keys\' => $choiceKeys',
         'count(array_filter($choiceKeys)) === 1',
@@ -177,6 +183,12 @@ function sr_quiz_check_paths_and_admin(): void
         '\'display_score\' => $displayScore',
         'a.result_snapshot_json',
         '$rows[$index][\'result_title\']',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/helpers.php', [
+        "WHERE question_id IN (SELECT id FROM sr_quiz_questions WHERE quiz_id = :quiz_id)",
+        "WHERE attempt_id IN (SELECT id FROM sr_quiz_attempts WHERE quiz_id = :quiz_id)",
+        "source_title_snapshot = ''",
+        "request_snapshot_json = '{}'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/module.php', [
         'member-assets.php',
@@ -223,12 +235,25 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_member_mention_plain_text_html',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/admin-attempts.php', [
+        'sr_admin_require_permission($pdo, (int) ($account[\'id\'] ?? 0), \'/admin/quiz/attempts\', \'edit\')',
+        'intent !== \'reclaim_reward\'',
+        'sr_quiz_reclaim_reward_grant',
+        'sr_quiz_admin_reward_grants_for_attempts',
+        'admin-quiz-reward-grants',
+        'quiz-reward-reclaim-modal-',
+        '회수 가능',
+        'sr_admin_post_return_url(\'/admin/quiz/attempts\')',
+        'sr_admin_feedback_toasts',
         'sr_quiz_reward_grants',
         'grant_status',
         'reward_module',
         'reward_amount',
         'result_title',
         'result_summary',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/assets/admin.css', [
+        '.admin-quiz-reward-grants',
+        '.admin-quiz-reward-grant',
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [
         "quiz_q_' . (string) \$index",

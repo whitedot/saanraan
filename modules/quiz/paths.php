@@ -15,4 +15,5 @@ return [
     'POST /admin/quiz/settings' => 'actions/admin-settings.php',
     'GET /admin/quiz/manual' => 'actions/admin-manual.php',
     'GET /admin/quiz/attempts' => 'actions/admin-attempts.php',
+    'POST /admin/quiz/attempts' => 'actions/admin-attempts.php',
 ];

@@ -508,7 +508,7 @@ $communitySettingsSectionNavItems = [
     var submitButton = document.querySelector('[data-community-settings-level-max-submit]');
     var closeButton = document.querySelector('[data-community-settings-level-max-close]');
     var cancelButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-settings-level-max-cancel]'));
-    var requiredConfirmationText = <?php echo json_encode(sr_t('community::ui.level_max_change_confirmation_text'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+    var requiredConfirmationText = <?php echo sr_js_json_encode(sr_t('community::ui.level_max_change_confirmation_text')); ?>;
 
     if (!form || !maxInput || !openButton || !confirmedInput || !confirmTextHidden) {
         return;
@@ -783,13 +783,13 @@ $communitySettingsSectionNavItems = [
     var confirmSubmitButton = document.querySelector('[data-community-level-recalculate-confirm-submit]');
     var modalCloseButton = document.querySelector('[data-community-level-recalculate-close]');
     var cancelButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-level-recalculate-cancel]'));
-    var requiredConfirmationText = <?php echo json_encode(sr_t('community::ui.level_recalculate_confirmation_text'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
-    var labels = <?php echo json_encode([
+    var requiredConfirmationText = <?php echo sr_js_json_encode(sr_t('community::ui.level_recalculate_confirmation_text')); ?>;
+    var labels = <?php echo sr_js_json_encode([
         'start' => sr_t('community::ui.level_recalculate_start'),
         'running' => sr_t('community::ui.level_recalculate_running'),
         'running_unknown' => sr_t('community::ui.level_recalculate_running_unknown'),
         'error' => sr_t('community::ui.level_recalculate_error'),
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
+    ]); ?>;
 
     function text(template, values) {
         return Object.keys(values).reduce(function (message, key) {

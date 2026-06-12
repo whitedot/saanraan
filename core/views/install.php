@@ -571,7 +571,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
             }
 
             var stepOrder = ['environment', 'basic', 'account_modules', 'confirm'];
-            var installMetaTitleBase = <?php echo json_encode($installMetaTitleBase, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+            var installMetaTitleBase = <?php echo sr_js_json_encode($installMetaTitleBase); ?>;
             var shell = document.querySelector('[data-install-current-step]');
             var form = document.querySelector('[data-install-form]');
             var currentStep = shell ? shell.getAttribute('data-install-current-step') : 'environment';

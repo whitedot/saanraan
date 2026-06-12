@@ -163,10 +163,11 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => sr_t('admin::nav.settings'), 'path' => '/admin/settings', 'order' => 20],
                 ['label' => sr_t('admin::nav.modules'), 'path' => '/admin/modules', 'order' => 30],
                 ['label' => sr_t('admin::nav.updates'), 'path' => '/admin/updates', 'order' => 40],
-                ['label' => sr_t('admin::nav.retention'), 'path' => '/admin/retention', 'order' => 50],
-                ['label' => sr_t('admin::nav.menu'), 'path' => '/admin/menu', 'order' => 60],
-                ['label' => sr_t('admin::nav.roles'), 'path' => '/admin/roles', 'order' => 70],
-                ['label' => sr_t('admin::nav.audit_logs'), 'path' => '/admin/audit-logs', 'order' => 80],
+                ['label' => '운영 상태', 'path' => '/admin/operations', 'order' => 50],
+                ['label' => sr_t('admin::nav.retention'), 'path' => '/admin/retention', 'order' => 60],
+                ['label' => sr_t('admin::nav.menu'), 'path' => '/admin/menu', 'order' => 70],
+                ['label' => sr_t('admin::nav.roles'), 'path' => '/admin/roles', 'order' => 80],
+                ['label' => sr_t('admin::nav.audit_logs'), 'path' => '/admin/audit-logs', 'order' => 90],
             ],
         ],
     ];
@@ -966,11 +967,24 @@ function sr_admin_handle_menu_post(PDO $pdo, array $account): array
 function sr_admin_save_menu_override(PDO $pdo, string $scope, string $targetKey, int $sortOrder, bool $isHidden, string $iconName, string $now): void
 {
     $iconName = $scope === 'group' ? sr_admin_normalize_menu_override_icon_name_for_save($pdo, $iconName) : '';
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_admin_menu_overrides (scope, target_key, sort_order, is_hidden, icon_name, updated_at)
-         VALUES (:scope, :target_key, :sort_order, :is_hidden, :icon_name, :updated_at)
-         ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order), is_hidden = VALUES(is_hidden), icon_name = VALUES(icon_name), updated_at = VALUES(updated_at)'
-    );
+    if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+        $sql = 'INSERT INTO sr_admin_menu_overrides (scope, target_key, sort_order, is_hidden, icon_name, updated_at)
+                VALUES (:scope, :target_key, :sort_order, :is_hidden, :icon_name, :updated_at)
+                ON CONFLICT(scope, target_key) DO UPDATE SET
+                    sort_order = excluded.sort_order,
+                    is_hidden = excluded.is_hidden,
+                    icon_name = excluded.icon_name,
+                    updated_at = excluded.updated_at';
+    } else {
+        $sql = 'INSERT INTO sr_admin_menu_overrides (scope, target_key, sort_order, is_hidden, icon_name, updated_at)
+                VALUES (:scope, :target_key, :sort_order, :is_hidden, :icon_name, :updated_at)
+                ON DUPLICATE KEY UPDATE
+                    sort_order = VALUES(sort_order),
+                    is_hidden = VALUES(is_hidden),
+                    icon_name = VALUES(icon_name),
+                    updated_at = VALUES(updated_at)';
+    }
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([
         'scope' => $scope,
         'target_key' => $targetKey,
@@ -983,25 +997,52 @@ function sr_admin_save_menu_override(PDO $pdo, string $scope, string $targetKey,
 
 function sr_admin_ensure_menu_overrides_table(PDO $pdo): void
 {
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS sr_admin_menu_overrides (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            scope VARCHAR(20) NOT NULL,
-            target_key VARCHAR(190) NOT NULL,
-            sort_order INT NOT NULL DEFAULT 1000,
-            is_hidden TINYINT(1) NOT NULL DEFAULT 0,
-            icon_name VARCHAR(80) NOT NULL DEFAULT \'\',
-            updated_at DATETIME NOT NULL,
-            PRIMARY KEY (id),
-            UNIQUE KEY uq_sr_admin_menu_overrides_target (scope, target_key),
-            KEY idx_sr_admin_menu_overrides_scope_order (scope, sort_order)
-        )'
-    );
+    if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS sr_admin_menu_overrides (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scope TEXT NOT NULL,
+                target_key TEXT NOT NULL,
+                sort_order INTEGER NOT NULL DEFAULT 1000,
+                is_hidden INTEGER NOT NULL DEFAULT 0,
+                icon_name TEXT NOT NULL DEFAULT \'\',
+                updated_at TEXT NOT NULL,
+                UNIQUE(scope, target_key)
+            )'
+        );
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_sr_admin_menu_overrides_scope_order ON sr_admin_menu_overrides (scope, sort_order)');
+    } else {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS sr_admin_menu_overrides (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                scope VARCHAR(20) NOT NULL,
+                target_key VARCHAR(190) NOT NULL,
+                sort_order INT NOT NULL DEFAULT 1000,
+                is_hidden TINYINT(1) NOT NULL DEFAULT 0,
+                icon_name VARCHAR(80) NOT NULL DEFAULT \'\',
+                updated_at DATETIME NOT NULL,
+                PRIMARY KEY (id),
+                UNIQUE KEY uq_sr_admin_menu_overrides_target (scope, target_key),
+                KEY idx_sr_admin_menu_overrides_scope_order (scope, sort_order)
+            )'
+        );
+    }
     sr_admin_ensure_menu_overrides_icon_column($pdo);
 }
 
 function sr_admin_ensure_menu_overrides_icon_column(PDO $pdo): void
 {
+    if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+        $columns = $pdo->query('PRAGMA table_info(sr_admin_menu_overrides)')->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($columns as $column) {
+            if ((string) ($column['name'] ?? '') === 'icon_name') {
+                return;
+            }
+        }
+        $pdo->exec("ALTER TABLE sr_admin_menu_overrides ADD COLUMN icon_name TEXT NOT NULL DEFAULT ''");
+        return;
+    }
+
     try {
         $stmt = $pdo->prepare(
             "SELECT CHARACTER_MAXIMUM_LENGTH

@@ -841,12 +841,14 @@ function sr_embed_manager_resolve_content_target(PDO $pdo, int $contentId): ?arr
 
 function sr_embed_manager_upsert_ref(PDO $pdo, array $ref): void
 {
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_embed_manager_refs
-            (ref_key, owner_module, owner_type, owner_id, owner_field, target_module, target_type, target_id, variant, label_snapshot, image_snapshot, sort_order, status, created_by_account_id, created_at, updated_at)
-         VALUES
-            (:ref_key, :owner_module, :owner_type, :owner_id, :owner_field, :target_module, :target_type, :target_id, :variant, :label_snapshot, :image_snapshot, :sort_order, :status, :created_by_account_id, :created_at, :updated_at)
-         ON DUPLICATE KEY UPDATE
+    $driver = '';
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable $exception) {
+        $driver = '';
+    }
+
+    $upsertClause = 'ON DUPLICATE KEY UPDATE
             owner_module = VALUES(owner_module),
             owner_type = VALUES(owner_type),
             owner_id = VALUES(owner_id),
@@ -859,7 +861,30 @@ function sr_embed_manager_upsert_ref(PDO $pdo, array $ref): void
             image_snapshot = VALUES(image_snapshot),
             sort_order = VALUES(sort_order),
             status = VALUES(status),
-            updated_at = VALUES(updated_at)'
+            updated_at = VALUES(updated_at)';
+    if ($driver === 'sqlite') {
+        $upsertClause = 'ON CONFLICT(ref_key) DO UPDATE SET
+            owner_module = excluded.owner_module,
+            owner_type = excluded.owner_type,
+            owner_id = excluded.owner_id,
+            owner_field = excluded.owner_field,
+            target_module = excluded.target_module,
+            target_type = excluded.target_type,
+            target_id = excluded.target_id,
+            variant = excluded.variant,
+            label_snapshot = excluded.label_snapshot,
+            image_snapshot = excluded.image_snapshot,
+            sort_order = excluded.sort_order,
+            status = excluded.status,
+            updated_at = excluded.updated_at';
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_embed_manager_refs
+            (ref_key, owner_module, owner_type, owner_id, owner_field, target_module, target_type, target_id, variant, label_snapshot, image_snapshot, sort_order, status, created_by_account_id, created_at, updated_at)
+         VALUES
+            (:ref_key, :owner_module, :owner_type, :owner_id, :owner_field, :target_module, :target_type, :target_id, :variant, :label_snapshot, :image_snapshot, :sort_order, :status, :created_by_account_id, :created_at, :updated_at)
+         ' . $upsertClause
     );
     $stmt->execute($ref);
 }

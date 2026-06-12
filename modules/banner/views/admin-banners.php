@@ -677,20 +677,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var label = form.querySelector('[data-admin-subject-required]');
         var publicHelp = form.querySelector('[data-admin-subject-public-help]');
         var publicTarget = form.getAttribute('data-public-target-value') || '';
-        var searchableTargetTypes = <?php echo json_encode($bannerSubjectTargetTypeMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        var searchableTargetTypes = <?php echo sr_js_json_encode($bannerSubjectTargetTypeMap); ?>;
         var useImage = form.querySelector('[data-admin-banner-use-image]');
         var imageRows = form.querySelectorAll('[data-admin-banner-image-row]');
         var imageInputs = form.querySelectorAll('[data-admin-banner-image-input]');
         var bannerTextLabel = form.querySelector('[data-admin-banner-text-label]');
         var bannerTextHelp = form.querySelector('[data-admin-banner-text-help]');
-        var imageTextLabels = <?php echo json_encode([
+        var imageTextLabels = <?php echo sr_js_json_encode([
             'alt' => sr_t('banner::ui.alt_text'),
             'display' => sr_t('banner::ui.display_text'),
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-        var imageTextHelp = <?php echo json_encode([
+        ]); ?>;
+        var imageTextHelp = <?php echo sr_js_json_encode([
             'alt' => sr_t('banner::ui.alt_text.help'),
             'display' => sr_t('banner::ui.display_text.help'),
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        ]); ?>;
 
         function syncTargetDetail() {
             var service = targetService ? targetService.value : publicTarget;

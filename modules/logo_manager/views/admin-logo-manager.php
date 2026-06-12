@@ -265,7 +265,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php $logoManagerStatusConfirmMessage = $logoManagerPositionKey === sr_logo_manager_public_symbol_position_key()
                                             ? '이 파비콘/앱 아이콘 로고를 중지할까요? 이 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.'
                                             : '이 로고 배치를 미사용 처리할까요? 같은 용도에 다른 활성 로고가 있으면 그 로고가 적용될 수 있습니다.'; ?>
-                                        <?php $logoManagerStatusConfirm = $logoManagerNextStatus === 'disabled' ? ' onclick="return confirm(' . sr_e(json_encode($logoManagerStatusConfirmMessage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . ');"' : ''; ?>
+                                        <?php $logoManagerStatusConfirm = $logoManagerNextStatus === 'disabled' ? ' onclick="return confirm(' . sr_e(sr_js_json_encode($logoManagerStatusConfirmMessage)) . ');"' : ''; ?>
                                         <input type="hidden" name="status" value="<?php echo sr_e($logoManagerNextStatus); ?>">
                                         <button type="submit" class="btn btn-sm btn-icon <?php echo sr_e($logoManagerStatusButtonClass); ?>" aria-label="<?php echo sr_e($logoManagerStatusButtonLabel); ?>" title="<?php echo sr_e($logoManagerStatusButtonLabel); ?>"<?php echo $logoManagerStatusConfirm; ?>><?php echo sr_material_icon_html($logoManagerStatusButtonIcon); ?></button>
                                     </form>
@@ -562,7 +562,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             return;
         }
         var sync = function () {
-            var enabled = positionSelect.value === <?php echo json_encode(sr_logo_manager_public_symbol_position_key(), JSON_UNESCAPED_SLASHES); ?>;
+            var enabled = positionSelect.value === <?php echo sr_js_json_encode(sr_logo_manager_public_symbol_position_key()); ?>;
             symbolSwitch.disabled = !enabled;
             if (!enabled) {
                 symbolSwitch.checked = false;

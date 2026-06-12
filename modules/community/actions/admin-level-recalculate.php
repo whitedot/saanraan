@@ -10,17 +10,12 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/levels', 'edit');
 sr_require_csrf();
 
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
-
 $settings = sr_community_settings($pdo);
 if (empty($settings['level_enabled'])) {
-    http_response_code(422);
-    echo json_encode([
+    sr_json_response([
         'ok' => false,
         'message' => sr_t('community::action.admin.level_recalculate_disabled'),
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-    sr_finish_response();
+    ], 422, ['Cache-Control: no-store']);
 }
 
 $confirmationText = sr_post_string('recalculate_confirm_text', 40);
@@ -42,12 +37,10 @@ if (sr_post_string('recalculate_confirmed', 1) !== '1' || $confirmationText !== 
             ])['grade'],
         ],
     ]);
-    http_response_code(422);
-    echo json_encode([
+    sr_json_response([
         'ok' => false,
         'message' => sr_t('community::action.admin.level_recalculate_confirmation_required'),
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-    sr_finish_response();
+    ], 422, ['Cache-Control: no-store']);
 }
 
 $cursorInput = sr_post_string('cursor', 20);
@@ -92,7 +85,7 @@ if ($done) {
     ]);
 }
 
-echo json_encode([
+sr_json_response([
     'ok' => true,
     'processed' => $processed,
     'processed_total' => $processedTotal,
@@ -105,5 +98,4 @@ echo json_encode([
             'processed' => (string) $processedTotal,
             'total' => (string) $total,
         ]),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-sr_finish_response();
+], 200, ['Cache-Control: no-store']);

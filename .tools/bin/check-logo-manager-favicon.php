@@ -309,6 +309,23 @@ $pdo = sr_logo_manager_favicon_check_pdo();
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert($html === '', 'empty favicon configuration should not render disabled data icon');
 
+$moduleStatus = is_file('docs/module-status.md') ? file_get_contents('docs/module-status.md') : false;
+sr_logo_manager_favicon_check_assert(is_string($moduleStatus), 'docs/module-status.md must be readable');
+if (is_string($moduleStatus)) {
+    foreach ([
+        '`logo_manager`',
+        'check-logo-manager-favicon.php',
+        'favicon head link runtime fixture',
+        '아이콘 세트 variant 선택',
+        'disabled/기간 필터 fixture',
+    ] as $marker) {
+        sr_logo_manager_favicon_check_assert(
+            str_contains($moduleStatus, $marker),
+            'module status must cite logo manager favicon evidence marker: ' . $marker
+        );
+    }
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "logo manager favicon checks failed:\n");
     foreach ($errors as $error) {

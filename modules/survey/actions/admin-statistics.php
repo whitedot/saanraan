@@ -30,64 +30,12 @@ if (!is_array($survey) && is_array($surveyOptions[0] ?? null)) {
 $summary = ['total_count' => 0, 'accepted_count' => 0, 'flagged_count' => 0, 'excluded_count' => 0, 'anonymous_count' => 0];
 $questions = [];
 $choiceStats = [];
-$choiceResponseStats = [];
 $numberStats = [];
 if (is_array($survey)) {
-    $summaryStmt = $pdo->prepare(
-        "SELECT COUNT(*) AS total_count,
-                SUM(CASE WHEN quality_status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
-                SUM(CASE WHEN quality_status = 'flagged' THEN 1 ELSE 0 END) AS flagged_count,
-                SUM(CASE WHEN quality_status = 'excluded' THEN 1 ELSE 0 END) AS excluded_count,
-                SUM(CASE WHEN account_id IS NULL THEN 1 ELSE 0 END) AS anonymous_count
-         FROM sr_survey_responses
-         WHERE survey_id = :survey_id
-           AND is_test = 0"
-    );
-    $summaryStmt->execute(['survey_id' => $surveyId]);
-    $summaryRow = $summaryStmt->fetch();
-    if (is_array($summaryRow)) {
-        $summary = array_merge($summary, $summaryRow);
-    }
+    $summary = sr_survey_statistics_summary($pdo, $surveyId);
     $questions = sr_survey_questions_with_choices($pdo, $surveyId);
-    $choiceStmt = $pdo->prepare(
-        "SELECT r.id AS response_id, a.question_key, a.choice_key
-         FROM sr_survey_response_answers a
-         INNER JOIN sr_survey_responses r ON r.id = a.response_id
-         WHERE r.survey_id = :survey_id
-           AND r.quality_status <> 'excluded'
-           AND r.is_test = 0
-           AND a.choice_key IS NOT NULL
-           AND a.choice_key <> ''"
-    );
-    $choiceStmt->execute(['survey_id' => $surveyId]);
-    foreach ($choiceStmt->fetchAll() as $row) {
-        $responseId = (int) ($row['response_id'] ?? 0);
-        $questionKey = (string) ($row['question_key'] ?? '');
-        foreach (array_filter(array_map('trim', explode(',', (string) ($row['choice_key'] ?? '')))) as $choiceKey) {
-            if ($responseId > 0 && $questionKey !== '' && $choiceKey !== '') {
-                $choiceResponseStats[$questionKey][$choiceKey][$responseId] = true;
-            }
-        }
-    }
-    foreach ($choiceResponseStats as $questionKey => $choiceRows) {
-        foreach ($choiceRows as $choiceKey => $responseIds) {
-            $choiceStats[$questionKey][$choiceKey] = count($responseIds);
-        }
-    }
-    $numberStmt = $pdo->prepare(
-        "SELECT a.question_key, COUNT(a.answer_number) AS answer_count, AVG(a.answer_number) AS average_value, MIN(a.answer_number) AS min_value, MAX(a.answer_number) AS max_value
-         FROM sr_survey_response_answers a
-         INNER JOIN sr_survey_responses r ON r.id = a.response_id
-         WHERE r.survey_id = :survey_id
-           AND r.quality_status <> 'excluded'
-           AND r.is_test = 0
-           AND a.answer_number IS NOT NULL
-         GROUP BY a.question_key"
-    );
-    $numberStmt->execute(['survey_id' => $surveyId]);
-    foreach ($numberStmt->fetchAll() as $row) {
-        $numberStats[(string) ($row['question_key'] ?? '')] = $row;
-    }
+    $choiceStats = sr_survey_statistics_choice_counts($pdo, $surveyId);
+    $numberStats = sr_survey_statistics_number_stats($pdo, $surveyId);
 }
 
 $adminPageTitle = '설문 통계';

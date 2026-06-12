@@ -120,7 +120,7 @@ foreach (['UPDATE sr_survey_comments', 'author_account_id = NULL', 'survey_comme
 
 foreach (['SELECT r.id AS response_id, a.question_key, a.choice_key', '$choiceResponseStats[$questionKey][$choiceKey][$responseId] = true'] as $needle) {
     sr_survey_check_contains(
-        'modules/survey/actions/admin-statistics.php',
+        'modules/survey/helpers.php',
         $needle,
         'Survey choice statistics must use stable question/choice keys and count each response once per choice'
     );
@@ -132,12 +132,20 @@ foreach (['GROUP BY a.question_id', 'choiceStats[(int)', 'choice_id IS NOT NULL'
         'Survey choice statistics must not depend on regenerated numeric IDs'
     );
 }
+foreach (['sr_survey_statistics_summary', 'sr_survey_statistics_choice_counts', 'sr_survey_statistics_number_stats'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/admin-statistics.php',
+        $needle,
+        'Survey admin statistics action must use runtime-tested statistics helpers'
+    );
+}
 
 foreach ([
     'foreach ($choices as $choice)',
     'sr_survey_other_answers_from_post',
     "'other_text' => (int) (\$choice['is_other'] ?? 0) === 1",
     '기타 답변을 입력해 주세요.',
+    '$lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === \'sqlite\' ? \'\' : \' FOR UPDATE\';',
     'sr_survey_current_user_agent_hash',
     'sr_survey_current_ip_hash',
     'account_id IS NULL',
@@ -148,6 +156,20 @@ foreach ([
         'modules/survey/helpers.php',
         $needle,
         'Survey response helpers must preserve multi-choice answers and anonymous duplicate checks'
+    );
+}
+
+foreach ([
+    'sr_survey_submit_response($pdo',
+    'Anonymous duplicate responses must be blocked by user agent and IP hash.',
+    'Selected other choice must require other text.',
+    'Multiple choice answer must enforce max choices.',
+    'Number answer must enforce maximum value.',
+] as $needle) {
+    sr_survey_check_contains(
+        '.tools/bin/check-survey-response-runtime.php',
+        $needle,
+        'Survey response runtime fixture must cover submit, duplicate, other, multiple choice, and number validation'
     );
 }
 

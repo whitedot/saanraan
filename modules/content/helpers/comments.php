@@ -28,6 +28,18 @@ function sr_content_comments_author_public_name_snapshot_column_exists(PDO $pdo)
     }
 
     try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $pdo->query('PRAGMA table_info(sr_content_comments)');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                if ((string) ($row['name'] ?? '') === 'author_public_name_snapshot') {
+                    $existsByConnection[$key] = true;
+                    return true;
+                }
+            }
+            $existsByConnection[$key] = false;
+            return false;
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*)
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -56,6 +68,18 @@ function sr_content_comments_is_secret_column_exists(PDO $pdo): bool
     }
 
     try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $pdo->query('PRAGMA table_info(sr_content_comments)');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                if ((string) ($row['name'] ?? '') === 'is_secret') {
+                    $existsByConnection[$key] = true;
+                    return true;
+                }
+            }
+            $existsByConnection[$key] = false;
+            return false;
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*)
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -84,6 +108,16 @@ function sr_content_comments_thread_columns_exist(PDO $pdo): bool
     }
 
     try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $columns = [];
+            $stmt = $pdo->query('PRAGMA table_info(sr_content_comments)');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                $columns[(string) ($row['name'] ?? '')] = true;
+            }
+            $existsByConnection[$key] = isset($columns['parent_comment_id'], $columns['thread_root_id'], $columns['depth']);
+            return $existsByConnection[$key];
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*)
              FROM INFORMATION_SCHEMA.COLUMNS

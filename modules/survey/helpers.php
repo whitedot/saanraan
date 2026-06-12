@@ -1224,6 +1224,197 @@ function sr_survey_questions_with_choices(PDO $pdo, int $surveyId): array
     return $questions;
 }
 
+function sr_survey_statistics_summary(PDO $pdo, int $surveyId): array
+{
+    $summary = ['total_count' => 0, 'accepted_count' => 0, 'flagged_count' => 0, 'excluded_count' => 0, 'anonymous_count' => 0];
+    if ($surveyId < 1) {
+        return $summary;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS total_count,
+                SUM(CASE WHEN quality_status = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
+                SUM(CASE WHEN quality_status = 'flagged' THEN 1 ELSE 0 END) AS flagged_count,
+                SUM(CASE WHEN quality_status = 'excluded' THEN 1 ELSE 0 END) AS excluded_count,
+                SUM(CASE WHEN account_id IS NULL THEN 1 ELSE 0 END) AS anonymous_count
+         FROM sr_survey_responses
+         WHERE survey_id = :survey_id
+           AND is_test = 0"
+    );
+    $stmt->execute(['survey_id' => $surveyId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? array_merge($summary, $row) : $summary;
+}
+
+function sr_survey_statistics_choice_counts(PDO $pdo, int $surveyId): array
+{
+    if ($surveyId < 1) {
+        return [];
+    }
+
+    $choiceResponseStats = [];
+    $stmt = $pdo->prepare(
+        "SELECT r.id AS response_id, a.question_key, a.choice_key
+         FROM sr_survey_response_answers a
+         INNER JOIN sr_survey_responses r ON r.id = a.response_id
+         WHERE r.survey_id = :survey_id
+           AND r.quality_status <> 'excluded'
+           AND r.is_test = 0
+           AND a.choice_key IS NOT NULL
+           AND a.choice_key <> ''"
+    );
+    $stmt->execute(['survey_id' => $surveyId]);
+    foreach ($stmt->fetchAll() as $row) {
+        $responseId = (int) ($row['response_id'] ?? 0);
+        $questionKey = (string) ($row['question_key'] ?? '');
+        foreach (array_filter(array_map('trim', explode(',', (string) ($row['choice_key'] ?? '')))) as $choiceKey) {
+            if ($responseId > 0 && $questionKey !== '' && $choiceKey !== '') {
+                $choiceResponseStats[$questionKey][$choiceKey][$responseId] = true;
+            }
+        }
+    }
+
+    $choiceStats = [];
+    foreach ($choiceResponseStats as $questionKey => $choiceRows) {
+        foreach ($choiceRows as $choiceKey => $responseIds) {
+            $choiceStats[$questionKey][$choiceKey] = count($responseIds);
+        }
+    }
+
+    return $choiceStats;
+}
+
+function sr_survey_statistics_number_stats(PDO $pdo, int $surveyId): array
+{
+    if ($surveyId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT a.question_key, COUNT(a.answer_number) AS answer_count, AVG(a.answer_number) AS average_value, MIN(a.answer_number) AS min_value, MAX(a.answer_number) AS max_value
+         FROM sr_survey_response_answers a
+         INNER JOIN sr_survey_responses r ON r.id = a.response_id
+         WHERE r.survey_id = :survey_id
+           AND r.quality_status <> 'excluded'
+           AND r.is_test = 0
+           AND a.answer_number IS NOT NULL
+         GROUP BY a.question_key"
+    );
+    $stmt->execute(['survey_id' => $surveyId]);
+
+    $numberStats = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $numberStats[(string) ($row['question_key'] ?? '')] = $row;
+    }
+
+    return $numberStats;
+}
+
+function sr_survey_admin_export_limits(): array
+{
+    return [
+        'raw' => 5000,
+        'analysis' => 20000,
+        'codebook' => 10000,
+    ];
+}
+
+function sr_survey_csv_cell(mixed $value): string
+{
+    $value = (string) $value;
+    if ($value !== '' && in_array($value[0], ['=', '+', '-', '@'], true)) {
+        return "'" . $value;
+    }
+
+    return $value;
+}
+
+function sr_survey_csv_row($output, array $row): void
+{
+    fputcsv($output, array_map('sr_survey_csv_cell', $row));
+}
+
+function sr_survey_admin_export_response_filter(int $surveyId, string $qualityFilter, bool $includeTest): array
+{
+    $where = ['s.deleted_at IS NULL'];
+    $params = [];
+    if ($surveyId > 0) {
+        $where[] = 'r.survey_id = :survey_id';
+        $params['survey_id'] = $surveyId;
+    }
+    if ($qualityFilter !== '' && in_array($qualityFilter, sr_survey_quality_statuses(), true)) {
+        $where[] = 'r.quality_status = :quality_status';
+        $params['quality_status'] = $qualityFilter;
+    }
+    if (!$includeTest) {
+        $where[] = 'r.is_test = 0';
+    }
+
+    return ['where_sql' => implode(' AND ', $where), 'params' => $params];
+}
+
+function sr_survey_admin_export_codebook_rows(PDO $pdo, int $surveyId, int $limit): array
+{
+    $where = ['s.deleted_at IS NULL'];
+    $params = [];
+    if ($surveyId > 0) {
+        $where[] = 's.id = :survey_id';
+        $params['survey_id'] = $surveyId;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT s.id AS survey_id, s.survey_key, s.title, s.questionnaire_version,
+                q.question_key, q.question_type, q.prompt, q.required, q.analysis_note, q.number_min, q.number_max, q.scale_points, q.nonresponse_policy,
+                c.choice_key, c.label AS choice_label, c.is_other, c.is_nonresponse
+         FROM sr_survey_forms s
+         INNER JOIN sr_survey_questions q ON q.survey_id = s.id
+         LEFT JOIN sr_survey_choices c ON c.question_id = q.id
+         WHERE ' . implode(' AND ', $where) . '
+         ORDER BY s.id ASC, q.sort_order ASC, q.id ASC, c.sort_order ASC, c.id ASC
+         LIMIT ' . (string) max(1, min(10000, $limit))
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
+function sr_survey_admin_export_analysis_rows(PDO $pdo, int $surveyId, string $qualityFilter, bool $includeTest, int $limit): array
+{
+    $filter = sr_survey_admin_export_response_filter($surveyId, $qualityFilter, $includeTest);
+    $stmt = $pdo->prepare(
+        'SELECT r.id, r.survey_id, s.survey_key, r.quality_status, r.submitted_at,
+                a.question_key, a.choice_key, a.answer_text, a.answer_number, a.other_text
+         FROM sr_survey_responses r
+         INNER JOIN sr_survey_forms s ON s.id = r.survey_id
+         INNER JOIN sr_survey_response_answers a ON a.response_id = r.id
+         WHERE ' . (string) $filter['where_sql'] . '
+           AND r.quality_status <> \'excluded\'
+         ORDER BY r.submitted_at DESC, r.id DESC, a.id ASC
+         LIMIT ' . (string) max(1, min(20000, $limit))
+    );
+    $stmt->execute((array) $filter['params']);
+
+    return $stmt->fetchAll();
+}
+
+function sr_survey_admin_export_raw_rows(PDO $pdo, int $surveyId, string $qualityFilter, bool $includeTest, int $limit): array
+{
+    $filter = sr_survey_admin_export_response_filter($surveyId, $qualityFilter, $includeTest);
+    $stmt = $pdo->prepare(
+        'SELECT r.id, r.survey_id, s.survey_key, s.title, r.account_id, r.status, r.quality_status, r.is_test, r.submitted_at, r.rewarded_at,
+                r.answer_snapshot_json, r.consent_snapshot_json, r.metadata_snapshot_json
+         FROM sr_survey_responses r
+         INNER JOIN sr_survey_forms s ON s.id = r.survey_id
+         WHERE ' . (string) $filter['where_sql'] . '
+         ORDER BY r.submitted_at DESC, r.id DESC
+         LIMIT ' . (string) max(1, min(5000, $limit))
+    );
+    $stmt->execute((array) $filter['params']);
+
+    return $stmt->fetchAll();
+}
+
 function sr_survey_account_can_respond(PDO $pdo, array $survey, int $accountId): array
 {
     if ((int) ($survey['login_required'] ?? 1) === 1 && $accountId < 1) {
@@ -1418,7 +1609,13 @@ function sr_survey_submit_response(PDO $pdo, array $survey, array $questions, in
     $now = sr_now();
     $pdo->beginTransaction();
     try {
-        $locked = $pdo->prepare('SELECT * FROM sr_survey_forms WHERE id = :id AND deleted_at IS NULL LIMIT 1 FOR UPDATE');
+        $lockClause = '';
+        try {
+            $lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
+        } catch (Throwable $exception) {
+            $lockClause = ' FOR UPDATE';
+        }
+        $locked = $pdo->prepare('SELECT * FROM sr_survey_forms WHERE id = :id AND deleted_at IS NULL LIMIT 1' . $lockClause);
         $locked->execute(['id' => $surveyId]);
         $survey = $locked->fetch();
         if (!is_array($survey)) {
@@ -1674,8 +1871,12 @@ function sr_survey_issue_reward_grant(PDO $pdo, array $survey, int $responseId, 
     }
     $dedupeKey = implode(':', $dedupeParts);
     $snapshotJson = json_encode(['survey_key' => (string) ($survey['survey_key'] ?? ''), 'reward_provider' => $provider, 'reward_module' => $module, 'reward_amount' => $amount], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $insertVerb = 'INSERT IGNORE';
+    if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+        $insertVerb = 'INSERT OR IGNORE';
+    }
     $pdo->prepare(
-        'INSERT IGNORE INTO sr_survey_reward_grants
+        $insertVerb . ' INTO sr_survey_reward_grants
             (survey_id, response_id, reward_policy_id, account_id, reward_provider, reward_module, reward_code, reward_amount, dedupe_scope, dedupe_key, status, request_snapshot_json, created_at, updated_at)
          VALUES
             (:survey_id, :response_id, :reward_policy_id, :account_id, :reward_provider, :reward_module, :reward_code, :reward_amount, :dedupe_scope, :dedupe_key, \'pending\', :request_snapshot_json, :created_at, :updated_at)'
@@ -1694,7 +1895,8 @@ function sr_survey_issue_reward_grant(PDO $pdo, array $survey, int $responseId, 
         'created_at' => $now,
         'updated_at' => $now,
     ]);
-    $stmt = $pdo->prepare('SELECT * FROM sr_survey_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1 FOR UPDATE');
+    $lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
+    $stmt = $pdo->prepare('SELECT * FROM sr_survey_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1' . $lockClause);
     $stmt->execute(['dedupe_key' => $dedupeKey]);
     $grant = $stmt->fetch();
     if (!is_array($grant)) {
@@ -1702,21 +1904,34 @@ function sr_survey_issue_reward_grant(PDO $pdo, array $survey, int $responseId, 
     }
     if ((int) ($grant['response_id'] ?? 0) !== $responseId && $scope !== 'per_response') {
         $grant['status'] = 'duplicate';
+        $grant['error_message'] = '';
         return $grant;
     }
     if ((string) ($grant['status'] ?? '') === 'granted') {
         return $grant;
     }
 
+    $grantId = (int) ($grant['id'] ?? 0);
+    sr_survey_refresh_reward_grant_for_retry($pdo, $grantId, [
+        'response_id' => $responseId,
+        'reward_policy_id' => $policyId,
+        'reward_provider' => $provider,
+        'reward_module' => $module,
+        'reward_code' => (string) ($policy['reward_code'] ?? 'survey_reward'),
+        'reward_amount' => $amount,
+        'dedupe_scope' => $scope,
+        'request_snapshot_json' => is_string($snapshotJson) ? $snapshotJson : '{}',
+        'updated_at' => $now,
+    ]);
     if ($provider === 'coupon') {
-        return sr_survey_issue_coupon_reward_grant($pdo, $survey, (int) $grant['id'], $responseId, $accountId, $policy, $now);
+        return sr_survey_issue_coupon_reward_grant($pdo, $survey, $grantId, $responseId, $accountId, $policy, $now);
     }
     if ($provider !== 'ledger_asset' || !isset($assetOptions[$module])) {
-        return sr_survey_mark_reward_grant_failed($pdo, (int) $grant['id'], '보상 공급자 또는 자산 계약을 찾을 수 없습니다.', $now);
+        return sr_survey_mark_reward_grant_failed($pdo, $grantId, '보상 공급자 또는 자산 계약을 찾을 수 없습니다.', $now);
     }
     $transactionFunction = (string) ($assetOptions[$module]['transaction_function'] ?? '');
     if (!function_exists($transactionFunction)) {
-        return sr_survey_mark_reward_grant_failed($pdo, (int) $grant['id'], '보상 자산 거래 함수를 찾을 수 없습니다.', $now);
+        return sr_survey_mark_reward_grant_failed($pdo, $grantId, '보상 자산 거래 함수를 찾을 수 없습니다.', $now);
     }
     try {
         $transactionId = (int) $transactionFunction($pdo, [
@@ -1725,17 +1940,53 @@ function sr_survey_issue_reward_grant(PDO $pdo, array $survey, int $responseId, 
             'transaction_type' => (string) ($assetOptions[$module]['credit_type'] ?? 'grant'),
             'reason' => '설문 보상: ' . (string) ($survey['title'] ?? ''),
             'reference_type' => 'survey_reward',
-            'reference_id' => (string) (int) $grant['id'],
+            'reference_id' => (string) $grantId,
             'created_by_account_id' => null,
         ]);
-        sr_survey_mark_reward_grant_granted($pdo, (int) $grant['id'], $responseId, 'survey_reward', (string) (int) $grant['id'], ['transaction_id' => $transactionId], $now);
+        sr_survey_mark_reward_grant_granted($pdo, $grantId, $responseId, 'survey_reward', (string) $grantId, ['transaction_id' => $transactionId], $now);
     } catch (Throwable $exception) {
-        return sr_survey_mark_reward_grant_failed($pdo, (int) $grant['id'], sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500)), $now);
+        return sr_survey_mark_reward_grant_failed($pdo, $grantId, sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500)), $now);
     }
     $stmt->execute(['dedupe_key' => $dedupeKey]);
     $grant = $stmt->fetch();
 
     return is_array($grant) ? $grant : [];
+}
+
+function sr_survey_refresh_reward_grant_for_retry(PDO $pdo, int $grantId, array $values): void
+{
+    if ($grantId < 1) {
+        return;
+    }
+
+    $pdo->prepare(
+        'UPDATE sr_survey_reward_grants
+         SET response_id = :response_id,
+             reward_policy_id = :reward_policy_id,
+             reward_provider = :reward_provider,
+             reward_module = :reward_module,
+             reward_code = :reward_code,
+             reward_amount = :reward_amount,
+             dedupe_scope = :dedupe_scope,
+             request_snapshot_json = :request_snapshot_json,
+             status = \'pending\',
+             error_message = NULL,
+             failed_at = NULL,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status <> \'granted\''
+    )->execute([
+        'response_id' => (int) ($values['response_id'] ?? 0),
+        'reward_policy_id' => (int) ($values['reward_policy_id'] ?? 0),
+        'reward_provider' => (string) ($values['reward_provider'] ?? ''),
+        'reward_module' => (string) ($values['reward_module'] ?? ''),
+        'reward_code' => (string) ($values['reward_code'] ?? ''),
+        'reward_amount' => $values['reward_amount'] ?? null,
+        'dedupe_scope' => (string) ($values['dedupe_scope'] ?? 'per_survey'),
+        'request_snapshot_json' => (string) ($values['request_snapshot_json'] ?? '{}'),
+        'updated_at' => (string) ($values['updated_at'] ?? sr_now()),
+        'id' => $grantId,
+    ]);
 }
 
 function sr_survey_issue_coupon_reward_grant(PDO $pdo, array $survey, int $grantId, int $responseId, int $accountId, array $policy, string $now): array
@@ -1767,7 +2018,7 @@ function sr_survey_mark_reward_grant_granted(PDO $pdo, int $grantId, int $respon
     $pdo->prepare(
         'UPDATE sr_survey_reward_grants
          SET status = \'granted\', provider_reference_type = :provider_reference_type, provider_reference_id = :provider_reference_id,
-             result_snapshot_json = :result_snapshot_json, granted_at = :granted_at, updated_at = :updated_at
+             result_snapshot_json = :result_snapshot_json, error_message = NULL, failed_at = NULL, granted_at = :granted_at, updated_at = :updated_at
          WHERE id = :id'
     )->execute([
         'provider_reference_type' => $referenceType,

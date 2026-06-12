@@ -167,10 +167,22 @@ function sr_notification_mark_read(PDO $pdo, int $notificationId, int $accountId
 
     $now = sr_now();
     if ((string) $notification['audience'] === 'all') {
+        $driver = '';
+        try {
+            $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        } catch (Throwable) {
+            $driver = '';
+        }
+
+        $upsertClause = 'ON DUPLICATE KEY UPDATE read_at = VALUES(read_at)';
+        if ($driver === 'sqlite') {
+            $upsertClause = 'ON CONFLICT(notification_id, account_id) DO UPDATE SET read_at = excluded.read_at';
+        }
+
         $stmt = $pdo->prepare(
             'INSERT INTO sr_notification_reads (notification_id, account_id, read_at)
              VALUES (:notification_id, :account_id, :read_at)
-             ON DUPLICATE KEY UPDATE read_at = VALUES(read_at)'
+             ' . $upsertClause
         );
         $stmt->execute([
             'notification_id' => $notificationId,

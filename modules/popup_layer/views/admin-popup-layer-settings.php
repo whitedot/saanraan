@@ -142,7 +142,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     if (!form) {
         return;
     }
-    var publicTarget = <?php echo json_encode(sr_popup_layer_public_target_option_value()); ?>;
+    var publicTarget = <?php echo sr_js_json_encode(sr_popup_layer_public_target_option_value()); ?>;
     var service = form.querySelector('[data-admin-target-service]');
     var detail = form.querySelector('[data-admin-target-detail]');
     var targetOption = form.querySelector('[data-admin-target-option]');

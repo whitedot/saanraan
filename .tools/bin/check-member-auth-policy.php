@@ -6,6 +6,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 
+require_once $root . '/core/helpers/output.php';
 require_once $root . '/modules/member/helpers/accounts.php';
 require_once $root . '/modules/member/helpers/tokens.php';
 require_once $root . '/modules/member/helpers/throttle.php';
@@ -37,6 +38,68 @@ function sr_member_auth_policy_read(string $path): string
 
     return str_replace(["\r\n", "\r"], "\n", $content);
 }
+
+function sr_member_auth_policy_forbid_markers(string $path, array $markers): void
+{
+    $content = sr_member_auth_policy_read($path);
+    if ($content === '') {
+        return;
+    }
+
+    foreach ($markers as $marker) {
+        sr_member_auth_policy_assert(
+            strpos($content, $marker) === false,
+            'Sensitive member input should not use truncating helper in ' . $path . ': ' . $marker
+        );
+    }
+}
+
+function sr_member_auth_policy_check_input_helper_fixtures(): void
+{
+    $previousGet = $_GET;
+    $previousPost = $_POST;
+
+    $_GET = ['token' => str_repeat('a', 64)];
+    sr_member_auth_policy_assert(
+        sr_get_string_without_truncation('token', 64) === str_repeat('a', 64),
+        'GET no-truncation helper should accept values at the maximum length.'
+    );
+
+    $_GET = ['token' => str_repeat('a', 65)];
+    sr_member_auth_policy_assert(
+        sr_get_string_without_truncation('token', 64) === null,
+        'GET no-truncation helper should reject overlong token values instead of trimming them for lookup.'
+    );
+
+    $_GET = ['token' => ['array']];
+    sr_member_auth_policy_assert(
+        sr_get_string_without_truncation('token', 64) === null,
+        'GET no-truncation helper should reject array token values.'
+    );
+
+    $_POST = ['password' => str_repeat('b', 255)];
+    sr_member_auth_policy_assert(
+        sr_post_string_without_truncation('password', 255) === str_repeat('b', 255),
+        'POST no-truncation helper should accept values at the maximum length.'
+    );
+
+    $_POST = ['password' => str_repeat('b', 256)];
+    sr_member_auth_policy_assert(
+        sr_post_string_without_truncation('password', 255) === null,
+        'POST no-truncation helper should reject overlong password values instead of trimming them.'
+    );
+
+    $_POST = ['email' => ['array']];
+    sr_member_auth_policy_assert(
+        sr_post_string_without_truncation('email', 255) === null,
+        'POST no-truncation helper should reject array email values.'
+    );
+
+    $_GET = $previousGet;
+    $_POST = $previousPost;
+}
+
+sr_member_auth_policy_check_input_helper_fixtures();
 
 $memberLang = sr_member_auth_policy_read('modules/member/lang/ko.php');
 $privacyLang = sr_member_auth_policy_read('modules/privacy/lang/ko.php');
@@ -150,6 +213,27 @@ if ($loginAction !== '') {
         'Login action should show a fixed completion notice after password reset redirect.'
     );
 }
+
+sr_member_auth_policy_forbid_markers('modules/member/actions/login.php', [
+    "sr_post_string('identifier'",
+]);
+sr_member_auth_policy_forbid_markers('modules/member/actions/email-verify.php', [
+    "sr_get_string('token'",
+]);
+sr_member_auth_policy_forbid_markers('modules/member/actions/password-reset.php', [
+    "sr_get_string('token'",
+    "sr_post_string('password'",
+    "sr_post_string('password_confirm'",
+]);
+sr_member_auth_policy_forbid_markers('modules/member/actions/password-reset-request.php', [
+    "sr_post_string('email'",
+]);
+sr_member_auth_policy_forbid_markers('modules/member/actions/register.php', [
+    "sr_post_string('email'",
+    "sr_post_string('login_id'",
+    "sr_post_string('password'",
+    "sr_post_string('password_confirm'",
+]);
 
 $accountHelper = sr_member_auth_policy_read('modules/member/helpers/accounts.php');
 if ($accountHelper !== '') {

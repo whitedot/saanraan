@@ -1850,8 +1850,16 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
     }
     $dedupeKey = implode(':', $dedupeKeyParts);
 
+    $insertVerb = 'INSERT IGNORE';
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $insertVerb = 'INSERT OR IGNORE';
+        }
+    } catch (Throwable $exception) {
+        $insertVerb = 'INSERT IGNORE';
+    }
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO sr_quiz_reward_grants
+        $insertVerb . ' INTO sr_quiz_reward_grants
             (quiz_id, attempt_id, reward_policy_id, account_id, reward_provider, reward_module, reward_code, reward_amount,
              source_module, source_type, source_id, dedupe_scope, dedupe_key, status, request_snapshot_json, created_at, updated_at)
          VALUES
@@ -1883,7 +1891,13 @@ function sr_quiz_issue_reward_grant(PDO $pdo, array $quiz, int $attemptId, int $
         'updated_at' => $now,
     ]);
 
-    $grantStmt = $pdo->prepare('SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1 FOR UPDATE');
+    $lockClause = '';
+    try {
+        $lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
+    } catch (Throwable $exception) {
+        $lockClause = ' FOR UPDATE';
+    }
+    $grantStmt = $pdo->prepare('SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1' . $lockClause);
     $grantStmt->execute(['dedupe_key' => $dedupeKey]);
     $grant = $grantStmt->fetch();
     if (!is_array($grant)) {
@@ -2012,6 +2026,225 @@ function sr_quiz_refresh_reward_grant_for_retry(PDO $pdo, int $grantId, array $v
         'updated_at' => (string) ($values['updated_at'] ?? sr_now()),
         'id' => $grantId,
     ]);
+}
+
+function sr_quiz_reward_grant_ledger_transaction(PDO $pdo, array $grant, array $assetOptions): ?array
+{
+    if ((string) ($grant['reward_provider'] ?? '') !== 'ledger_asset') {
+        return null;
+    }
+
+    $moduleKey = (string) ($grant['reward_module'] ?? '');
+    $lookupFunction = (string) ($assetOptions[$moduleKey]['transaction_lookup_function'] ?? '');
+    if ($lookupFunction === '' || !function_exists($lookupFunction)) {
+        return null;
+    }
+
+    $referenceType = (string) ($grant['provider_reference_type'] ?? '');
+    $referenceId = (string) ($grant['provider_reference_id'] ?? '');
+    if ($referenceType === '' || $referenceId === '') {
+        $grantId = (int) ($grant['id'] ?? 0);
+        if ($grantId < 1) {
+            return null;
+        }
+        $referenceType = 'quiz_reward';
+        $referenceId = (string) $grantId;
+    }
+
+    $row = $lookupFunction($pdo, $referenceType, $referenceId);
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_quiz_reward_grant_by_id(PDO $pdo, int $grantId): ?array
+{
+    if ($grantId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM sr_quiz_reward_grants WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $grantId]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_quiz_reward_grant_reclaim_status(PDO $pdo, array $grant, array $assetOptions): array
+{
+    $status = [
+        'available' => false,
+        'reason' => 'not_reclaimable',
+        'module_key' => (string) ($grant['reward_module'] ?? ''),
+        'transaction_id' => 0,
+        'account_id' => (int) ($grant['account_id'] ?? 0),
+        'amount' => 0,
+        'remaining_amount' => 0,
+        'transaction_type' => '',
+        'reference_type' => '',
+        'reference_id' => '',
+    ];
+
+    $transaction = sr_quiz_reward_grant_ledger_transaction($pdo, $grant, $assetOptions);
+    if (!is_array($transaction)) {
+        $status['reason'] = 'ledger_transaction_not_found';
+
+        return $status;
+    }
+
+    $transactionId = (int) ($transaction['id'] ?? 0);
+    $accountId = (int) ($transaction['account_id'] ?? 0);
+    $amount = (int) ($transaction['amount'] ?? 0);
+    $moduleKey = (string) ($grant['reward_module'] ?? '');
+    $status['module_key'] = $moduleKey;
+    $status['transaction_id'] = $transactionId;
+    $status['account_id'] = $accountId;
+    $status['amount'] = $amount;
+    $status['transaction_type'] = (string) ($transaction['transaction_type'] ?? '');
+
+    if ($transactionId < 1 || $accountId < 1 || $amount <= 0) {
+        $status['reason'] = 'ledger_transaction_not_reclaimable';
+
+        return $status;
+    }
+
+    if ($moduleKey !== 'reward') {
+        $status['reason'] = 'unsupported_asset_reclaim';
+
+        return $status;
+    }
+
+    if (!function_exists('sr_reward_reclaim_remaining_amounts_for_transactions') || !function_exists('sr_reward_reclaim_reference_id')) {
+        $status['reason'] = 'reclaim_contract_missing';
+
+        return $status;
+    }
+
+    $remainingAmounts = sr_reward_reclaim_remaining_amounts_for_transactions($pdo, [$transaction]);
+    $remainingAmount = (int) ($remainingAmounts[$transactionId] ?? ($remainingAmounts[$accountId . ':' . $transactionId] ?? 0));
+    $status['remaining_amount'] = max(0, $remainingAmount);
+    $status['reference_type'] = 'reclaim';
+    $status['reference_id'] = sr_reward_reclaim_reference_id($transactionId);
+
+    if ($status['remaining_amount'] <= 0) {
+        $status['reason'] = 'nothing_remaining';
+
+        return $status;
+    }
+
+    $status['available'] = true;
+    $status['reason'] = '';
+
+    return $status;
+}
+
+function sr_quiz_reclaim_reward_grant(PDO $pdo, array $grant, array $assetOptions, int $amount, int $adminAccountId, string $reason = ''): array
+{
+    if ($amount <= 0) {
+        return [
+            'ok' => false,
+            'errors' => ['회수 금액은 1 이상이어야 합니다.'],
+            'transaction_id' => 0,
+        ];
+    }
+
+    $status = sr_quiz_reward_grant_reclaim_status($pdo, $grant, $assetOptions);
+    if (empty($status['available'])) {
+        return [
+            'ok' => false,
+            'errors' => ['회수할 수 있는 퀴즈 보상 원장 거래를 찾을 수 없습니다.'],
+            'transaction_id' => 0,
+            'reclaim_status' => $status,
+        ];
+    }
+
+    $remainingAmount = (int) ($status['remaining_amount'] ?? 0);
+    if ($amount > $remainingAmount) {
+        return [
+            'ok' => false,
+            'errors' => ['회수 금액이 남은 회수 가능액을 초과했습니다.'],
+            'transaction_id' => 0,
+            'reclaim_status' => $status,
+        ];
+    }
+
+    if (!function_exists('sr_reward_validate_reclaim_transaction') || !function_exists('sr_reward_create_transaction')) {
+        return [
+            'ok' => false,
+            'errors' => ['적립금 회수 계약을 찾을 수 없습니다.'],
+            'transaction_id' => 0,
+            'reclaim_status' => $status,
+        ];
+    }
+
+    $accountId = (int) ($status['account_id'] ?? 0);
+    $referenceType = (string) ($status['reference_type'] ?? '');
+    $referenceId = (string) ($status['reference_id'] ?? '');
+    $reclaimReason = sr_quiz_clean_text($reason, 255);
+    if ($reclaimReason === '') {
+        $reclaimReason = '퀴즈 보상 회수: grant #' . (string) (int) ($grant['id'] ?? 0);
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $validationError = sr_reward_validate_reclaim_transaction($pdo, $accountId, -$amount, $referenceType, $referenceId, true);
+        if ($validationError !== null) {
+            throw new RuntimeException($validationError);
+        }
+
+        $transactionId = sr_reward_create_transaction($pdo, [
+            'account_id' => $accountId,
+            'amount' => -$amount,
+            'transaction_type' => 'reclaim',
+            'reason' => $reclaimReason,
+            'reference_type' => $referenceType,
+            'reference_id' => $referenceId,
+            'created_by_account_id' => $adminAccountId > 0 ? $adminAccountId : null,
+        ]);
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => $adminAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'quiz.reward.reclaimed',
+            'target_type' => 'quiz_reward_grant',
+            'target_id' => (string) (int) ($grant['id'] ?? 0),
+            'result' => 'success',
+            'message' => 'Quiz reward grant reclaimed.',
+            'metadata' => [
+                'account_id' => $accountId,
+                'amount' => $amount,
+                'reward_transaction_id' => (int) ($status['transaction_id'] ?? 0),
+                'reclaim_transaction_id' => $transactionId,
+                'reference_type' => $referenceType,
+                'reference_id' => $referenceId,
+            ],
+        ]);
+
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
+
+        return [
+            'ok' => true,
+            'errors' => [],
+            'transaction_id' => $transactionId,
+            'reclaim_status' => $status,
+        ];
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        return [
+            'ok' => false,
+            'errors' => [sr_log_sensitive_text_sanitize(sr_log_line_value($exception->getMessage(), 500))],
+            'transaction_id' => 0,
+            'reclaim_status' => $status,
+        ];
+    }
 }
 
 function sr_quiz_issue_coupon_reward_grant(PDO $pdo, array $quiz, int $grantId, int $attemptId, int $accountId, array $policy, string $now): array
@@ -2398,6 +2631,53 @@ function sr_quiz_admin_attempts(PDO $pdo, array $filters = [], int $limit = 100,
     }
 
     return $rows;
+}
+
+function sr_quiz_admin_reward_grants_for_attempts(PDO $pdo, array $attemptIds, array $assetOptions = []): array
+{
+    $ids = [];
+    foreach ($attemptIds as $attemptId) {
+        $attemptId = (int) $attemptId;
+        if ($attemptId > 0) {
+            $ids[$attemptId] = $attemptId;
+        }
+    }
+    if ($ids === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($ids) as $index => $attemptId) {
+        $key = 'attempt_id_' . (string) $index;
+        $placeholders[] = ':' . $key;
+        $params[$key] = $attemptId;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_quiz_reward_grants
+         WHERE attempt_id IN (' . implode(', ', $placeholders) . ')
+         ORDER BY attempt_id ASC, id ASC'
+    );
+    $stmt->execute($params);
+
+    $grants = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        if ($assetOptions !== []) {
+            $row['reclaim_status'] = sr_quiz_reward_grant_reclaim_status($pdo, $row, $assetOptions);
+        }
+        $attemptId = (int) ($row['attempt_id'] ?? 0);
+        if ($attemptId < 1) {
+            continue;
+        }
+        $grants[$attemptId][] = $row;
+    }
+
+    return $grants;
 }
 
 function sr_quiz_admin_quiz_by_id(PDO $pdo, int $quizId): ?array
@@ -3773,19 +4053,40 @@ function sr_quiz_soft_delete(PDO $pdo, int $quizId, int $accountId): bool
             'updated_at' => $now,
             'quiz_id' => $quizId,
         ]);
-        $pdo->prepare(
-            'UPDATE sr_quiz_choices c
-             INNER JOIN sr_quiz_questions q ON q.id = c.question_id
-             SET c.label = :label,
-                 c.description = NULL,
-                 c.settings_json = NULL,
-                 c.updated_at = :updated_at
-             WHERE q.quiz_id = :quiz_id'
-        )->execute([
-            'label' => '삭제된 선택지',
-            'updated_at' => $now,
-            'quiz_id' => $quizId,
-        ]);
+        $driverName = '';
+        try {
+            $driverName = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        } catch (Throwable $exception) {
+            $driverName = '';
+        }
+        if ($driverName === 'sqlite') {
+            $pdo->prepare(
+                'UPDATE sr_quiz_choices
+                 SET label = :label,
+                     description = NULL,
+                     settings_json = NULL,
+                     updated_at = :updated_at
+                 WHERE question_id IN (SELECT id FROM sr_quiz_questions WHERE quiz_id = :quiz_id)'
+            )->execute([
+                'label' => '삭제된 선택지',
+                'updated_at' => $now,
+                'quiz_id' => $quizId,
+            ]);
+        } else {
+            $pdo->prepare(
+                'UPDATE sr_quiz_choices c
+                 INNER JOIN sr_quiz_questions q ON q.id = c.question_id
+                 SET c.label = :label,
+                     c.description = NULL,
+                     c.settings_json = NULL,
+                     c.updated_at = :updated_at
+                 WHERE q.quiz_id = :quiz_id'
+            )->execute([
+                'label' => '삭제된 선택지',
+                'updated_at' => $now,
+                'quiz_id' => $quizId,
+            ]);
+        }
         $pdo->prepare('UPDATE sr_quiz_results SET title = :title, summary = \'\', body = \'\', updated_at = :updated_at WHERE quiz_id = :quiz_id')->execute([
             'title' => '삭제된 결과',
             'updated_at' => $now,
@@ -3811,20 +4112,35 @@ function sr_quiz_soft_delete(PDO $pdo, int $quizId, int $accountId): bool
             'updated_at' => $now,
             'quiz_id' => $quizId,
         ]);
-        $pdo->prepare(
-            "UPDATE sr_quiz_attempt_answers aa
-             INNER JOIN sr_quiz_attempts a ON a.id = aa.attempt_id
-             SET aa.answer_text = NULL,
-                 aa.answer_snapshot_json = '{}',
-                 aa.category_scores_json = NULL
-             WHERE a.quiz_id = :quiz_id"
-        )->execute(['quiz_id' => $quizId]);
-        $pdo->prepare(
-            "UPDATE sr_quiz_attempt_result_scores ars
-             INNER JOIN sr_quiz_attempts a ON a.id = ars.attempt_id
-             SET ars.snapshot_json = '{}'
-             WHERE a.quiz_id = :quiz_id"
-        )->execute(['quiz_id' => $quizId]);
+        if ($driverName === 'sqlite') {
+            $pdo->prepare(
+                "UPDATE sr_quiz_attempt_answers
+                 SET answer_text = NULL,
+                     answer_snapshot_json = '{}',
+                     category_scores_json = NULL
+                 WHERE attempt_id IN (SELECT id FROM sr_quiz_attempts WHERE quiz_id = :quiz_id)"
+            )->execute(['quiz_id' => $quizId]);
+            $pdo->prepare(
+                "UPDATE sr_quiz_attempt_result_scores
+                 SET snapshot_json = '{}'
+                 WHERE attempt_id IN (SELECT id FROM sr_quiz_attempts WHERE quiz_id = :quiz_id)"
+            )->execute(['quiz_id' => $quizId]);
+        } else {
+            $pdo->prepare(
+                "UPDATE sr_quiz_attempt_answers aa
+                 INNER JOIN sr_quiz_attempts a ON a.id = aa.attempt_id
+                 SET aa.answer_text = NULL,
+                     aa.answer_snapshot_json = '{}',
+                     aa.category_scores_json = NULL
+                 WHERE a.quiz_id = :quiz_id"
+            )->execute(['quiz_id' => $quizId]);
+            $pdo->prepare(
+                "UPDATE sr_quiz_attempt_result_scores ars
+                 INNER JOIN sr_quiz_attempts a ON a.id = ars.attempt_id
+                 SET ars.snapshot_json = '{}'
+                 WHERE a.quiz_id = :quiz_id"
+            )->execute(['quiz_id' => $quizId]);
+        }
         $pdo->prepare(
             "UPDATE sr_quiz_reward_grants
              SET request_snapshot_json = '{}',

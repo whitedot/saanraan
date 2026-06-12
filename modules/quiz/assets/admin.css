@@ -197,3 +197,16 @@
         grid-template-columns: 1fr;
     }
 }
+
+.admin-quiz-reward-grants {
+    display: grid;
+    gap: calc(var(--spacing) * 1.5);
+    margin-top: calc(var(--spacing) * 2);
+}
+
+.admin-quiz-reward-grant {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 1.5);
+}
