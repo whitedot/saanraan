@@ -81,6 +81,7 @@ foreach ([
     'run-asset-smoke: no',
     'run-privacy-fixtures: no',
     'run-performance-fixtures: no',
+    'performance-review-ready: no',
     'mutation-smoke-allowed: no',
     "gate\t새 설치 또는 업데이트 적용\t",
     "gate\t`php .tools/bin/reconcile-assets.php`\t",
@@ -117,6 +118,7 @@ foreach ([
     "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t개인정보 export/cleanup smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for disposable account data",
+    "gate\t성능 수동 점검\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_PERFORMANCE_REVIEW_READY=1 after representative local/staging data is prepared",
 ] as $marker) {
     if ($baseOnlyOutput !== '' && !str_contains($baseOnlyOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status base-url-only output marker missing: ' . $marker);
@@ -428,6 +430,22 @@ foreach ([
     }
 }
 
+$performanceReviewReadyOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_PERFORMANCE_REVIEW_READY=1',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'performance-review-ready: yes',
+    "gate\t성능 수동 점검\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=representative data is marked ready; manually verify slow admin lists, sitemap, privacy export bounds, and query plans",
+] as $marker) {
+    if ($performanceReviewReadyOutput !== '' && !str_contains($performanceReviewReadyOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status performance ready output marker missing: ' . $marker);
+    }
+}
+
 $fixtureOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
@@ -466,6 +484,8 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_SMOKE_PASSWORD',
     'SR_SMOKE_EXPECT_DEDUPE_TABLE',
     'SR_SMOKE_EXPECT_DEDUPE_KEY',
+    'SR_PERFORMANCE_REVIEW_READY',
+    'performance-review-ready',
     'asset-dedupe-expectation',
     'dedupe row count evidence',
     'incomplete',
@@ -494,6 +514,8 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'check-admin-pagination-runtime.php',
     'check-community-board-copy-limits.php',
     'check-survey-export-runtime.php',
+    'sr_release_gate_status_performance_gate($baseUrl, $performanceReviewReady, $runPerformanceFixtures)',
+    'representative data is marked ready',
     'installed DB performance review still required',
     'installed DB smoke still required',
     'upload adapter, saved HTML sanitizer',

@@ -29,6 +29,7 @@ $adminIdentifier = (string) (getenv('SR_SMOKE_ADMIN_IDENTIFIER') ?: '');
 $adminPassword = (string) (getenv('SR_SMOKE_ADMIN_PASSWORD') ?: '');
 $assetDedupeTable = (string) (getenv('SR_SMOKE_EXPECT_DEDUPE_TABLE') ?: '');
 $assetDedupeKey = (string) (getenv('SR_SMOKE_EXPECT_DEDUPE_KEY') ?: '');
+$performanceReviewReady = getenv('SR_PERFORMANCE_REVIEW_READY') === '1';
 $accountSmokeCredentialStatus = sr_release_gate_status_pair_status($smokeIdentifier, $smokePassword);
 $adminSmokeCredentialStatus = sr_release_gate_status_pair_status($adminIdentifier, $adminPassword);
 $assetDedupeExpectationStatus = sr_release_gate_status_pair_status($assetDedupeTable, $assetDedupeKey);
@@ -503,14 +504,29 @@ function sr_release_gate_status_privacy_gate(string $baseUrl, string $accountSmo
     ];
 }
 
-function sr_release_gate_status_performance_gate(bool $runPerformanceFixtures): array
+function sr_release_gate_status_performance_gate(string $baseUrl, bool $performanceReviewReady, bool $runPerformanceFixtures): array
 {
     if (!$runPerformanceFixtures) {
+        if ($baseUrl !== '' && $performanceReviewReady) {
+            return [
+                'gate' => '성능 수동 점검',
+                'result' => '수동 확인 필요',
+                'environment' => $baseUrl,
+                'memo' => 'representative data is marked ready; manually verify slow admin lists, sitemap, privacy export bounds, and query plans',
+            ];
+        }
+
+        if ($baseUrl === '') {
+            $memo = 'set SR_SMOKE_BASE_URL and SR_PERFORMANCE_REVIEW_READY=1 after representative local/staging data is prepared; use --run-performance-fixtures only for static/runtime fixtures';
+        } else {
+            $memo = 'requires SR_PERFORMANCE_REVIEW_READY=1 after representative local/staging data is prepared; use --run-performance-fixtures only for static/runtime fixtures';
+        }
+
         return [
             'gate' => '성능 수동 점검',
             'result' => '미실행',
-            'environment' => 'installed DB with data',
-            'memo' => 'requires representative data for slow list, sitemap, and privacy export checks; use --run-performance-fixtures only for static/runtime fixtures',
+            'environment' => $baseUrl === '' ? 'base URL missing' : $baseUrl,
+            'memo' => $memo,
         ];
     }
 
@@ -605,7 +621,7 @@ $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCreden
 $gates[] = sr_release_gate_status_privacy_gate($baseUrl, $accountSmokeCredentialStatus, $allowMutationSmoke, $runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
 $gates[] = sr_release_gate_status_ckeditor_upload_save_gate($baseUrl, $adminSmokeCredentialStatus, $allowMutationSmoke);
-$gates[] = sr_release_gate_status_performance_gate($runPerformanceFixtures);
+$gates[] = sr_release_gate_status_performance_gate($baseUrl, $performanceReviewReady, $runPerformanceFixtures);
 
 $unresolved = 0;
 foreach ($gates as $gate) {
@@ -634,6 +650,7 @@ echo 'run-quiz-smoke: ' . ($runQuizSmoke ? 'yes' : 'no') . "\n";
 echo 'run-asset-smoke: ' . ($runAssetSmoke ? 'yes' : 'no') . "\n";
 echo 'run-privacy-fixtures: ' . ($runPrivacyFixtures ? 'yes' : 'no') . "\n";
 echo 'run-performance-fixtures: ' . ($runPerformanceFixtures ? 'yes' : 'no') . "\n";
+echo 'performance-review-ready: ' . ($performanceReviewReady ? 'yes' : 'no') . "\n";
 echo 'mutation-smoke-allowed: ' . ($allowMutationSmoke ? 'yes' : 'no') . "\n";
 foreach ($gates as $gate) {
     echo sr_release_gate_status_line(
