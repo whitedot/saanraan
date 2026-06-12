@@ -280,6 +280,9 @@ function sr_admin_event_type_label_options(): array
         'site.setting.saved' => '사이트 설정 저장',
         'site.setting.deleted' => '사이트 설정 삭제',
         'site.homepage.updated' => '초기화면 설정 변경',
+        'site.currency.changed' => '기본 통화 변경',
+        'site.currency.reauth_blocked' => '기본 통화 변경 재인증 제한',
+        'site.currency.reauth_failed' => '기본 통화 변경 재인증 실패',
         'admin.settings.updated' => '관리자 설정 변경',
         'admin.menu.updated' => '관리자 메뉴 표시 설정 변경',
         'admin.role.changed' => '관리자 권한 변경',
@@ -783,6 +786,314 @@ function sr_admin_post_site_setting_values(?array $site): array
         'member_only_enabled' => sr_post_string('member_only_enabled', 1) === '1' ? '1' : '0',
         'public_layout_key' => sr_public_layout_normalize_key(sr_post_string('public_layout_key', 80)),
         'home_path' => sr_post_string('home_path', 255),
+    ];
+}
+
+function sr_admin_currency_change_confirmation_phrase(string $currentCurrency, string $newCurrency): string
+{
+    return sr_normalize_currency_code($currentCurrency) . '에서 ' . sr_normalize_currency_code($newCurrency) . '로 변경';
+}
+
+function sr_admin_currency_change_known_currency_options(): array
+{
+    return array_keys(sr_known_currency_min_units());
+}
+
+function sr_admin_currency_change_impact_specs(): array
+{
+    return [
+        [
+            'label' => '콘텐츠 열람/완료 정책',
+            'table' => 'sr_content_items',
+            'columns' => ['asset_access_settlement_currency', 'asset_action_settlement_currency'],
+            'kind' => 'policy',
+        ],
+        [
+            'label' => '콘텐츠 revision 정책',
+            'table' => 'sr_content_revisions',
+            'columns' => ['asset_access_settlement_currency', 'asset_action_settlement_currency'],
+            'kind' => 'snapshot',
+        ],
+        [
+            'label' => '콘텐츠 다운로드 정책',
+            'table' => 'sr_content_files',
+            'columns' => ['asset_download_settlement_currency'],
+            'kind' => 'policy',
+        ],
+        [
+            'label' => '콘텐츠 열람 로그',
+            'table' => 'sr_content_asset_access_logs',
+            'columns' => ['settlement_currency'],
+            'kind' => 'log',
+        ],
+        [
+            'label' => '콘텐츠 완료 버튼 로그',
+            'table' => 'sr_content_asset_action_logs',
+            'columns' => ['settlement_currency'],
+            'kind' => 'log',
+        ],
+        [
+            'label' => '커뮤니티 자산 처리 로그',
+            'table' => 'sr_community_asset_logs',
+            'columns' => ['settlement_currency'],
+            'kind' => 'log',
+        ],
+    ];
+}
+
+function sr_admin_currency_change_table_exists(PDO $pdo, string $tableName): bool
+{
+    if (preg_match('/\Asr_[a-z0-9_]+\z/', $tableName) !== 1) {
+        return false;
+    }
+
+    $physicalTableName = $tableName;
+    if ($pdo instanceof SrPrefixedPDO && $pdo->srTablePrefix() !== 'sr_') {
+        $physicalTableName = $pdo->srTablePrefix() . substr($tableName, 3);
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) AS table_count
+               FROM INFORMATION_SCHEMA.TABLES
+              WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = :table_name'
+        );
+        $stmt->execute(['table_name' => $physicalTableName]);
+        return (int) ($stmt->fetchColumn() ?: 0) > 0;
+    } catch (Throwable $exception) {
+        try {
+            $stmt = $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
+            if ($stmt instanceof PDOStatement) {
+                $stmt->closeCursor();
+            }
+            return true;
+        } catch (Throwable $ignored) {
+            return false;
+        }
+    }
+}
+
+function sr_admin_currency_change_column_distribution(PDO $pdo, string $tableName, string $columnName): array
+{
+    if (
+        preg_match('/\Asr_[a-z0-9_]+\z/', $tableName) !== 1
+        || preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $columnName) !== 1
+    ) {
+        return [];
+    }
+
+    if (!sr_admin_currency_change_table_exists($pdo, $tableName)) {
+        return [];
+    }
+
+    try {
+        $stmt = $pdo->query(
+            'SELECT ' . $columnName . ' AS currency_code, COUNT(*) AS row_count
+               FROM ' . $tableName . '
+              GROUP BY ' . $columnName . '
+              ORDER BY ' . $columnName . ' ASC'
+        );
+    } catch (Throwable $exception) {
+        return [];
+    }
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $currencyCode = sr_normalize_currency_code((string) ($row['currency_code'] ?? ''));
+        if ($currencyCode === '') {
+            $currencyCode = '(empty)';
+        }
+        $rows[$currencyCode] = (int) ($row['row_count'] ?? 0);
+    }
+
+    return $rows;
+}
+
+function sr_admin_currency_change_impact_summary(PDO $pdo): array
+{
+    $summaryRows = [];
+    $totalsByCurrency = [];
+    $knownCurrencyMap = array_fill_keys(sr_admin_currency_change_known_currency_options(), true);
+    $unknownCurrencies = [];
+
+    foreach (sr_admin_currency_change_impact_specs() as $spec) {
+        $tableName = (string) ($spec['table'] ?? '');
+        foreach ((array) ($spec['columns'] ?? []) as $columnName) {
+            $columnName = (string) $columnName;
+            $distribution = sr_admin_currency_change_column_distribution($pdo, $tableName, $columnName);
+            if ($distribution === []) {
+                continue;
+            }
+
+            foreach ($distribution as $currencyCode => $rowCount) {
+                $totalsByCurrency[$currencyCode] = (int) ($totalsByCurrency[$currencyCode] ?? 0) + $rowCount;
+                if (!isset($knownCurrencyMap[$currencyCode])) {
+                    $unknownCurrencies[$currencyCode] = $currencyCode;
+                }
+            }
+
+            $summaryRows[] = [
+                'label' => (string) ($spec['label'] ?? $tableName),
+                'table' => $tableName,
+                'column' => $columnName,
+                'kind' => (string) ($spec['kind'] ?? ''),
+                'distribution' => $distribution,
+            ];
+        }
+    }
+
+    ksort($totalsByCurrency);
+    ksort($unknownCurrencies);
+
+    return [
+        'rows' => $summaryRows,
+        'totals_by_currency' => $totalsByCurrency,
+        'unknown_currencies' => array_values($unknownCurrencies),
+        'asset_purchase_power' => sr_admin_currency_change_asset_purchase_power_summary($pdo),
+    ];
+}
+
+function sr_admin_currency_change_asset_purchase_power_summary(PDO $pdo): array
+{
+    $assetRows = [];
+    $assetHelperPath = SR_ROOT . '/modules/member/helpers/assets.php';
+    if (!is_file($assetHelperPath)) {
+        return $assetRows;
+    }
+
+    require_once $assetHelperPath;
+    if (!function_exists('sr_member_assets')) {
+        return $assetRows;
+    }
+
+    try {
+        $assets = sr_member_assets($pdo);
+    } catch (Throwable $exception) {
+        return $assetRows;
+    }
+
+    foreach ($assets as $moduleKey => $asset) {
+        if (!is_array($asset)) {
+            continue;
+        }
+        $purchasePower = is_array($asset['purchase_power'] ?? null) ? $asset['purchase_power'] : [];
+        $assetRows[] = [
+            'module_key' => (string) $moduleKey,
+            'label' => (string) ($asset['label'] ?? $moduleKey),
+            'asset_units' => max(1, (int) ($purchasePower['asset_units'] ?? 1)),
+            'settlement_units' => max(1, (int) ($purchasePower['settlement_units'] ?? 1)),
+            'settlement_currency' => sr_normalize_currency_code((string) ($purchasePower['settlement_currency'] ?? sr_site_default_currency($pdo))),
+        ];
+    }
+
+    return $assetRows;
+}
+
+function sr_admin_handle_currency_change_post(PDO $pdo, array $account, ?array $site): array
+{
+    $errors = [];
+    $notice = '';
+    $accountId = (int) ($account['id'] ?? 0);
+    $currentCurrency = sr_site_default_currency($pdo);
+    $newCurrency = sr_normalize_currency_code(sr_post_string('new_default_currency', 20));
+    $confirmation = sr_clean_single_line(sr_post_string('currency_change_confirmation', 120), 120);
+    $reason = sr_clean_text(sr_post_string('currency_change_reason', 1000), 1000);
+    $password = sr_post_string('currency_change_password', 255);
+    $impactSummary = sr_admin_currency_change_impact_summary($pdo);
+    $values = sr_admin_site_setting_values($site, $pdo);
+
+    if (!sr_currency_is_known($newCurrency)) {
+        $errors[] = '변경할 기본 통화 값이 올바르지 않습니다.';
+    }
+
+    if ($newCurrency === $currentCurrency) {
+        $errors[] = '현재 기본 통화와 다른 값을 선택하세요.';
+    }
+
+    $expectedConfirmation = sr_admin_currency_change_confirmation_phrase($currentCurrency, $newCurrency);
+    if ($confirmation !== $expectedConfirmation) {
+        $errors[] = '확인 문구가 일치하지 않습니다. "' . $expectedConfirmation . '"를 정확히 입력하세요.';
+    }
+
+    if ($reason === '') {
+        $errors[] = '기본 통화 변경 사유를 입력하세요.';
+    }
+
+    if ($accountId < 1) {
+        $errors[] = '재인증 계정을 확인할 수 없습니다.';
+    }
+
+    if ($errors === [] && !empty(sr_member_reauth_throttle_status($pdo, $accountId)['limited'])) {
+        sr_member_log_auth($pdo, $accountId, 'reauth_blocked', 'failure');
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'site.currency.reauth_blocked',
+            'target_type' => 'site_settings',
+            'target_id' => 'site.default_currency',
+            'result' => 'failure',
+            'message' => 'Site default currency reauthentication blocked by throttle.',
+            'metadata' => [
+                'before' => ['default_currency' => $currentCurrency],
+                'after' => ['default_currency' => $newCurrency],
+            ],
+        ]);
+        $errors[] = '재인증 시도가 많습니다. 잠시 후 다시 시도하세요.';
+    }
+
+    if ($errors === [] && ($password === '' || !password_verify($password, (string) ($account['password_hash'] ?? '')))) {
+        sr_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'failure');
+        sr_audit_log($pdo, [
+            'actor_account_id' => $accountId,
+            'actor_type' => 'admin',
+            'event_type' => 'site.currency.reauth_failed',
+            'target_type' => 'site_settings',
+            'target_id' => 'site.default_currency',
+            'result' => 'failure',
+            'message' => 'Site default currency reauthentication failed.',
+            'metadata' => [
+                'before' => ['default_currency' => $currentCurrency],
+                'after' => ['default_currency' => $newCurrency],
+            ],
+        ]);
+        $errors[] = '현재 관리자 비밀번호가 올바르지 않습니다.';
+    }
+
+    if ($errors === []) {
+        $beforeValues = sr_admin_previous_site_setting_values($site, $pdo);
+        sr_member_log_auth($pdo, $accountId, 'site_setting_reauth', 'success');
+
+        sr_save_site_setting($pdo, 'site.default_currency', $newCurrency, 'string');
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'site.currency.changed',
+            'target_type' => 'site_settings',
+            'target_id' => 'site.default_currency',
+            'result' => 'success',
+            'message' => 'Site default currency changed.',
+            'metadata' => [
+                'before' => ['default_currency' => $currentCurrency],
+                'after' => ['default_currency' => $newCurrency],
+                'reason' => $reason,
+                'confirmation_phrase' => $confirmation,
+                'impact_summary' => $impactSummary,
+                'site_settings_before' => $beforeValues,
+            ],
+        ]);
+
+        $notice = '기본 통화를 변경했습니다. 기존 가격, 로그, 구매력 snapshot은 변환되지 않습니다.';
+        $site = sr_load_site($pdo);
+        $values = sr_admin_site_setting_values(is_array($site) ? $site : null, $pdo);
+    }
+
+    return [
+        'errors' => $errors,
+        'notice' => $notice,
+        'values' => $values,
+        'site' => $site,
     ];
 }
 

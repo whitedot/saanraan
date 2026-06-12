@@ -396,6 +396,26 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
             $errors[] = '공용 아이콘 설정 저장 중 오류가 발생했습니다. 오류 로그를 확인해 주세요.';
         }
     }
+} elseif (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'currency_change') {
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/settings', 'edit');
+    sr_admin_require_owner($pdo, (int) $account['id']);
+    sr_require_csrf();
+
+    try {
+        $postResult = sr_admin_handle_currency_change_post($pdo, $account, $site ?? null);
+        $errors = $postResult['errors'];
+        $notice = (string) $postResult['notice'];
+        $values = array_merge($postResult['values'], [
+            'admin_skin_key' => $adminSkinKey,
+            'admin_color_scheme' => $adminColorScheme,
+            'list_pagination_per_page' => $listPaginationPerPage,
+            'admin_editor' => $adminEditorKey,
+        ]);
+        $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'admin_currency_change_failed');
+        $errors[] = '기본 통화 변경 중 오류가 발생했습니다. 오류 로그를 확인해 주세요.';
+    }
 } elseif (sr_request_method() === 'POST') {
     sr_require_csrf();
     $errors[] = '사이트 설정 작업 값이 올바르지 않습니다.';
@@ -417,5 +437,19 @@ $siteNameReadReferences = sr_read_reference_collect($pdo, 'site-setting-referenc
     'old_value' => (string) ($values['name'] ?? ''),
     'new_value' => (string) ($values['name'] ?? ''),
 ]);
+$currencyChangeCurrentCurrency = sr_site_default_currency($pdo);
+$currencyChangeCanChange = sr_admin_is_owner($pdo, (int) $account['id']);
+$currencyChangeImpactSummary = $currencyChangeCanChange ? sr_admin_currency_change_impact_summary($pdo) : [
+    'rows' => [],
+    'totals_by_currency' => [],
+    'unknown_currencies' => [],
+    'asset_purchase_power' => [],
+];
+$currencyChangeCurrencyOptions = array_values(array_filter(
+    sr_admin_currency_change_known_currency_options(),
+    static fn (string $currencyCode): bool => $currencyCode !== $currencyChangeCurrentCurrency
+));
+$currencyChangeDefaultTargetCurrency = $currencyChangeCurrencyOptions[0] ?? $currencyChangeCurrentCurrency;
+$currencyChangeConfirmationPhrase = sr_admin_currency_change_confirmation_phrase($currencyChangeCurrentCurrency, $currencyChangeDefaultTargetCurrency);
 
 include SR_ROOT . '/modules/admin/views/settings.php';
