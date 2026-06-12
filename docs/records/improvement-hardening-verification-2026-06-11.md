@@ -162,6 +162,12 @@ php .tools/bin/release-installed-gate-status.php --fail-on-unresolved
 => unresolved-gates: 13
 => exit 1
 
+php .tools/bin/release-installed-gate-status.php --help
+=> Handoff:
+=> php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved
+=> config/config.php is 0600 and owned by the web-server account
+=> SR_SMOKE_BASE_URL=https://staging.example.test ... --json --fail-on-unresolved
+
 SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-gate-status.php --run-browser-qa
 => browser-qa-base-url: http://127.0.0.1:8082
 => run-browser-qa: yes
@@ -171,7 +177,7 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 
 ## 릴리스 후보 필수 설치 DB 게이트
 
-이번 기록은 릴리스 후보 판정이 아니므로 필수 설치 DB 게이트를 통과로 계산하지 않는다. `php .tools/bin/release-installed-gate-status.php`가 현재 환경에서 `installed.lock`은 있으나 `config/config.php`가 현재 CLI 사용자에게 읽히지 않아 `sr-is-installed: no`라고 보고했다. `php .tools/bin/release-installed-gate-status.php --markdown-table` 출력은 같은 13개 미해결 행을 표 형태로 전사할 수 있음을 확인했고, `php .tools/bin/release-installed-gate-status.php --json` 출력은 같은 분포를 구조화 증거로 남긴다. `--fail-on-unresolved`는 현재 미해결 13개 상태를 exit 1로 반환하므로 CI/릴리스 스크립트에서 릴리스 통과 오판을 막는 자동화 게이트로 쓸 수 있다. 설치 DB, 인증 계정, 더미 데이터, 브라우저 확인이 필요한 항목은 아래처럼 미실행 또는 환경 미준비로 남긴다.
+이번 기록은 릴리스 후보 판정이 아니므로 필수 설치 DB 게이트를 통과로 계산하지 않는다. `php .tools/bin/release-installed-gate-status.php`가 현재 환경에서 `installed.lock`은 있으나 `config/config.php`가 현재 CLI 사용자에게 읽히지 않아 `sr-is-installed: no`라고 보고했다. `php .tools/bin/release-installed-gate-status.php --markdown-table` 출력은 같은 13개 미해결 행을 표 형태로 전사할 수 있음을 확인했고, `php .tools/bin/release-installed-gate-status.php --json` 출력은 같은 분포를 구조화 증거로 남긴다. `--fail-on-unresolved`는 현재 미해결 13개 상태를 exit 1로 반환하므로 CI/릴리스 스크립트에서 릴리스 통과 오판을 막는 자동화 게이트로 쓸 수 있다. `--help`의 Handoff 절은 현재 CLI 사용자가 `config/config.php`를 읽지 못하는 경우 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 `php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved`를 다시 실행하라고 안내한다. 로컬/staging HTTP와 관리자 계정이 준비되면 `SR_SMOKE_BASE_URL`, `SR_SMOKE_ADMIN_IDENTIFIER`, `SR_SMOKE_ADMIN_PASSWORD`를 지정한 뒤 `php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved`로 구조화 증거를 남기는 경로도 함께 확인했다. 설치 DB, 인증 계정, 더미 데이터, 브라우저 확인이 필요한 항목은 아래처럼 미실행 또는 환경 미준비로 남긴다.
 
 | 게이트 | 결과 | 환경 | 메모 |
 | --- | --- | --- | --- |
@@ -253,7 +259,7 @@ saanraan HTTP smoke checks completed.
 | CKEditor 브라우저 점검 | 부분 확인 | `ckeditor-browser-smoke.spec.js`가 self-hosted CKEditor JS/CSS와 산란 loader를 실제 브라우저에서 로드하고, 초기화 성공 시 `body_format=html` hidden input 생성, 번들 로딩 실패 시 `sr-ckeditor-unavailable` fallback과 textarea 유지 확인. 같은 spec이 mock upload endpoint로 upload adapter의 image field, `csrf_token`, `upload_token`, 커뮤니티 개인정보 동의 field multipart 전송과 서버 성공/오류 JSON 처리를 확인. 실제 서버 업로드 action, 저장 HTML, 권한별 본문 이미지 접근은 설치 DB 필요 | 설치 DB에서 서버 업로드 action, 저장 HTML, 권한별 본문 이미지 접근 smoke 확인 |
 | HTML Purifier vendoring | 기존 보완 항목 | `modules/htmlpurifier/vendor/` 포함 방향으로 전환되고 패키지 dry-run, `check-htmlpurifier-runtime.php`, `release-preflight.php`에서 vendor/license/version, Purifier 로드 상태, cache 경로, 후보 파일 수, manifest hash 형식을 확인함 | 릴리스 빌드 절차에서 실제 zip checksum과 Purifier 로드 상태 확인 |
 | 실제 성능/실행 계획 | 미실행 | 설치 DB와 데이터 규모가 없어 정적 marker만 확인 | 느린 관리자 목록, sitemap, 개인정보 export를 설치 DB에서 수동 점검 |
-| 릴리스 후보 필수 설치 DB 게이트 | 기존 보완 항목 | 이번 기록은 릴리스 후보 판정이 아니라 개선 묶음 점검이다 | 릴리스 후보 기록에서는 `release-verification-template.md`의 필수 설치 DB 게이트를 실행하거나 미실행 시 `조건부 통과`/`판정 보류`로 낮춘다 |
+| 릴리스 후보 필수 설치 DB 게이트 | 기존 보완 항목 | 이번 기록은 릴리스 후보 판정이 아니라 개선 묶음 점검이다. `--help` handoff와 템플릿은 `config/config.php` 권한을 넓히지 않고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 `--run-readonly --fail-on-unresolved`를 다시 실행하는 경로를 안내한다 | 릴리스 후보 기록에서는 `release-verification-template.md`의 필수 설치 DB 게이트를 실행하거나 미실행 시 `조건부 통과`/`판정 보류`로 낮춘다 |
 
 ## 리스크별 릴리스 판정 연결
 
