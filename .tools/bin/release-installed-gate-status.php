@@ -38,6 +38,19 @@ $markdownTable = in_array('--markdown-table', $args, true);
 $jsonOutput = in_array('--json', $args, true);
 $failOnUnresolved = in_array('--fail-on-unresolved', $args, true);
 $showHelp = in_array('--help', $args, true) || in_array('-h', $args, true);
+
+if ($showHelp) {
+    echo sr_release_gate_status_help();
+    exit(0);
+}
+
+$unknownArgs = array_values(array_diff($args, $allowedArgs));
+if ($unknownArgs !== []) {
+    fwrite(STDERR, 'Unknown release-installed-gate-status option: ' . implode(', ', $unknownArgs) . "\n");
+    fwrite(STDERR, "Run php .tools/bin/release-installed-gate-status.php --help for supported options.\n");
+    exit(2);
+}
+
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -96,18 +109,6 @@ Safety:
   by the current CLI user, keep the file permissions tight and rerun as the web-server
   user or a local/staging-only execution user.
 TEXT;
-}
-
-if ($showHelp) {
-    echo sr_release_gate_status_help();
-    exit(0);
-}
-
-$unknownArgs = array_values(array_diff($args, $allowedArgs));
-if ($unknownArgs !== []) {
-    fwrite(STDERR, 'Unknown release-installed-gate-status option: ' . implode(', ', $unknownArgs) . "\n");
-    fwrite(STDERR, "Run php .tools/bin/release-installed-gate-status.php --help for supported options.\n");
-    exit(2);
 }
 
 function sr_release_gate_status_line(string $gate, string $result, string $environment, string $memo): string
