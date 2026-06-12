@@ -487,6 +487,8 @@ foreach ([
     'docs/records/improvement-hardening-verification-2026-06-11.md' => [
         '대상 범위',
         '단일 hash 대신 각 작업 단위 commit',
+        '포트는 실행 시점별 가용 포트',
+        'SR_SMOKE_BASE_URL=http://127.0.0.1:<port>',
         'check-release-verification-records.php',
         'self-test',
         '조건부 통과',

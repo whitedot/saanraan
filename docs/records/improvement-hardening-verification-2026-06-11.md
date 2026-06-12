@@ -13,7 +13,7 @@
 | 작업 트리 상태 | `clean` |
 | PHP 버전 | `PHP 8.4.12 (cli)` |
 | DB | 미사용 |
-| base URL | `http://127.0.0.1:8079` |
+| base URL | 로컬 PHP 내장 서버 재검증. 포트는 실행 시점별 가용 포트를 사용 |
 | 설치 상태 | 미설치 로컬 환경 |
 
 ## 범위
@@ -178,14 +178,14 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 서버 실행 명령:
 
 ```sh
-php -S 127.0.0.1:8079 -t .tools/public .tools/bin/dev-router.php
+php -S 127.0.0.1:<port> -t .tools/public .tools/bin/dev-router.php
 ```
 
 | 점검 | 결과 | 메모 |
 | --- | --- | --- |
-| `SR_SMOKE_BASE_URL=http://127.0.0.1:8079 php .tools/bin/smoke-http.php` | 통과 | 미설치 install-mode 기준. 동적 진입점, CKEditor self-hosted asset, 보호 경로 403 확인 |
-| `SR_SMOKE_BASE_URL=http://127.0.0.1:8079 SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php` | 미실행 | 커뮤니티 설치 DB 없음 |
-| `SR_SMOKE_BASE_URL=http://127.0.0.1:8079 SR_SMOKE_MEMBER_ONLY=1 php .tools/bin/smoke-http.php` | 미실행 | 회원 전용 설치 DB 없음 |
+| `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> php .tools/bin/smoke-http.php` | 통과 | 미설치 install-mode 기준. 동적 진입점, CKEditor self-hosted asset, 보호 경로 403 확인 |
+| `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> SR_SMOKE_EXPECT_COMMUNITY=1 php .tools/bin/smoke-http.php` | 미실행 | 커뮤니티 설치 DB 없음 |
+| `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> SR_SMOKE_MEMBER_ONLY=1 php .tools/bin/smoke-http.php` | 미실행 | 회원 전용 설치 DB 없음 |
 
 결과 로그 요약:
 

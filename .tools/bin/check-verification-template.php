@@ -176,6 +176,8 @@ if (is_string($improvementRecord)) {
         '이번 기록은 1.0 릴리스 후보 판정이 아니라',
         '대상 범위',
         '단일 hash 대신 각 작업 단위 commit',
+        '포트는 실행 시점별 가용 포트',
+        'SR_SMOKE_BASE_URL=http://127.0.0.1:<port>',
         'R-01 자산/쿠폰/유료 접근권',
         'R-02 HTML sanitizer/CKEditor',
         'R-03 공유호스팅 queue/cron/배치',
