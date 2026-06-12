@@ -160,6 +160,11 @@ if (is_string($verificationStatus)) {
         '리스크별 릴리스 판정 연결 결과',
         '미설치 install-mode smoke만으로 통과 처리하지 않는다',
         'check-release-verification-records.php',
+        'release-installed-gate-status.php --run-readonly',
+        'smoke-asset-idempotency-http.php',
+        'dedupe row count',
+        'CKEditor 서버 업로드 action',
+        '실행 계획/인덱스 상태',
         '조건부 통과',
         '판정 보류',
     ] as $marker) {
