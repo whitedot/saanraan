@@ -364,6 +364,12 @@ foreach ([
     }
 }
 
+$markdownFailOutput = sr_installed_gate_status_exec_result([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--markdown-table', '--fail-on-unresolved']);
+if ((int) $markdownFailOutput['exit_code'] !== 1) {
+    sr_installed_gate_status_error('Installed gate status --markdown-table --fail-on-unresolved must exit 1 while gates are unresolved.');
+}
+sr_installed_gate_status_assert_markdown_table('markdown fail-on-unresolved output', (string) $markdownFailOutput['output']);
+
 $jsonFailOutput = sr_installed_gate_status_exec_result([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--json', '--fail-on-unresolved']);
 if ((int) $jsonFailOutput['exit_code'] !== 1) {
     sr_installed_gate_status_error('Installed gate status --json --fail-on-unresolved must exit 1 while gates are unresolved.');
