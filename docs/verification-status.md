@@ -201,7 +201,7 @@ php .tools/bin/smoke-http.php
 - [개인정보 계약 매트릭스](privacy-contract-matrix.md)는 번들 모듈별 사본 제공, 탈퇴/익명화 cleanup, 운영 보존 판단을 분리한다.
 - `.tools/bin/check-privacy-contract-matrix.php`는 매트릭스의 상태와 `module.php` 계약 선언, 실제 `privacy-export.php`/`privacy-cleanup.php` 파일 존재, 계약 파일 반환 형태와 callable signature, `install.sql`의 계정 연결 컬럼 문서화, `operational_retained` 모듈의 보존 사유/운영자 접근 범위/1.0 전 검토 항목, `export_retained` 모듈의 보존 사유/고위험 필드/1.0 전 검토 항목을 대조한다.
 - 같은 점검은 `updates/*.sql`도 함께 훑어 update로 새 `*_account_id` 계열 참조가 생겼는데 개인정보 매트릭스 상태가 따라오지 않는 경우를 막는다.
-- `.tools/bin/check-privacy-export-runtime.php`는 SQLite fixture로 `quiz`, `survey`, `content`, `community` export 계약을 실행한다. 대상 계정의 상세 답변, snapshot, 접근권, 자산 로그, 다운로드 로그, 작가 신청, 시리즈, 댓글/게시글, 신고/쪽지/스크랩/동의 증적이 포함되고 다른 계정 row가 제외되는지 확인한다.
+- `.tools/bin/check-privacy-export-runtime.php`는 SQLite fixture로 `quiz`, `survey`, `content`, `community` export 계약과 `asset_exchange`, `coupon`, `deposit`, `notification`, `point`, `reward` 보존형 export 계약을 실행한다. 대상 계정의 상세 답변, snapshot, 접근권, 자산 로그, 다운로드 로그, 작가 신청, 시리즈, 댓글/게시글, 신고/쪽지/스크랩/동의 증적이 포함되고 다른 계정 row가 제외되는지 확인한다. 보존형 fixture는 금액성 원장, 쿠폰 환불, 환불/출금 계좌, 알림 delivery, 포인트 만료 소비 매핑 같은 운영 증빙 필드가 대상 계정 기준으로 포함되는지 확인한다.
 - `.tools/bin/check-privacy-cleanup-runtime.php`는 SQLite fixture로 `quiz`, `survey`, `content`, `community` cleanup 계약을 실행한다. 대상 계정의 응시/응답, 보상 grant, 접근권, 다운로드 로그, 작가 신청, 닉네임, 레벨, 동의 증적, 시리즈 메타데이터, 댓글/게시글 작성자 snapshot이 익명화되고 다른 계정 row가 유지되는지 확인한다.
 - 모듈이 늘어날수록 계약 구현 매트릭스를 유지해야 하며, 누락은 단순 TODO가 아니라 개인정보 또는 운영 정합성 리스크로 다룬다.
 
