@@ -290,5 +290,7 @@ saanraan HTTP smoke checks completed.
 
 - HTML Purifier와 CKEditor asset 포함 배포 빌드 절차에서 vendor/license/version 포함과 `release-preflight.php` 출력값을 확인한다.
 - 설치 로컬 DB에서 `reconcile-assets.php`, `ops-status.php`, 인증 smoke를 실행한다.
-- 설치 로컬 DB에서 `/admin/assets/reconciliation` 화면을 확인한다.
+- 설치 로컬 DB에서 `/admin/assets/reconciliation`과 `/admin/operations` 화면을 확인한다.
+- 로컬/staging 더미 유료 대상에서 `smoke-asset-idempotency-http.php` 병렬 mutation smoke와 dedupe row count를 기록한다.
 - 설치 DB에서 CKEditor 업로드 adapter, 저장 HTML sanitizer, 권한별 본문 이미지 접근 smoke를 날짜별 기록으로 남긴다.
+- 설치 DB 대표 데이터로 느린 관리자 목록, sitemap, 개인정보 export의 실행 시간과 실행 계획/인덱스 상태를 기록한다.
