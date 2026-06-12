@@ -162,7 +162,7 @@ php .tools/bin/release-installed-gate-status.php
 | 인증 smoke | 미실행 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php`, `smoke-quiz-e2e.php` 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB + 더미 데이터 없음 | SQLite fixture만 확인 |
 | 개인정보 export/cleanup smoke | 미실행 | 설치 DB + 더미 계정 없음 | SQLite fixture와 계약 매트릭스만 확인 |
-| CKEditor asset/fallback browser smoke | 통과 | 설치 DB 없는 로컬 브라우저 환경 | `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8194 npm --prefix .tools/browser-qa run test:ckeditor`로 4 tests passed. self-hosted asset 로딩, `body_format=html` marker, textarea fallback, upload adapter request contract 확인 |
+| CKEditor asset/fallback browser smoke | 통과 | 설치 DB 없는 로컬 브라우저 환경 | 2026-06-12 재검증에서 `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8081 npm --prefix .tools/browser-qa run test:ckeditor`로 4 tests passed. self-hosted asset 로딩, `body_format=html` marker, textarea fallback, upload adapter request contract 확인 |
 | CKEditor upload/save browser smoke | 미실행 | 브라우저 + 설치 DB 없음 | 업로드 adapter, 저장 HTML sanitizer, 권한별 본문 이미지 접근은 설치 DB 필요 |
 | 성능 수동 점검 | 미실행 | 데이터가 있는 설치 DB 없음 | 정적 marker와 pagination fixture만 확인 |
 
