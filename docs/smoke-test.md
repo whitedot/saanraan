@@ -241,10 +241,13 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 
 ```sh
 SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_ALLOW_MUTATION=1 \
 SR_SMOKE_IDENTIFIER=writer@example.com \
 SR_SMOKE_PASSWORD='password' \
 php .tools/bin/smoke-community-auth.php
 ```
+
+스크립트는 mutation 안전장치로 기본 실행을 거부하고 `SR_SMOKE_ALLOW_MUTATION=1`을 요구한다.
 
 ## 읽기 참조 계약 스모크
 

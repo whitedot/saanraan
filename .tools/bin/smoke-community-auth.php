@@ -21,9 +21,10 @@ function sr_auth_smoke_argument(array $argv, int $index, string $environmentKey,
 function sr_auth_smoke_usage(): string
 {
     return "Usage: php .tools/bin/smoke-community-auth.php http://127.0.0.1:8080 login@example.com password [board_key] [recipient_identifier] [post_id] [reporter_identifier] [reporter_password] [admin_identifier] [admin_password] [recipient_password]\n"
-        . "Env: SR_SMOKE_BASE_URL SR_SMOKE_IDENTIFIER SR_SMOKE_PASSWORD SR_SMOKE_BOARD_KEY SR_SMOKE_RECIPIENT_IDENTIFIER SR_SMOKE_POST_ID SR_SMOKE_REPORTER_IDENTIFIER SR_SMOKE_REPORTER_PASSWORD SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_RECIPIENT_PASSWORD\n";
+        . "Env: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_BASE_URL SR_SMOKE_IDENTIFIER SR_SMOKE_PASSWORD SR_SMOKE_BOARD_KEY SR_SMOKE_RECIPIENT_IDENTIFIER SR_SMOKE_POST_ID SR_SMOKE_REPORTER_IDENTIFIER SR_SMOKE_REPORTER_PASSWORD SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_RECIPIENT_PASSWORD\n";
 }
 
+$allowMutation = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
 $baseUrl = rtrim(sr_auth_smoke_argument($argv, 1, 'SR_SMOKE_BASE_URL'), '/');
 $identifier = sr_auth_smoke_argument($argv, 2, 'SR_SMOKE_IDENTIFIER');
 $password = sr_auth_smoke_argument($argv, 3, 'SR_SMOKE_PASSWORD');
@@ -56,6 +57,12 @@ if ($configurationErrors !== []) {
     foreach ($configurationErrors as $error) {
         fwrite(STDERR, '- ' . $error . "\n");
     }
+    exit(2);
+}
+
+if (!$allowMutation) {
+    fwrite(STDERR, "saanraan authenticated community smoke refused to run because it creates community data. Set SR_SMOKE_ALLOW_MUTATION=1 only on local or staging disposable data.\n");
+    fwrite(STDERR, sr_auth_smoke_usage());
     exit(2);
 }
 

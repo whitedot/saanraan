@@ -195,6 +195,8 @@ sr_community_release_file_contains('.tools/bin/smoke-http.php', [
     'returned 404 while SR_SMOKE_EXPECT_COMMUNITY=1',
 ], 'Community installed HTTP smoke mode');
 sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
+    'SR_SMOKE_ALLOW_MUTATION=1',
+    'saanraan authenticated community smoke refused to run because it creates community data.',
     'reporter_identifier and reporter_password must be provided together.',
     'admin_identifier and admin_password must be provided together.',
     'recipient_password requires recipient_identifier.',
@@ -249,6 +251,22 @@ sr_community_release_command(
         'recipient_password requires recipient_identifier.',
     ],
     'Community authenticated smoke recipient password guard'
+);
+sr_community_release_command(
+    [
+        'env',
+        'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+        'SR_SMOKE_IDENTIFIER=writer',
+        'SR_SMOKE_PASSWORD=12341234',
+        PHP_BINARY,
+        '.tools/bin/smoke-community-auth.php',
+    ],
+    2,
+    [
+        'saanraan authenticated community smoke refused to run because it creates community data.',
+        'SR_SMOKE_ALLOW_MUTATION=1',
+    ],
+    'Community authenticated smoke mutation guard'
 );
 
 $requiredPackageEntries = [

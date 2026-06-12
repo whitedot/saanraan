@@ -103,7 +103,7 @@
 | `php .tools/bin/check-module-status.php` | 통과 | 번들 모듈과 상태표 행 일치, 상태 값, 현재 증거, 1.0 전 보강 기준, 주요 고위험 모듈별 자동 증거 marker, 개선 기록의 기존 상태와 `module-status.md` 현재 상태 일치, `beta` 모듈별 구체 smoke/수동/reconciliation/브라우저/동시성 보강 대상 점검 |
 | `php .tools/bin/check-verification-template.php` | 통과 | 릴리스 후보 필수 설치 DB 게이트와 미실행 판정 기준 점검 |
 | `php .tools/bin/check-release-verification-records.php` | 통과 | 검증 기록 section, 최종 판정, 리스크 row, 릴리스 후보 필수 설치 DB 게이트 행별 결과가 모두 `통과`가 아닐 때 `통과` 판정 금지, 미해결 설치 DB 게이트의 환경/메모 누락 금지, 미실행 여부 플래그 일치, 개선 기록의 비릴리스 후보 조건부 판정 점검, 판정 규칙 self-test |
-| `php .tools/bin/check-installed-gate-status.php` | 통과 | 설치 DB 게이트 상태표 도구의 출력 형식, `config-mode`/`config-owner-group` 출력, 필수 게이트 행, 관리자 화면 게이트와 일반 smoke 계정의 missing/incomplete/configured 분기, `--run-readonly`, `--run-browser-qa`, `--run-auth-smoke`, `--run-asset-smoke`, `--run-privacy-fixtures`, `--run-performance-fixtures`, 브라우저 QA 실패 상태 기록, 인증/자산 mutation smoke의 `SR_SMOKE_ALLOW_MUTATION=1` 차단/준비 분기, 자산 smoke form path 사전조건, fixture 옵션 실행 시 개인정보/성능 게이트 `부분 확인` 출력, 성능 fixture별 exit summary, 문서 marker 확인 |
+| `php .tools/bin/check-installed-gate-status.php` | 통과 | 설치 DB 게이트 상태표 도구의 출력 형식, `config-mode`/`config-owner-group` 출력, 필수 게이트 행, 관리자 화면 게이트와 일반 smoke 계정의 missing/incomplete/configured 분기, `--run-readonly`, `--run-browser-qa`, `--run-auth-smoke`, `--run-quiz-smoke`, `--run-asset-smoke`, `--run-privacy-fixtures`, `--run-performance-fixtures`, 브라우저 QA 실패 상태 기록, 인증/퀴즈/자산 mutation smoke의 `SR_SMOKE_ALLOW_MUTATION=1` 차단/준비 분기, 자산 smoke form path 사전조건, fixture 옵션 실행 시 개인정보/성능 게이트 `부분 확인` 출력, 성능 fixture별 exit summary, 문서 marker 확인 |
 | `php .tools/bin/check-positioning.php` | 통과 | README, 특장점 문서, 포지셔닝 기준, 리스크 레지스터, 릴리스 검증 템플릿의 사용 판단 기준 marker와 대체 CMS/완성된 플랫폼/실시간 보장 같은 과장 문구 금지 기준 확인 |
 | `php .tools/bin/check-doc-links.php` | 통과 | 문서 링크와 `.tools/bin/*.php` 명령 참조 존재 여부 점검 통과 |
 | `php .tools/bin/check-tool-gate-coverage.php` | 통과 | 새 `check-*.php` 검증 도구가 `check.php` 통합 게이트에 연결됐는지 확인. deep QA 등 standalone 예외만 허용 |
@@ -166,7 +166,7 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 | `php .tools/bin/ops-status.php` | 환경 미준비 | 미설치 로컬 환경 | `saanraan is not installed.`와 exit 2 반환 |
 | /admin/assets/reconciliation | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
 | /admin/operations | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
-| 인증 smoke | 미실행 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php` 미실행 |
+| 인증 smoke | 안전 거부 확인 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php`는 `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 커뮤니티 데이터 생성은 미실행 |
 | 퀴즈 E2E smoke | 안전 거부 확인 | 설치 DB + 관리자 계정 없음 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 퀴즈 생성/응시는 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB + 더미 데이터 없음 | SQLite fixture만 확인 |
 | 개인정보 export/cleanup smoke | 미실행 | 설치 DB + 더미 계정 없음 | SQLite fixture와 계약 매트릭스만 확인 |
@@ -208,7 +208,7 @@ saanraan HTTP smoke checks completed.
 
 | 점검 | 결과 | 메모 |
 | --- | --- | --- |
-| `php .tools/bin/smoke-community-auth.php` | 미실행 | 설치 DB와 테스트 계정 필요 |
+| `php .tools/bin/smoke-community-auth.php` | 안전 거부 확인 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 설치 DB와 테스트 계정이 없어 실제 커뮤니티 데이터 생성은 미실행 |
 | `php .tools/bin/smoke-quiz-e2e.php` | 안전 거부 확인 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 설치 DB와 더미 데이터가 없어 실제 퀴즈 생성/응시는 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB와 더미 데이터 필요 |
 
