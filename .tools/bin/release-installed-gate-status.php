@@ -104,6 +104,17 @@ Environment:
   SR_SMOKE_EXPECT_DEDUPE_KEY        Dedupe key for asset smoke row count evidence.
   SR_PERFORMANCE_REVIEW_READY=1     Mark representative local/staging data as ready.
 
+Handoff:
+  php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved
+      Rerun read-only installed DB gates as the web-server user or a local/staging-only
+      execution user when config/config.php is 0600 and owned by the web-server account.
+  SR_SMOKE_BASE_URL=https://staging.example.test \
+  SR_SMOKE_ADMIN_IDENTIFIER=<admin> \
+  SR_SMOKE_ADMIN_PASSWORD=<password> \
+  php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved
+      Record structured gate evidence after local/staging HTTP and administrator
+      smoke prerequisites are prepared.
+
 Safety:
   Do not run mutation smoke against production data. If config/config.php is not readable
   by the current CLI user, keep the file permissions tight and rerun as the web-server
