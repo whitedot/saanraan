@@ -449,7 +449,7 @@ $currencyChangeCurrencyOptions = array_values(array_filter(
     sr_admin_currency_change_known_currency_options(),
     static fn (string $currencyCode): bool => $currencyCode !== $currencyChangeCurrentCurrency
 ));
-$currencyChangeCanSubmit = $currencyChangeCurrencyOptions !== [];
+$currencyChangeCanSubmit = $currencyChangeCanChange && $currencyChangeCurrencyOptions !== [];
 $currencyChangeDefaultTargetCurrency = $currencyChangeCurrencyOptions[0] ?? $currencyChangeCurrentCurrency;
 $currencyChangeConfirmationPhrase = sr_admin_currency_change_confirmation_phrase($currencyChangeCurrentCurrency, $currencyChangeDefaultTargetCurrency);
 
