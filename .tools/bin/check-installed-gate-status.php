@@ -82,8 +82,8 @@ function sr_installed_gate_status_assert_unresolved_count(string $label, string 
     }
 
     $results = $matches[1] ?? [];
-    if (count($results) !== 13) {
-        sr_installed_gate_status_error('Installed gate status output must contain 13 gate rows for ' . $label . ', got ' . (string) count($results));
+    if (count($results) !== 14) {
+        sr_installed_gate_status_error('Installed gate status output must contain 14 gate rows for ' . $label . ', got ' . (string) count($results));
     }
 
     $expectedUnresolved = 0;
@@ -187,6 +187,7 @@ function sr_installed_gate_status_assert_markdown_table(string $label, string $o
         '`php .tools/bin/expire-points.php --dry-run`',
         '/admin/assets/reconciliation',
         '/admin/operations',
+        '기본 HTTP smoke',
         '인증 smoke',
         '퀴즈 E2E smoke',
         '자산/쿠폰/유료 접근권 mutation smoke',
@@ -228,6 +229,7 @@ function sr_installed_gate_status_assert_json(string $label, string $output): vo
         'config_mode' => '0600',
         'config_owner_group' => 'www-data:www-data',
         'sr_is_installed' => 'no',
+        'run_http_smoke' => 'no',
         'run_readonly' => 'no',
         'mutation_smoke_allowed' => 'no',
     ] as $key => $expectedValue) {
@@ -237,8 +239,8 @@ function sr_installed_gate_status_assert_json(string $label, string $output): vo
     }
 
     $gates = $decoded['gates'] ?? null;
-    if (!is_array($gates) || count($gates) !== 13) {
-        sr_installed_gate_status_error('Installed gate status JSON gates must contain 13 rows: ' . $label);
+    if (!is_array($gates) || count($gates) !== 14) {
+        sr_installed_gate_status_error('Installed gate status JSON gates must contain 14 rows: ' . $label);
         return;
     }
 
@@ -282,11 +284,11 @@ function sr_installed_gate_status_assert_json(string $label, string $output): vo
         }
     }
 
-    if (($decoded['result_summary'] ?? '') !== '통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0') {
+    if (($decoded['result_summary'] ?? '') !== '통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=10, 환경 미준비=4, 실패=0') {
         sr_installed_gate_status_error('Installed gate status JSON result_summary mismatch: ' . $label);
     }
 
-    if (($decoded['unresolved_gates'] ?? null) !== 13) {
+    if (($decoded['unresolved_gates'] ?? null) !== 14) {
         sr_installed_gate_status_error('Installed gate status JSON unresolved_gates mismatch: ' . $label);
     }
 }
@@ -305,6 +307,7 @@ foreach ([
     'account-smoke-credentials: missing',
     'admin-smoke-credentials: missing',
     'asset-dedupe-expectation: missing',
+    'run-http-smoke: no',
     'run-readonly: no',
     'run-browser-qa: no',
     'run-auth-smoke: no',
@@ -320,6 +323,7 @@ foreach ([
     "gate\t`php .tools/bin/expire-points.php --dry-run`\t",
     "gate\t/admin/assets/reconciliation\t",
     "gate\t/admin/operations\t",
+    "gate\t기본 HTTP smoke\t",
     "gate\t인증 smoke\t",
     "gate\t퀴즈 E2E smoke\t",
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\t",
@@ -327,7 +331,7 @@ foreach ([
     "gate\tCKEditor asset/fallback browser smoke\t",
     "gate\tCKEditor upload/save browser smoke\t",
     "gate\t성능 수동 점검\t",
-    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0',
+    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=10, 환경 미준비=4, 실패=0',
     'unresolved-gates:',
     'release installed gate status completed.',
 ] as $marker) {
@@ -341,6 +345,7 @@ sr_installed_gate_status_assert_markdown_table('default markdown output', $markd
 foreach ([
     '| 새 설치 또는 업데이트 적용 | 환경 미준비 | current tree | config/config.php is not readable by current user |',
     '| /admin/assets/reconciliation | 미실행 | base URL missing | set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen |',
+    '| 기본 HTTP smoke | 미실행 | base URL missing | set SR_SMOKE_BASE_URL and run with --run-http-smoke to verify routes, security headers, and protected paths |',
     '| 성능 수동 점검 | 미실행 | base URL missing | set SR_SMOKE_BASE_URL and SR_PERFORMANCE_REVIEW_READY=1 after representative local/staging data is prepared; use --run-performance-fixtures only for static/runtime fixtures |',
 ] as $marker) {
     if ($markdownOutput !== '' && !str_contains($markdownOutput, $marker)) {
@@ -356,8 +361,8 @@ if ((int) $failOutput['exit_code'] !== 1) {
     sr_installed_gate_status_error('Installed gate status --fail-on-unresolved must exit 1 while gates are unresolved.');
 }
 foreach ([
-    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0',
-    'unresolved-gates: 13',
+    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=10, 환경 미준비=4, 실패=0',
+    'unresolved-gates: 14',
 ] as $marker) {
     if (!str_contains((string) $failOutput['output'], $marker)) {
         sr_installed_gate_status_error('Installed gate status --fail-on-unresolved output marker missing: ' . $marker);
@@ -431,6 +436,7 @@ foreach ([
     '--markdown-table',
     '--json',
     '--fail-on-unresolved',
+    '--run-http-smoke',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
@@ -478,6 +484,7 @@ sr_installed_gate_status_assert_result_summary('base-url-only output', $baseOnly
 foreach ([
     'base-url: http://127.0.0.1:1',
     'admin-smoke-credentials: missing',
+    "gate\t기본 HTTP smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=basic non-mutating HTTP smoke is available; rerun with --run-http-smoke",
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
@@ -500,6 +507,7 @@ $maskedUrlOutput = sr_installed_gate_status_exec([
 foreach ([
     'base-url: http://***:***@127.0.0.1:1/with-auth',
     'browser-qa-base-url: http://***:***@127.0.0.1:2/browser-auth',
+    "gate\t기본 HTTP smoke\tresult=수동 확인 필요\tenvironment=http://***:***@127.0.0.1:1/with-auth",
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://***:***@127.0.0.1:1/with-auth",
     "gate\tCKEditor asset/fallback browser smoke\tresult=수동 확인 필요\tenvironment=http://***:***@127.0.0.1:2/browser-auth",
 ] as $marker) {
@@ -924,6 +932,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     '--fail-on-unresolved',
     '--help',
     '--markdown-table',
+    '--run-http-smoke',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
@@ -955,6 +964,9 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     '--dry-run',
     'array_merge([PHP_BINARY, $commandLabel], $commandArgs)',
     'set SR_SMOKE_BASE_URL and use an administrator session',
+    'sr_release_gate_status_http_smoke_gate',
+    'smoke-http.php',
+    'basic non-mutating HTTP smoke',
     'SR_BROWSER_QA_BASE_URL',
     'npm --prefix .tools/browser-qa run test:ckeditor',
     'smoke-community-auth.php',
@@ -985,6 +997,8 @@ sr_installed_gate_status_require_markers('docs/release-verification-template.md'
     'php .tools/bin/release-installed-gate-status.php --markdown-table',
     'php .tools/bin/release-installed-gate-status.php --json',
     '--fail-on-unresolved',
+    '--run-http-smoke',
+    '기본 HTTP smoke',
     'php .tools/bin/release-installed-gate-status.php --run-readonly',
     'php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved',
     'php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved',
@@ -1014,6 +1028,7 @@ sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     'URL userinfo를 metadata, gate 환경값, 실행 출력 요약에 남기기 전에 마스킹',
     'php .tools/bin/release-installed-gate-status.php --json',
     '--fail-on-unresolved',
+    '--run-http-smoke',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',

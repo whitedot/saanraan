@@ -17,6 +17,7 @@ $allowedArgs = [
     '--markdown-table',
     '--json',
     '--fail-on-unresolved',
+    '--run-http-smoke',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
@@ -27,6 +28,7 @@ $allowedArgs = [
     '--help',
     '-h',
 ];
+$runHttpSmoke = in_array('--run-http-smoke', $args, true);
 $runReadonly = in_array('--run-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
@@ -88,6 +90,7 @@ Options:
   --markdown-table            Print only the installed DB gate table as Markdown.
   --json                      Print metadata, gates, summary, and unresolved count as JSON.
   --fail-on-unresolved        Exit 1 when any required installed DB gate is not passed.
+  --run-http-smoke            Execute the basic non-mutating HTTP smoke.
   --run-readonly              Execute installed DB read-only CLI gates.
   --run-browser-qa            Execute CKEditor asset/fallback browser smoke.
   --run-auth-smoke            Execute authenticated community smoke.
@@ -442,6 +445,39 @@ function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowse
         'result' => $exitCode === 0 ? '통과' : '실패',
         'environment' => $displayBaseUrl,
         'memo' => 'npm --prefix .tools/browser-qa run test:ckeditor exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
+    ];
+}
+
+function sr_release_gate_status_http_smoke_gate(string $baseUrl, bool $runHttpSmoke): array
+{
+    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
+
+    if ($baseUrl === '') {
+        return [
+            'gate' => '기본 HTTP smoke',
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_SMOKE_BASE_URL and run with --run-http-smoke to verify routes, security headers, and protected paths',
+        ];
+    }
+
+    if (!$runHttpSmoke) {
+        return [
+            'gate' => '기본 HTTP smoke',
+            'result' => '수동 확인 필요',
+            'environment' => $displayBaseUrl,
+            'memo' => 'basic non-mutating HTTP smoke is available; rerun with --run-http-smoke to execute smoke-http.php',
+        ];
+    }
+
+    $result = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/smoke-http.php']);
+    $exitCode = (int) $result['exit_code'];
+
+    return [
+        'gate' => '기본 HTTP smoke',
+        'result' => $exitCode === 0 ? '통과' : '실패',
+        'environment' => $displayBaseUrl,
+        'memo' => 'smoke-http.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
     ];
 }
 
@@ -871,6 +907,7 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
     $adminSmokeCredentialStatus,
     'verify the read-only operations screen, allowed delays, and overdue markers'
 );
+$gates[] = sr_release_gate_status_http_smoke_gate($baseUrl, $runHttpSmoke);
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAuthSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_quiz_smoke_gate($baseUrl, $adminSmokeCredentialStatus, $runQuizSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $assetDedupeExpectationStatus, $runAssetSmoke, $allowMutationSmoke);
@@ -899,6 +936,7 @@ $metadata = [
     'account_smoke_credentials' => $accountSmokeCredentialStatus,
     'admin_smoke_credentials' => $adminSmokeCredentialStatus,
     'asset_dedupe_expectation' => $assetDedupeExpectationStatus,
+    'run_http_smoke' => $runHttpSmoke ? 'yes' : 'no',
     'run_readonly' => $runReadonly ? 'yes' : 'no',
     'run_browser_qa' => $runBrowserQa ? 'yes' : 'no',
     'run_auth_smoke' => $runAuthSmoke ? 'yes' : 'no',
@@ -922,6 +960,7 @@ $metadataOutputKeys = [
     'account_smoke_credentials' => 'account-smoke-credentials',
     'admin_smoke_credentials' => 'admin-smoke-credentials',
     'asset_dedupe_expectation' => 'asset-dedupe-expectation',
+    'run_http_smoke' => 'run-http-smoke',
     'run_readonly' => 'run-readonly',
     'run_browser_qa' => 'run-browser-qa',
     'run_auth_smoke' => 'run-auth-smoke',
