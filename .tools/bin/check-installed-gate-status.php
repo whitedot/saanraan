@@ -536,6 +536,22 @@ sr_installed_gate_status_require_markers('docs/verification-status.md', [
     '설치 DB 게이트 상태표',
 ]);
 
+sr_installed_gate_status_require_markers('docs/smoke-test.md', [
+    'php .tools/bin/release-installed-gate-status.php',
+    '--run-readonly',
+    '--run-browser-qa',
+    '--run-auth-smoke',
+    '--run-quiz-smoke',
+    '--run-asset-smoke',
+    'SR_SMOKE_ALLOW_MUTATION=1',
+    'SR_SMOKE_EXPECT_DEDUPE_TABLE',
+    'SR_SMOKE_EXPECT_DEDUPE_KEY',
+    '--run-privacy-fixtures',
+    '--run-performance-fixtures',
+    '부분 확인',
+    '대체하지 않는다',
+]);
+
 sr_installed_gate_status_require_markers('docs/records/improvement-hardening-verification-2026-06-11.md', [
     'php .tools/bin/release-installed-gate-status.php',
     'release-installed-gate-status-version: 1',
