@@ -22,6 +22,7 @@ $runPrivacyFixtures = in_array('--run-privacy-fixtures', $args, true);
 $runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
 $markdownTable = in_array('--markdown-table', $args, true);
 $jsonOutput = in_array('--json', $args, true);
+$failOnUnresolved = in_array('--fail-on-unresolved', $args, true);
 $showHelp = in_array('--help', $args, true) || in_array('-h', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
@@ -53,6 +54,7 @@ Usage:
 Options:
   --markdown-table            Print only the installed DB gate table as Markdown.
   --json                      Print metadata, gates, summary, and unresolved count as JSON.
+  --fail-on-unresolved        Exit 1 when any required installed DB gate is not passed.
   --run-readonly              Execute installed DB read-only CLI gates.
   --run-browser-qa            Execute CKEditor asset/fallback browser smoke.
   --run-auth-smoke            Execute authenticated community smoke.
@@ -185,6 +187,11 @@ function sr_release_gate_status_json(array $metadata, array $gates, int $unresol
     ];
     $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     return is_string($json) ? $json . "\n" : '';
+}
+
+function sr_release_gate_status_exit_code(bool $failOnUnresolved, int $unresolved): int
+{
+    return $failOnUnresolved && $unresolved > 0 ? 1 : 0;
 }
 
 function sr_release_gate_status_single_line(string $value): string
@@ -817,7 +824,7 @@ $metadataOutputKeys = [
 
 if ($markdownTable) {
     echo sr_release_gate_status_markdown_table($gates);
-    exit(0);
+    exit(sr_release_gate_status_exit_code($failOnUnresolved, $unresolved));
 }
 
 if ($jsonOutput) {
@@ -828,7 +835,7 @@ if ($jsonOutput) {
     }
 
     echo $json;
-    exit(0);
+    exit(sr_release_gate_status_exit_code($failOnUnresolved, $unresolved));
 }
 
 echo "release-installed-gate-status-version: 1\n";
@@ -846,3 +853,4 @@ foreach ($gates as $gate) {
 echo 'gate-result-summary: ' . sr_release_gate_status_result_summary($gates) . "\n";
 echo 'unresolved-gates: ' . (string) $unresolved . "\n";
 echo "release installed gate status completed.\n";
+exit(sr_release_gate_status_exit_code($failOnUnresolved, $unresolved));

@@ -46,6 +46,17 @@ function sr_installed_gate_status_require_markers(string $file, array $markers):
 
 function sr_installed_gate_status_exec(array $command): string
 {
+    $result = sr_installed_gate_status_exec_result($command);
+    if ($result['exit_code'] !== 0) {
+        sr_installed_gate_status_error('Installed gate status command failed: ' . implode(' ', $command) . "\n" . $result['output']);
+        return '';
+    }
+
+    return $result['output'];
+}
+
+function sr_installed_gate_status_exec_result(array $command): array
+{
     $parts = [];
     foreach ($command as $part) {
         $parts[] = escapeshellarg($part);
@@ -53,13 +64,10 @@ function sr_installed_gate_status_exec(array $command): string
 
     $output = [];
     exec(implode(' ', $parts) . ' 2>&1', $output, $exitCode);
-    $text = implode("\n", $output);
-    if ($exitCode !== 0) {
-        sr_installed_gate_status_error('Installed gate status command failed: ' . implode(' ', $command) . "\n" . $text);
-        return '';
-    }
-
-    return $text;
+    return [
+        'exit_code' => $exitCode,
+        'output' => implode("\n", $output),
+    ];
 }
 
 function sr_installed_gate_status_assert_unresolved_count(string $label, string $output): void
@@ -343,11 +351,31 @@ foreach ([
 $jsonOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--json']);
 sr_installed_gate_status_assert_json('default JSON output', $jsonOutput);
 
+$failOutput = sr_installed_gate_status_exec_result([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--fail-on-unresolved']);
+if ((int) $failOutput['exit_code'] !== 1) {
+    sr_installed_gate_status_error('Installed gate status --fail-on-unresolved must exit 1 while gates are unresolved.');
+}
+foreach ([
+    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=9, 환경 미준비=4, 실패=0',
+    'unresolved-gates: 13',
+] as $marker) {
+    if (!str_contains((string) $failOutput['output'], $marker)) {
+        sr_installed_gate_status_error('Installed gate status --fail-on-unresolved output marker missing: ' . $marker);
+    }
+}
+
+$jsonFailOutput = sr_installed_gate_status_exec_result([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--json', '--fail-on-unresolved']);
+if ((int) $jsonFailOutput['exit_code'] !== 1) {
+    sr_installed_gate_status_error('Installed gate status --json --fail-on-unresolved must exit 1 while gates are unresolved.');
+}
+sr_installed_gate_status_assert_json('JSON fail-on-unresolved output', (string) $jsonFailOutput['output']);
+
 $helpOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--help']);
 foreach ([
     'Usage:',
     '--markdown-table',
     '--json',
+    '--fail-on-unresolved',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
@@ -759,7 +787,9 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'sr_release_gate_status_result_summary',
     'sr_release_gate_status_json',
     'sr_release_gate_status_result_counts',
+    'sr_release_gate_status_exit_code',
     '--json',
+    '--fail-on-unresolved',
     '--help',
     '--markdown-table',
     '--run-readonly',
@@ -820,6 +850,7 @@ sr_installed_gate_status_require_markers('docs/release-verification-template.md'
     'php .tools/bin/release-installed-gate-status.php',
     'php .tools/bin/release-installed-gate-status.php --markdown-table',
     'php .tools/bin/release-installed-gate-status.php --json',
+    '--fail-on-unresolved',
     'php .tools/bin/release-installed-gate-status.php --run-readonly',
     'php .tools/bin/expire-points.php --dry-run',
     '설치 DB 게이트 상태표',
@@ -836,6 +867,7 @@ sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     'php .tools/bin/release-installed-gate-status.php',
     'php .tools/bin/release-installed-gate-status.php --help',
     'php .tools/bin/release-installed-gate-status.php --json',
+    '--fail-on-unresolved',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
