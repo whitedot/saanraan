@@ -214,19 +214,44 @@ function sr_response_header_is_allowed(string $header): bool
         return false;
     }
 
-    $header = strtolower(ltrim($header));
-    foreach ([
-        'cache-control:',
-        'content-disposition:',
-        'content-length:',
-        'content-security-policy:',
-        'content-type:',
-        'pragma:',
-        'x-content-type-options:',
-    ] as $prefix) {
-        if (str_starts_with($header, $prefix)) {
-            return true;
-        }
+    $header = trim($header);
+    $colonPosition = strpos($header, ':');
+    if ($colonPosition === false) {
+        return false;
+    }
+
+    $name = strtolower(trim(substr($header, 0, $colonPosition)));
+    $value = trim(substr($header, $colonPosition + 1));
+    if ($name === '' || $value === '') {
+        return false;
+    }
+
+    if ($name === 'cache-control') {
+        return sr_download_cache_control($value) === $value;
+    }
+
+    if ($name === 'content-disposition') {
+        return preg_match('/\A(?:attachment|inline);\s*filename="[A-Za-z0-9._-]{1,120}"\z/', $value) === 1;
+    }
+
+    if ($name === 'content-length') {
+        return preg_match('/\A(?:0|[1-9][0-9]{0,18})\z/', $value) === 1;
+    }
+
+    if ($name === 'content-security-policy') {
+        return preg_match('/\A[A-Za-z][A-Za-z0-9-]*(?:\s+[^,;]+)?(?:;\s*[A-Za-z][A-Za-z0-9-]*(?:\s+[^,;]+)?)*;?\z/', $value) === 1;
+    }
+
+    if ($name === 'content-type') {
+        return sr_download_content_type($value) === $value;
+    }
+
+    if ($name === 'pragma') {
+        return strtolower($value) === 'no-cache';
+    }
+
+    if ($name === 'x-content-type-options') {
+        return strtolower($value) === 'nosniff';
     }
 
     return false;

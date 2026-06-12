@@ -223,8 +223,52 @@ sr_output_helper_assert(
     'JSON response helper should allow explicit content-disposition response headers.'
 );
 sr_output_helper_assert(
+    sr_response_header_is_allowed("Content-Security-Policy: default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox"),
+    'File response helper should allow explicit CSP response headers with a constrained value grammar.'
+);
+sr_output_helper_assert(
+    sr_response_header_is_allowed('Content-Type: text/plain; charset=UTF-8'),
+    'Response header allowlist should allow normalized content-type headers.'
+);
+sr_output_helper_assert(
+    sr_response_header_is_allowed('Content-Length: 120'),
+    'Response header allowlist should allow numeric content-length headers.'
+);
+sr_output_helper_assert(
+    sr_response_header_is_allowed('X-Content-Type-Options: nosniff'),
+    'Response header allowlist should allow nosniff response headers.'
+);
+sr_output_helper_assert(
+    sr_response_header_is_allowed('Pragma: no-cache'),
+    'Response header allowlist should allow no-cache pragma headers.'
+);
+sr_output_helper_assert(
     !sr_response_header_is_allowed('Location: /admin'),
     'JSON response helper should reject redirect headers.'
+);
+sr_output_helper_assert(
+    !sr_response_header_is_allowed('Cache-Control: public, max-age=300()'),
+    'Response header allowlist should reject malformed cache-control values.'
+);
+sr_output_helper_assert(
+    !sr_response_header_is_allowed('Content-Disposition: attachment; filename=export.json'),
+    'Response header allowlist should reject content-disposition values outside the download helper shape.'
+);
+sr_output_helper_assert(
+    !sr_response_header_is_allowed('Content-Length: abc'),
+    'Response header allowlist should reject non-numeric content-length values.'
+);
+sr_output_helper_assert(
+    !sr_response_header_is_allowed('Content-Type: text/plain; boundary=abc'),
+    'Response header allowlist should reject content-type values outside the normalized helper shape.'
+);
+sr_output_helper_assert(
+    !sr_response_header_is_allowed('X-Content-Type-Options: sniff'),
+    'Response header allowlist should reject x-content-type-options values other than nosniff.'
+);
+sr_output_helper_assert(
+    !sr_response_header_is_allowed('Pragma: cache'),
+    'Response header allowlist should reject pragma values other than no-cache.'
 );
 sr_output_helper_assert(
     !sr_response_header_is_allowed("X-Test: ok\r\nSet-Cookie: bad=1"),
