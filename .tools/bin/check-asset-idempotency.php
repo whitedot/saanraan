@@ -553,6 +553,7 @@ sr_asset_idempotency_contains('docs/verification-status.md', [
     '성공으로 볼 HTTP status allowlist',
     '실행 전 0개, 실행 후 정확히 1개',
     '최소 1개는 성공 status',
+    '모든 병렬 응답은 허용 status',
     '두 PDO 연결 fixture',
     '병렬 프로세스 fixture',
 ]);
@@ -564,6 +565,7 @@ sr_asset_idempotency_contains('docs/smoke-test.md', [
     'SR_SMOKE_SUCCESS_STATUSES',
     'SR_SMOKE_EXPECT_DEDUPE_TABLE',
     'SR_SMOKE_EXPECT_DEDUPE_FRESH',
+    '모든 병렬 응답은 `SR_SMOKE_SUCCESS_STATUSES` 안에 있어야 하며',
     '실행 전 row count 0개와 실행 후 정확히 1개',
 ]);
 
@@ -577,6 +579,8 @@ sr_asset_idempotency_contains('.tools/bin/smoke-asset-idempotency-http.php', [
     'SR_SMOKE_EXPECT_DEDUPE_FRESH',
     'must be provided together',
     'Expected at least one successful POST response',
+    'All parallel POST responses must use allowed success statuses',
+    '$unexpectedStatusCounts',
     'Expected a fresh dedupe key before the smoke',
     'Expected exactly one dedupe row',
     'success-count:',

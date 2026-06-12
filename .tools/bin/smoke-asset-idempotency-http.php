@@ -333,6 +333,7 @@ $responses = sr_asset_http_smoke_parallel_posts($baseUrl, $postPath, $postData, 
 $afterCount = sr_asset_http_smoke_dedupe_count($expectedTable, $expectedColumn, $expectedDedupeKey);
 
 $statusCounts = [];
+$unexpectedStatusCounts = [];
 $failureBodies = 0;
 $successCount = 0;
 foreach ($responses as $response) {
@@ -341,6 +342,8 @@ foreach ($responses as $response) {
     $statusCounts[$status] = ($statusCounts[$status] ?? 0) + 1;
     if (isset($successStatuses[$statusCode])) {
         $successCount++;
+    } else {
+        $unexpectedStatusCounts[$status] = ($unexpectedStatusCounts[$status] ?? 0) + 1;
     }
     $body = (string) ($response['body'] ?? '');
     if (($response['error'] ?? '') !== '' || str_contains($body, 'Fatal error') || str_contains($body, 'Stack trace')) {
@@ -354,6 +357,10 @@ if ($failureBodies > 0) {
 
 if ($successCount < 1) {
     sr_asset_http_smoke_fail('Expected at least one successful POST response, got status counts ' . json_encode($statusCounts, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '.');
+}
+
+if ($unexpectedStatusCounts !== []) {
+    sr_asset_http_smoke_fail('All parallel POST responses must use allowed success statuses, got unexpected status counts ' . json_encode($unexpectedStatusCounts, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '.');
 }
 
 if ($afterCount !== null) {

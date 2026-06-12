@@ -177,7 +177,7 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8080 \
 설치 DB에서 `/admin/assets/reconciliation`이 열리고 포인트/적립금/예치금의 잔액 행, 거래 합계, 마지막 거래 잔액 점검 결과가 read-only로 표시되는지 확인한다. 같은 환경에서 `php .tools/bin/reconcile-assets.php` 결과와 관리자 화면 요약이 일치해야 한다. 불일치가 있는 더미 데이터에서는 자동 정정 없이 유형과 계정 ID만 표시되어야 한다.
 콘텐츠 유료 열람/다운로드, 콘텐츠 완료 버튼, 커뮤니티 유료 열람/첨부 다운로드/작성·댓글 자산 처리의 중복 POST는 원장 거래 전에 `dedupe_key` unique가 있는 pending placeholder를 먼저 만들고, 성공 후 completed로 바뀌어야 한다. 같은 확인 token으로 두 번 제출하면 중복 원장 거래가 생기지 않아야 하며, 실패 또는 rollback 후에는 pending placeholder가 남아 다음 시도가 현재 상태로 재평가되어야 한다.
 
-설치 DB와 더미 유료 대상이 준비된 로컬/staging에서는 같은 확인 token의 병렬 HTTP 제출을 다음 하니스로 확인할 수 있다. 이 스크립트는 mutation을 수행하므로 `SR_SMOKE_ALLOW_MUTATION=1`을 명시해야 하고 운영 DB에서 실행하지 않는다. 대상 화면에서 `csrf_token`과 `asset_request_token`을 읽어 같은 세션으로 병렬 POST를 보내며, 기본 성공 HTTP 상태는 `200,201,204,302,303`이다. `SR_SMOKE_EXPECT_DEDUPE_TABLE`과 `SR_SMOKE_EXPECT_DEDUPE_KEY`를 주면 기본적으로 fresh dedupe key를 요구하고, 실행 전 row count 0개와 실행 후 정확히 1개를 확인한다.
+설치 DB와 더미 유료 대상이 준비된 로컬/staging에서는 같은 확인 token의 병렬 HTTP 제출을 다음 하니스로 확인할 수 있다. 이 스크립트는 mutation을 수행하므로 `SR_SMOKE_ALLOW_MUTATION=1`을 명시해야 하고 운영 DB에서 실행하지 않는다. 대상 화면에서 `csrf_token`과 `asset_request_token`을 읽어 같은 세션으로 병렬 POST를 보내며, 기본 성공 HTTP 상태는 `200,201,204,302,303`이다. 모든 병렬 응답은 `SR_SMOKE_SUCCESS_STATUSES` 안에 있어야 하며, 500이나 예상 밖 4xx/3xx가 하나라도 있으면 실패한다. `SR_SMOKE_EXPECT_DEDUPE_TABLE`과 `SR_SMOKE_EXPECT_DEDUPE_KEY`를 주면 기본적으로 fresh dedupe key를 요구하고, 실행 전 row count 0개와 실행 후 정확히 1개를 확인한다.
 
 ```sh
 SR_SMOKE_ALLOW_MUTATION=1 \
