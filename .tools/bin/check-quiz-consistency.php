@@ -31,6 +31,28 @@ function sr_quiz_check_file_contains(string $path, array $needles): string
     return $content;
 }
 
+function sr_quiz_check_command(array $command, int $expectedExitCode, array $markers, string $label): void
+{
+    $parts = [];
+    foreach ($command as $part) {
+        $parts[] = escapeshellarg($part);
+    }
+
+    $output = [];
+    exec(implode(' ', $parts) . ' 2>&1', $output, $exitCode);
+    $text = implode("\n", $output);
+    if ($exitCode !== $expectedExitCode) {
+        sr_quiz_check_error($label . ' expected exit ' . (string) $expectedExitCode . ', got ' . (string) $exitCode . ': ' . $text);
+        return;
+    }
+
+    foreach ($markers as $marker) {
+        if (!str_contains($text, $marker)) {
+            sr_quiz_check_error($label . ' output must contain: ' . $marker);
+        }
+    }
+}
+
 function sr_quiz_check_module_files(): void
 {
     foreach ([
@@ -275,6 +297,8 @@ function sr_quiz_check_paths_and_admin(): void
         '.content-quiz-dialog',
     ]);
     sr_quiz_check_file_contains('.tools/bin/smoke-quiz-e2e.php', [
+        'SR_SMOKE_ALLOW_MUTATION=1',
+        'saanraan quiz E2E smoke refused to run because it creates quiz and attempt data.',
         'SR_SMOKE_ADMIN_IDENTIFIER',
         'SR_SMOKE_ADMIN_PASSWORD',
         'sr_quiz_e2e_choice',
@@ -283,6 +307,22 @@ function sr_quiz_check_paths_and_admin(): void
         '보상이 지급되었습니다.',
         '응시 제한에 따라 다시 제출할 수 없습니다.',
     ]);
+    sr_quiz_check_command(
+        [
+            'env',
+            'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+            'SR_SMOKE_ADMIN_IDENTIFIER=admin',
+            'SR_SMOKE_ADMIN_PASSWORD=12341234',
+            PHP_BINARY,
+            '.tools/bin/smoke-quiz-e2e.php',
+        ],
+        2,
+        [
+            'saanraan quiz E2E smoke refused to run because it creates quiz and attempt data.',
+            'SR_SMOKE_ALLOW_MUTATION=1',
+        ],
+        'Quiz E2E smoke mutation guard'
+    );
 }
 
 function sr_quiz_check_privacy_contracts(): void

@@ -114,7 +114,7 @@ TODO
 | 점검 | 결과 | 메모 |
 | --- | --- | --- |
 | `php .tools/bin/smoke-community-auth.php` | TODO | 테스트 계정 필요 |
-| `php .tools/bin/smoke-quiz-e2e.php` | TODO | 퀴즈 더미 데이터 생성 |
+| `php .tools/bin/smoke-quiz-e2e.php` | TODO | 로컬/staging disposable 데이터에서 `SR_SMOKE_ALLOW_MUTATION=1`로 퀴즈 더미 데이터 생성 |
 | 기타 인증 smoke | TODO |  |
 
 결과 로그:

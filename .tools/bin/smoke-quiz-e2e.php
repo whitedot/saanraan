@@ -21,13 +21,20 @@ function sr_quiz_e2e_argument(array $argv, int $index, string $environmentKey, s
 function sr_quiz_e2e_usage(): string
 {
     return "Usage: php .tools/bin/smoke-quiz-e2e.php http://127.0.0.1:8080 admin_identifier admin_password [reward_module]\n"
-        . "Env: SR_SMOKE_BASE_URL SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_QUIZ_REWARD_MODULE\n";
+        . "Env: SR_SMOKE_ALLOW_MUTATION=1 SR_SMOKE_BASE_URL SR_SMOKE_ADMIN_IDENTIFIER SR_SMOKE_ADMIN_PASSWORD SR_SMOKE_QUIZ_REWARD_MODULE\n";
 }
 
+$allowMutation = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
 $baseUrl = rtrim(sr_quiz_e2e_argument($argv, 1, 'SR_SMOKE_BASE_URL'), '/');
 $adminIdentifier = sr_quiz_e2e_argument($argv, 2, 'SR_SMOKE_ADMIN_IDENTIFIER');
 $adminPassword = sr_quiz_e2e_argument($argv, 3, 'SR_SMOKE_ADMIN_PASSWORD');
 $configuredRewardModule = sr_quiz_e2e_argument($argv, 4, 'SR_SMOKE_QUIZ_REWARD_MODULE');
+
+if (!$allowMutation) {
+    fwrite(STDERR, "saanraan quiz E2E smoke refused to run because it creates quiz and attempt data. Set SR_SMOKE_ALLOW_MUTATION=1 only on local or staging disposable data.\n");
+    fwrite(STDERR, sr_quiz_e2e_usage());
+    exit(2);
+}
 
 if ($baseUrl === '' || !preg_match('#\Ahttps?://#', $baseUrl) || $adminIdentifier === '' || $adminPassword === '') {
     fwrite(STDERR, sr_quiz_e2e_usage());

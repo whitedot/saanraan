@@ -208,7 +208,7 @@ saanraan HTTP smoke checks completed.
 | 점검 | 결과 | 메모 |
 | --- | --- | --- |
 | `php .tools/bin/smoke-community-auth.php` | 미실행 | 설치 DB와 테스트 계정 필요 |
-| `php .tools/bin/smoke-quiz-e2e.php` | 미실행 | 설치 DB와 더미 데이터 필요 |
+| `php .tools/bin/smoke-quiz-e2e.php` | 안전 거부 확인 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 설치 DB와 더미 데이터가 없어 실제 퀴즈 생성/응시는 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB와 더미 데이터 필요 |
 
 ## 브라우저/수동 점검

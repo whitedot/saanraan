@@ -265,12 +265,13 @@ php .tools/bin/smoke-community-auth.php
 
 ```sh
 SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
+SR_SMOKE_ALLOW_MUTATION=1 \
 SR_SMOKE_ADMIN_IDENTIFIER=admin \
 SR_SMOKE_ADMIN_PASSWORD='12341234' \
 php .tools/bin/smoke-quiz-e2e.php
 ```
 
-활성 자산 보상 후보를 명시해야 하면 `SR_SMOKE_QUIZ_REWARD_MODULE=point`처럼 지정한다. 스크립트는 관리자 퀴즈 생성, 복수/단일 선택 제출, 통과 결과, 보상 지급, 회원당 1회 재응시 차단을 확인한다.
+활성 자산 보상 후보를 명시해야 하면 `SR_SMOKE_QUIZ_REWARD_MODULE=point`처럼 지정한다. 스크립트는 mutation 안전장치로 기본 실행을 거부하고 `SR_SMOKE_ALLOW_MUTATION=1`을 요구한다. 관리자 퀴즈 생성, 복수/단일 선택 제출, 통과 결과, 보상 지급, 회원당 1회 재응시 차단을 확인한다.
 
 적립금 보상 회수는 `/admin/quiz/attempts`에서 grant별 회수 가능액과 회수 버튼이 보이는지 확인한다. 회수 모달은 `intent=reclaim_reward`, `grant_id`, `amount`, `reason`, `return_to`를 보내며, 서버가 CSRF와 편집 권한을 확인하고 grant 기준 원장 거래, 회수 가능액, 적립금 `reclaim` 참조를 트랜잭션 안에서 다시 검증해야 한다.
 
