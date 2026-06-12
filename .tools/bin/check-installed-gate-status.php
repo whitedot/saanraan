@@ -370,6 +370,19 @@ if ((int) $jsonFailOutput['exit_code'] !== 1) {
 }
 sr_installed_gate_status_assert_json('JSON fail-on-unresolved output', (string) $jsonFailOutput['output']);
 
+$unknownOptionOutput = sr_installed_gate_status_exec_result([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--unknown-option']);
+if ((int) $unknownOptionOutput['exit_code'] !== 2) {
+    sr_installed_gate_status_error('Installed gate status unknown option must exit 2.');
+}
+foreach ([
+    'Unknown release-installed-gate-status option: --unknown-option',
+    'release-installed-gate-status.php --help',
+] as $marker) {
+    if (!str_contains((string) $unknownOptionOutput['output'], $marker)) {
+        sr_installed_gate_status_error('Installed gate status unknown option output marker missing: ' . $marker);
+    }
+}
+
 $helpOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--help']);
 foreach ([
     'Usage:',
@@ -782,6 +795,8 @@ foreach ([
 
 sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-status.php', [
     'release-installed-gate-status-version: 1',
+    '$allowedArgs',
+    'Unknown release-installed-gate-status option',
     'unresolved-gates',
     'gate-result-summary',
     'sr_release_gate_status_result_summary',
@@ -866,6 +881,8 @@ sr_installed_gate_status_require_markers('docs/verification-status.md', [
 sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     'php .tools/bin/release-installed-gate-status.php',
     'php .tools/bin/release-installed-gate-status.php --help',
+    '알 수 없는 옵션',
+    'exit 2',
     'php .tools/bin/release-installed-gate-status.php --json',
     '--fail-on-unresolved',
     '--run-readonly',

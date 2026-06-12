@@ -13,6 +13,20 @@ if (!defined('SR_ROOT')) {
 require_once $root . '/core/helpers/runtime.php';
 
 $args = array_slice($argv, 1);
+$allowedArgs = [
+    '--markdown-table',
+    '--json',
+    '--fail-on-unresolved',
+    '--run-readonly',
+    '--run-browser-qa',
+    '--run-auth-smoke',
+    '--run-quiz-smoke',
+    '--run-asset-smoke',
+    '--run-privacy-fixtures',
+    '--run-performance-fixtures',
+    '--help',
+    '-h',
+];
 $runReadonly = in_array('--run-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
@@ -87,6 +101,13 @@ TEXT;
 if ($showHelp) {
     echo sr_release_gate_status_help();
     exit(0);
+}
+
+$unknownArgs = array_values(array_diff($args, $allowedArgs));
+if ($unknownArgs !== []) {
+    fwrite(STDERR, 'Unknown release-installed-gate-status option: ' . implode(', ', $unknownArgs) . "\n");
+    fwrite(STDERR, "Run php .tools/bin/release-installed-gate-status.php --help for supported options.\n");
+    exit(2);
 }
 
 function sr_release_gate_status_line(string $gate, string $result, string $environment, string $memo): string
