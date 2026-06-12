@@ -233,7 +233,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 
 1.0 릴리스 후보 전까지 다음 항목을 우선 보완한다.
 
-- 설치 DB에서 `release-installed-gate-status.php --run-readonly`를 실행해 `reconcile-assets.php`와 `ops-status.php` 결과를 날짜별 기록에 남긴다.
+- 설치 DB에서 `release-installed-gate-status.php --run-readonly`를 실행해 `reconcile-assets.php`, `ops-status.php`, `expire-points.php --dry-run` 결과를 날짜별 기록에 남긴다.
 - 로컬/staging 관리자 계정으로 `/admin/assets/reconciliation`과 `/admin/operations` read-only 화면을 실제 데이터와 대조한다.
 - 로컬/staging disposable 계정과 더미 유료 대상으로 `smoke-community-auth.php`, `smoke-quiz-e2e.php`, `smoke-asset-idempotency-http.php`를 실행해 인증 흐름, 퀴즈 생성/응시/보상, 병렬 중복 POST, dedupe row count를 기록한다.
 - 설치 DB에서 CKEditor 서버 업로드 action, 저장 HTML sanitizer, 권한별 본문 이미지 접근을 브라우저 smoke로 확인한다.
