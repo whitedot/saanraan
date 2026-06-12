@@ -803,15 +803,27 @@ function sr_admin_currency_change_impact_specs(): array
 {
     return [
         [
-            'label' => '콘텐츠 열람/완료 정책',
+            'label' => '콘텐츠 열람 정책',
             'table' => 'sr_content_items',
-            'columns' => ['asset_access_settlement_currency', 'asset_action_settlement_currency'],
+            'columns' => ['asset_access_settlement_currency'],
             'kind' => 'policy',
         ],
         [
-            'label' => '콘텐츠 revision 정책',
+            'label' => '콘텐츠 완료 정책',
+            'table' => 'sr_content_items',
+            'columns' => ['asset_action_settlement_currency'],
+            'kind' => 'policy',
+        ],
+        [
+            'label' => '콘텐츠 revision 열람 정책',
             'table' => 'sr_content_revisions',
-            'columns' => ['asset_access_settlement_currency', 'asset_action_settlement_currency'],
+            'columns' => ['asset_access_settlement_currency'],
+            'kind' => 'snapshot',
+        ],
+        [
+            'label' => '콘텐츠 revision 완료 정책',
+            'table' => 'sr_content_revisions',
+            'columns' => ['asset_action_settlement_currency'],
             'kind' => 'snapshot',
         ],
         [
