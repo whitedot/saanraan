@@ -142,7 +142,8 @@ function sr_logo_manager_favicon_check_pdo(): PDO
             public_url TEXT DEFAULT '',
             mime_type TEXT DEFAULT 'image/png',
             width INTEGER DEFAULT 0,
-            height INTEGER DEFAULT 0
+            height INTEGER DEFAULT 0,
+            updated_at TEXT DEFAULT '2026-06-10 12:00:00'
         )"
     );
     $pdo->exec(
@@ -157,7 +158,8 @@ function sr_logo_manager_favicon_check_pdo(): PDO
             storage_driver TEXT NOT NULL DEFAULT 'local',
             storage_key TEXT DEFAULT '',
             public_url TEXT DEFAULT '',
-            mime_type TEXT DEFAULT 'image/png'
+            mime_type TEXT DEFAULT 'image/png',
+            updated_at TEXT DEFAULT '2026-06-10 12:00:00'
         )"
     );
 
@@ -182,13 +184,14 @@ function sr_logo_manager_favicon_check_insert_logo(PDO $pdo, array $row): void
         'mime_type' => 'image/png',
         'width' => 0,
         'height' => 0,
+        'updated_at' => '2026-06-10 12:00:00',
     ];
     $row = array_merge($defaults, $row);
     $stmt = $pdo->prepare(
         'INSERT INTO sr_logo_manager_logos
-            (id, position_key, title, alt_text, link_url, use_as_public_symbol, status, starts_at, ends_at, sort_order, storage_driver, storage_key, public_url, mime_type, width, height)
+            (id, position_key, title, alt_text, link_url, use_as_public_symbol, status, starts_at, ends_at, sort_order, storage_driver, storage_key, public_url, mime_type, width, height, updated_at)
          VALUES
-            (:id, :position_key, :title, :alt_text, :link_url, :use_as_public_symbol, :status, :starts_at, :ends_at, :sort_order, :storage_driver, :storage_key, :public_url, :mime_type, :width, :height)'
+            (:id, :position_key, :title, :alt_text, :link_url, :use_as_public_symbol, :status, :starts_at, :ends_at, :sort_order, :storage_driver, :storage_key, :public_url, :mime_type, :width, :height, :updated_at)'
     );
     $stmt->execute($row);
 }
@@ -205,13 +208,14 @@ function sr_logo_manager_favicon_check_insert_variant(PDO $pdo, array $row): voi
         'storage_key' => '',
         'public_url' => '',
         'mime_type' => 'image/png',
+        'updated_at' => '2026-06-10 12:00:00',
     ];
     $row = array_merge($defaults, $row);
     $stmt = $pdo->prepare(
         'INSERT INTO sr_logo_manager_icon_variants
-            (id, logo_id, variant_key, purpose, width, height, status, storage_driver, storage_key, public_url, mime_type)
+            (id, logo_id, variant_key, purpose, width, height, status, storage_driver, storage_key, public_url, mime_type, updated_at)
          VALUES
-            (:id, :logo_id, :variant_key, :purpose, :width, :height, :status, :storage_driver, :storage_key, :public_url, :mime_type)'
+            (:id, :logo_id, :variant_key, :purpose, :width, :height, :status, :storage_driver, :storage_key, :public_url, :mime_type, :updated_at)'
     );
     $stmt->execute($row);
 }
@@ -227,6 +231,7 @@ sr_logo_manager_favicon_check_assert(str_contains($html, 'rel="icon"'), 'active 
 sr_logo_manager_favicon_check_assert(str_contains($html, 'rel="apple-touch-icon"'), 'active public.favicon logo must render apple touch icon link');
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-active.png'), 'active favicon link must contain active logo URL');
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-active.png'), 'favicon links must not require use_as_public_symbol');
+sr_logo_manager_favicon_check_assert(str_contains($html, '?v='), 'active favicon links must include cache-busting version query');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
@@ -237,6 +242,7 @@ sr_logo_manager_favicon_check_insert_logo($pdo, [
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert_disabled_tag($html, 'disabled public.favicon logo');
+sr_logo_manager_favicon_check_assert(str_contains($html, 'data-sr-logo-manager-version'), 'disabled favicon data icon must include cache-busting version marker');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
@@ -291,6 +297,7 @@ sr_logo_manager_favicon_check_insert_variant($pdo, [
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-32.png'), 'active favicon variant must render when available');
+sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-32.png?v='), 'active favicon variant URL must include cache-busting version query');
 sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-original.png'), 'active variant set must replace original favicon fallback');
 sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/favicon-disabled'), 'disabled logo variants must not render through favicon link tag');
 
@@ -301,9 +308,11 @@ sr_logo_manager_favicon_check_insert_logo($pdo, [
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-transition.png'), 'active favicon must render before disabling');
-$pdo->exec("UPDATE sr_logo_manager_logos SET status = 'disabled' WHERE id = 9");
+$activeHtml = $html;
+$pdo->exec("UPDATE sr_logo_manager_logos SET status = 'disabled', updated_at = '2026-06-10 12:05:00' WHERE id = 9");
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert_disabled_tag($html, 'favicon disabled after active state transition');
+sr_logo_manager_favicon_check_assert($html !== $activeHtml, 'favicon disabled state transition must change rendered head links');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 $html = sr_logo_manager_favicon_link_tag($pdo);

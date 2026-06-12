@@ -1223,9 +1223,73 @@ function sr_logo_manager_favicon_has_configured_logo(PDO $pdo): bool
     }
 }
 
-function sr_logo_manager_disabled_favicon_link_tag(): string
+function sr_logo_manager_favicon_cache_version(PDO $pdo): string
 {
-    $href = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E';
+    if (!sr_logo_manager_table_exists($pdo)) {
+        return '0';
+    }
+
+    $versionParts = [];
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT MAX(updated_at) AS updated_at, MAX(id) AS max_id
+             FROM sr_logo_manager_logos
+             WHERE position_key = :position_key'
+        );
+        $stmt->execute(['position_key' => sr_logo_manager_public_symbol_position_key()]);
+        $row = $stmt->fetch();
+        if (is_array($row)) {
+            $versionParts[] = (string) ($row['updated_at'] ?? '');
+            $versionParts[] = (string) ($row['max_id'] ?? '');
+        }
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'logo_manager_favicon_logo_version_failed');
+    }
+
+    if (sr_logo_manager_icon_variants_table_exists($pdo)) {
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT MAX(v.updated_at) AS updated_at, MAX(v.id) AS max_id
+                 FROM sr_logo_manager_icon_variants v
+                 INNER JOIN sr_logo_manager_logos l ON l.id = v.logo_id
+                 WHERE l.position_key = :position_key'
+            );
+            $stmt->execute(['position_key' => sr_logo_manager_public_symbol_position_key()]);
+            $row = $stmt->fetch();
+            if (is_array($row)) {
+                $versionParts[] = (string) ($row['updated_at'] ?? '');
+                $versionParts[] = (string) ($row['max_id'] ?? '');
+            }
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'logo_manager_favicon_variant_version_failed');
+        }
+    }
+
+    $versionSource = trim(implode('|', array_filter($versionParts, static fn (string $part): bool => $part !== '')));
+    if ($versionSource === '') {
+        return '0';
+    }
+
+    return substr(hash('sha256', $versionSource), 0, 16);
+}
+
+function sr_logo_manager_url_with_cache_version(string $url, string $version): string
+{
+    $url = trim($url);
+    $version = preg_replace('/[^A-Za-z0-9._-]/', '', trim($version)) ?? '';
+    if ($url === '' || $version === '' || str_starts_with($url, 'data:')) {
+        return $url;
+    }
+
+    $separator = str_contains($url, '?') ? '&' : '?';
+    return $url . $separator . 'v=' . rawurlencode($version);
+}
+
+function sr_logo_manager_disabled_favicon_link_tag(string $version = '0'): string
+{
+    $version = preg_replace('/[^A-Za-z0-9._-]/', '', trim($version)) ?? '';
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" data-sr-logo-manager-version="' . ($version !== '' ? $version : '0') . '"/>';
+    $href = 'data:image/svg+xml,' . rawurlencode($svg);
 
     return '<link rel="icon" href="' . $href . '">' . PHP_EOL
         . '<link rel="apple-touch-icon" href="' . $href . '">';
@@ -1233,10 +1297,11 @@ function sr_logo_manager_disabled_favicon_link_tag(): string
 
 function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 {
+    $cacheVersion = sr_logo_manager_favicon_cache_version($pdo);
     $logo = sr_logo_manager_active_logo($pdo, 'public.favicon');
     if (!is_array($logo)) {
         return sr_logo_manager_favicon_has_configured_logo($pdo)
-            ? sr_logo_manager_disabled_favicon_link_tag()
+            ? sr_logo_manager_disabled_favicon_link_tag($cacheVersion)
             : '';
     }
 
@@ -1248,6 +1313,7 @@ function sr_logo_manager_favicon_link_tag(PDO $pdo): string
             if ($url === '') {
                 continue;
             }
+            $url = sr_logo_manager_url_with_cache_version($url, $cacheVersion);
             $purpose = (string) ($variant['purpose'] ?? '');
             $sizes = (string) (int) ($variant['width'] ?? 0) . 'x' . (string) (int) ($variant['height'] ?? 0);
             $href = sr_e(sr_logo_manager_url_for_output($url));
@@ -1264,9 +1330,10 @@ function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 
     $url = sr_logo_manager_logo_url($logo);
     if ($url === '') {
-        return sr_logo_manager_disabled_favicon_link_tag();
+        return sr_logo_manager_disabled_favicon_link_tag($cacheVersion);
     }
 
+    $url = sr_logo_manager_url_with_cache_version($url, $cacheVersion);
     $href = sr_e(sr_logo_manager_url_for_output($url));
     return '<link rel="icon" href="' . $href . '">' . PHP_EOL
         . '<link rel="apple-touch-icon" href="' . $href . '">';
