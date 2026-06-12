@@ -240,7 +240,21 @@ function sr_release_gate_status_single_line(string $value): string
 {
     $normalized = preg_replace('/\s+/', ' ', trim($value));
     $normalized = is_string($normalized) ? $normalized : '';
+    $normalized = sr_release_gate_status_mask_url_userinfo_in_text($normalized);
     return $normalized === '' ? '-' : substr($normalized, 0, 220);
+}
+
+function sr_release_gate_status_mask_url_userinfo_in_text(string $value): string
+{
+    $masked = preg_replace_callback(
+        '~\bhttps?://[^\s<>"\']+~',
+        static function (array $matches): string {
+            return sr_release_gate_status_mask_url_userinfo((string) ($matches[0] ?? ''));
+        },
+        $value
+    );
+
+    return is_string($masked) ? $masked : $value;
 }
 
 function sr_release_gate_status_mask_url_userinfo(string $url): string
