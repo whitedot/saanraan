@@ -283,10 +283,54 @@ try {
 }
 sr_notification_runtime_assert($unknownChannelRejected, 'notification runtime fixture must reject unknown delivery channels.');
 
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('failed', 'queued') === ['allowed' => true, 'operation' => 'retry'],
+    'notification delivery transition must allow failed retry.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('canceled', 'queued') === ['allowed' => true, 'operation' => 'retry'],
+    'notification delivery transition must allow canceled retry.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('queued', 'canceled') === ['allowed' => true, 'operation' => 'cancel'],
+    'notification delivery transition must allow queued cancel.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('failed', 'canceled') === ['allowed' => true, 'operation' => 'cancel'],
+    'notification delivery transition must allow failed cancel.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('queued', 'failed') === ['allowed' => true, 'operation' => 'mark_failed'],
+    'notification delivery transition must allow queued manual failure.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('failed', 'sent') === ['allowed' => true, 'operation' => 'mark_sent'],
+    'notification delivery transition must allow failed manual sent.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('sent', 'queued') === ['allowed' => false, 'operation' => ''],
+    'notification delivery transition must keep sent terminal.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('queued', 'queued') === ['allowed' => false, 'operation' => ''],
+    'notification delivery transition must reject no-op changes.'
+);
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('queued', 'unknown') === ['allowed' => false, 'operation' => ''],
+    'notification delivery transition must reject unknown target.'
+);
+
 $adminAction = file_get_contents($root . '/modules/notification/actions/admin-notifications.php');
+$adminView = file_get_contents($root . '/modules/notification/views/admin-notifications.php');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];"), 'notification delivery admin action must allow queued/sent/failed/canceled statuses.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'UPDATE sr_notification_deliveries'), 'notification delivery admin action must update delivery status rows.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'delivery_status'"), 'notification delivery admin action must expose delivery status updates.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'sr_notification_delivery_status_transition($beforeStatus, $status)'), 'notification delivery admin action must enforce delivery status transitions.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "provider_message_id = COALESCE(:provider_message_id, provider_message_id)"), 'notification delivery retry must be able to clear provider message id.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "error_message = COALESCE(:error_message, error_message)"), 'notification delivery retry must be able to clear error message.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'before_status' => \$beforeStatus"), 'notification delivery audit log must include before_status.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'operation' => (string) (\$transition['operation'] ?? '')"), 'notification delivery audit log must include operation.');
+sr_notification_runtime_assert(is_string($adminView) && str_contains($adminView, 'sr_notification_delivery_status_transition($deliveryStatus, $status)'), 'notification delivery admin view must only render allowed transition buttons.');
 
 if ($errors !== []) {
     fwrite(STDERR, "notification runtime checks failed:\n");

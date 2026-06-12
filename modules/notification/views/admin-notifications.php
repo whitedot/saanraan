@@ -160,7 +160,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="delivery_id" value="<?php echo sr_e((string) $delivery['id']); ?>">
                                     <?php foreach ($allowedDeliveryStatuses as $status) { ?>
-                                        <?php if ((string) $delivery['status'] === $status) { ?>
+                                        <?php $deliveryTransition = sr_notification_delivery_status_transition($deliveryStatus, $status); ?>
+                                        <?php if (empty($deliveryTransition['allowed'])) { ?>
                                             <?php continue; ?>
                                         <?php } ?>
                                         <?php $statusLabel = sr_admin_code_label($status, 'delivery_status'); ?>

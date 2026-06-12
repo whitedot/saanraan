@@ -43,6 +43,10 @@ php .tools/bin/ops-status.php
 
 운영 상태 점검 정의는 코드 내부 목록으로만 관리한다. `table`과 `age_column`은 단일 SQL 식별자만 허용하고, `where` 조건은 세미콜론, SQL 주석, DDL/DML 키워드가 있으면 오류로 처리한다. `.tools/bin/check-operational-status.php`는 안전한 조건, 위험한 식별자, 위험한 `where` 조건, CLI summary 출력 marker, 번들 신호 일부의 실제 count/overdue 계산을 SQLite fixture로 확인해 read-only 점검 경계를 유지한다.
 
+### 알림 delivery 재시도/취소 기준
+
+`/admin/notification-deliveries`는 외부 발송 작업을 직접 전송하지 않고 상태 전이만 기록한다. 재시도는 `failed` 또는 `canceled` 상태를 `queued`로 되돌리는 작업이며, 이때 provider message ID, 오류 메시지, 시도 시각을 비워 다음 발송 시도와 이전 실패를 분리한다. 취소는 `queued` 또는 `failed` 상태를 `canceled`로 바꾸는 작업이다. `sent`는 터미널 상태로 보고 재시도나 취소 대상으로 되돌리지 않는다. 수동으로 `failed` 또는 `sent`로 표시하는 전이는 운영자가 외부 provider 상태를 확인한 뒤 수행하며, 모든 상태 변경은 CSRF, `/admin/notification-deliveries` edit 권한, 조건부 `before_status` 업데이트, 감사 로그의 이전 상태/새 상태/operation 기록을 거쳐야 한다.
+
 ## 자산 원장 정합성
 
 포인트, 적립금, 예치금 원장은 설치된 환경에서 다음 read-only 명령으로 잔액 행, 거래 합계, 마지막 거래 `balance_after`, 거래별 `balance_after` 연쇄를 비교한다.
@@ -106,6 +110,5 @@ php .tools/bin/ops-status.php
 
 ## 1.0 전 보강 대상
 
-- delivery queue 재시도/취소 정책을 관리자 화면 기준으로 명확히 남긴다.
 - 게시판 복사 job lock 만료 takeover와 늦은 쓰기 거부를 설치 DB 또는 staging에서 smoke 기록으로 남긴다.
 - 퀴즈/설문 보상 실패 복구 절차를 자산 reconciliation과 연결해 기록한다.

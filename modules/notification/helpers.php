@@ -19,6 +19,38 @@ function sr_notification_body_format(string $value): string
     return in_array($value, ['plain', 'html'], true) ? $value : 'plain';
 }
 
+function sr_notification_delivery_status_transition(string $currentStatus, string $targetStatus): array
+{
+    $currentStatus = trim($currentStatus);
+    $targetStatus = trim($targetStatus);
+
+    if (!in_array($currentStatus, ['queued', 'sent', 'failed', 'canceled'], true)
+        || !in_array($targetStatus, ['queued', 'sent', 'failed', 'canceled'], true)
+        || $currentStatus === $targetStatus
+        || $currentStatus === 'sent'
+    ) {
+        return ['allowed' => false, 'operation' => ''];
+    }
+
+    if ($targetStatus === 'queued' && in_array($currentStatus, ['failed', 'canceled'], true)) {
+        return ['allowed' => true, 'operation' => 'retry'];
+    }
+
+    if ($targetStatus === 'canceled' && in_array($currentStatus, ['queued', 'failed'], true)) {
+        return ['allowed' => true, 'operation' => 'cancel'];
+    }
+
+    if ($targetStatus === 'failed' && $currentStatus === 'queued') {
+        return ['allowed' => true, 'operation' => 'mark_failed'];
+    }
+
+    if ($targetStatus === 'sent' && in_array($currentStatus, ['queued', 'failed', 'canceled'], true)) {
+        return ['allowed' => true, 'operation' => 'mark_sent'];
+    }
+
+    return ['allowed' => false, 'operation' => ''];
+}
+
 function sr_notification_body_html(array $notification): string
 {
     return sr_body_text_html($notification);
