@@ -102,7 +102,9 @@ foreach ([
         '비밀값이 들어 있는 파일',
         'SHA-256 checksum',
         'php .tools/bin/release-preflight.php',
+        'php .tools/bin/release-installed-gate-status.php',
         'release-preflight.php',
+        'release-installed-gate-status.php',
         'release-package-dry-run.php --manifest',
         'manifest-sha256',
         'GitHub source zip',
@@ -129,6 +131,7 @@ foreach ([
     ],
     'docs/records/improvement-hardening-verification-2026-06-11.md' => [
         '릴리스 zip에서 Purifier 로드 상태와 라이선스/버전 포함 확인',
+        'release-installed-gate-status.php',
         'modules/htmlpurifier/DEPENDENCY.md',
         'vendor 포함 확인',
         'release-preflight.php',
@@ -172,6 +175,14 @@ foreach ([
         'ckeditor-version',
         'ckeditor-license-files',
         'release-package-dry-run.php',
+    ],
+    '.tools/bin/release-installed-gate-status.php' => [
+        'release-installed-gate-status-version: 1',
+        'config-mode',
+        'config-owner-group',
+        'CKEditor upload/save browser smoke',
+        '개인정보 export/cleanup smoke',
+        '성능 수동 점검',
     ],
     '.gitignore' => [
         '.env',
