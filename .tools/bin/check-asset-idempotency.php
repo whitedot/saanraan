@@ -82,6 +82,28 @@ function sr_asset_idempotency_order(string $label, string $content, string $firs
     }
 }
 
+function sr_asset_idempotency_command(array $command, int $expectedExitCode, array $markers, string $label): void
+{
+    $parts = [];
+    foreach ($command as $part) {
+        $parts[] = escapeshellarg($part);
+    }
+
+    $output = [];
+    exec(implode(' ', $parts) . ' 2>&1', $output, $exitCode);
+    $text = implode("\n", $output);
+    if ($exitCode !== $expectedExitCode) {
+        sr_asset_idempotency_error($label . ' expected exit ' . (string) $expectedExitCode . ', got ' . (string) $exitCode . ': ' . $text);
+        return;
+    }
+
+    foreach ($markers as $marker) {
+        if (!str_contains($text, $marker)) {
+            sr_asset_idempotency_error($label . ' output is missing marker: ' . $marker);
+        }
+    }
+}
+
 function sr_asset_idempotency_fixture_insert_placeholder(PDO $pdo, string $tableName, string $dedupeKey, string $status): bool
 {
     $stmt = $pdo->prepare(
@@ -563,6 +585,51 @@ sr_asset_idempotency_contains('.tools/bin/smoke-asset-idempotency-http.php', [
     'This smoke performs mutating duplicate POST requests',
     'Run only against local or staging disposable data',
 ]);
+
+sr_asset_idempotency_command(
+    [PHP_BINARY, '.tools/bin/smoke-asset-idempotency-http.php'],
+    2,
+    [
+        'SR_SMOKE_ALLOW_MUTATION=1',
+        'SR_SMOKE_SUCCESS_STATUSES=200,302,303',
+        'SR_SMOKE_EXPECT_DEDUPE_FRESH=1',
+        'Run only against local or staging disposable data',
+    ],
+    'asset HTTP smoke default mutation guard'
+);
+
+sr_asset_idempotency_command(
+    [
+        'env',
+        'SR_SMOKE_SUCCESS_STATUSES=abc',
+        PHP_BINARY,
+        '.tools/bin/smoke-asset-idempotency-http.php',
+    ],
+    2,
+    [
+        'SR_SMOKE_SUCCESS_STATUSES contains an invalid HTTP status',
+    ],
+    'asset HTTP smoke success status validation'
+);
+
+sr_asset_idempotency_command(
+    [
+        'env',
+        'SR_SMOKE_ALLOW_MUTATION=1',
+        'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+        'SR_SMOKE_IDENTIFIER=member',
+        'SR_SMOKE_PASSWORD=12341234',
+        'SR_SMOKE_FORM_PATH=/paid-fixture',
+        'SR_SMOKE_EXPECT_DEDUPE_TABLE=sr_content_asset_access_logs',
+        PHP_BINARY,
+        '.tools/bin/smoke-asset-idempotency-http.php',
+    ],
+    2,
+    [
+        'SR_SMOKE_EXPECT_DEDUPE_TABLE and SR_SMOKE_EXPECT_DEDUPE_KEY must be provided together',
+    ],
+    'asset HTTP smoke dedupe table/key pair validation'
+);
 
 if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     $pdo = new PDO('sqlite::memory:');
