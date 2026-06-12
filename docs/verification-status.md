@@ -70,7 +70,7 @@ php .tools/bin/smoke-http.php
 - `.tools/bin/check-content-file-cleanup-runtime.php`는 콘텐츠 삭제 시 파일 row redaction, 다운로드 링크 숨김, 다운로드 로그 snapshot redaction, 링크 참조 제거, 시리즈 회차 제거, 임베드 참조 removed 전환, 저장소 cleanup 실패 미발생을 SQLite fixture로 확인한다. 로컬 저장소 쓰기 권한이 있는 환경에서는 고유 fixture 파일과 본문 이미지를 실제로 만들고 삭제 여부까지 확인한다.
 - `.tools/bin/check-content-copy-runtime.php`는 콘텐츠 복사 시 HTML 본문 임베드 ref key 재작성, 새 owner ref 생성, 원본 ref 유지, 명시적/legacy 첨부 링크 복사, 시리즈 사본과 회차 메타데이터 복사를 SQLite fixture로 확인한다.
 - `.tools/bin/check-community-attachment-runtime.php`는 커뮤니티 첨부 다운로드 자산 로그 placeholder의 dedupe, 0원 완료 로그 settlement metadata, 첨부 다운로드 접근권 중복 방지, anonymized entitlement 무시를 SQLite fixture로 확인한다.
-- `.tools/bin/check-reward-abuse-standards.php`는 보상/자산 abuse 기준의 정적 marker와 함께 SQLite fixture로 적립금 회수 잠금 검증 경로, 회수 가능 잔액 상한, 예치금 pending 환불 신청 차감, 환불 완료 거래 생성, 같은 환불 신청 중복 완료 차단을 확인한다.
+- `.tools/bin/check-reward-abuse-standards.php`는 보상/자산 abuse 기준의 정적 marker와 함께 SQLite fixture로 적립금 회수 잠금 검증 경로, 회수 가능 잔액 상한, 적립금 pending 출금 신청 차감, 출금 완료 거래 생성과 중복 완료 차단, 예치금 pending 환불 신청 차감, 환불 완료 거래 생성과 중복 완료 차단을 확인한다.
 - `.tools/bin/check-quiz-reward-runtime.php`는 퀴즈 보상 지급 시 grant dedupe, 같은 시도 재호출 중복 거래 방지, 같은 퀴즈의 다른 시도 duplicate 판정, 실패 grant 재시도와 실패 상태 정리, grant에서 원장 거래를 다시 찾는 lookup 계약, 보상 자산 회수 가능액 계산과 회수 실행을 SQLite fixture로 확인한다. `check-quiz-consistency.php`는 `/admin/quiz/attempts` 보상 grant 표시, 회수 모달, 회수 POST 계약 marker도 확인한다.
 - `.tools/bin/check-quiz-delete-runtime.php`는 퀴즈 삭제 시 문항/선택지/결과/댓글 redaction, 응시 source snapshot과 return URL 정리, 응답/채점/결과 snapshot 정리, 보상 grant snapshot과 운영 메모 정리를 SQLite fixture로 확인한다.
 - `.tools/bin/check-survey-response-runtime.php`는 설문 응답 제출 시 동의/연구 메타데이터/답변 snapshot, 기타 답변, 복수 선택 min/max, 무응답 선택지 배타성, 숫자 범위, 익명 중복 제한을 SQLite fixture로 확인한다.

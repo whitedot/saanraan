@@ -204,7 +204,7 @@ function sr_reward_abuse_runtime_check(): void
 
     $grantId = sr_reward_create_transaction($pdo, [
         'account_id' => 7,
-        'amount' => 100,
+        'amount' => 5000,
         'transaction_type' => 'grant',
         'reason' => 'runtime grant',
         'reference_type' => 'fixture',
@@ -213,21 +213,64 @@ function sr_reward_abuse_runtime_check(): void
     ]);
     sr_reward_create_transaction($pdo, [
         'account_id' => 7,
-        'amount' => -40,
+        'amount' => -1000,
         'transaction_type' => 'reclaim',
         'reason' => 'runtime reclaim',
         'reference_type' => 'reclaim',
         'reference_id' => sr_reward_reclaim_reference_id($grantId),
         'created_by_account_id' => 99,
     ]);
-    if (sr_reward_reclaim_remaining_amount($pdo, 7, $grantId) !== 60) {
+    if (sr_reward_reclaim_remaining_amount($pdo, 7, $grantId) !== 4000) {
         $errors[] = 'reward reclaim runtime fixture must calculate remaining reclaim amount.';
     }
-    if (sr_reward_validate_reclaim_transaction($pdo, 7, -61, 'reclaim', sr_reward_reclaim_reference_id($grantId), true) !== 'reward::action.admin.reclaim_amount_exceeds_target') {
+    if (sr_reward_validate_reclaim_transaction($pdo, 7, -4001, 'reclaim', sr_reward_reclaim_reference_id($grantId), true) !== 'reward::action.admin.reclaim_amount_exceeds_target') {
         $errors[] = 'reward reclaim runtime fixture must reject locked reclaim amounts above the remaining target.';
     }
-    if (sr_reward_validate_reclaim_transaction($pdo, 7, -60, 'reclaim', sr_reward_reclaim_reference_id($grantId), true) !== null) {
+    if (sr_reward_validate_reclaim_transaction($pdo, 7, -4000, 'reclaim', sr_reward_reclaim_reference_id($grantId), true) !== null) {
         $errors[] = 'reward reclaim runtime fixture must allow locked reclaim amounts up to the remaining target.';
+    }
+
+    $withdrawalRequestId = sr_reward_create_withdrawal_request($pdo, 7, [
+        'amount' => 3000,
+        'bank_name' => 'Reward Bank',
+        'bank_account_number' => '555-666',
+        'bank_account_holder' => 'Reward Holder',
+        'requester_note' => 'runtime withdrawal',
+    ]);
+    if (sr_reward_withdrawal_available_amount($pdo, 7) !== 1000) {
+        $errors[] = 'reward withdrawal runtime fixture must subtract pending withdrawal requests from available amount.';
+    }
+    try {
+        sr_reward_create_withdrawal_request($pdo, 7, [
+            'amount' => 2000,
+            'bank_name' => 'Reward Bank',
+            'bank_account_number' => '777-888',
+            'bank_account_holder' => 'Reward Holder',
+            'requester_note' => 'runtime withdrawal over available',
+        ]);
+        $errors[] = 'reward withdrawal runtime fixture must reject requests above balance minus pending withdrawals.';
+    } catch (RuntimeException $exception) {
+        if ($exception->getMessage() !== 'Reward withdrawal amount exceeds available balance.') {
+            $errors[] = 'reward withdrawal runtime fixture rejected over-available request with unexpected error.';
+        }
+    }
+    $withdrawalTransactionId = sr_reward_complete_withdrawal_request($pdo, $withdrawalRequestId, 99, 'paid');
+    if ($withdrawalTransactionId <= 0) {
+        $errors[] = 'reward withdrawal runtime fixture must create a withdrawal transaction when completed.';
+    }
+    if ((string) sr_reward_abuse_runtime_scalar($pdo, 'SELECT status FROM sr_reward_withdrawal_requests WHERE id = :id', ['id' => $withdrawalRequestId]) !== 'completed') {
+        $errors[] = 'reward withdrawal runtime fixture must mark completed requests.';
+    }
+    if ((int) sr_reward_abuse_runtime_scalar($pdo, 'SELECT balance FROM sr_reward_balances WHERE account_id = 7') !== 1000) {
+        $errors[] = 'reward withdrawal runtime fixture must reduce balance by completed request amount.';
+    }
+    try {
+        sr_reward_complete_withdrawal_request($pdo, $withdrawalRequestId, 99, 'paid again');
+        $errors[] = 'reward withdrawal runtime fixture must reject completing the same request twice.';
+    } catch (RuntimeException $exception) {
+        if ($exception->getMessage() !== 'Reward withdrawal request is not pending.') {
+            $errors[] = 'reward withdrawal runtime fixture rejected duplicate completion with unexpected error.';
+        }
     }
 
     sr_deposit_create_transaction($pdo, [
