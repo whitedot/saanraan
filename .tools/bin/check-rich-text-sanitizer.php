@@ -158,6 +158,7 @@ function sr_sanitizer_check_namespace_url_payload_case(callable $sanitize, strin
         . '<object data="https://example.com/x"></object>'
         . '<embed src="https://example.com/x">'
         . '<meta http-equiv="refresh" content="0;url=javascript:alert(1)">'
+        . '<meta name="description">hidden meta text</meta>'
         . '<p><a href="JaVaScRiPt:alert(1)">mixed</a></p>'
         . '<p><a href="java&#x0A;script:alert(1)">encoded</a></p>'
         . '<p><img src="JaVaScRiPt:alert(1)" alt="bad"></p>'
@@ -176,6 +177,7 @@ function sr_sanitizer_check_namespace_url_payload_case(callable $sanitize, strin
         'xlink:href',
         'srcdoc',
         'http-equiv',
+        'hidden meta text',
         'javascript:',
         'java&#',
         'alert(1)',

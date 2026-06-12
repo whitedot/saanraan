@@ -12,11 +12,11 @@
 - 콘텐츠, 커뮤니티 게시글, 팝업레이어처럼 기존 HTML 본문을 복사해 새 레코드를 만드는 경로
 - 임베드 매니저 marker가 포함된 본문 HTML
 
-공통 rich text sanitizer는 HTML Purifier가 있으면 먼저 실행하고, 이후 내부 allowlist canonicalizer를 한 번 더 통과한다. HTML Purifier가 없으면 내부 DOM 기반 fallback을 사용한다. 커뮤니티 게시글 sanitizer는 모듈 경계용 wrapper만 유지하고 실제 정화는 공통 sanitizer에 위임한다. 두 경로 모두 같은 fixture를 통과해야 한다.
+공통 rich text sanitizer는 `script`, `style`, `iframe`, `object`, `embed`, `form`, `meta` 같은 hard-drop 컨테이너를 먼저 제거한다. 그다음 HTML Purifier가 있으면 1차 정화를 실행하고, 이후 내부 allowlist canonicalizer를 한 번 더 통과한다. HTML Purifier가 없으면 내부 DOM 기반 fallback을 사용한다. 커뮤니티 게시글 sanitizer는 모듈 경계용 wrapper만 유지하고 실제 정화는 공통 sanitizer에 위임한다. 두 경로 모두 같은 fixture를 통과해야 한다.
 
 ## HTML Purifier 설정 경계
 
-HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. Purifier는 1차 정화와 HTML 파싱 보강을 맡고, 최종 저장/출력 형태는 산란 allowlist canonicalizer가 다시 결정한다.
+HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 sanitizer는 hard-drop 컨테이너를 먼저 제거한 뒤 Purifier를 1차 정화와 HTML 파싱 보강으로 사용하고, 최종 저장/출력 형태는 산란 allowlist canonicalizer가 다시 결정한다.
 
 현재 Purifier 설정 기준:
 

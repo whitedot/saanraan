@@ -300,12 +300,66 @@ function sr_rich_text_allowed_html_tags(): array
 
 function sr_sanitize_rich_text_html(string $html): string
 {
+    $html = sr_strip_rich_text_dropped_containers($html);
     $purifiedHtml = sr_sanitize_rich_text_html_with_purifier($html);
     if (is_string($purifiedHtml)) {
         $html = $purifiedHtml;
     }
 
     return sr_sanitize_rich_text_html_fallback($html);
+}
+
+function sr_strip_rich_text_dropped_containers(string $html): string
+{
+    if ($html === '' || !class_exists('DOMDocument')) {
+        return $html;
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-rich-text-strip-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return $html;
+    }
+
+    foreach (['script', 'style', 'iframe', 'object', 'embed', 'form', 'meta'] as $tagName) {
+        while (true) {
+            $nodes = $document->getElementsByTagName($tagName);
+            if ($nodes->length < 1) {
+                break;
+            }
+
+            $node = $nodes->item(0);
+            if (!$node instanceof DOMNode || !$node->parentNode instanceof DOMNode) {
+                break;
+            }
+
+            $node->parentNode->removeChild($node);
+        }
+    }
+
+    $root = null;
+    foreach ($document->getElementsByTagName('div') as $div) {
+        if ($div instanceof DOMElement && $div->getAttribute('id') === 'sr-rich-text-strip-root') {
+            $root = $div;
+            break;
+        }
+    }
+    if (!$root instanceof DOMElement) {
+        return $html;
+    }
+
+    $output = '';
+    foreach ($root->childNodes as $child) {
+        $serialized = $document->saveHTML($child);
+        if (is_string($serialized)) {
+            $output .= $serialized;
+        }
+    }
+
+    return $output;
 }
 
 function sr_sanitize_rich_text_html_with_purifier(string $html): ?string
@@ -485,7 +539,7 @@ function sr_sanitize_rich_text_html_node(DOMNode $node): string
     }
 
     $tagName = strtolower($node->tagName);
-    if (in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed', 'form'], true)) {
+    if (in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed', 'form', 'meta'], true)) {
         return '';
     }
 
