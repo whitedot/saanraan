@@ -320,26 +320,34 @@ function sr_release_gate_status_performance_gate(bool $runPerformanceFixtures): 
     }
 
     $commands = [
-        '.tools/bin/check-performance-policy.php',
-        '.tools/bin/check-performance-baseline.php',
-        '.tools/bin/check-admin-pagination-runtime.php',
-        '.tools/bin/check-community-board-copy-limits.php',
-        '.tools/bin/check-survey-export-runtime.php',
+        'policy' => '.tools/bin/check-performance-policy.php',
+        'baseline' => '.tools/bin/check-performance-baseline.php',
+        'pagination' => '.tools/bin/check-admin-pagination-runtime.php',
+        'board-copy' => '.tools/bin/check-community-board-copy-limits.php',
+        'survey-export' => '.tools/bin/check-survey-export-runtime.php',
     ];
     $exitCodes = [];
     $outputs = [];
-    foreach ($commands as $command) {
+    foreach ($commands as $label => $command) {
         $result = sr_release_gate_status_command([PHP_BINARY, $command]);
-        $exitCodes[$command] = (int) $result['exit_code'];
-        $outputs[] = $command . ' exit ' . (string) $exitCodes[$command] . ' ' . (string) $result['output'];
+        $exitCodes[$label] = (int) $result['exit_code'];
+        $outputs[] = $command . ' exit ' . (string) $exitCodes[$label] . ' ' . (string) $result['output'];
     }
     $passed = !in_array(false, array_map(static fn (int $code): bool => $code === 0, $exitCodes), true);
+    $summary = [];
+    foreach ($exitCodes as $label => $exitCode) {
+        $summary[] = $label . '=' . (string) $exitCode;
+    }
+    $memo = 'installed DB performance review still required; fixture exits: ' . implode(', ', $summary);
+    if (!$passed) {
+        $memo .= '; ' . sr_release_gate_status_single_line(implode(' ', $outputs));
+    }
 
     return [
         'gate' => '성능 수동 점검',
         'result' => $passed ? '부분 확인' : '실패',
         'environment' => 'static and SQLite runtime fixtures',
-        'memo' => 'installed DB performance review still required; ' . sr_release_gate_status_single_line(implode(' ', $outputs)),
+        'memo' => $memo,
     ];
 }
 

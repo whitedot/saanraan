@@ -110,10 +110,9 @@ foreach ([
     "gate\t성능 수동 점검\tresult=부분 확인\tenvironment=static and SQLite runtime fixtures",
     'installed DB smoke still required',
     'installed DB performance review still required',
+    'fixture exits: policy=0, baseline=0, pagination=0, board-copy=0, survey-export=0',
     'privacy export runtime checks completed.',
     'privacy cleanup runtime checks completed.',
-    'performance policy checks completed.',
-    'performance baseline checks completed.',
 ] as $marker) {
     if ($fixtureOutput !== '' && !str_contains($fixtureOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status fixture output marker missing: ' . $marker);
