@@ -115,6 +115,40 @@ foreach ([
     }
 }
 
+$adminIncompleteIdentifierOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'admin-smoke-credentials: incomplete',
+    "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+    "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+] as $marker) {
+    if ($adminIncompleteIdentifierOutput !== '' && !str_contains($adminIncompleteIdentifierOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status admin-identifier-only output marker missing: ' . $marker);
+    }
+}
+
+$adminIncompletePasswordOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_ADMIN_PASSWORD=12341234',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'admin-smoke-credentials: incomplete',
+    "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+    "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+] as $marker) {
+    if ($adminIncompletePasswordOutput !== '' && !str_contains($adminIncompletePasswordOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status admin-password-only output marker missing: ' . $marker);
+    }
+}
+
 $adminConfiguredOutput = sr_installed_gate_status_exec([
     'env',
     'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
@@ -242,6 +276,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_SMOKE_ALLOW_MUTATION',
     'SR_SMOKE_ADMIN_IDENTIFIER',
     'SR_SMOKE_ADMIN_PASSWORD',
+    'incomplete',
     'config/config.php is not readable by current user',
     'sr_release_gate_status_admin_readonly_gate',
     'sr_release_gate_status_file_mode',
