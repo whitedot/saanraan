@@ -390,6 +390,11 @@ function sr_release_verification_record_self_test(): void
             'content' => sr_release_verification_record_fixture('실패', '있음', '통과'),
             'reject' => true,
         ],
+        'release candidate partial gate final pass rejected' => [
+            'file' => 'docs/records/release-verification-fixture.md',
+            'content' => sr_release_verification_record_fixture('부분 확인', '있음', '통과'),
+            'reject' => true,
+        ],
         'release candidate resolved gate final pass allowed' => [
             'file' => 'docs/records/release-verification-fixture.md',
             'content' => sr_release_verification_record_fixture('통과', '없음', '통과'),
