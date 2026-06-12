@@ -166,7 +166,8 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 | `php .tools/bin/ops-status.php` | 환경 미준비 | 미설치 로컬 환경 | `saanraan is not installed.`와 exit 2 반환 |
 | /admin/assets/reconciliation | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
 | /admin/operations | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
-| 인증 smoke | 미실행 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php`, `smoke-quiz-e2e.php` 미실행 |
+| 인증 smoke | 미실행 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php` 미실행 |
+| 퀴즈 E2E smoke | 안전 거부 확인 | 설치 DB + 관리자 계정 없음 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 퀴즈 생성/응시는 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB + 더미 데이터 없음 | SQLite fixture만 확인 |
 | 개인정보 export/cleanup smoke | 미실행 | 설치 DB + 더미 계정 없음 | SQLite fixture와 계약 매트릭스만 확인 |
 | CKEditor asset/fallback browser smoke | 통과 | 설치 DB 없는 로컬 브라우저 환경 | 2026-06-12 재검증에서 `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8081 npm --prefix .tools/browser-qa run test:ckeditor`로 4 tests passed. self-hosted asset 로딩, `body_format=html` marker, textarea fallback, upload adapter request contract 확인 |

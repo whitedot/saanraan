@@ -16,6 +16,7 @@ $args = array_slice($argv, 1);
 $runReadonly = in_array('--run-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
+$runQuizSmoke = in_array('--run-quiz-smoke', $args, true);
 $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $runPrivacyFixtures = in_array('--run-privacy-fixtures', $args, true);
 $runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
@@ -251,6 +252,59 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $account
     ];
 }
 
+function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSmokeCredentialStatus, bool $runQuizSmoke, bool $allowMutationSmoke): array
+{
+    if ($baseUrl === '') {
+        return [
+            'gate' => '퀴즈 E2E smoke',
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_SMOKE_BASE_URL for local/staging quiz E2E smoke; do not run against production',
+        ];
+    }
+
+    if ($adminSmokeCredentialStatus !== 'configured') {
+        $credentialMemo = $adminSmokeCredentialStatus === 'incomplete'
+            ? 'SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together for quiz E2E administrator session'
+            : 'requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD for quiz E2E administrator session';
+
+        return [
+            'gate' => '퀴즈 E2E smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => $credentialMemo,
+        ];
+    }
+
+    if (!$allowMutationSmoke) {
+        return [
+            'gate' => '퀴즈 E2E smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
+        ];
+    }
+
+    if (!$runQuizSmoke) {
+        return [
+            'gate' => '퀴즈 E2E smoke',
+            'result' => '수동 확인 필요',
+            'environment' => $baseUrl,
+            'memo' => 'quiz E2E smoke is configured; rerun with --run-quiz-smoke to execute smoke-quiz-e2e.php',
+        ];
+    }
+
+    $result = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/smoke-quiz-e2e.php']);
+    $exitCode = (int) $result['exit_code'];
+
+    return [
+        'gate' => '퀴즈 E2E smoke',
+        'result' => $exitCode === 0 ? '통과' : '실패',
+        'environment' => $baseUrl,
+        'memo' => 'smoke-quiz-e2e.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
+    ];
+}
+
 function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, string $assetDedupeExpectationStatus, bool $runAssetSmoke, bool $allowMutationSmoke): array
 {
     $formPath = (string) (getenv('SR_SMOKE_FORM_PATH') ?: '');
@@ -476,6 +530,7 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
     'verify the read-only operations screen, allowed delays, and overdue markers'
 );
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAuthSmoke, $allowMutationSmoke);
+$gates[] = sr_release_gate_status_quiz_smoke_gate($baseUrl, $adminSmokeCredentialStatus, $runQuizSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $assetDedupeExpectationStatus, $runAssetSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_privacy_gate($runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
@@ -510,6 +565,7 @@ echo 'asset-dedupe-expectation: ' . $assetDedupeExpectationStatus . "\n";
 echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
 echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
 echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";
+echo 'run-quiz-smoke: ' . ($runQuizSmoke ? 'yes' : 'no') . "\n";
 echo 'run-asset-smoke: ' . ($runAssetSmoke ? 'yes' : 'no') . "\n";
 echo 'run-privacy-fixtures: ' . ($runPrivacyFixtures ? 'yes' : 'no') . "\n";
 echo 'run-performance-fixtures: ' . ($runPerformanceFixtures ? 'yes' : 'no') . "\n";

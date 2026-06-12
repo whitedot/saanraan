@@ -77,6 +77,7 @@ foreach ([
     'run-readonly: no',
     'run-browser-qa: no',
     'run-auth-smoke: no',
+    'run-quiz-smoke: no',
     'run-asset-smoke: no',
     'run-privacy-fixtures: no',
     'run-performance-fixtures: no',
@@ -87,6 +88,7 @@ foreach ([
     "gate\t/admin/assets/reconciliation\t",
     "gate\t/admin/operations\t",
     "gate\t인증 smoke\t",
+    "gate\t퀴즈 E2E smoke\t",
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\t",
     "gate\t개인정보 export/cleanup smoke\t",
     "gate\tCKEditor asset/fallback browser smoke\t",
@@ -111,6 +113,7 @@ foreach ([
     'admin-smoke-credentials: missing',
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
+    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
 ] as $marker) {
     if ($baseOnlyOutput !== '' && !str_contains($baseOnlyOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status base-url-only output marker missing: ' . $marker);
@@ -128,6 +131,7 @@ foreach ([
     'admin-smoke-credentials: incomplete',
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
 ] as $marker) {
     if ($adminIncompleteIdentifierOutput !== '' && !str_contains($adminIncompleteIdentifierOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status admin-identifier-only output marker missing: ' . $marker);
@@ -145,6 +149,7 @@ foreach ([
     'admin-smoke-credentials: incomplete',
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
+    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
 ] as $marker) {
     if ($adminIncompletePasswordOutput !== '' && !str_contains($adminIncompletePasswordOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status admin-password-only output marker missing: ' . $marker);
@@ -163,6 +168,7 @@ foreach ([
     'admin-smoke-credentials: configured',
     "gate\t/admin/assets/reconciliation\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
     "gate\t/admin/operations\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
+    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1",
 ] as $marker) {
     if ($adminConfiguredOutput !== '' && !str_contains($adminConfiguredOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status admin-configured output marker missing: ' . $marker);
@@ -318,6 +324,25 @@ foreach ([
     }
 }
 
+$quizMutationBlockedOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
+    'SR_SMOKE_ADMIN_PASSWORD=12341234',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--run-quiz-smoke',
+]);
+foreach ([
+    'run-quiz-smoke: yes',
+    'mutation-smoke-allowed: no',
+    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1",
+] as $marker) {
+    if ($quizMutationBlockedOutput !== '' && !str_contains($quizMutationBlockedOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status quiz mutation guard output marker missing: ' . $marker);
+    }
+}
+
 $authReadyOutput = sr_installed_gate_status_exec([
     'env',
     'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
@@ -333,6 +358,24 @@ foreach ([
 ] as $marker) {
     if ($authReadyOutput !== '' && !str_contains($authReadyOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status auth ready output marker missing: ' . $marker);
+    }
+}
+
+$quizReadyOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
+    'SR_SMOKE_ADMIN_PASSWORD=12341234',
+    'SR_SMOKE_ALLOW_MUTATION=1',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'mutation-smoke-allowed: yes',
+    "gate\t퀴즈 E2E smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke is configured; rerun with --run-quiz-smoke",
+] as $marker) {
+    if ($quizReadyOutput !== '' && !str_contains($quizReadyOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status quiz ready output marker missing: ' . $marker);
     }
 }
 
@@ -401,6 +444,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
+    '--run-quiz-smoke',
     '--run-asset-smoke',
     '--run-privacy-fixtures',
     '--run-performance-fixtures',
@@ -423,6 +467,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_BROWSER_QA_BASE_URL',
     'npm --prefix .tools/browser-qa run test:ckeditor',
     'smoke-community-auth.php',
+    'smoke-quiz-e2e.php',
     'smoke-asset-idempotency-http.php',
     'check-privacy-export-runtime.php',
     'check-privacy-cleanup-runtime.php',

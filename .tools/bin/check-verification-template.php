@@ -78,6 +78,7 @@ foreach ([
     '/admin/assets/reconciliation',
     '/admin/operations',
     '자산/쿠폰/유료 접근권 mutation smoke',
+    '퀴즈 E2E smoke',
     'SR_SMOKE_ALLOW_MUTATION=1',
     '개인정보 export/cleanup smoke',
     'CKEditor asset/fallback browser smoke',
