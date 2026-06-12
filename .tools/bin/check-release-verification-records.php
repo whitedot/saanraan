@@ -73,6 +73,23 @@ function sr_release_verification_record_required_gate_labels(): array
     ];
 }
 
+function sr_release_verification_record_risk_labels(): array
+{
+    return [
+        'R-01 자산/쿠폰/유료 접근권',
+        'R-02 HTML sanitizer/CKEditor',
+        'R-03 공유호스팅 queue/cron/배치',
+        'R-04 개인정보 export/cleanup 계약',
+        'R-05 넓은 번들 모듈 표면',
+        'R-06 커스텀 요청/보안 contract',
+        'R-07 외부 의존성/vendored asset',
+        'R-08 배포 보호',
+        'R-09 문서/Wiki 지연',
+        'R-10 국내 CMS 대비 신뢰 증거',
+        'R-11 성능/캐시 기준',
+    ];
+}
+
 function sr_release_verification_record_required_gate_result(string $requiredGate, string $label): ?string
 {
     $quoted = preg_quote($label, '/');
@@ -277,6 +294,32 @@ function sr_release_verification_record_check_risk_rows_have_details(string $fil
     }
 }
 
+function sr_release_verification_record_check_risk_rows_match_register(string $file, string $content): void
+{
+    $section = sr_release_verification_record_section($content, '리스크별 릴리스 판정 연결');
+    if ($section === '') {
+        return;
+    }
+
+    $labels = [];
+    foreach (explode("\n", $section) as $line) {
+        if (!preg_match('/^\|\s*(R-\d{2}[^|]*?)\s*\|/u', $line, $matches)) {
+            continue;
+        }
+
+        $labels[] = trim((string) $matches[1]);
+    }
+
+    $expectedLabels = sr_release_verification_record_risk_labels();
+    if ($labels !== $expectedLabels) {
+        sr_release_verification_record_error(
+            'Verification record risk rows must match risk-register order in ' . $file
+            . ': expected ' . implode(', ', $expectedLabels)
+            . '; got ' . implode(', ', $labels)
+        );
+    }
+}
+
 function sr_release_verification_record_is_release_candidate(string $file, string $content): bool
 {
     if (str_contains($file, '/release-verification-')) {
@@ -402,6 +445,16 @@ function sr_release_verification_record_self_test(): void
         '| /admin/operations | 통과 | fixture | fixture |' . "\n" . '| /admin/assets/reconciliation | 통과 | fixture | fixture |',
         sr_release_verification_record_fixture('통과', '없음', '통과')
     );
+    $duplicateRiskRowFixture = str_replace(
+        '| R-11 성능/캐시 기준 | fixture | 조건부 | fixture |',
+        '| R-11 성능/캐시 기준 | fixture | 조건부 | fixture |' . "\n" . '| R-11 성능/캐시 기준 | fixture | 조건부 | fixture |',
+        sr_release_verification_record_fixture('통과', '없음', '조건부 통과')
+    );
+    $wrongOrderRiskRowFixture = str_replace(
+        '| R-01 자산/쿠폰/유료 접근권 | fixture | 조건부 | fixture |' . "\n" . '| R-02 HTML sanitizer/CKEditor | fixture | 조건부 | fixture |',
+        '| R-02 HTML sanitizer/CKEditor | fixture | 조건부 | fixture |' . "\n" . '| R-01 자산/쿠폰/유료 접근권 | fixture | 조건부 | fixture |',
+        sr_release_verification_record_fixture('통과', '없음', '조건부 통과')
+    );
     $cases = [
         'release candidate unresolved gate final pass rejected' => [
             'file' => 'docs/records/release-verification-fixture.md',
@@ -489,6 +542,20 @@ function sr_release_verification_record_self_test(): void
         sr_release_verification_record_error('Release verification record self-test failed: risk row TODO check');
     }
     array_pop($GLOBALS['errors']);
+
+    $beforeCount = count($GLOBALS['errors']);
+    sr_release_verification_record_check_risk_rows_match_register('docs/records/release-verification-fixture.md', $duplicateRiskRowFixture);
+    if (count($GLOBALS['errors']) !== $beforeCount + 1) {
+        sr_release_verification_record_error('Release verification record self-test failed: duplicate risk row check');
+    }
+    array_pop($GLOBALS['errors']);
+
+    $beforeCount = count($GLOBALS['errors']);
+    sr_release_verification_record_check_risk_rows_match_register('docs/records/release-verification-fixture.md', $wrongOrderRiskRowFixture);
+    if (count($GLOBALS['errors']) !== $beforeCount + 1) {
+        sr_release_verification_record_error('Release verification record self-test failed: risk row order check');
+    }
+    array_pop($GLOBALS['errors']);
 }
 
 sr_release_verification_record_self_test();
@@ -552,20 +619,9 @@ foreach ($records as $record) {
     sr_release_verification_record_check_required_gate_details($record, $content);
     sr_release_verification_record_check_missing_flag_consistency($record, $content);
     sr_release_verification_record_check_risk_rows_have_details($record, $content);
+    sr_release_verification_record_check_risk_rows_match_register($record, $content);
 
-    foreach ([
-        'R-01 자산/쿠폰/유료 접근권',
-        'R-02 HTML sanitizer/CKEditor',
-        'R-03 공유호스팅 queue/cron/배치',
-        'R-04 개인정보 export/cleanup 계약',
-        'R-05 넓은 번들 모듈 표면',
-        'R-06 커스텀 요청/보안 contract',
-        'R-07 외부 의존성/vendored asset',
-        'R-08 배포 보호',
-        'R-09 문서/Wiki 지연',
-        'R-10 국내 CMS 대비 신뢰 증거',
-        'R-11 성능/캐시 기준',
-    ] as $riskMarker) {
+    foreach (sr_release_verification_record_risk_labels() as $riskMarker) {
         if (!str_contains($content, $riskMarker)) {
             sr_release_verification_record_error('Verification record risk row is missing in ' . $record . ': ' . $riskMarker);
         }
