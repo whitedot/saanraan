@@ -485,6 +485,8 @@ foreach ([
         '검증 명령',
     ],
     'docs/records/improvement-hardening-verification-2026-06-11.md' => [
+        '대상 범위',
+        '단일 hash 대신 각 작업 단위 commit',
         'check-release-verification-records.php',
         'self-test',
         '조건부 통과',

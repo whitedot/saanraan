@@ -174,6 +174,8 @@ if (is_string($improvementRecord)) {
     foreach ([
         '## 리스크별 릴리스 판정 연결',
         '이번 기록은 1.0 릴리스 후보 판정이 아니라',
+        '대상 범위',
+        '단일 hash 대신 각 작업 단위 commit',
         'R-01 자산/쿠폰/유료 접근권',
         'R-02 HTML sanitizer/CKEditor',
         'R-03 공유호스팅 queue/cron/배치',
