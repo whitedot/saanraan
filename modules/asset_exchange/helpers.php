@@ -915,6 +915,17 @@ function sr_asset_exchange_is_retryable_transaction_exception(Throwable $excepti
     return $sqlState === '40001' || in_array($driverCode, [1205, 1213], true);
 }
 
+function sr_asset_exchange_for_update_clause(PDO $pdo): string
+{
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable) {
+        $driver = '';
+    }
+
+    return $driver === 'sqlite' ? '' : ' FOR UPDATE';
+}
+
 function sr_asset_exchange_record_failure(PDO $pdo, array $policy, int $accountId, int $amount, string $failureReason, ?int $createdByAccountId = null): ?int
 {
     $policyId = (int) ($policy['id'] ?? 0);
@@ -980,7 +991,10 @@ function sr_asset_exchange_correct_completed_group(PDO $pdo, string $exchangeGro
             throw new RuntimeException('이미 정정된 환전 묶음입니다.');
         }
 
-        $stmt = $pdo->prepare('SELECT * FROM sr_asset_exchange_logs WHERE exchange_group_id = :exchange_group_id LIMIT 1 FOR UPDATE');
+        $stmt = $pdo->prepare(
+            'SELECT * FROM sr_asset_exchange_logs WHERE exchange_group_id = :exchange_group_id LIMIT 1'
+            . sr_asset_exchange_for_update_clause($pdo)
+        );
         $stmt->execute(['exchange_group_id' => $exchangeGroupId]);
         $log = $stmt->fetch();
         if (!is_array($log)) {
@@ -1017,15 +1031,6 @@ function sr_asset_exchange_correct_completed_group(PDO $pdo, string $exchangeGro
             'reference_id' => $correctionGroupId,
             'created_by_account_id' => $createdByAccountId,
         ]);
-        $toTransactionId = $toTransactionFunction($pdo, [
-            'account_id' => (int) $log['account_id'],
-            'amount' => -$depositBeforeFee,
-            'transaction_type' => 'adjustment',
-            'reason' => $cleanReason,
-            'reference_type' => 'asset_exchange_correction',
-            'reference_id' => $correctionGroupId,
-            'created_by_account_id' => $createdByAccountId,
-        ]);
         $feeTransactionId = null;
         if ($feeAmount > 0) {
             $feeTransactionId = $toTransactionFunction($pdo, [
@@ -1038,6 +1043,15 @@ function sr_asset_exchange_correct_completed_group(PDO $pdo, string $exchangeGro
                 'created_by_account_id' => $createdByAccountId,
             ]);
         }
+        $toTransactionId = $toTransactionFunction($pdo, [
+            'account_id' => (int) $log['account_id'],
+            'amount' => -$depositBeforeFee,
+            'transaction_type' => 'adjustment',
+            'reason' => $cleanReason,
+            'reference_type' => 'asset_exchange_correction',
+            'reference_id' => $correctionGroupId,
+            'created_by_account_id' => $createdByAccountId,
+        ]);
 
         $stmt = $pdo->prepare(
             'INSERT INTO sr_asset_exchange_logs

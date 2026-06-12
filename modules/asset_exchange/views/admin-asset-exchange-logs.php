@@ -6,6 +6,7 @@ $logFilters = isset($logFilters) && is_array($logFilters) ? $logFilters : ['stat
 $selectedLogStatuses = is_array($logFilters['status'] ?? null) ? $logFilters['status'] : [];
 $selectedLogAssets = is_array($logFilters['asset'] ?? null) ? $logFilters['asset'] : [];
 $logDetailFilterOpen = $selectedLogStatuses !== [] || $selectedLogAssets !== [];
+$assetExchangeLogReturnTo = sr_admin_current_get_url('/admin/asset-exchange/logs');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -54,6 +55,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
+
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">환전 로그 목록</h2></div>
     <div class="admin-list-summary-row">
@@ -72,14 +75,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>수수료</th>
                     <th>상태</th>
                     <th>실패 사유</th>
+                    <th>작업</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($logs === []) { ?>
-                    <tr><td colspan="9" class="admin-empty-state">환전 로그가 없습니다.</td></tr>
+                    <tr><td colspan="10" class="admin-empty-state">환전 로그가 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($logs as $log) { ?>
                     <?php $failureReason = trim((string) ($log['failure_reason'] ?? '')); ?>
+                    <?php $canCorrectLog = (string) ($log['status'] ?? '') === 'completed' && (int) ($log['request_amount'] ?? 0) > 0 && (int) ($log['deposit_amount'] ?? 0) > 0 && strpos($failureReason, 'correction_for:') !== 0; ?>
                     <tr>
                         <td class="admin-table-nowrap"><?php echo sr_asset_exchange_time_html((string) $log['created_at']); ?></td>
                         <td>
@@ -95,6 +100,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo (string) $log['status'] === 'completed' ? 'is-normal' : 'is-blocked'; ?>"><?php echo sr_e((string) ($logStatusLabels[(string) $log['status']] ?? $log['status'])); ?></span></td>
                         <td class="admin-table-break"><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
+                        <td class="admin-table-nowrap">
+                            <?php if ($canCorrectLog) { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/asset-exchange/logs')); ?>" class="admin-inline-form">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="intent" value="correct_completed_group">
+                                    <input type="hidden" name="exchange_group_id" value="<?php echo sr_e((string) $log['exchange_group_id']); ?>">
+                                    <input type="hidden" name="correction_reason" value="관리자 환전 정정">
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e($assetExchangeLogReturnTo); ?>">
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="환전 묶음 정정" title="환전 묶음 정정" onclick="return confirm('이 완료 환전 묶음을 반대 원장 거래로 정정할까요?');"><?php echo sr_material_icon_html('undo'); ?></button>
+                                </form>
+                            <?php } else { ?>
+                                <span class="text-muted">-</span>
+                            <?php } ?>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>

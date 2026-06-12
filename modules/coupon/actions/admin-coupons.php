@@ -340,7 +340,14 @@ $redemptionFilters = $couponAdminPage === 'redemptions' ? sr_coupon_admin_redemp
 $definitionSort = $couponAdminPage === 'definitions' ? sr_admin_sort_from_request(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort()) : sr_coupon_admin_definition_default_sort();
 $issueSort = $couponAdminPage === 'issues' ? sr_admin_sort_from_request(sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort()) : sr_coupon_admin_issue_default_sort();
 $redemptionSort = $couponAdminPage === 'redemptions' ? sr_admin_sort_from_request(sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort()) : sr_coupon_admin_redemption_default_sort();
-$definitions = $couponAdminPage === 'definitions' ? sr_coupon_admin_definitions($pdo, $definitionFilters, 100, $definitionSort) : [];
+$definitionPagination = sr_admin_pagination_meta(0, 1, 1);
+$issuePagination = sr_admin_pagination_meta(0, 1, 1);
+$redemptionPagination = sr_admin_pagination_meta(0, 1, 1);
+$definitions = [];
+if ($couponAdminPage === 'definitions') {
+    $definitionPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_definition_count($pdo, $definitionFilters));
+    $definitions = sr_coupon_admin_definitions($pdo, $definitionFilters, (int) $definitionPagination['per_page'], $definitionSort, sr_admin_pagination_offset($definitionPagination));
+}
 $couponDefinitionReadReferencesById = [];
 foreach ($definitions as $definition) {
     $definitionId = (int) ($definition['id'] ?? 0);
@@ -361,9 +368,11 @@ $memberGroups = $couponAdminPage === 'definitions' ? sr_coupon_issue_member_grou
 $issues = [];
 $redemptions = [];
 if ($couponAdminPage === 'issues') {
-    $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, 100, $issueSort);
+    $issuePagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_issue_count($pdo, $runtimeConfig, $issueFilters));
+    $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, (int) $issuePagination['per_page'], $issueSort, sr_admin_pagination_offset($issuePagination));
 } elseif ($couponAdminPage === 'redemptions') {
-    $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, 100, $redemptionFilters, $redemptionSort);
+    $redemptionPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_redemption_count($pdo, $runtimeConfig, $redemptionFilters));
+    $redemptions = sr_coupon_admin_redemptions($pdo, $runtimeConfig, (int) $redemptionPagination['per_page'], $redemptionFilters, $redemptionSort, sr_admin_pagination_offset($redemptionPagination));
 }
 
 include SR_ROOT . '/modules/coupon/views/admin-coupons.php';

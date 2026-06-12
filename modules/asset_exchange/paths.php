@@ -8,4 +8,5 @@ return [
     'GET /admin/asset-exchange/settings' => 'actions/admin-asset-exchange-settings.php',
     'POST /admin/asset-exchange/settings' => 'actions/admin-asset-exchange-settings.php',
     'GET /admin/asset-exchange/logs' => 'actions/admin-asset-exchange-logs.php',
+    'POST /admin/asset-exchange/logs' => 'actions/admin-asset-exchange-logs.php',
 ];

@@ -1410,8 +1410,9 @@ function sr_content_grant_access_entitlement(PDO $pdo, int $accountId, int $cont
         return;
     }
 
+    $insertVerb = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO sr_content_access_entitlements
+        $insertVerb . ' INTO sr_content_access_entitlements
             (account_id, content_id, subject_type, subject_id, access_kind, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at)
          VALUES
             (:account_id, :content_id, :subject_type, :subject_id, :access_kind, :source_kind, :source_asset_module, :source_charge_policy, :source_reference, :granted_at, :created_at)'
@@ -1930,6 +1931,33 @@ function sr_content_try_coupon_access(PDO $pdo, int $pageId, int $accountId, str
     return $result;
 }
 
+function sr_content_try_coupon_download_access(PDO $pdo, int $fileId, int $accountId, string $chargePolicy = 'once'): array
+{
+    if ($fileId <= 0 || $accountId <= 0 || !sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    require_once SR_ROOT . '/modules/coupon/helpers.php';
+    if (!function_exists('sr_coupon_redeem_for_target')) {
+        return ['allowed' => false, 'processed' => false];
+    }
+
+    $dedupeKey = 'content.download:coupon:' . (string) $accountId . ':' . (string) $fileId;
+    if ($chargePolicy !== 'once') {
+        $dedupeKey .= ':' . bin2hex(random_bytes(8));
+    }
+
+    $result = sr_coupon_redeem_for_target($pdo, $accountId, 'content_file', (string) $fileId, [
+        'dedupe_key' => $dedupeKey,
+        'reference_module' => 'content',
+        'reference_type' => 'content.download',
+        'reference_id' => (string) $fileId,
+    ]);
+    $result['dedupe_key'] = $dedupeKey;
+
+    return $result;
+}
+
 function sr_content_file_download_required(array $file): bool
 {
     return (int) ($file['asset_download_enabled'] ?? 0) === 1
@@ -2028,6 +2056,49 @@ function sr_content_charge_file_download_once(PDO $pdo, array $file, int $accoun
             return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '포인트/금액 접근권 처리에 실패했습니다.');
         }
         return sr_content_asset_access_result($pdo, true, false, $assetModuleValue, 0, '', ['group_policy_applied' => true, 'access_log_ids' => array_values(array_filter($accessLogIds))]);
+    }
+
+    $startedTransaction = !$pdo->inTransaction();
+    if ($startedTransaction) {
+        $pdo->beginTransaction();
+    }
+    try {
+        $couponResult = sr_content_try_coupon_download_access($pdo, $fileId, $accountId, $chargePolicy);
+        if (!empty($couponResult['allowed'])) {
+            sr_content_grant_access_entitlement($pdo, $accountId, $pageId, 'content_file', $fileId, 'download', 'coupon', '', $chargePolicy, (string) ($couponResult['dedupe_key'] ?? ''));
+            if ($startedTransaction) {
+                $pdo->commit();
+            }
+
+            return [
+                'allowed' => true,
+                'charged' => false,
+                'coupon_used' => !empty($couponResult['processed']),
+                'already_paid' => !empty($couponResult['already_redeemed']),
+                'coupon_title' => (string) ($couponResult['coupon_title'] ?? ''),
+                'asset_module' => $assetModuleValue,
+                'asset_label' => '쿠폰',
+                'amount' => 0,
+                'message' => '',
+                'confirmation_fingerprint' => $confirmationFingerprint,
+                'access_log_ids' => [],
+            ];
+        }
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    } catch (Throwable $exception) {
+        if ($startedTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        if ($startedTransaction && sr_content_asset_is_retryable_transaction_exception($exception)) {
+            throw $exception;
+        }
+        if (function_exists('sr_log_exception')) {
+            sr_log_exception($exception, 'content_file_coupon_entitlement_failed');
+        }
+
+        return sr_content_asset_access_result($pdo, false, false, $assetModuleValue, $amount, '쿠폰 접근권 처리에 실패했습니다.');
     }
 
     $allocations = sr_content_allocate_asset_settlement_use($pdo, $assetModules, $accountId, $amount, $settlementCurrency);

@@ -20,6 +20,9 @@ return [
         'module_contract' => '2.0',
     ],
     'contracts' => [
-        'provides' => [],
+        'provides' => [
+            'paths.php',
+            'admin-menu.php',
+        ],
     ],
 ];

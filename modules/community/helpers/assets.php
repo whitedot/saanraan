@@ -1774,8 +1774,16 @@ function sr_community_grant_access_entitlement(PDO $pdo, int $accountId, string 
         return;
     }
 
+    $insertVerb = 'INSERT IGNORE';
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $insertVerb = 'INSERT OR IGNORE';
+        }
+    } catch (Throwable $exception) {
+        $insertVerb = 'INSERT IGNORE';
+    }
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO sr_community_access_entitlements
+        $insertVerb . ' INTO sr_community_access_entitlements
             (account_id, subject_type, subject_id, event_key, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at)
          VALUES
             (:account_id, :subject_type, :subject_id, :event_key, :source_kind, :source_asset_module, :source_charge_policy, :source_reference, :granted_at, :created_at)'
@@ -1997,8 +2005,16 @@ function sr_community_insert_asset_log_placeholder(PDO $pdo, array $row): bool
         $settlementAmount,
         $purchasePowerSnapshotJson
     );
+    $insertVerb = 'INSERT IGNORE';
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $insertVerb = 'INSERT OR IGNORE';
+        }
+    } catch (Throwable $exception) {
+        $insertVerb = 'INSERT IGNORE';
+    }
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO sr_community_asset_logs
+        $insertVerb . ' INTO sr_community_asset_logs
             (account_id, asset_module, transaction_id, reference_type, reference_id, subject_type, subject_id, event_key, direction, charge_policy, amount, settlement_amount, settlement_currency, purchase_power_snapshot_json, settlement_kind, snapshot_schema_version, rounding_policy_version, log_status, group_policy_snapshot_json, dedupe_key, created_at)
          VALUES
             (:account_id, :asset_module, 0, :reference_type, :reference_id, :subject_type, :subject_id, :event_key, :direction, :charge_policy, :amount, :settlement_amount, :settlement_currency, :purchase_power_snapshot_json, :settlement_kind, :snapshot_schema_version, :rounding_policy_version, :log_status, :group_policy_snapshot_json, :dedupe_key, :created_at)'

@@ -54,6 +54,9 @@ $redemptionFilters = isset($redemptionFilters) && is_array($redemptionFilters) ?
 $definitionSort = isset($definitionSort) && is_array($definitionSort) ? $definitionSort : (sr_coupon_admin_definition_default_sort() + ['is_default' => true]);
 $issueSort = isset($issueSort) && is_array($issueSort) ? $issueSort : (sr_coupon_admin_issue_default_sort() + ['is_default' => true]);
 $redemptionSort = isset($redemptionSort) && is_array($redemptionSort) ? $redemptionSort : (sr_coupon_admin_redemption_default_sort() + ['is_default' => true]);
+$definitionPagination = isset($definitionPagination) && is_array($definitionPagination) ? $definitionPagination : [];
+$issuePagination = isset($issuePagination) && is_array($issuePagination) ? $issuePagination : [];
+$redemptionPagination = isset($redemptionPagination) && is_array($redemptionPagination) ? $redemptionPagination : [];
 $issueAccountFilter = is_array($issueFilters['account'] ?? null) ? $issueFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $redemptionAccountFilter = is_array($redemptionFilters['account'] ?? null) ? $redemptionFilters['account'] : ['field' => 'all', 'keyword' => ''];
 $selectedDefinitionStatuses = is_array($definitionFilters['status'] ?? null) ? $definitionFilters['status'] : [];
@@ -129,6 +132,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($couponCreateModalId); ?>" data-overlay="#<?php echo sr_e($couponCreateModalId); ?>">쿠폰 추가</button>
     </div>
     <div class="admin-list-summary-row admin-coupon-definition-bulk-row">
+        <?php echo sr_admin_pagination_summary_html($definitionPagination); ?>
         <?php if (empty($definitionSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_definition_sort_options(), sr_coupon_admin_definition_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 종류 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
@@ -205,6 +209,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
 	</table>
 	</div>
+<?php echo sr_admin_pagination_html($definitionPagination, '쿠폰 종류 목록 페이지'); ?>
 <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
     <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('travel_explore'); ?> 참조 현황</span>
 </div>
@@ -505,7 +510,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var targetType = document.getElementById('coupon_admin_target_type');
     var searchButton = document.querySelector('[data-coupon-target-search-button]');
     var targetId = document.getElementById('coupon_admin_target_id');
-    var searchableTypes = <?php echo json_encode(array_keys($couponSearchableTargetTypes), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+    var searchableTypes = <?php echo sr_js_json_encode(array_keys($couponSearchableTargetTypes)); ?>;
 
     function syncTargetSearchButton() {
         if (!targetType || !searchButton) {
@@ -618,11 +623,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">최근 지급 내역</h2></div>
-    <?php if (empty($issueSort['is_default'])) { ?>
-        <div class="admin-list-summary-row">
+    <div class="admin-list-summary-row">
+        <?php echo sr_admin_pagination_summary_html($issuePagination); ?>
+        <?php if (empty($issueSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_issue_sort_options(), sr_coupon_admin_issue_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 지급 내역 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
-        </div>
-    <?php } ?>
+        <?php } ?>
+    </div>
     <div class="table-wrapper">
     <table class="table admin-coupon-issue-table">
         <thead>
@@ -671,6 +677,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php echo sr_admin_pagination_html($issuePagination, '쿠폰 지급 내역 목록 페이지'); ?>
 </section>
 <?php } ?>
 
@@ -732,11 +739,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header"><h2 class="card-title">최근 사용 내역</h2></div>
-    <?php if (empty($redemptionSort['is_default'])) { ?>
-        <div class="admin-list-summary-row">
+    <div class="admin-list-summary-row">
+        <?php echo sr_admin_pagination_summary_html($redemptionPagination); ?>
+        <?php if (empty($redemptionSort['is_default'])) { ?>
             <a href="<?php echo sr_e(sr_admin_sort_url(sr_coupon_admin_redemption_sort_options(), sr_coupon_admin_redemption_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="쿠폰 사용 내역 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
-        </div>
-    <?php } ?>
+        <?php } ?>
+    </div>
     <div class="table-wrapper">
     <table class="table admin-coupon-redemption-table">
         <thead>
@@ -797,6 +805,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php echo sr_admin_pagination_html($redemptionPagination, '쿠폰 사용 내역 목록 페이지'); ?>
 </section>
 
 <?php foreach (($redemptions ?? []) as $redemption) { ?>

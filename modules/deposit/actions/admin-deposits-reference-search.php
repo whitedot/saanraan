@@ -12,8 +12,7 @@ sr_admin_require_permission($pdo, (int) $account['id'], '/admin/deposits/transac
 $runtimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $allowedReferenceTypes = ['', 'order', 'payment', 'refund', 'support_ticket', 'event', 'migration'];
 
-header('Content-Type: application/json; charset=utf-8');
-echo json_encode([
+sr_json_response([
     'items' => sr_admin_asset_reference_search($pdo, $runtimeConfig, [
         'table' => 'sr_deposit_transactions',
         'allowed_types' => $allowedReferenceTypes,
@@ -21,5 +20,4 @@ echo json_encode([
         'keyword' => sr_get_string('q', 120),
         'limit' => 20,
     ]),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-sr_finish_response();
+]);

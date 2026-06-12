@@ -56,8 +56,11 @@ sr_reward_check_file('modules/quiz/install.sql', [
     'UNIQUE KEY uq_sr_quiz_reward_grants_dedupe',
 ]);
 sr_reward_check_file('modules/quiz/helpers.php', [
-    'INSERT IGNORE INTO sr_quiz_reward_grants',
-    'SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1 FOR UPDATE',
+    '$insertVerb = \'INSERT IGNORE\';',
+    '$insertVerb = \'INSERT OR IGNORE\';',
+    '$insertVerb . \' INTO sr_quiz_reward_grants',
+    '$lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === \'sqlite\' ? \'\' : \' FOR UPDATE\';',
+    'SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1',
     'sr_quiz_refresh_reward_grant_for_retry',
     'sr_quiz_issue_coupon_reward_grant',
     'sr_quiz_reward_coupon_definition_is_available',
@@ -75,8 +78,12 @@ sr_reward_check_file('modules/survey/install.sql', [
     'UNIQUE KEY uq_sr_survey_reward_grants_dedupe',
 ]);
 sr_reward_check_file('modules/survey/helpers.php', [
-    'INSERT IGNORE INTO sr_survey_reward_grants',
-    'SELECT * FROM sr_survey_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1 FOR UPDATE',
+    '$insertVerb = \'INSERT IGNORE\';',
+    '$insertVerb = \'INSERT OR IGNORE\';',
+    '$insertVerb . \' INTO sr_survey_reward_grants',
+    '$lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === \'sqlite\' ? \'\' : \' FOR UPDATE\';',
+    'SELECT * FROM sr_survey_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1',
+    'sr_survey_refresh_reward_grant_for_retry',
     'sr_survey_issue_coupon_reward_grant',
     'sr_survey_coupon_definition_is_available',
     'status = \\\'granted\\\'',
@@ -100,7 +107,8 @@ sr_reward_check_file('modules/point/helpers.php', [
     'reference_id',
     'sr_point_refunded_amount_for_reference_locked',
     'Point refund amount exceeds remaining reference amount.',
-    'FOR UPDATE',
+    'sr_ledger_for_update_clause($pdo)',
+    'sr_ledger_insert_ignore_into_clause($pdo)',
 ]);
 sr_reward_check_file('modules/reward/helpers.php', [
     'reference_type',
@@ -118,7 +126,7 @@ sr_reward_check_file('modules/deposit/helpers.php', [
 ]);
 sr_reward_check_file('modules/asset_exchange/helpers.php', [
     'exchange_group_id',
-    'SELECT * FROM sr_asset_exchange_logs WHERE exchange_group_id = :exchange_group_id LIMIT 1 FOR UPDATE',
+    'sr_asset_exchange_for_update_clause($pdo)',
     'reference_type',
     'reference_id',
 ]);
@@ -142,7 +150,7 @@ sr_reward_check_file('modules/content/helpers/files.php', [
     'sr_content_refund_file_download',
     'sr_content_revoke_file_download_access_entitlement',
 ]);
-sr_reward_check_order('modules/content/actions/download.php', 'sr_content_charge_file_download(', 'sr_redirect_external($downloadUrl)');
+sr_reward_check_order('modules/content/actions/download.php', 'sr_content_charge_file_download(', 'sr_redirect_trusted_external($downloadUrl)');
 sr_reward_check_order('modules/content/actions/download.php', 'sr_content_charge_file_download(', 'readfile($filePath)');
 
 sr_reward_check_file('modules/community/install.sql', [
@@ -161,7 +169,7 @@ sr_reward_check_file('modules/community/helpers/assets.php', [
     'sr_community_has_coupon_access_history',
     'sr_community_grant_attachment_publisher_reward',
 ]);
-sr_reward_check_order('modules/community/actions/attachment.php', 'sr_community_run_asset_event(', 'sr_redirect_external($downloadUrl)');
+sr_reward_check_order('modules/community/actions/attachment.php', 'sr_community_run_asset_event(', 'sr_redirect_trusted_external($downloadUrl)');
 sr_reward_check_order('modules/community/actions/attachment.php', 'sr_community_run_asset_event(', 'readfile($filePath)');
 
 if ($errors !== []) {

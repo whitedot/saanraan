@@ -322,7 +322,7 @@ function sr_point_refund_expiration_allocations(PDO $pdo, array $data, ?array $r
 
     $referencedTransactionId = (int) $matches[1];
     if ($referenced === null) {
-        $lockClause = $pdo->inTransaction() ? ' FOR UPDATE' : '';
+        $lockClause = $pdo->inTransaction() ? sr_ledger_for_update_clause($pdo) : '';
         $stmt = $pdo->prepare('SELECT id, amount, expires_at FROM sr_point_transactions WHERE id = :id LIMIT 1' . $lockClause);
         $stmt->execute(['id' => $referencedTransactionId]);
         $referenced = $stmt->fetch();
@@ -344,7 +344,7 @@ function sr_point_refund_expiration_allocations(PDO $pdo, array $data, ?array $r
         'SELECT source_expires_at, amount
          FROM sr_point_expiration_consumptions
          WHERE consume_transaction_id = :consume_transaction_id
-         ORDER BY source_expires_at ASC, id ASC' . ($pdo->inTransaction() ? ' FOR UPDATE' : '')
+         ORDER BY source_expires_at ASC, id ASC' . ($pdo->inTransaction() ? sr_ledger_for_update_clause($pdo) : '')
     );
     try {
         $stmt->execute(['consume_transaction_id' => $referencedTransactionId]);
@@ -427,8 +427,8 @@ function sr_point_refunded_amount_for_reference_locked(PDO $pdo, int $accountId,
            AND transaction_type = \'refund\'
            AND reference_type = \'refund\'
            AND reference_id = :reference_id
-           AND amount > 0
-         FOR UPDATE'
+           AND amount > 0'
+         . sr_ledger_for_update_clause($pdo)
     );
     $stmt->execute([
         'account_id' => $accountId,
@@ -670,8 +670,8 @@ function sr_point_create_refund_transactions(PDO $pdo, array $data): array
              FROM sr_point_transactions
              WHERE id = :id
                AND account_id = :account_id
-             LIMIT 1
-             FOR UPDATE'
+             LIMIT 1'
+             . sr_ledger_for_update_clause($pdo)
         );
         $stmt->execute([
             'id' => $referencedTransactionId,
@@ -764,7 +764,7 @@ function sr_point_insert_ledger_transaction(PDO $pdo, array $data): int
     $expiresRemaining = max(0, (int) ($data['expires_remaining'] ?? 0));
 
     $stmt = $pdo->prepare(
-        'INSERT IGNORE INTO sr_point_balances (account_id, balance, created_at, updated_at)
+        sr_ledger_insert_ignore_into_clause($pdo) . ' sr_point_balances (account_id, balance, created_at, updated_at)
          VALUES (:account_id, 0, :created_at, :updated_at)'
     );
     $stmt->execute([
@@ -773,7 +773,7 @@ function sr_point_insert_ledger_transaction(PDO $pdo, array $data): int
         'updated_at' => $createdAt,
     ]);
 
-    $stmt = $pdo->prepare('SELECT balance FROM sr_point_balances WHERE account_id = :account_id LIMIT 1 FOR UPDATE');
+    $stmt = $pdo->prepare('SELECT balance FROM sr_point_balances WHERE account_id = :account_id LIMIT 1' . sr_ledger_for_update_clause($pdo));
     $stmt->execute(['account_id' => $accountId]);
     $balanceRow = $stmt->fetch();
     if (!is_array($balanceRow)) {
@@ -837,8 +837,8 @@ function sr_point_consume_expiring_grants(PDO $pdo, int $accountId, int $amount,
            AND expires_at IS NOT NULL
            AND expires_at > :now_value
            AND expires_remaining > 0
-         ORDER BY expires_at ASC, id ASC
-         FOR UPDATE'
+         ORDER BY expires_at ASC, id ASC'
+         . sr_ledger_for_update_clause($pdo)
     );
     $stmt->execute([
         'account_id' => $accountId,
@@ -1010,7 +1010,7 @@ function sr_point_expire_grant_transaction(PDO $pdo, int $sourceTransactionId, s
             return ['transaction_id' => 0, 'amount' => 0];
         }
 
-        $balanceLockStmt = $pdo->prepare('SELECT balance FROM sr_point_balances WHERE account_id = :account_id LIMIT 1 FOR UPDATE');
+        $balanceLockStmt = $pdo->prepare('SELECT balance FROM sr_point_balances WHERE account_id = :account_id LIMIT 1' . sr_ledger_for_update_clause($pdo));
         $balanceLockStmt->execute(['account_id' => $accountId]);
 
         $sourceStmt = $pdo->prepare(
@@ -1021,8 +1021,8 @@ function sr_point_expire_grant_transaction(PDO $pdo, int $sourceTransactionId, s
                AND expires_at IS NOT NULL
                AND expires_at <= :now_value
                AND expires_remaining > 0
-             LIMIT 1
-             FOR UPDATE'
+             LIMIT 1'
+             . sr_ledger_for_update_clause($pdo)
         );
         $sourceStmt->execute([
             'id' => $sourceTransactionId,

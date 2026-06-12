@@ -9,7 +9,69 @@ require_once SR_ROOT . '/modules/asset_exchange/helpers.php';
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/asset-exchange/logs', 'view');
 
+$flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
+$errors = $flashResult['errors'];
+$notice = (string) $flashResult['notice'];
 $assets = sr_asset_exchange_assets($pdo);
+
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/asset-exchange/logs', 'edit');
+
+    $intent = sr_post_string('intent', 40);
+    $returnTo = sr_admin_post_return_url('/admin/asset-exchange/logs');
+
+    try {
+        if ($intent !== 'correct_completed_group') {
+            throw new InvalidArgumentException('지원하지 않는 환전 로그 작업입니다.');
+        }
+
+        $exchangeGroupId = sr_asset_exchange_clean_reference_id(sr_post_string('exchange_group_id', 80), 80);
+        $reason = sr_asset_exchange_clean_text(sr_post_string('correction_reason', 255), 255);
+        if ($reason === '') {
+            $reason = '관리자 환전 정정';
+        }
+
+        $correctionLogId = sr_asset_exchange_correct_completed_group($pdo, $exchangeGroupId, (int) $account['id'], $reason);
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'asset_exchange.log.corrected',
+            'target_type' => 'asset_exchange_log',
+            'target_id' => $exchangeGroupId,
+            'result' => 'success',
+            'message' => 'Asset exchange completed group corrected.',
+            'metadata' => [
+                'exchange_group_id' => $exchangeGroupId,
+                'correction_log_id' => $correctionLogId,
+                'reason' => $reason,
+            ],
+        ]);
+
+        sr_admin_flash_result(sr_admin_action_result([], '환전 묶음을 정정했습니다.'));
+    } catch (Throwable $exception) {
+        $message = $exception instanceof InvalidArgumentException || $exception instanceof RuntimeException
+            ? $exception->getMessage()
+            : '환전 묶음 정정에 실패했습니다.';
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'asset_exchange.log.corrected',
+            'target_type' => 'asset_exchange_log',
+            'target_id' => sr_asset_exchange_clean_reference_id(sr_post_string('exchange_group_id', 80), 80),
+            'result' => 'failure',
+            'message' => 'Asset exchange completed group correction failed.',
+            'metadata' => [
+                'reason' => sr_asset_exchange_clean_text($message, 255),
+            ],
+        ]);
+        sr_admin_flash_result(sr_admin_action_result([$message], ''));
+    }
+
+    sr_redirect($returnTo);
+}
+
 $logFilters = [
     'status' => sr_admin_get_allowed_single_array('status', ['completed', 'failed'], 30),
     'asset' => sr_admin_get_allowed_single_array('asset', array_keys($assets), 40),

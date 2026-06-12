@@ -43,7 +43,7 @@ $filePath = null;
 if ($driver === 's3') {
     $downloadUrl = sr_storage_signed_url('s3', $storageKey, 300, [
         'response-content-type' => sr_download_content_type($mimeType),
-        'response-content-disposition' => 'attachment; filename="' . sr_download_filename((string) $file['original_name']) . '"',
+        'response-content-disposition' => sr_download_content_disposition((string) $file['original_name']),
     ]);
     if ($downloadUrl === '') {
         sr_render_error(404, sr_t('content::action.error.download_file_not_found'));
@@ -61,7 +61,8 @@ $downloadAlreadyRecorded = false;
 if (sr_content_file_download_required($file)) {
     $account = sr_member_require_login($pdo);
     $downloadAccountId = (int) $account['id'];
-    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', sr_post_string('asset_request_token', 40));
+    $assetRequestToken = sr_post_string_without_truncation('asset_request_token', 32) ?? '';
+    $downloadAccess = sr_content_charge_file_download($pdo, $file, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken);
     if (empty($downloadAccess['allowed'])) {
         if ((string) ($downloadAccess['error_key'] ?? '') === 'asset_confirmation_required') {
             $assetConfirmationMessage = (string) ($downloadAccess['message'] ?? sr_content_asset_confirmation_required_message());
@@ -98,14 +99,9 @@ if (!$downloadAlreadyRecorded && empty($downloadAccess['confirmed_access'])) {
 
 if ($downloadUrl !== '') {
     header('Cache-Control: private, max-age=300');
-    sr_redirect_external($downloadUrl);
+    sr_redirect_trusted_external($downloadUrl);
 }
 
-header('Content-Type: ' . sr_download_content_type($mimeType));
-header('Content-Disposition: attachment; filename="' . sr_download_filename((string) $file['original_name']) . '"');
-header('Content-Length: ' . (string) $recordedSize);
-header('X-Content-Type-Options: nosniff');
-header('Cache-Control: private, no-store, no-cache, must-revalidate');
-header('Pragma: no-cache');
+sr_send_download_headers($mimeType, (string) $file['original_name'], 'attachment', $recordedSize, 'private, no-store, no-cache, must-revalidate');
 readfile($filePath);
 sr_finish_response();

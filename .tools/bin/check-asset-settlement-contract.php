@@ -5,6 +5,12 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 chdir($root);
+if (!defined('SR_ROOT')) {
+    define('SR_ROOT', $root);
+}
+
+require_once $root . '/core/helpers/settings.php';
+require_once $root . '/modules/member/helpers/assets.php';
 
 $errors = [];
 
@@ -23,6 +29,81 @@ function sr_asset_settlement_check_contains(string $file, array $needles): void
             $errors[] = $file . ' must document asset settlement contract marker: ' . $needle;
         }
     }
+}
+
+function sr_asset_settlement_check_assert(bool $condition, string $message): void
+{
+    global $errors;
+    if (!$condition) {
+        $errors[] = $message;
+    }
+}
+
+function sr_asset_settlement_check_runtime_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $assets = [
+        'point' => [
+            'label' => 'Point',
+            'unit_label' => 'P',
+            'purchase_power' => [
+                'asset_units' => 1,
+                'settlement_units' => 10,
+                'settlement_currency' => 'KRW',
+            ],
+        ],
+        'reward' => [
+            'label' => 'Reward',
+            'unit_label' => 'R',
+            'purchase_power' => [
+                'asset_units' => 1,
+                'settlement_units' => 1,
+                'settlement_currency' => 'KRW',
+            ],
+        ],
+        'usd_credit' => [
+            'label' => 'USD credit',
+            'unit_label' => 'U',
+            'purchase_power' => [
+                'asset_units' => 1,
+                'settlement_units' => 1,
+                'settlement_currency' => 'USD',
+            ],
+        ],
+    ];
+    $balances = [
+        'point' => 100,
+        'reward' => 1000,
+        'usd_credit' => 1000,
+    ];
+    $balanceFunction = static function (PDO $pdo, string $assetModule) use ($balances): int {
+        return (int) ($balances[$assetModule] ?? 0);
+    };
+
+    $zero = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, ['point', 'reward'], 0, 'KRW');
+    sr_asset_settlement_check_assert((bool) ($zero['ok'] ?? false), 'zero settlement amount should be accepted without allocation.');
+    sr_asset_settlement_check_assert(($zero['allocations'] ?? null) === [], 'zero settlement amount should not allocate asset rows.');
+
+    $exact = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, ['point', 'reward'], 1005, 'KRW');
+    sr_asset_settlement_check_assert((bool) ($exact['ok'] ?? false), 'mixed settlement plan should cover exact amount with secondary asset.');
+    sr_asset_settlement_check_assert(count($exact['allocations'] ?? []) === 2, 'mixed settlement plan should allocate point and reward rows.');
+    sr_asset_settlement_check_assert((int) ($exact['allocations'][0]['settlement_amount'] ?? 0) === 1000, 'point allocation should cover only exact 10 KRW steps.');
+    sr_asset_settlement_check_assert((int) ($exact['allocations'][0]['amount'] ?? 0) === 100, 'point allocation should spend 100 point units.');
+    sr_asset_settlement_check_assert((int) ($exact['allocations'][1]['settlement_amount'] ?? 0) === 5, 'reward allocation should absorb the exact remainder.');
+    sr_asset_settlement_check_assert((string) ($exact['allocations'][0]['purchase_power_snapshot']['rounding_policy_version'] ?? '') === 'asset_settlement_rounding_v1', 'purchase power snapshot should include rounding policy version.');
+
+    $overpay = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, ['point'], 1005, 'KRW');
+    sr_asset_settlement_check_assert(!((bool) ($overpay['ok'] ?? false)), 'single stepped asset must not ceil overpay an inexact settlement amount.');
+    sr_asset_settlement_check_assert(($overpay['allocations'] ?? null) === [], 'failed inexact settlement must not return partial allocations.');
+    sr_asset_settlement_check_assert((int) ($overpay['remaining_settlement_amount'] ?? 0) === 5, 'inexact settlement should report the uncovered remainder.');
+
+    $currencyMismatch = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, ['usd_credit'], 10, 'KRW');
+    sr_asset_settlement_check_assert(!((bool) ($currencyMismatch['ok'] ?? false)), 'asset settlement currency mismatch should fail closed.');
+    sr_asset_settlement_check_assert(str_contains((string) ($currencyMismatch['message'] ?? ''), 'currency'), 'currency mismatch failure should explain the currency problem.');
+
+    $unknownCurrency = sr_member_asset_settlement_plan($pdo, $assets, $balanceFunction, ['point'], 10, 'XXX');
+    sr_asset_settlement_check_assert(!((bool) ($unknownCurrency['ok'] ?? false)), 'unknown settlement currency should fail closed.');
+    sr_asset_settlement_check_assert(str_contains((string) ($unknownCurrency['message'] ?? ''), 'Unknown settlement currency'), 'unknown currency failure should be explicit.');
 }
 
 sr_asset_settlement_check_contains('docs/core-decisions.md', [
@@ -169,6 +250,8 @@ foreach (['modules/content/updates/2026.06.020.sql', 'modules/community/updates/
         'REPLACE(REPLACE(purchase_power_snapshot_json, \'"policy_version":"asset_settlement_v1"\', \'"rounding_policy_version":"asset_settlement_rounding_v1"\'), \'"policy_version": "asset_settlement_v1"\', \'"rounding_policy_version": "asset_settlement_rounding_v1"\')',
     ]);
 }
+
+sr_asset_settlement_check_runtime_fixture();
 
 if ($errors !== []) {
     fwrite(STDERR, "asset settlement contract checks failed:\n");

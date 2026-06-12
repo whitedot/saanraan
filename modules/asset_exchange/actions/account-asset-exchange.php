@@ -22,7 +22,7 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $policyId = (int) sr_post_string('policy_id', 30);
     $amount = sr_asset_exchange_int_string(sr_post_string('amount', 30));
-    $submitToken = sr_post_string('exchange_submit_token', 80);
+    $submitToken = sr_post_string_without_truncation('exchange_submit_token', 32) ?? '';
     $selectedPolicy = sr_asset_exchange_policy($pdo, $policyId);
     if (!is_array($selectedPolicy)) {
         $errors[] = '환전 정책을 선택하세요.';

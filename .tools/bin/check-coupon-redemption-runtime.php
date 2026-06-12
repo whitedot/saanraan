@@ -1,0 +1,630 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__, 2);
+chdir($root);
+if (!defined('SR_ROOT')) {
+    define('SR_ROOT', $root);
+}
+
+require_once $root . '/core/helpers.php';
+require_once $root . '/modules/coupon/helpers.php';
+require_once $root . '/modules/content/helpers.php';
+require_once $root . '/modules/community/helpers.php';
+
+$errors = [];
+
+function sr_coupon_runtime_assert(bool $condition, string $message): void
+{
+    global $errors;
+    if (!$condition) {
+        $errors[] = $message;
+    }
+}
+
+function sr_coupon_runtime_row(PDO $pdo, string $sql, array $params = []): array
+{
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : [];
+}
+
+function sr_coupon_runtime_create_schema(PDO $pdo): void
+{
+    $pdo->exec("CREATE TABLE sr_modules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_key TEXT NOT NULL,
+        status TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_site_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT NOT NULL,
+        value_type TEXT NOT NULL DEFAULT 'string'
+    )");
+    $pdo->exec("CREATE TABLE sr_module_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_id INTEGER NOT NULL,
+        setting_key TEXT NOT NULL,
+        setting_value TEXT NOT NULL,
+        value_type TEXT NOT NULL DEFAULT 'string'
+    )");
+    $pdo->exec("CREATE TABLE sr_coupon_definitions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        coupon_key TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        description TEXT,
+        status TEXT NOT NULL DEFAULT 'active',
+        coupon_type TEXT NOT NULL DEFAULT 'access',
+        target_type TEXT NOT NULL DEFAULT 'all',
+        target_id TEXT NOT NULL DEFAULT '',
+        refundable_policy TEXT NOT NULL DEFAULT 'none',
+        max_uses_per_issue INTEGER NOT NULL DEFAULT 1,
+        valid_from TEXT,
+        valid_until TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_coupon_issues (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        coupon_definition_id INTEGER NOT NULL,
+        account_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        issued_reason TEXT NOT NULL DEFAULT '',
+        issued_by_account_id INTEGER,
+        issued_at TEXT NOT NULL,
+        expires_at TEXT,
+        used_count INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_coupon_redemptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        coupon_issue_id INTEGER NOT NULL,
+        coupon_definition_id INTEGER NOT NULL,
+        account_id INTEGER NOT NULL,
+        target_type TEXT NOT NULL,
+        target_id TEXT NOT NULL DEFAULT '',
+        reference_module TEXT NOT NULL DEFAULT '',
+        reference_type TEXT NOT NULL DEFAULT '',
+        reference_id TEXT NOT NULL DEFAULT '',
+        dedupe_key TEXT NOT NULL UNIQUE,
+        status TEXT NOT NULL DEFAULT 'redeemed',
+        redeemed_at TEXT NOT NULL,
+        refunded_at TEXT,
+        refunded_by_account_id INTEGER,
+        refund_note TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_content_access_entitlements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        content_id INTEGER NOT NULL,
+        subject_type TEXT NOT NULL,
+        subject_id INTEGER NOT NULL,
+        access_kind TEXT NOT NULL,
+        source_kind TEXT NOT NULL,
+        source_asset_module TEXT NOT NULL DEFAULT '',
+        source_charge_policy TEXT NOT NULL DEFAULT 'once',
+        source_reference TEXT NOT NULL DEFAULT '',
+        granted_at TEXT NOT NULL,
+        anonymized_at TEXT,
+        created_at TEXT NOT NULL,
+        UNIQUE(account_id, subject_type, subject_id, access_kind)
+    )");
+    $pdo->exec("CREATE TABLE sr_content_asset_access_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content_id INTEGER NOT NULL,
+        account_id INTEGER NOT NULL,
+        asset_module TEXT NOT NULL,
+        transaction_id INTEGER NOT NULL DEFAULT 0,
+        reference_type TEXT NOT NULL,
+        reference_id TEXT NOT NULL DEFAULT '',
+        access_kind TEXT NOT NULL DEFAULT 'view',
+        charge_policy TEXT NOT NULL DEFAULT 'once',
+        amount INTEGER NOT NULL DEFAULT 0,
+        settlement_amount INTEGER NOT NULL DEFAULT 0,
+        settlement_currency TEXT NOT NULL DEFAULT 'KRW',
+        purchase_power_snapshot_json TEXT NOT NULL DEFAULT '',
+        settlement_kind TEXT NOT NULL DEFAULT 'legacy_unknown',
+        snapshot_schema_version TEXT NOT NULL DEFAULT 'asset_settlement_snapshot_v1',
+        rounding_policy_version TEXT NOT NULL DEFAULT 'asset_settlement_rounding_v1',
+        log_status TEXT NOT NULL DEFAULT 'completed',
+        group_policy_snapshot_json TEXT NOT NULL DEFAULT '',
+        dedupe_key TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_content_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        slug TEXT NOT NULL,
+        status TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_content_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        status TEXT NOT NULL,
+        asset_download_enabled INTEGER NOT NULL DEFAULT 0,
+        asset_module TEXT NOT NULL DEFAULT '',
+        asset_download_amount INTEGER NOT NULL DEFAULT 0,
+        asset_download_settlement_currency TEXT NOT NULL DEFAULT 'KRW',
+        asset_download_amounts_json TEXT NOT NULL DEFAULT '',
+        asset_download_group_policies_json TEXT NOT NULL DEFAULT '',
+        asset_download_policy_set_id INTEGER NOT NULL DEFAULT 0,
+        asset_charge_policy TEXT NOT NULL DEFAULT 'once',
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_content_file_download_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content_id INTEGER NOT NULL,
+        file_id INTEGER NOT NULL,
+        account_id INTEGER,
+        download_type TEXT NOT NULL DEFAULT 'free',
+        charge_policy TEXT NOT NULL DEFAULT 'once',
+        asset_module TEXT NOT NULL DEFAULT '',
+        amount INTEGER NOT NULL DEFAULT 0,
+        asset_access_log_ids_json TEXT,
+        refund_status TEXT NOT NULL DEFAULT '',
+        refund_transaction_ids_json TEXT,
+        refund_note TEXT NOT NULL DEFAULT '',
+        refunded_by_account_id INTEGER,
+        refunded_at TEXT,
+        access_revoked_at TEXT,
+        created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_point_balances (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL UNIQUE,
+        balance INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_point_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        balance_after INTEGER NOT NULL,
+        transaction_type TEXT NOT NULL,
+        reason TEXT NOT NULL DEFAULT '',
+        reference_type TEXT NOT NULL DEFAULT '',
+        reference_id TEXT NOT NULL DEFAULT '',
+        created_by_account_id INTEGER,
+        expires_at TEXT,
+        expires_remaining INTEGER NOT NULL DEFAULT 0,
+        expired_at TEXT,
+        created_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE sr_community_access_entitlements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        subject_type TEXT NOT NULL,
+        subject_id INTEGER NOT NULL,
+        event_key TEXT NOT NULL,
+        source_kind TEXT NOT NULL,
+        source_asset_module TEXT NOT NULL DEFAULT '',
+        source_charge_policy TEXT NOT NULL DEFAULT 'once',
+        source_reference TEXT NOT NULL DEFAULT '',
+        granted_at TEXT NOT NULL,
+        anonymized_at TEXT,
+        created_at TEXT NOT NULL
+    )");
+    $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled'), ('content', 'enabled'), ('community', 'enabled'), ('point', 'enabled')");
+    $pdo->exec("INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('site.default_currency', 'KRW', 'string')");
+}
+
+function sr_coupon_runtime_issue(PDO $pdo, string $couponKey, string $targetType, string $targetId, int $accountId, int $maxUses = 1): int
+{
+    $now = sr_now();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            (:coupon_key, :title, '', 'active', 'access', :target_type, :target_id, 'refundable', :max_uses, NULL, NULL, :created_at, :updated_at)"
+    )->execute([
+        'coupon_key' => $couponKey,
+        'title' => $couponKey,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'max_uses' => $maxUses,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $definitionId = (int) $pdo->lastInsertId();
+
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, :account_id, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $definitionId,
+        'account_id' => $accountId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_coupon_runtime_assert_issue_unused(PDO $pdo, int $issueId, string $label): void
+{
+    $row = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $issueId]);
+    sr_coupon_runtime_assert((string) ($row['status'] ?? '') === 'active', $label . ' should leave coupon issue active after rollback.');
+    sr_coupon_runtime_assert((int) ($row['used_count'] ?? -1) === 0, $label . ' should leave coupon issue used_count at zero after rollback.');
+}
+
+function sr_coupon_runtime_partial_failure_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_coupon_runtime_create_schema($pdo);
+    $previousErrorLog = ini_get('error_log');
+    $temporaryErrorLog = tempnam(sys_get_temp_dir(), 'sr_coupon_runtime_error_log_');
+    if (is_string($temporaryErrorLog) && $temporaryErrorLog !== '') {
+        ini_set('error_log', $temporaryErrorLog);
+    }
+
+    $now = sr_now();
+    $pdo->prepare(
+        "INSERT INTO sr_point_balances (account_id, balance, created_at, updated_at)
+         VALUES (7, 1000, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+
+    $contentIssueId = sr_coupon_runtime_issue($pdo, 'content_rollback', 'content', '8801', 7);
+    $pdo->exec("CREATE TRIGGER sr_fixture_content_entitlement_failure
+        BEFORE INSERT ON sr_content_access_entitlements
+        BEGIN
+            SELECT RAISE(ABORT, 'fixture content entitlement failure');
+        END");
+
+    $_SESSION['sr_content_asset_confirmation_requests'] = [];
+    $_SESSION['sr_content_asset_confirmations'] = [];
+    $paidPage = [
+        'id' => 8801,
+        'asset_access_enabled' => 1,
+        'asset_module' => 'point',
+        'asset_access_amount' => 100,
+        'asset_access_amounts_json' => '{"point":100}',
+        'asset_access_group_policies_json' => '',
+        'asset_access_policy_set_id' => 0,
+        'asset_access_settlement_currency' => 'KRW',
+        'asset_charge_policy' => 'once',
+    ];
+    $confirmation = sr_content_charge_view_access($pdo, $paidPage, 7, false);
+    $token = (string) ($confirmation['confirmation_request_token'] ?? '');
+    $contentResult = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
+    sr_coupon_runtime_assert(empty($contentResult['allowed']), 'content coupon entitlement failure should not allow access.');
+    sr_coupon_runtime_assert((string) ($contentResult['message'] ?? '') === '쿠폰 접근권 처리에 실패했습니다.', 'content coupon entitlement failure should return the coupon access failure message.');
+    sr_coupon_runtime_assert_issue_unused($pdo, $contentIssueId, 'content coupon entitlement failure');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE dedupe_key = 'content.view:coupon:7:8801'")->fetchColumn() === 0, 'content coupon entitlement failure should roll back redemption row.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_access_entitlements')->fetchColumn() === 0, 'content coupon entitlement failure should leave no content entitlement.');
+    $pdo->exec('DROP TRIGGER sr_fixture_content_entitlement_failure');
+
+    $communityIssueId = sr_coupon_runtime_issue($pdo, 'community_rollback', 'community_post', '9901', 7);
+    $pdo->exec("CREATE TRIGGER sr_fixture_community_entitlement_failure
+        BEFORE INSERT ON sr_community_access_entitlements
+        BEGIN
+            SELECT RAISE(ABORT, 'fixture community entitlement failure');
+        END");
+    $communityResult = sr_community_try_paid_read_coupon_access($pdo, 7, ['id' => 9901, 'board_id' => 9902], [
+        'asset_module' => 'point',
+        'amount' => 100,
+        'amounts' => ['point' => 100],
+        'group_policies_json' => '',
+        'policy_set_id' => 0,
+        'charge_policy' => 'once',
+    ], 'community.post:coupon:7:9901');
+    sr_coupon_runtime_assert(empty($communityResult['allowed']), 'community coupon entitlement failure should not allow access.');
+    sr_coupon_runtime_assert_issue_unused($pdo, $communityIssueId, 'community coupon entitlement failure');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE dedupe_key = 'community.post:coupon:7:9901'")->fetchColumn() === 0, 'community coupon entitlement failure should roll back redemption row.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_access_entitlements')->fetchColumn() === 0, 'community coupon entitlement failure should leave no community entitlement.');
+    if (is_string($previousErrorLog)) {
+        ini_set('error_log', $previousErrorLog);
+    }
+    if (is_string($temporaryErrorLog) && is_file($temporaryErrorLog)) {
+        unlink($temporaryErrorLog);
+    }
+}
+
+function sr_coupon_runtime_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_coupon_runtime_create_schema($pdo);
+
+    $now = sr_now();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('paid_access', 'Paid access', '', 'active', 'access', 'content', '42', 'refundable', 2, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $definitionId = (int) $pdo->lastInsertId();
+
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $definitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $issueId = (int) $pdo->lastInsertId();
+
+    $first = sr_coupon_redeem_for_target($pdo, 7, 'content', '42', [
+        'dedupe_key' => 'content:view:42:account:7:intent:abc',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '42',
+    ]);
+    sr_coupon_runtime_assert(!empty($first['allowed']) && !empty($first['processed']), 'first matching coupon redemption should process.');
+
+    $afterFirst = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $issueId]);
+    sr_coupon_runtime_assert((string) ($afterFirst['status'] ?? '') === 'active', 'issue should stay active before max uses is reached.');
+    sr_coupon_runtime_assert((int) ($afterFirst['used_count'] ?? -1) === 1, 'first redemption should increment used_count.');
+
+    $duplicate = sr_coupon_redeem_for_target($pdo, 7, 'content', '42', [
+        'dedupe_key' => 'content:view:42:account:7:intent:abc',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '42',
+    ]);
+    sr_coupon_runtime_assert(!empty($duplicate['allowed']) && empty($duplicate['processed']) && !empty($duplicate['already_redeemed']), 'same dedupe key should return already_redeemed without new row.');
+    $redemptionCount = (int) $pdo->query('SELECT COUNT(*) FROM sr_coupon_redemptions')->fetchColumn();
+    sr_coupon_runtime_assert($redemptionCount === 1, 'duplicate redemption must not insert another redemption row.');
+
+    $second = sr_coupon_redeem_for_target($pdo, 7, 'content', '42', [
+        'dedupe_key' => 'content:view:42:account:7:intent:def',
+        'reference_module' => 'content',
+        'reference_type' => 'content.view',
+        'reference_id' => '42',
+    ]);
+    sr_coupon_runtime_assert(!empty($second['allowed']) && !empty($second['processed']), 'second unique redemption should process while issue has remaining uses.');
+    $afterSecond = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $issueId]);
+    sr_coupon_runtime_assert((string) ($afterSecond['status'] ?? '') === 'used', 'issue should become used after max uses.');
+    sr_coupon_runtime_assert((int) ($afterSecond['used_count'] ?? -1) === 2, 'second redemption should reach max used_count.');
+
+    $third = sr_coupon_redeem_for_target($pdo, 7, 'content', '42', [
+        'dedupe_key' => 'content:view:42:account:7:intent:ghi',
+    ]);
+    sr_coupon_runtime_assert(empty($third['allowed']) && empty($third['processed']), 'used issue should not allow a third unique redemption.');
+
+    $firstRedemption = sr_coupon_runtime_row($pdo, "SELECT id, dedupe_key FROM sr_coupon_redemptions WHERE dedupe_key = 'content:view:42:account:7:intent:abc'");
+    $pdo->prepare(
+        "INSERT INTO sr_content_access_entitlements
+            (account_id, content_id, subject_type, subject_id, access_kind, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at)
+         VALUES
+            (7, 42, 'content', 42, 'view', 'coupon', '', 'once', :source_reference, :granted_at, :created_at)"
+    )->execute([
+        'source_reference' => (string) ($firstRedemption['dedupe_key'] ?? ''),
+        'granted_at' => sr_now(),
+        'created_at' => sr_now(),
+    ]);
+    $pdo->prepare(
+        "INSERT INTO sr_community_access_entitlements
+            (account_id, subject_type, subject_id, event_key, source_kind, source_asset_module, source_charge_policy, source_reference, granted_at, created_at)
+         VALUES
+            (7, 'community.post', 99, 'post_read', 'coupon', '', 'once', :source_reference, :granted_at, :created_at)"
+    )->execute([
+        'source_reference' => (string) ($firstRedemption['dedupe_key'] ?? ''),
+        'granted_at' => sr_now(),
+        'created_at' => sr_now(),
+    ]);
+
+    $refund = sr_coupon_refund_redemption($pdo, (int) ($firstRedemption['id'] ?? 0), 1, 'fixture refund');
+    sr_coupon_runtime_assert((int) ($refund['used_count'] ?? -1) === 1, 'refund should decrement issue used_count.');
+    sr_coupon_runtime_assert((string) ($refund['issue_status'] ?? '') === 'active', 'refund should reactivate an issue that was used only because max uses was reached.');
+    sr_coupon_runtime_assert((string) ($refund['original_dedupe_key'] ?? '') === 'content:view:42:account:7:intent:abc', 'refund result should preserve original dedupe key.');
+    sr_coupon_runtime_assert(str_starts_with((string) ($refund['refunded_dedupe_key'] ?? ''), 'refunded:'), 'refund should move redemption to a refunded dedupe namespace.');
+    sr_coupon_runtime_assert((int) ($refund['revoked_access_count'] ?? -1) === 2, 'refund should revoke content and community coupon access entitlements through target contracts.');
+
+    $refundedOriginalVisible = sr_coupon_has_redemption($pdo, 7, 'content:view:42:account:7:intent:abc');
+    sr_coupon_runtime_assert(!$refundedOriginalVisible, 'refunded redemption should not satisfy active redemption lookup for original dedupe key.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_access_entitlements')->fetchColumn() === 0, 'content coupon entitlement should be removed after refund.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_community_access_entitlements')->fetchColumn() === 0, 'community coupon entitlement should be removed after refund.');
+
+    $afterRefund = sr_coupon_runtime_row($pdo, 'SELECT status, dedupe_key, refund_note FROM sr_coupon_redemptions WHERE id = :id', ['id' => (int) ($firstRedemption['id'] ?? 0)]);
+    sr_coupon_runtime_assert((string) ($afterRefund['status'] ?? '') === 'refunded', 'refund should mark redemption as refunded.');
+    sr_coupon_runtime_assert((string) ($afterRefund['dedupe_key'] ?? '') === (string) ($refund['refunded_dedupe_key'] ?? ''), 'refund should update stored dedupe key to refunded namespace.');
+    sr_coupon_runtime_assert((string) ($afterRefund['refund_note'] ?? '') === 'fixture refund', 'refund should store admin refund note.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('content_priority', 'Content priority coupon', '', 'active', 'access', 'content', '77', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $priorityDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $priorityDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $priorityIssueId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_point_balances (account_id, balance, created_at, updated_at)
+         VALUES (7, 1000, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+
+    $_SESSION['sr_content_asset_confirmation_requests'] = [];
+    $_SESSION['sr_content_asset_confirmations'] = [];
+    $paidPage = [
+        'id' => 77,
+        'asset_access_enabled' => 1,
+        'asset_module' => 'point',
+        'asset_access_amount' => 100,
+        'asset_access_amounts_json' => '{"point":100}',
+        'asset_access_group_policies_json' => '',
+        'asset_access_policy_set_id' => 0,
+        'asset_access_settlement_currency' => 'KRW',
+        'asset_charge_policy' => 'once',
+    ];
+    $confirmation = sr_content_charge_view_access($pdo, $paidPage, 7, false);
+    $token = (string) ($confirmation['confirmation_request_token'] ?? '');
+    sr_coupon_runtime_assert($token !== '', 'content paid view fixture should create a confirmation token before processing.');
+
+    $priorityResult = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
+    sr_coupon_runtime_assert(!empty($priorityResult['allowed']), 'content paid view fixture should allow coupon-backed access.');
+    sr_coupon_runtime_assert(empty($priorityResult['charged']), 'content paid view fixture must not charge assets when coupon is available.');
+    sr_coupon_runtime_assert(!empty($priorityResult['coupon_used']), 'content paid view fixture must report coupon_used on first coupon-backed access.');
+    sr_coupon_runtime_assert((int) ($priorityResult['amount'] ?? -1) === 0, 'content paid view fixture should reduce payable amount to zero when coupon is used first.');
+    sr_coupon_runtime_assert((string) ($priorityResult['asset_label'] ?? '') === '쿠폰', 'content paid view fixture should label coupon-backed access as coupon.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'content paid view fixture must not create point transactions when coupon takes priority.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_asset_access_logs')->fetchColumn() === 0, 'content paid view fixture must not create asset access logs when coupon takes priority.');
+
+    $priorityRedemption = sr_coupon_runtime_row($pdo, "SELECT status, used_count FROM sr_coupon_issues WHERE id = :id", ['id' => $priorityIssueId]);
+    sr_coupon_runtime_assert((string) ($priorityRedemption['status'] ?? '') === 'used', 'content paid view fixture should mark the priority coupon issue used.');
+    sr_coupon_runtime_assert((int) ($priorityRedemption['used_count'] ?? -1) === 1, 'content paid view fixture should increment the priority coupon issue once.');
+    $couponEntitlement = sr_coupon_runtime_row(
+        $pdo,
+        "SELECT source_kind, source_asset_module, source_charge_policy, source_reference
+         FROM sr_content_access_entitlements
+         WHERE account_id = 7
+           AND content_id = 77
+           AND subject_type = 'content'
+           AND subject_id = 77
+           AND access_kind = 'view'"
+    );
+    sr_coupon_runtime_assert((string) ($couponEntitlement['source_kind'] ?? '') === 'coupon', 'content paid view fixture should grant a coupon source entitlement.');
+    sr_coupon_runtime_assert((string) ($couponEntitlement['source_asset_module'] ?? '') === '', 'content paid view fixture should not attach an asset module to coupon entitlement.');
+    sr_coupon_runtime_assert((string) ($couponEntitlement['source_charge_policy'] ?? '') === 'once', 'content paid view fixture should preserve the content charge policy on coupon entitlement.');
+    sr_coupon_runtime_assert((string) ($couponEntitlement['source_reference'] ?? '') === 'content.view:coupon:7:77', 'content paid view fixture should store the coupon dedupe key on entitlement.');
+
+    $repeat = sr_content_charge_view_access($pdo, $paidPage, 7, true, $token);
+    sr_coupon_runtime_assert(!empty($repeat['allowed']) && empty($repeat['charged']) && !empty($repeat['already_paid']), 'content paid view fixture should reuse existing coupon entitlement without another charge.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'content' AND reference_type = 'content.view' AND reference_id = '77'")->fetchColumn() === 1, 'content paid view fixture should not create another coupon redemption for once access.');
+
+    $pdo->prepare(
+        "INSERT INTO sr_content_items (id, title, slug, status, updated_at)
+         VALUES (77, 'Paid content', 'paid-content', 'published', :updated_at)"
+    )->execute(['updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_content_files
+            (id, content_id, title, original_name, status, asset_download_enabled, asset_module, asset_download_amount, asset_download_settlement_currency, asset_download_amounts_json, asset_download_group_policies_json, asset_download_policy_set_id, asset_charge_policy, updated_at)
+         VALUES
+            (501, 77, 'Paid file', 'paid-file.txt', 'active', 1, 'point', 120, 'KRW', '{\"point\":120}', '', 0, 'once', :updated_at)"
+    )->execute(['updated_at' => $now]);
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            ('download_priority', 'Download priority coupon', '', 'active', 'access', 'content_file', '501', 'refundable', 1, NULL, NULL, :created_at, :updated_at)"
+    )->execute(['created_at' => $now, 'updated_at' => $now]);
+    $downloadDefinitionId = (int) $pdo->lastInsertId();
+    $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+            (coupon_definition_id, account_id, status, issued_reason, issued_by_account_id, issued_at, expires_at, used_count, created_at, updated_at)
+         VALUES
+            (:definition_id, 7, 'active', 'fixture', NULL, :issued_at, NULL, 0, :created_at, :updated_at)"
+    )->execute([
+        'definition_id' => $downloadDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $downloadIssueId = (int) $pdo->lastInsertId();
+
+    $targetTypes = sr_coupon_target_types($pdo);
+    sr_coupon_runtime_assert(isset($targetTypes['content_file']), 'content coupon target contract should expose content_file targets.');
+    $fileTargets = sr_content_coupon_target_search($pdo, 'content_file', 'Paid file', 5);
+    sr_coupon_runtime_assert(isset($fileTargets[0]) && (string) ($fileTargets[0]['reference_id'] ?? '') === '501', 'content_file coupon target search should return matching download files.');
+    $fileHealth = sr_content_coupon_target_health($pdo, 'content_file', '501');
+    sr_coupon_runtime_assert((string) ($fileHealth['status'] ?? '') === 'ok', 'content_file coupon target health should accept active download files.');
+    sr_coupon_runtime_assert(sr_content_coupon_target_admin_url('content_file', '501') === '/admin/content/files?id=501', 'content_file coupon target admin URL should point to the download file editor.');
+
+    $_SESSION['sr_content_asset_confirmation_requests'] = [];
+    $_SESSION['sr_content_asset_confirmations'] = [];
+    $paidFile = [
+        'id' => 501,
+        'content_id' => 77,
+        'asset_download_enabled' => 1,
+        'asset_module' => 'point',
+        'asset_download_amount' => 120,
+        'asset_download_amounts_json' => '{"point":120}',
+        'asset_download_group_policies_json' => '',
+        'asset_download_policy_set_id' => 0,
+        'asset_download_settlement_currency' => 'KRW',
+        'asset_charge_policy' => 'once',
+    ];
+    $downloadConfirmation = sr_content_charge_file_download($pdo, $paidFile, 7, false);
+    $downloadToken = (string) ($downloadConfirmation['confirmation_request_token'] ?? '');
+    sr_coupon_runtime_assert($downloadToken !== '', 'content paid download fixture should create a confirmation token before processing.');
+
+    $downloadResult = sr_content_charge_file_download($pdo, $paidFile, 7, true, $downloadToken);
+    sr_coupon_runtime_assert(!empty($downloadResult['allowed']), 'content paid download fixture should allow coupon-backed access.');
+    sr_coupon_runtime_assert(empty($downloadResult['charged']), 'content paid download fixture must not charge assets when coupon is available.');
+    sr_coupon_runtime_assert(!empty($downloadResult['coupon_used']), 'content paid download fixture must report coupon_used on first coupon-backed download.');
+    sr_coupon_runtime_assert((int) ($downloadResult['amount'] ?? -1) === 0, 'content paid download fixture should reduce payable amount to zero when coupon is used first.');
+    sr_coupon_runtime_assert((string) ($downloadResult['asset_label'] ?? '') === '쿠폰', 'content paid download fixture should label coupon-backed download as coupon.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'content paid download fixture must not create point transactions when coupon takes priority.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_content_asset_access_logs')->fetchColumn() === 0, 'content paid download fixture must not create asset access logs when coupon takes priority.');
+
+    $downloadIssue = sr_coupon_runtime_row($pdo, 'SELECT status, used_count FROM sr_coupon_issues WHERE id = :id', ['id' => $downloadIssueId]);
+    sr_coupon_runtime_assert((string) ($downloadIssue['status'] ?? '') === 'used', 'content paid download fixture should mark the priority coupon issue used.');
+    sr_coupon_runtime_assert((int) ($downloadIssue['used_count'] ?? -1) === 1, 'content paid download fixture should increment the priority coupon issue once.');
+    $downloadEntitlement = sr_coupon_runtime_row(
+        $pdo,
+        "SELECT source_kind, source_asset_module, source_charge_policy, source_reference
+         FROM sr_content_access_entitlements
+         WHERE account_id = 7
+           AND content_id = 77
+           AND subject_type = 'content_file'
+           AND subject_id = 501
+           AND access_kind = 'download'"
+    );
+    sr_coupon_runtime_assert((string) ($downloadEntitlement['source_kind'] ?? '') === 'coupon', 'content paid download fixture should grant a coupon source entitlement.');
+    sr_coupon_runtime_assert((string) ($downloadEntitlement['source_reference'] ?? '') === 'content.download:coupon:7:501', 'content paid download fixture should store the coupon dedupe key on entitlement.');
+    sr_content_record_file_download($pdo, $paidFile, 7, $downloadResult);
+    $downloadLog = sr_coupon_runtime_row($pdo, 'SELECT download_type, amount, asset_access_log_ids_json FROM sr_content_file_download_logs WHERE file_id = 501 LIMIT 1');
+    sr_coupon_runtime_assert((string) ($downloadLog['download_type'] ?? '') === 'paid', 'content paid download fixture should record coupon-backed downloads as paid downloads.');
+    sr_coupon_runtime_assert((int) ($downloadLog['amount'] ?? -1) === 0, 'content paid download fixture should record zero asset amount for coupon-backed downloads.');
+    sr_coupon_runtime_assert((string) ($downloadLog['asset_access_log_ids_json'] ?? '') === '[]', 'content paid download fixture should not attach asset log ids to coupon-backed downloads.');
+
+    $downloadRepeat = sr_content_charge_file_download($pdo, $paidFile, 7, true, $downloadToken);
+    sr_coupon_runtime_assert(!empty($downloadRepeat['allowed']) && empty($downloadRepeat['charged']) && !empty($downloadRepeat['already_paid']), 'content paid download fixture should reuse existing coupon entitlement without another charge.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_coupon_redemptions WHERE reference_module = 'content' AND reference_type = 'content.download' AND reference_id = '501'")->fetchColumn() === 1, 'content paid download fixture should not create another coupon redemption for once download access.');
+
+    $downloadLogId = (int) $pdo->query('SELECT id FROM sr_content_file_download_logs WHERE file_id = 501 LIMIT 1')->fetchColumn();
+    $revokeResult = sr_content_refund_file_download($pdo, $downloadLogId, 1, 'coupon access revoke');
+    sr_coupon_runtime_assert(!empty($revokeResult['ok']), 'content paid download fixture should revoke coupon-backed download access through refund helper.');
+    sr_coupon_runtime_assert((string) ($revokeResult['message'] ?? '') === '다운로드 접근권을 회수했습니다.', 'content paid download fixture should return the access revoke message for coupon-backed access.');
+    sr_coupon_runtime_assert((int) $pdo->query("SELECT COUNT(*) FROM sr_content_access_entitlements WHERE account_id = 7 AND subject_type = 'content_file' AND subject_id = 501 AND access_kind = 'download'")->fetchColumn() === 0, 'content paid download fixture should remove coupon-backed file entitlement on access revoke.');
+    sr_coupon_runtime_assert((int) $pdo->query('SELECT COUNT(*) FROM sr_point_transactions')->fetchColumn() === 0, 'content paid download fixture must still have no point transactions after coupon access revocation.');
+    $revokedDownloadLog = sr_coupon_runtime_row($pdo, 'SELECT refund_status, refund_transaction_ids_json, refund_note, access_revoked_at FROM sr_content_file_download_logs WHERE id = :id', ['id' => $downloadLogId]);
+    sr_coupon_runtime_assert((string) ($revokedDownloadLog['refund_status'] ?? '') === 'access_revoked', 'content paid download fixture should persist access_revoked status.');
+    sr_coupon_runtime_assert((string) ($revokedDownloadLog['refund_transaction_ids_json'] ?? '') === '[]', 'content paid download fixture should persist empty refund transaction ids.');
+    sr_coupon_runtime_assert((string) ($revokedDownloadLog['refund_note'] ?? '') === 'coupon access revoke', 'content paid download fixture should persist access revoke note.');
+    sr_coupon_runtime_assert((string) ($revokedDownloadLog['access_revoked_at'] ?? '') !== '', 'content paid download fixture should store access_revoked_at.');
+}
+
+sr_coupon_runtime_fixture();
+sr_coupon_runtime_partial_failure_fixture();
+
+if ($errors !== []) {
+    fwrite(STDERR, "coupon redemption runtime checks failed:\n");
+    foreach ($errors as $error) {
+        fwrite(STDERR, '- ' . $error . "\n");
+    }
+    exit(1);
+}
+
+echo "coupon redemption runtime checks completed.\n";

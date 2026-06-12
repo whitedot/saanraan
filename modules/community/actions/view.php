@@ -142,7 +142,7 @@ if ($canViewPostBody && is_array($postBoard)) {
                     'use',
                     'community.post.read',
                     sr_request_method() === 'POST',
-                    sr_post_string('asset_request_token', 40)
+                    sr_post_string_without_truncation('asset_request_token', 32) ?? ''
                 );
         }
         if (empty($paidReadResult['allowed'])) {

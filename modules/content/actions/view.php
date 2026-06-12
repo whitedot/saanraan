@@ -38,7 +38,8 @@ if (!is_array($page)) {
 $pageAccess = ['allowed' => true, 'charged' => false, 'message' => ''];
 if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
     $account = sr_member_require_login($pdo);
-    $pageAccess = sr_content_charge_view_access($pdo, $page, (int) $account['id'], sr_request_method() === 'POST', sr_post_string('asset_request_token', 40));
+    $assetRequestToken = sr_post_string_without_truncation('asset_request_token', 32) ?? '';
+    $pageAccess = sr_content_charge_view_access($pdo, $page, (int) $account['id'], sr_request_method() === 'POST', $assetRequestToken);
     if (!empty($pageAccess['charged'])) {
         sr_content_member_group_evaluate_after_activity($pdo, (int) $account['id']);
     }

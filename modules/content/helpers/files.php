@@ -669,6 +669,21 @@ function sr_content_file_download_log_snapshot_columns_exist(PDO $pdo): bool
     }
 
     try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $columns = $pdo->query('PRAGMA table_info(sr_content_file_download_logs)')->fetchAll(PDO::FETCH_ASSOC);
+            $columnMap = [];
+            foreach ($columns as $column) {
+                $columnMap[(string) ($column['name'] ?? '')] = true;
+            }
+            $exists = isset(
+                $columnMap['content_title_snapshot'],
+                $columnMap['content_slug_snapshot'],
+                $columnMap['file_title_snapshot'],
+                $columnMap['file_original_name_snapshot']
+            );
+            return $exists;
+        }
+
         $stmt = $pdo->prepare(
             'SELECT COUNT(*) AS column_count
              FROM INFORMATION_SCHEMA.COLUMNS
@@ -914,7 +929,8 @@ function sr_content_admin_file_download_log_by_id_for_update(PDO $pdo, int $down
         return null;
     }
 
-    $stmt = $pdo->prepare('SELECT * FROM sr_content_file_download_logs WHERE id = :id LIMIT 1 FOR UPDATE');
+    $lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE';
+    $stmt = $pdo->prepare('SELECT * FROM sr_content_file_download_logs WHERE id = :id LIMIT 1' . $lockClause);
     $stmt->execute(['id' => $downloadLogId]);
     $row = $stmt->fetch();
 
@@ -1012,12 +1028,9 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
             throw new RuntimeException('환불 대상 회원 또는 콘텐츠 파일 정보를 확인할 수 없습니다.');
         }
 
-        if (sr_content_file_download_log_access_log_ids($downloadLog) === []) {
-            throw new RuntimeException('연결된 차감 또는 접근권 로그가 없어 환불/회수할 수 없습니다.');
-        }
-
-        $accessLogs = sr_content_file_download_access_logs_for_refund($pdo, $downloadLog);
-        if ($accessLogs === []) {
+        $accessLogIds = sr_content_file_download_log_access_log_ids($downloadLog);
+        $accessLogs = $accessLogIds !== [] ? sr_content_file_download_access_logs_for_refund($pdo, $downloadLog) : [];
+        if ($accessLogIds !== [] && $accessLogs === []) {
             throw new RuntimeException('연결된 차감 또는 접근권 로그를 찾을 수 없습니다.');
         }
 

@@ -55,7 +55,7 @@ $filePath = null;
 if ($driver === 's3') {
     $downloadUrl = sr_storage_signed_url('s3', $storageKey, 300, [
         'response-content-type' => sr_download_content_type($mimeType),
-        'response-content-disposition' => $disposition . '; filename="' . sr_download_filename((string) $attachment['original_name']) . '"',
+        'response-content-disposition' => sr_download_content_disposition((string) $attachment['original_name'], $disposition),
     ]);
     if ($downloadUrl === '') {
         sr_render_error(404, sr_t('community::action.error.attachment_not_found'));
@@ -140,7 +140,7 @@ if (is_array($board)) {
                         'use',
                         'community.post.read',
                         sr_request_method() === 'POST',
-                        sr_post_string('asset_request_token', 40)
+                        sr_post_string_without_truncation('asset_request_token', 32) ?? ''
                     );
             }
             if (empty($paidReadResult['allowed'])) {
@@ -182,7 +182,7 @@ if ($disposition === 'attachment' && is_array($board)) {
             'use',
             'community.attachment.download',
             sr_request_method() === 'POST',
-            sr_post_string('asset_request_token', 40)
+            sr_post_string_without_truncation('asset_request_token', 32) ?? ''
         );
         if (empty($downloadResult['allowed'])) {
             if ((string) ($downloadResult['error_key'] ?? '') === 'asset_confirmation_required') {
@@ -213,14 +213,9 @@ if ($disposition === 'attachment' && is_array($board)) {
 }
 if ($downloadUrl !== '') {
     header('Cache-Control: private, max-age=300');
-    sr_redirect_external($downloadUrl);
+    sr_redirect_trusted_external($downloadUrl);
 }
 
-header('Content-Type: ' . sr_download_content_type($mimeType));
-header('Content-Disposition: ' . $disposition . '; filename="' . sr_download_filename((string) $attachment['original_name']) . '"');
-header('Content-Length: ' . (string) $recordedSize);
-header('X-Content-Type-Options: nosniff');
-header('Cache-Control: private, no-store, no-cache, must-revalidate');
-header('Pragma: no-cache');
+sr_send_download_headers($mimeType, (string) $attachment['original_name'], $disposition, $recordedSize, 'private, no-store, no-cache, must-revalidate');
 readfile($filePath);
 sr_finish_response();
