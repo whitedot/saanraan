@@ -97,6 +97,25 @@ function sr_release_verification_record_required_gate_row(string $requiredGate, 
     ];
 }
 
+function sr_release_verification_record_required_gate_row_labels(string $requiredGate): array
+{
+    $labels = [];
+    foreach (explode("\n", $requiredGate) as $line) {
+        if (!preg_match('/^\|\s*(.*?)\s*\|\s*([^|\n]+?)\s*\|\s*([^|\n]*?)\s*\|\s*([^|\n]*?)\s*\|$/u', $line, $matches)) {
+            continue;
+        }
+
+        $label = trim((string) $matches[1]);
+        if ($label === '' || $label === '게이트' || $label === '---') {
+            continue;
+        }
+
+        $labels[] = $label;
+    }
+
+    return $labels;
+}
+
 function sr_release_verification_record_gate_missing_flag(string $content): string
 {
     $section = sr_release_verification_record_section($content, '판정');
@@ -219,10 +238,14 @@ function sr_release_verification_record_check_required_gate_rows(string $file, s
         return;
     }
 
-    foreach (sr_release_verification_record_required_gate_labels() as $label) {
-        if (!str_contains($requiredGate, '| ' . $label . ' |')) {
-            sr_release_verification_record_error('Verification record required installed DB gate row is missing in ' . $file . ': ' . $label);
-        }
+    $expectedLabels = sr_release_verification_record_required_gate_labels();
+    $actualLabels = sr_release_verification_record_required_gate_row_labels($requiredGate);
+    if ($actualLabels !== $expectedLabels) {
+        sr_release_verification_record_error(
+            'Verification record required installed DB gate rows must match the template order in ' . $file
+            . ': expected ' . implode(', ', $expectedLabels)
+            . '; got ' . implode(', ', $actualLabels)
+        );
     }
 }
 
@@ -369,6 +392,16 @@ function sr_release_verification_record_self_test(): void
         '',
         sr_release_verification_record_fixture('통과', '없음', '통과')
     );
+    $duplicateGateRowFixture = str_replace(
+        '| 성능 수동 점검 | 통과 | fixture | fixture |',
+        '| 성능 수동 점검 | 통과 | fixture | fixture |' . "\n" . '| 성능 수동 점검 | 통과 | fixture | fixture |',
+        sr_release_verification_record_fixture('통과', '없음', '통과')
+    );
+    $wrongOrderGateRowFixture = str_replace(
+        '| /admin/assets/reconciliation | 통과 | fixture | fixture |' . "\n" . '| /admin/operations | 통과 | fixture | fixture |',
+        '| /admin/operations | 통과 | fixture | fixture |' . "\n" . '| /admin/assets/reconciliation | 통과 | fixture | fixture |',
+        sr_release_verification_record_fixture('통과', '없음', '통과')
+    );
     $cases = [
         'release candidate unresolved gate final pass rejected' => [
             'file' => 'docs/records/release-verification-fixture.md',
@@ -428,6 +461,20 @@ function sr_release_verification_record_self_test(): void
     sr_release_verification_record_check_missing_flag_consistency('docs/records/release-verification-fixture.md', $flagMismatchFixture);
     if (count($GLOBALS['errors']) !== $beforeCount + 1) {
         sr_release_verification_record_error('Release verification record self-test failed: missing flag mismatch check');
+    }
+    array_pop($GLOBALS['errors']);
+
+    $beforeCount = count($GLOBALS['errors']);
+    sr_release_verification_record_check_required_gate_rows('docs/records/release-verification-fixture.md', $duplicateGateRowFixture);
+    if (count($GLOBALS['errors']) !== $beforeCount + 1) {
+        sr_release_verification_record_error('Release verification record self-test failed: duplicate required gate row check');
+    }
+    array_pop($GLOBALS['errors']);
+
+    $beforeCount = count($GLOBALS['errors']);
+    sr_release_verification_record_check_required_gate_rows('docs/records/release-verification-fixture.md', $wrongOrderGateRowFixture);
+    if (count($GLOBALS['errors']) !== $beforeCount + 1) {
+        sr_release_verification_record_error('Release verification record self-test failed: required gate row order check');
     }
     array_pop($GLOBALS['errors']);
 
