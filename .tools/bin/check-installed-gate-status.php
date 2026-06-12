@@ -62,7 +62,41 @@ function sr_installed_gate_status_exec(array $command): string
     return $text;
 }
 
+function sr_installed_gate_status_assert_unresolved_count(string $label, string $output): void
+{
+    if ($output === '') {
+        return;
+    }
+
+    if (preg_match_all('/^gate\t[^\n]*\tresult=([^\t\n]+)/m', $output, $matches) === false) {
+        sr_installed_gate_status_error('Installed gate status output cannot be parsed for gate rows: ' . $label);
+        return;
+    }
+
+    $results = $matches[1] ?? [];
+    if (count($results) !== 13) {
+        sr_installed_gate_status_error('Installed gate status output must contain 13 gate rows for ' . $label . ', got ' . (string) count($results));
+    }
+
+    $expectedUnresolved = 0;
+    foreach ($results as $result) {
+        if ($result !== '통과') {
+            $expectedUnresolved++;
+        }
+    }
+
+    if (preg_match('/^unresolved-gates: (\d+)$/m', $output, $countMatches) !== 1) {
+        sr_installed_gate_status_error('Installed gate status output missing unresolved-gates count: ' . $label);
+        return;
+    }
+
+    if ((int) $countMatches[1] !== $expectedUnresolved) {
+        sr_installed_gate_status_error('Installed gate status unresolved-gates mismatch for ' . $label . ': expected ' . (string) $expectedUnresolved . ', got ' . $countMatches[1]);
+    }
+}
+
 $output = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php']);
+sr_installed_gate_status_assert_unresolved_count('default output', $output);
 foreach ([
     'release-installed-gate-status-version: 1',
     'installed-lock:',
@@ -110,6 +144,7 @@ $baseOnlyOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
 ]);
+sr_installed_gate_status_assert_unresolved_count('base-url-only output', $baseOnlyOutput);
 foreach ([
     'base-url: http://127.0.0.1:1',
     'admin-smoke-credentials: missing',
@@ -171,6 +206,7 @@ $adminConfiguredOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
 ]);
+sr_installed_gate_status_assert_unresolved_count('admin-configured output', $adminConfiguredOutput);
 foreach ([
     'admin-smoke-credentials: configured',
     "gate\t/admin/assets/reconciliation\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured",
@@ -363,6 +399,7 @@ $authReadyOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
 ]);
+sr_installed_gate_status_assert_unresolved_count('auth-ready output', $authReadyOutput);
 foreach ([
     'mutation-smoke-allowed: yes',
     "gate\t인증 smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=authenticated smoke is configured; rerun with --run-auth-smoke",
@@ -382,6 +419,7 @@ $quizReadyOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
 ]);
+sr_installed_gate_status_assert_unresolved_count('quiz-ready output', $quizReadyOutput);
 foreach ([
     'mutation-smoke-allowed: yes',
     "gate\t퀴즈 E2E smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke is configured; rerun with --run-quiz-smoke",
@@ -404,6 +442,7 @@ $assetReadyOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
 ]);
+sr_installed_gate_status_assert_unresolved_count('asset-ready output', $assetReadyOutput);
 foreach ([
     'mutation-smoke-allowed: yes',
     'asset-dedupe-expectation: configured',
@@ -452,6 +491,7 @@ $fixtureOutput = sr_installed_gate_status_exec([
     '--run-privacy-fixtures',
     '--run-performance-fixtures',
 ]);
+sr_installed_gate_status_assert_unresolved_count('fixture output', $fixtureOutput);
 foreach ([
     'run-privacy-fixtures: yes',
     'run-performance-fixtures: yes',
@@ -470,6 +510,7 @@ foreach ([
 
 sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-status.php', [
     'release-installed-gate-status-version: 1',
+    'unresolved-gates',
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
