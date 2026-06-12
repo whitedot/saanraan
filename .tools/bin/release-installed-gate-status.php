@@ -136,8 +136,9 @@ function sr_release_gate_status_pair_status(string $first, string $second): stri
     return 'missing';
 }
 
-function sr_release_gate_status_readonly_command_gate(string $gate, string $commandLabel, bool $canRun, bool $runReadonly, string $skipReason): array
+function sr_release_gate_status_readonly_command_gate(string $gate, string $commandLabel, bool $canRun, bool $runReadonly, string $skipReason, array $commandArgs = []): array
 {
+    $displayCommand = trim($commandLabel . ' ' . implode(' ', $commandArgs));
     if (!$canRun) {
         return [
             'gate' => $gate,
@@ -152,17 +153,18 @@ function sr_release_gate_status_readonly_command_gate(string $gate, string $comm
             'gate' => $gate,
             'result' => '미실행',
             'environment' => 'current CLI',
-            'memo' => 'read-only command available; rerun with --run-readonly to execute ' . $commandLabel,
+            'memo' => 'read-only command available; rerun with --run-readonly to execute ' . $displayCommand,
         ];
     }
 
-    $result = sr_release_gate_status_command([PHP_BINARY, $commandLabel]);
+    $command = array_merge([PHP_BINARY, $commandLabel], $commandArgs);
+    $result = sr_release_gate_status_command($command);
     $exitCode = (int) $result['exit_code'];
     return [
         'gate' => $gate,
         'result' => $exitCode === 0 ? '통과' : '실패',
         'environment' => 'current CLI',
-        'memo' => $commandLabel . ' exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
+        'memo' => $displayCommand . ' exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
     ];
 }
 
@@ -516,6 +518,14 @@ $gates[] = sr_release_gate_status_readonly_command_gate(
     $canRunInstalledCli,
     $runReadonly,
     $unavailableReason
+);
+$gates[] = sr_release_gate_status_readonly_command_gate(
+    '`php .tools/bin/expire-points.php --dry-run`',
+    '.tools/bin/expire-points.php',
+    $canRunInstalledCli,
+    $runReadonly,
+    $unavailableReason,
+    ['--dry-run']
 );
 $gates[] = sr_release_gate_status_admin_readonly_gate(
     '/admin/assets/reconciliation',

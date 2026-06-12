@@ -94,8 +94,8 @@
 | `php .tools/bin/check-community-board-copy-limits.php` | 통과 | 커뮤니티 게시판 전체 복사의 동기 상한, 배치 전환 조건, unsupported storage/missing file/legacy token hard block, 저장소 용량 경고 fixture 확인 |
 | `php .tools/bin/check-community-board-copy-job-lock.php` | 통과 | 게시판 복사 batch job lock token helper, stale/empty/completed token 거부 fixture, stage/map 처리 경로 token 전달 marker 확인 |
 | `php .tools/bin/check-release-package-policy.php` | 통과 | 릴리스 산출물 포함/제외 기준, 대표 비밀/런타임 제외 샘플 self-test, 후보 파일 전체의 루트 `vendor`/`dist`/`storage`, 비밀 파일, 백업/임시 파일, DB dump, SQLite/DB 파일, SSH key, package registry token 금지 패턴 스캔, HTML Purifier vendor/license/version 기준, CKEditor self-hosted asset/license/version 기준, `release-preflight.php` 출력 형식, dry-run `--list`/`--manifest` 파일 집합 일치, 정렬/중복 없음, manifest hash 재계산 검증 |
-| `php .tools/bin/release-preflight.php` | 통과 | Purifier 로드 상태, HTML Purifier version, 모듈 내부 autoload, cache 경로/쓰기 가능 여부, dependency record, CKEditor self-hosted asset version/license, release package 파일 수와 manifest hash 요약. 2026-06-12 재검증 기준 후보 파일 수는 `1489`이며, manifest hash는 기록 파일 편집으로 다시 바뀔 수 있어 최종 릴리스 후보 기록에서 고정한다 |
-| `php .tools/bin/release-package-dry-run.php` | 통과 | 직접 제작 zip 후보 파일 목록에서 필수 파일 포함과 금지 경로 제외 확인. `.env.local`/`.env.production`/runtime 샘플 제외 정책도 확인한다. 2026-06-12 재검증 기준 후보 파일 수는 `1489` |
+| `php .tools/bin/release-preflight.php` | 통과 | Purifier 로드 상태, HTML Purifier version, 모듈 내부 autoload, cache 경로/쓰기 가능 여부, dependency record, CKEditor self-hosted asset version/license, release package 파일 수와 manifest hash 요약. 2026-06-12 재검증 기준 후보 파일 수는 `1490`이며, manifest hash는 기록 파일 편집으로 다시 바뀔 수 있어 최종 릴리스 후보 기록에서 고정한다 |
+| `php .tools/bin/release-package-dry-run.php` | 통과 | 직접 제작 zip 후보 파일 목록에서 필수 파일 포함과 금지 경로 제외 확인. `.env.local`/`.env.production`/runtime 샘플 제외 정책도 확인한다. 2026-06-12 재검증 기준 후보 파일 수는 `1490` |
 | `php .tools/bin/release-package-dry-run.php --manifest` | 통과 | 후보 파일 수와 `manifest-sha256` 출력 형식 확인. `check-release-package-policy.php`가 `--list`와 파일 집합을 대조하고 manifest body hash를 재계산한다. 현재 기록 파일도 후보에 포함되므로 실제 hash 값은 최종 릴리스 기록에서 고정 |
 | `git check-ignore` | 통과 | `.env`, `.env.*`, config 임시/백업 파일, `storage/` 런타임 파일이 ignore 기준에 걸리는지 확인 |
 | `php .tools/bin/ops-status.php` | 환경 미준비 | 미설치 환경이라 `saanraan is not installed.`와 exit 2 반환 |
@@ -103,7 +103,7 @@
 | `php .tools/bin/check-module-status.php` | 통과 | 번들 모듈과 상태표 행 일치, 상태 값, 현재 증거, 1.0 전 보강 기준, 주요 고위험 모듈별 자동 증거 marker, 개선 기록의 기존 상태와 `module-status.md` 현재 상태 일치, `beta` 모듈별 구체 smoke/수동/reconciliation/브라우저/동시성 보강 대상 점검 |
 | `php .tools/bin/check-verification-template.php` | 통과 | 릴리스 후보 필수 설치 DB 게이트와 미실행 판정 기준 점검 |
 | `php .tools/bin/check-release-verification-records.php` | 통과 | 검증 기록 section, 최종 판정, 리스크 row, 릴리스 후보 필수 설치 DB 게이트 행별 결과가 모두 `통과`가 아닐 때 `통과` 판정 금지, 미해결 설치 DB 게이트의 환경/메모 누락 금지, 미실행 여부 플래그 일치, 개선 기록의 비릴리스 후보 조건부 판정 점검, 판정 규칙 self-test |
-| `php .tools/bin/check-installed-gate-status.php` | 통과 | 설치 DB 게이트 상태표 도구의 출력 형식, `config-mode`/`config-owner-group` 출력, 필수 게이트 행, 관리자 화면 게이트와 일반 smoke 계정의 missing/incomplete/configured 분기, `--run-readonly`, `--run-browser-qa`, `--run-auth-smoke`, `--run-quiz-smoke`, `--run-asset-smoke`, `--run-privacy-fixtures`, `--run-performance-fixtures`, 브라우저 QA 실패 상태 기록, 인증/퀴즈/자산 mutation smoke의 `SR_SMOKE_ALLOW_MUTATION=1` 차단/준비 분기, 자산 smoke form path 사전조건, fixture 옵션 실행 시 개인정보/성능 게이트 `부분 확인` 출력, 성능 fixture별 exit summary, 문서 marker 확인 |
+| `php .tools/bin/check-installed-gate-status.php` | 통과 | 설치 DB 게이트 상태표 도구의 출력 형식, `config-mode`/`config-owner-group` 출력, 필수 게이트 행, 포인트 만료 `--dry-run` read-only 게이트, 관리자 화면 게이트와 일반 smoke 계정의 missing/incomplete/configured 분기, `--run-readonly`, `--run-browser-qa`, `--run-auth-smoke`, `--run-quiz-smoke`, `--run-asset-smoke`, `--run-privacy-fixtures`, `--run-performance-fixtures`, 브라우저 QA 실패 상태 기록, 인증/퀴즈/자산 mutation smoke의 `SR_SMOKE_ALLOW_MUTATION=1` 차단/준비 분기, 자산 smoke form path 사전조건, fixture 옵션 실행 시 개인정보/성능 게이트 `부분 확인` 출력, 성능 fixture별 exit summary, 문서 marker 확인 |
 | `php .tools/bin/check-positioning.php` | 통과 | README, 특장점 문서, 포지셔닝 기준, 리스크 레지스터, 릴리스 검증 템플릿의 사용 판단 기준 marker와 대체 CMS/완성된 플랫폼/실시간 보장 같은 과장 문구 금지 기준 확인 |
 | `php .tools/bin/check-doc-links.php` | 통과 | 문서 링크와 `.tools/bin/*.php` 명령 참조 존재 여부 점검 통과 |
 | `php .tools/bin/check-tool-gate-coverage.php` | 통과 | 새 `check-*.php` 검증 도구가 `check.php` 통합 게이트에 연결됐는지 확인. deep QA 등 standalone 예외만 허용 |
@@ -125,7 +125,7 @@ php .tools/bin/release-preflight.php
 => purifier-autoload-path: modules/htmlpurifier/vendor/autoload.php
 => purifier-cache-dir: storage/cache/htmlpurifier
 => purifier-cache-writable: yes
-=> release-package-files: 1489
+=> release-package-files: 1490
 => release-package-manifest-sha256: <기록 파일 편집으로 변동, 릴리스 후보 기록에서 고정>
 
 php -r "define('SR_ROOT', getcwd()); require 'core/helpers/output.php'; echo sr_rich_text_purifier_available() ? 'purifier=yes' : 'purifier=no';"
@@ -146,13 +146,13 @@ php .tools/bin/release-installed-gate-status.php
 => config-mode: 0600
 => config-owner-group: www-data:www-data
 => sr-is-installed: no
-=> unresolved-gates: 11
+=> unresolved-gates: 13
 
 SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-gate-status.php --run-browser-qa
 => browser-qa-base-url: http://127.0.0.1:8082
 => run-browser-qa: yes
 => gate	CKEditor asset/fallback browser smoke	result=통과
-=> unresolved-gates: 10
+=> unresolved-gates: 12
 ```
 
 ## 릴리스 후보 필수 설치 DB 게이트
@@ -164,6 +164,7 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 | 새 설치 또는 업데이트 적용 | 미실행 | 미설치 로컬 환경 | 설치 wizard 화면은 HTTP smoke install-mode로만 확인 |
 | `php .tools/bin/reconcile-assets.php` | 환경 미준비 | 미설치 로컬 환경 | `saanraan is not installed.`와 exit 2 반환 |
 | `php .tools/bin/ops-status.php` | 환경 미준비 | 미설치 로컬 환경 | `saanraan is not installed.`와 exit 2 반환 |
+| `php .tools/bin/expire-points.php --dry-run` | 환경 미준비 | 미설치 로컬 환경 | `saanraan is not installed.`와 exit 2 반환 |
 | /admin/assets/reconciliation | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
 | /admin/operations | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
 | 인증 smoke | 안전 거부 확인 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php`는 `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 커뮤니티 데이터 생성은 미실행 |

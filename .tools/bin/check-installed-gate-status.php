@@ -85,6 +85,7 @@ foreach ([
     "gate\t새 설치 또는 업데이트 적용\t",
     "gate\t`php .tools/bin/reconcile-assets.php`\t",
     "gate\t`php .tools/bin/ops-status.php`\t",
+    "gate\t`php .tools/bin/expire-points.php --dry-run`\t",
     "gate\t/admin/assets/reconciliation\t",
     "gate\t/admin/operations\t",
     "gate\t인증 smoke\t",
@@ -463,6 +464,9 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'sr_release_gate_status_admin_readonly_gate',
     'sr_release_gate_status_file_mode',
     'sr_release_gate_status_file_owner_group',
+    'expire-points.php',
+    '--dry-run',
+    'array_merge([PHP_BINARY, $commandLabel], $commandArgs)',
     'set SR_SMOKE_BASE_URL and use an administrator session',
     'SR_BROWSER_QA_BASE_URL',
     'npm --prefix .tools/browser-qa run test:ckeditor',
@@ -485,6 +489,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
 sr_installed_gate_status_require_markers('docs/release-verification-template.md', [
     'php .tools/bin/release-installed-gate-status.php',
     'php .tools/bin/release-installed-gate-status.php --run-readonly',
+    'php .tools/bin/expire-points.php --dry-run',
     '설치 DB 게이트 상태표',
 ]);
 
