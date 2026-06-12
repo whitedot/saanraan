@@ -133,6 +133,82 @@ foreach ([
     }
 }
 
+$authMutationBlockedOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--run-auth-smoke',
+]);
+foreach ([
+    'run-auth-smoke: yes',
+    'mutation-smoke-allowed: no',
+    "gate\t인증 smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=authenticated smoke creates data; set SR_SMOKE_ALLOW_MUTATION=1",
+] as $marker) {
+    if ($authMutationBlockedOutput !== '' && !str_contains($authMutationBlockedOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status auth mutation guard output marker missing: ' . $marker);
+    }
+}
+
+$assetMutationBlockedOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    'SR_SMOKE_FORM_PATH=/paid/form',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--run-asset-smoke',
+]);
+foreach ([
+    'run-asset-smoke: yes',
+    'mutation-smoke-allowed: no',
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=asset idempotency smoke creates financial-like records; set SR_SMOKE_ALLOW_MUTATION=1",
+] as $marker) {
+    if ($assetMutationBlockedOutput !== '' && !str_contains($assetMutationBlockedOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status asset mutation guard output marker missing: ' . $marker);
+    }
+}
+
+$authReadyOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    'SR_SMOKE_ALLOW_MUTATION=1',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'mutation-smoke-allowed: yes',
+    "gate\t인증 smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=authenticated smoke is configured; rerun with --run-auth-smoke",
+] as $marker) {
+    if ($authReadyOutput !== '' && !str_contains($authReadyOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status auth ready output marker missing: ' . $marker);
+    }
+}
+
+$assetReadyOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    'SR_SMOKE_FORM_PATH=/paid/form',
+    'SR_SMOKE_ALLOW_MUTATION=1',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'mutation-smoke-allowed: yes',
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=asset idempotency smoke is configured; rerun with --run-asset-smoke",
+] as $marker) {
+    if ($assetReadyOutput !== '' && !str_contains($assetReadyOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status asset ready output marker missing: ' . $marker);
+    }
+}
+
 $fixtureOutput = sr_installed_gate_status_exec([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',
