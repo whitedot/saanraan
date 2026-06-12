@@ -226,6 +226,34 @@ function sr_release_verification_record_check_required_gate_rows(string $file, s
     }
 }
 
+function sr_release_verification_record_check_risk_rows_have_details(string $file, string $content): void
+{
+    $section = sr_release_verification_record_section($content, '리스크별 릴리스 판정 연결');
+    if ($section === '') {
+        return;
+    }
+
+    foreach (explode("\n", $section) as $line) {
+        if (!preg_match('/^\|\s*R-\d{2}\b/u', $line)) {
+            continue;
+        }
+
+        $cells = array_map('trim', explode('|', trim($line, '|')));
+        if (count($cells) !== 4) {
+            sr_release_verification_record_error('Verification record risk row must have 4 cells in ' . $file . ': ' . $line);
+            continue;
+        }
+
+        foreach (['연결된 검증 증거' => $cells[1], '이번 판정' => $cells[2], '후속' => $cells[3]] as $field => $value) {
+            if ($value === '' || $value === '-' || str_contains($value, 'TODO')) {
+                sr_release_verification_record_error(
+                    'Verification record risk row must record concrete ' . $field . ' in ' . $file . ': ' . $cells[0]
+                );
+            }
+        }
+    }
+}
+
 function sr_release_verification_record_is_release_candidate(string $file, string $content): bool
 {
     if (str_contains($file, '/release-verification-')) {
@@ -397,6 +425,18 @@ function sr_release_verification_record_self_test(): void
         sr_release_verification_record_error('Release verification record self-test failed: missing flag mismatch check');
     }
     array_pop($GLOBALS['errors']);
+
+    $riskTodoFixture = str_replace(
+        '| R-11 성능/캐시 기준 | fixture | 조건부 | fixture |',
+        '| R-11 성능/캐시 기준 | fixture | TODO | fixture |',
+        sr_release_verification_record_fixture('통과', '없음', '조건부 통과')
+    );
+    $beforeCount = count($GLOBALS['errors']);
+    sr_release_verification_record_check_risk_rows_have_details('docs/records/release-verification-fixture.md', $riskTodoFixture);
+    if (count($GLOBALS['errors']) !== $beforeCount + 1) {
+        sr_release_verification_record_error('Release verification record self-test failed: risk row TODO check');
+    }
+    array_pop($GLOBALS['errors']);
 }
 
 sr_release_verification_record_self_test();
@@ -459,6 +499,7 @@ foreach ($records as $record) {
     sr_release_verification_record_check_required_gate_rows($record, $content);
     sr_release_verification_record_check_required_gate_details($record, $content);
     sr_release_verification_record_check_missing_flag_consistency($record, $content);
+    sr_release_verification_record_check_risk_rows_have_details($record, $content);
 
     foreach ([
         'R-01 자산/쿠폰/유료 접근권',
