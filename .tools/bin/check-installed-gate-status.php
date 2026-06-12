@@ -389,6 +389,24 @@ foreach ([
     }
 }
 
+$unknownWithHelpOutput = sr_installed_gate_status_exec_result([
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+    '--help',
+    '--unknown-option',
+]);
+if ((int) $unknownWithHelpOutput['exit_code'] !== 2) {
+    sr_installed_gate_status_error('Installed gate status unknown option with help must exit 2.');
+}
+foreach ([
+    'Unknown release-installed-gate-status option: --unknown-option',
+    'release-installed-gate-status.php --help',
+] as $marker) {
+    if (!str_contains((string) $unknownWithHelpOutput['output'], $marker)) {
+        sr_installed_gate_status_error('Installed gate status unknown option with help output marker missing: ' . $marker);
+    }
+}
+
 $conflictingOutputOption = sr_installed_gate_status_exec_result([
     PHP_BINARY,
     '.tools/bin/release-installed-gate-status.php',

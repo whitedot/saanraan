@@ -39,16 +39,16 @@ $jsonOutput = in_array('--json', $args, true);
 $failOnUnresolved = in_array('--fail-on-unresolved', $args, true);
 $showHelp = in_array('--help', $args, true) || in_array('-h', $args, true);
 
-if ($showHelp) {
-    echo sr_release_gate_status_help();
-    exit(0);
-}
-
 $unknownArgs = array_values(array_diff($args, $allowedArgs));
 if ($unknownArgs !== []) {
     fwrite(STDERR, 'Unknown release-installed-gate-status option: ' . implode(', ', $unknownArgs) . "\n");
     fwrite(STDERR, "Run php .tools/bin/release-installed-gate-status.php --help for supported options.\n");
     exit(2);
+}
+
+if ($showHelp) {
+    echo rtrim(sr_release_gate_status_help(), "\n") . "\n";
+    exit(0);
 }
 
 if ($markdownTable && $jsonOutput) {
