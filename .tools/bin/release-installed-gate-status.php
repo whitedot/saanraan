@@ -22,14 +22,12 @@ $runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
+$smokeIdentifier = (string) (getenv('SR_SMOKE_IDENTIFIER') ?: '');
+$smokePassword = (string) (getenv('SR_SMOKE_PASSWORD') ?: '');
 $adminIdentifier = (string) (getenv('SR_SMOKE_ADMIN_IDENTIFIER') ?: '');
 $adminPassword = (string) (getenv('SR_SMOKE_ADMIN_PASSWORD') ?: '');
-$adminSmokeCredentialStatus = 'missing';
-if ($adminIdentifier !== '' && $adminPassword !== '') {
-    $adminSmokeCredentialStatus = 'configured';
-} elseif ($adminIdentifier !== '' || $adminPassword !== '') {
-    $adminSmokeCredentialStatus = 'incomplete';
-}
+$accountSmokeCredentialStatus = sr_release_gate_status_pair_status($smokeIdentifier, $smokePassword);
+$adminSmokeCredentialStatus = sr_release_gate_status_pair_status($adminIdentifier, $adminPassword);
 $configPath = $root . '/config/config.php';
 $lockPath = $root . '/storage/installed.lock';
 $configExists = is_file($configPath);
@@ -121,6 +119,19 @@ function sr_release_gate_status_command(array $command): array
     ];
 }
 
+function sr_release_gate_status_pair_status(string $first, string $second): string
+{
+    if ($first !== '' && $second !== '') {
+        return 'configured';
+    }
+
+    if ($first !== '' || $second !== '') {
+        return 'incomplete';
+    }
+
+    return 'missing';
+}
+
 function sr_release_gate_status_readonly_command_gate(string $gate, string $commandLabel, bool $canRun, bool $runReadonly, string $skipReason): array
 {
     if (!$canRun) {
@@ -184,11 +195,8 @@ function sr_release_gate_status_browser_qa_gate(string $baseUrl, bool $runBrowse
     ];
 }
 
-function sr_release_gate_status_auth_smoke_gate(string $baseUrl, bool $runAuthSmoke, bool $allowMutationSmoke): array
+function sr_release_gate_status_auth_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, bool $runAuthSmoke, bool $allowMutationSmoke): array
 {
-    $identifier = (string) (getenv('SR_SMOKE_IDENTIFIER') ?: '');
-    $password = (string) (getenv('SR_SMOKE_PASSWORD') ?: '');
-
     if ($baseUrl === '') {
         return [
             'gate' => '인증 smoke',
@@ -198,12 +206,16 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, bool $runAuthSm
         ];
     }
 
-    if ($identifier === '' || $password === '') {
+    if ($accountSmokeCredentialStatus !== 'configured') {
+        $credentialMemo = $accountSmokeCredentialStatus === 'incomplete'
+            ? 'SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together for a local/staging test account'
+            : 'requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for a local/staging test account';
+
         return [
             'gate' => '인증 smoke',
             'result' => '미실행',
             'environment' => $baseUrl,
-            'memo' => 'requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for a local/staging test account',
+            'memo' => $credentialMemo,
         ];
     }
 
@@ -236,10 +248,8 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, bool $runAuthSm
     ];
 }
 
-function sr_release_gate_status_asset_smoke_gate(string $baseUrl, bool $runAssetSmoke, bool $allowMutationSmoke): array
+function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, bool $runAssetSmoke, bool $allowMutationSmoke): array
 {
-    $identifier = (string) (getenv('SR_SMOKE_IDENTIFIER') ?: '');
-    $password = (string) (getenv('SR_SMOKE_PASSWORD') ?: '');
     $formPath = (string) (getenv('SR_SMOKE_FORM_PATH') ?: '');
 
     if ($baseUrl === '') {
@@ -251,12 +261,25 @@ function sr_release_gate_status_asset_smoke_gate(string $baseUrl, bool $runAsset
         ];
     }
 
-    if ($identifier === '' || $password === '' || $formPath === '') {
+    if ($accountSmokeCredentialStatus !== 'configured') {
+        $credentialMemo = $accountSmokeCredentialStatus === 'incomplete'
+            ? 'SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together for disposable paid target data'
+            : 'requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for disposable paid target data';
+
         return [
             'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
             'result' => '미실행',
             'environment' => $baseUrl,
-            'memo' => 'requires SR_SMOKE_IDENTIFIER, SR_SMOKE_PASSWORD, and SR_SMOKE_FORM_PATH for disposable paid target data',
+            'memo' => $credentialMemo,
+        ];
+    }
+
+    if ($formPath === '') {
+        return [
+            'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'requires SR_SMOKE_FORM_PATH for disposable paid target data',
         ];
     }
 
@@ -436,8 +459,8 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
     $adminSmokeCredentialStatus,
     'verify the read-only operations screen, allowed delays, and overdue markers'
 );
-$gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $runAuthSmoke, $allowMutationSmoke);
-$gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $runAssetSmoke, $allowMutationSmoke);
+$gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAuthSmoke, $allowMutationSmoke);
+$gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAssetSmoke, $allowMutationSmoke);
 $gates[] = sr_release_gate_status_privacy_gate($runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
 $gates[] = [
@@ -465,6 +488,7 @@ echo 'config-owner-group: ' . sr_release_gate_status_file_owner_group($configPat
 echo 'sr-is-installed: ' . ($isInstalled ? 'yes' : 'no') . "\n";
 echo 'base-url: ' . ($baseUrl === '' ? '-' : $baseUrl) . "\n";
 echo 'browser-qa-base-url: ' . ($browserQaBaseUrl === '' ? '-' : $browserQaBaseUrl) . "\n";
+echo 'account-smoke-credentials: ' . $accountSmokeCredentialStatus . "\n";
 echo 'admin-smoke-credentials: ' . $adminSmokeCredentialStatus . "\n";
 echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
 echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";

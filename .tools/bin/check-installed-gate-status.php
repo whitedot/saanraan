@@ -71,6 +71,7 @@ foreach ([
     'config-owner-group:',
     'sr-is-installed:',
     'browser-qa-base-url:',
+    'account-smoke-credentials: missing',
     'admin-smoke-credentials: missing',
     'run-readonly: no',
     'run-browser-qa: no',
@@ -164,6 +165,57 @@ foreach ([
 ] as $marker) {
     if ($adminConfiguredOutput !== '' && !str_contains($adminConfiguredOutput, $marker)) {
         sr_installed_gate_status_error('Installed gate status admin-configured output marker missing: ' . $marker);
+    }
+}
+
+$accountIncompleteIdentifierOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'account-smoke-credentials: incomplete',
+    "gate\t인증 smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
+] as $marker) {
+    if ($accountIncompleteIdentifierOutput !== '' && !str_contains($accountIncompleteIdentifierOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status account-identifier-only output marker missing: ' . $marker);
+    }
+}
+
+$accountIncompletePasswordOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_PASSWORD=12341234',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'account-smoke-credentials: incomplete',
+    "gate\t인증 smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD must be provided together",
+] as $marker) {
+    if ($accountIncompletePasswordOutput !== '' && !str_contains($accountIncompletePasswordOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status account-password-only output marker missing: ' . $marker);
+    }
+}
+
+$assetMissingFormOutput = sr_installed_gate_status_exec([
+    'env',
+    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
+    'SR_SMOKE_IDENTIFIER=member',
+    'SR_SMOKE_PASSWORD=12341234',
+    PHP_BINARY,
+    '.tools/bin/release-installed-gate-status.php',
+]);
+foreach ([
+    'account-smoke-credentials: configured',
+    "gate\t자산/쿠폰/유료 접근권 mutation smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_FORM_PATH for disposable paid target data",
+] as $marker) {
+    if ($assetMissingFormOutput !== '' && !str_contains($assetMissingFormOutput, $marker)) {
+        sr_installed_gate_status_error('Installed gate status asset missing form output marker missing: ' . $marker);
     }
 }
 
@@ -276,8 +328,11 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_SMOKE_ALLOW_MUTATION',
     'SR_SMOKE_ADMIN_IDENTIFIER',
     'SR_SMOKE_ADMIN_PASSWORD',
+    'SR_SMOKE_IDENTIFIER',
+    'SR_SMOKE_PASSWORD',
     'incomplete',
     'config/config.php is not readable by current user',
+    'sr_release_gate_status_pair_status',
     'sr_release_gate_status_admin_readonly_gate',
     'sr_release_gate_status_file_mode',
     'sr_release_gate_status_file_owner_group',
