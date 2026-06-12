@@ -548,6 +548,8 @@ foreach ([
         'config-mode',
         'config-owner-group',
         '개선 기록의 기존 상태와 `module-status.md` 현재 상태 일치',
+        'asset_ledger, point, coupon, community, quiz, privacy, ckeditor',
+        'release-installed-gate-status.php',
         'check-htmlpurifier-vendor-integrity.php',
         'check-browser-qa.php',
         'npm --prefix .tools/browser-qa run test:ckeditor',
