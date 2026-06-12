@@ -14,6 +14,52 @@ function sr_verification_template_error(string $message): void
     $errors[] = $message;
 }
 
+function sr_verification_template_section(string $content, string $section): string
+{
+    $quoted = preg_quote($section, '/');
+    if (preg_match('/^## ' . $quoted . '\n(?<body>.*?)(?=^## |\z)/ms', $content, $matches) !== 1) {
+        return '';
+    }
+
+    return trim((string) $matches['body']);
+}
+
+function sr_verification_template_table_labels(string $section, string $firstColumnHeader): array
+{
+    $labels = [];
+    foreach (explode("\n", $section) as $line) {
+        if (!preg_match('/^\|\s*(.*?)\s*\|/u', $line, $matches)) {
+            continue;
+        }
+
+        $label = trim((string) $matches[1]);
+        if ($label === '' || $label === $firstColumnHeader || $label === '---') {
+            continue;
+        }
+
+        $labels[] = $label;
+    }
+
+    return $labels;
+}
+
+function sr_verification_template_expect_table_order(string $content, string $sectionName, string $firstColumnHeader, array $expectedLabels): void
+{
+    $section = sr_verification_template_section($content, $sectionName);
+    if ($section === '') {
+        return;
+    }
+
+    $actualLabels = sr_verification_template_table_labels($section, $firstColumnHeader);
+    if ($actualLabels !== $expectedLabels) {
+        sr_verification_template_error(
+            'Verification template table rows must match expected order for ' . $sectionName
+            . ': expected ' . implode(', ', $expectedLabels)
+            . '; got ' . implode(', ', $actualLabels)
+        );
+    }
+}
+
 $templateFile = 'docs/release-verification-template.md';
 $content = is_file($templateFile) ? file_get_contents($templateFile) : false;
 if (!is_string($content)) {
@@ -130,6 +176,24 @@ foreach ($riskGateMarkers as $riskMarker => $markers) {
         }
     }
 }
+
+sr_verification_template_expect_table_order($content, '릴리스 후보 필수 설치 DB 게이트', '게이트', [
+    '새 설치 또는 업데이트 적용',
+    '`php .tools/bin/reconcile-assets.php`',
+    '`php .tools/bin/ops-status.php`',
+    '`php .tools/bin/expire-points.php --dry-run`',
+    '/admin/assets/reconciliation',
+    '/admin/operations',
+    '인증 smoke',
+    '퀴즈 E2E smoke',
+    '자산/쿠폰/유료 접근권 mutation smoke',
+    '개인정보 export/cleanup smoke',
+    'CKEditor asset/fallback browser smoke',
+    'CKEditor upload/save browser smoke',
+    '성능 수동 점검',
+]);
+
+sr_verification_template_expect_table_order($content, '리스크별 릴리스 판정 연결', '리스크', array_keys($riskGateMarkers));
 
 foreach (['회귀', '환경 미준비', '기존 보완 항목', '미실행'] as $classification) {
     if (!str_contains($content, $classification)) {

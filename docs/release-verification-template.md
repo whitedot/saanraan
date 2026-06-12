@@ -79,8 +79,8 @@ TODO
 | `php .tools/bin/reconcile-assets.php` | TODO | 자산 모듈 설치 DB | balance row, 거래 합계, 마지막 `balance_after`, 거래별 `balance_after` 연쇄 대조 |
 | `php .tools/bin/ops-status.php` | TODO | 설치 DB | queue/cron/배치 지연과 `지연 초과` 기준 확인 |
 | `php .tools/bin/expire-points.php --dry-run` | TODO | 포인트 모듈 설치 DB | 만료 대상 건수/금액 preview가 원장 row를 만들지 않는지 확인 |
-| `/admin/assets/reconciliation` | TODO | 설치 DB + 관리자 계정 | read-only 화면, 불일치 표시, 후속 확인 문구 |
-| `/admin/operations` | TODO | 설치 DB + 관리자 계정 | read-only 화면, 허용 지연, 지연 초과 표시 |
+| /admin/assets/reconciliation | TODO | 설치 DB + 관리자 계정 | read-only 화면, 불일치 표시, 후속 확인 문구 |
+| /admin/operations | TODO | 설치 DB + 관리자 계정 | read-only 화면, 허용 지연, 지연 초과 표시 |
 | 인증 smoke | TODO | 로컬/staging 테스트 계정 | `smoke-community-auth.php`, 필요한 도메인별 인증 smoke |
 | 퀴즈 E2E smoke | TODO | 로컬/staging 관리자 계정 | `smoke-quiz-e2e.php` 퀴즈 생성, 제출, 보상, 재응시 차단 |
 | 자산/쿠폰/유료 접근권 mutation smoke | TODO | 로컬/staging 더미 데이터 | `smoke-asset-idempotency-http.php` 병렬 중복 POST, 환불/회수, 쿠폰 우선 적용 |
