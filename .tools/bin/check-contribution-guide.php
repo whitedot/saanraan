@@ -50,8 +50,11 @@ sr_contribution_check_contains('docs/contribution-guide.md', [
     'release-verification-template.md',
     'php .tools/bin/check.php',
     'php .tools/bin/smoke-http.php',
-    'php .tools/bin/reconcile-assets.php',
-    'php .tools/bin/ops-status.php',
+    'php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved',
+    'php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved',
+    '권한을 넓히지 말고',
+    'SR_SMOKE_ADMIN_IDENTIFIER=<admin>',
+    'SR_SMOKE_ADMIN_PASSWORD=<password>',
     '고위험 변경',
     '문서 갱신 기준',
 ], $errors);
@@ -75,4 +78,3 @@ if ($errors !== []) {
 }
 
 echo "contribution guide checks completed.\n";
-

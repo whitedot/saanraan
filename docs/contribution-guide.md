@@ -60,16 +60,19 @@ php -S 127.0.0.1:8097 -t .tools/public .tools/bin/dev-router.php
 SR_SMOKE_BASE_URL=http://127.0.0.1:8097 php .tools/bin/smoke-http.php
 ```
 
-자산 모듈이 설치된 로컬 또는 스테이징 DB에서는 read-only 정합성 점검을 실행한다.
+설치 DB가 필요한 고위험 변경은 설치 게이트 상태표를 먼저 남긴다. 자산 정합성, 운영 지연, 포인트 만료 dry-run 같은 read-only CLI 게이트는 이 명령으로 함께 기록한다. 현재 CLI 사용자가 `config/config.php`를 읽지 못하면 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 다시 실행한다.
 
 ```bash
-php .tools/bin/reconcile-assets.php
+php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved
 ```
 
-운영 지연 신호를 다루는 변경은 read-only 운영 상태 점검을 실행한다.
+로컬/staging base URL과 관리자 계정이 준비된 경우에는 구조화 증거도 함께 남긴다.
 
 ```bash
-php .tools/bin/ops-status.php
+SR_SMOKE_BASE_URL=http://127.0.0.1:8097 \
+SR_SMOKE_ADMIN_IDENTIFIER=<admin> \
+SR_SMOKE_ADMIN_PASSWORD=<password> \
+php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved
 ```
 
 커뮤니티 인증 smoke처럼 데이터를 생성하거나 수정하는 검사는 운영 DB에서 실행하지 않는다.
