@@ -18,6 +18,7 @@ $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
 $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $runPrivacyFixtures = in_array('--run-privacy-fixtures', $args, true);
+$runPerformanceFixtures = in_array('--run-performance-fixtures', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -307,6 +308,41 @@ function sr_release_gate_status_privacy_gate(bool $runPrivacyFixtures): array
     ];
 }
 
+function sr_release_gate_status_performance_gate(bool $runPerformanceFixtures): array
+{
+    if (!$runPerformanceFixtures) {
+        return [
+            'gate' => '성능 수동 점검',
+            'result' => '미실행',
+            'environment' => 'installed DB with data',
+            'memo' => 'requires representative data for slow list, sitemap, and privacy export checks; use --run-performance-fixtures only for static/runtime fixtures',
+        ];
+    }
+
+    $commands = [
+        '.tools/bin/check-performance-policy.php',
+        '.tools/bin/check-performance-baseline.php',
+        '.tools/bin/check-admin-pagination-runtime.php',
+        '.tools/bin/check-community-board-copy-limits.php',
+        '.tools/bin/check-survey-export-runtime.php',
+    ];
+    $exitCodes = [];
+    $outputs = [];
+    foreach ($commands as $command) {
+        $result = sr_release_gate_status_command([PHP_BINARY, $command]);
+        $exitCodes[$command] = (int) $result['exit_code'];
+        $outputs[] = $command . ' exit ' . (string) $exitCodes[$command] . ' ' . (string) $result['output'];
+    }
+    $passed = !in_array(false, array_map(static fn (int $code): bool => $code === 0, $exitCodes), true);
+
+    return [
+        'gate' => '성능 수동 점검',
+        'result' => $passed ? '부분 확인' : '실패',
+        'environment' => 'static and SQLite runtime fixtures',
+        'memo' => 'installed DB performance review still required; ' . sr_release_gate_status_single_line(implode(' ', $outputs)),
+    ];
+}
+
 $unavailableReason = '';
 if (!$configExists) {
     $unavailableReason = 'config/config.php missing';
@@ -362,12 +398,7 @@ $gates[] = [
     'environment' => 'browser + installed DB',
     'memo' => 'requires browser session, installed DB, upload adapter, saved HTML sanitizer, and body image access checks',
 ];
-$gates[] = [
-    'gate' => '성능 수동 점검',
-    'result' => '미실행',
-    'environment' => 'installed DB with data',
-    'memo' => 'requires representative data for slow list, sitemap, and privacy export checks',
-];
+$gates[] = sr_release_gate_status_performance_gate($runPerformanceFixtures);
 
 $unresolved = 0;
 foreach ($gates as $gate) {
@@ -391,6 +422,7 @@ echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
 echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";
 echo 'run-asset-smoke: ' . ($runAssetSmoke ? 'yes' : 'no') . "\n";
 echo 'run-privacy-fixtures: ' . ($runPrivacyFixtures ? 'yes' : 'no') . "\n";
+echo 'run-performance-fixtures: ' . ($runPerformanceFixtures ? 'yes' : 'no') . "\n";
 echo 'mutation-smoke-allowed: ' . ($allowMutationSmoke ? 'yes' : 'no') . "\n";
 foreach ($gates as $gate) {
     echo sr_release_gate_status_line(
