@@ -85,6 +85,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-notification-bulk-actions admin-row-actions" data-admin-notification-bulk-bar>
                 <div class="admin-notification-bulk-controls admin-row-actions">
                     <button type="submit" name="intent" value="batch_mark_read" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="읽음" title="선택한 운영 알림을 내 계정 기준 읽음 상태로 변경합니다." disabled>읽음</button>
+                    <button type="submit" name="intent" value="batch_mark_unread" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="안 읽음" title="선택한 운영 알림을 내 계정 기준 안 읽음 상태로 변경합니다." disabled>안 읽음</button>
                     <button type="submit" name="intent" value="batch_process" class="btn btn-sm btn-outline-secondary" data-admin-notification-bulk-submit data-action-label="완료" title="선택한 열린 운영 알림을 운영 조치 완료 상태로 변경합니다." disabled>완료</button>
                     <button type="button" class="btn btn-sm btn-outline-light" data-admin-notification-bulk-clear aria-label="선택 해제" title="선택 해제" hidden><?php echo sr_material_icon_html('close'); ?><span data-admin-notification-selected-count>0</span></button>
                 </div>
@@ -159,7 +160,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </td>
                     <td class="admin-table-nowrap admin-notification-read-cell">
-                        <?php echo empty($adminNotification['read_at']) ? '안읽음' : '읽음'; ?>
+                        <?php echo empty($adminNotification['read_at']) ? '안 읽음' : '읽음'; ?>
                     </td>
                     <td class="admin-table-actions-cell">
                         <div class="admin-row-actions">
@@ -172,6 +173,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationActionUrl); ?>">
                                     <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notificationId); ?>">
                                     <button type="submit" name="intent" value="mark_read" class="btn btn-sm btn-outline-secondary" aria-label="내 계정 기준 읽음 상태로 변경" title="내 계정 기준 읽음 상태로 변경">읽음</button>
+                                </form>
+                            <?php } else { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="return_to" value="<?php echo sr_e($adminNotificationActionUrl); ?>">
+                                    <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notificationId); ?>">
+                                    <button type="submit" name="intent" value="mark_unread" class="btn btn-sm btn-outline-secondary" aria-label="내 계정 기준 안 읽음 상태로 변경" title="내 계정 기준 안 읽음 상태로 변경">안 읽음</button>
                                 </form>
                             <?php } ?>
                             <?php if ($status === 'open') { ?>

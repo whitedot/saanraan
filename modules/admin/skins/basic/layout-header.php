@@ -270,7 +270,7 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
                                                 </li>
                                             <?php } ?>
                                             <?php if ($adminNotificationItems === []) { ?>
-                                                <li class="admin-notification-menu-empty">안읽은 운영 알림이 없습니다.</li>
+                                                <li class="admin-notification-menu-empty">안 읽은 운영 알림이 없습니다.</li>
                                             <?php } ?>
                                         </ul>
                                         <a class="admin-notification-menu-all" href="<?php echo sr_e($adminNotificationUrl); ?>">전체 보기</a>

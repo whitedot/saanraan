@@ -356,6 +356,8 @@ sr_notification_runtime_assert(empty($siteResult['ok']) && ($siteResult['error']
 
 $adminAction = file_get_contents($root . '/modules/notification/actions/admin-notifications.php');
 $adminView = file_get_contents($root . '/modules/notification/views/admin-notifications.php');
+$adminNotificationAction = file_get_contents($root . '/modules/notification/actions/admin-admin-notifications.php');
+$adminNotificationView = file_get_contents($root . '/modules/notification/views/admin-admin-notifications.php');
 $notificationHelpers = file_get_contents($root . '/modules/notification/helpers.php');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];"), 'notification delivery admin action must allow queued/sent/failed/canceled statuses.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'delivery_status'"), 'notification delivery admin action must expose delivery status updates.');
@@ -367,6 +369,25 @@ sr_notification_runtime_assert(
     is_string($notificationHelpers)
         && str_contains($notificationHelpers, 'DELETE FROM sr_admin_notification_reads WHERE notification_id = :notification_id'),
     'admin notification duplicate reopen must clear per-account read rows so the topbar unread badge returns.'
+);
+sr_notification_runtime_assert(
+    is_string($notificationHelpers)
+        && str_contains($notificationHelpers, 'function sr_notification_admin_mark_unread(')
+        && str_contains($notificationHelpers, 'AND account_id = :account_id'),
+    'admin notification unread helper must clear only the current admin account read row.'
+);
+sr_notification_runtime_assert(
+    is_string($adminNotificationAction)
+        && str_contains($adminNotificationAction, "'batch_mark_unread'")
+        && str_contains($adminNotificationAction, "'mark_unread'")
+        && str_contains($adminNotificationAction, 'sr_notification_admin_mark_unread('),
+    'admin notification action must expose single and batch unread transitions.'
+);
+sr_notification_runtime_assert(
+    is_string($adminNotificationView)
+        && str_contains($adminNotificationView, 'value="batch_mark_unread"')
+        && str_contains($adminNotificationView, 'value="mark_unread"'),
+    'admin notification list must render single and batch unread actions.'
 );
 
 if ($errors !== []) {

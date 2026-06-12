@@ -844,6 +844,25 @@ function sr_notification_admin_mark_read(PDO $pdo, int $notificationId, int $acc
     return true;
 }
 
+function sr_notification_admin_mark_unread(PDO $pdo, int $notificationId, int $accountId): bool
+{
+    if (sr_notification_admin_row($pdo, $notificationId, $accountId) === null) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_admin_notification_reads
+         WHERE notification_id = :notification_id
+           AND account_id = :account_id'
+    );
+    $stmt->execute([
+        'notification_id' => $notificationId,
+        'account_id' => $accountId,
+    ]);
+
+    return true;
+}
+
 function sr_notification_admin_set_status(PDO $pdo, int $notificationId, int $accountId, string $status): bool
 {
     $status = sr_notification_admin_clean_status($status);

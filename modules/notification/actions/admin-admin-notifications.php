@@ -18,7 +18,7 @@ $notice = (string) $flashResult['notice'];
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
-    $isBatchIntent = in_array($intent, ['batch_mark_read', 'batch_process'], true);
+    $isBatchIntent = in_array($intent, ['batch_mark_read', 'batch_mark_unread', 'batch_process'], true);
     $notificationId = $isBatchIntent ? 0 : sr_admin_post_positive_int('notification_id');
     $notificationIds = [];
     $postErrors = [];
@@ -47,6 +47,8 @@ if (sr_request_method() === 'POST') {
         foreach ($notificationIds as $targetNotificationId) {
             if (in_array($intent, ['mark_read', 'batch_mark_read'], true)) {
                 $processed = sr_notification_admin_mark_read($pdo, $targetNotificationId, (int) $account['id'], false);
+            } elseif (in_array($intent, ['mark_unread', 'batch_mark_unread'], true)) {
+                $processed = sr_notification_admin_mark_unread($pdo, $targetNotificationId, (int) $account['id']);
             } elseif (in_array($intent, ['process', 'reopen', 'batch_process'], true)) {
                 $targetStatus = match ($intent) {
                     'process', 'batch_process' => 'processed',
@@ -71,9 +73,11 @@ if (sr_request_method() === 'POST') {
         if ($postErrors === []) {
             $postNotice = match ($intent) {
                 'mark_read' => '운영 알림을 읽음 처리했습니다.',
+                'mark_unread' => '운영 알림을 안 읽음 처리했습니다.',
                 'process' => '운영 알림을 완료했습니다.',
                 'reopen' => '운영 알림을 재개했습니다.',
                 'batch_mark_read' => '운영 알림 ' . number_format($processedCount) . '건을 읽음 처리했습니다.',
+                'batch_mark_unread' => '운영 알림 ' . number_format($processedCount) . '건을 안 읽음 처리했습니다.',
                 'batch_process' => '운영 알림 ' . number_format($processedCount) . '건을 완료했습니다.',
                 default => '운영 알림을 변경했습니다.',
             };
