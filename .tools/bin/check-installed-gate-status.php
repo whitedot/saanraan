@@ -74,6 +74,7 @@ foreach ([
     'run-readonly: no',
     'run-browser-qa: no',
     'run-auth-smoke: no',
+    'run-asset-smoke: no',
     'mutation-smoke-allowed: no',
     "gate\t새 설치 또는 업데이트 적용\t",
     "gate\t`php .tools/bin/reconcile-assets.php`\t",
@@ -99,6 +100,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
+    '--run-asset-smoke',
     'SR_SMOKE_ALLOW_MUTATION',
     'config/config.php is not readable by current user',
     'sr_release_gate_status_file_mode',
@@ -107,6 +109,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_BROWSER_QA_BASE_URL',
     'npm --prefix .tools/browser-qa run test:ckeditor',
     'smoke-community-auth.php',
+    'smoke-asset-idempotency-http.php',
     'upload adapter, saved HTML sanitizer',
     'do not run against production',
 ]);

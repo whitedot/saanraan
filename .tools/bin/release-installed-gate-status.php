@@ -16,6 +16,7 @@ $args = array_slice($argv, 1);
 $runReadonly = in_array('--run-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
+$runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $baseUrl = rtrim((string) (getenv('SR_SMOKE_BASE_URL') ?: ''), '/');
 $browserQaBaseUrl = rtrim((string) (getenv('SR_BROWSER_QA_BASE_URL') ?: $baseUrl), '/');
 $allowMutationSmoke = getenv('SR_SMOKE_ALLOW_MUTATION') === '1';
@@ -225,6 +226,59 @@ function sr_release_gate_status_auth_smoke_gate(string $baseUrl, bool $runAuthSm
     ];
 }
 
+function sr_release_gate_status_asset_smoke_gate(string $baseUrl, bool $runAssetSmoke, bool $allowMutationSmoke): array
+{
+    $identifier = (string) (getenv('SR_SMOKE_IDENTIFIER') ?: '');
+    $password = (string) (getenv('SR_SMOKE_PASSWORD') ?: '');
+    $formPath = (string) (getenv('SR_SMOKE_FORM_PATH') ?: '');
+
+    if ($baseUrl === '') {
+        return [
+            'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
+            'result' => '미실행',
+            'environment' => 'base URL missing',
+            'memo' => 'set SR_SMOKE_BASE_URL for local/staging asset idempotency smoke; do not run against production',
+        ];
+    }
+
+    if ($identifier === '' || $password === '' || $formPath === '') {
+        return [
+            'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'requires SR_SMOKE_IDENTIFIER, SR_SMOKE_PASSWORD, and SR_SMOKE_FORM_PATH for disposable paid target data',
+        ];
+    }
+
+    if (!$allowMutationSmoke) {
+        return [
+            'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
+            'result' => '미실행',
+            'environment' => $baseUrl,
+            'memo' => 'asset idempotency smoke creates financial-like records; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
+        ];
+    }
+
+    if (!$runAssetSmoke) {
+        return [
+            'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
+            'result' => '수동 확인 필요',
+            'environment' => $baseUrl,
+            'memo' => 'asset idempotency smoke is configured; rerun with --run-asset-smoke to execute smoke-asset-idempotency-http.php',
+        ];
+    }
+
+    $result = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/smoke-asset-idempotency-http.php']);
+    $exitCode = (int) $result['exit_code'];
+
+    return [
+        'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
+        'result' => $exitCode === 0 ? '통과' : '실패',
+        'environment' => $baseUrl,
+        'memo' => 'smoke-asset-idempotency-http.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
+    ];
+}
+
 $unavailableReason = '';
 if (!$configExists) {
     $unavailableReason = 'config/config.php missing';
@@ -271,12 +325,7 @@ $gates[] = [
     'memo' => $baseUrl === '' ? 'set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen' : 'administrator session required',
 ];
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $runAuthSmoke, $allowMutationSmoke);
-$gates[] = [
-    'gate' => '자산/쿠폰/유료 접근권 mutation smoke',
-    'result' => '미실행',
-    'environment' => 'local/staging dummy data',
-    'memo' => 'requires disposable data because it creates or changes financial-like records',
-];
+$gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $runAssetSmoke, $allowMutationSmoke);
 $gates[] = [
     'gate' => '개인정보 export/cleanup smoke',
     'result' => '미실행',
@@ -317,6 +366,7 @@ echo 'browser-qa-base-url: ' . ($browserQaBaseUrl === '' ? '-' : $browserQaBaseU
 echo 'run-readonly: ' . ($runReadonly ? 'yes' : 'no') . "\n";
 echo 'run-browser-qa: ' . ($runBrowserQa ? 'yes' : 'no') . "\n";
 echo 'run-auth-smoke: ' . ($runAuthSmoke ? 'yes' : 'no') . "\n";
+echo 'run-asset-smoke: ' . ($runAssetSmoke ? 'yes' : 'no') . "\n";
 echo 'mutation-smoke-allowed: ' . ($allowMutationSmoke ? 'yes' : 'no') . "\n";
 foreach ($gates as $gate) {
     echo sr_release_gate_status_line(
