@@ -97,6 +97,21 @@ if (!function_exists('sr_quiz_reaction_comment_result')) {
     }
 }
 
+if (!function_exists('sr_quiz_reaction_batch_ids')) {
+    function sr_quiz_reaction_batch_ids(array $context): array
+    {
+        $ids = [];
+        foreach (($context['target_ids'] ?? []) as $targetId) {
+            $id = (int) $targetId;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+}
+
 return [
     'targets' => [
         [
@@ -122,6 +137,35 @@ return [
                 }
 
                 return sr_quiz_reaction_quiz_result($pdo, $quiz, (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $quizIds = sr_quiz_reaction_batch_ids($context);
+                if ($quizIds === []) {
+                    return [];
+                }
+
+                $placeholders = implode(', ', array_fill(0, count($quizIds), '?'));
+                $stmt = $pdo->prepare('SELECT * FROM sr_quiz_sets WHERE id IN (' . $placeholders . ')');
+                $stmt->execute($quizIds);
+                $rows = [];
+                foreach ($stmt->fetchAll() as $quiz) {
+                    $rows[(int) ($quiz['id'] ?? 0)] = $quiz;
+                }
+
+                $targets = [];
+                foreach ($quizIds as $quizId) {
+                    $targets[(string) $quizId] = isset($rows[$quizId])
+                        ? sr_quiz_reaction_quiz_result($pdo, $rows[$quizId], (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $quizId,
+                            'label' => '퀴즈 #' . (string) $quizId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
         [
@@ -155,6 +199,42 @@ return [
                 }
 
                 return sr_quiz_reaction_comment_result($pdo, $row, (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $commentIds = sr_quiz_reaction_batch_ids($context);
+                if ($commentIds === []) {
+                    return [];
+                }
+
+                $placeholders = implode(', ', array_fill(0, count($commentIds), '?'));
+                $stmt = $pdo->prepare(
+                    'SELECT c.id, c.quiz_id, c.author_account_id, c.is_secret, c.status AS comment_status,
+                            q.quiz_key, q.title AS quiz_title, q.status AS quiz_status, q.starts_at, q.ends_at,
+                            q.member_group_keys_json, q.created_by_account_id AS quiz_owner_account_id, q.deleted_at AS quiz_deleted_at
+                     FROM sr_quiz_comments c
+                     LEFT JOIN sr_quiz_sets q ON q.id = c.quiz_id
+                     WHERE c.id IN (' . $placeholders . ')'
+                );
+                $stmt->execute($commentIds);
+                $rows = [];
+                foreach ($stmt->fetchAll() as $row) {
+                    $rows[(int) ($row['id'] ?? 0)] = $row;
+                }
+
+                $targets = [];
+                foreach ($commentIds as $commentId) {
+                    $targets[(string) $commentId] = isset($rows[$commentId])
+                        ? sr_quiz_reaction_comment_result($pdo, $rows[$commentId], (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $commentId,
+                            'label' => '퀴즈 댓글 #' . (string) $commentId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
     ],

@@ -101,6 +101,21 @@ if (!function_exists('sr_survey_reaction_comment_result')) {
     }
 }
 
+if (!function_exists('sr_survey_reaction_batch_ids')) {
+    function sr_survey_reaction_batch_ids(array $context): array
+    {
+        $ids = [];
+        foreach (($context['target_ids'] ?? []) as $targetId) {
+            $id = (int) $targetId;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+}
+
 return [
     'targets' => [
         [
@@ -126,6 +141,35 @@ return [
                 }
 
                 return sr_survey_reaction_survey_result($pdo, $survey, (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $surveyIds = sr_survey_reaction_batch_ids($context);
+                if ($surveyIds === []) {
+                    return [];
+                }
+
+                $placeholders = implode(', ', array_fill(0, count($surveyIds), '?'));
+                $stmt = $pdo->prepare('SELECT * FROM sr_survey_forms WHERE id IN (' . $placeholders . ')');
+                $stmt->execute($surveyIds);
+                $rows = [];
+                foreach ($stmt->fetchAll() as $survey) {
+                    $rows[(int) ($survey['id'] ?? 0)] = $survey;
+                }
+
+                $targets = [];
+                foreach ($surveyIds as $surveyId) {
+                    $targets[(string) $surveyId] = isset($rows[$surveyId])
+                        ? sr_survey_reaction_survey_result($pdo, $rows[$surveyId], (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $surveyId,
+                            'label' => '설문 #' . (string) $surveyId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
         [
@@ -160,6 +204,43 @@ return [
                 }
 
                 return sr_survey_reaction_comment_result($pdo, $row, (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $commentIds = sr_survey_reaction_batch_ids($context);
+                if ($commentIds === []) {
+                    return [];
+                }
+
+                $placeholders = implode(', ', array_fill(0, count($commentIds), '?'));
+                $stmt = $pdo->prepare(
+                    'SELECT c.id, c.survey_id, c.author_account_id, c.is_secret, c.status AS comment_status,
+                            s.survey_key, s.title AS survey_title, s.status AS survey_status, s.starts_at, s.ends_at,
+                            s.login_required, s.member_group_keys_json, s.created_by_account_id AS survey_owner_account_id,
+                            s.deleted_at AS survey_deleted_at
+                     FROM sr_survey_comments c
+                     LEFT JOIN sr_survey_forms s ON s.id = c.survey_id
+                     WHERE c.id IN (' . $placeholders . ')'
+                );
+                $stmt->execute($commentIds);
+                $rows = [];
+                foreach ($stmt->fetchAll() as $row) {
+                    $rows[(int) ($row['id'] ?? 0)] = $row;
+                }
+
+                $targets = [];
+                foreach ($commentIds as $commentId) {
+                    $targets[(string) $commentId] = isset($rows[$commentId])
+                        ? sr_survey_reaction_comment_result($pdo, $rows[$commentId], (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $commentId,
+                            'label' => '설문 댓글 #' . (string) $commentId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
     ],

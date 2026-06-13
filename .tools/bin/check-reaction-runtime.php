@@ -235,6 +235,39 @@ $assert(
     'reaction module should provide public and admin routes.'
 );
 
+$targetContractFiles = [
+    'content' => SR_ROOT . '/modules/content/reaction-targets.php',
+    'community' => SR_ROOT . '/modules/community/reaction-targets.php',
+    'quiz' => SR_ROOT . '/modules/quiz/reaction-targets.php',
+    'survey' => SR_ROOT . '/modules/survey/reaction-targets.php',
+];
+$expectedTargets = [
+    'content/content',
+    'content/comment',
+    'community/post',
+    'community/comment',
+    'quiz/quiz_set',
+    'quiz/comment',
+    'survey/survey_form',
+    'survey/comment',
+];
+$contractTargets = [];
+foreach ($targetContractFiles as $moduleKey => $file) {
+    $contract = include $file;
+    foreach ((array) ($contract['targets'] ?? []) as $target) {
+        if (!is_array($target)) {
+            continue;
+        }
+        $targetKey = (string) ($target['target_module'] ?? '') . '/' . (string) ($target['target_type'] ?? '');
+        $contractTargets[$targetKey] = $target;
+        $assert(is_callable($target['resolve'] ?? null), $moduleKey . ' reaction target should provide resolve.');
+        $assert(is_callable($target['batch_resolve'] ?? null), $moduleKey . ' reaction target should provide batch_resolve.');
+    }
+}
+foreach ($expectedTargets as $targetKey) {
+    $assert(isset($contractTargets[$targetKey]), $targetKey . ' should be provided by reaction target contracts.');
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "reaction runtime checks failed:\n");
     foreach ($errors as $error) {

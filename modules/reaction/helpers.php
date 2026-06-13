@@ -205,6 +205,92 @@ function sr_reaction_resolve_target(PDO $pdo, string $targetModule, string $targ
     return is_array($target) ? sr_reaction_normalize_target($target, $targetModule, $targetType, $targetId) : null;
 }
 
+function sr_reaction_resolve_targets(PDO $pdo, string $targetModule, string $targetType, array $targetIds, int $viewerAccountId, array $context = []): array
+{
+    $targetModule = sr_reaction_clean_key($targetModule, 60);
+    $targetType = sr_reaction_clean_key($targetType, 60);
+    if (sr_reaction_target_key($targetModule, $targetType) === '') {
+        return [];
+    }
+
+    $cleanIds = [];
+    foreach ($targetIds as $targetId) {
+        $cleanId = sr_reaction_target_id((string) $targetId);
+        if ($cleanId !== '') {
+            $cleanIds[] = $cleanId;
+        }
+    }
+    $cleanIds = array_values(array_unique($cleanIds));
+    if ($cleanIds === []) {
+        return [];
+    }
+
+    $prefilledTargets = [];
+    if (isset($context['resolved_targets']) && is_array($context['resolved_targets'])) {
+        foreach ($cleanIds as $targetId) {
+            if (isset($context['resolved_targets'][$targetId]) && is_array($context['resolved_targets'][$targetId])) {
+                $prefilledTargets[$targetId] = sr_reaction_normalize_target($context['resolved_targets'][$targetId], $targetModule, $targetType, $targetId);
+            }
+        }
+        if (count($prefilledTargets) === count($cleanIds)) {
+            return $prefilledTargets;
+        }
+    }
+
+    $contract = sr_reaction_target_contract($pdo, $targetModule, $targetType);
+    if (!is_array($contract)) {
+        return $prefilledTargets;
+    }
+
+    $batchResolve = $contract['batch_resolve'] ?? null;
+    if (is_callable($batchResolve)) {
+        try {
+            $targets = $batchResolve($pdo, [
+                'target_module' => $targetModule,
+                'target_type' => $targetType,
+                'target_ids' => $cleanIds,
+                'viewer_account_id' => $viewerAccountId,
+                'context' => (string) ($context['context'] ?? 'public'),
+            ]);
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'reaction_target_batch_resolve');
+            $targets = null;
+        }
+
+        if (is_array($targets)) {
+            $resolved = $prefilledTargets;
+            foreach ($targets as $key => $target) {
+                if (!is_array($target)) {
+                    continue;
+                }
+                $targetId = sr_reaction_target_id((string) ($target['target_id'] ?? (is_int($key) || is_string($key) ? $key : '')));
+                if ($targetId !== '' && in_array($targetId, $cleanIds, true)) {
+                    $resolved[$targetId] = sr_reaction_normalize_target($target, $targetModule, $targetType, $targetId);
+                }
+            }
+
+            if (count($resolved) === count($cleanIds)) {
+                return $resolved;
+            }
+
+            $prefilledTargets = $resolved;
+        }
+    }
+
+    $resolved = $prefilledTargets;
+    foreach ($cleanIds as $targetId) {
+        if (isset($resolved[$targetId])) {
+            continue;
+        }
+        $target = sr_reaction_resolve_target($pdo, $targetModule, $targetType, $targetId, $viewerAccountId, $context);
+        if (is_array($target)) {
+            $resolved[$targetId] = $target;
+        }
+    }
+
+    return $resolved;
+}
+
 function sr_reaction_default_preset_key(PDO $pdo): string
 {
     $key = sr_reaction_clean_key((string) sr_site_setting($pdo, 'reaction_default_preset_key', 'emotions'));

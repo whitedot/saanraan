@@ -128,6 +128,38 @@ if (!function_exists('sr_community_reaction_comment_result')) {
     }
 }
 
+if (!function_exists('sr_community_reaction_batch_ids')) {
+    function sr_community_reaction_batch_ids(array $context): array
+    {
+        $ids = [];
+        foreach (($context['target_ids'] ?? []) as $targetId) {
+            $id = (int) $targetId;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+}
+
+if (!function_exists('sr_community_reaction_boards_by_ids')) {
+    function sr_community_reaction_boards_by_ids(PDO $pdo, array $boardIds): array
+    {
+        $boards = [];
+        foreach (array_values(array_unique(array_filter(array_map('intval', $boardIds)))) as $boardId) {
+            if ($boardId > 0) {
+                $board = sr_community_board_by_id($pdo, $boardId);
+                if (is_array($board)) {
+                    $boards[$boardId] = $board;
+                }
+            }
+        }
+
+        return $boards;
+    }
+}
+
 return [
     'targets' => [
         [
@@ -153,6 +185,40 @@ return [
                 }
 
                 return sr_community_reaction_post_result($pdo, $post, sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0)), (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $postIds = sr_community_reaction_batch_ids($context);
+                if ($postIds === []) {
+                    return [];
+                }
+
+                $placeholders = implode(', ', array_fill(0, count($postIds), '?'));
+                $stmt = $pdo->prepare('SELECT * FROM sr_community_posts WHERE id IN (' . $placeholders . ')');
+                $stmt->execute($postIds);
+                $posts = [];
+                $boardIds = [];
+                foreach ($stmt->fetchAll() as $post) {
+                    $postId = (int) ($post['id'] ?? 0);
+                    $posts[$postId] = $post;
+                    $boardIds[] = (int) ($post['board_id'] ?? 0);
+                }
+                $boards = sr_community_reaction_boards_by_ids($pdo, $boardIds);
+
+                $targets = [];
+                foreach ($postIds as $postId) {
+                    $boardId = isset($posts[$postId]) ? (int) ($posts[$postId]['board_id'] ?? 0) : 0;
+                    $targets[(string) $postId] = isset($posts[$postId])
+                        ? sr_community_reaction_post_result($pdo, $posts[$postId], $boards[$boardId] ?? null, (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $postId,
+                            'label' => '게시글 #' . (string) $postId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
         [
@@ -185,6 +251,46 @@ return [
                 }
 
                 return sr_community_reaction_comment_result($pdo, $row, sr_community_board_by_id($pdo, (int) ($row['board_id'] ?? 0)), (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $commentIds = sr_community_reaction_batch_ids($context);
+                if ($commentIds === []) {
+                    return [];
+                }
+
+                $placeholders = implode(', ', array_fill(0, count($commentIds), '?'));
+                $stmt = $pdo->prepare(
+                    'SELECT c.id, c.post_id, c.author_account_id, c.is_secret AS comment_is_secret, c.status AS comment_status,
+                            p.board_id, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret, p.status AS post_status
+                     FROM sr_community_comments c
+                     LEFT JOIN sr_community_posts p ON p.id = c.post_id
+                     WHERE c.id IN (' . $placeholders . ')'
+                );
+                $stmt->execute($commentIds);
+                $rows = [];
+                $boardIds = [];
+                foreach ($stmt->fetchAll() as $row) {
+                    $commentId = (int) ($row['id'] ?? 0);
+                    $rows[$commentId] = $row;
+                    $boardIds[] = (int) ($row['board_id'] ?? 0);
+                }
+                $boards = sr_community_reaction_boards_by_ids($pdo, $boardIds);
+
+                $targets = [];
+                foreach ($commentIds as $commentId) {
+                    $boardId = isset($rows[$commentId]) ? (int) ($rows[$commentId]['board_id'] ?? 0) : 0;
+                    $targets[(string) $commentId] = isset($rows[$commentId])
+                        ? sr_community_reaction_comment_result($pdo, $rows[$commentId], $boards[$boardId] ?? null, (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $commentId,
+                            'label' => '커뮤니티 댓글 #' . (string) $commentId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
     ],

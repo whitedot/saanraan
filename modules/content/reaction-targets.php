@@ -109,6 +109,21 @@ if (!function_exists('sr_content_reaction_comment_result')) {
     }
 }
 
+if (!function_exists('sr_content_reaction_batch_ids')) {
+    function sr_content_reaction_batch_ids(array $context): array
+    {
+        $ids = [];
+        foreach (($context['target_ids'] ?? []) as $targetId) {
+            $id = (int) $targetId;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+}
+
 return [
     'targets' => [
         [
@@ -135,6 +150,36 @@ return [
                 }
 
                 return sr_content_reaction_content_result($pdo, $row, (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $contentIds = sr_content_reaction_batch_ids($context);
+                if ($contentIds === []) {
+                    return [];
+                }
+
+                sr_content_publish_due_scheduled($pdo);
+                $placeholders = implode(', ', array_fill(0, count($contentIds), '?'));
+                $stmt = $pdo->prepare('SELECT * FROM sr_content_items WHERE id IN (' . $placeholders . ')');
+                $stmt->execute($contentIds);
+                $rows = [];
+                foreach ($stmt->fetchAll() as $row) {
+                    $rows[(int) ($row['id'] ?? 0)] = $row;
+                }
+
+                $targets = [];
+                foreach ($contentIds as $contentId) {
+                    $targets[(string) $contentId] = isset($rows[$contentId])
+                        ? sr_content_reaction_content_result($pdo, $rows[$contentId], (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $contentId,
+                            'label' => '콘텐츠 #' . (string) $contentId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
         [
@@ -170,6 +215,44 @@ return [
                 }
 
                 return sr_content_reaction_comment_result($pdo, $row, (int) ($context['viewer_account_id'] ?? 0));
+            },
+            'batch_resolve' => static function (PDO $pdo, array $context): array {
+                $commentIds = sr_content_reaction_batch_ids($context);
+                if ($commentIds === []) {
+                    return [];
+                }
+
+                sr_content_publish_due_scheduled($pdo);
+                $placeholders = implode(', ', array_fill(0, count($commentIds), '?'));
+                $stmt = $pdo->prepare(
+                    'SELECT c.id, c.content_id, c.author_account_id, c.is_secret, c.status AS comment_status,
+                            p.slug, p.title AS content_title, p.status AS content_status, p.created_by AS content_owner_account_id,
+                            p.asset_access_enabled, p.asset_module, p.asset_access_amount, p.asset_access_amounts_json,
+                            p.asset_access_group_policies_json, p.asset_access_policy_set_id, p.asset_charge_policy
+                     FROM sr_content_comments c
+                     LEFT JOIN sr_content_items p ON p.id = c.content_id
+                     WHERE c.id IN (' . $placeholders . ')'
+                );
+                $stmt->execute($commentIds);
+                $rows = [];
+                foreach ($stmt->fetchAll() as $row) {
+                    $rows[(int) ($row['id'] ?? 0)] = $row;
+                }
+
+                $targets = [];
+                foreach ($commentIds as $commentId) {
+                    $targets[(string) $commentId] = isset($rows[$commentId])
+                        ? sr_content_reaction_comment_result($pdo, $rows[$commentId], (int) ($context['viewer_account_id'] ?? 0))
+                        : [
+                            'target_id' => (string) $commentId,
+                            'label' => '콘텐츠 댓글 #' . (string) $commentId,
+                            'status' => 'broken',
+                            'can_view' => false,
+                            'can_write' => false,
+                        ];
+                }
+
+                return $targets;
             },
         ],
     ],
