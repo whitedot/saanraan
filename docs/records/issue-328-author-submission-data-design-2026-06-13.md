@@ -12,15 +12,15 @@
 
 | 표면 | 대표 테이블 | 현재 작성 정책 | 작성자 보관 | 접속/동의 보관 | 개인정보 계약 |
 | --- | --- | --- | --- | --- | --- |
-| 커뮤니티 게시글 | `sr_community_posts` | `/community/write`에서 로그인 필수 | `author_account_id`, `author_public_name_snapshot` | 게시판 동의 사용 시 `sr_community_submission_consents`에 동의 snapshot, IP hash, UA hash | community export/cleanup 포함 |
-| 커뮤니티 댓글 | `sr_community_comments` | `/community/comment`에서 로그인 필수 | `author_account_id`, `author_public_name_snapshot` | 댓글 대상 동의 사용 시 `sr_community_submission_consents`에 동의 snapshot, IP hash, UA hash | community export/cleanup 포함 |
+| 커뮤니티 게시글 | `sr_community_posts` | 게시판 쓰기 정책이 `guest`이면 비회원 작성 가능, 그 외 로그인/권한 필요 | `author_account_id`, `author_public_name_snapshot`, 비회원은 `author_account_id NULL`, `guest_author_name`, `guest_password_hash`, IP/UA hash | 게시판 동의 사용 시 `sr_community_submission_consents`에 동의 snapshot, IP hash, UA hash. 게시판별 추가 입력은 `extra_values_json` snapshot과 `sr_community_post_field_values`에 저장 | community export/cleanup 포함 |
+| 커뮤니티 댓글 | `sr_community_comments` | 게시판 댓글 정책이 `guest`이면 비회원 작성 가능, 그 외 로그인/권한 필요 | `author_account_id`, `author_public_name_snapshot`, 비회원은 `author_account_id NULL`, `guest_author_name`, `guest_password_hash`, IP/UA hash | 댓글 대상 동의 사용 시 `sr_community_submission_consents`에 동의 snapshot, IP hash, UA hash | community export/cleanup 포함 |
 | 콘텐츠 댓글 | `sr_content_comments` | `/content/comment`에서 로그인 필수 | `author_account_id`, `author_public_name_snapshot` | 댓글별 동의 snapshot 또는 IP/UA hash 테이블 없음 | content export/cleanup 포함 |
 | 퀴즈 댓글 | `sr_quiz_comments` | 스키마상 `author_account_id`는 NULL 가능, action은 로그인 필수 | `author_account_id`, `author_public_name_snapshot` | 댓글별 동의 snapshot 또는 IP/UA hash 테이블 없음 | quiz export/cleanup 포함 |
 | 설문 댓글 | `sr_survey_comments` | 스키마상 `author_account_id`는 NULL 가능, action은 로그인 필수 | `author_account_id`, `author_public_name_snapshot` | 댓글별 동의 snapshot 또는 IP/UA hash 테이블 없음 | survey export/cleanup 포함 |
 | 퀴즈 시도 | `sr_quiz_attempts` | 비회원 응시 가능 구조 | `account_id` NULL 가능, 출처/답변/채점/결과 snapshot | IP hash, UA hash, 시작/제출/채점/보상/만료/취소 시각 | quiz export/cleanup 포함 |
 | 설문 응답 | `sr_survey_responses` | `anonymous_allowed`, `login_required`, `consent_required` 정책으로 비회원 응답 가능 구조 | `account_id` NULL 가능, 설문/답변 snapshot | 동의 snapshot JSON, IP hash, UA hash | survey export/cleanup 포함 |
 
-현재 커뮤니티 게시글/댓글은 제출 동의 증적 테이블을 갖지만 작성 action은 회원 전용이다. 콘텐츠/퀴즈/설문 댓글은 작성자 snapshot 중심이고 별도 제출 동의 증적이나 접속 hash 보관 정책이 없다. 퀴즈/설문 댓글의 NULL 가능 작성자 컬럼은 실제 비회원 작성 허용이 아니라 향후 확장 여지로만 해석한다.
+현재 커뮤니티 게시글/댓글은 게시판 쓰기/댓글 정책에 따라 비회원 작성을 허용할 수 있고, 비회원 작성자는 원문 비밀번호/IP/User-Agent 대신 hash와 표시명 snapshot을 저장한다. 콘텐츠/퀴즈/설문 댓글은 작성자 snapshot 중심이고 별도 제출 동의 증적이나 접속 hash 보관 정책이 없다. 퀴즈/설문 댓글의 NULL 가능 작성자 컬럼은 실제 비회원 작성 허용이 아니라 향후 확장 여지로만 해석한다.
 
 ## 비회원 작성 저장 모델
 
@@ -43,12 +43,12 @@
 | 테이블 | 목적 | 주요 필드 후보 |
 | --- | --- | --- |
 | `sr_community_board_field_definitions` | 게시판별 추가 입력 정의 | `board_id`, `field_key`, `label`, `field_type`, `is_required`, `visibility`, `show_on_view`, `show_in_admin`, `sort_order`, `validation_json`, `privacy_purpose`, `export_policy`, `cleanup_policy`, `status`, `created_at`, `updated_at` |
-| `sr_community_post_field_values` | 게시글별 추가 입력값 | `post_id`, `field_key`, `label_snapshot`, `field_type_snapshot`, `visibility_snapshot`, `privacy_purpose_snapshot`, `export_policy_snapshot`, `cleanup_policy_snapshot`, `value_text`, `value_json`, `created_at`, `updated_at` |
+| `sr_community_post_field_values` | 게시글별 추가 입력값 | `post_id`, `field_key`, `label_snapshot`, `field_type_snapshot`, `visibility_snapshot`, `show_on_view_snapshot`, `show_in_admin_snapshot`, `privacy_purpose_snapshot`, `export_policy_snapshot`, `cleanup_policy_snapshot`, `value_text`, `value_json`, `created_at`, `updated_at` |
 | `sr_community_comment_field_values` | 댓글별 추가 입력값이 필요할 때의 별도 값 테이블 | `comment_id`, `field_key`, `value_text`, `value_json`, `created_at`, `updated_at` |
 
 `field_key`는 관리용 key이므로 소문자 영문, 숫자, `_`만 허용한다. 공개 slug처럼 hyphen을 허용하는 필드와 구분한다. 필수/조건부 필드는 UI 표시, 브라우저 속성, 서버 POST 검증을 모두 맞추며 서버 검증을 최종 기준으로 둔다.
 
-필드 정의에는 공개 출력, 관리자 목록 표시, 검색/필터 포함, CSV/export 포함, 개인정보 처리 목적, 보관/cleanup 정책을 분리해 저장한다. 개인정보 성격의 필드는 동의 문구나 개인정보 안내와 연결되어야 하며, privacy export/cleanup에 포함할지 별도 보관 기간 cleanup으로 처리할지 구현 전에 결정한다.
+필드 정의에는 공개 출력, 관리자 목록 표시, 검색/필터 포함, CSV/export 포함, 개인정보 처리 목적, 보관/cleanup 정책을 분리해 저장한다. 현재 커뮤니티 게시글 목록은 `show_in_admin` snapshot이 켜진 추가 입력값만 관리자 목록에 표시하고, 추가 입력 검색은 게시글 snapshot 컬럼을 기준으로 제공한다. 개인정보 사본 제공은 `export_policy_snapshot=include`, cleanup은 `cleanup_policy_snapshot=anonymize` 기준으로 처리한다.
 
 관리자 게시판 생성/수정 화면은 추가 입력 항목을 보조 목록과 추가/수정 모달로 편집하고, 최종 저장값은 기존 게시판 저장 form의 `extra_fields_json`에 반영한다. 모달의 적용은 화면 입력값만 바꾸며 실제 DB 반영은 게시판 저장 action에서 서버 정규화와 검증을 통과한 뒤 이루어진다.
 

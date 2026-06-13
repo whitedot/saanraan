@@ -52,8 +52,13 @@ $postListFilters = [
     'category_id' => $postCategoryFilterId,
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
+    'extra_values_supported' => sr_community_post_extra_values_column_exists($pdo),
 ];
-if (!in_array($postListFilters['field'], ['all', 'title', 'author', 'board'], true)) {
+$postSearchFields = ['all', 'title', 'author', 'board'];
+if (!empty($postListFilters['extra_values_supported'])) {
+    $postSearchFields[] = 'extra';
+}
+if (!in_array($postListFilters['field'], $postSearchFields, true)) {
     $postListFilters['field'] = 'all';
 }
 $commentListFilters = [

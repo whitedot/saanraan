@@ -796,6 +796,32 @@ function sr_community_extra_fields_display_html(array $values): string
     return $html;
 }
 
+function sr_community_extra_fields_admin_summary_html(array $values): string
+{
+    if ($values === []) {
+        return '';
+    }
+
+    $html = '<dl class="admin-community-extra-field-values">';
+    foreach ($values as $item) {
+        if (!is_array($item) || empty($item['show_in_admin'])) {
+            continue;
+        }
+
+        $label = trim((string) ($item['label'] ?? ''));
+        $value = (string) ($item['value'] ?? '');
+        if ($label === '' || $value === '') {
+            continue;
+        }
+
+        $displayValue = (string) ($item['type'] ?? '') === 'checkbox' ? ($value === '1' ? '예' : '아니오') : $value;
+        $html .= '<dt>' . sr_e($label) . '</dt><dd>' . nl2br(sr_e($displayValue)) . '</dd>';
+    }
+    $html .= '</dl>';
+
+    return $html === '<dl class="admin-community-extra-field-values"></dl>' ? '' : $html;
+}
+
 function sr_community_author_display_name_from_row(array $row, ?array $settings = null, ?PDO $pdo = null): string
 {
     if (sr_community_nickname_status_blocks_identity((string) ($row['author_account_status'] ?? ''))) {
@@ -1245,13 +1271,20 @@ function sr_community_admin_post_query_parts(array $filters, bool $categorySuppo
             $where[] = '(b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
+        } elseif ($field === 'extra' && !empty($filters['extra_values_supported'])) {
+            $where[] = 'p.extra_values_json LIKE :extra_values_keyword';
+            $params['extra_values_keyword'] = '%' . $keyword . '%';
         } else {
-            $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
+            $extraValuesCondition = !empty($filters['extra_values_supported']) ? ' OR p.extra_values_json LIKE :extra_values_keyword' : '';
+            $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword' . $extraValuesCondition . ')';
             $params['title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';
             $params['author_nickname_keyword'] = '%' . $keyword . '%';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
+            if (!empty($filters['extra_values_supported'])) {
+                $params['extra_values_keyword'] = '%' . $keyword . '%';
+            }
         }
     }
 

@@ -45,7 +45,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="filtering-field admin-community-post-filter-field">
             <label for="community_admin_posts_field" class="filtering-label">검색조건</label>
             <select id="community_admin_posts_field" name="field" class="form-select filtering-input">
-                <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'title' => sr_t('community::ui.text.08b17e43'), 'author' => sr_t('community::ui.text.f2ee20a7'), 'board' => sr_t('community::ui.text.4732a58f')] as $fieldValue => $fieldLabel) { ?>
+                <?php
+                $postSearchFieldOptions = ['all' => sr_t('community::ui.all.a4b69faf'), 'title' => sr_t('community::ui.text.08b17e43'), 'author' => sr_t('community::ui.text.f2ee20a7'), 'board' => sr_t('community::ui.text.4732a58f')];
+                if (!empty($postListFilters['extra_values_supported'])) {
+                    $postSearchFieldOptions['extra'] = '추가 입력';
+                }
+                ?>
+                <?php foreach ($postSearchFieldOptions as $fieldValue => $fieldLabel) { ?>
                     <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($postListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                         <?php echo sr_e($fieldLabel); ?>
                     </option>
@@ -126,6 +132,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th>카테고리</th>
                 <th<?php echo sr_admin_sort_aria('title', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.08b17e43'), 'title', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('author', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.f2ee20a7'), 'author', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th>추가 입력</th>
                 <th<?php echo sr_admin_sort_aria('status', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('published_comment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.c9fff683'), 'published_comment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('active_attachment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.353b76cf'), 'active_attachment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
@@ -136,7 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($posts === []) { ?>
                 <tr>
-                    <td colspan="10" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
+                    <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($posts as $post) { ?>
@@ -166,6 +173,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             (int) $post['author_account_id'],
                             is_string($post['author_account_status'] ?? null) ? $post['author_account_status'] : null
                         )); ?></td>
+                        <td class="admin-table-break admin-community-post-extra-cell">
+                            <?php echo sr_community_extra_fields_admin_summary_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
+                        </td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($postStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $post['published_comment_count']); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
