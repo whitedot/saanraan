@@ -493,10 +493,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_extra_fields_json">추가 입력 항목</label>
-                <div class="admin-form-field">
-                    <textarea id="community_admin_boards_extra_fields_json" name="extra_fields_json" rows="8" class="form-textarea form-control-full"><?php echo sr_e($boardField($formBoard, 'extra_fields_json', '[]')); ?></textarea>
+                <div class="admin-form-field" data-community-extra-fields-builder>
+                    <div class="admin-form-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-extra-field-modal" data-overlay="#community-extra-field-modal" data-community-extra-field-add>항목 추가</button>
+                    </div>
+                    <div class="table-responsive admin-table-responsive">
+                        <table class="admin-table" data-community-extra-field-table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">관리용 키</th>
+                                    <th scope="col">라벨</th>
+                                    <th scope="col">유형</th>
+                                    <th scope="col">표시</th>
+                                    <th scope="col">개인정보</th>
+                                    <th scope="col">작업</th>
+                                </tr>
+                            </thead>
+                            <tbody data-community-extra-field-list></tbody>
+                        </table>
+                    </div>
+                    <p class="admin-empty-state" data-community-extra-field-empty hidden>추가 입력 항목이 없습니다.</p>
+                    <textarea id="community_admin_boards_extra_fields_json" name="extra_fields_json" rows="5" class="form-textarea form-control-full" data-community-extra-fields-json><?php echo sr_e($boardField($formBoard, 'extra_fields_json', '[]')); ?></textarea>
                     <?php echo $settingSourceRadioHtml('source_extra_fields_json', $boardSettingSource($formBoard, 'extra_fields_json')); ?>
-                    <p class="admin-form-help">JSON 배열로 입력합니다. 예: [{"key":"company","label":"회사명","type":"text","required":true},{"key":"kind","label":"문의 유형","type":"select","options":["일반","제휴"]}]</p>
+                    <p class="admin-form-help">항목 목록과 모달에서 편집한 내용이 저장용 JSON으로 반영됩니다. JavaScript를 사용할 수 없는 환경에서는 JSON을 직접 수정할 수 있습니다.</p>
                 </div>
             </div>
 
@@ -1009,6 +1028,113 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </form>
 
+    <div id="community-extra-field-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-extra-field-modal-label" aria-hidden="true" inert data-community-extra-field-modal>
+        <div class="modal-dialog modal-dialog-lg">
+            <div class="modal-content ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="community-extra-field-modal-label" class="modal-title" data-community-extra-field-modal-title>추가 입력 항목</h3>
+                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#community-extra-field-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" value="" data-community-extra-field-index>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="community_extra_field_key">관리용 키 <span class="sr-required-label">(필수)</span></label>
+                        <div class="admin-form-field">
+                            <input id="community_extra_field_key" type="text" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-community-extra-field-input="key" data-overlay-focus class="form-input">
+                            <p class="admin-form-help">소문자, 숫자, _만 사용합니다.</p>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="community_extra_field_label">라벨 <span class="sr-required-label">(필수)</span></label>
+                        <div class="admin-form-field">
+                            <input id="community_extra_field_label" type="text" maxlength="120" required data-community-extra-field-input="label" class="form-input form-control-full">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="community_extra_field_type">유형 <span class="sr-required-label">(필수)</span></label>
+                        <div class="admin-form-field">
+                            <select id="community_extra_field_type" required data-community-extra-field-input="type" class="form-select">
+                                <option value="text">텍스트</option>
+                                <option value="textarea">긴 텍스트</option>
+                                <option value="select">선택</option>
+                                <option value="checkbox">체크박스</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="admin-form-row" data-community-extra-field-options-row>
+                        <label class="form-label" for="community_extra_field_options">선택지 <span class="sr-required-label" data-community-extra-field-options-required hidden>(필수)</span></label>
+                        <div class="admin-form-field">
+                            <textarea id="community_extra_field_options" rows="4" maxlength="6000" data-community-extra-field-input="options" class="form-textarea form-control-full"></textarea>
+                            <p class="admin-form-help">한 줄에 하나씩 입력합니다.</p>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <span class="form-label">필수 여부</span>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label" for="community_extra_field_required">
+                                <input id="community_extra_field_required" type="checkbox" value="1" class="form-switch form-choice-dark" data-community-extra-field-input="required">
+                                <?php echo sr_admin_choice_label_html('필수 입력'); ?>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="community_extra_field_visibility">공개 범위</label>
+                        <div class="admin-form-field">
+                            <select id="community_extra_field_visibility" data-community-extra-field-input="visibility" class="form-select">
+                                <option value="public">공개</option>
+                                <option value="admin">관리자 전용</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <span class="form-label">표시 위치</span>
+                        <div class="admin-form-field">
+                            <label class="admin-form-check form-label" for="community_extra_field_show_on_view">
+                                <input id="community_extra_field_show_on_view" type="checkbox" value="1" class="form-switch form-choice-dark" data-community-extra-field-input="show_on_view">
+                                <?php echo sr_admin_choice_label_html('본문 화면 표시'); ?>
+                            </label>
+                            <label class="admin-form-check form-label" for="community_extra_field_show_in_admin">
+                                <input id="community_extra_field_show_in_admin" type="checkbox" value="1" class="form-switch form-choice-dark" data-community-extra-field-input="show_in_admin">
+                                <?php echo sr_admin_choice_label_html('관리자 목록 표시'); ?>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="community_extra_field_privacy_purpose">개인정보 목적</label>
+                        <div class="admin-form-field">
+                            <input id="community_extra_field_privacy_purpose" type="text" maxlength="255" data-community-extra-field-input="privacy_purpose" class="form-input form-control-full">
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="community_extra_field_export_policy">Export 정책</label>
+                        <div class="admin-form-field">
+                            <select id="community_extra_field_export_policy" data-community-extra-field-input="export_policy" class="form-select">
+                                <option value="include">포함</option>
+                                <option value="exclude">제외</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="community_extra_field_cleanup_policy">Cleanup 정책</label>
+                        <div class="admin-form-field">
+                            <select id="community_extra_field_cleanup_policy" data-community-extra-field-input="cleanup_policy" class="form-select">
+                                <option value="anonymize">익명화</option>
+                                <option value="retain">보관</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer-note">
+                    <p class="admin-form-help">이 모달의 적용 버튼은 현재 게시판 저장 form의 추가 입력 항목 값만 바꿉니다. 최종 반영은 게시판 저장 버튼을 눌러야 합니다.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-extra-field-modal">닫기</button>
+                    <button type="button" class="btn btn-solid-primary modal-action" data-community-extra-field-save>적용</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php if ($communityBoardsPage === 'edit') { ?>
         <?php $boardDeleteCheck = sr_community_can_delete_board($pdo, (int) ($formBoard['id'] ?? 0)); ?>
         <?php $boardDeleteReferences = is_array($boardDeleteCheck['references'] ?? null) ? $boardDeleteCheck['references'] : []; ?>
@@ -1378,6 +1504,299 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
 <script>
 (function () {
+    function communityExtraFieldAllowedType(value) {
+        return ['text', 'textarea', 'select', 'checkbox'].indexOf(value) !== -1 ? value : 'text';
+    }
+
+    function communityExtraFieldNormalize(raw) {
+        var definitions = [];
+        var seen = {};
+        if (!Array.isArray(raw)) {
+            return definitions;
+        }
+        raw.forEach(function (item) {
+            if (!item || typeof item !== 'object' || definitions.length >= 20) {
+                return;
+            }
+            var key = String(item.key || '').trim().toLowerCase();
+            if (!/^[a-z][a-z0-9_]{1,59}$/.test(key) || seen[key]) {
+                return;
+            }
+            var label = String(item.label || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+            if (label === '') {
+                return;
+            }
+            var type = communityExtraFieldAllowedType(String(item.type || 'text'));
+            var options = [];
+            if (type === 'select') {
+                if (Array.isArray(item.options)) {
+                    item.options.forEach(function (option) {
+                        var value = String(option || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+                        if (value !== '' && options.indexOf(value) === -1 && options.length < 50) {
+                            options.push(value);
+                        }
+                    });
+                }
+                if (options.length === 0) {
+                    return;
+                }
+            }
+            definitions.push({
+                key: key,
+                label: label,
+                type: type,
+                required: !!item.required,
+                options: options,
+                visibility: String(item.visibility || 'public') === 'admin' ? 'admin' : 'public',
+                show_on_view: Object.prototype.hasOwnProperty.call(item, 'show_on_view') ? !!item.show_on_view : true,
+                show_in_admin: !!item.show_in_admin,
+                privacy_purpose: String(item.privacy_purpose || '').trim(),
+                export_policy: String(item.export_policy || 'include') === 'exclude' ? 'exclude' : 'include',
+                cleanup_policy: String(item.cleanup_policy || 'anonymize') === 'retain' ? 'retain' : 'anonymize'
+            });
+            seen[key] = true;
+        });
+        return definitions;
+    }
+
+    function communityExtraFieldParse(textarea) {
+        if (!textarea) {
+            return [];
+        }
+        try {
+            return communityExtraFieldNormalize(JSON.parse(textarea.value || '[]'));
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function communityExtraFieldTypeLabel(type) {
+        var labels = {
+            text: '텍스트',
+            textarea: '긴 텍스트',
+            select: '선택',
+            checkbox: '체크박스'
+        };
+        return labels[type] || labels.text;
+    }
+
+    function communityExtraFieldPolicyLabel(field) {
+        var exportLabel = field.export_policy === 'exclude' ? 'Export 제외' : 'Export 포함';
+        var cleanupLabel = field.cleanup_policy === 'retain' ? '보관' : '익명화';
+        return exportLabel + ' / ' + cleanupLabel;
+    }
+
+    function communityExtraFieldWrite(root, definitions) {
+        var textarea = root ? root.querySelector('[data-community-extra-fields-json]') : null;
+        if (!textarea) {
+            return;
+        }
+        textarea.value = JSON.stringify(communityExtraFieldNormalize(definitions), null, 2);
+        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function communityExtraFieldRender(root) {
+        var textarea = root ? root.querySelector('[data-community-extra-fields-json]') : null;
+        var list = root ? root.querySelector('[data-community-extra-field-list]') : null;
+        var empty = root ? root.querySelector('[data-community-extra-field-empty]') : null;
+        if (!textarea || !list) {
+            return;
+        }
+        var definitions = communityExtraFieldParse(textarea);
+        list.innerHTML = '';
+        if (empty) {
+            empty.hidden = definitions.length > 0;
+        }
+        definitions.forEach(function (field, index) {
+            var row = document.createElement('tr');
+
+            var keyCell = document.createElement('td');
+            var keyCode = document.createElement('code');
+            keyCode.textContent = field.key;
+            keyCell.appendChild(keyCode);
+            row.appendChild(keyCell);
+
+            var labelCell = document.createElement('td');
+            labelCell.textContent = field.label + (field.required ? ' (필수)' : '');
+            row.appendChild(labelCell);
+
+            var typeCell = document.createElement('td');
+            typeCell.textContent = communityExtraFieldTypeLabel(field.type);
+            row.appendChild(typeCell);
+
+            var displayCell = document.createElement('td');
+            var display = [];
+            display.push(field.visibility === 'admin' ? '관리자 전용' : '공개');
+            if (field.show_on_view) {
+                display.push('본문');
+            }
+            if (field.show_in_admin) {
+                display.push('관리자 목록');
+            }
+            displayCell.textContent = display.join(' / ');
+            row.appendChild(displayCell);
+
+            var privacyCell = document.createElement('td');
+            privacyCell.textContent = (field.privacy_purpose || '목적 없음') + ' / ' + communityExtraFieldPolicyLabel(field);
+            row.appendChild(privacyCell);
+
+            var actionCell = document.createElement('td');
+            actionCell.className = 'admin-table-actions';
+            [
+                ['edit', '수정', 'edit'],
+                ['up', '위로', 'arrow_upward'],
+                ['down', '아래로', 'arrow_downward'],
+                ['remove', '제거', 'delete']
+            ].forEach(function (action) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-sm btn-icon btn-outline-secondary';
+                button.setAttribute('aria-label', action[1]);
+                button.setAttribute('title', action[1]);
+                button.setAttribute('data-community-extra-field-action', action[0]);
+                button.setAttribute('data-community-extra-field-index-value', String(index));
+                button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + action[2] + '</span>';
+                actionCell.appendChild(button);
+            });
+            row.appendChild(actionCell);
+
+            list.appendChild(row);
+        });
+    }
+
+    function communityExtraFieldInput(modal, name) {
+        return modal ? modal.querySelector('[data-community-extra-field-input="' + name + '"]') : null;
+    }
+
+    function communityExtraFieldSetModal(modal, field, index) {
+        if (!modal) {
+            return;
+        }
+        field = field || {
+            key: '',
+            label: '',
+            type: 'text',
+            required: false,
+            options: [],
+            visibility: 'public',
+            show_on_view: true,
+            show_in_admin: false,
+            privacy_purpose: '',
+            export_policy: 'include',
+            cleanup_policy: 'anonymize'
+        };
+        var indexInput = modal.querySelector('[data-community-extra-field-index]');
+        var title = modal.querySelector('[data-community-extra-field-modal-title]');
+        if (indexInput) {
+            indexInput.value = typeof index === 'number' && index >= 0 ? String(index) : '';
+        }
+        if (title) {
+            title.textContent = typeof index === 'number' && index >= 0 ? '추가 입력 항목 수정' : '추가 입력 항목 추가';
+        }
+        communityExtraFieldInput(modal, 'key').value = field.key || '';
+        communityExtraFieldInput(modal, 'label').value = field.label || '';
+        communityExtraFieldInput(modal, 'type').value = communityExtraFieldAllowedType(field.type || 'text');
+        communityExtraFieldInput(modal, 'options').value = Array.isArray(field.options) ? field.options.join("\n") : '';
+        communityExtraFieldInput(modal, 'required').checked = !!field.required;
+        communityExtraFieldInput(modal, 'visibility').value = field.visibility === 'admin' ? 'admin' : 'public';
+        communityExtraFieldInput(modal, 'show_on_view').checked = Object.prototype.hasOwnProperty.call(field, 'show_on_view') ? !!field.show_on_view : true;
+        communityExtraFieldInput(modal, 'show_in_admin').checked = !!field.show_in_admin;
+        communityExtraFieldInput(modal, 'privacy_purpose').value = field.privacy_purpose || '';
+        communityExtraFieldInput(modal, 'export_policy').value = field.export_policy === 'exclude' ? 'exclude' : 'include';
+        communityExtraFieldInput(modal, 'cleanup_policy').value = field.cleanup_policy === 'retain' ? 'retain' : 'anonymize';
+        communityExtraFieldSyncOptions(modal);
+    }
+
+    function communityExtraFieldSyncOptions(modal) {
+        var type = communityExtraFieldInput(modal, 'type');
+        var options = communityExtraFieldInput(modal, 'options');
+        var requiredLabel = modal ? modal.querySelector('[data-community-extra-field-options-required]') : null;
+        var isSelect = type && type.value === 'select';
+        if (options) {
+            options.required = !!isSelect;
+            options.closest('.admin-form-row').hidden = !isSelect;
+        }
+        if (requiredLabel) {
+            requiredLabel.hidden = !isSelect;
+        }
+    }
+
+    function communityExtraFieldCollect(modal, definitions) {
+        var keyInput = communityExtraFieldInput(modal, 'key');
+        var labelInput = communityExtraFieldInput(modal, 'label');
+        var typeInput = communityExtraFieldInput(modal, 'type');
+        var optionsInput = communityExtraFieldInput(modal, 'options');
+        var indexInput = modal ? modal.querySelector('[data-community-extra-field-index]') : null;
+        var index = indexInput && indexInput.value !== '' ? parseInt(indexInput.value, 10) : -1;
+        [keyInput, labelInput, typeInput, optionsInput].forEach(function (input) {
+            if (input && typeof input.setCustomValidity === 'function') {
+                input.setCustomValidity('');
+            }
+        });
+        if (!keyInput || !labelInput || !typeInput || !optionsInput) {
+            return null;
+        }
+        keyInput.value = keyInput.value.trim().toLowerCase();
+        labelInput.value = labelInput.value.replace(/\s+/g, ' ').trim();
+        var duplicate = definitions.some(function (field, fieldIndex) {
+            return field.key === keyInput.value && fieldIndex !== index;
+        });
+        if (duplicate) {
+            keyInput.setCustomValidity('이미 사용 중인 관리용 키입니다.');
+        }
+        var type = communityExtraFieldAllowedType(typeInput.value);
+        var options = optionsInput.value.split(/\r?\n/).map(function (value) {
+            return value.replace(/\s+/g, ' ').trim().slice(0, 120);
+        }).filter(function (value, optionIndex, values) {
+            return value !== '' && values.indexOf(value) === optionIndex;
+        }).slice(0, 50);
+        if (type === 'select' && options.length === 0) {
+            optionsInput.setCustomValidity('선택지는 하나 이상 입력해 주세요.');
+        }
+        var controls = [keyInput, labelInput, typeInput, optionsInput];
+        for (var i = 0; i < controls.length; i++) {
+            if (controls[i] && typeof controls[i].checkValidity === 'function' && !controls[i].checkValidity()) {
+                controls[i].reportValidity();
+                return null;
+            }
+        }
+        return {
+            index: index,
+            field: {
+                key: keyInput.value,
+                label: labelInput.value,
+                type: type,
+                required: !!communityExtraFieldInput(modal, 'required').checked,
+                options: type === 'select' ? options : [],
+                visibility: communityExtraFieldInput(modal, 'visibility').value === 'admin' ? 'admin' : 'public',
+                show_on_view: !!communityExtraFieldInput(modal, 'show_on_view').checked,
+                show_in_admin: !!communityExtraFieldInput(modal, 'show_in_admin').checked,
+                privacy_purpose: communityExtraFieldInput(modal, 'privacy_purpose').value.trim(),
+                export_policy: communityExtraFieldInput(modal, 'export_policy').value === 'exclude' ? 'exclude' : 'include',
+                cleanup_policy: communityExtraFieldInput(modal, 'cleanup_policy').value === 'retain' ? 'retain' : 'anonymize'
+            }
+        };
+    }
+
+    function communityExtraFieldInit() {
+        var root = document.querySelector('[data-community-extra-fields-builder]');
+        var modal = document.querySelector('[data-community-extra-field-modal]');
+        var textarea = root ? root.querySelector('[data-community-extra-fields-json]') : null;
+        if (!root || !modal || !textarea) {
+            return;
+        }
+        communityExtraFieldRender(root);
+        textarea.addEventListener('change', function () {
+            communityExtraFieldRender(root);
+        });
+        var type = communityExtraFieldInput(modal, 'type');
+        if (type) {
+            type.addEventListener('change', function () {
+                communityExtraFieldSyncOptions(modal);
+            });
+        }
+    }
+
     function syncBoardGroupRequired() {
         var groupSelect = document.querySelector('[data-community-board-group-select]');
         var label = document.querySelector('[data-community-board-group-required]');
@@ -1689,6 +2108,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         enabled.addEventListener('change', syncFileExtensions);
     }
     syncFileExtensions();
+    communityExtraFieldInit();
 
     document.addEventListener('submit', function (event) {
         var searchForm = event.target.closest && event.target.closest('[data-community-board-manager-member-search]');
@@ -1701,6 +2121,73 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
 
     document.addEventListener('click', function (event) {
+        var extraFieldAdd = event.target.closest && event.target.closest('[data-community-extra-field-add]');
+        if (extraFieldAdd) {
+            var extraFieldModal = document.querySelector('[data-community-extra-field-modal]');
+            communityExtraFieldSetModal(extraFieldModal, null, -1);
+            return;
+        }
+
+        var extraFieldAction = event.target.closest && event.target.closest('[data-community-extra-field-action]');
+        if (extraFieldAction) {
+            event.preventDefault();
+            var extraFieldRoot = document.querySelector('[data-community-extra-fields-builder]');
+            var extraFieldTextarea = extraFieldRoot ? extraFieldRoot.querySelector('[data-community-extra-fields-json]') : null;
+            var extraFieldDefinitions = communityExtraFieldParse(extraFieldTextarea);
+            var extraFieldIndex = parseInt(extraFieldAction.getAttribute('data-community-extra-field-index-value') || '-1', 10);
+            var extraFieldActionName = extraFieldAction.getAttribute('data-community-extra-field-action') || '';
+            if (extraFieldIndex < 0 || extraFieldIndex >= extraFieldDefinitions.length) {
+                return;
+            }
+            if (extraFieldActionName === 'edit') {
+                var openButton = document.querySelector('[data-community-extra-field-add]');
+                if (openButton) {
+                    openButton.click();
+                }
+                communityExtraFieldSetModal(document.querySelector('[data-community-extra-field-modal]'), extraFieldDefinitions[extraFieldIndex], extraFieldIndex);
+                return;
+            }
+            if (extraFieldActionName === 'up' && extraFieldIndex > 0) {
+                var previous = extraFieldDefinitions[extraFieldIndex - 1];
+                extraFieldDefinitions[extraFieldIndex - 1] = extraFieldDefinitions[extraFieldIndex];
+                extraFieldDefinitions[extraFieldIndex] = previous;
+            } else if (extraFieldActionName === 'down' && extraFieldIndex < extraFieldDefinitions.length - 1) {
+                var next = extraFieldDefinitions[extraFieldIndex + 1];
+                extraFieldDefinitions[extraFieldIndex + 1] = extraFieldDefinitions[extraFieldIndex];
+                extraFieldDefinitions[extraFieldIndex] = next;
+            } else if (extraFieldActionName === 'remove') {
+                extraFieldDefinitions.splice(extraFieldIndex, 1);
+            }
+            communityExtraFieldWrite(extraFieldRoot, extraFieldDefinitions);
+            communityExtraFieldRender(extraFieldRoot);
+            return;
+        }
+
+        var extraFieldSave = event.target.closest && event.target.closest('[data-community-extra-field-save]');
+        if (extraFieldSave) {
+            event.preventDefault();
+            var saveRoot = document.querySelector('[data-community-extra-fields-builder]');
+            var saveTextarea = saveRoot ? saveRoot.querySelector('[data-community-extra-fields-json]') : null;
+            var saveModal = document.querySelector('[data-community-extra-field-modal]');
+            var saveDefinitions = communityExtraFieldParse(saveTextarea);
+            var collected = communityExtraFieldCollect(saveModal, saveDefinitions);
+            if (!collected) {
+                return;
+            }
+            if (collected.index >= 0 && collected.index < saveDefinitions.length) {
+                saveDefinitions[collected.index] = collected.field;
+            } else {
+                saveDefinitions.push(collected.field);
+            }
+            communityExtraFieldWrite(saveRoot, saveDefinitions);
+            communityExtraFieldRender(saveRoot);
+            var closeButton = saveModal ? saveModal.querySelector('.modal-close') : null;
+            if (closeButton) {
+                closeButton.click();
+            }
+            return;
+        }
+
         var searchButton = event.target.closest && event.target.closest('[data-community-board-manager-member-search-button]');
         if (searchButton) {
             event.preventDefault();

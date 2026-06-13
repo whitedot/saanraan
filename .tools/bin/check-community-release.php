@@ -796,6 +796,16 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
     "'event_type' => 'community.board.created'",
     "'event_type' => 'community.board.updated'",
 ], 'Community admin board policy');
+sr_community_release_file_contains('modules/community/views/admin-boards.php', [
+    'data-community-extra-fields-builder',
+    'data-community-extra-field-modal',
+    'data-community-extra-field-add',
+    'data-community-extra-field-save',
+    'data-community-extra-field-action',
+    'data-community-extra-field-input="key"',
+    'data-community-extra-field-input="export_policy"',
+    'data-community-extra-field-input="cleanup_policy"',
+], 'Community admin board extra field UI');
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'edit')",
