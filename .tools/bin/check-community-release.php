@@ -444,6 +444,10 @@ if (!is_callable($privacyExport)) {
 if (!is_callable($privacyCleanup)) {
     sr_community_release_error('Community privacy-cleanup.php must return a callable.');
 }
+sr_community_release_file_contains('modules/community/privacy-cleanup.php', [
+    'sr_community_extra_field_values_cleanup_json($originalJson)',
+    "'community_post_extra_values_anonymized_count' => \$postExtraValuesAnonymizedCount",
+], 'Community privacy cleanup additional field snapshot policy');
 if (!is_callable($sitemap)) {
     sr_community_release_error('Community sitemap.php must return a callable.');
 }
@@ -685,6 +689,8 @@ sr_community_release_file_contains('modules/community/helpers/posts.php', [
     '$values[$key] = is_scalar($value) ? trim((string) $value)',
     '$valueLength > $maxLength',
     "'show_in_admin' => !empty(\$definition['show_in_admin'])",
+    "'cleanup_policy' => (string) (\$definition['cleanup_policy'] ?? 'anonymize')",
+    'function sr_community_extra_field_values_cleanup_json',
     '값 형식이 올바르지 않습니다.',
 ], 'Community post extra field input validation');
 sr_community_release_file_contains('modules/community/actions/admin-boards.php', [

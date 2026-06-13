@@ -821,10 +821,32 @@ function sr_community_extra_field_values_json(array $definitions, array $values)
             'visibility' => (string) ($definition['visibility'] ?? 'public'),
             'show_on_view' => !empty($definition['show_on_view']),
             'show_in_admin' => !empty($definition['show_in_admin']),
+            'cleanup_policy' => (string) ($definition['cleanup_policy'] ?? 'anonymize'),
         ];
     }
 
     return json_encode($stored, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function sr_community_extra_field_values_cleanup_json(string $json): string
+{
+    $decoded = json_decode($json, true);
+    if (!is_array($decoded)) {
+        return '[]';
+    }
+
+    foreach ($decoded as &$item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $cleanupPolicy = (string) ($item['cleanup_policy'] ?? 'anonymize');
+        if ($cleanupPolicy !== 'retain') {
+            $item['value'] = '';
+        }
+    }
+    unset($item);
+
+    return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
 }
 
 function sr_community_save_post_field_values(PDO $pdo, int $postId, array $definitions, array $values): void

@@ -228,8 +228,9 @@ function sr_community_guest_runtime_check(): void
     sr_community_guest_runtime_assert(
         is_array($extraFieldValuesSnapshot)
             && !empty($extraFieldValuesSnapshot['company']['show_in_admin'])
+            && ($extraFieldValuesSnapshot['company']['cleanup_policy'] ?? '') === 'anonymize'
             && str_contains(sr_community_extra_fields_admin_summary_html($extraFieldValuesSnapshot), '런타임 회사'),
-        'additional field value snapshot must preserve show_in_admin for admin list summaries.'
+        'additional field value snapshot must preserve admin and cleanup policies.'
     );
     sr_community_guest_runtime_assert(
         sr_community_validate_extra_field_values($extraFieldDefinitions, ['company' => str_repeat('가', 1001)]) !== [],

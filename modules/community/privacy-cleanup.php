@@ -62,6 +62,9 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     if (!function_exists('sr_community_series_supported')) {
         require_once SR_ROOT . '/modules/community/helpers.php';
     }
+    if (!function_exists('sr_community_extra_field_values_cleanup_json')) {
+        require_once SR_ROOT . '/modules/community/helpers/posts.php';
+    }
 
     $deleted = sr_community_delete_member_nickname($pdo, $accountId);
     $levelCleanup = sr_community_delete_account_level_data($pdo, $accountId);
@@ -90,13 +93,33 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
 
     if ($columnExists($pdo, 'sr_community_posts', 'extra_values_json')) {
         $stmt = $pdo->prepare(
-            "UPDATE sr_community_posts
-             SET extra_values_json = '[]'
+            "SELECT id, extra_values_json
+             FROM sr_community_posts
              WHERE author_account_id = :account_id
                AND COALESCE(extra_values_json, '') <> ''"
         );
         $stmt->execute(['account_id' => $accountId]);
-        $postExtraValuesAnonymizedCount = $stmt->rowCount();
+        $updateStmt = $pdo->prepare(
+            'UPDATE sr_community_posts
+             SET extra_values_json = :extra_values_json,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $originalJson = (string) ($row['extra_values_json'] ?? '');
+            $cleanedJson = function_exists('sr_community_extra_field_values_cleanup_json')
+                ? sr_community_extra_field_values_cleanup_json($originalJson)
+                : '[]';
+            if ($cleanedJson === $originalJson) {
+                continue;
+            }
+            $updateStmt->execute([
+                'extra_values_json' => $cleanedJson,
+                'updated_at' => sr_now(),
+                'id' => (int) ($row['id'] ?? 0),
+            ]);
+            $postExtraValuesAnonymizedCount++;
+        }
     }
 
     if (function_exists('sr_community_post_field_values_table_exists') && sr_community_post_field_values_table_exists($pdo)) {
