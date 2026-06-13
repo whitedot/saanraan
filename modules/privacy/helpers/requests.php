@@ -215,7 +215,7 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
     }
 
     if ($errors === []) {
-        $stmt = $pdo->prepare('SELECT id, status, admin_note FROM sr_privacy_requests WHERE id = :id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, status, admin_note, handled_by_account_id, handled_at FROM sr_privacy_requests WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $requestId]);
         $privacyRequest = $stmt->fetch();
 
@@ -242,7 +242,15 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
     }
 
     if ($errors === []) {
-        $handledAt = in_array($status, sr_admin_privacy_request_terminal_statuses(), true) ? sr_now() : null;
+        $statusChanged = $status !== (string) $privacyRequest['status'];
+        $isTerminalStatus = in_array($status, sr_admin_privacy_request_terminal_statuses(), true);
+        $preserveTerminalHandler = !$statusChanged && $isTerminalStatus;
+        $handledAt = $isTerminalStatus
+            ? ($preserveTerminalHandler ? ($privacyRequest['handled_at'] ?? null) : sr_now())
+            : null;
+        $handledByAccountId = $preserveTerminalHandler
+            ? ($privacyRequest['handled_by_account_id'] ?? null)
+            : (int) $account['id'];
         $stmt = $pdo->prepare(
             'UPDATE sr_privacy_requests
              SET status = :status,
@@ -255,7 +263,7 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
         $stmt->execute([
             'status' => $status,
             'admin_note' => $nextAdminNote,
-            'handled_by_account_id' => (int) $account['id'],
+            'handled_by_account_id' => $handledByAccountId,
             'handled_at' => $handledAt,
             'updated_at' => sr_now(),
             'id' => $requestId,

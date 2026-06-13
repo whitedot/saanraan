@@ -572,10 +572,16 @@ if ($adminPrivacyRequestsHelper !== '') {
         'Admin privacy request helper should prevent reopening terminal privacy request statuses.'
     );
     sr_member_auth_policy_assert(
-        strpos($adminPrivacyRequestsHelper, 'SELECT id, status, admin_note FROM sr_privacy_requests WHERE id = :id LIMIT 1') !== false
+        strpos($adminPrivacyRequestsHelper, 'SELECT id, status, admin_note, handled_by_account_id, handled_at FROM sr_privacy_requests WHERE id = :id LIMIT 1') !== false
             && strpos($adminPrivacyRequestsHelper, "\$nextAdminNote = \$adminNote !== '' ? \$adminNote : \$storedAdminNote;") !== false
             && strpos($adminPrivacyRequestsHelper, "'admin_note' => \$nextAdminNote") !== false,
         'Admin privacy request helper should preserve stored admin notes when list forms submit no replacement note.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsHelper, '$preserveTerminalHandler = !$statusChanged && $isTerminalStatus;') !== false
+            && strpos($adminPrivacyRequestsHelper, "'handled_by_account_id' => \$handledByAccountId") !== false
+            && strpos($adminPrivacyRequestsHelper, "'handled_at' => \$handledAt") !== false,
+        'Admin privacy request helper should preserve terminal handler and handled time when only terminal notes are updated.'
     );
     sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsHelper, "sr_post_string_without_truncation('status', 30)") !== false

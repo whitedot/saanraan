@@ -654,6 +654,7 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     || strpos($adminPrivacyRequestsHelper, "sr_log_exception(\$exception, 'privacy_request_export_account_' . (int) \$privacyRequest['id'])") === false
     || strpos($adminPrivacyRequestsHelper, "'account_data_unavailable'") === false
     || strpos($adminPrivacyRequestsHelper, '종결된 개인정보 처리 요청 상태는 다시 변경할 수 없습니다.') === false
+    || strpos($adminPrivacyRequestsHelper, '$preserveTerminalHandler = !$statusChanged && $isTerminalStatus;') === false
     || strpos($adminPrivacyRequestsHelper, "sr_admin_post_positive_int('request_id')") === false
     || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
     || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
