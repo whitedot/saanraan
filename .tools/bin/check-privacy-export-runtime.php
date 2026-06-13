@@ -532,6 +532,7 @@ function sr_privacy_export_runtime_check_community(): void
             author_public_name_snapshot TEXT NOT NULL,
             body_text TEXT NOT NULL,
             body_format TEXT NOT NULL,
+            extra_values_json TEXT NOT NULL DEFAULT "[]",
             status TEXT NOT NULL,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
@@ -569,7 +570,7 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec('CREATE TABLE sr_community_submission_consents (id INTEGER PRIMARY KEY, board_id INTEGER NOT NULL, subject_type TEXT NOT NULL, subject_id INTEGER NOT NULL, action_key TEXT NOT NULL, account_id INTEGER NOT NULL, consent_title_snapshot TEXT NOT NULL, consent_body_snapshot TEXT NOT NULL, consent_version_snapshot TEXT NOT NULL, consent_required INTEGER NOT NULL, consent_accepted INTEGER NOT NULL, ip_hash TEXT NOT NULL, user_agent_hash TEXT NOT NULL, created_at TEXT NOT NULL)');
 
     $pdo->exec("INSERT INTO sr_community_categories (id, board_id, category_key, title) VALUES (1, 1, 'cat', 'Category')");
-    $pdo->exec("INSERT INTO sr_community_posts (id, board_id, category_id, author_account_id, title, author_public_name_snapshot, body_text, body_format, status, created_at, updated_at) VALUES (10, 1, 1, 7, 'Post 7', 'post-name7', 'body7', 'html', 'published', '', ''), (20, 1, 1, 8, 'Post 8', 'post-name8', 'body8', 'html', 'published', '', '')");
+    $pdo->exec("INSERT INTO sr_community_posts (id, board_id, category_id, author_account_id, title, author_public_name_snapshot, body_text, body_format, extra_values_json, status, created_at, updated_at) VALUES (10, 1, 1, 7, 'Post 7', 'post-name7', 'body7', 'html', '{\"company\":{\"label\":\"Company\",\"value\":\"Acme\",\"export_policy\":\"include\"},\"internal_note\":{\"label\":\"Internal\",\"value\":\"hidden\",\"export_policy\":\"exclude\"},\"legacy\":{\"label\":\"Legacy\",\"value\":\"legacy\"}}', 'published', '', ''), (20, 1, 1, 8, 'Post 8', 'post-name8', 'body8', 'html', '{\"company\":{\"label\":\"Company\",\"value\":\"Other\",\"export_policy\":\"include\"}}', 'published', '', '')");
     $pdo->exec("INSERT INTO sr_community_comments (id, post_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at) VALUES (100, 10, NULL, 100, 1, 7, 'comment-name7', 'comment7', 1, 'published', '', ''), (200, 20, NULL, 200, 1, 8, 'comment-name8', 'comment8', 0, 'published', '', '')");
     $pdo->exec("INSERT INTO sr_community_attachments (id, post_id, uploader_account_id, original_name, mime_type, size_bytes, width, height, status, created_at) VALUES (1, 10, 7, 'a.png', 'image/png', 123, 10, 10, 'active', ''), (2, 20, 8, 'b.png', 'image/png', 234, 20, 20, 'active', '')");
     $pdo->exec("INSERT INTO sr_community_post_field_values (id, post_id, field_key, label_snapshot, field_type_snapshot, visibility_snapshot, show_on_view_snapshot, show_in_admin_snapshot, privacy_purpose_snapshot, export_policy_snapshot, cleanup_policy_snapshot, value_text, value_json, created_at, updated_at) VALUES (1, 10, 'company', 'Company', 'text', 'public', 1, 0, 'reply', 'include', 'anonymize', 'Acme', '{\"value\":\"Acme\"}', '', ''), (2, 10, 'internal_note', 'Internal', 'text', 'admin', 0, 1, '', 'exclude', 'retain', 'hidden', '{\"value\":\"hidden\"}', '', ''), (3, 20, 'company', 'Company', 'text', 'public', 1, 0, 'reply', 'include', 'anonymize', 'Other', '{\"value\":\"Other\"}', '', '')");
@@ -599,6 +600,11 @@ function sr_privacy_export_runtime_check_community(): void
     sr_privacy_export_runtime_assert(count($result['publisher_reward_logs'] ?? []) === 2, 'community export must include downloader and publisher reward rows for target account.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['author_public_name_snapshot'] ?? '') === 'post-name7', 'community export must include post author public name snapshot.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['category_key'] ?? '') === 'cat', 'community export must include post category metadata.');
+    $exportedPostExtraValues = json_decode((string) ($result['posts'][0]['extra_values_json'] ?? ''), true);
+    sr_privacy_export_runtime_assert(is_array($exportedPostExtraValues), 'community export must keep post extra value snapshot JSON decodable.');
+    sr_privacy_export_runtime_assert(($exportedPostExtraValues['company']['value'] ?? '') === 'Acme', 'community export must include included post extra value snapshot.');
+    sr_privacy_export_runtime_assert(($exportedPostExtraValues['legacy']['value'] ?? '') === 'legacy', 'community export must treat legacy post extra value snapshot export policy as include.');
+    sr_privacy_export_runtime_assert(!isset($exportedPostExtraValues['internal_note']), 'community export must exclude excluded post extra value snapshot.');
     sr_privacy_export_runtime_assert(($result['post_field_values'][0]['field_key'] ?? '') === 'company', 'community export must include included post field values.');
     sr_privacy_export_runtime_assert(($result['post_field_values'][0]['value_text'] ?? '') === 'Acme', 'community export must include target post field value text.');
     sr_privacy_export_runtime_assert(($result['comments'][0]['author_public_name_snapshot'] ?? '') === 'comment-name7', 'community export must include comment author public name snapshot.');

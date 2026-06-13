@@ -821,11 +821,33 @@ function sr_community_extra_field_values_json(array $definitions, array $values)
             'visibility' => (string) ($definition['visibility'] ?? 'public'),
             'show_on_view' => !empty($definition['show_on_view']),
             'show_in_admin' => !empty($definition['show_in_admin']),
+            'export_policy' => (string) ($definition['export_policy'] ?? 'include'),
             'cleanup_policy' => (string) ($definition['cleanup_policy'] ?? 'anonymize'),
         ];
     }
 
     return json_encode($stored, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function sr_community_extra_field_values_export_json(string $json): string
+{
+    $decoded = json_decode($json, true);
+    if (!is_array($decoded)) {
+        return '[]';
+    }
+
+    foreach ($decoded as $key => $item) {
+        if (!is_array($item)) {
+            unset($decoded[$key]);
+            continue;
+        }
+        $exportPolicy = (string) ($item['export_policy'] ?? 'include');
+        if ($exportPolicy !== 'include') {
+            unset($decoded[$key]);
+        }
+    }
+
+    return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
 }
 
 function sr_community_extra_field_values_cleanup_json(string $json): string

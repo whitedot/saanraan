@@ -444,6 +444,9 @@ if (!is_callable($privacyExport)) {
 if (!is_callable($privacyCleanup)) {
     sr_community_release_error('Community privacy-cleanup.php must return a callable.');
 }
+sr_community_release_file_contains('modules/community/privacy-export.php', [
+    'sr_community_extra_field_values_export_json((string) ($post[\'extra_values_json\'] ?? \'\'))',
+], 'Community privacy export additional field snapshot policy');
 sr_community_release_file_contains('modules/community/privacy-cleanup.php', [
     'sr_community_extra_field_values_cleanup_json($originalJson)',
     "cleanup_policy_snapshot <> 'retain'",
@@ -691,7 +694,9 @@ sr_community_release_file_contains('modules/community/helpers/posts.php', [
     '$values[$key] = is_scalar($value) ? trim((string) $value)',
     '$valueLength > $maxLength',
     "'show_in_admin' => !empty(\$definition['show_in_admin'])",
+    "'export_policy' => (string) (\$definition['export_policy'] ?? 'include')",
     "'cleanup_policy' => (string) (\$definition['cleanup_policy'] ?? 'anonymize')",
+    'function sr_community_extra_field_values_export_json',
     'function sr_community_extra_field_values_cleanup_json',
     '값 형식이 올바르지 않습니다.',
 ], 'Community post extra field input validation');

@@ -103,6 +103,12 @@ return static function (PDO $pdo, int $accountId): array {
     );
     $stmt->execute(['account_id' => $accountId]);
     $empty['posts'] = $stmt->fetchAll();
+    foreach ($empty['posts'] as &$post) {
+        if (is_array($post) && array_key_exists('extra_values_json', $post)) {
+            $post['extra_values_json'] = sr_community_extra_field_values_export_json((string) ($post['extra_values_json'] ?? ''));
+        }
+    }
+    unset($post);
 
     if (function_exists('sr_community_post_field_values_table_exists') && sr_community_post_field_values_table_exists($pdo)) {
         $stmt = $pdo->prepare(
