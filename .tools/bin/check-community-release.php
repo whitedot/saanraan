@@ -692,6 +692,7 @@ sr_community_release_file_contains('modules/community/helpers/posts.php', [
     'function sr_community_extra_field_definitions_input_errors',
     'function sr_community_extra_field_value_max_length',
     '$values[$key] = is_scalar($value) ? trim((string) $value)',
+    "\$errors[] = \$label . '을(를) 확인해 주세요.'",
     '$valueLength > $maxLength',
     "'show_in_admin' => !empty(\$definition['show_in_admin'])",
     "'export_policy' => (string) (\$definition['export_policy'] ?? 'include')",

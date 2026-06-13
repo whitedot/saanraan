@@ -46,7 +46,7 @@
 | `sr_community_post_field_values` | 게시글별 추가 입력값 | `post_id`, `field_key`, `label_snapshot`, `field_type_snapshot`, `visibility_snapshot`, `show_on_view_snapshot`, `show_in_admin_snapshot`, `privacy_purpose_snapshot`, `export_policy_snapshot`, `cleanup_policy_snapshot`, `value_text`, `value_json`, `created_at`, `updated_at` |
 | `sr_community_comment_field_values` | 댓글별 추가 입력값이 필요할 때의 별도 값 테이블 | `comment_id`, `field_key`, `value_text`, `value_json`, `created_at`, `updated_at` |
 
-`field_key`는 관리용 key이므로 소문자 영문, 숫자, `_`만 허용한다. 공개 slug처럼 hyphen을 허용하는 필드와 구분한다. 필수/조건부 필드는 UI 표시, 브라우저 속성, 서버 POST 검증을 모두 맞추며 서버 검증을 최종 기준으로 둔다.
+`field_key`는 관리용 key이므로 소문자 영문, 숫자, `_`만 허용한다. 공개 slug처럼 hyphen을 허용하는 필드와 구분한다. 필수/조건부 필드는 UI 표시, 브라우저 속성, 서버 POST 검증을 모두 맞추며 서버 검증을 최종 기준으로 둔다. 필수 checkbox 항목은 서버에서도 체크된 값만 유효한 제출로 인정한다.
 
 필드 정의에는 공개 출력, 관리자 목록 표시, 검색/필터 포함, CSV/export 포함, 개인정보 처리 목적, 보관/cleanup 정책을 분리해 저장한다. 잘못된 key, 중복 key, 빈 라벨, 잘못된 유형/정책, 선택지 누락은 조용히 항목을 버리지 않고 게시판/게시판 그룹 저장 오류로 처리한다. 현재 커뮤니티 게시글 목록은 `show_in_admin` snapshot이 켜진 추가 입력값만 관리자 목록에 표시하고, 추가 입력 검색도 값 테이블의 `show_in_admin_snapshot=1` 값만 대상으로 한다. 제출값은 text/select 1000자, textarea 5000자를 넘거나 배열 payload이면 잘라 저장하지 않고 서버에서 거부한다. 개인정보 사본 제공은 `export_policy_snapshot=include` 값 테이블 행과 `export_policy=include` 게시글 snapshot만 포함하며, export 정책이 없던 legacy snapshot은 `include`로 간주한다. cleanup은 `cleanup_policy_snapshot`이 `retain`이 아닌 값 기준으로 처리해 빈 정책이 남은 legacy 값도 익명화한다. 게시글 `extra_values_json` snapshot에는 관리자 표시, export 정책, cleanup 정책을 함께 남기며, cleanup 정책이 없던 legacy snapshot은 `anonymize`로 간주한다.
 

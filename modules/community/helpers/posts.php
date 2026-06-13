@@ -783,8 +783,14 @@ function sr_community_validate_extra_field_values(array $definitions, array $val
             continue;
         }
         $value = (string) $rawValue;
-        if (!empty($definition['required']) && trim($value) === '') {
-            $errors[] = $label . '을(를) 입력해 주세요.';
+        if (!empty($definition['required'])) {
+            if ($type === 'checkbox') {
+                if ($value !== '1') {
+                    $errors[] = $label . '을(를) 확인해 주세요.';
+                }
+            } elseif (trim($value) === '') {
+                $errors[] = $label . '을(를) 입력해 주세요.';
+            }
         }
         if ($type !== 'checkbox') {
             $maxLength = sr_community_extra_field_value_max_length($type);

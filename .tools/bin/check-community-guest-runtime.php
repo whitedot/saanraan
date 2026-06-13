@@ -259,6 +259,22 @@ function sr_community_guest_runtime_check(): void
         sr_community_validate_extra_field_values($textareaDefinitions, ['memo' => str_repeat('나', 5001)]) !== [],
         'additional textarea field validation must reject overlong values instead of truncating them.'
     );
+    $requiredCheckboxDefinitions = sr_community_normalize_extra_field_definitions([
+        [
+            'key' => 'agree',
+            'label' => '확인',
+            'type' => 'checkbox',
+            'required' => true,
+        ],
+    ]);
+    sr_community_guest_runtime_assert(
+        sr_community_validate_extra_field_values($requiredCheckboxDefinitions, ['agree' => '0']) !== [],
+        'required additional checkbox validation must reject unchecked values server-side.'
+    );
+    sr_community_guest_runtime_assert(
+        sr_community_validate_extra_field_values($requiredCheckboxDefinitions, ['agree' => '1']) === [],
+        'required additional checkbox validation must accept checked values server-side.'
+    );
     $invalidDefinitionJson = json_encode([
         ['key' => 'company', 'label' => '회사명', 'type' => 'text'],
         ['key' => 'company', 'label' => '중복', 'type' => 'text'],
