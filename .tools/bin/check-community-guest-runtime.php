@@ -254,6 +254,21 @@ function sr_community_guest_runtime_check(): void
         is_string($invalidDefinitionJson) && sr_community_extra_field_definitions_json_from_input($invalidDefinitionJson) === null,
         'additional field definition JSON must not silently drop invalid definitions.'
     );
+    $malformedDefinitionJson = json_encode([
+        [
+            'key' => ['array'],
+            'label' => ['array'],
+            'type' => ['array'],
+            'visibility' => ['array'],
+            'privacy_purpose' => ['array'],
+            'export_policy' => ['array'],
+            'cleanup_policy' => ['array'],
+        ],
+    ], JSON_UNESCAPED_UNICODE);
+    sr_community_guest_runtime_assert(
+        is_string($malformedDefinitionJson) && sr_community_extra_field_definitions_input_errors($malformedDefinitionJson) !== [],
+        'additional field definition validation must reject non-scalar definition values without warnings.'
+    );
     $postValues = [
         'title' => '비회원 런타임 게시글',
         'category_id' => 0,

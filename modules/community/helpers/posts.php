@@ -381,6 +381,11 @@ function sr_community_extra_field_type(string $type): string
     return in_array($type, ['text', 'textarea', 'select', 'checkbox'], true) ? $type : 'text';
 }
 
+function sr_community_extra_field_scalar_string(mixed $value): string
+{
+    return is_scalar($value) ? (string) $value : '';
+}
+
 function sr_community_normalize_extra_field_definitions(mixed $raw): array
 {
     if (!is_array($raw)) {
@@ -394,22 +399,22 @@ function sr_community_normalize_extra_field_definitions(mixed $raw): array
             continue;
         }
 
-        $key = strtolower(trim((string) ($item['key'] ?? '')));
+        $key = strtolower(trim(sr_community_extra_field_scalar_string($item['key'] ?? '')));
         if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) !== 1 || isset($seenKeys[$key])) {
             continue;
         }
-        $label = trim(preg_replace('/\s+/', ' ', (string) ($item['label'] ?? '')) ?? '');
+        $label = trim(preg_replace('/\s+/', ' ', sr_community_extra_field_scalar_string($item['label'] ?? '')) ?? '');
         $label = function_exists('mb_substr') ? mb_substr($label, 0, 120) : substr($label, 0, 120);
         if ($label === '') {
             continue;
         }
 
-        $type = sr_community_extra_field_type((string) ($item['type'] ?? 'text'));
+        $type = sr_community_extra_field_type(sr_community_extra_field_scalar_string($item['type'] ?? 'text'));
         $options = [];
         if ($type === 'select') {
             $rawOptions = is_array($item['options'] ?? null) ? $item['options'] : [];
             foreach ($rawOptions as $option) {
-                $option = trim(preg_replace('/\s+/', ' ', (string) $option) ?? '');
+                $option = trim(preg_replace('/\s+/', ' ', sr_community_extra_field_scalar_string($option)) ?? '');
                 $option = function_exists('mb_substr') ? mb_substr($option, 0, 120) : substr($option, 0, 120);
                 if ($option !== '' && !in_array($option, $options, true)) {
                     $options[] = $option;
@@ -429,12 +434,12 @@ function sr_community_normalize_extra_field_definitions(mixed $raw): array
             'type' => $type,
             'required' => !empty($item['required']),
             'options' => $options,
-            'visibility' => in_array((string) ($item['visibility'] ?? 'public'), ['public', 'admin'], true) ? (string) ($item['visibility'] ?? 'public') : 'public',
+            'visibility' => in_array(sr_community_extra_field_scalar_string($item['visibility'] ?? 'public'), ['public', 'admin'], true) ? sr_community_extra_field_scalar_string($item['visibility'] ?? 'public') : 'public',
             'show_on_view' => array_key_exists('show_on_view', $item) ? !empty($item['show_on_view']) : true,
             'show_in_admin' => !empty($item['show_in_admin']),
-            'privacy_purpose' => trim((string) ($item['privacy_purpose'] ?? '')),
-            'export_policy' => in_array((string) ($item['export_policy'] ?? 'include'), ['include', 'exclude'], true) ? (string) ($item['export_policy'] ?? 'include') : 'include',
-            'cleanup_policy' => in_array((string) ($item['cleanup_policy'] ?? 'anonymize'), ['anonymize', 'retain'], true) ? (string) ($item['cleanup_policy'] ?? 'anonymize') : 'anonymize',
+            'privacy_purpose' => trim(sr_community_extra_field_scalar_string($item['privacy_purpose'] ?? '')),
+            'export_policy' => in_array(sr_community_extra_field_scalar_string($item['export_policy'] ?? 'include'), ['include', 'exclude'], true) ? sr_community_extra_field_scalar_string($item['export_policy'] ?? 'include') : 'include',
+            'cleanup_policy' => in_array(sr_community_extra_field_scalar_string($item['cleanup_policy'] ?? 'anonymize'), ['anonymize', 'retain'], true) ? sr_community_extra_field_scalar_string($item['cleanup_policy'] ?? 'anonymize') : 'anonymize',
         ];
         $seenKeys[$key] = true;
     }
@@ -460,7 +465,11 @@ function sr_community_extra_field_definition_validation_errors(mixed $raw): arra
             continue;
         }
 
-        $key = strtolower(trim((string) ($item['key'] ?? '')));
+        $keyRaw = $item['key'] ?? '';
+        $key = strtolower(trim(sr_community_extra_field_scalar_string($keyRaw)));
+        if (!is_scalar($keyRaw)) {
+            $errors[] = $rowLabel . '의 관리용 키 형식이 올바르지 않습니다.';
+        }
         if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) !== 1) {
             $errors[] = $rowLabel . '의 관리용 키는 영문 소문자로 시작하고 소문자, 숫자, _만 사용할 수 있습니다.';
         } elseif (isset($seenKeys[$key])) {
@@ -470,36 +479,58 @@ function sr_community_extra_field_definition_validation_errors(mixed $raw): arra
             $seenKeys[$key] = true;
         }
 
-        $label = trim(preg_replace('/\s+/', ' ', (string) ($item['label'] ?? '')) ?? '');
+        $labelRaw = $item['label'] ?? '';
+        $label = trim(preg_replace('/\s+/', ' ', sr_community_extra_field_scalar_string($labelRaw)) ?? '');
         $labelLength = function_exists('mb_strlen') ? mb_strlen($label) : strlen($label);
-        if ($label === '') {
+        if (!is_scalar($labelRaw)) {
+            $errors[] = $rowLabel . '의 라벨 형식이 올바르지 않습니다.';
+        } elseif ($label === '') {
             $errors[] = $rowLabel . '의 라벨을 입력해 주세요.';
         } elseif ($labelLength > 120) {
             $errors[] = $rowLabel . '의 라벨은 120자 이하로 입력해 주세요.';
         }
 
-        $type = (string) ($item['type'] ?? 'text');
+        $typeRaw = $item['type'] ?? 'text';
+        $type = sr_community_extra_field_scalar_string($typeRaw);
+        if (!is_scalar($typeRaw)) {
+            $errors[] = $rowLabel . '의 유형 형식이 올바르지 않습니다.';
+        }
         if (!in_array($type, ['text', 'textarea', 'select', 'checkbox'], true)) {
             $errors[] = $rowLabel . '의 유형 값이 올바르지 않습니다.';
         }
 
-        $visibility = (string) ($item['visibility'] ?? 'public');
+        $visibilityRaw = $item['visibility'] ?? 'public';
+        $visibility = sr_community_extra_field_scalar_string($visibilityRaw);
+        if (!is_scalar($visibilityRaw)) {
+            $errors[] = $rowLabel . '의 공개 범위 형식이 올바르지 않습니다.';
+        }
         if (!in_array($visibility, ['public', 'admin'], true)) {
             $errors[] = $rowLabel . '의 공개 범위 값이 올바르지 않습니다.';
         }
 
-        $privacyPurpose = trim((string) ($item['privacy_purpose'] ?? ''));
+        $privacyPurposeRaw = $item['privacy_purpose'] ?? '';
+        $privacyPurpose = trim(sr_community_extra_field_scalar_string($privacyPurposeRaw));
         $privacyPurposeLength = function_exists('mb_strlen') ? mb_strlen($privacyPurpose) : strlen($privacyPurpose);
-        if ($privacyPurposeLength > 255) {
+        if (!is_scalar($privacyPurposeRaw)) {
+            $errors[] = $rowLabel . '의 개인정보 목적 형식이 올바르지 않습니다.';
+        } elseif ($privacyPurposeLength > 255) {
             $errors[] = $rowLabel . '의 개인정보 목적은 255자 이하로 입력해 주세요.';
         }
 
-        $exportPolicy = (string) ($item['export_policy'] ?? 'include');
+        $exportPolicyRaw = $item['export_policy'] ?? 'include';
+        $exportPolicy = sr_community_extra_field_scalar_string($exportPolicyRaw);
+        if (!is_scalar($exportPolicyRaw)) {
+            $errors[] = $rowLabel . '의 export 정책 형식이 올바르지 않습니다.';
+        }
         if (!in_array($exportPolicy, ['include', 'exclude'], true)) {
             $errors[] = $rowLabel . '의 export 정책 값이 올바르지 않습니다.';
         }
 
-        $cleanupPolicy = (string) ($item['cleanup_policy'] ?? 'anonymize');
+        $cleanupPolicyRaw = $item['cleanup_policy'] ?? 'anonymize';
+        $cleanupPolicy = sr_community_extra_field_scalar_string($cleanupPolicyRaw);
+        if (!is_scalar($cleanupPolicyRaw)) {
+            $errors[] = $rowLabel . '의 cleanup 정책 형식이 올바르지 않습니다.';
+        }
         if (!in_array($cleanupPolicy, ['anonymize', 'retain'], true)) {
             $errors[] = $rowLabel . '의 cleanup 정책 값이 올바르지 않습니다.';
         }
