@@ -364,6 +364,18 @@ function sr_community_post_extra_values_select(PDO $pdo, string $alias): string
         : ", '' AS extra_values_json";
 }
 
+function sr_community_board_field_definitions_table_exists(PDO $pdo): bool
+{
+    return function_exists('sr_community_optional_table_exists')
+        && sr_community_optional_table_exists($pdo, 'sr_community_board_field_definitions');
+}
+
+function sr_community_post_field_values_table_exists(PDO $pdo): bool
+{
+    return function_exists('sr_community_optional_table_exists')
+        && sr_community_optional_table_exists($pdo, 'sr_community_post_field_values');
+}
+
 function sr_community_extra_field_type(string $type): string
 {
     return in_array($type, ['text', 'textarea', 'select', 'checkbox'], true) ? $type : 'text';
@@ -417,11 +429,53 @@ function sr_community_normalize_extra_field_definitions(mixed $raw): array
             'type' => $type,
             'required' => !empty($item['required']),
             'options' => $options,
+            'visibility' => in_array((string) ($item['visibility'] ?? 'public'), ['public', 'admin'], true) ? (string) ($item['visibility'] ?? 'public') : 'public',
+            'show_on_view' => array_key_exists('show_on_view', $item) ? !empty($item['show_on_view']) : true,
+            'show_in_admin' => !empty($item['show_in_admin']),
+            'privacy_purpose' => trim((string) ($item['privacy_purpose'] ?? '')),
+            'export_policy' => in_array((string) ($item['export_policy'] ?? 'include'), ['include', 'exclude'], true) ? (string) ($item['export_policy'] ?? 'include') : 'include',
+            'cleanup_policy' => in_array((string) ($item['cleanup_policy'] ?? 'anonymize'), ['anonymize', 'retain'], true) ? (string) ($item['cleanup_policy'] ?? 'anonymize') : 'anonymize',
         ];
         $seenKeys[$key] = true;
     }
 
     return $definitions;
+}
+
+function sr_community_extra_field_definitions_from_storage(PDO $pdo, int $boardId): array
+{
+    if ($boardId < 1 || !sr_community_board_field_definitions_table_exists($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT field_key, label, field_type, is_required, visibility, show_on_view, show_in_admin, sort_order, validation_json, privacy_purpose, export_policy, cleanup_policy
+         FROM sr_community_board_field_definitions
+         WHERE board_id = :board_id
+           AND status = \'enabled\'
+         ORDER BY sort_order ASC, id ASC'
+    );
+    $stmt->execute(['board_id' => $boardId]);
+
+    $definitions = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $validation = json_decode((string) ($row['validation_json'] ?? ''), true);
+        $definitions[] = [
+            'key' => (string) ($row['field_key'] ?? ''),
+            'label' => (string) ($row['label'] ?? ''),
+            'type' => (string) ($row['field_type'] ?? 'text'),
+            'required' => (int) ($row['is_required'] ?? 0) === 1,
+            'options' => is_array($validation['options'] ?? null) ? $validation['options'] : [],
+            'visibility' => (string) ($row['visibility'] ?? 'public'),
+            'show_on_view' => (int) ($row['show_on_view'] ?? 1) === 1,
+            'show_in_admin' => (int) ($row['show_in_admin'] ?? 0) === 1,
+            'privacy_purpose' => (string) ($row['privacy_purpose'] ?? ''),
+            'export_policy' => (string) ($row['export_policy'] ?? 'include'),
+            'cleanup_policy' => (string) ($row['cleanup_policy'] ?? 'anonymize'),
+        ];
+    }
+
+    return sr_community_normalize_extra_field_definitions($definitions);
 }
 
 function sr_community_extra_field_definitions_from_json(string $json): array
@@ -451,8 +505,93 @@ function sr_community_extra_field_definitions_json_from_input(string $json): ?st
 
 function sr_community_board_extra_field_definitions(PDO $pdo, array $board): array
 {
+    $boardId = (int) ($board['id'] ?? 0);
+    if ($boardId > 0 && sr_community_board_setting_source($pdo, $boardId, 'extra_fields_json') === 'board') {
+        $stored = sr_community_extra_field_definitions_from_storage($pdo, $boardId);
+        if ($stored !== []) {
+            return $stored;
+        }
+    }
+
     $json = sr_community_effective_board_setting($pdo, $board, 'extra_fields_json', '[]');
     return sr_community_extra_field_definitions_from_json($json);
+}
+
+function sr_community_sync_board_field_definitions(PDO $pdo, int $boardId, array $definitions): void
+{
+    if ($boardId < 1 || !sr_community_board_field_definitions_table_exists($pdo)) {
+        return;
+    }
+
+    $now = sr_now();
+    $pdo->prepare(
+        'UPDATE sr_community_board_field_definitions
+         SET status = \'disabled\', updated_at = :updated_at
+         WHERE board_id = :board_id'
+    )->execute([
+        'board_id' => $boardId,
+        'updated_at' => $now,
+    ]);
+
+    $isSqlite = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+    $insertSql = $isSqlite
+        ? 'INSERT INTO sr_community_board_field_definitions
+            (board_id, field_key, label, field_type, is_required, visibility, show_on_view, show_in_admin, sort_order, validation_json, privacy_purpose, export_policy, cleanup_policy, status, created_at, updated_at)
+         VALUES
+            (:board_id, :field_key, :label, :field_type, :is_required, :visibility, :show_on_view, :show_in_admin, :sort_order, :validation_json, :privacy_purpose, :export_policy, :cleanup_policy, \'enabled\', :created_at, :updated_at)
+         ON CONFLICT(board_id, field_key) DO UPDATE SET
+            label = excluded.label,
+            field_type = excluded.field_type,
+            is_required = excluded.is_required,
+            visibility = excluded.visibility,
+            show_on_view = excluded.show_on_view,
+            show_in_admin = excluded.show_in_admin,
+            sort_order = excluded.sort_order,
+            validation_json = excluded.validation_json,
+            privacy_purpose = excluded.privacy_purpose,
+            export_policy = excluded.export_policy,
+            cleanup_policy = excluded.cleanup_policy,
+            status = \'enabled\',
+            updated_at = excluded.updated_at'
+        : 'INSERT INTO sr_community_board_field_definitions
+            (board_id, field_key, label, field_type, is_required, visibility, show_on_view, show_in_admin, sort_order, validation_json, privacy_purpose, export_policy, cleanup_policy, status, created_at, updated_at)
+         VALUES
+            (:board_id, :field_key, :label, :field_type, :is_required, :visibility, :show_on_view, :show_in_admin, :sort_order, :validation_json, :privacy_purpose, :export_policy, :cleanup_policy, \'enabled\', :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            label = VALUES(label),
+            field_type = VALUES(field_type),
+            is_required = VALUES(is_required),
+            visibility = VALUES(visibility),
+            show_on_view = VALUES(show_on_view),
+            show_in_admin = VALUES(show_in_admin),
+            sort_order = VALUES(sort_order),
+            validation_json = VALUES(validation_json),
+            privacy_purpose = VALUES(privacy_purpose),
+            export_policy = VALUES(export_policy),
+            cleanup_policy = VALUES(cleanup_policy),
+            status = \'enabled\',
+            updated_at = VALUES(updated_at)';
+    $stmt = $pdo->prepare($insertSql);
+
+    foreach (array_values($definitions) as $index => $definition) {
+        $stmt->execute([
+            'board_id' => $boardId,
+            'field_key' => (string) ($definition['key'] ?? ''),
+            'label' => (string) ($definition['label'] ?? ''),
+            'field_type' => (string) ($definition['type'] ?? 'text'),
+            'is_required' => !empty($definition['required']) ? 1 : 0,
+            'visibility' => (string) ($definition['visibility'] ?? 'public'),
+            'show_on_view' => !empty($definition['show_on_view']) ? 1 : 0,
+            'show_in_admin' => !empty($definition['show_in_admin']) ? 1 : 0,
+            'sort_order' => ($index + 1) * 10,
+            'validation_json' => json_encode(['options' => array_values((array) ($definition['options'] ?? []))], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'privacy_purpose' => (string) ($definition['privacy_purpose'] ?? ''),
+            'export_policy' => (string) ($definition['export_policy'] ?? 'include'),
+            'cleanup_policy' => (string) ($definition['cleanup_policy'] ?? 'anonymize'),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
 }
 
 function sr_community_extra_field_input_values(array $definitions): array
@@ -510,10 +649,81 @@ function sr_community_extra_field_values_json(array $definitions, array $values)
             'label' => (string) ($definition['label'] ?? $key),
             'type' => (string) ($definition['type'] ?? 'text'),
             'value' => (string) ($values[$key] ?? ''),
+            'visibility' => (string) ($definition['visibility'] ?? 'public'),
+            'show_on_view' => !empty($definition['show_on_view']),
         ];
     }
 
     return json_encode($stored, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function sr_community_save_post_field_values(PDO $pdo, int $postId, array $definitions, array $values): void
+{
+    if ($postId < 1 || !sr_community_post_field_values_table_exists($pdo)) {
+        return;
+    }
+
+    $now = sr_now();
+    $pdo->prepare('DELETE FROM sr_community_post_field_values WHERE post_id = :post_id')->execute(['post_id' => $postId]);
+    if ($definitions === []) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_post_field_values
+            (post_id, field_key, label_snapshot, field_type_snapshot, visibility_snapshot, show_on_view_snapshot, show_in_admin_snapshot, privacy_purpose_snapshot, export_policy_snapshot, cleanup_policy_snapshot, value_text, value_json, created_at, updated_at)
+         VALUES
+            (:post_id, :field_key, :label_snapshot, :field_type_snapshot, :visibility_snapshot, :show_on_view_snapshot, :show_in_admin_snapshot, :privacy_purpose_snapshot, :export_policy_snapshot, :cleanup_policy_snapshot, :value_text, :value_json, :created_at, :updated_at)'
+    );
+    foreach ($definitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        if ($key === '') {
+            continue;
+        }
+        $value = (string) ($values[$key] ?? '');
+        $stmt->execute([
+            'post_id' => $postId,
+            'field_key' => $key,
+            'label_snapshot' => (string) ($definition['label'] ?? $key),
+            'field_type_snapshot' => (string) ($definition['type'] ?? 'text'),
+            'visibility_snapshot' => (string) ($definition['visibility'] ?? 'public'),
+            'show_on_view_snapshot' => !empty($definition['show_on_view']) ? 1 : 0,
+            'show_in_admin_snapshot' => !empty($definition['show_in_admin']) ? 1 : 0,
+            'privacy_purpose_snapshot' => (string) ($definition['privacy_purpose'] ?? ''),
+            'export_policy_snapshot' => (string) ($definition['export_policy'] ?? 'include'),
+            'cleanup_policy_snapshot' => (string) ($definition['cleanup_policy'] ?? 'anonymize'),
+            'value_text' => $value,
+            'value_json' => json_encode([
+                'value' => $value,
+                'visibility' => (string) ($definition['visibility'] ?? 'public'),
+                'show_on_view' => !empty($definition['show_on_view']),
+                'show_in_admin' => !empty($definition['show_in_admin']),
+                'privacy_purpose' => (string) ($definition['privacy_purpose'] ?? ''),
+                'export_policy' => (string) ($definition['export_policy'] ?? 'include'),
+                'cleanup_policy' => (string) ($definition['cleanup_policy'] ?? 'anonymize'),
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+}
+
+function sr_community_redact_post_field_values(PDO $pdo, int $postId): void
+{
+    if ($postId < 1 || !sr_community_post_field_values_table_exists($pdo)) {
+        return;
+    }
+
+    $pdo->prepare(
+        "UPDATE sr_community_post_field_values
+         SET value_text = '',
+             value_json = NULL,
+             updated_at = :updated_at
+         WHERE post_id = :post_id"
+    )->execute([
+        'post_id' => $postId,
+        'updated_at' => sr_now(),
+    ]);
 }
 
 function sr_community_extra_field_values_from_json(string $json): array
@@ -574,7 +784,8 @@ function sr_community_extra_fields_display_html(array $values): string
         }
         $label = trim((string) ($item['label'] ?? ''));
         $value = (string) ($item['value'] ?? '');
-        if ($label === '' || $value === '') {
+        $showOnView = array_key_exists('show_on_view', $item) ? !empty($item['show_on_view']) : true;
+        if ($label === '' || $value === '' || !$showOnView || (string) ($item['visibility'] ?? 'public') === 'admin') {
             continue;
         }
         $displayValue = (string) ($item['type'] ?? '') === 'checkbox' ? ($value === '1' ? '예' : '아니오') : $value;
@@ -1337,6 +1548,7 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
         'updated_at' => $now,
         'id' => $postId,
     ]);
+    sr_community_redact_post_field_values($pdo, $postId);
 
     $pdo->prepare('DELETE FROM sr_community_link_refs WHERE post_id = :post_id')->execute(['post_id' => $postId]);
     if (function_exists('sr_embed_manager_sync_body_refs')) {
@@ -1430,6 +1642,12 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         } else {
             sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', $accountId > 0 ? $accountId : null);
         }
+        sr_community_save_post_field_values(
+            $pdo,
+            $postId,
+            is_array($values['extra_field_definitions'] ?? null) ? $values['extra_field_definitions'] : [],
+            is_array($values['extra_field_values'] ?? null) ? $values['extra_field_values'] : []
+        );
         sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
     } catch (Throwable $exception) {
@@ -2100,6 +2318,12 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         } else {
             sr_embed_manager_sync_body_refs($pdo, 'community', 'post', $postId, 'body', '', $authorAccountId);
         }
+        sr_community_save_post_field_values(
+            $pdo,
+            $postId,
+            is_array($values['extra_field_definitions'] ?? null) ? $values['extra_field_definitions'] : [],
+            is_array($values['extra_field_values'] ?? null) ? $values['extra_field_values'] : []
+        );
         sr_link_card_clear_legacy_refs($pdo, 'sr_community_link_refs', 'post_id', $postId);
         $pdo->commit();
         sr_community_cleanup_storage_file_refs($pdo, $finalizedTmpFiles, 'body_file_tmp_finalized', $postId, '게시글 작성 후 임시 본문 이미지 정리에 실패했습니다.');

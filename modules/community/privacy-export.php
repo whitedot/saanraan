@@ -48,6 +48,7 @@ if (!function_exists('sr_community_privacy_add_asset_settlement_summaries')) {
 return static function (PDO $pdo, int $accountId): array {
     $empty = [
         'posts' => [],
+        'post_field_values' => [],
         'comments' => [],
         'attachments' => [],
         'reports' => [],
@@ -102,6 +103,23 @@ return static function (PDO $pdo, int $accountId): array {
     );
     $stmt->execute(['account_id' => $accountId]);
     $empty['posts'] = $stmt->fetchAll();
+
+    if (function_exists('sr_community_post_field_values_table_exists') && sr_community_post_field_values_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT v.id, v.post_id, v.field_key, v.label_snapshot, v.field_type_snapshot,
+                    v.visibility_snapshot, v.show_on_view_snapshot, v.show_in_admin_snapshot,
+                    v.privacy_purpose_snapshot, v.export_policy_snapshot, v.cleanup_policy_snapshot,
+                    v.value_text, v.value_json, v.created_at, v.updated_at
+             FROM sr_community_post_field_values v
+             INNER JOIN sr_community_posts p ON p.id = v.post_id
+             WHERE p.author_account_id = :account_id
+               AND v.export_policy_snapshot = \'include\'
+             ORDER BY v.post_id ASC, v.id ASC
+             LIMIT 1000'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $empty['post_field_values'] = $stmt->fetchAll();
+    }
 
     $stmt = $pdo->prepare(
         /* Legacy comment export allowlist: SELECT id, post_id, body_text, status, created_at, updated_at */

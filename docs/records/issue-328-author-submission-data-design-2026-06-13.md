@@ -38,12 +38,12 @@
 
 게시판별 운영 입력은 커뮤니티 모듈이 소유한다. `sr_community_posts`, core 테이블, member 테이블을 넓히지 않고 확장 정의 테이블과 값 테이블로 분리한다.
 
-후보 테이블:
+구현 테이블:
 
 | 테이블 | 목적 | 주요 필드 후보 |
 | --- | --- | --- |
-| `sr_community_board_field_definitions` | 게시판별 추가 입력 정의 | `board_id`, `field_key`, `label`, `field_type`, `is_required`, `visibility`, `sort_order`, `validation_json`, `privacy_purpose`, `export_policy`, `cleanup_policy`, `status`, `created_at`, `updated_at` |
-| `sr_community_post_field_values` | 게시글별 추가 입력값 | `post_id`, `field_key`, `value_text`, `value_json`, `created_at`, `updated_at` |
+| `sr_community_board_field_definitions` | 게시판별 추가 입력 정의 | `board_id`, `field_key`, `label`, `field_type`, `is_required`, `visibility`, `show_on_view`, `show_in_admin`, `sort_order`, `validation_json`, `privacy_purpose`, `export_policy`, `cleanup_policy`, `status`, `created_at`, `updated_at` |
+| `sr_community_post_field_values` | 게시글별 추가 입력값 | `post_id`, `field_key`, `label_snapshot`, `field_type_snapshot`, `visibility_snapshot`, `privacy_purpose_snapshot`, `export_policy_snapshot`, `cleanup_policy_snapshot`, `value_text`, `value_json`, `created_at`, `updated_at` |
 | `sr_community_comment_field_values` | 댓글별 추가 입력값이 필요할 때의 별도 값 테이블 | `comment_id`, `field_key`, `value_text`, `value_json`, `created_at`, `updated_at` |
 
 `field_key`는 관리용 key이므로 소문자 영문, 숫자, `_`만 허용한다. 공개 slug처럼 hyphen을 허용하는 필드와 구분한다. 필수/조건부 필드는 UI 표시, 브라우저 속성, 서버 POST 검증을 모두 맞추며 서버 검증을 최종 기준으로 둔다.

@@ -67,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $values = sr_community_post_input_values($pdo, $board, $settings);
     $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
     $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
+    $values['extra_field_definitions'] = $extraFieldDefinitions;
+    $values['extra_field_values'] = $extraFieldValues;
     if ($isGuestAuthor) {
         $values['body_format'] = 'plain';
         $values = array_merge($values, sr_community_guest_author_input_values());

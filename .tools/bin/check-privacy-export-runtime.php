@@ -554,6 +554,7 @@ function sr_privacy_export_runtime_check_community(): void
         )'
     );
     $pdo->exec('CREATE TABLE sr_community_attachments (id INTEGER PRIMARY KEY, post_id INTEGER NOT NULL, uploader_account_id INTEGER NOT NULL, original_name TEXT NOT NULL, mime_type TEXT NOT NULL, size_bytes INTEGER NOT NULL, width INTEGER NULL, height INTEGER NULL, status TEXT NOT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_post_field_values (id INTEGER PRIMARY KEY, post_id INTEGER NOT NULL, field_key TEXT NOT NULL, label_snapshot TEXT NOT NULL, field_type_snapshot TEXT NOT NULL, visibility_snapshot TEXT NOT NULL, show_on_view_snapshot INTEGER NOT NULL, show_in_admin_snapshot INTEGER NOT NULL, privacy_purpose_snapshot TEXT NOT NULL, export_policy_snapshot TEXT NOT NULL, cleanup_policy_snapshot TEXT NOT NULL, value_text TEXT NULL, value_json TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_reports (id INTEGER PRIMARY KEY, reporter_account_id INTEGER NOT NULL, reported_account_id INTEGER NULL, target_type TEXT NOT NULL, target_id INTEGER NOT NULL, reason_key TEXT NOT NULL, memo_text TEXT NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_messages (id INTEGER PRIMARY KEY, sender_account_id INTEGER NOT NULL, recipient_account_id INTEGER NOT NULL, body_text TEXT NOT NULL, status TEXT NOT NULL, read_at TEXT NULL, sender_deleted_at TEXT NULL, recipient_deleted_at TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_scraps (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, post_id INTEGER NOT NULL, created_at TEXT NOT NULL)');
@@ -571,6 +572,7 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_posts (id, board_id, category_id, author_account_id, title, author_public_name_snapshot, body_text, body_format, status, created_at, updated_at) VALUES (10, 1, 1, 7, 'Post 7', 'post-name7', 'body7', 'html', 'published', '', ''), (20, 1, 1, 8, 'Post 8', 'post-name8', 'body8', 'html', 'published', '', '')");
     $pdo->exec("INSERT INTO sr_community_comments (id, post_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at) VALUES (100, 10, NULL, 100, 1, 7, 'comment-name7', 'comment7', 1, 'published', '', ''), (200, 20, NULL, 200, 1, 8, 'comment-name8', 'comment8', 0, 'published', '', '')");
     $pdo->exec("INSERT INTO sr_community_attachments (id, post_id, uploader_account_id, original_name, mime_type, size_bytes, width, height, status, created_at) VALUES (1, 10, 7, 'a.png', 'image/png', 123, 10, 10, 'active', ''), (2, 20, 8, 'b.png', 'image/png', 234, 20, 20, 'active', '')");
+    $pdo->exec("INSERT INTO sr_community_post_field_values (id, post_id, field_key, label_snapshot, field_type_snapshot, visibility_snapshot, show_on_view_snapshot, show_in_admin_snapshot, privacy_purpose_snapshot, export_policy_snapshot, cleanup_policy_snapshot, value_text, value_json, created_at, updated_at) VALUES (1, 10, 'company', 'Company', 'text', 'public', 1, 0, 'reply', 'include', 'anonymize', 'Acme', '{\"value\":\"Acme\"}', '', ''), (2, 10, 'internal_note', 'Internal', 'text', 'admin', 0, 1, '', 'exclude', 'retain', 'hidden', '{\"value\":\"hidden\"}', '', ''), (3, 20, 'company', 'Company', 'text', 'public', 1, 0, 'reply', 'include', 'anonymize', 'Other', '{\"value\":\"Other\"}', '', '')");
     $pdo->exec("INSERT INTO sr_community_reports (id, reporter_account_id, reported_account_id, target_type, target_id, reason_key, memo_text, status, created_at, updated_at) VALUES (1, 7, 8, 'post', 20, 'spam', 'memo', 'open', '', ''), (2, 8, 7, 'post', 10, 'spam', 'memo', 'open', '', '')");
     $pdo->exec("INSERT INTO sr_community_messages (id, sender_account_id, recipient_account_id, body_text, status, read_at, sender_deleted_at, recipient_deleted_at, created_at, updated_at) VALUES (1, 7, 8, 'sent', 'sent', NULL, NULL, NULL, '', ''), (2, 8, 7, 'received', 'sent', NULL, NULL, NULL, '', '')");
     $pdo->exec("INSERT INTO sr_community_scraps (id, account_id, post_id, created_at) VALUES (1, 7, 10, ''), (2, 8, 20, '')");
@@ -585,18 +587,20 @@ function sr_privacy_export_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_submission_consents (id, board_id, subject_type, subject_id, action_key, account_id, consent_title_snapshot, consent_body_snapshot, consent_version_snapshot, consent_required, consent_accepted, ip_hash, user_agent_hash, created_at) VALUES (1, 1, 'post', 10, 'write', 7, 'Privacy', 'Body', 'v1', 1, 1, 'ip7', 'ua7', ''), (2, 1, 'post', 20, 'write', 8, 'Privacy', 'Body', 'v1', 1, 1, 'ip8', 'ua8', '')");
 
     $invalid = $export($pdo, 0);
-    foreach (['posts', 'comments', 'attachments', 'reports', 'messages', 'scraps', 'series_scraps', 'series', 'series_items', 'level', 'level_logs', 'access_entitlements', 'asset_logs', 'publisher_reward_logs', 'submission_consents'] as $key) {
+    foreach (['posts', 'post_field_values', 'comments', 'attachments', 'reports', 'messages', 'scraps', 'series_scraps', 'series', 'series_items', 'level', 'level_logs', 'access_entitlements', 'asset_logs', 'publisher_reward_logs', 'submission_consents'] as $key) {
         sr_privacy_export_runtime_assert(isset($invalid[$key]) && $invalid[$key] === [], 'community export invalid account result must include empty key: ' . $key);
     }
 
     $result = $export($pdo, 7);
-    foreach (['posts', 'comments', 'attachments', 'reports', 'scraps', 'series_scraps', 'series', 'series_items', 'level_logs', 'access_entitlements', 'asset_logs', 'submission_consents'] as $key) {
+    foreach (['posts', 'post_field_values', 'comments', 'attachments', 'reports', 'scraps', 'series_scraps', 'series', 'series_items', 'level_logs', 'access_entitlements', 'asset_logs', 'submission_consents'] as $key) {
         sr_privacy_export_runtime_assert(count($result[$key] ?? []) === 1, 'community export must include one target row for: ' . $key);
     }
     sr_privacy_export_runtime_assert(count($result['messages'] ?? []) === 2, 'community export must include sent and received messages for target account.');
     sr_privacy_export_runtime_assert(count($result['publisher_reward_logs'] ?? []) === 2, 'community export must include downloader and publisher reward rows for target account.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['author_public_name_snapshot'] ?? '') === 'post-name7', 'community export must include post author public name snapshot.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['category_key'] ?? '') === 'cat', 'community export must include post category metadata.');
+    sr_privacy_export_runtime_assert(($result['post_field_values'][0]['field_key'] ?? '') === 'company', 'community export must include included post field values.');
+    sr_privacy_export_runtime_assert(($result['post_field_values'][0]['value_text'] ?? '') === 'Acme', 'community export must include target post field value text.');
     sr_privacy_export_runtime_assert(($result['comments'][0]['author_public_name_snapshot'] ?? '') === 'comment-name7', 'community export must include comment author public name snapshot.');
     sr_privacy_export_runtime_assert((int) ($result['comments'][0]['is_secret'] ?? -1) === 1, 'community export must include comment secret flag.');
     sr_privacy_export_runtime_assert(($result['reports'][0]['reported_account_role'] ?? '') === 'masked_counterparty', 'community export must mask reported counterparty when it is not the target account.');

@@ -927,6 +927,9 @@ if (sr_request_method() === 'POST') {
             foreach ($boardSettingValues as $settingKey => $settingValue) {
                 sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
             }
+            foreach (sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, (string) ($settingSources['extra_fields_json'] ?? 'board')) as $targetBoardId) {
+                sr_community_sync_board_field_definitions($pdo, (int) $targetBoardId, sr_community_extra_field_definitions_from_json($extraFieldsJson));
+            }
             foreach ($assetSettingSources as $settingKey => $source) {
                 sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, $source, $assetSettings[$settingKey] ?? '');
             }
@@ -1007,6 +1010,9 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
                 foreach ($boardSettingValues as $settingKey => $settingValue) {
                     sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
+                }
+                foreach (sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, (string) ($settingSources['extra_fields_json'] ?? 'board')) as $targetBoardId) {
+                    sr_community_sync_board_field_definitions($pdo, (int) $targetBoardId, sr_community_extra_field_definitions_from_json($extraFieldsJson));
                 }
                 $boardAssetAudits = [];
                 foreach ($assetSettingSources as $settingKey => $source) {
@@ -1169,7 +1175,12 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
             : '0';
         $board[$privacyConsentSettingKey] = sr_community_effective_board_setting($pdo, $board, (string) $privacyConsentSettingKey, $defaultValue);
     }
-    $board['extra_fields_json'] = sr_community_effective_board_setting($pdo, $board, 'extra_fields_json', '[]');
+    $storedExtraFieldDefinitions = sr_community_board_setting_source($pdo, (int) $board['id'], 'extra_fields_json') === 'board'
+        ? sr_community_extra_field_definitions_from_storage($pdo, (int) $board['id'])
+        : [];
+    $board['extra_fields_json'] = $storedExtraFieldDefinitions !== []
+        ? json_encode($storedExtraFieldDefinitions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        : sr_community_effective_board_setting($pdo, $board, 'extra_fields_json', '[]');
     foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
         $board['source_' . $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], (string) $assetSettingKey);
     }

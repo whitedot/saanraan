@@ -70,6 +70,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $seriesScrapDeletedCount = 0;
     $authorSnapshotAnonymizedCount = 0;
     $postExtraValuesAnonymizedCount = 0;
+    $postFieldValuesAnonymizedCount = 0;
     $submissionConsentAnonymizedCount = 0;
 
     foreach (['sr_community_posts', 'sr_community_comments'] as $tableName) {
@@ -96,6 +97,32 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         );
         $stmt->execute(['account_id' => $accountId]);
         $postExtraValuesAnonymizedCount = $stmt->rowCount();
+    }
+
+    if (function_exists('sr_community_post_field_values_table_exists') && sr_community_post_field_values_table_exists($pdo)) {
+        $isSqlite = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $stmt = $pdo->prepare($isSqlite
+            ? "UPDATE sr_community_post_field_values
+               SET value_text = '',
+                   value_json = NULL,
+                   updated_at = :updated_at
+               WHERE post_id IN (SELECT id FROM sr_community_posts WHERE author_account_id = :account_id)
+                 AND cleanup_policy_snapshot = 'anonymize'
+                 AND (COALESCE(value_text, '') <> '' OR value_json IS NOT NULL)"
+            : "UPDATE sr_community_post_field_values v
+               INNER JOIN sr_community_posts p ON p.id = v.post_id
+               SET v.value_text = '',
+                   v.value_json = NULL,
+                   v.updated_at = :updated_at
+               WHERE p.author_account_id = :account_id
+                 AND v.cleanup_policy_snapshot = 'anonymize'
+                 AND (COALESCE(v.value_text, '') <> '' OR v.value_json IS NOT NULL)"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'updated_at' => sr_now(),
+        ]);
+        $postFieldValuesAnonymizedCount = $stmt->rowCount();
     }
 
     if (function_exists('sr_community_series_supported') && sr_community_series_supported($pdo)) {
@@ -154,6 +181,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_access_entitlement_anonymized_count' => $entitlementCount,
         'community_author_snapshot_anonymized_count' => $authorSnapshotAnonymizedCount,
         'community_post_extra_values_anonymized_count' => $postExtraValuesAnonymizedCount,
+        'community_post_field_values_anonymized_count' => $postFieldValuesAnonymizedCount,
         'community_submission_consent_anonymized_count' => $submissionConsentAnonymizedCount,
         'community_series_scrap_deleted_count' => $seriesScrapDeletedCount,
         'community_series_metadata_anonymized_count' => $seriesMetadataCount,

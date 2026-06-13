@@ -111,6 +111,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $values = sr_community_post_input_values($pdo, $board, $settings);
     $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
     $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
+    $values['extra_field_definitions'] = $extraFieldDefinitions;
+    $values['extra_field_values'] = $extraFieldValues;
     $values['seo_title'] = (string) ($post['seo_title'] ?? '');
     $values['seo_description'] = (string) ($post['seo_description'] ?? '');
     $values['og_title'] = (string) ($post['og_title'] ?? '');
