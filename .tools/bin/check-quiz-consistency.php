@@ -91,6 +91,8 @@ function sr_quiz_check_schema(): void
         'attempt_limit_policy VARCHAR(30)',
         'member_group_keys_json LONGTEXT',
         'comments_enabled TINYINT(1)',
+        'theme_key VARCHAR(40) NOT NULL DEFAULT \'\'',
+        'skin_key VARCHAR(40) NOT NULL DEFAULT \'\'',
         'return_url VARCHAR(255)',
         'source_module VARCHAR(40)',
         'source_type VARCHAR(60)',
@@ -102,6 +104,15 @@ function sr_quiz_check_schema(): void
             sr_quiz_check_error('quiz install.sql missing MVP marker: ' . $marker);
         }
     }
+
+    sr_quiz_check_file_contains('modules/quiz/module.php', [
+        "'version' => '2026.06.012'",
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/updates/2026.06.012.sql', [
+        'ALTER TABLE sr_quiz_sets',
+        'ADD COLUMN theme_key VARCHAR(40) NOT NULL DEFAULT \'\'',
+        'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\'',
+    ]);
 }
 
 function sr_quiz_check_asset_lookup_contracts(): void
@@ -166,6 +177,8 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_comments',
         'sr_member_mention_plain_text_html',
         'data-sr-mention-input',
+        'sr_quiz_display_settings_for_quiz',
+        "sr_quiz_skin_view_file(\$quizSettings, 'result')",
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [
         'deleted_at IS NULL',
@@ -184,6 +197,10 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_public_window_is_open',
         'member_group_keys_json',
         'comments_enabled',
+        'sr_quiz_display_settings_for_quiz',
+        'sr_quiz_optional_option_key_from_post',
+        'theme_key = :theme_key',
+        'skin_key = :skin_key',
         'sr_quiz_create_comment',
         'sr_quiz_create_comment_mention_notifications',
         'attempt_limit_policy',
@@ -220,6 +237,8 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_require_csrf()',
         'sr_quiz_admin_quizzes',
         'sr_quiz_save_admin_quiz',
+        'name="theme_key"',
+        'name="skin_key"',
         'sr_quiz_soft_delete',
         '저장할 퀴즈를 찾을 수 없습니다.',
         'question_uid[]',

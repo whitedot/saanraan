@@ -56,6 +56,25 @@ sr_survey_check_contains(
     'comments_enabled TINYINT(1)',
     'Survey forms must expose comments_enabled'
 );
+foreach (['theme_key VARCHAR(40) NOT NULL DEFAULT \'\'', 'skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/install.sql',
+        $needle,
+        'Survey forms must store individual display override keys'
+    );
+}
+sr_survey_check_contains(
+    'modules/survey/module.php',
+    "'version' => '2026.06.009'",
+    'Survey module version must include individual display override update'
+);
+foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN theme_key VARCHAR(40) NOT NULL DEFAULT \'\'', 'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/updates/2026.06.009.sql',
+        $needle,
+        'Survey display override update must add individual theme and skin columns'
+    );
+}
 sr_survey_check_contains(
     'modules/survey/updates/2026.06.005.sql',
     'CREATE TABLE IF NOT EXISTS {{SR_TABLE_PREFIX}}survey_comments',
@@ -78,11 +97,18 @@ foreach (['INFORMATION_SCHEMA.COLUMNS', 'member_group_keys_json', 'DO 0', 'INFOR
         'Survey 2026.06.003 update must be safe to retry after partial schema drift'
     );
 }
-foreach (['$skinKey = sr_survey_clean_key', '$settings[\'skin_key\'] = $skinKey'] as $needle) {
+foreach (['$themeKey = sr_survey_clean_key', '$skinKey = sr_survey_clean_key', '$settings[\'theme_key\'] = $themeKey', '$settings[\'skin_key\'] = $skinKey'] as $needle) {
     sr_survey_check_contains(
         'modules/survey/helpers.php',
         $needle,
-        'Survey settings POST validation must preserve submitted skin key until validation'
+        'Survey settings POST validation must preserve submitted display keys until validation'
+    );
+}
+foreach (['sr_survey_display_settings_for_survey', 'sr_survey_optional_option_key_from_post', 'survey-theme-\' . $themeKey'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/helpers.php',
+        $needle,
+        'Survey helpers must validate and apply global and individual display settings'
     );
 }
 sr_survey_check_contains(
@@ -200,6 +226,10 @@ foreach ([
     'sr_survey_admin_question_signature',
     '설문지 잠금 상태에서는 문항을 수정할 수 없습니다.',
     '수정할 설문을 찾을 수 없습니다.',
+    'name="theme_key"',
+    'name="skin_key"',
+    'theme_key = :theme_key',
+    'skin_key = :skin_key',
     'comments_enabled',
     'sr_survey_key_is_reserved',
 ] as $needle) {
