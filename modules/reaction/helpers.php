@@ -480,6 +480,391 @@ function sr_reaction_public_script_html(): string
     return '<script src="' . sr_e(sr_asset_url('/modules/reaction/assets/public.js')) . '" defer></script>';
 }
 
+function sr_reaction_definition_statuses(): array
+{
+    return ['active', 'disabled'];
+}
+
+function sr_reaction_preset_statuses(): array
+{
+    return ['active', 'disabled'];
+}
+
+function sr_reaction_icon_types(): array
+{
+    return ['emoji', 'material'];
+}
+
+function sr_reaction_admin_definitions(PDO $pdo): array
+{
+    if (!sr_reaction_tables_available($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT d.*,
+                (SELECT COUNT(*) FROM sr_reaction_records r WHERE r.reaction_key = d.reaction_key) AS record_count
+         FROM sr_reaction_definitions d
+         ORDER BY d.sort_order ASC, d.id ASC'
+    );
+
+    return $stmt !== false ? $stmt->fetchAll() : [];
+}
+
+function sr_reaction_admin_presets(PDO $pdo): array
+{
+    if (!sr_reaction_tables_available($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT *
+         FROM sr_reaction_presets
+         ORDER BY sort_order ASC, id ASC'
+    );
+
+    return $stmt !== false ? $stmt->fetchAll() : [];
+}
+
+function sr_reaction_admin_preset_items(PDO $pdo): array
+{
+    if (!sr_reaction_tables_available($pdo)) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT preset_key, reaction_key, sort_order, is_public
+         FROM sr_reaction_preset_items
+         ORDER BY preset_key ASC, sort_order ASC, id ASC'
+    );
+    $items = [];
+    if ($stmt !== false) {
+        foreach ($stmt->fetchAll() as $row) {
+            $presetKey = sr_reaction_clean_key((string) ($row['preset_key'] ?? ''));
+            if ($presetKey !== '') {
+                $items[$presetKey][] = $row;
+            }
+        }
+    }
+
+    return $items;
+}
+
+function sr_reaction_clean_label(string $value, int $maxLength = 80): string
+{
+    $value = trim(preg_replace('/\s+/u', ' ', $value) ?? $value);
+    if (function_exists('mb_substr')) {
+        return mb_substr($value, 0, $maxLength);
+    }
+
+    return substr($value, 0, $maxLength);
+}
+
+function sr_reaction_clean_color_hex(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    return preg_match('/\A#[0-9a-fA-F]{6}\z/', $value) === 1 ? strtolower($value) : '';
+}
+
+function sr_reaction_validate_definition_input(PDO $pdo, array $input): array
+{
+    $definitionId = max(0, (int) ($input['id'] ?? 0));
+    $key = sr_reaction_clean_key((string) ($input['reaction_key'] ?? ''));
+    $label = sr_reaction_clean_label((string) ($input['label'] ?? ''));
+    $iconType = (string) ($input['icon_type'] ?? 'emoji');
+    $iconValue = sr_reaction_clean_label((string) ($input['icon_value'] ?? ''), 40);
+    $colorHex = sr_reaction_clean_color_hex((string) ($input['color_hex'] ?? ''));
+    $colorSwatch = sr_reaction_clean_key((string) ($input['color_swatch'] ?? ''), 40);
+    $description = sr_reaction_clean_label((string) ($input['description'] ?? ''), 255);
+    $status = (string) ($input['status'] ?? 'active');
+    $sortOrder = max(0, min(999999, (int) ($input['sort_order'] ?? 100)));
+    $errors = [];
+
+    if ($definitionId < 1 && $key === '') {
+        $errors[] = '리액션 키는 영문 소문자, 숫자, _ 조합으로 입력하세요.';
+    }
+    if ($label === '') {
+        $errors[] = '표시명을 입력하세요.';
+    }
+    if (!in_array($iconType, sr_reaction_icon_types(), true)) {
+        $errors[] = '아이콘 유형을 확인하세요.';
+    }
+    if (!in_array($status, sr_reaction_definition_statuses(), true)) {
+        $errors[] = '상태 값을 확인하세요.';
+    }
+    if ((string) ($input['color_hex'] ?? '') !== '' && $colorHex === '') {
+        $errors[] = '색상은 #RRGGBB 형식으로 입력하세요.';
+    }
+
+    if ($definitionId < 1 && $key !== '') {
+        $stmt = $pdo->prepare('SELECT id FROM sr_reaction_definitions WHERE reaction_key = :reaction_key LIMIT 1');
+        $stmt->execute(['reaction_key' => $key]);
+        if (is_array($stmt->fetch())) {
+            $errors[] = '이미 사용 중인 리액션 키입니다.';
+        }
+    }
+
+    return [
+        'errors' => $errors,
+        'values' => [
+            'id' => $definitionId,
+            'reaction_key' => $key,
+            'label' => $label,
+            'icon_type' => $iconType,
+            'icon_value' => $iconValue,
+            'color_hex' => $colorHex,
+            'color_swatch' => $colorSwatch,
+            'description' => $description,
+            'status' => $status,
+            'sort_order' => $sortOrder,
+        ],
+    ];
+}
+
+function sr_reaction_save_definition(PDO $pdo, array $input, int $actorAccountId): array
+{
+    $validation = sr_reaction_validate_definition_input($pdo, $input);
+    $errors = $validation['errors'];
+    $values = $validation['values'];
+    if ($errors !== []) {
+        return ['ok' => false, 'errors' => $errors];
+    }
+
+    $now = sr_now();
+    if ((int) $values['id'] > 0) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_reaction_definitions
+             SET label = :label,
+                 icon_type = :icon_type,
+                 icon_value = :icon_value,
+                 color_hex = :color_hex,
+                 color_swatch = :color_swatch,
+                 description = :description,
+                 status = :status,
+                 sort_order = :sort_order,
+                 updated_by_account_id = :updated_by_account_id,
+                 updated_at = :updated_at
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'label' => $values['label'],
+            'icon_type' => $values['icon_type'],
+            'icon_value' => $values['icon_value'],
+            'color_hex' => $values['color_hex'],
+            'color_swatch' => $values['color_swatch'],
+            'description' => $values['description'],
+            'status' => $values['status'],
+            'sort_order' => $values['sort_order'],
+            'updated_by_account_id' => $actorAccountId,
+            'updated_at' => $now,
+            'id' => $values['id'],
+        ]);
+        return ['ok' => true, 'operation' => 'updated'];
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_reaction_definitions
+            (reaction_key, label, icon_type, icon_value, color_hex, color_swatch, description, status, sort_order, is_seed, created_by_account_id, updated_by_account_id, created_at, updated_at)
+         VALUES
+            (:reaction_key, :label, :icon_type, :icon_value, :color_hex, :color_swatch, :description, :status, :sort_order, 0, :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'reaction_key' => $values['reaction_key'],
+        'label' => $values['label'],
+        'icon_type' => $values['icon_type'],
+        'icon_value' => $values['icon_value'],
+        'color_hex' => $values['color_hex'],
+        'color_swatch' => $values['color_swatch'],
+        'description' => $values['description'],
+        'status' => $values['status'],
+        'sort_order' => $values['sort_order'],
+        'created_by_account_id' => $actorAccountId,
+        'updated_by_account_id' => $actorAccountId,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return ['ok' => true, 'operation' => 'created'];
+}
+
+function sr_reaction_validate_preset_input(PDO $pdo, array $input): array
+{
+    $presetId = max(0, (int) ($input['id'] ?? 0));
+    $presetKey = sr_reaction_clean_key((string) ($input['preset_key'] ?? ''));
+    $label = sr_reaction_clean_label((string) ($input['label'] ?? ''));
+    $description = sr_reaction_clean_label((string) ($input['description'] ?? ''), 255);
+    $status = (string) ($input['status'] ?? 'active');
+    $visibleKeyLimit = max(1, min(12, (int) ($input['visible_key_limit'] ?? 6)));
+    $sortOrder = max(0, min(999999, (int) ($input['sort_order'] ?? 100)));
+    $reactionKeys = [];
+    foreach ((array) ($input['reaction_keys'] ?? []) as $key) {
+        $cleanKey = is_string($key) ? sr_reaction_clean_key($key) : '';
+        if ($cleanKey !== '') {
+            $reactionKeys[] = $cleanKey;
+        }
+    }
+    $reactionKeys = array_values(array_unique($reactionKeys));
+    $errors = [];
+
+    if ($presetId < 1 && $presetKey === '') {
+        $errors[] = 'Preset 키는 영문 소문자, 숫자, _ 조합으로 입력하세요.';
+    }
+    if ($label === '') {
+        $errors[] = 'Preset 이름을 입력하세요.';
+    }
+    if (!in_array($status, sr_reaction_preset_statuses(), true)) {
+        $errors[] = 'Preset 상태 값을 확인하세요.';
+    }
+    if ($reactionKeys === []) {
+        $errors[] = 'Preset에 표시할 리액션을 하나 이상 선택하세요.';
+    }
+
+    if ($presetId < 1 && $presetKey !== '') {
+        $stmt = $pdo->prepare('SELECT id FROM sr_reaction_presets WHERE preset_key = :preset_key LIMIT 1');
+        $stmt->execute(['preset_key' => $presetKey]);
+        if (is_array($stmt->fetch())) {
+            $errors[] = '이미 사용 중인 preset 키입니다.';
+        }
+    }
+
+    if ($reactionKeys !== []) {
+        $placeholders = [];
+        $params = [];
+        foreach ($reactionKeys as $index => $key) {
+            $param = 'reaction_key_' . (string) $index;
+            $placeholders[] = ':' . $param;
+            $params[$param] = $key;
+        }
+        $stmt = $pdo->prepare('SELECT reaction_key FROM sr_reaction_definitions WHERE reaction_key IN (' . implode(', ', $placeholders) . ')');
+        $stmt->execute($params);
+        $existing = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $existing[] = (string) ($row['reaction_key'] ?? '');
+        }
+        foreach ($reactionKeys as $key) {
+            if (!in_array($key, $existing, true)) {
+                $errors[] = '정의되지 않은 리액션 키가 포함되어 있습니다.';
+                break;
+            }
+        }
+    }
+
+    return [
+        'errors' => $errors,
+        'values' => [
+            'id' => $presetId,
+            'preset_key' => $presetKey,
+            'label' => $label,
+            'description' => $description,
+            'status' => $status,
+            'visible_key_limit' => $visibleKeyLimit,
+            'sort_order' => $sortOrder,
+            'reaction_keys' => $reactionKeys,
+        ],
+    ];
+}
+
+function sr_reaction_save_preset(PDO $pdo, array $input, int $actorAccountId): array
+{
+    $validation = sr_reaction_validate_preset_input($pdo, $input);
+    $errors = $validation['errors'];
+    $values = $validation['values'];
+    if ($errors !== []) {
+        return ['ok' => false, 'errors' => $errors];
+    }
+
+    $now = sr_now();
+    $pdo->beginTransaction();
+    try {
+        $presetKey = (string) $values['preset_key'];
+        if ((int) $values['id'] > 0) {
+            $stmt = $pdo->prepare('SELECT preset_key FROM sr_reaction_presets WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => (int) $values['id']]);
+            $row = $stmt->fetch();
+            if (!is_array($row)) {
+                throw new RuntimeException('preset_not_found');
+            }
+            $presetKey = (string) ($row['preset_key'] ?? '');
+            $stmt = $pdo->prepare(
+                'UPDATE sr_reaction_presets
+                 SET label = :label,
+                     description = :description,
+                     status = :status,
+                     selection_policy = \'single\',
+                     visible_key_limit = :visible_key_limit,
+                     sort_order = :sort_order,
+                     updated_by_account_id = :updated_by_account_id,
+                     updated_at = :updated_at
+                 WHERE id = :id'
+            );
+            $stmt->execute([
+                'label' => $values['label'],
+                'description' => $values['description'],
+                'status' => $values['status'],
+                'visible_key_limit' => $values['visible_key_limit'],
+                'sort_order' => $values['sort_order'],
+                'updated_by_account_id' => $actorAccountId,
+                'updated_at' => $now,
+                'id' => $values['id'],
+            ]);
+            $operation = 'updated';
+        } else {
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_reaction_presets
+                    (preset_key, label, description, status, selection_policy, visible_key_limit, sort_order, created_by_account_id, updated_by_account_id, created_at, updated_at)
+                 VALUES
+                    (:preset_key, :label, :description, :status, \'single\', :visible_key_limit, :sort_order, :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
+            );
+            $stmt->execute([
+                'preset_key' => $presetKey,
+                'label' => $values['label'],
+                'description' => $values['description'],
+                'status' => $values['status'],
+                'visible_key_limit' => $values['visible_key_limit'],
+                'sort_order' => $values['sort_order'],
+                'created_by_account_id' => $actorAccountId,
+                'updated_by_account_id' => $actorAccountId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $operation = 'created';
+        }
+
+        $stmt = $pdo->prepare('DELETE FROM sr_reaction_preset_items WHERE preset_key = :preset_key');
+        $stmt->execute(['preset_key' => $presetKey]);
+        $sortOrder = 10;
+        foreach ($values['reaction_keys'] as $reactionKey) {
+            $stmt = $pdo->prepare(
+                'INSERT INTO sr_reaction_preset_items
+                    (preset_key, reaction_key, sort_order, is_public, created_at, updated_at)
+                 VALUES
+                    (:preset_key, :reaction_key, :sort_order, 1, :created_at, :updated_at)'
+            );
+            $stmt->execute([
+                'preset_key' => $presetKey,
+                'reaction_key' => $reactionKey,
+                'sort_order' => $sortOrder,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $sortOrder += 10;
+        }
+
+        $pdo->commit();
+        return ['ok' => true, 'operation' => $operation];
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        sr_log_exception($exception, 'reaction_preset_save');
+        return ['ok' => false, 'errors' => ['Preset 저장 중 오류가 발생했습니다.']];
+    }
+}
+
 function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int $actorAccountId, array $target, string $reactionKey): bool
 {
     if ($recipientAccountId < 1 || $actorAccountId < 1 || $recipientAccountId === $actorAccountId) {

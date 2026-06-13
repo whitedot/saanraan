@@ -177,14 +177,49 @@ sr_reaction_record_write_rate_limit($pdo, 9);
 sr_reaction_record_write_rate_limit($pdo, 9);
 $assert(sr_reaction_write_rate_limited($pdo, 9) === true, 'write rate limit should close after configured attempts.');
 
+$definitionCreate = sr_reaction_save_definition($pdo, [
+    'reaction_key' => 'fun',
+    'label' => '재밌어요',
+    'icon_type' => 'emoji',
+    'icon_value' => 'ha',
+    'color_hex' => '#123abc',
+    'description' => '테스트 정의',
+    'status' => 'active',
+    'sort_order' => 40,
+], 1);
+$assert(!empty($definitionCreate['ok']), 'admin definition create should pass with a new key.');
+$definitionDuplicate = sr_reaction_save_definition($pdo, [
+    'reaction_key' => 'fun',
+    'label' => '중복',
+    'status' => 'active',
+], 1);
+$assert(empty($definitionDuplicate['ok']), 'admin definition create should reject duplicate keys.');
+$presetCreate = sr_reaction_save_preset($pdo, [
+    'preset_key' => 'funny',
+    'label' => '재미형',
+    'description' => '테스트 preset',
+    'status' => 'active',
+    'visible_key_limit' => 6,
+    'sort_order' => 50,
+    'reaction_keys' => ['like', 'fun'],
+], 1);
+$assert(!empty($presetCreate['ok']), 'admin preset create should save selected keys.');
+$presetItemCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_preset_items WHERE preset_key = 'funny'")->fetchColumn();
+$assert($presetItemCount === 2, 'admin preset create should replace preset items.');
+
 $module = include SR_ROOT . '/modules/reaction/module.php';
 $paths = include SR_ROOT . '/modules/reaction/paths.php';
+$adminMenu = include SR_ROOT . '/modules/reaction/admin-menu.php';
 $assert(
     is_array($module)
         && in_array('paths.php', array_map('strval', (array) ($module['contracts']['provides'] ?? [])), true)
+        && in_array('admin-menu.php', array_map('strval', (array) ($module['contracts']['provides'] ?? [])), true)
         && is_array($paths)
-        && (string) ($paths['POST /reaction/write'] ?? '') === 'actions/write.php',
-    'reaction module should provide a public write route.'
+        && (string) ($paths['POST /reaction/write'] ?? '') === 'actions/write.php'
+        && (string) ($paths['GET /admin/reactions'] ?? '') === 'actions/admin-reactions.php'
+        && is_array($adminMenu)
+        && is_array($adminMenu['items'] ?? null),
+    'reaction module should provide public and admin routes.'
 );
 
 if ($errors !== []) {
