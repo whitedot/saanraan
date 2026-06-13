@@ -207,7 +207,7 @@ return [
 
 커뮤니티 게시판 스킨은 게시판 유형별 기능 차이가 자연스럽기 때문에 선택 action 계약을 허용한다. 관리자 스킨, 회원 스킨, 배너 스킨, 팝업레이어 스킨, 공개 레이아웃, 커뮤니티 레이아웃은 현재 표시 전용 계약으로 유지한다. 이 표시 전용 계약들은 필수 view가 없는 option을 선택 목록에서 제외하고, 저장된 key가 무효가 되면 기본 option으로 fallback한다. 기본 필수 view가 없으면 설치 오류로 본다.
 
-퀴즈와 설문 공개 화면도 모듈별 테마/스킨 key를 설정으로 저장한다. 환경설정의 기본 key는 `basic`이고, 개별 퀴즈/설문의 `theme_key`나 `skin_key`가 비어 있으면 환경설정 기본값을 상속한다. 개별 값이 있으면 해당 모듈의 정적 허용 목록으로 검증한 뒤 공개 상세/응시/응답/완료 화면에서 개별값을 우선한다. 스킨 옵션 source of truth는 각각 `sr_quiz_skin_options()`, `sr_survey_skin_options()`다. 퀴즈 스킨 필수 view는 `home`, `view`, `result`이고, 설문 스킨 필수 view는 `home`, `view`, `complete`다. 공개 action은 설정된 `skin_key`와 내부 view 이름을 helper가 검증한 파일 경로로 매핑한 뒤 include한다. 스킨 또는 view 파일이 없으면 해당 view만 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file을 남긴다. 스킨 출력은 기존 공개 레이아웃 안쪽 본문을 대체하며, 퀴즈는 `quiz-theme-*`와 `quiz-skin-*`, 설문은 `survey-theme-*`와 `survey-skin-*` class hook을 유지해야 한다. 퀴즈 결과와 설문 완료 스킨은 보상 지급 결과 안내 surface를 빠뜨리지 않아야 한다.
+퀴즈와 설문 공개 화면도 모듈별 스킨 key를 설정으로 저장한다. 환경설정의 기본 key는 `basic`이고, 개별 퀴즈/설문의 `skin_key`가 비어 있으면 환경설정 기본값을 상속한다. 개별 값이 있으면 해당 모듈의 정적 허용 목록으로 검증한 뒤 공개 상세/응시/응답/완료 화면에서 개별값을 우선한다. 스킨 옵션 source of truth는 각각 `sr_quiz_skin_options()`, `sr_survey_skin_options()`다. 퀴즈 스킨 필수 view는 `home`, `view`, `result`이고, 설문 스킨 필수 view는 `home`, `view`, `complete`다. 공개 action은 설정된 `skin_key`와 내부 view 이름을 helper가 검증한 파일 경로로 매핑한 뒤 include한다. 스킨 또는 view 파일이 없으면 해당 view만 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file을 남긴다. 스킨 출력은 기존 공개 레이아웃 안쪽 본문을 대체하며, 퀴즈는 `quiz-skin-*`와 `sr-quiz-skin-*`, 설문은 `survey-skin-*` class hook을 유지해야 한다. 퀴즈 결과와 설문 완료 스킨은 보상 지급 결과 안내 surface를 빠뜨리지 않아야 한다.
 
 ## 3. 이름 규칙
 

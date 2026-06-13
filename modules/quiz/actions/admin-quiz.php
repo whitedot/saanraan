@@ -501,9 +501,8 @@ $quizHelp = [
         'id' => 'quiz-help-display-modal',
         'title' => '공개 화면 표시',
         'body_html' => $quizHelpBodyHtml([
-            '테마는 같은 화면 구조에서 색감과 강조 표현을 바꾸는 값입니다.',
-            '스킨은 목록, 상세, 결과 같은 공개 화면 템플릿 파일을 바꾸는 값입니다.',
-            '선택안함으로 두면 퀴즈 환경설정의 기본 테마와 스킨을 사용합니다.',
+            '스킨은 목록, 상세, 결과 같은 공개 화면 본문의 출력 방식입니다.',
+            '선택안함으로 두면 퀴즈 환경설정의 기본 스킨을 사용합니다.',
         ]),
     ],
     'reward' => [
@@ -622,18 +621,6 @@ $quizSectionNavItems = [
                 <label class="form-label" for="quiz_description">설명</label>
                 <div class="admin-form-field">
                     <textarea id="quiz_description" name="description" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_theme_key', '테마', $quizHelp['display']['id'], $quizHelpOpenLabel); ?>
-                <div class="admin-form-field">
-                    <select id="quiz_theme_key" name="theme_key" class="form-select">
-                        <option value="">환경설정 기본값 사용</option>
-                        <?php foreach (sr_quiz_theme_options() as $themeKey => $themeLabel) { ?>
-                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($values['theme_key'] ?? '') === (string) $themeKey ? ' selected' : ''; ?>><?php echo sr_e((string) $themeLabel); ?></option>
-                        <?php } ?>
-                    </select>
-                    <p class="admin-form-help">같은 퀴즈 화면 구조 안에서 색감, 밀도, 강조 표현을 바꿉니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">

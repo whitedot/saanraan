@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     quiz_key VARCHAR(64) NOT NULL,
     title VARCHAR(190) NOT NULL,
     description TEXT NULL,
-    theme_key VARCHAR(40) NOT NULL DEFAULT '',
     skin_key VARCHAR(40) NOT NULL DEFAULT '',
     status VARCHAR(20) NOT NULL DEFAULT 'draft',
     quiz_mode VARCHAR(30) NOT NULL DEFAULT 'scored',

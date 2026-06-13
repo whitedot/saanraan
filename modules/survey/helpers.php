@@ -163,7 +163,6 @@ function sr_survey_member_group_keys_json(array $groupKeys): string
 function sr_survey_default_settings(): array
 {
     return [
-        'theme_key' => 'basic',
         'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,
@@ -172,19 +171,6 @@ function sr_survey_default_settings(): array
         'default_response_limit_period_seconds' => 0,
         'public_list_limit' => 50,
     ];
-}
-
-function sr_survey_theme_options(): array
-{
-    return [
-        'basic' => '기본형',
-    ];
-}
-
-function sr_survey_theme_key(string $value): string
-{
-    $value = strtolower(trim($value));
-    return isset(sr_survey_theme_options()[$value]) ? $value : 'basic';
 }
 
 function sr_survey_skin_options(): array
@@ -203,16 +189,6 @@ function sr_survey_skin_key(string $value): string
 {
     $value = strtolower(trim($value));
     return isset(sr_survey_skin_options()[$value]) ? $value : 'basic';
-}
-
-function sr_survey_clean_optional_theme_key(string $value): string
-{
-    $value = strtolower(trim($value));
-    if ($value === '') {
-        return '';
-    }
-
-    return isset(sr_survey_theme_options()[$value]) ? $value : '';
 }
 
 function sr_survey_clean_optional_skin_key(string $value): string
@@ -239,7 +215,6 @@ function sr_survey_normalize_settings(array $settings): array
 {
     $defaults = sr_survey_default_settings();
     $normalized = array_merge($defaults, $settings);
-    $normalized['theme_key'] = sr_survey_theme_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
     $normalized['skin_key'] = sr_survey_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_survey_statuses(), true) ? (string) $normalized['default_status'] : (string) $defaults['default_status'];
     $normalized['default_login_required'] = !empty($normalized['default_login_required']) ? 1 : 0;
@@ -258,10 +233,8 @@ function sr_survey_settings(PDO $pdo): array
 
 function sr_survey_settings_from_post(): array
 {
-    $themeKey = sr_survey_clean_key(sr_post_string('theme_key', 40), 40);
     $skinKey = sr_survey_clean_key(sr_post_string('skin_key', 40), 40);
     $settings = sr_survey_normalize_settings([
-        'theme_key' => $themeKey,
         'skin_key' => $skinKey,
         'default_status' => sr_post_string('default_status', 20),
         'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
@@ -270,7 +243,6 @@ function sr_survey_settings_from_post(): array
         'default_response_limit_period_seconds' => sr_post_string('default_response_limit_period_seconds', 20),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
-    $settings['theme_key'] = $themeKey;
     $settings['skin_key'] = $skinKey;
 
     return $settings;
@@ -279,9 +251,6 @@ function sr_survey_settings_from_post(): array
 function sr_survey_settings_validation_errors(array $settings): array
 {
     $errors = [];
-    if (!isset(sr_survey_theme_options()[(string) ($settings['theme_key'] ?? '')])) {
-        $errors[] = '설문 테마 값이 올바르지 않습니다.';
-    }
     if (!isset(sr_survey_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
         $errors[] = '설문 스킨 값이 올바르지 않습니다.';
     }
@@ -297,10 +266,9 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/survey/assets/public.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
-    $themeKey = sr_survey_theme_key((string) ($settings['theme_key'] ?? 'basic'));
     $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
-    $context['body_class'] = trim($bodyClass . ' survey-theme-' . $themeKey . ' survey-skin-' . $skinKey);
+    $context['body_class'] = trim($bodyClass . ' survey-skin-' . $skinKey);
 
     return $context;
 }
@@ -308,11 +276,7 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
 function sr_survey_display_settings_for_survey(array $settings, array $survey): array
 {
     $settings = sr_survey_normalize_settings($settings);
-    $themeKey = sr_survey_clean_optional_theme_key((string) ($survey['theme_key'] ?? ''));
     $skinKey = sr_survey_clean_optional_skin_key((string) ($survey['skin_key'] ?? ''));
-    if ($themeKey !== '') {
-        $settings['theme_key'] = $themeKey;
-    }
     if ($skinKey !== '') {
         $settings['skin_key'] = $skinKey;
     }

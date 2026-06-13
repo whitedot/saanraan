@@ -63,19 +63,11 @@ $quizSettingsHelp = [
             '레이아웃 변경은 기존 퀴즈 데이터나 응시 기록을 바꾸지 않고, 화면 출력 방식만 바꿉니다.',
         ]),
     ],
-    'theme_key' => [
-        'id' => 'quiz-settings-help-theme-key',
-        'title' => '퀴즈 테마',
-        'body_html' => $quizSettingsHelpBodyHtml([
-            '같은 레이아웃 안에서 목록, 문제, 선택지, 결과 표시 분위기를 바꿉니다.',
-            '테마 변경은 퀴즈 내용, 정답, 보상 지급 기록에 영향을 주지 않습니다.',
-        ]),
-    ],
     'skin_key' => [
         'id' => 'quiz-settings-help-skin-key',
         'title' => '퀴즈 스킨',
         'body_html' => $quizSettingsHelpBodyHtml([
-            '퀴즈 공개 목록, 상세/응시, 결과 화면의 본문 화면 파일 묶음입니다.',
+            '퀴즈 공개 목록, 상세/응시, 결과 화면의 본문 출력 방식입니다.',
             '허용된 스킨 관리용 키만 저장하고, 누락된 화면 파일은 기본 스킨으로 대체합니다.',
         ]),
     ],
@@ -252,19 +244,6 @@ $quizSettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="admin-form-help">퀴즈 목록과 퀴즈 풀이 화면에 적용할 공개 레이아웃입니다.</p>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_settings_theme_key', '퀴즈 테마', $quizSettingsHelp['theme_key']['id'], $quizSettingsHelpOpenLabel, true); ?>
-                <div class="admin-form-field">
-                    <select id="quiz_settings_theme_key" name="theme_key" class="form-select" required>
-                        <?php foreach (sr_quiz_theme_options() as $themeKey => $themeLabel) { ?>
-                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'basic') === (string) $themeKey ? ' selected' : ''; ?>>
-                                <?php echo sr_e((string) $themeLabel); ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                    <p class="admin-form-help">퀴즈 목록, 문제, 선택지, 결과 화면의 표현 방식을 선택합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">

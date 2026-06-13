@@ -2,7 +2,7 @@
 
 return [
     'name' => '설문',
-    'version' => '2026.06.009',
+    'version' => '2026.06.010',
     'type' => 'module',
     'description' => '설문 작성, 공개 응답 수집, 응답 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -22,7 +22,6 @@ return [
         'modules' => ['member', 'admin'],
     ],
     'settings' => [
-        'theme_key' => 'basic',
         'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,

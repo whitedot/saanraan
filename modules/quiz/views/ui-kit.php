@@ -32,7 +32,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     <a class="btn btn-sm btn-soft-default" href="#ui-kit-list">목록</a>
                     <a class="btn btn-sm btn-soft-default" href="#ui-kit-attempt">응시</a>
                     <a class="btn btn-sm btn-soft-default" href="#ui-kit-states">상태</a>
-                    <a class="btn btn-sm btn-soft-default" href="#ui-kit-themes">테마</a>
+                    <a class="btn btn-sm btn-soft-default" href="#ui-kit-skins">스킨</a>
                 </nav>
             </div>
         </section>
@@ -143,14 +143,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                 </div>
             </section>
 
-            <section id="ui-kit-themes" class="public-ui-kit-section ui-kit-space-before-base" aria-labelledby="ui-kit-themes-title">
-                <h2 id="ui-kit-themes-title" class="public-ui-kit-section-title">테마</h2>
+            <section id="ui-kit-skins" class="public-ui-kit-section ui-kit-space-before-base" aria-labelledby="ui-kit-skins-title">
+                <h2 id="ui-kit-skins-title" class="public-ui-kit-section-title">스킨</h2>
                 <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-lg-2 ui-kit-gap-base">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">카드형</h3>
                         </div>
-                        <div class="card-body quiz-ui-kit-frame sr-quiz-page sr-quiz-theme-card">
+                        <div class="card-body quiz-ui-kit-frame sr-quiz-page sr-quiz-skin-card">
                             <div class="sr-public-main">
                                 <section class="sr-public-section">
                                     <div class="sr-public-container">
@@ -169,7 +169,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                         <div class="card-header">
                             <h3 class="card-title">집중형</h3>
                         </div>
-                        <div class="card-body quiz-ui-kit-frame sr-quiz-page sr-quiz-theme-focus">
+                        <div class="card-body quiz-ui-kit-frame sr-quiz-page sr-quiz-skin-focus">
                             <div class="sr-public-main">
                                 <section class="sr-public-section">
                                     <div class="sr-public-container">

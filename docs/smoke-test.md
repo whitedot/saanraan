@@ -41,7 +41,7 @@ rich text sanitizer payload 회귀 점검
 
 현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`, 임베드 매니저 계약 구조 기준은 `.tools/bin/check-embed-manager-contracts.php`가 확인하며 모두 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
 
-퀴즈/설문 공개 스킨 설정을 바꾼 경우 `/admin/quiz/settings`, `/admin/surveys/settings`의 기본값과 개별 퀴즈/설문 수정 화면의 `theme_key`/`skin_key`가 허용 목록 값으로만 저장되는지 확인한다. 개별 값이 비어 있으면 환경설정 기본값을 상속하고, 개별 값이 있으면 상세/응시/응답/완료 화면에서 개별값이 우선해야 한다. `/quiz`, `/quiz/{quiz_key}`, `/survey`, `/survey/{survey_key}`는 선택 스킨의 `home`/`view` 본문을 공개 레이아웃 안에서 렌더링해야 하며, 결과/완료 화면의 보상 지급 안내가 유지되어야 한다. 잘못된 legacy `skin_key`나 누락된 스킨 view는 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file이 남는지 확인한다.
+퀴즈/설문 공개 스킨 설정을 바꾼 경우 `/admin/quiz/settings`, `/admin/surveys/settings`의 기본값과 개별 퀴즈/설문 수정 화면의 `skin_key`가 허용 목록 값으로만 저장되는지 확인한다. 개별 값이 비어 있으면 환경설정 기본값을 상속하고, 개별 값이 있으면 상세/응시/응답/완료 화면에서 개별값이 우선해야 한다. `/quiz`, `/quiz/{quiz_key}`, `/survey`, `/survey/{survey_key}`는 선택 스킨의 `home`/`view` 본문을 공개 레이아웃 안에서 렌더링해야 하며, 결과/완료 화면의 보상 지급 안내가 유지되어야 한다. 잘못된 legacy `skin_key`나 누락된 스킨 view는 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file이 남는지 확인한다.
 
 설문 모듈을 확인할 때는 기타 선택지를 고른 공개 응답이 기타 텍스트를 요구하고, 분석 CSV와 개인정보 사본의 `other_text`에 저장되는지 함께 본다.
 

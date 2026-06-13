@@ -17,7 +17,7 @@
     width: 100%;
 }
 
-.quiz-ui-kit-frame.sr-quiz-theme-focus {
+.quiz-ui-kit-frame.sr-quiz-skin-focus {
     padding: clamp(18px, 4vw, 32px);
 }
 

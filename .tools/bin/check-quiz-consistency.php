@@ -91,7 +91,6 @@ function sr_quiz_check_schema(): void
         'attempt_limit_policy VARCHAR(30)',
         'member_group_keys_json LONGTEXT',
         'comments_enabled TINYINT(1)',
-        'theme_key VARCHAR(40) NOT NULL DEFAULT \'\'',
         'skin_key VARCHAR(40) NOT NULL DEFAULT \'\'',
         'return_url VARCHAR(255)',
         'source_module VARCHAR(40)',
@@ -106,12 +105,17 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.06.012'",
+        "'version' => '2026.06.013'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.012.sql', [
         'ALTER TABLE sr_quiz_sets',
-        'ADD COLUMN theme_key VARCHAR(40) NOT NULL DEFAULT \'\'',
         'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\'',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/updates/2026.06.013.sql', [
+        'ALTER TABLE {{SR_TABLE_PREFIX}}quiz_sets DROP COLUMN theme_key',
+        'UPDATE {{SR_TABLE_PREFIX}}quiz_sets SET skin_key = theme_key',
+        "s.setting_key = 'theme_key'",
+        "version = '2026.06.013'",
     ]);
 }
 
@@ -199,8 +203,9 @@ function sr_quiz_check_paths_and_admin(): void
         'comments_enabled',
         'sr_quiz_display_settings_for_quiz',
         'sr_quiz_optional_option_key_from_post',
-        'theme_key = :theme_key',
         'skin_key = :skin_key',
+        "'card' => '카드형'",
+        "'focus' => '집중형'",
         'sr_quiz_create_comment',
         'sr_quiz_create_comment_mention_notifications',
         'attempt_limit_policy',
@@ -237,7 +242,6 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_require_csrf()',
         'sr_quiz_admin_quizzes',
         'sr_quiz_save_admin_quiz',
-        'name="theme_key"',
         'name="skin_key"',
         'sr_quiz_soft_delete',
         '저장할 퀴즈를 찾을 수 없습니다.',

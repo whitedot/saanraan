@@ -150,7 +150,6 @@ function sr_quiz_default_settings(): array
 {
     return [
         'layout_key' => 'quiz.basic',
-        'theme_key' => 'basic',
         'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',
@@ -176,25 +175,12 @@ function sr_quiz_default_settings(): array
     ];
 }
 
-function sr_quiz_theme_options(): array
+function sr_quiz_skin_options(): array
 {
     return [
         'basic' => '기본형',
         'card' => '카드형',
         'focus' => '집중형',
-    ];
-}
-
-function sr_quiz_theme_key(string $value): string
-{
-    $value = strtolower(trim($value));
-    return isset(sr_quiz_theme_options()[$value]) ? $value : 'basic';
-}
-
-function sr_quiz_skin_options(): array
-{
-    return [
-        'basic' => '기본형',
     ];
 }
 
@@ -207,16 +193,6 @@ function sr_quiz_skin_key(string $value): string
 {
     $value = strtolower(trim($value));
     return isset(sr_quiz_skin_options()[$value]) ? $value : 'basic';
-}
-
-function sr_quiz_clean_optional_theme_key(string $value): string
-{
-    $value = strtolower(trim($value));
-    if ($value === '') {
-        return '';
-    }
-
-    return isset(sr_quiz_theme_options()[$value]) ? $value : '';
 }
 
 function sr_quiz_clean_optional_skin_key(string $value): string
@@ -239,7 +215,7 @@ function sr_quiz_optional_option_key_from_post(string $value, array $options): s
     return isset($options[$value]) ? $value : '__invalid__';
 }
 
-function sr_quiz_clean_theme_key(string $value): string
+function sr_quiz_clean_option_key(string $value): string
 {
     $value = strtolower(trim($value));
     return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $value) === 1 ? $value : '';
@@ -268,7 +244,6 @@ function sr_quiz_normalize_settings(array $settings): array
     $normalized = array_merge($defaults, $settings);
 
     $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
-    $normalized['theme_key'] = sr_quiz_theme_key((string) ($normalized['theme_key'] ?? $defaults['theme_key']));
     $normalized['skin_key'] = sr_quiz_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     foreach (sr_quiz_layout_menu_slots() as $settingKey) {
         $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
@@ -328,13 +303,11 @@ function sr_quiz_settings(PDO $pdo): array
 
 function sr_quiz_settings_from_post(): array
 {
-    $themeKey = sr_quiz_clean_theme_key(sr_post_string('theme_key', 40));
-    $skinKey = sr_quiz_clean_theme_key(sr_post_string('skin_key', 40));
+    $skinKey = sr_quiz_clean_option_key(sr_post_string('skin_key', 40));
     $rewardProvider = sr_quiz_clean_key(sr_post_string('default_reward_provider', 30), 30);
     $rewardDedupeScope = sr_quiz_clean_key(sr_post_string('default_reward_dedupe_scope', 20), 20);
     $settings = sr_quiz_normalize_settings([
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
-        'theme_key' => $themeKey,
         'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_secondary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_secondary_menu_key', 60)),
@@ -358,7 +331,6 @@ function sr_quiz_settings_from_post(): array
         'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
-    $settings['theme_key'] = $themeKey;
     $settings['skin_key'] = $skinKey;
     $settings['default_reward_provider'] = $rewardProvider;
     $settings['default_reward_dedupe_scope'] = $rewardDedupeScope;
@@ -371,9 +343,6 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     $errors = [];
     if (!isset(sr_public_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
         $errors[] = '퀴즈 공개 레이아웃 값이 올바르지 않습니다.';
-    }
-    if (!isset(sr_quiz_theme_options()[(string) ($settings['theme_key'] ?? '')])) {
-        $errors[] = '퀴즈 테마 값이 올바르지 않습니다.';
     }
     if (!isset(sr_quiz_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
         $errors[] = '퀴즈 스킨 값이 올바르지 않습니다.';
@@ -426,10 +395,9 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/quiz/assets/public.css';
     $context['stylesheets'] = $stylesheets;
-    $themeKey = sr_quiz_theme_key((string) ($settings['theme_key'] ?? 'basic'));
     $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
-    $context['body_class'] = trim($bodyClass . ' sr-quiz-theme-' . $themeKey . ' quiz-theme-' . $themeKey . ' quiz-skin-' . $skinKey);
+    $context['body_class'] = trim($bodyClass . ' sr-quiz-skin-' . $skinKey . ' quiz-skin-' . $skinKey);
 
     $siteMenus = [];
     foreach (sr_quiz_layout_menu_slots() as $slotKey => $settingKey) {
@@ -443,11 +411,7 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
 function sr_quiz_display_settings_for_quiz(array $settings, array $quiz): array
 {
     $settings = sr_quiz_normalize_settings($settings);
-    $themeKey = sr_quiz_clean_optional_theme_key((string) ($quiz['theme_key'] ?? ''));
     $skinKey = sr_quiz_clean_optional_skin_key((string) ($quiz['skin_key'] ?? ''));
-    if ($themeKey !== '') {
-        $settings['theme_key'] = $themeKey;
-    }
     if ($skinKey !== '') {
         $settings['skin_key'] = $skinKey;
     }
@@ -2753,7 +2717,6 @@ function sr_quiz_default_admin_values(?array $settings = null): array
         'quiz_key' => '',
         'title' => '',
         'description' => '',
-        'theme_key' => '',
         'skin_key' => '',
         'status' => (string) $settings['default_status'],
         'quiz_mode' => (string) $settings['default_quiz_mode'],
@@ -2839,7 +2802,6 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'quiz_key' => (string) ($quiz['quiz_key'] ?? ''),
         'title' => (string) ($quiz['title'] ?? ''),
         'description' => (string) ($quiz['description'] ?? ''),
-        'theme_key' => sr_quiz_clean_optional_theme_key((string) ($quiz['theme_key'] ?? '')),
         'skin_key' => sr_quiz_clean_optional_skin_key((string) ($quiz['skin_key'] ?? '')),
         'status' => (string) ($quiz['status'] ?? 'draft'),
         'quiz_mode' => (string) ($quiz['quiz_mode'] ?? 'scored'),
@@ -2867,7 +2829,6 @@ function sr_quiz_admin_values_from_row(array $quiz): array
 
 function sr_quiz_admin_values_from_post(): array
 {
-    $themeKey = sr_quiz_optional_option_key_from_post(sr_post_string('theme_key', 40), sr_quiz_theme_options());
     $skinKey = sr_quiz_optional_option_key_from_post(sr_post_string('skin_key', 40), sr_quiz_skin_options());
 
     $resultRuleKeys = $_POST['result_rule_key'] ?? [];
@@ -2985,7 +2946,6 @@ function sr_quiz_admin_values_from_post(): array
         'quiz_key' => sr_quiz_clean_key(sr_post_string('quiz_key', 64)),
         'title' => sr_quiz_clean_single_line(sr_post_string('title', 190), 190),
         'description' => sr_quiz_clean_text(sr_post_string('description', 2000), 2000),
-        'theme_key' => $themeKey,
         'skin_key' => $skinKey,
         'status' => sr_post_string('status', 20),
         'quiz_mode' => sr_post_string('quiz_mode', 30),
@@ -3201,10 +3161,6 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     }
     if ((string) ($values['title'] ?? '') === '') {
         $errors[] = '퀴즈 제목을 입력하세요.';
-    }
-    $themeKey = (string) ($values['theme_key'] ?? '');
-    if ($themeKey !== '' && !isset(sr_quiz_theme_options()[$themeKey])) {
-        $errors[] = '퀴즈 테마 값이 올바르지 않습니다.';
     }
     $skinKey = (string) ($values['skin_key'] ?? '');
     if ($skinKey !== '' && !isset(sr_quiz_skin_options()[$skinKey])) {
@@ -3494,11 +3450,11 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
 
         $insertQuiz = $pdo->prepare(
             'INSERT INTO sr_quiz_sets
-                (quiz_key, title, description, theme_key, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
+                (quiz_key, title, description, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
                  attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reward_enabled,
                  created_by_account_id, updated_by_account_id, created_at, updated_at)
              VALUES
-                (:quiz_key, :title, :description, :theme_key, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
+                (:quiz_key, :title, :description, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
                  :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reward_enabled,
                  :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
         );
@@ -3507,7 +3463,6 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
             'quiz_key' => $newQuizKey,
             'title' => (string) ($options['title'] ?? ''),
             'description' => (string) ($sourceQuiz['description'] ?? ''),
-            'theme_key' => sr_quiz_clean_optional_theme_key((string) ($sourceQuiz['theme_key'] ?? '')),
             'skin_key' => sr_quiz_clean_optional_skin_key((string) ($sourceQuiz['skin_key'] ?? '')),
             'status' => !empty($options['copy_status']) ? (string) ($sourceQuiz['status'] ?? 'draft') : 'draft',
             'quiz_mode' => (string) ($sourceQuiz['quiz_mode'] ?? 'scored'),
@@ -3760,7 +3715,6 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
     $memberGroupKeysJson = json_encode(sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $commentsEnabled = !empty($values['comments_enabled']) ? 1 : 0;
     $secretCommentsEnabled = !empty($values['secret_comments_enabled']) ? 1 : 0;
-    $themeKey = sr_quiz_clean_optional_theme_key((string) ($values['theme_key'] ?? ''));
     $skinKey = sr_quiz_clean_optional_skin_key((string) ($values['skin_key'] ?? ''));
     $settings = sr_quiz_settings($pdo);
     $defaultCtaLabel = (string) ($settings['default_cta_label'] ?? '퀴즈 풀기');
@@ -3786,7 +3740,6 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                  SET quiz_key = :quiz_key,
                      title = :title,
                      description = :description,
-                     theme_key = :theme_key,
                      skin_key = :skin_key,
                      status = :status,
                      quiz_mode = :quiz_mode,
@@ -3809,7 +3762,6 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'quiz_key' => (string) $values['quiz_key'],
                 'title' => (string) $values['title'],
                 'description' => (string) $values['description'],
-                'theme_key' => $themeKey,
                 'skin_key' => $skinKey,
                 'status' => (string) $values['status'],
                 'quiz_mode' => $quizMode,
@@ -3830,11 +3782,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_quiz_sets
-                    (quiz_key, title, description, theme_key, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
+                    (quiz_key, title, description, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
                      attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reward_enabled,
                      created_by_account_id, updated_by_account_id, created_at, updated_at)
                  VALUES
-                    (:quiz_key, :title, :description, :theme_key, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
+                    (:quiz_key, :title, :description, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
                      :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reward_enabled,
                      :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
             );
@@ -3842,7 +3794,6 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'quiz_key' => (string) $values['quiz_key'],
                 'title' => (string) $values['title'],
                 'description' => (string) $values['description'],
-                'theme_key' => $themeKey,
                 'skin_key' => $skinKey,
                 'status' => (string) $values['status'],
                 'quiz_mode' => $quizMode,
