@@ -254,6 +254,20 @@ $presetCreate = sr_reaction_save_preset($pdo, [
 $assert(!empty($presetCreate['ok']), 'admin preset create should save selected keys.');
 $presetItemCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_preset_items WHERE preset_key = 'funny'")->fetchColumn();
 $assert($presetItemCount === 2, 'admin preset create should replace preset items.');
+$limitedPreset = sr_reaction_save_preset($pdo, [
+    'preset_key' => 'limited',
+    'label' => '제한형',
+    'description' => '표시 수 제한 테스트',
+    'status' => 'active',
+    'visible_key_limit' => 1,
+    'sort_order' => 60,
+    'reaction_keys' => ['like', 'fun', 'sad'],
+], 1);
+$assert(!empty($limitedPreset['ok']), 'admin preset create should save visible key limit.');
+$assert(sr_reaction_allowed_keys($pdo, ['reaction_keys' => ['sad', 'like']]) === ['sad', 'like'], 'explicit reaction keys should be used when no preset key is supplied.');
+$assert(sr_reaction_allowed_keys($pdo, ['preset_key' => 'limited', 'reaction_keys' => ['sad']]) === ['like'], 'preset key should take priority over explicit keys and enforce visible limit.');
+$fallbackKeys = sr_reaction_allowed_keys($pdo, ['preset_key' => 'missing_preset', 'reaction_keys' => ['fun']]);
+$assert(in_array('like', $fallbackKeys, true) && in_array('sad', $fallbackKeys, true), 'missing preset should fall back to the default preset.');
 $pdo->exec("INSERT INTO sr_reaction_records (account_id, target_module, target_type, target_id, reaction_key, created_at, updated_at) VALUES (3, 'community', 'post', '1', 'like', '$now', '$now')");
 $adminRecordFilters = sr_reaction_admin_record_filters([
     'account_id' => '3',

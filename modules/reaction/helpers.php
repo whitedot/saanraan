@@ -319,37 +319,72 @@ function sr_reaction_active_definition(PDO $pdo, string $reactionKey): ?array
 
 function sr_reaction_allowed_keys(PDO $pdo, array $target): array
 {
+    $presetKey = sr_reaction_clean_key((string) ($target['preset_key'] ?? ''));
     $explicitKeys = isset($target['reaction_keys']) && is_array($target['reaction_keys']) ? $target['reaction_keys'] : [];
-    if ($explicitKeys !== []) {
-        $keys = [];
-        foreach ($explicitKeys as $key) {
-            if (is_string($key)) {
-                $cleanKey = sr_reaction_clean_key($key);
-                if ($cleanKey !== '') {
-                    $keys[] = $cleanKey;
-                }
+    $cleanExplicitKeys = [];
+    foreach ($explicitKeys as $key) {
+        if (is_string($key)) {
+            $cleanKey = sr_reaction_clean_key($key);
+            if ($cleanKey !== '') {
+                $cleanExplicitKeys[] = $cleanKey;
             }
         }
-        return array_values(array_unique($keys));
+    }
+    $cleanExplicitKeys = array_slice(array_values(array_unique($cleanExplicitKeys)), 0, 12);
+
+    if ($presetKey !== '') {
+        $presetKeys = sr_reaction_public_preset_keys($pdo, $presetKey);
+        if ($presetKeys !== []) {
+            return $presetKeys;
+        }
+
+        $defaultPresetKeys = sr_reaction_public_preset_keys($pdo, sr_reaction_default_preset_key($pdo));
+        return $defaultPresetKeys !== [] ? $defaultPresetKeys : $cleanExplicitKeys;
     }
 
-    $presetKey = sr_reaction_clean_key((string) ($target['preset_key'] ?? ''));
+    if ($cleanExplicitKeys !== []) {
+        return $cleanExplicitKeys;
+    }
+
+    $defaultPresetKeys = sr_reaction_public_preset_keys($pdo, sr_reaction_default_preset_key($pdo));
+    if ($defaultPresetKeys !== []) {
+        return $defaultPresetKeys;
+    }
+
+    return [];
+}
+
+function sr_reaction_public_preset_keys(PDO $pdo, string $presetKey): array
+{
+    $presetKey = sr_reaction_clean_key($presetKey);
     if ($presetKey === '') {
-        $presetKey = sr_reaction_default_preset_key($pdo);
+        return [];
     }
 
+    $presetStmt = $pdo->prepare(
+        "SELECT visible_key_limit
+         FROM sr_reaction_presets
+         WHERE preset_key = :preset_key
+           AND status = 'active'
+           AND selection_policy = 'single'
+         LIMIT 1"
+    );
+    $presetStmt->execute(['preset_key' => $presetKey]);
+    $preset = $presetStmt->fetch();
+    if (!is_array($preset)) {
+        return [];
+    }
+
+    $visibleKeyLimit = max(1, min(12, (int) ($preset['visible_key_limit'] ?? 6)));
     $stmt = $pdo->prepare(
         "SELECT i.reaction_key
          FROM sr_reaction_preset_items i
-         INNER JOIN sr_reaction_presets p ON p.preset_key = i.preset_key
          INNER JOIN sr_reaction_definitions d ON d.reaction_key = i.reaction_key
          WHERE i.preset_key = :preset_key
            AND i.is_public = 1
-           AND p.status = 'active'
-           AND p.selection_policy = 'single'
            AND d.status = 'active'
          ORDER BY i.sort_order ASC, i.id ASC
-         LIMIT 12"
+         LIMIT " . (string) $visibleKeyLimit
     );
     $stmt->execute(['preset_key' => $presetKey]);
     $keys = [];
