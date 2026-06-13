@@ -66,6 +66,22 @@ $surveySettingsHelp = [
             '동의가 필요한 설문은 저장할 때 동의 문구도 함께 입력해야 합니다.',
         ]),
     ],
+    'reaction_preset_key' => [
+        'id' => 'survey-settings-help-reaction-preset',
+        'title' => '설문 리액션 프리셋',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '개별 설문에서 프리셋을 비워둘 때 사용하는 기본 리액션 세트입니다.',
+            '리액션 모듈의 프리셋 관리에서 운영자가 세트를 추가하거나 수정할 수 있습니다.',
+        ]),
+    ],
+    'reaction_comment_preset_key' => [
+        'id' => 'survey-settings-help-reaction-comment-preset',
+        'title' => '댓글 리액션 프리셋',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '설문 댓글에 적용할 기본 리액션 세트입니다.',
+            '개별 설문에서 댓글 프리셋을 지정하면 이 값보다 우선합니다.',
+        ]),
+    ],
 ];
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
@@ -138,6 +154,28 @@ $surveySettingsHelp = [
                 <?php echo sr_admin_form_label_help_html('survey_settings_consent_required', '참여 동의 필요', $surveySettingsHelp['default_consent_required']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="admin-form-field">
                     <?php echo sr_admin_switch_html('survey_settings_consent_required', 'default_consent_required', '1', (int) ($settings['default_consent_required'] ?? 0) === 1, '새 설문에 기본 적용'); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_reaction_preset_key', '설문 리액션 프리셋', $surveySettingsHelp['reaction_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <select id="survey_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">개별 설문에서 값을 비워두면 이 값을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_reaction_comment_preset_key', '댓글 리액션 프리셋', $surveySettingsHelp['reaction_comment_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <select id="survey_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">설문 댓글 리액션에 적용할 기본 프리셋입니다.</p>
                 </div>
             </div>
         </div>

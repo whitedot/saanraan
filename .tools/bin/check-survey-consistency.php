@@ -65,8 +65,8 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.06.010'",
-    'Survey module version must include individual display override update'
+    "'version' => '2026.06.011'",
+    'Survey module version must include reaction preset update'
 );
 foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
     sr_survey_check_contains(
@@ -80,6 +80,13 @@ foreach (['ALTER TABLE {{SR_TABLE_PREFIX}}survey_forms DROP COLUMN theme_key', "
         'modules/survey/updates/2026.06.010.sql',
         $needle,
         'Survey display override cleanup update must remove legacy theme key'
+    );
+}
+foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN reaction_preset_key VARCHAR(80) NOT NULL DEFAULT \'\'', 'ADD COLUMN reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT \'\''] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/updates/2026.06.011.sql',
+        $needle,
+        'Survey reaction preset update must add preset columns'
     );
 }
 sr_survey_check_contains(

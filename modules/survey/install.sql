@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS sr_survey_forms (
     member_group_keys_json LONGTEXT NULL,
     comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     secret_comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
+    reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
+    reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     created_by_account_id BIGINT UNSIGNED NULL,
     updated_by_account_id BIGINT UNSIGNED NULL,

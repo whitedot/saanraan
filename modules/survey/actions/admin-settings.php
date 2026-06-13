@@ -3,6 +3,9 @@
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 $permissionPath = '/admin/surveys/settings';
@@ -11,6 +14,7 @@ sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), $permissionPath, 
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result();
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $settings = sr_survey_settings($pdo);
 
 if (sr_request_method() === 'POST') {

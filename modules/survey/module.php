@@ -2,7 +2,7 @@
 
 return [
     'name' => '설문',
-    'version' => '2026.06.010',
+    'version' => '2026.06.011',
     'type' => 'module',
     'description' => '설문 작성, 공개 응답 수집, 응답 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -28,6 +28,8 @@ return [
         'default_consent_required' => 0,
         'default_response_limit_policy' => 'per_survey_once',
         'default_response_limit_period_seconds' => 0,
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,
     ],
     'contracts' => [

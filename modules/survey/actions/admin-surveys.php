@@ -4,6 +4,9 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/member/helpers/groups.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'view');
@@ -11,6 +14,7 @@ sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys',
 $assetOptions = sr_survey_asset_options($pdo);
 $couponDefinitions = sr_survey_coupon_definitions($pdo);
 $memberGroups = sr_member_groups($pdo);
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $enabledMemberGroupKeys = [];
 foreach ($memberGroups as $memberGroup) {
     if ((string) ($memberGroup['status'] ?? '') === 'enabled') {
@@ -108,6 +112,8 @@ if (sr_request_method() === 'POST') {
     $memberGroupKeys = sr_survey_normalize_member_group_keys($_POST['member_group_keys'] ?? []);
     $commentsEnabled = ($_POST['comments_enabled'] ?? '') === '1';
     $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+    $reactionPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '';
+    $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
     $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
     $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
     $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);
@@ -298,7 +304,9 @@ if (sr_request_method() === 'POST') {
                          anonymous_allowed = :anonymous_allowed, login_required = :login_required, public_listed = :public_listed, robots_policy = :robots_policy,
                          status = :status, starts_at = :starts_at, ends_at = :ends_at,
                          response_limit_policy = :response_limit_policy, response_limit_period_seconds = :response_limit_period_seconds, member_group_keys_json = :member_group_keys_json,
-                         comments_enabled = :comments_enabled, secret_comments_enabled = :secret_comments_enabled, reward_enabled = :reward_enabled,
+                         comments_enabled = :comments_enabled, secret_comments_enabled = :secret_comments_enabled,
+                         reaction_preset_key = :reaction_preset_key, reaction_comment_preset_key = :reaction_comment_preset_key,
+                         reward_enabled = :reward_enabled,
                          updated_by_account_id = :updated_by_account_id, updated_at = :updated_at
                      WHERE id = :id AND deleted_at IS NULL'
                 )->execute([
@@ -352,6 +360,8 @@ if (sr_request_method() === 'POST') {
                     'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
                     'comments_enabled' => $commentsEnabled ? 1 : 0,
                     'secret_comments_enabled' => $secretCommentsEnabled ? 1 : 0,
+                    'reaction_preset_key' => $reactionPresetKey,
+                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_at' => $now,
@@ -366,7 +376,7 @@ if (sr_request_method() === 'POST') {
                          sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
                          qa_status, qa_note, questionnaire_version, revision_locked,
                          organizer_name, contact_text, consent_required, consent_text, privacy_notice, anonymous_allowed, login_required,
-                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reward_enabled,
+                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reaction_preset_key, reaction_comment_preset_key, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
                         (:survey_key, :title, :description, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
@@ -375,7 +385,7 @@ if (sr_request_method() === 'POST') {
                          :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
                          :qa_status, :qa_note, 1, :revision_locked,
                          :organizer_name, :contact_text, :consent_required, :consent_text, :privacy_notice, :anonymous_allowed, :login_required,
-                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reward_enabled,
+                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reaction_preset_key, :reaction_comment_preset_key, :reward_enabled,
                          :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
                 )->execute([
                     'survey_key' => $surveyKey,
@@ -427,6 +437,8 @@ if (sr_request_method() === 'POST') {
                     'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
                     'comments_enabled' => $commentsEnabled ? 1 : 0,
                     'secret_comments_enabled' => $secretCommentsEnabled ? 1 : 0,
+                    'reaction_preset_key' => $reactionPresetKey,
+                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
                     'reward_enabled' => $rewardEnabled ? 1 : 0,
                     'created_by_account_id' => (int) ($account['id'] ?? 0),
                     'updated_by_account_id' => (int) ($account['id'] ?? 0),
@@ -452,6 +464,8 @@ if (sr_request_method() === 'POST') {
                     'member_group_keys' => $memberGroupKeys,
                     'comments_enabled' => $commentsEnabled,
                     'secret_comments_enabled' => $secretCommentsEnabled,
+                    'reaction_preset_key' => $reactionPresetKey,
+                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
                     'reward_enabled' => $rewardEnabled,
                 ],
             ]);
@@ -875,6 +889,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'response_limit_period_seconds' => (string) sr_survey_settings($pdo)['default_response_limit_period_seconds'],
         'comments_enabled' => 0,
         'secret_comments_enabled' => 0,
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
         'reward_enabled' => 0,
     ];
     $selectedMemberGroupKeys = sr_survey_member_group_keys_from_json($values['member_group_keys_json'] ?? '[]');
@@ -1197,6 +1213,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     비밀 댓글 선택 허용
                 </label>
                 <p class="admin-form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="survey_reaction_preset_key">설문 리액션 프리셋</label>
+                    <select id="survey_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="admin-form-help">비워두면 설문 환경설정의 프리셋을 사용합니다.</p>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="survey_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+                    <select id="survey_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="admin-form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용합니다.</p>
+                </div>
             </div>
             <div class="form-grid">
                 <div class="form-field">

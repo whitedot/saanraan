@@ -38,6 +38,11 @@ if (!function_exists('sr_survey_reaction_survey_result')) {
             $status = 'private';
         }
         $canView = $status === 'active' && sr_survey_reaction_can_view($pdo, $survey, $viewerAccountId);
+        $settings = sr_survey_settings($pdo);
+        $presetKey = (string) ($survey['reaction_preset_key'] ?? '');
+        if ($presetKey === '') {
+            $presetKey = (string) ($settings['reaction_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) $surveyId,
@@ -49,7 +54,7 @@ if (!function_exists('sr_survey_reaction_survey_result')) {
             'can_write' => $canView,
             'owner_account_id' => (int) ($survey['created_by_account_id'] ?? 0),
             'recipient_account_id' => (int) ($survey['created_by_account_id'] ?? 0),
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
@@ -68,6 +73,7 @@ if (!function_exists('sr_survey_reaction_comment_result')) {
             'member_group_keys_json' => $row['member_group_keys_json'] ?? '',
             'created_by_account_id' => (int) ($row['survey_owner_account_id'] ?? 0),
             'deleted_at' => $row['survey_deleted_at'] ?? null,
+            'reaction_preset_key' => $row['reaction_preset_key'] ?? '',
         ];
         $surveyResult = sr_survey_reaction_survey_result($pdo, $survey, $viewerAccountId);
         $commentStatus = (string) ($row['comment_status'] ?? '');
@@ -85,6 +91,11 @@ if (!function_exists('sr_survey_reaction_comment_result')) {
         $canView = $status === 'active'
             && !empty($surveyResult['can_view'])
             && (!$isSecret || ($viewerAccountId > 0 && in_array($viewerAccountId, [$ownerAccountId, (int) ($surveyResult['owner_account_id'] ?? 0)], true)));
+        $settings = sr_survey_settings($pdo);
+        $presetKey = (string) ($row['reaction_comment_preset_key'] ?? '');
+        if ($presetKey === '') {
+            $presetKey = (string) ($settings['reaction_comment_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),
@@ -96,7 +107,7 @@ if (!function_exists('sr_survey_reaction_comment_result')) {
             'can_write' => $canView,
             'owner_account_id' => $ownerAccountId,
             'recipient_account_id' => $ownerAccountId,
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
@@ -185,7 +196,8 @@ return [
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.survey_id, c.author_account_id, c.is_secret, c.status AS comment_status,
                             s.survey_key, s.title AS survey_title, s.status AS survey_status, s.starts_at, s.ends_at,
-                            s.login_required, s.member_group_keys_json, s.created_by_account_id AS survey_owner_account_id,
+                            s.login_required, s.member_group_keys_json, s.reaction_preset_key, s.reaction_comment_preset_key,
+                            s.created_by_account_id AS survey_owner_account_id,
                             s.deleted_at AS survey_deleted_at
                      FROM sr_survey_comments c
                      LEFT JOIN sr_survey_forms s ON s.id = c.survey_id
@@ -215,7 +227,8 @@ return [
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.survey_id, c.author_account_id, c.is_secret, c.status AS comment_status,
                             s.survey_key, s.title AS survey_title, s.status AS survey_status, s.starts_at, s.ends_at,
-                            s.login_required, s.member_group_keys_json, s.created_by_account_id AS survey_owner_account_id,
+                            s.login_required, s.member_group_keys_json, s.reaction_preset_key, s.reaction_comment_preset_key,
+                            s.created_by_account_id AS survey_owner_account_id,
                             s.deleted_at AS survey_deleted_at
                      FROM sr_survey_comments c
                      LEFT JOIN sr_survey_forms s ON s.id = c.survey_id
