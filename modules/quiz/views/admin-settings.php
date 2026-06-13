@@ -212,6 +212,7 @@ foreach ($quizLayoutMenuFields as $quizLayoutMenuField) {
 $quizSettingsSectionNavItems = [
     'quiz-settings-section-display' => '공개 화면',
     'quiz-settings-section-defaults' => '새 퀴즈',
+    'quiz-settings-section-reaction' => '리액션',
     'quiz-settings-section-reward' => '기본 보상',
     'quiz-settings-section-links' => '목록/연결',
 ];
@@ -354,6 +355,36 @@ $quizSettingsSectionNavItems = [
                 <div class="admin-form-field">
                     <input id="quiz_settings_default_attempt_limit_period_seconds" type="number" name="default_attempt_limit_period_seconds" value="<?php echo sr_e((string) ($settings['default_attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-settings-attempt-period>
                     <p class="admin-form-help">기본 응시 제한이 기간당 1회일 때만 사용합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quiz-settings-section-reaction" class="admin-card card" data-admin-section-anchor>
+        <div class="card-header">
+            <h2 class="card-title">리액션 기본값</h2>
+        </div>
+        <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_settings_reaction_preset_key">퀴즈 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="quiz_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">개별 퀴즈에서 값을 비워두면 이 값을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="quiz_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">퀴즈 댓글 리액션에 적용할 기본 프리셋입니다.</p>
                 </div>
             </div>
         </div>

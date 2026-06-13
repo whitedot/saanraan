@@ -35,6 +35,11 @@ if (!function_exists('sr_quiz_reaction_quiz_result')) {
             $status = 'private';
         }
         $canView = $status === 'active' && sr_quiz_reaction_can_view($pdo, $quiz, $viewerAccountId);
+        $settings = sr_quiz_settings($pdo);
+        $presetKey = (string) ($quiz['reaction_preset_key'] ?? '');
+        if ($presetKey === '') {
+            $presetKey = (string) ($settings['reaction_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) $quizId,
@@ -46,7 +51,7 @@ if (!function_exists('sr_quiz_reaction_quiz_result')) {
             'can_write' => $canView,
             'owner_account_id' => (int) ($quiz['created_by_account_id'] ?? 0),
             'recipient_account_id' => (int) ($quiz['created_by_account_id'] ?? 0),
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
@@ -64,6 +69,7 @@ if (!function_exists('sr_quiz_reaction_comment_result')) {
             'member_group_keys_json' => $row['member_group_keys_json'] ?? '',
             'created_by_account_id' => (int) ($row['quiz_owner_account_id'] ?? 0),
             'deleted_at' => $row['quiz_deleted_at'] ?? null,
+            'reaction_preset_key' => $row['reaction_preset_key'] ?? '',
         ];
         $quizResult = sr_quiz_reaction_quiz_result($pdo, $quiz, $viewerAccountId);
         $commentStatus = (string) ($row['comment_status'] ?? '');
@@ -81,6 +87,11 @@ if (!function_exists('sr_quiz_reaction_comment_result')) {
         $canView = $status === 'active'
             && !empty($quizResult['can_view'])
             && (!$isSecret || ($viewerAccountId > 0 && in_array($viewerAccountId, [$ownerAccountId, (int) ($quizResult['owner_account_id'] ?? 0)], true)));
+        $settings = sr_quiz_settings($pdo);
+        $presetKey = (string) ($row['reaction_comment_preset_key'] ?? '');
+        if ($presetKey === '') {
+            $presetKey = (string) ($settings['reaction_comment_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),
@@ -92,7 +103,7 @@ if (!function_exists('sr_quiz_reaction_comment_result')) {
             'can_write' => $canView,
             'owner_account_id' => $ownerAccountId,
             'recipient_account_id' => $ownerAccountId,
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
@@ -181,6 +192,7 @@ return [
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.quiz_id, c.author_account_id, c.is_secret, c.status AS comment_status,
                             q.quiz_key, q.title AS quiz_title, q.status AS quiz_status, q.starts_at, q.ends_at,
+                            q.reaction_preset_key, q.reaction_comment_preset_key,
                             q.member_group_keys_json, q.created_by_account_id AS quiz_owner_account_id, q.deleted_at AS quiz_deleted_at
                      FROM sr_quiz_comments c
                      LEFT JOIN sr_quiz_sets q ON q.id = c.quiz_id
@@ -210,6 +222,7 @@ return [
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.quiz_id, c.author_account_id, c.is_secret, c.status AS comment_status,
                             q.quiz_key, q.title AS quiz_title, q.status AS quiz_status, q.starts_at, q.ends_at,
+                            q.reaction_preset_key, q.reaction_comment_preset_key,
                             q.member_group_keys_json, q.created_by_account_id AS quiz_owner_account_id, q.deleted_at AS quiz_deleted_at
                      FROM sr_quiz_comments c
                      LEFT JOIN sr_quiz_sets q ON q.id = c.quiz_id

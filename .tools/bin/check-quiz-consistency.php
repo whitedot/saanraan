@@ -105,7 +105,7 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.06.013'",
+        "'version' => '2026.06.014'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.012.sql', [
         'ALTER TABLE sr_quiz_sets',
@@ -116,6 +116,10 @@ function sr_quiz_check_schema(): void
         'UPDATE {{SR_TABLE_PREFIX}}quiz_sets SET skin_key = theme_key',
         "s.setting_key = 'theme_key'",
         "version = '2026.06.013'",
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/updates/2026.06.014.sql', [
+        'ADD COLUMN reaction_preset_key VARCHAR(80) NOT NULL DEFAULT \'\'',
+        'ADD COLUMN reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT \'\'',
     ]);
 }
 

@@ -171,6 +171,8 @@ function sr_quiz_default_settings(): array
         'default_reward_amount' => '',
         'default_reward_dedupe_scope' => 'per_quiz',
         'default_cta_label' => '퀴즈 풀기',
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,
     ];
 }
@@ -286,6 +288,8 @@ function sr_quiz_normalize_settings(array $settings): array
     if ($normalized['default_cta_label'] === '') {
         $normalized['default_cta_label'] = (string) $defaults['default_cta_label'];
     }
+    $normalized['reaction_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
+    $normalized['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
     $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
 
     return $normalized;
@@ -329,6 +333,8 @@ function sr_quiz_settings_from_post(): array
         'default_reward_amount' => sr_post_string('default_reward_amount', 20),
         'default_reward_dedupe_scope' => $rewardDedupeScope,
         'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
+        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_preset_key', 80), 80),
+        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
     $settings['skin_key'] = $skinKey;
@@ -2729,6 +2735,8 @@ function sr_quiz_default_admin_values(?array $settings = null): array
         'member_group_keys' => [],
         'comments_enabled' => 0,
         'secret_comments_enabled' => 0,
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
         'reward_enabled' => !empty($settings['default_reward_enabled']) ? 1 : 0,
         'reward_provider' => (string) $settings['default_reward_provider'],
         'reward_module' => (string) $settings['default_reward_module'],
@@ -2814,6 +2822,8 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'member_group_keys' => sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''),
         'comments_enabled' => (int) ($quiz['comments_enabled'] ?? 0),
         'secret_comments_enabled' => (int) ($quiz['secret_comments_enabled'] ?? 0),
+        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $quiz['reaction_preset_key'] ?? '') : '',
+        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $quiz['reaction_comment_preset_key'] ?? '') : '',
         'reward_enabled' => (int) ($quiz['reward_enabled'] ?? 0),
         'reward_provider' => (string) ($policy['reward_provider'] ?? 'ledger_asset'),
         'reward_module' => (string) ($policy['reward_module'] ?? ''),
@@ -2958,6 +2968,8 @@ function sr_quiz_admin_values_from_post(): array
         'member_group_keys' => sr_quiz_member_group_keys_from_value($memberGroupKeys),
         'comments_enabled' => ($_POST['comments_enabled'] ?? '') === '1' ? 1 : 0,
         'secret_comments_enabled' => ($_POST['secret_comments_enabled'] ?? '') === '1' ? 1 : 0,
+        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : '',
+        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') && isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : '',
         'reward_enabled' => ($_POST['reward_enabled'] ?? '') === '1' ? 1 : 0,
         'reward_provider' => sr_quiz_clean_key(sr_post_string('reward_provider', 30), 30),
         'reward_module' => sr_quiz_clean_key(sr_post_string('reward_module', 40), 40),
@@ -3752,6 +3764,8 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                      member_group_keys_json = :member_group_keys_json,
                      comments_enabled = :comments_enabled,
                      secret_comments_enabled = :secret_comments_enabled,
+                     reaction_preset_key = :reaction_preset_key,
+                     reaction_comment_preset_key = :reaction_comment_preset_key,
                      reward_enabled = :reward_enabled,
                      updated_by_account_id = :updated_by_account_id,
                      updated_at = :updated_at
@@ -3774,6 +3788,8 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
                 'comments_enabled' => $commentsEnabled,
                 'secret_comments_enabled' => $secretCommentsEnabled,
+                'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_preset_key'] ?? '') : '',
+                'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'updated_by_account_id' => $accountId,
                 'updated_at' => $now,
@@ -3783,11 +3799,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_quiz_sets
                     (quiz_key, title, description, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
-                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reward_enabled,
+                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reaction_preset_key, reaction_comment_preset_key, reward_enabled,
                      created_by_account_id, updated_by_account_id, created_at, updated_at)
                  VALUES
                     (:quiz_key, :title, :description, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
-                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reward_enabled,
+                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reaction_preset_key, :reaction_comment_preset_key, :reward_enabled,
                      :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
             );
             $stmt->execute([
@@ -3806,6 +3822,8 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
                 'comments_enabled' => $commentsEnabled,
                 'secret_comments_enabled' => $secretCommentsEnabled,
+                'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_preset_key'] ?? '') : '',
+                'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'created_by_account_id' => $accountId,
                 'updated_by_account_id' => $accountId,

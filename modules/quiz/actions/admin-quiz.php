@@ -3,6 +3,9 @@
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'view');
@@ -13,6 +16,7 @@ $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
 $couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo);
 $memberGroups = sr_quiz_member_groups_for_admin($pdo);
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -907,6 +911,28 @@ $quizSectionNavItems = [
                         비밀 댓글 선택 허용
                     </label>
                     <p class="admin-form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_reaction_preset_key">퀴즈 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="quiz_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">비워두면 퀴즈 환경설정의 프리셋을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="quiz_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용합니다.</p>
                 </div>
             </div>
         </div>

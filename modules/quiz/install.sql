@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     member_group_keys_json LONGTEXT NULL,
     comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     secret_comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
+    reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
+    reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_scope VARCHAR(20) NOT NULL DEFAULT 'per_quiz',
     created_by_account_id BIGINT UNSIGNED NULL,
