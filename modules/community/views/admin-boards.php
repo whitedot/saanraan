@@ -491,6 +491,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="admin-form-help">저장한 뒤에는 커뮤니티 환경설정이나 게시판 그룹 설정 변경의 영향을 받지 않습니다.</p>
                 </div>
             </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_extra_fields_json">추가 입력 항목</label>
+                <div class="admin-form-field">
+                    <textarea id="community_admin_boards_extra_fields_json" name="extra_fields_json" rows="8" class="form-textarea form-control-full"><?php echo sr_e($boardField($formBoard, 'extra_fields_json', '[]')); ?></textarea>
+                    <?php echo $settingSourceRadioHtml('source_extra_fields_json', $boardSettingSource($formBoard, 'extra_fields_json')); ?>
+                    <p class="admin-form-help">JSON 배열로 입력합니다. 예: [{"key":"company","label":"회사명","type":"text","required":true},{"key":"kind","label":"문의 유형","type":"select","options":["일반","제휴"]}]</p>
+                </div>
+            </div>
 
         </section>
 

@@ -48,6 +48,14 @@ if (is_array($currentCategory) && (string) $currentCategory['status'] !== 'enabl
     $categories[] = $currentCategory;
 }
 $categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
+$extraFieldDefinitions = sr_community_board_extra_field_definitions($pdo, $board);
+$storedExtraFieldValues = sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''));
+$extraFieldValues = [];
+foreach ($storedExtraFieldValues as $extraFieldKey => $extraFieldRow) {
+    if (is_array($extraFieldRow)) {
+        $extraFieldValues[(string) $extraFieldKey] = (string) ($extraFieldRow['value'] ?? '');
+    }
+}
 $seriesOptions = is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
 $currentSeriesItem = sr_community_active_series_item_for_post($pdo, $postId);
 if (is_array($currentSeriesItem)
@@ -101,6 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
+    $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
     $values['seo_title'] = (string) ($post['seo_title'] ?? '');
     $values['seo_description'] = (string) ($post['seo_description'] ?? '');
     $values['og_title'] = (string) ($post['og_title'] ?? '');
@@ -117,6 +127,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $seriesValues['series_mode'] = 'none';
     }
     $errors = sr_community_validate_post_input($values);
+    $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
+    if ($extraFieldDefinitions !== [] && !sr_community_post_extra_values_column_exists($pdo)) {
+        $errors[] = '게시판 추가 입력 스키마 업데이트가 아직 적용되지 않았습니다.';
+    }
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));

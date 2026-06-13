@@ -470,6 +470,8 @@ if (sr_request_method() === 'POST') {
         $privacyConsentRequirePost = ($_POST['privacy_consent_require_post'] ?? '') === '1';
         $privacyConsentRequireComment = ($_POST['privacy_consent_require_comment'] ?? '') === '1';
         $privacyConsentRequireAttachmentUpload = ($_POST['privacy_consent_require_attachment_upload'] ?? '') === '1';
+        $extraFieldsInput = sr_post_string_without_truncation('extra_fields_json', 20000);
+        $extraFieldsJson = is_string($extraFieldsInput) ? sr_community_extra_field_definitions_json_from_input($extraFieldsInput) : null;
         $boardSeoValues = [
             'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
             'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
@@ -794,6 +796,10 @@ if (sr_request_method() === 'POST') {
                 break;
             }
         }
+        if ($extraFieldsJson === null) {
+            $errors[] = '추가 입력 항목 JSON 형식을 확인해 주세요.';
+            $extraFieldsJson = '[]';
+        }
 
         if ($errors === [] && $intent === 'create' && sr_community_board_by_key($pdo, $boardKey) !== null) {
             $errors[] = sr_t('community::action.admin.board_key_duplicate');
@@ -825,6 +831,7 @@ if (sr_request_method() === 'POST') {
                 'privacy_consent_require_post' => $privacyConsentRequirePost ? '1' : '0',
                 'privacy_consent_require_comment' => $privacyConsentRequireComment ? '1' : '0',
                 'privacy_consent_require_attachment_upload' => $privacyConsentRequireAttachmentUpload ? '1' : '0',
+                'extra_fields_json' => $extraFieldsJson,
                 'level_post_score' => (string) $levelPostScore,
                 'level_comment_score' => (string) $levelCommentScore,
                 'image_uploads_enabled' => $imageUploadsEnabled ? '1' : '0',
@@ -1162,6 +1169,7 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
             : '0';
         $board[$privacyConsentSettingKey] = sr_community_effective_board_setting($pdo, $board, (string) $privacyConsentSettingKey, $defaultValue);
     }
+    $board['extra_fields_json'] = sr_community_effective_board_setting($pdo, $board, 'extra_fields_json', '[]');
     foreach (sr_community_asset_setting_keys() as $assetSettingKey) {
         $board['source_' . $assetSettingKey] = sr_community_board_asset_setting_key_source($pdo, (int) $board['id'], (string) $assetSettingKey);
     }

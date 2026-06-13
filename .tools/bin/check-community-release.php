@@ -611,6 +611,7 @@ $requiredInstallFragments = [
     'sr_community_posts' => [
         'body_format VARCHAR(20) NOT NULL DEFAULT \'plain\'',
         'author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT \'\'',
+        'extra_values_json TEXT NULL',
         'KEY idx_sr_community_posts_board_status_id (board_id, status, id)',
         'KEY idx_sr_community_posts_author_id (author_account_id, id)',
     ],
@@ -673,12 +674,14 @@ sr_community_release_file_contains('modules/community/actions/write.php', [
     "sr_community_asset_event_config(\$pdo, \$board, \$settings, 'write_charge', 'every_action')",
     'sr_community_record_guest_post_rate_limit($pdo, $settings)',
     'sr_community_record_post_rate_limit($pdo, $authorAccountId, $settings)',
+    'sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues)',
     "'event_type' => 'community.post.created'",
 ], 'Community write action policy');
 sr_community_release_file_contains('modules/community/actions/edit.php', [
     'sr_community_account_can_edit_post($post, $account)',
     '$submittedPostId !== $postId',
     'sr_community_guest_can_edit_post($post, sr_post_string_without_truncation(\'guest_password\', 255) ?? \'\')',
+    'sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues)',
     'sr_community_update_post_content($pdo, $postId, $values, $authorAccountId)',
     "'event_type' => 'community.post.updated_by_author'",
 ], 'Community edit action policy');

@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     guest_password_hash VARCHAR(255) NULL,
     guest_ip_hash CHAR(64) NULL,
     guest_user_agent_hash CHAR(64) NULL,
+    extra_values_json TEXT NULL,
     title VARCHAR(160) NOT NULL,
     body_text MEDIUMTEXT NOT NULL,
     body_format VARCHAR(20) NOT NULL DEFAULT 'plain',

@@ -78,6 +78,9 @@ return static function (PDO $pdo, int $accountId): array {
     $postSnapshotSelectSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_posts')
         ? 'p.author_public_name_snapshot'
         : "'' AS author_public_name_snapshot";
+    $postExtraValuesSelectSql = sr_community_post_extra_values_column_exists($pdo)
+        ? ', p.extra_values_json'
+        : ", '' AS extra_values_json";
     $commentSnapshotSelectSql = sr_community_author_public_name_snapshot_column_exists($pdo, 'sr_community_comments')
         ? 'author_public_name_snapshot'
         : "'' AS author_public_name_snapshot";
@@ -90,7 +93,7 @@ return static function (PDO $pdo, int $accountId): array {
     $stmt = $pdo->prepare(
         /* M8 category export extends the legacy allowlist: SELECT id, board_id, title, body_text, body_format, status, created_at, updated_at */
         'SELECT p.id, p.board_id, ' . $categorySelectSql . ',
-                p.title, ' . $postSnapshotSelectSql . ', p.body_text, p.body_format, p.status, p.created_at, p.updated_at
+                p.title, ' . $postSnapshotSelectSql . $postExtraValuesSelectSql . ', p.body_text, p.body_format, p.status, p.created_at, p.updated_at
          FROM sr_community_posts p
          ' . $categoryJoinSql . '
          WHERE p.author_account_id = :account_id

@@ -190,6 +190,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 </form>
             </article>
             <?php } else { ?>
+            <?php echo sr_community_extra_fields_display_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
             <div class="community-post-body">
                 <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
             </div>

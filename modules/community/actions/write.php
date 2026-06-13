@@ -36,6 +36,8 @@ $postRewardConfig = sr_community_asset_event_config($pdo, $board, $settings, 'po
 $categories = sr_community_categories($pdo, (int) $board['id'], true);
 $currentCategory = null;
 $categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
+$extraFieldDefinitions = sr_community_board_extra_field_definitions($pdo, $board);
+$extraFieldValues = [];
 $seriesOptions = is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
 $currentSeriesItem = null;
 $seriesValues = [
@@ -63,6 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     sr_require_csrf();
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
+    $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
     if ($isGuestAuthor) {
         $values['body_format'] = 'plain';
         $values = array_merge($values, sr_community_guest_author_input_values());
@@ -79,6 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $seriesValues['series_mode'] = 'none';
     }
     $errors = sr_community_validate_post_input($values);
+    $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
+    if ($extraFieldDefinitions !== [] && !sr_community_post_extra_values_column_exists($pdo)) {
+        $errors[] = '게시판 추가 입력 스키마 업데이트가 아직 적용되지 않았습니다.';
+    }
     if ($isGuestAuthor) {
         if (!sr_community_guest_author_columns_exist($pdo, 'sr_community_posts')) {
             $errors[] = '비회원 작성 스키마 업데이트가 아직 적용되지 않았습니다.';

@@ -81,7 +81,7 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.body_format, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
          FROM sr_community_posts p
@@ -320,6 +320,271 @@ function sr_community_guest_rate_limit_identifier(): string
     return hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? '') . '|' . (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
 }
 
+function sr_community_post_extra_values_column_exists(PDO $pdo): bool
+{
+    static $existsByConnection = [];
+    $key = (string) spl_object_id($pdo);
+    if (array_key_exists($key, $existsByConnection)) {
+        return $existsByConnection[$key];
+    }
+
+    try {
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $stmt = $pdo->query('PRAGMA table_info(sr_community_posts)');
+            foreach ($stmt !== false ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [] as $row) {
+                if ((string) ($row['name'] ?? '') === 'extra_values_json') {
+                    $existsByConnection[$key] = true;
+                    return true;
+                }
+            }
+            $existsByConnection[$key] = false;
+            return false;
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = \'sr_community_posts\'
+               AND COLUMN_NAME = \'extra_values_json\''
+        );
+        $stmt->execute();
+        $existsByConnection[$key] = (int) $stmt->fetchColumn() > 0;
+    } catch (Throwable $exception) {
+        $existsByConnection[$key] = false;
+    }
+
+    return $existsByConnection[$key];
+}
+
+function sr_community_post_extra_values_select(PDO $pdo, string $alias): string
+{
+    return sr_community_post_extra_values_column_exists($pdo)
+        ? ', ' . $alias . '.extra_values_json'
+        : ", '' AS extra_values_json";
+}
+
+function sr_community_extra_field_type(string $type): string
+{
+    return in_array($type, ['text', 'textarea', 'select', 'checkbox'], true) ? $type : 'text';
+}
+
+function sr_community_normalize_extra_field_definitions(mixed $raw): array
+{
+    if (!is_array($raw)) {
+        return [];
+    }
+
+    $definitions = [];
+    $seenKeys = [];
+    foreach ($raw as $item) {
+        if (!is_array($item) || count($definitions) >= 20) {
+            continue;
+        }
+
+        $key = strtolower(trim((string) ($item['key'] ?? '')));
+        if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) !== 1 || isset($seenKeys[$key])) {
+            continue;
+        }
+        $label = trim(preg_replace('/\s+/', ' ', (string) ($item['label'] ?? '')) ?? '');
+        $label = function_exists('mb_substr') ? mb_substr($label, 0, 120) : substr($label, 0, 120);
+        if ($label === '') {
+            continue;
+        }
+
+        $type = sr_community_extra_field_type((string) ($item['type'] ?? 'text'));
+        $options = [];
+        if ($type === 'select') {
+            $rawOptions = is_array($item['options'] ?? null) ? $item['options'] : [];
+            foreach ($rawOptions as $option) {
+                $option = trim(preg_replace('/\s+/', ' ', (string) $option) ?? '');
+                $option = function_exists('mb_substr') ? mb_substr($option, 0, 120) : substr($option, 0, 120);
+                if ($option !== '' && !in_array($option, $options, true)) {
+                    $options[] = $option;
+                }
+                if (count($options) >= 50) {
+                    break;
+                }
+            }
+            if ($options === []) {
+                continue;
+            }
+        }
+
+        $definitions[] = [
+            'key' => $key,
+            'label' => $label,
+            'type' => $type,
+            'required' => !empty($item['required']),
+            'options' => $options,
+        ];
+        $seenKeys[$key] = true;
+    }
+
+    return $definitions;
+}
+
+function sr_community_extra_field_definitions_from_json(string $json): array
+{
+    $json = trim($json);
+    if ($json === '') {
+        return [];
+    }
+
+    $decoded = json_decode($json, true);
+    return sr_community_normalize_extra_field_definitions($decoded);
+}
+
+function sr_community_extra_field_definitions_json_from_input(string $json): ?string
+{
+    $json = trim($json);
+    if ($json === '') {
+        return '[]';
+    }
+    $decoded = json_decode($json, true);
+    if (!is_array($decoded)) {
+        return null;
+    }
+
+    return json_encode(sr_community_normalize_extra_field_definitions($decoded), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function sr_community_board_extra_field_definitions(PDO $pdo, array $board): array
+{
+    $json = sr_community_effective_board_setting($pdo, $board, 'extra_fields_json', '[]');
+    return sr_community_extra_field_definitions_from_json($json);
+}
+
+function sr_community_extra_field_input_values(array $definitions): array
+{
+    $posted = $_POST['community_extra_fields'] ?? [];
+    $posted = is_array($posted) ? $posted : [];
+    $values = [];
+    foreach ($definitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        $type = (string) ($definition['type'] ?? 'text');
+        if ($type === 'checkbox') {
+            $values[$key] = isset($posted[$key]) && (string) $posted[$key] === '1' ? '1' : '0';
+            continue;
+        }
+        $value = isset($posted[$key]) ? (string) $posted[$key] : '';
+        $maxLength = $type === 'textarea' ? 5000 : 1000;
+        $value = function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
+        $values[$key] = trim($value);
+    }
+
+    return $values;
+}
+
+function sr_community_validate_extra_field_values(array $definitions, array $values): array
+{
+    $errors = [];
+    foreach ($definitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        $label = (string) ($definition['label'] ?? $key);
+        $type = (string) ($definition['type'] ?? 'text');
+        $value = (string) ($values[$key] ?? '');
+        if (!empty($definition['required']) && trim($value) === '') {
+            $errors[] = $label . '을(를) 입력해 주세요.';
+        }
+        if ($type === 'select' && $value !== '' && !in_array($value, (array) ($definition['options'] ?? []), true)) {
+            $errors[] = $label . ' 선택 값이 올바르지 않습니다.';
+        }
+        if ($type === 'checkbox' && !in_array($value, ['0', '1'], true)) {
+            $errors[] = $label . ' 값이 올바르지 않습니다.';
+        }
+    }
+
+    return $errors;
+}
+
+function sr_community_extra_field_values_json(array $definitions, array $values): string
+{
+    $stored = [];
+    foreach ($definitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        if ($key === '') {
+            continue;
+        }
+        $stored[$key] = [
+            'label' => (string) ($definition['label'] ?? $key),
+            'type' => (string) ($definition['type'] ?? 'text'),
+            'value' => (string) ($values[$key] ?? ''),
+        ];
+    }
+
+    return json_encode($stored, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function sr_community_extra_field_values_from_json(string $json): array
+{
+    $decoded = json_decode($json, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function sr_community_extra_fields_form_html(array $definitions, array $values = []): string
+{
+    if ($definitions === []) {
+        return '';
+    }
+
+    $html = '<fieldset class="community-extra-fields">';
+    $html .= '<legend>' . sr_e('추가 입력') . '</legend>';
+    foreach ($definitions as $definition) {
+        $key = (string) ($definition['key'] ?? '');
+        $label = (string) ($definition['label'] ?? $key);
+        $type = (string) ($definition['type'] ?? 'text');
+        $required = !empty($definition['required']);
+        $id = 'modules_community_extra_' . $key;
+        $name = 'community_extra_fields[' . $key . ']';
+        $value = (string) ($values[$key] ?? '');
+        $html .= '<p><label for="' . sr_e($id) . '"><span>' . sr_e($label) . ($required ? ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span>' : '') . '</span>';
+        if ($type === 'textarea') {
+            $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
+        } elseif ($type === 'select') {
+            $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '"' . ($required ? ' required' : '') . '>';
+            $html .= '<option value="">' . sr_e('선택') . '</option>';
+            foreach ((array) ($definition['options'] ?? []) as $option) {
+                $option = (string) $option;
+                $html .= '<option value="' . sr_e($option) . '"' . ($value === $option ? ' selected' : '') . '>' . sr_e($option) . '</option>';
+            }
+            $html .= '</select>';
+        } elseif ($type === 'checkbox') {
+            $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="' . sr_e($name) . '" value="1"' . ($value === '1' ? ' checked' : '') . ($required ? ' required' : '') . '>';
+        } else {
+            $html .= '<input id="' . sr_e($id) . '" type="text" name="' . sr_e($name) . '" maxlength="1000" value="' . sr_e($value) . '"' . ($required ? ' required' : '') . '>';
+        }
+        $html .= '</label></p>';
+    }
+    $html .= '</fieldset>';
+
+    return $html;
+}
+
+function sr_community_extra_fields_display_html(array $values): string
+{
+    if ($values === []) {
+        return '';
+    }
+
+    $html = '<dl class="community-extra-field-values">';
+    foreach ($values as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $label = trim((string) ($item['label'] ?? ''));
+        $value = (string) ($item['value'] ?? '');
+        if ($label === '' || $value === '') {
+            continue;
+        }
+        $displayValue = (string) ($item['type'] ?? '') === 'checkbox' ? ($value === '1' ? '예' : '아니오') : $value;
+        $html .= '<dt>' . sr_e($label) . '</dt><dd>' . nl2br(sr_e($displayValue)) . '</dd>';
+    }
+    $html .= '</dl>';
+
+    return $html;
+}
+
 function sr_community_author_display_name_from_row(array $row, ?array $settings = null, ?PDO $pdo = null): string
 {
     if (sr_community_nickname_status_blocks_identity((string) ($row['author_account_status'] ?? ''))) {
@@ -367,7 +632,7 @@ function sr_community_public_post(PDO $pdo, int $postId): ?array
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -414,7 +679,7 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, " . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, " . $secretPostSelectSql . " p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -837,7 +1102,7 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
-    $sql = 'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . ', p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+    $sql = 'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
                    author_nickname.nickname AS author_nickname,
@@ -883,7 +1148,7 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . ', p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', p.title, p.body_text, p.body_format, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
                 author_nickname.nickname AS author_nickname,
@@ -1049,6 +1314,7 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
              guest_ip_hash = NULL,
              guest_user_agent_hash = NULL,"
         : '';
+    $extraValuesRedactionSql = sr_community_post_extra_values_column_exists($pdo) ? "extra_values_json = '[]'," : '';
     $stmt = $pdo->prepare(
         "UPDATE sr_community_posts
          SET status = 'deleted',
@@ -1057,6 +1323,7 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
              body_format = 'plain',
              author_public_name_snapshot = '',
              " . $guestRedactionSql . "
+             " . $extraValuesRedactionSql . "
              seo_title = '',
              seo_description = '',
              og_title = '',
@@ -1120,10 +1387,12 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         }
         $categorySupported = sr_community_categories_supported($pdo);
         $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
+        $extraValuesSetSql = sr_community_post_extra_values_column_exists($pdo) ? 'extra_values_json = :extra_values_json,' : '';
         $secretSetSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret = :is_secret,' : '';
         $stmt = $pdo->prepare(
             'UPDATE sr_community_posts
              SET ' . $categorySetSql . '
+                 ' . $extraValuesSetSql . '
                  title = :title,
                  body_text = :body_text,
                  body_format = :body_format,
@@ -1148,6 +1417,9 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         ];
         if ($categorySupported) {
             $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
+        }
+        if ($extraValuesSetSql !== '') {
+            $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
         }
         if ($secretSetSql !== '') {
             $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;
@@ -1762,13 +2034,15 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $authorSnapshotValueSql = $authorSnapshotColumnSql !== '' ? ':author_public_name_snapshot, ' : '';
     $guestAuthorColumnSql = sr_community_guest_author_columns_exist($pdo, 'sr_community_posts') ? 'guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, ' : '';
     $guestAuthorValueSql = $guestAuthorColumnSql !== '' ? ':guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, ' : '';
+    $extraValuesColumnSql = sr_community_post_extra_values_column_exists($pdo) ? 'extra_values_json, ' : '';
+    $extraValuesValueSql = $extraValuesColumnSql !== '' ? ':extra_values_json, ' : '';
     $secretColumnSql = sr_community_post_secret_column_exists($pdo) ? 'is_secret, ' : '';
     $secretValueSql = $secretColumnSql !== '' ? ':is_secret, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . $guestAuthorColumnSql . 'title, body_text, body_format, seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, ' . $authorSnapshotColumnSql . $guestAuthorColumnSql . $extraValuesColumnSql . 'title, body_text, body_format, seo_title, seo_description, og_title, og_description, ' . $secretColumnSql . 'status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . $guestAuthorValueSql . ':title, :body_text, :body_format, :seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . ':status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, ' . $authorSnapshotValueSql . $guestAuthorValueSql . $extraValuesValueSql . ':title, :body_text, :body_format, :seo_title, :seo_description, :og_title, :og_description, ' . $secretValueSql . ':status, 0, NULL, :created_at, :updated_at)'
     );
     $params = [
         'board_id' => $boardId,
@@ -1798,6 +2072,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         $params['guest_password_hash'] = $authorAccountId > 0 ? null : $guestValues['guest_password_hash'];
         $params['guest_ip_hash'] = $authorAccountId > 0 ? null : $guestValues['guest_ip_hash'];
         $params['guest_user_agent_hash'] = $authorAccountId > 0 ? null : $guestValues['guest_user_agent_hash'];
+    }
+    if ($extraValuesColumnSql !== '') {
+        $params['extra_values_json'] = (string) ($values['extra_values_json'] ?? '[]');
     }
     if ($secretColumnSql !== '') {
         $params['is_secret'] = (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0;

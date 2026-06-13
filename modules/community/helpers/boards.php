@@ -89,6 +89,7 @@ function sr_community_board_group_setting_keys(): array
         'privacy_consent_require_post',
         'privacy_consent_require_comment',
         'privacy_consent_require_attachment_upload',
+        'extra_fields_json',
         'seo_title',
         'seo_description',
         'og_title',
@@ -171,6 +172,7 @@ function sr_community_board_group_default_settings(array $settings): array
         'privacy_consent_require_post' => !empty($settings['privacy_consent_require_post']) ? '1' : '0',
         'privacy_consent_require_comment' => !empty($settings['privacy_consent_require_comment']) ? '1' : '0',
         'privacy_consent_require_attachment_upload' => !empty($settings['privacy_consent_require_attachment_upload']) ? '1' : '0',
+        'extra_fields_json' => '[]',
         'reaction_post_preset_key' => (string) ($settings['reaction_post_preset_key'] ?? ''),
         'reaction_comment_preset_key' => (string) ($settings['reaction_comment_preset_key'] ?? ''),
     ];
