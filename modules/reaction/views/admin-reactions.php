@@ -14,6 +14,7 @@ $reactionRecordTargets = isset($reactionRecordTargets) && is_array($reactionReco
 $definitionStatuses = sr_reaction_definition_statuses();
 $presetStatuses = sr_reaction_preset_statuses();
 $iconTypes = sr_reaction_icon_types();
+$reactionMaterialIconNames = function_exists('sr_admin_common_material_icon_names') ? sr_admin_common_material_icon_names() : ['favorite', 'sentiment_satisfied', 'thumb_up', 'mood'];
 $reactionStatusClasses = [
     'active' => 'is-normal',
     'disabled' => 'is-blocked',
@@ -218,7 +219,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap">
-                            <?php echo sr_e((string) ($definition['icon_type'] ?? '')); ?>
+                            <?php echo sr_reaction_public_icon_html($definition); ?>
+                            <br><?php echo sr_e(sr_reaction_icon_type_label((string) ($definition['icon_type'] ?? 'emoji'))); ?>
                             <?php if ((string) ($definition['icon_value'] ?? '') !== '') { ?>
                                 <br><code><?php echo sr_e((string) ($definition['icon_value'] ?? '')); ?></code>
                             <?php } ?>
@@ -367,7 +369,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($reactionAdminPage === 'definitions') { ?>
 <div id="reaction-definition-create-modal" class="<?php echo sr_e($reactionModalClass($reactionCreateDefinitionModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="reaction-definition-create-modal-title"<?php echo $reactionModalHiddenAttrs($reactionCreateDefinitionModalOpen); ?>>
     <div class="modal-dialog">
-        <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
+        <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme" enctype="multipart/form-data">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_definition">
             <input type="hidden" name="status" value="active">
@@ -390,14 +392,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label for="reaction_new_icon_type">아이콘 유형</label>
                         <select id="reaction_new_icon_type" name="icon_type" class="form-select">
                             <?php foreach ($iconTypes as $iconType) { ?>
-                                <option value="<?php echo sr_e($iconType); ?>"<?php echo $reactionCreateDefinitionModalOpen && sr_post_string('icon_type', 20) === $iconType ? ' selected' : ''; ?>><?php echo sr_e($iconType); ?></option>
+                                <option value="<?php echo sr_e($iconType); ?>"<?php echo $reactionCreateDefinitionModalOpen && sr_post_string('icon_type', 20) === $iconType ? ' selected' : ''; ?>><?php echo sr_e(sr_reaction_icon_type_label($iconType)); ?></option>
                             <?php } ?>
                         </select>
                     </div>
                     <div class="admin-form-field">
                         <label for="reaction_new_icon_value">아이콘 값</label>
-                        <input id="reaction_new_icon_value" type="text" name="icon_value" class="form-input" maxlength="40" value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('icon_value', 40)) : ''; ?>">
-                        <p class="admin-form-help">이모지 또는 Material icon key를 입력하세요.</p>
+                        <input id="reaction_new_icon_value" type="text" name="icon_value" class="form-input" maxlength="180" list="reaction-material-icon-options" value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('icon_value', 180)) : ''; ?>">
+                        <p class="admin-form-help">이모지는 문자 그대로, Material 아이콘은 key를 입력하거나 목록에서 고르세요. 이미지 업로드를 선택하면 저장 후 자동으로 채워집니다.</p>
+                    </div>
+                    <div class="admin-form-field">
+                        <label for="reaction_new_icon_image">아이콘 이미지</label>
+                        <input id="reaction_new_icon_image" type="file" name="icon_image" class="form-input" accept="image/jpeg,image/png,image/webp">
+                        <p class="admin-form-help">이미지 업로드 유형에서 사용합니다. JPG, PNG, WebP / 최대 <?php echo sr_e(sr_format_bytes(sr_reaction_icon_upload_max_bytes())); ?> / 512px 이하.</p>
                     </div>
                     <div class="admin-form-field">
                         <label for="reaction_new_color_hex">색상</label>
@@ -430,7 +437,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($definitionModalId); ?>" class="<?php echo sr_e($reactionModalClass($definitionModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($definitionModalTitleId); ?>"<?php echo $reactionModalHiddenAttrs($definitionModalOpen); ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
+            <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme" enctype="multipart/form-data">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="save_definition">
                 <input type="hidden" name="id" value="<?php echo sr_e((string) $definitionId); ?>">
@@ -460,13 +467,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <label for="<?php echo sr_e($definitionModalId); ?>_icon_type">아이콘 유형</label>
                             <select id="<?php echo sr_e($definitionModalId); ?>_icon_type" name="icon_type" class="form-select">
                                 <?php foreach ($iconTypes as $iconType) { ?>
-                                    <option value="<?php echo sr_e($iconType); ?>"<?php echo (string) ($definition['icon_type'] ?? '') === $iconType ? ' selected' : ''; ?>><?php echo sr_e($iconType); ?></option>
+                                    <option value="<?php echo sr_e($iconType); ?>"<?php echo (string) ($definition['icon_type'] ?? '') === $iconType ? ' selected' : ''; ?>><?php echo sr_e(sr_reaction_icon_type_label($iconType)); ?></option>
                                 <?php } ?>
                             </select>
                         </div>
                         <div class="admin-form-field">
                             <label for="<?php echo sr_e($definitionModalId); ?>_icon_value">아이콘 값</label>
-                            <input id="<?php echo sr_e($definitionModalId); ?>_icon_value" type="text" name="icon_value" class="form-input" maxlength="40" value="<?php echo sr_e((string) ($definition['icon_value'] ?? '')); ?>">
+                            <input id="<?php echo sr_e($definitionModalId); ?>_icon_value" type="text" name="icon_value" class="form-input" maxlength="180" list="reaction-material-icon-options" value="<?php echo sr_e((string) ($definition['icon_value'] ?? '')); ?>">
+                            <p class="admin-form-help">이미지 업로드 유형에서 새 파일을 선택하지 않으면 현재 이미지 값을 유지합니다.</p>
+                        </div>
+                        <div class="admin-form-field">
+                            <label for="<?php echo sr_e($definitionModalId); ?>_icon_image">아이콘 이미지</label>
+                            <input id="<?php echo sr_e($definitionModalId); ?>_icon_image" type="file" name="icon_image" class="form-input" accept="image/jpeg,image/png,image/webp">
+                            <p class="admin-form-help">JPG, PNG, WebP / 최대 <?php echo sr_e(sr_format_bytes(sr_reaction_icon_upload_max_bytes())); ?> / 512px 이하.</p>
                         </div>
                         <div class="admin-form-field">
                             <label for="<?php echo sr_e($definitionModalId); ?>_color_hex">색상</label>
@@ -671,5 +684,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 <?php } ?>
 <?php } ?>
+
+<datalist id="reaction-material-icon-options">
+    <?php foreach ($reactionMaterialIconNames as $materialIconName) { ?>
+        <option value="<?php echo sr_e((string) $materialIconName); ?>"></option>
+    <?php } ?>
+</datalist>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

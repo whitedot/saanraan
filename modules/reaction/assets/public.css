@@ -49,6 +49,14 @@
     font-variant-numeric: tabular-nums;
 }
 
+.sr-reaction-image {
+    border-radius: 4px;
+    display: inline-block;
+    height: 1.15em;
+    object-fit: contain;
+    width: 1.15em;
+}
+
 .sr-reaction-login,
 .sr-reaction-note,
 .sr-reaction-message {

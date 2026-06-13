@@ -579,6 +579,10 @@ function sr_reaction_public_icon_html(array $definition): string
         return '';
     }
 
+    if ($iconType === 'image' && sr_reaction_icon_image_storage_reference($iconValue) !== null) {
+        return '<img class="sr-reaction-image" src="' . sr_e(sr_url('/reaction/icon?file=' . rawurlencode($iconValue))) . '" alt="">';
+    }
+
     if ($iconType === 'material') {
         return sr_material_icon_html($iconValue);
     }
@@ -678,7 +682,110 @@ function sr_reaction_preset_statuses(): array
 
 function sr_reaction_icon_types(): array
 {
-    return ['emoji', 'material'];
+    return ['emoji', 'material', 'image'];
+}
+
+function sr_reaction_icon_type_label(string $iconType): string
+{
+    return [
+        'emoji' => '이모지',
+        'material' => 'Material 아이콘',
+        'image' => '이미지 업로드',
+    ][$iconType] ?? $iconType;
+}
+
+function sr_reaction_icon_upload_max_bytes(): int
+{
+    return 1048576;
+}
+
+function sr_reaction_icon_upload_was_provided(mixed $file): bool
+{
+    return is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+}
+
+function sr_reaction_icon_image_mime_is_allowed(string $mimeType): bool
+{
+    return in_array(strtolower(trim($mimeType)), ['image/jpeg', 'image/png', 'image/webp'], true);
+}
+
+function sr_reaction_icon_image_format_for_mime(string $mimeType): string
+{
+    return sr_image_format_for_mime($mimeType);
+}
+
+function sr_reaction_upload_icon_image(array $file): array
+{
+    $validated = sr_upload_validate_file($file, [
+        'max_bytes' => sr_reaction_icon_upload_max_bytes(),
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+        'allowed_mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+    ]);
+
+    $sourcePath = (string) $validated['tmp_name'];
+    $dimensions = @getimagesize($sourcePath);
+    if (!is_array($dimensions) || (int) ($dimensions[0] ?? 0) < 1 || (int) ($dimensions[1] ?? 0) < 1) {
+        throw new RuntimeException('리액션 아이콘 이미지 크기를 확인할 수 없습니다.');
+    }
+    if ((int) $dimensions[0] > 512 || (int) $dimensions[1] > 512) {
+        throw new RuntimeException('리액션 아이콘 이미지는 가로/세로 512px 이하만 업로드할 수 있습니다.');
+    }
+
+    $targetFormat = sr_reaction_icon_image_format_for_mime((string) $validated['mime_type']);
+    if ($targetFormat === '') {
+        throw new RuntimeException('허용되지 않은 리액션 아이콘 이미지 형식입니다.');
+    }
+
+    $datePath = date('Y/m');
+    $directory = SR_ROOT . '/storage/tmp/reaction-icons/' . $datePath;
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('리액션 아이콘 임시 저장 디렉터리를 만들 수 없습니다.');
+    }
+
+    $storedName = sr_upload_random_filename($targetFormat);
+    $targetPath = sr_upload_safe_target_path($directory, $storedName);
+    sr_upload_assert_target_path_writable($targetPath);
+
+    if (!sr_upload_reencode_image($sourcePath, $targetPath, $targetFormat, [
+        'max_pixels' => 262144,
+        'quality' => 86,
+    ])) {
+        throw new RuntimeException('리액션 아이콘 이미지 재인코딩에 실패했습니다.');
+    }
+
+    $storedMimeType = sr_upload_detect_mime($targetPath);
+    if (!sr_reaction_icon_image_mime_is_allowed($storedMimeType)) {
+        @unlink($targetPath);
+        throw new RuntimeException('저장된 리액션 아이콘 이미지 MIME을 확인할 수 없습니다.');
+    }
+
+    $storageKey = 'reaction/icons/' . $datePath . '/' . $storedName;
+    $stored = sr_storage_put_file($targetPath, $storageKey, [
+        'content_type' => $storedMimeType,
+    ]);
+    @unlink($targetPath);
+
+    return [
+        'driver' => (string) $stored['driver'],
+        'storage_key' => $storageKey,
+        'storage_reference' => sr_storage_reference((string) $stored['driver'], $storageKey),
+        'mime_type' => $storedMimeType,
+    ];
+}
+
+function sr_reaction_icon_image_storage_key_is_valid(string $key): bool
+{
+    return preg_match('#\Areaction/icons/\d{4}/\d{2}/[a-f0-9]{32}\.(?:jpg|png|webp)\z#', $key) === 1;
+}
+
+function sr_reaction_icon_image_storage_reference(string $reference): ?array
+{
+    $storage = sr_storage_parse_reference($reference);
+    if (!is_array($storage) || !sr_reaction_icon_image_storage_key_is_valid((string) $storage['key'])) {
+        return null;
+    }
+
+    return $storage;
 }
 
 function sr_reaction_admin_definitions(PDO $pdo): array
@@ -810,7 +917,9 @@ function sr_reaction_validate_definition_input(PDO $pdo, array $input): array
     $key = sr_reaction_clean_key((string) ($input['reaction_key'] ?? ''));
     $label = sr_reaction_clean_label((string) ($input['label'] ?? ''));
     $iconType = (string) ($input['icon_type'] ?? 'emoji');
-    $iconValue = sr_reaction_clean_label((string) ($input['icon_value'] ?? ''), 40);
+    $iconValue = $iconType === 'image'
+        ? trim((string) ($input['icon_value'] ?? ''))
+        : sr_reaction_clean_label((string) ($input['icon_value'] ?? ''), 80);
     $colorHex = sr_reaction_clean_color_hex((string) ($input['color_hex'] ?? ''));
     $colorSwatch = sr_reaction_clean_key((string) ($input['color_swatch'] ?? ''), 40);
     $description = sr_reaction_clean_label((string) ($input['description'] ?? ''), 255);
@@ -826,6 +935,18 @@ function sr_reaction_validate_definition_input(PDO $pdo, array $input): array
     }
     if (!in_array($iconType, sr_reaction_icon_types(), true)) {
         $errors[] = '아이콘 유형을 확인하세요.';
+    }
+    if ($iconType === 'material') {
+        if ($iconValue === '') {
+            $errors[] = 'Material 아이콘 key를 입력하세요.';
+        }
+        $iconValue = sr_material_icon_name($iconValue);
+    } elseif ($iconType === 'image') {
+        if ($iconValue === '' || sr_reaction_icon_image_storage_reference($iconValue) === null) {
+            $errors[] = '이미지 아이콘을 선택한 경우 아이콘 이미지를 업로드하세요.';
+        }
+    } elseif ($iconValue === '') {
+        $errors[] = '아이콘 값을 입력하세요.';
     }
     if (!in_array($status, sr_reaction_definition_statuses(), true)) {
         $errors[] = '상태 값을 확인하세요.';

@@ -26,19 +26,37 @@ if (sr_request_method() === 'POST') {
 
     $intent = sr_post_string('intent', 40);
     if ($intent === 'save_definition' && $reactionAdminPage === 'definitions') {
-        $result = sr_reaction_save_definition($pdo, [
-            'id' => (int) sr_post_string('id', 20),
-            'reaction_key' => sr_post_string('reaction_key', 80),
-            'label' => sr_post_string('label', 80),
-            'icon_type' => sr_post_string('icon_type', 20),
-            'icon_value' => sr_post_string('icon_value', 40),
-            'color_hex' => sr_post_string('color_hex', 20),
-            'color_swatch' => sr_post_string('color_swatch', 40),
-            'description' => sr_post_string('description', 255),
-            'status' => sr_post_string('status', 20),
-            'sort_order' => (int) sr_post_string('sort_order', 20),
-        ], (int) $account['id']);
-        if (!empty($result['ok'])) {
+        $definitionIconType = sr_post_string('icon_type', 20);
+        $definitionIconValue = sr_post_string('icon_value', 180);
+        $uploadedReactionIcon = null;
+        if ($definitionIconType === 'image' && sr_reaction_icon_upload_was_provided($_FILES['icon_image'] ?? null)) {
+            try {
+                $uploadedReactionIcon = sr_reaction_upload_icon_image((array) $_FILES['icon_image']);
+                $definitionIconValue = (string) ($uploadedReactionIcon['storage_reference'] ?? '');
+            } catch (Throwable $exception) {
+                $errors[] = $exception->getMessage();
+            }
+        }
+        $result = ['ok' => false, 'errors' => []];
+        if ($errors === []) {
+            $result = sr_reaction_save_definition($pdo, [
+                'id' => (int) sr_post_string('id', 20),
+                'reaction_key' => sr_post_string('reaction_key', 80),
+                'label' => sr_post_string('label', 80),
+                'icon_type' => $definitionIconType,
+                'icon_value' => $definitionIconValue,
+                'color_hex' => sr_post_string('color_hex', 20),
+                'color_swatch' => sr_post_string('color_swatch', 40),
+                'description' => sr_post_string('description', 255),
+                'status' => sr_post_string('status', 20),
+                'sort_order' => (int) sr_post_string('sort_order', 20),
+            ], (int) $account['id']);
+        }
+        if ($errors !== []) {
+            if (is_array($uploadedReactionIcon ?? null)) {
+                sr_storage_delete((string) ($uploadedReactionIcon['driver'] ?? ''), (string) ($uploadedReactionIcon['storage_key'] ?? ''));
+            }
+        } elseif (!empty($result['ok'])) {
             $definitionValues = is_array($result['values'] ?? null) ? $result['values'] : [];
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
