@@ -22,6 +22,7 @@ return [
     ],
     'contracts' => [
         'provides' => [
+            'paths.php',
             'privacy-export.php',
             'privacy-cleanup.php',
         ],
@@ -34,5 +35,7 @@ return [
         'reaction_default_preset_key' => 'emotions',
         'reaction_preset_visible_default' => 6,
         'reaction_preset_visible_hard_cap' => 12,
+        'reaction_write_window_seconds' => 60,
+        'reaction_write_account_limit' => 120,
     ],
 ];

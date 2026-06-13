@@ -77,12 +77,24 @@ $pdo->exec(
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         UNIQUE (account_id, target_module, target_type, target_id)
+    );
+    CREATE TABLE sr_rate_limits (
+        rate_key TEXT NOT NULL PRIMARY KEY,
+        bucket TEXT NOT NULL,
+        subject_hash TEXT NOT NULL,
+        attempt_count INTEGER NOT NULL DEFAULT 0,
+        expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
     );'
 );
 
 $now = sr_now();
 $pdo->exec(
-    "INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES ('reaction_default_preset_key', 'emotions', 'string');
+    "INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES
+        ('reaction_default_preset_key', 'emotions', 'string'),
+        ('reaction_write_window_seconds', '60', 'integer'),
+        ('reaction_write_account_limit', '2', 'integer');
      INSERT INTO sr_modules (module_key, version, status) VALUES ('reaction', '2026.06.001', 'enabled');
      INSERT INTO sr_reaction_definitions (reaction_key, label, status, created_at, updated_at) VALUES
         ('like', '좋아요', 'active', '$now', '$now'),
@@ -147,6 +159,21 @@ $assert(
 
 $disabled = sr_reaction_write($pdo, 3, 'community', 'post', '3', 'disabled', 'apply', ['resolved_target' => $target]);
 $assert($disabled['ok'] === false && $disabled['error'] === 'reaction_not_allowed', 'disabled reaction key should block new write.');
+
+$assert(sr_reaction_write_rate_limited($pdo, 9) === false, 'write rate limit should start open.');
+sr_reaction_record_write_rate_limit($pdo, 9);
+sr_reaction_record_write_rate_limit($pdo, 9);
+$assert(sr_reaction_write_rate_limited($pdo, 9) === true, 'write rate limit should close after configured attempts.');
+
+$module = include SR_ROOT . '/modules/reaction/module.php';
+$paths = include SR_ROOT . '/modules/reaction/paths.php';
+$assert(
+    is_array($module)
+        && in_array('paths.php', array_map('strval', (array) ($module['contracts']['provides'] ?? [])), true)
+        && is_array($paths)
+        && (string) ($paths['POST /reaction/write'] ?? '') === 'actions/write.php',
+    'reaction module should provide a public write route.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "reaction runtime checks failed:\n");

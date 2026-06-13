@@ -69,6 +69,47 @@ function sr_reaction_tables_available(PDO $pdo): bool
     return true;
 }
 
+function sr_reaction_rate_limits_table_exists(PDO $pdo): bool
+{
+    static $exists = null;
+    if ($exists !== null) {
+        return $exists;
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_rate_limits LIMIT 1');
+        $exists = true;
+    } catch (Throwable) {
+        $exists = false;
+    }
+
+    return $exists;
+}
+
+function sr_reaction_write_rate_limit_window_seconds(PDO $pdo): int
+{
+    return min(3600, max(10, (int) sr_site_setting($pdo, 'reaction_write_window_seconds', '60')));
+}
+
+function sr_reaction_write_rate_limited(PDO $pdo, int $accountId): bool
+{
+    if ($accountId < 1 || !sr_reaction_rate_limits_table_exists($pdo)) {
+        return false;
+    }
+
+    $limit = min(1000, max(1, (int) sr_site_setting($pdo, 'reaction_write_account_limit', '120')));
+    return sr_rate_limit_count($pdo, 'reaction.write.account', (string) $accountId, sr_reaction_write_rate_limit_window_seconds($pdo)) >= $limit;
+}
+
+function sr_reaction_record_write_rate_limit(PDO $pdo, int $accountId): void
+{
+    if ($accountId < 1 || !sr_reaction_rate_limits_table_exists($pdo)) {
+        return;
+    }
+
+    sr_rate_limit_increment($pdo, 'reaction.write.account', (string) $accountId, sr_reaction_write_rate_limit_window_seconds($pdo));
+}
+
 function sr_reaction_normalize_target(array $target, string $targetModule, string $targetType, string $targetId): array
 {
     $status = (string) ($target['status'] ?? 'broken');
