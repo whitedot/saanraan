@@ -699,6 +699,7 @@ sr_community_release_file_contains('modules/community/helpers/posts.php', [
     "'cleanup_policy' => (string) (\$definition['cleanup_policy'] ?? 'anonymize')",
     'function sr_community_extra_field_values_export_json',
     'function sr_community_extra_field_values_cleanup_json',
+    'function sr_community_sync_group_board_field_definitions',
     '값 형식이 올바르지 않습니다.',
 ], 'Community post extra field input validation');
 sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
@@ -708,6 +709,7 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
     '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
+    'sr_community_sync_group_board_field_definitions(',
 ], 'Community admin board group extra field definition validation');
 sr_community_release_file_contains('modules/community/actions/edit.php', [
     'sr_community_account_can_edit_post($post, $account)',

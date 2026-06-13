@@ -460,6 +460,11 @@ if (sr_request_method() === 'POST') {
                 $settingValue = is_bool($assetSettingValue) ? ($assetSettingValue ? '1' : '0') : (string) $assetSettingValue;
                 sr_community_set_board_group_setting($pdo, $groupId, (string) $assetSettingKey, $settingValue, $valueType);
             }
+            $extraFieldDefinitionSyncedBoardCount = sr_community_sync_group_board_field_definitions(
+                $pdo,
+                $groupId,
+                sr_community_extra_field_definitions_from_json($extraFieldsJson)
+            );
 
             $appliedBoardCount = 0;
             foreach ($appliedBoardAssetAudits as $appliedBoardAssetAudit) {
@@ -499,6 +504,7 @@ if (sr_request_method() === 'POST') {
                     'status' => $status,
                     'applied_setting_keys' => $applySettingKeys,
                     'applied_board_count' => $appliedBoardCount,
+                    'extra_field_definition_synced_board_count' => $extraFieldDefinitionSyncedBoardCount,
                 ],
             ]);
             if ($intent === 'update_group') {

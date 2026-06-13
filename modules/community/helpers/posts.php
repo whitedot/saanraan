@@ -746,6 +746,33 @@ function sr_community_sync_board_field_definitions(PDO $pdo, int $boardId, array
     }
 }
 
+function sr_community_sync_group_board_field_definitions(PDO $pdo, int $groupId, array $definitions): int
+{
+    if ($groupId < 1
+        || !sr_community_board_field_definitions_table_exists($pdo)
+        || !sr_community_optional_table_exists($pdo, 'sr_community_board_setting_sources')) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT b.id
+         FROM sr_community_boards b
+         INNER JOIN sr_community_board_setting_sources s
+            ON s.board_id = b.id
+           AND s.setting_key = \'extra_fields_json\'
+           AND s.source = \'group\'
+         WHERE b.board_group_id = :group_id
+         ORDER BY b.id ASC'
+    );
+    $stmt->execute(['group_id' => $groupId]);
+    $boardIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    foreach ($boardIds as $boardId) {
+        sr_community_sync_board_field_definitions($pdo, (int) $boardId, $definitions);
+    }
+
+    return count($boardIds);
+}
+
 function sr_community_extra_field_input_values(array $definitions): array
 {
     $posted = $_POST['community_extra_fields'] ?? [];

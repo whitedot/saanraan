@@ -117,6 +117,39 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_community_board_setting_sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            board_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT "board",
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(board_id, setting_key)
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_board_field_definitions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            board_id INTEGER NOT NULL,
+            field_key TEXT NOT NULL,
+            label TEXT NOT NULL,
+            field_type TEXT NOT NULL DEFAULT "text",
+            is_required INTEGER NOT NULL DEFAULT 0,
+            visibility TEXT NOT NULL DEFAULT "public",
+            show_on_view INTEGER NOT NULL DEFAULT 1,
+            show_in_admin INTEGER NOT NULL DEFAULT 0,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            validation_json TEXT NULL,
+            privacy_purpose TEXT NOT NULL DEFAULT "",
+            export_policy TEXT NOT NULL DEFAULT "include",
+            cleanup_policy TEXT NOT NULL DEFAULT "anonymize",
+            status TEXT NOT NULL DEFAULT "enabled",
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(board_id, field_key)
+        )'
+    );
+    $pdo->exec(
         'CREATE TABLE sr_community_posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             board_id INTEGER NOT NULL,
@@ -192,7 +225,17 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
         'INSERT INTO sr_community_boards
             (id, board_group_id, board_key, title, description, status, read_policy, write_policy, comment_policy, image_uploads_enabled, sort_order, created_at, updated_at)
          VALUES
-            (1, 1, "guest_runtime", "비회원 런타임", "", "enabled", "public", "guest", "guest", 1, 1, :created_at, :updated_at)'
+            (1, 1, "guest_runtime", "비회원 런타임", "", "enabled", "public", "guest", "guest", 1, 1, :created_at, :updated_at),
+            (2, 1, "group_runtime", "그룹 상속 런타임", "", "enabled", "public", "guest", "guest", 1, 2, :created_at, :updated_at)'
+    )->execute([
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $pdo->prepare(
+        'INSERT INTO sr_community_board_setting_sources
+            (board_id, setting_key, source, created_at, updated_at)
+         VALUES
+            (2, "extra_fields_json", "group", :created_at, :updated_at)'
     )->execute([
         'created_at' => $now,
         'updated_at' => $now,
@@ -301,6 +344,26 @@ function sr_community_guest_runtime_check(): void
     sr_community_guest_runtime_assert(
         is_string($malformedDefinitionJson) && sr_community_extra_field_definitions_input_errors($malformedDefinitionJson) !== [],
         'additional field definition validation must reject non-scalar definition values without warnings.'
+    );
+    $groupExtraFieldDefinitions = sr_community_normalize_extra_field_definitions([
+        [
+            'key' => 'group_field',
+            'label' => '그룹 항목',
+            'type' => 'text',
+            'show_in_admin' => true,
+        ],
+    ]);
+    sr_community_guest_runtime_assert(
+        sr_community_sync_group_board_field_definitions($pdo, 1, $groupExtraFieldDefinitions) === 1,
+        'board group additional field sync must target group-inheriting boards only.'
+    );
+    sr_community_guest_runtime_assert(
+        (int) sr_community_guest_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_board_field_definitions WHERE board_id = 2 AND field_key = "group_field" AND status = "enabled"') === 1,
+        'board group additional field sync must persist normalized definitions for inheriting boards.'
+    );
+    sr_community_guest_runtime_assert(
+        (int) sr_community_guest_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_board_field_definitions WHERE board_id = 1') === 0,
+        'board group additional field sync must not overwrite board-owned definitions.'
     );
     $postValues = [
         'title' => '비회원 런타임 게시글',
