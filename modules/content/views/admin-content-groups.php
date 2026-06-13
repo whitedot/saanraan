@@ -9,6 +9,7 @@ $pageGroupSort = isset($pageGroupSort) && is_array($pageGroupSort) ? $pageGroupS
 $pageGroupStatusCounts = isset($pageGroupStatusCounts) && is_array($pageGroupStatusCounts) ? $pageGroupStatusCounts : [];
 $allowedGroupStatuses = isset($allowedGroupStatuses) && is_array($allowedGroupStatuses) ? $allowedGroupStatuses : sr_content_group_statuses();
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
+$reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $editing = is_array($editPageGroup ?? null);
 $contentGroupAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content_group.asset_settings.updated', 'content_group', (string) (int) ($editPageGroup['id'] ?? 0)) : '';
 if (!is_array($values ?? null) || $values === []) {
@@ -248,6 +249,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $contentGroupSectionNavItems = [
         'content-group-section-basic' => '기본 정보',
         'content-group-section-defaults' => '작성 기본값',
+        'content-group-section-reaction' => '리액션',
         'content-group-section-display' => '배너/팝업',
         'content-group-section-access-asset' => '유료 열람',
         'content-group-section-action-asset' => '완료 버튼',
@@ -338,6 +340,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
                             <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo $groupSettingValue($groupSettings, 'layout_key', sr_content_default_layout_key($pdo, $site ?? null)) === (string) $layoutKey ? ' selected' : ''; ?>>
                                 <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+        </section>
+        <section id="content-group-section-reaction" class="admin-card card" data-admin-section-anchor>
+            <h2><?php echo sr_e('리액션 기본값'); ?></h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_reaction_preset_key">콘텐츠 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="content_group_reaction_preset_key" name="group_reaction_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $groupSettingValue($groupSettings, 'reaction_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $presetLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">개별 콘텐츠에서 따로 선택하지 않으면 이 그룹 설정을 사용하고, 비어 있으면 콘텐츠 환경설정을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_group_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="content_group_reaction_comment_preset_key" name="group_reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $groupSettingValue($groupSettings, 'reaction_comment_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $presetLabel); ?>
                             </option>
                         <?php } ?>
                     </select>

@@ -11,6 +11,9 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content-groups', 'view');
@@ -37,6 +40,7 @@ $allowedGroupStatuses = sr_content_group_statuses();
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $assetPolicySets = sr_content_asset_policy_sets($pdo);
 $publicLayoutOptions = sr_public_layout_options($pdo);
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
@@ -309,6 +313,8 @@ if (sr_request_method() === 'POST') {
     $groupSettings = [
         'status' => sr_post_string('group_content_status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('group_layout_key', 80)),
+        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_preset_key', 80)) : '',
+        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_comment_preset_key', 80)) : '',
         'asset_access_enabled' => sr_post_string('group_asset_access_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_content_asset_module_value_from_keys($groupAccessAssetModules),
         'asset_access_amount' => $groupAccessAmount,
@@ -377,6 +383,12 @@ if (sr_request_method() === 'POST') {
 
     if ((string) ($groupSettings['layout_key'] ?? '') !== '' && !isset($publicLayoutOptions[(string) $groupSettings['layout_key']])) {
         $errors[] = '그룹 기본 콘텐츠 레이아웃 값이 올바르지 않습니다.';
+    }
+    foreach (['reaction_preset_key' => '그룹 콘텐츠 리액션 프리셋', 'reaction_comment_preset_key' => '그룹 댓글 리액션 프리셋'] as $reactionSettingKey => $reactionSettingLabel) {
+        $reactionPresetKey = (string) ($groupSettings[$reactionSettingKey] ?? '');
+        if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
+            $errors[] = $reactionSettingLabel . ' 값이 올바르지 않습니다.';
+        }
     }
 
     if ($sortOrder === null) {
