@@ -805,6 +805,13 @@ function sr_reaction_save_definition(PDO $pdo, array $input, int $actorAccountId
 
     $now = sr_now();
     if ((int) $values['id'] > 0) {
+        $keyStmt = $pdo->prepare('SELECT reaction_key FROM sr_reaction_definitions WHERE id = :id LIMIT 1');
+        $keyStmt->execute(['id' => $values['id']]);
+        $keyRow = $keyStmt->fetch();
+        if (!is_array($keyRow)) {
+            return ['ok' => false, 'errors' => ['리액션 정의를 찾을 수 없습니다.']];
+        }
+        $definitionKey = sr_reaction_clean_key((string) ($keyRow['reaction_key'] ?? ''));
         $stmt = $pdo->prepare(
             'UPDATE sr_reaction_definitions
              SET label = :label,
@@ -832,7 +839,7 @@ function sr_reaction_save_definition(PDO $pdo, array $input, int $actorAccountId
             'updated_at' => $now,
             'id' => $values['id'],
         ]);
-        return ['ok' => true, 'operation' => 'updated'];
+        return ['ok' => true, 'operation' => 'updated', 'reaction_key' => $definitionKey, 'values' => $values];
     }
 
     $stmt = $pdo->prepare(
@@ -857,7 +864,7 @@ function sr_reaction_save_definition(PDO $pdo, array $input, int $actorAccountId
         'updated_at' => $now,
     ]);
 
-    return ['ok' => true, 'operation' => 'created'];
+    return ['ok' => true, 'operation' => 'created', 'reaction_key' => $values['reaction_key'], 'values' => $values];
 }
 
 function sr_reaction_validate_preset_input(PDO $pdo, array $input): array
@@ -1024,7 +1031,7 @@ function sr_reaction_save_preset(PDO $pdo, array $input, int $actorAccountId): a
         }
 
         $pdo->commit();
-        return ['ok' => true, 'operation' => $operation];
+        return ['ok' => true, 'operation' => $operation, 'preset_key' => $presetKey, 'values' => $values];
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();

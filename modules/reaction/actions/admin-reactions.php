@@ -31,14 +31,26 @@ if (sr_request_method() === 'POST') {
             'sort_order' => (int) sr_post_string('sort_order', 20),
         ], (int) $account['id']);
         if (!empty($result['ok'])) {
+            $definitionValues = is_array($result['values'] ?? null) ? $result['values'] : [];
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'reaction.definition.' . (string) ($result['operation'] ?? 'saved'),
                 'target_type' => 'reaction_definition',
-                'target_id' => sr_post_string('reaction_key', 80),
+                'target_id' => (string) ($result['reaction_key'] ?? sr_post_string('reaction_key', 80)),
                 'result' => 'success',
                 'message' => 'Reaction definition saved.',
+                'metadata' => [
+                    'reaction_key' => (string) ($result['reaction_key'] ?? ''),
+                    'operation' => (string) ($result['operation'] ?? ''),
+                    'label' => (string) ($definitionValues['label'] ?? ''),
+                    'icon_type' => (string) ($definitionValues['icon_type'] ?? ''),
+                    'icon_value' => (string) ($definitionValues['icon_value'] ?? ''),
+                    'color_hex' => (string) ($definitionValues['color_hex'] ?? ''),
+                    'color_swatch' => (string) ($definitionValues['color_swatch'] ?? ''),
+                    'status' => (string) ($definitionValues['status'] ?? ''),
+                    'sort_order' => (int) ($definitionValues['sort_order'] ?? 0),
+                ],
             ]);
             $notice = '리액션 정의를 저장했습니다.';
         } else {
@@ -56,14 +68,24 @@ if (sr_request_method() === 'POST') {
             'reaction_keys' => $_POST['reaction_keys'] ?? [],
         ], (int) $account['id']);
         if (!empty($result['ok'])) {
+            $presetValues = is_array($result['values'] ?? null) ? $result['values'] : [];
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
                 'event_type' => 'reaction.preset.' . (string) ($result['operation'] ?? 'saved'),
                 'target_type' => 'reaction_preset',
-                'target_id' => sr_post_string('preset_key', 80),
+                'target_id' => (string) ($result['preset_key'] ?? sr_post_string('preset_key', 80)),
                 'result' => 'success',
                 'message' => 'Reaction preset saved.',
+                'metadata' => [
+                    'preset_key' => (string) ($result['preset_key'] ?? ''),
+                    'operation' => (string) ($result['operation'] ?? ''),
+                    'label' => (string) ($presetValues['label'] ?? ''),
+                    'status' => (string) ($presetValues['status'] ?? ''),
+                    'visible_key_limit' => (int) ($presetValues['visible_key_limit'] ?? 0),
+                    'sort_order' => (int) ($presetValues['sort_order'] ?? 0),
+                    'reaction_keys' => array_values(array_map('strval', (array) ($presetValues['reaction_keys'] ?? []))),
+                ],
             ]);
             $notice = '리액션 preset을 저장했습니다.';
         } else {

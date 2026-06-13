@@ -242,6 +242,18 @@ $definitionDuplicate = sr_reaction_save_definition($pdo, [
     'status' => 'active',
 ], 1);
 $assert(empty($definitionDuplicate['ok']), 'admin definition create should reject duplicate keys.');
+$likeDefinitionId = (int) $pdo->query("SELECT id FROM sr_reaction_definitions WHERE reaction_key = 'like'")->fetchColumn();
+$definitionUpdate = sr_reaction_save_definition($pdo, [
+    'id' => $likeDefinitionId,
+    'label' => '좋아요 수정',
+    'icon_type' => 'emoji',
+    'icon_value' => 'ok',
+    'color_hex' => '#111111',
+    'description' => '표시 수정',
+    'status' => 'active',
+    'sort_order' => 15,
+], 1);
+$assert(!empty($definitionUpdate['ok']) && (string) ($definitionUpdate['reaction_key'] ?? '') === 'like', 'admin definition update should preserve and return the stable key.');
 $presetCreate = sr_reaction_save_preset($pdo, [
     'preset_key' => 'funny',
     'label' => '재미형',
