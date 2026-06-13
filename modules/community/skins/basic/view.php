@@ -399,7 +399,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>">
                                                             <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>" type="text" name="guest_author_name" maxlength="120" required>
+                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentGuestAuthorName) : ''; ?>" required>
                                                         </label>
                                                     </p>
                                                     <p>
@@ -544,7 +544,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <p>
                             <label for="modules_community_view_guest_comment_name">
                                 <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                <input id="modules_community_view_guest_comment_name" type="text" name="guest_author_name" maxlength="120" required>
+                                <input id="modules_community_view_guest_comment_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo $commentParentId < 1 ? sr_e($commentGuestAuthorName) : ''; ?>" required>
                             </label>
                         </p>
                         <p>

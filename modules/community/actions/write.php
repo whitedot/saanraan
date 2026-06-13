@@ -152,16 +152,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             sr_render_error(403, (string) ($writeChargeResult['message'] ?? sr_t('community::action.error.write_charge_failed')));
         }
         $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], $authorAccountId, 'community.post', $postId, $privacyConsentActionKeys, $board);
-        if ((string) $seriesValues['series_mode'] === 'new') {
-            $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
+        if (!$isGuestAuthor && (string) $seriesValues['series_mode'] === 'new') {
+            $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], $authorAccountId, [
                 'title' => (string) $seriesValues['new_series_title'],
                 'description' => '',
                 'status' => 'active',
                 'visibility' => 'public',
-            ], (int) $account['id']);
+            ], $authorAccountId);
         }
-        if (in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true)) {
-            sr_community_set_post_series($pdo, $postId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
+        if (!$isGuestAuthor && in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true)) {
+            sr_community_set_post_series($pdo, $postId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], $authorAccountId);
         }
         $postRewardResult = !$isGuestAuthor && sr_community_asset_event_required($postRewardConfig)
             ? sr_community_run_asset_event($pdo, $postRewardConfig, $authorAccountId, 'post_reward', 'community.post', $postId, 'grant', 'community.post.reward')

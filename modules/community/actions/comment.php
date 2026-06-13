@@ -69,6 +69,9 @@ if ($errors !== []) {
     $_SESSION['sr_community_comment_body'] = is_string($values['body_text']) ? $values['body_text'] : '';
     $_SESSION['sr_community_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
     $_SESSION['sr_community_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
+    if ($isGuestAuthor) {
+        $_SESSION['sr_community_comment_guest_author_name'] = (string) ($values['guest_author_name'] ?? '');
+    }
     sr_redirect('/community/post?id=' . (string) $postId . '#comments');
 }
 
@@ -126,62 +129,62 @@ if ($isGuestAuthor) {
     $commentMentionNotificationResult = ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []];
 } else {
     $commentAuthorLabel = sr_community_message_account_label(
-    (string) ($account['display_name'] ?? ''),
-    (int) $account['id'],
-    false,
-    null,
-    (string) ($account['status'] ?? ''),
-    sr_community_member_nickname($pdo, (int) $account['id']),
-    sr_member_settings($pdo)
-    );
-if ((int) $post['author_account_id'] > 0 && (int) $post['author_account_id'] !== (int) $account['id']) {
-    $postAuthorNotificationCreated = sr_community_create_account_event_notification(
-        $pdo,
-        (int) $post['author_account_id'],
-        'comment.created',
-        [
-            'post_id' => $postId,
-            'comment_id' => $commentId,
-            'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
-            'member_name' => $commentAuthorLabel,
-            'link_url' => '/community/post?id=' . (string) $postId . '#comments',
-            'created_at' => sr_now(),
-        ],
-        (int) $account['id']
-    );
-}
-if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0
-    && (int) ($parentComment['author_account_id'] ?? 0) !== (int) $account['id']
-    && (int) ($parentComment['author_account_id'] ?? 0) !== (int) ($post['author_account_id'] ?? 0)) {
-    $parentAuthorNotificationCreated = sr_community_create_account_event_notification(
-        $pdo,
-        (int) $parentComment['author_account_id'],
-        'comment.created',
-        [
-            'post_id' => $postId,
-            'comment_id' => $commentId,
-            'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
-            'member_name' => $commentAuthorLabel,
-            'link_url' => '/community/post?id=' . (string) $postId . '#comments',
-            'created_at' => sr_now(),
-        ],
-        (int) $account['id']
-    );
-}
-$mentionExcludeAccountIds = [(int) $post['author_account_id']];
-if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0) {
-    $mentionExcludeAccountIds[] = (int) $parentComment['author_account_id'];
-}
-$commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
-    ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
-    : sr_community_create_comment_mention_notifications(
-        $pdo,
-        $postId,
-        $commentId,
-        (string) $values['body_text'],
+        (string) ($account['display_name'] ?? ''),
         (int) $account['id'],
-        $mentionExcludeAccountIds
+        false,
+        null,
+        (string) ($account['status'] ?? ''),
+        sr_community_member_nickname($pdo, (int) $account['id']),
+        sr_member_settings($pdo)
     );
+    if ((int) $post['author_account_id'] > 0 && (int) $post['author_account_id'] !== (int) $account['id']) {
+        $postAuthorNotificationCreated = sr_community_create_account_event_notification(
+            $pdo,
+            (int) $post['author_account_id'],
+            'comment.created',
+            [
+                'post_id' => $postId,
+                'comment_id' => $commentId,
+                'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
+                'member_name' => $commentAuthorLabel,
+                'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+                'created_at' => sr_now(),
+            ],
+            (int) $account['id']
+        );
+    }
+    if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0
+        && (int) ($parentComment['author_account_id'] ?? 0) !== (int) $account['id']
+        && (int) ($parentComment['author_account_id'] ?? 0) !== (int) ($post['author_account_id'] ?? 0)) {
+        $parentAuthorNotificationCreated = sr_community_create_account_event_notification(
+            $pdo,
+            (int) $parentComment['author_account_id'],
+            'comment.created',
+            [
+                'post_id' => $postId,
+                'comment_id' => $commentId,
+                'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
+                'member_name' => $commentAuthorLabel,
+                'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+                'created_at' => sr_now(),
+            ],
+            (int) $account['id']
+        );
+    }
+    $mentionExcludeAccountIds = [(int) $post['author_account_id']];
+    if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0) {
+        $mentionExcludeAccountIds[] = (int) $parentComment['author_account_id'];
+    }
+    $commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
+        ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
+        : sr_community_create_comment_mention_notifications(
+            $pdo,
+            $postId,
+            $commentId,
+            (string) $values['body_text'],
+            (int) $account['id'],
+            $mentionExcludeAccountIds
+        );
 }
 sr_audit_log($pdo, [
     'actor_account_id' => $authorAccountId > 0 ? $authorAccountId : null,

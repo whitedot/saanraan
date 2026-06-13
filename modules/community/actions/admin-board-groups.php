@@ -142,6 +142,8 @@ if (sr_request_method() === 'POST') {
         $levelCommentScore = sr_admin_post_int_in_range('group_level_comment_score', 0, 10000);
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_comment_preset_key', 80)) : '';
+        $extraFieldsInput = sr_post_string_without_truncation('group_extra_fields_json', 20000);
+        $extraFieldsJson = is_string($extraFieldsInput) ? sr_community_extra_field_definitions_json_from_input($extraFieldsInput) : null;
         $publicDisplaySettingValues = [];
         foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
             $publicDisplaySettingValues[$displaySettingKey] = sr_admin_post_int_in_range('group_' . $displaySettingKey, 0, 999999999);
@@ -367,6 +369,10 @@ if (sr_request_method() === 'POST') {
                 break;
             }
         }
+        if ($extraFieldsJson === null) {
+            $errors[] = '게시판 그룹 추가 입력 항목 JSON 형식을 확인해 주세요.';
+            $extraFieldsJson = '[]';
+        }
 
         if ($errors === [] && $intent === 'create_group' && sr_community_board_group_by_key($pdo, $groupKey) !== null) {
             $errors[] = sr_t('community::action.admin.board_group_key_duplicate');
@@ -444,6 +450,7 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'level_comment_score', (string) $levelCommentScore, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
+            sr_community_set_board_group_setting($pdo, $groupId, 'extra_fields_json', $extraFieldsJson, 'json');
             foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
                 sr_community_set_board_group_setting($pdo, $groupId, (string) $displaySettingKey, (string) $displaySettingValue, 'int');
             }

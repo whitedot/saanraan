@@ -498,6 +498,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_extra_fields_json">추가 입력 항목</label>
+                    <div class="admin-form-field">
+                        <textarea id="community_admin_board_groups_group_extra_fields_json" name="group_extra_fields_json" rows="8" class="form-textarea form-control-full"><?php echo sr_e($groupSettingValue($formGroupSettings, 'extra_fields_json', '[]')); ?></textarea>
+                        <p class="admin-form-help">새 게시판을 만들 때 참고할 그룹 기본값입니다. JSON 배열로 입력합니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
                     <div class="form-label admin-form-label-help"><?php echo $communityBoardGroupHelpButtonHtml(sr_t('community::ui.text.c3bd14cb'), $communityBoardGroupHelp['attachments']['id']); ?><span><?php echo sr_e(sr_t('community::ui.text.c3bd14cb')); ?></span></div>
                     <div class="admin-form-field">
                         <label class="admin-form-check form-label" for="modules_community_admin_board_groups_group_image_uploads_enabled">

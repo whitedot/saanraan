@@ -161,8 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $authorAccountId = is_array($account) ? (int) $account['id'] : 0;
         sr_community_update_post_content($pdo, $postId, $values, $authorAccountId);
         $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], $authorAccountId, 'community.post', $postId, $privacyConsentActionKeys, $board);
-        if ((string) $seriesValues['series_mode'] === 'new') {
-            $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
+        if (is_array($account) && (string) $seriesValues['series_mode'] === 'new') {
+            $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], $authorAccountId, [
                 'title' => (string) $seriesValues['new_series_title'],
                 'description' => '',
                 'status' => 'active',
