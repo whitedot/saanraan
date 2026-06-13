@@ -11,6 +11,23 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
+$communityReactionCommentTargets = [];
+if (function_exists('sr_reaction_resolve_targets') && is_array($comments ?? null) && $comments !== []) {
+    $communityReactionCommentIds = [];
+    foreach ($comments as $communityReactionComment) {
+        $communityReactionCommentId = (int) ($communityReactionComment['id'] ?? 0);
+        if ($communityReactionCommentId > 0) {
+            $communityReactionCommentIds[] = (string) $communityReactionCommentId;
+        }
+    }
+    $communityReactionCommentTargets = sr_reaction_resolve_targets(
+        $pdo,
+        'community',
+        'comment',
+        $communityReactionCommentIds,
+        is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
+    );
+}
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $memberSettings = sr_member_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
@@ -322,7 +339,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <?php if ($communityCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
                                 <?php if (function_exists('sr_reaction_render_widget')) { ?>
-                                    <?php echo sr_reaction_render_widget($pdo, 'community', 'comment', (string) (int) ($comment['id'] ?? 0), is_array($account ?? null) ? $account : null, ['label' => '댓글 리액션']); ?>
+                                    <?php
+                                    $communityCommentReactionId = (string) (int) ($comment['id'] ?? 0);
+                                    $communityCommentReactionOptions = ['label' => '댓글 리액션'];
+                                    if (isset($communityReactionCommentTargets[$communityCommentReactionId]) && is_array($communityReactionCommentTargets[$communityCommentReactionId])) {
+                                        $communityCommentReactionOptions['resolved_target'] = $communityReactionCommentTargets[$communityCommentReactionId];
+                                    }
+                                    ?>
+                                    <?php echo sr_reaction_render_widget($pdo, 'community', 'comment', $communityCommentReactionId, is_array($account ?? null) ? $account : null, $communityCommentReactionOptions); ?>
                                 <?php } ?>
                             <?php } else { ?>
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>

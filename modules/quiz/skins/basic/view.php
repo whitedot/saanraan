@@ -112,6 +112,29 @@ if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
     }
 }
 
+$quizReactionCommentTargets = [];
+if (
+    function_exists('sr_reaction_resolve_targets')
+    && !$canPreviewAsAdmin
+    && is_array($quizComments ?? null)
+    && $quizComments !== []
+) {
+    $quizReactionCommentIds = [];
+    foreach ($quizComments as $quizReactionComment) {
+        $quizReactionCommentId = (int) ($quizReactionComment['id'] ?? 0);
+        if ($quizReactionCommentId > 0) {
+            $quizReactionCommentIds[] = (string) $quizReactionCommentId;
+        }
+    }
+    $quizReactionCommentTargets = sr_reaction_resolve_targets(
+        $pdo,
+        'quiz',
+        'comment',
+        $quizReactionCommentIds,
+        is_array($currentAccount) ? (int) ($currentAccount['id'] ?? 0) : 0
+    );
+}
+
 $seo = [
     'title' => (string) $quiz['title'],
     'description' => sr_quiz_clean_single_line((string) ($quiz['description'] ?? ''), 160),
@@ -255,7 +278,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                                     <?php if ($quizCommentCanViewBody): ?>
                                         <p><?php echo sr_member_mention_plain_text_html((string) ($quizComment['body_text'] ?? '')); ?></p>
                                         <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
-                                            <?php echo sr_reaction_render_widget($pdo, 'quiz', 'comment', (string) $quizCommentId, is_array($currentAccount) ? $currentAccount : null, ['label' => '댓글 리액션']); ?>
+                                            <?php
+                                            $quizCommentReactionOptions = ['label' => '댓글 리액션'];
+                                            if (isset($quizReactionCommentTargets[(string) $quizCommentId]) && is_array($quizReactionCommentTargets[(string) $quizCommentId])) {
+                                                $quizCommentReactionOptions['resolved_target'] = $quizReactionCommentTargets[(string) $quizCommentId];
+                                            }
+                                            ?>
+                                            <?php echo sr_reaction_render_widget($pdo, 'quiz', 'comment', (string) $quizCommentId, is_array($currentAccount) ? $currentAccount : null, $quizCommentReactionOptions); ?>
                                         <?php endif; ?>
                                     <?php else: ?>
                                         <p>비밀 댓글입니다.</p>

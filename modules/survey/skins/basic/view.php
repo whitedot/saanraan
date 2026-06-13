@@ -98,6 +98,29 @@ if (sr_request_method() === 'POST') {
     }
 }
 
+$surveyReactionCommentTargets = [];
+if (
+    function_exists('sr_reaction_resolve_targets')
+    && !$canPreviewAsAdmin
+    && is_array($surveyComments ?? null)
+    && $surveyComments !== []
+) {
+    $surveyReactionCommentIds = [];
+    foreach ($surveyComments as $surveyReactionComment) {
+        $surveyReactionCommentId = (int) ($surveyReactionComment['id'] ?? 0);
+        if ($surveyReactionCommentId > 0) {
+            $surveyReactionCommentIds[] = (string) $surveyReactionCommentId;
+        }
+    }
+    $surveyReactionCommentTargets = sr_reaction_resolve_targets(
+        $pdo,
+        'survey',
+        'comment',
+        $surveyReactionCommentIds,
+        is_array($currentAccount) ? (int) ($currentAccount['id'] ?? 0) : 0
+    );
+}
+
 $seo = [
     'title' => (string) $survey['title'],
     'description' => sr_survey_clean_single_line((string) ($survey['description'] ?? ''), 160),
@@ -302,7 +325,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                     <?php if ($surveyCommentCanViewBody): ?>
                                         <p><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
                                         <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
-                                            <?php echo sr_reaction_render_widget($pdo, 'survey', 'comment', (string) $surveyCommentId, is_array($currentAccount) ? $currentAccount : null, ['label' => '댓글 리액션']); ?>
+                                            <?php
+                                            $surveyCommentReactionOptions = ['label' => '댓글 리액션'];
+                                            if (isset($surveyReactionCommentTargets[(string) $surveyCommentId]) && is_array($surveyReactionCommentTargets[(string) $surveyCommentId])) {
+                                                $surveyCommentReactionOptions['resolved_target'] = $surveyReactionCommentTargets[(string) $surveyCommentId];
+                                            }
+                                            ?>
+                                            <?php echo sr_reaction_render_widget($pdo, 'survey', 'comment', (string) $surveyCommentId, is_array($currentAccount) ? $currentAccount : null, $surveyCommentReactionOptions); ?>
                                         <?php endif; ?>
                                     <?php else: ?>
                                         <p>비밀 댓글입니다.</p>

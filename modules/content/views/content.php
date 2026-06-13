@@ -32,6 +32,28 @@ $contentStylesheets = [
 if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
+$contentReactionCommentTargets = [];
+if (
+    function_exists('sr_reaction_resolve_targets')
+    && empty($contentAdminPreview)
+    && is_array($contentComments ?? null)
+    && $contentComments !== []
+) {
+    $contentReactionCommentIds = [];
+    foreach ($contentComments as $contentReactionComment) {
+        $contentReactionCommentId = (int) ($contentReactionComment['id'] ?? 0);
+        if ($contentReactionCommentId > 0) {
+            $contentReactionCommentIds[] = (string) $contentReactionCommentId;
+        }
+    }
+    $contentReactionCommentTargets = sr_reaction_resolve_targets(
+        $pdo,
+        'content',
+        'comment',
+        $contentReactionCommentIds,
+        is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
+    );
+}
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => $pageLayoutKey,
     'stylesheets' => $contentStylesheets,
@@ -312,7 +334,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <?php if ($contentCommentCanViewBody) { ?>
                                     <p><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
                                     <?php if (function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
-                                        <?php echo sr_reaction_render_widget($pdo, 'content', 'comment', (string) (int) ($contentComment['id'] ?? 0), is_array($account ?? null) ? $account : null, ['label' => '댓글 리액션']); ?>
+                                        <?php
+                                        $contentCommentReactionId = (string) (int) ($contentComment['id'] ?? 0);
+                                        $contentCommentReactionOptions = ['label' => '댓글 리액션'];
+                                        if (isset($contentReactionCommentTargets[$contentCommentReactionId]) && is_array($contentReactionCommentTargets[$contentCommentReactionId])) {
+                                            $contentCommentReactionOptions['resolved_target'] = $contentReactionCommentTargets[$contentCommentReactionId];
+                                        }
+                                        ?>
+                                        <?php echo sr_reaction_render_widget($pdo, 'content', 'comment', $contentCommentReactionId, is_array($account ?? null) ? $account : null, $contentCommentReactionOptions); ?>
                                     <?php } ?>
                                 <?php } else { ?>
                                     <p class="content-comment-secret">비밀 댓글입니다.</p>
