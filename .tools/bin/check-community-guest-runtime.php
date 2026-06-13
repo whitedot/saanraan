@@ -223,6 +223,25 @@ function sr_community_guest_runtime_check(): void
         ],
     ]);
     $extraFieldValues = ['company' => '런타임 회사'];
+    sr_community_guest_runtime_assert(
+        sr_community_validate_extra_field_values($extraFieldDefinitions, ['company' => str_repeat('가', 1001)]) !== [],
+        'additional text field validation must reject overlong values instead of truncating them.'
+    );
+    sr_community_guest_runtime_assert(
+        sr_community_validate_extra_field_values($extraFieldDefinitions, ['company' => ['array']]) !== [],
+        'additional text field validation must reject array payloads.'
+    );
+    $textareaDefinitions = sr_community_normalize_extra_field_definitions([
+        [
+            'key' => 'memo',
+            'label' => '메모',
+            'type' => 'textarea',
+        ],
+    ]);
+    sr_community_guest_runtime_assert(
+        sr_community_validate_extra_field_values($textareaDefinitions, ['memo' => str_repeat('나', 5001)]) !== [],
+        'additional textarea field validation must reject overlong values instead of truncating them.'
+    );
     $postValues = [
         'title' => '비회원 런타임 게시글',
         'category_id' => 0,

@@ -606,13 +606,16 @@ function sr_community_extra_field_input_values(array $definitions): array
             $values[$key] = isset($posted[$key]) && (string) $posted[$key] === '1' ? '1' : '0';
             continue;
         }
-        $value = isset($posted[$key]) ? (string) $posted[$key] : '';
-        $maxLength = $type === 'textarea' ? 5000 : 1000;
-        $value = function_exists('mb_substr') ? mb_substr($value, 0, $maxLength) : substr($value, 0, $maxLength);
-        $values[$key] = trim($value);
+        $value = $posted[$key] ?? '';
+        $values[$key] = is_scalar($value) ? trim((string) $value) : ['invalid_extra_field_value' => true];
     }
 
     return $values;
+}
+
+function sr_community_extra_field_value_max_length(string $type): int
+{
+    return $type === 'textarea' ? 5000 : 1000;
 }
 
 function sr_community_validate_extra_field_values(array $definitions, array $values): array
@@ -622,9 +625,21 @@ function sr_community_validate_extra_field_values(array $definitions, array $val
         $key = (string) ($definition['key'] ?? '');
         $label = (string) ($definition['label'] ?? $key);
         $type = (string) ($definition['type'] ?? 'text');
-        $value = (string) ($values[$key] ?? '');
+        $rawValue = $values[$key] ?? '';
+        if (is_array($rawValue)) {
+            $errors[] = $label . ' 값 형식이 올바르지 않습니다.';
+            continue;
+        }
+        $value = (string) $rawValue;
         if (!empty($definition['required']) && trim($value) === '') {
             $errors[] = $label . '을(를) 입력해 주세요.';
+        }
+        if ($type !== 'checkbox') {
+            $maxLength = sr_community_extra_field_value_max_length($type);
+            $valueLength = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+            if ($valueLength > $maxLength) {
+                $errors[] = $label . '은(는) ' . (string) $maxLength . '자 이하로 입력해 주세요.';
+            }
         }
         if ($type === 'select' && $value !== '' && !in_array($value, (array) ($definition['options'] ?? []), true)) {
             $errors[] = $label . ' 선택 값이 올바르지 않습니다.';
@@ -645,10 +660,12 @@ function sr_community_extra_field_values_json(array $definitions, array $values)
         if ($key === '') {
             continue;
         }
+        $rawValue = $values[$key] ?? '';
+        $value = is_array($rawValue) ? '' : (string) $rawValue;
         $stored[$key] = [
             'label' => (string) ($definition['label'] ?? $key),
             'type' => (string) ($definition['type'] ?? 'text'),
-            'value' => (string) ($values[$key] ?? ''),
+            'value' => $value,
             'visibility' => (string) ($definition['visibility'] ?? 'public'),
             'show_on_view' => !empty($definition['show_on_view']),
         ];
@@ -680,7 +697,8 @@ function sr_community_save_post_field_values(PDO $pdo, int $postId, array $defin
         if ($key === '') {
             continue;
         }
-        $value = (string) ($values[$key] ?? '');
+        $rawValue = $values[$key] ?? '';
+        $value = is_array($rawValue) ? '' : (string) $rawValue;
         $stmt->execute([
             'post_id' => $postId,
             'field_key' => $key,
@@ -747,10 +765,11 @@ function sr_community_extra_fields_form_html(array $definitions, array $values =
         $required = !empty($definition['required']);
         $id = 'modules_community_extra_' . $key;
         $name = 'community_extra_fields[' . $key . ']';
-        $value = (string) ($values[$key] ?? '');
+        $rawValue = $values[$key] ?? '';
+        $value = is_array($rawValue) ? '' : (string) $rawValue;
         $html .= '<p><label for="' . sr_e($id) . '"><span>' . sr_e($label) . ($required ? ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span>' : '') . '</span>';
         if ($type === 'textarea') {
-            $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
+            $html .= '<textarea id="' . sr_e($id) . '" name="' . sr_e($name) . '" rows="4" cols="80" maxlength="5000"' . ($required ? ' required' : '') . '>' . sr_e($value) . '</textarea>';
         } elseif ($type === 'select') {
             $html .= '<select id="' . sr_e($id) . '" name="' . sr_e($name) . '"' . ($required ? ' required' : '') . '>';
             $html .= '<option value="">' . sr_e('선택') . '</option>';
