@@ -47,6 +47,7 @@ $newContentFileAssetSettings = [
     'file_asset_charge_policy' => 'once',
 ];
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
+$reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $contentEditorKey = $pdo instanceof PDO ? sr_content_editor_key($pdo) : 'textarea';
 $contentEditorToolbarPreset = $pdo instanceof PDO ? sr_content_editor_toolbar_preset($pdo) : 'content_basic';
 $contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, $contentEditorToolbarPreset) : '';
@@ -371,6 +372,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'content-section-basic' => '기본 정보',
         'content-section-body' => '본문/이미지',
         'content-section-public' => '공개 설정',
+        'content-section-reaction' => '리액션',
         'content-section-seo' => 'SEO',
         'content-section-access-asset' => '유료 열람',
         'content-section-action-asset' => '완료 버튼',
@@ -537,6 +539,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             </select>
                     <?php echo $pageSettingSourceRadioHtml('source_layout_key', $pageSettingSource($values, 'layout_key')); ?>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.content.05b39bf1')); ?></p>
+                </div>
+            </div>
+        </section>
+        <section id="content-section-reaction" class="admin-card card" data-admin-section-anchor>
+            <h2><?php echo sr_e('리액션'); ?></h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_admin_contents_reaction_preset_key">콘텐츠 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="content_admin_contents_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $presetLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">비어 있으면 콘텐츠 환경설정의 기본 프리셋을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="content_admin_contents_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="content_admin_contents_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $presetLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
                 </div>
             </div>
         </section>

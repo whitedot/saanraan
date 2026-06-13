@@ -36,6 +36,11 @@ if (!function_exists('sr_content_reaction_content_result')) {
         $status = sr_content_reaction_content_status($row);
         $account = sr_content_reaction_account($viewerAccountId);
         $canView = $status === 'active' && sr_content_can_access_body_file($pdo, $row, $account);
+        $settings = sr_content_settings($pdo);
+        $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $row['reaction_preset_key'] ?? '') : '';
+        if ($presetKey === '') {
+            $presetKey = (string) ($settings['reaction_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) $contentId,
@@ -47,7 +52,7 @@ if (!function_exists('sr_content_reaction_content_result')) {
             'can_write' => $canView,
             'owner_account_id' => (int) ($row['created_by'] ?? 0),
             'recipient_account_id' => (int) ($row['created_by'] ?? 0),
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
@@ -93,6 +98,11 @@ if (!function_exists('sr_content_reaction_comment_result')) {
         $canView = $status === 'active'
             && sr_content_can_access_body_file($pdo, $page, $account)
             && sr_content_account_can_view_comment_body($comment, $page, $account, $pdo);
+        $settings = sr_content_settings($pdo);
+        $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
+        if ($presetKey === '') {
+            $presetKey = (string) ($settings['reaction_comment_preset_key'] ?? '');
+        }
 
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),
@@ -104,7 +114,7 @@ if (!function_exists('sr_content_reaction_comment_result')) {
             'can_write' => $canView,
             'owner_account_id' => (int) ($row['author_account_id'] ?? 0),
             'recipient_account_id' => (int) ($row['author_account_id'] ?? 0),
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
@@ -197,7 +207,8 @@ return [
                     'SELECT c.id, c.content_id, c.author_account_id, c.is_secret, c.status AS comment_status,
                             p.slug, p.title AS content_title, p.status AS content_status, p.created_by AS content_owner_account_id,
                             p.asset_access_enabled, p.asset_module, p.asset_access_amount, p.asset_access_amounts_json,
-                            p.asset_access_group_policies_json, p.asset_access_policy_set_id, p.asset_charge_policy
+                            p.asset_access_group_policies_json, p.asset_access_policy_set_id, p.asset_charge_policy,
+                            p.reaction_comment_preset_key
                      FROM sr_content_comments c
                      LEFT JOIN sr_content_items p ON p.id = c.content_id
                      WHERE c.id = :id
@@ -228,7 +239,8 @@ return [
                     'SELECT c.id, c.content_id, c.author_account_id, c.is_secret, c.status AS comment_status,
                             p.slug, p.title AS content_title, p.status AS content_status, p.created_by AS content_owner_account_id,
                             p.asset_access_enabled, p.asset_module, p.asset_access_amount, p.asset_access_amounts_json,
-                            p.asset_access_group_policies_json, p.asset_access_policy_set_id, p.asset_charge_policy
+                            p.asset_access_group_policies_json, p.asset_access_policy_set_id, p.asset_charge_policy,
+                            p.reaction_comment_preset_key
                      FROM sr_content_comments c
                      LEFT JOIN sr_content_items p ON p.id = c.content_id
                      WHERE c.id IN (' . $placeholders . ')'

@@ -115,6 +115,8 @@ function sr_content_default_settings(): array
         'member_submission_author_reward_enabled' => false,
         'member_submission_author_reward_asset_module' => '',
         'member_submission_author_reward_amount' => 0,
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
     ];
 }
 
@@ -197,6 +199,8 @@ function sr_content_settings(PDO $pdo): array
     $settings['member_submission_author_reward_asset_module'] = isset(sr_content_asset_modules($pdo)[$rewardAssetModule]) ? $rewardAssetModule : '';
     $settings['member_submission_author_reward_amount'] = min(999999999, max(0, (int) ($settings['member_submission_author_reward_amount'] ?? 0)));
     $settings['member_submission_author_reward_enabled'] = sr_content_bool_setting($settings['member_submission_author_reward_enabled'] ?? false);
+    $settings['reaction_preset_key'] = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_preset_key'] ?? '') : '';
+    $settings['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
 
     return $settings;
 }
@@ -276,6 +280,8 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['member_submission_author_reward_enabled', !empty($settings['member_submission_author_reward_enabled']) ? '1' : '0', 'bool'],
         ['member_submission_author_reward_asset_module', sr_content_clean_slug((string) ($settings['member_submission_author_reward_asset_module'] ?? '')), 'string'],
         ['member_submission_author_reward_amount', (string) min(999999999, max(0, (int) ($settings['member_submission_author_reward_amount'] ?? 0))), 'integer'],
+        ['reaction_preset_key', function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_preset_key'] ?? '') : '', 'string'],
+        ['reaction_comment_preset_key', function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '', 'string'],
     ];
     $now = sr_now();
     $stmt = $pdo->prepare(
@@ -614,6 +620,8 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
         'banner_before_content_id' => (int) ($defaults['banner_before_content_id'] ?? 0),
         'banner_after_content_id' => (int) ($defaults['banner_after_content_id'] ?? 0),
         'popup_layer_id' => (int) ($defaults['popup_layer_id'] ?? 0),
+        'reaction_preset_key' => '',
+        'reaction_comment_preset_key' => '',
         'seo_title' => '',
         'seo_description' => '',
     ];
@@ -3743,6 +3751,8 @@ function sr_content_input_values(?PDO $pdo = null): array
         'asset_action_policy_set_id' => sr_content_asset_policy_set_first_id($assetActionPolicySetIds),
         'asset_action_direction' => sr_content_clean_slug(sr_post_string('asset_action_direction', 20)),
         'asset_action_label' => sr_content_clean_single_line(sr_post_string('asset_action_label', 80), 80),
+        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '',
+        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
         'seo_title' => sr_content_clean_single_line(sr_post_string('seo_title', 160), 160),
         'seo_description' => sr_content_clean_single_line(sr_post_string('seo_description', 255), 255),
     ];
@@ -4007,6 +4017,8 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                      banner_before_content_id = :banner_before_content_id,
                      banner_after_content_id = :banner_after_content_id,
                      popup_layer_id = :popup_layer_id,
+                     reaction_preset_key = :reaction_preset_key,
+                     reaction_comment_preset_key = :reaction_comment_preset_key,
                      seo_title = :seo_title,
                      seo_description = :seo_description, updated_by = :updated_by,
                      published_at = :published_at, updated_at = :updated_at
@@ -4040,6 +4052,8 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
                 'banner_after_content_id' => (int) ($values['banner_after_content_id'] ?? 0),
                 'popup_layer_id' => (int) ($values['popup_layer_id'] ?? 0),
+                'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_preset_key'] ?? '') : '',
+                'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
                 'seo_title' => (string) $values['seo_title'],
                 'seo_description' => (string) $values['seo_description'],
                 'updated_by' => $accountId,
@@ -4050,9 +4064,9 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_content_items
-                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, reaction_preset_key, reaction_comment_preset_key, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :reaction_preset_key, :reaction_comment_preset_key, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
@@ -4084,6 +4098,8 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'banner_before_content_id' => (int) ($values['banner_before_content_id'] ?? 0),
                 'banner_after_content_id' => (int) ($values['banner_after_content_id'] ?? 0),
                 'popup_layer_id' => (int) ($values['popup_layer_id'] ?? 0),
+                'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_preset_key'] ?? '') : '',
+                'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
                 'seo_title' => (string) $values['seo_title'],
                 'seo_description' => (string) $values['seo_description'],
                 'created_by' => $accountId,

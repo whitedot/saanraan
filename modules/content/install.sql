@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS sr_content_items (
     banner_before_content_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
     banner_after_content_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
     popup_layer_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
+    reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     seo_title VARCHAR(160) NOT NULL DEFAULT '',
     seo_description VARCHAR(255) NOT NULL DEFAULT '',
     created_by BIGINT UNSIGNED NULL,

@@ -23,6 +23,7 @@ $contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($
 };
 $contentLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
 $assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
+$reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $contentLayoutMenuFields = [
     'layout_primary_menu_key' => [
         'label' => '주 메뉴 슬롯',
@@ -121,6 +122,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         <?php } ?>
+    </section>
+
+    <section class="admin-card card">
+        <h2>리액션</h2>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_reaction_preset_key">콘텐츠 리액션 프리셋</label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                    <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $presetLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help">개별 콘텐츠에서 따로 선택하지 않았을 때 사용할 기본 프리셋입니다.</p>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="content_admin_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+            <div class="admin-form-field">
+                <select id="content_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                    <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>>
+                            <?php echo sr_e((string) $presetLabel); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+        </div>
     </section>
 
     <section class="admin-card card">

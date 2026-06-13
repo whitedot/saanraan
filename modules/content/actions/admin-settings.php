@@ -5,6 +5,9 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings', 'view');
@@ -18,6 +21,7 @@ $settings = sr_content_settings($pdo);
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_content_toolbar_preset_options();
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $publicLayoutOptions = sr_public_layout_options($pdo);
 $siteMenuOptions = [];
 if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
@@ -53,6 +57,8 @@ if (sr_request_method() === 'POST') {
         'member_submission_author_reward_enabled' => $postedAuthorRewardEnabled,
         'member_submission_author_reward_asset_module' => $postedAuthorRewardAssetModule,
         'member_submission_author_reward_amount' => $postedAuthorRewardAssetModule !== '' ? ($postedAuthorRewardAmount ?? 0) : 0,
+        'reaction_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '',
+        'reaction_comment_preset_key' => function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
     ];
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
@@ -66,6 +72,12 @@ if (sr_request_method() === 'POST') {
     }
     if (!isset($publicLayoutOptions[(string) $postedSettings['layout_key']])) {
         $errors[] = '기본 콘텐츠 레이아웃 값이 올바르지 않습니다.';
+    }
+    foreach (['reaction_preset_key' => '콘텐츠 리액션 프리셋', 'reaction_comment_preset_key' => '콘텐츠 댓글 리액션 프리셋'] as $reactionSettingKey => $reactionSettingLabel) {
+        $reactionPresetKey = (string) ($postedSettings[$reactionSettingKey] ?? '');
+        if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
+            $errors[] = $reactionSettingLabel . ' 값이 올바르지 않습니다.';
+        }
     }
     foreach (sr_content_layout_menu_slots() as $menuSettingKey) {
         $menuKey = (string) $postedSettings[$menuSettingKey];
