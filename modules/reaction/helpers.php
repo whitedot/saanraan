@@ -1160,6 +1160,20 @@ function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int
         : '회원';
     $definition = sr_reaction_active_definition($pdo, $reactionKey);
     $reactionLabel = is_array($definition) ? (string) ($definition['label'] ?? $reactionKey) : $reactionKey;
+    $metadata = [
+        'reaction_key' => $reactionKey,
+        'reaction_label' => $reactionLabel,
+        'member_name' => $actorName,
+        'target_module' => (string) ($target['target_module'] ?? ''),
+        'target_type' => (string) ($target['target_type'] ?? ''),
+        'target_id' => (string) ($target['target_id'] ?? ''),
+        'target_label' => (string) ($target['label'] ?? ''),
+        'link_url' => (string) ($target['public_url'] ?? ''),
+    ];
+
+    if (sr_reaction_account_event_recently_exists($pdo, $recipientAccountId, $actorAccountId, $metadata)) {
+        return false;
+    }
 
     try {
         return $createAccountEventFunction($pdo, [
@@ -1167,22 +1181,56 @@ function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int
             'module_key' => 'reaction',
             'event_key' => 'target.reacted',
             'created_by_account_id' => $actorAccountId,
-            'metadata' => [
-                'reaction_key' => $reactionKey,
-                'reaction_label' => $reactionLabel,
-                'member_name' => $actorName,
-                'target_module' => (string) ($target['target_module'] ?? ''),
-                'target_type' => (string) ($target['target_type'] ?? ''),
-                'target_id' => (string) ($target['target_id'] ?? ''),
-                'target_label' => (string) ($target['label'] ?? ''),
-                'link_url' => (string) ($target['public_url'] ?? ''),
-            ],
+            'metadata' => $metadata,
         ]) !== null;
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'reaction_notification_event_create');
     }
 
     return false;
+}
+
+function sr_reaction_account_event_recently_exists(PDO $pdo, int $recipientAccountId, int $actorAccountId, array $metadata): bool
+{
+    if ($recipientAccountId < 1 || $actorAccountId < 1 || !function_exists('sr_notification_event_template')) {
+        return false;
+    }
+
+    $template = sr_notification_event_template($pdo, 'reaction', 'target.reacted');
+    if (!is_array($template) || (string) ($template['status'] ?? '') !== 'active' || !function_exists('sr_notification_render_template')) {
+        return false;
+    }
+
+    try {
+        $title = sr_notification_render_template((string) ($template['title_template'] ?? ''), $metadata);
+        $bodyText = sr_notification_render_template((string) ($template['body_template'] ?? ''), $metadata);
+        $linkUrl = sr_notification_render_template((string) ($template['link_template'] ?? ''), $metadata);
+        $stmt = $pdo->prepare(
+            'SELECT id
+             FROM sr_notifications
+             WHERE account_id = :account_id
+               AND audience = \'account\'
+               AND created_by_account_id = :created_by_account_id
+               AND title = :title
+               AND body_text = :body_text
+               AND link_url = :link_url
+               AND created_at >= :created_after
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'account_id' => $recipientAccountId,
+            'created_by_account_id' => $actorAccountId,
+            'title' => $title,
+            'body_text' => $bodyText,
+            'link_url' => $linkUrl,
+            'created_after' => date('Y-m-d H:i:s', time() - 3600),
+        ]);
+
+        return is_array($stmt->fetch());
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'reaction_notification_dedupe_check');
+        return false;
+    }
 }
 
 function sr_reaction_write(PDO $pdo, int $accountId, string $targetModule, string $targetType, string $targetId, string $reactionKey, string $intent = 'toggle', array $context = []): array

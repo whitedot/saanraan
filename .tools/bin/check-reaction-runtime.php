@@ -86,6 +86,45 @@ $pdo->exec(
         expires_at TEXT NOT NULL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
+    );
+    CREATE TABLE sr_notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NULL,
+        audience TEXT NOT NULL DEFAULT \'account\',
+        title TEXT NOT NULL,
+        body_text TEXT NULL,
+        body_format TEXT NOT NULL DEFAULT \'plain\',
+        link_url TEXT NOT NULL DEFAULT \'\',
+        status TEXT NOT NULL DEFAULT \'active\',
+        read_at TEXT NULL,
+        created_by_account_id INTEGER NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    CREATE TABLE sr_notification_deliveries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        notification_id INTEGER NOT NULL,
+        channel TEXT NOT NULL,
+        recipient TEXT NOT NULL DEFAULT \'\',
+        status TEXT NOT NULL DEFAULT \'queued\',
+        provider_message_id TEXT NOT NULL DEFAULT \'\',
+        error_message TEXT NOT NULL DEFAULT \'\',
+        attempted_at TEXT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    );
+    CREATE TABLE sr_notification_event_templates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        module_key TEXT NOT NULL,
+        event_key TEXT NOT NULL,
+        title_template TEXT NOT NULL,
+        body_template TEXT NULL,
+        link_template TEXT NOT NULL DEFAULT \'\',
+        channels_json TEXT NULL,
+        status TEXT NOT NULL DEFAULT \'active\',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE (module_key, event_key)
     );'
 );
 
@@ -95,11 +134,13 @@ $pdo->exec(
         ('reaction_default_preset_key', 'emotions', 'string'),
         ('reaction_write_window_seconds', '60', 'integer'),
         ('reaction_write_account_limit', '2', 'integer');
-     INSERT INTO sr_modules (module_key, version, status) VALUES ('reaction', '2026.06.001', 'enabled');
+     INSERT INTO sr_modules (module_key, version, status) VALUES ('reaction', '2026.06.001', 'enabled'), ('notification', '2026.06.006', 'enabled');
      INSERT INTO sr_reaction_definitions (reaction_key, label, status, created_at, updated_at) VALUES
         ('like', '좋아요', 'active', '$now', '$now'),
         ('sad', '슬퍼요', 'active', '$now', '$now'),
         ('disabled', '중지됨', 'disabled', '$now', '$now');
+     INSERT INTO sr_notification_event_templates (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
+        VALUES ('reaction', 'target.reacted', '새 리액션이 등록되었습니다.', '{member_name}님이 {target_label}에 {reaction_label} 리액션을 남겼습니다.', '{link_url}', '[\"site\"]', 'active', '$now', '$now');
      INSERT INTO sr_reaction_presets (preset_key, label, status, selection_policy, visible_key_limit, created_at, updated_at)
         VALUES ('emotions', '감정형', 'active', 'single', 6, '$now', '$now');
      INSERT INTO sr_reaction_preset_items (preset_key, reaction_key, sort_order, is_public, created_at, updated_at) VALUES
@@ -129,6 +170,12 @@ $assert = static function (bool $condition, string $message) use (&$errors): voi
 $first = sr_reaction_write($pdo, 3, 'community', 'post', '1', 'like', 'apply', ['resolved_target' => $target]);
 $assert($first['ok'] === true && $first['operation'] === 'apply' && $first['my_reaction_key'] === 'like', 'first apply should create a like reaction.');
 $assert((int) ($first['counts']['like'] ?? 0) === 1, 'first apply should count one like.');
+$assert($first['notification_created'] === true, 'first apply should create a target owner notification when notification module is available.');
+$assert(
+    sr_reaction_create_account_event($pdo, 7, 3, $target, 'like') === false,
+    'same actor target reaction notification should be deduped.'
+);
+$assert((int) $pdo->query('SELECT COUNT(*) FROM sr_notifications')->fetchColumn() === 1, 'deduped reaction notification should not insert another notification.');
 
 $repeat = sr_reaction_write($pdo, 3, 'community', 'post', '1', 'like', 'apply', ['resolved_target' => $target]);
 $assert($repeat['ok'] === true && $repeat['operation'] === 'noop' && $repeat['changed'] === false, 'same apply should be idempotent.');
@@ -136,6 +183,7 @@ $assert($repeat['ok'] === true && $repeat['operation'] === 'noop' && $repeat['ch
 $change = sr_reaction_write($pdo, 3, 'community', 'post', '1', 'sad', 'apply', ['resolved_target' => $target]);
 $assert($change['ok'] === true && $change['operation'] === 'change' && $change['my_reaction_key'] === 'sad', 'different apply should replace the row.');
 $assert((int) ($change['counts']['sad'] ?? 0) === 1 && (int) ($change['counts']['like'] ?? 0) === 0, 'change should move the count.');
+$assert($change['notification_created'] === true, 'changed reaction key should create a distinct target owner notification.');
 
 $toggle = sr_reaction_write($pdo, 3, 'community', 'post', '1', 'sad', 'toggle', ['resolved_target' => $target]);
 $assert($toggle['ok'] === true && $toggle['operation'] === 'cancel' && $toggle['my_reaction_key'] === '', 'same toggle should cancel.');
