@@ -80,6 +80,9 @@ if (sr_request_method() === 'POST') {
             ]);
             $notice = '리액션 정의를 저장했습니다.';
         } else {
+            if (is_array($uploadedReactionIcon ?? null)) {
+                sr_storage_delete((string) ($uploadedReactionIcon['driver'] ?? ''), (string) ($uploadedReactionIcon['storage_key'] ?? ''));
+            }
             $errors = array_merge($errors, (array) ($result['errors'] ?? []));
         }
     } elseif ($intent === 'save_preset' && $reactionAdminPage === 'presets') {

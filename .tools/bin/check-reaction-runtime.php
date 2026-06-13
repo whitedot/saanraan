@@ -242,6 +242,28 @@ $definitionDuplicate = sr_reaction_save_definition($pdo, [
     'status' => 'active',
 ], 1);
 $assert(empty($definitionDuplicate['ok']), 'admin definition create should reject duplicate keys.');
+$imageStorageReference = 'local:reaction/icons/2026/06/' . str_repeat('a', 32) . '.webp';
+$imageDefinitionCreate = sr_reaction_save_definition($pdo, [
+    'reaction_key' => 'image_fun',
+    'label' => '이미지 리액션',
+    'icon_type' => 'image',
+    'icon_value' => $imageStorageReference,
+    'status' => 'active',
+], 1);
+$assert(!empty($imageDefinitionCreate['ok']), 'admin definition create should accept a valid uploaded image storage reference.');
+$imageIconHtml = sr_reaction_public_icon_html([
+    'icon_type' => 'image',
+    'icon_value' => $imageStorageReference,
+]);
+$assert(
+    str_contains($imageIconHtml, 'class="sr-reaction-image"') && str_contains($imageIconHtml, '/reaction/icon?file='),
+    'public image icon renderer should use the reaction icon endpoint.'
+);
+$invalidImageIconHtml = sr_reaction_public_icon_html([
+    'icon_type' => 'image',
+    'icon_value' => 'local:reaction/icons/bad.webp',
+]);
+$assert($invalidImageIconHtml === '', 'public image icon renderer should reject invalid storage references.');
 $likeDefinitionId = (int) $pdo->query("SELECT id FROM sr_reaction_definitions WHERE reaction_key = 'like'")->fetchColumn();
 $definitionUpdate = sr_reaction_save_definition($pdo, [
     'id' => $likeDefinitionId,

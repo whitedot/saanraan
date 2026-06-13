@@ -579,7 +579,11 @@ function sr_reaction_public_icon_html(array $definition): string
         return '';
     }
 
-    if ($iconType === 'image' && sr_reaction_icon_image_storage_reference($iconValue) !== null) {
+    if ($iconType === 'image') {
+        if (sr_reaction_icon_image_storage_reference($iconValue) === null) {
+            return '';
+        }
+
         return '<img class="sr-reaction-image" src="' . sr_e(sr_url('/reaction/icon?file=' . rawurlencode($iconValue))) . '" alt="">';
     }
 
