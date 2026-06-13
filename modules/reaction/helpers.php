@@ -277,6 +277,49 @@ function sr_reaction_allowed_keys(PDO $pdo, array $target): array
     return array_values(array_unique($keys));
 }
 
+function sr_reaction_public_definitions(PDO $pdo, array $keys): array
+{
+    $keys = array_values(array_unique(array_filter(array_map(static function (mixed $key): string {
+        return is_string($key) ? sr_reaction_clean_key($key) : '';
+    }, $keys))));
+    if ($keys === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach ($keys as $index => $key) {
+        $param = 'reaction_key_' . (string) $index;
+        $placeholders[] = ':' . $param;
+        $params[$param] = $key;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT reaction_key, label, icon_type, icon_value, color_hex, color_swatch
+         FROM sr_reaction_definitions
+         WHERE status = \'active\'
+           AND reaction_key IN (' . implode(', ', $placeholders) . ')'
+    );
+    $stmt->execute($params);
+
+    $rows = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $key = sr_reaction_clean_key((string) ($row['reaction_key'] ?? ''));
+        if ($key !== '') {
+            $rows[$key] = $row;
+        }
+    }
+
+    $ordered = [];
+    foreach ($keys as $key) {
+        if (isset($rows[$key])) {
+            $ordered[$key] = $rows[$key];
+        }
+    }
+
+    return $ordered;
+}
+
 function sr_reaction_my_record(PDO $pdo, int $accountId, string $targetModule, string $targetType, string $targetId, bool $lock = false): ?array
 {
     if ($accountId < 1) {
@@ -340,6 +383,101 @@ function sr_reaction_counts(PDO $pdo, string $targetModule, string $targetType, 
     }
 
     return $counts;
+}
+
+function sr_reaction_public_icon_html(array $definition): string
+{
+    $iconType = (string) ($definition['icon_type'] ?? 'emoji');
+    $iconValue = trim((string) ($definition['icon_value'] ?? ''));
+    if ($iconValue === '') {
+        return '';
+    }
+
+    if ($iconType === 'material') {
+        return sr_material_icon_html($iconValue);
+    }
+
+    return '<span class="sr-reaction-emoji" aria-hidden="true">' . sr_e($iconValue) . '</span>';
+}
+
+function sr_reaction_render_widget(PDO $pdo, string $targetModule, string $targetType, string $targetId, ?array $account = null, array $options = []): string
+{
+    if (!sr_reaction_tables_available($pdo)) {
+        return '';
+    }
+
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    $targetModule = sr_reaction_clean_key($targetModule, 60);
+    $targetType = sr_reaction_clean_key($targetType, 60);
+    $targetId = sr_reaction_target_id($targetId);
+    if (sr_reaction_target_key($targetModule, $targetType) === '' || $targetId === '') {
+        return '';
+    }
+
+    $resolveContext = [
+        'context' => (string) ($options['context'] ?? 'public'),
+    ];
+    if (isset($options['resolved_target']) && is_array($options['resolved_target'])) {
+        $resolveContext['resolved_target'] = $options['resolved_target'];
+    }
+    $target = sr_reaction_resolve_target($pdo, $targetModule, $targetType, $targetId, $accountId, $resolveContext);
+    if (!is_array($target) || (string) ($target['status'] ?? '') !== 'active' || empty($target['can_view'])) {
+        return '';
+    }
+
+    $allowedKeys = sr_reaction_allowed_keys($pdo, $target);
+    $definitions = sr_reaction_public_definitions($pdo, $allowedKeys);
+    if ($definitions === []) {
+        return '';
+    }
+    $allowedKeys = array_keys($definitions);
+    $counts = sr_reaction_counts($pdo, $targetModule, $targetType, $targetId, $allowedKeys);
+    $myRecord = sr_reaction_my_record($pdo, $accountId, $targetModule, $targetType, $targetId);
+    $myKey = is_array($myRecord) ? sr_reaction_clean_key((string) ($myRecord['reaction_key'] ?? '')) : '';
+    $canWrite = $accountId > 0
+        && !empty($target['can_write'])
+        && (int) ($target['owner_account_id'] ?? 0) !== $accountId;
+    $loginUrl = (string) ($options['login_url'] ?? ('/login?next=' . rawurlencode((string) ($_SERVER['REQUEST_URI'] ?? '/'))));
+    $label = (string) ($options['label'] ?? '리액션');
+
+    ob_start();
+    ?>
+    <div class="sr-reaction-widget" data-sr-reaction-widget data-action="<?php echo sr_e(sr_url('/reaction/write')); ?>" data-target-module="<?php echo sr_e($targetModule); ?>" data-target-type="<?php echo sr_e($targetType); ?>" data-target-id="<?php echo sr_e($targetId); ?>" data-csrf-token="<?php echo sr_e(sr_csrf_token()); ?>">
+        <div class="sr-reaction-label"><?php echo sr_e($label); ?></div>
+        <div class="sr-reaction-buttons">
+            <?php foreach ($definitions as $key => $definition) { ?>
+                <?php
+                $isActive = $myKey === $key;
+                $count = (int) ($counts[$key] ?? 0);
+                $buttonLabel = (string) ($definition['label'] ?? $key);
+                ?>
+                <button type="button" class="sr-reaction-button<?php echo $isActive ? ' is-active' : ''; ?>" data-reaction-key="<?php echo sr_e($key); ?>" aria-pressed="<?php echo $isActive ? 'true' : 'false'; ?>"<?php echo $canWrite ? '' : ' disabled'; ?>>
+                    <?php echo sr_reaction_public_icon_html($definition); ?>
+                    <span class="sr-reaction-button-label"><?php echo sr_e($buttonLabel); ?></span>
+                    <span class="sr-reaction-count" data-reaction-count="<?php echo sr_e($key); ?>"><?php echo sr_e(number_format($count)); ?></span>
+                </button>
+            <?php } ?>
+        </div>
+        <?php if ($accountId < 1) { ?>
+            <a class="sr-reaction-login" href="<?php echo sr_e(sr_url($loginUrl)); ?>">로그인 후 반응할 수 있습니다.</a>
+        <?php } elseif (!$canWrite && (int) ($target['owner_account_id'] ?? 0) === $accountId) { ?>
+            <p class="sr-reaction-note">내가 작성한 대상에는 반응할 수 없습니다.</p>
+        <?php } ?>
+        <p class="sr-reaction-message" data-sr-reaction-message hidden></p>
+    </div>
+    <?php
+    return trim((string) ob_get_clean());
+}
+
+function sr_reaction_public_script_html(): string
+{
+    static $rendered = false;
+    if ($rendered) {
+        return '';
+    }
+    $rendered = true;
+
+    return '<script src="' . sr_e(sr_asset_url('/modules/reaction/assets/public.js')) . '" defer></script>';
 }
 
 function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int $actorAccountId, array $target, string $reactionKey): bool

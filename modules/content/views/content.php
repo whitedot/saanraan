@@ -27,7 +27,11 @@ $contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) (
 $contentStylesheets = [
     '/modules/banner/assets/public.css',
     '/modules/popup_layer/assets/public.css',
+    '/modules/reaction/assets/public.css',
 ];
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'layout_key' => $pageLayoutKey,
     'stylesheets' => $contentStylesheets,
@@ -101,6 +105,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <div class="content-body">
                 <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
             </div>
+            <?php if (function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
+                <?php echo sr_reaction_render_widget($pdo, 'content', 'content', (string) (int) ($page['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
+            <?php } ?>
             <?php if (is_array($contentQuizLinks ?? null) && $contentQuizLinks !== []) { ?>
                 <section class="content-quiz-links">
                     <h2>퀴즈</h2>
@@ -304,6 +311,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 </div>
                                 <?php if ($contentCommentCanViewBody) { ?>
                                     <p><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
+                                    <?php if (function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
+                                        <?php echo sr_reaction_render_widget($pdo, 'content', 'comment', (string) (int) ($contentComment['id'] ?? 0), is_array($account ?? null) ? $account : null, ['label' => '댓글 리액션']); ?>
+                                    <?php } ?>
                                 <?php } else { ?>
                                     <p class="content-comment-secret">비밀 댓글입니다.</p>
                                 <?php } ?>
@@ -399,4 +409,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <?php echo sr_banner_render_public_banner($pdo, (int) ($page['banner_after_content_id'] ?? 0)); ?>
     <?php } ?>
 </main>
+<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+    <?php echo sr_reaction_public_script_html(); ?>
+<?php } ?>
 <?php sr_public_layout_end(); ?>

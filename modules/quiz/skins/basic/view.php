@@ -3,6 +3,9 @@
 require_once __DIR__ . '/../../helpers.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
 $basePath = rtrim(sr_base_path(), '/');
@@ -125,6 +128,7 @@ if ($canPreviewAsAdmin) {
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
     'body_class' => 'sr-quiz-page',
+    'stylesheets' => ['/modules/reaction/assets/public.css'],
 ]));
 ?>
 <main class="sr-public-main">
@@ -138,6 +142,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                 <div class="sr-quiz-preview-notice">
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 퀴즈도 확인할 수 있으며 제출은 저장되지 않습니다.</p>
                 </div>
+            <?php endif; ?>
+            <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+                <?php echo sr_reaction_render_widget($pdo, 'quiz', 'quiz_set', (string) (int) ($quiz['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
             <?php endif; ?>
             <?php if ($submitResult !== null): ?>
                 <?php include sr_quiz_skin_view_file($quizSettings, 'result'); ?>
@@ -247,6 +254,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                                     </div>
                                     <?php if ($quizCommentCanViewBody): ?>
                                         <p><?php echo sr_member_mention_plain_text_html((string) ($quizComment['body_text'] ?? '')); ?></p>
+                                        <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+                                            <?php echo sr_reaction_render_widget($pdo, 'quiz', 'comment', (string) $quizCommentId, is_array($currentAccount) ? $currentAccount : null, ['label' => '댓글 리액션']); ?>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         <p>비밀 댓글입니다.</p>
                                     <?php endif; ?>
@@ -328,4 +338,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
     </section>
 </main>
 <?php
+if (function_exists('sr_reaction_public_script_html')) {
+    echo sr_reaction_public_script_html();
+}
 sr_public_layout_end();

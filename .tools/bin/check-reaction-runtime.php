@@ -160,6 +160,18 @@ $assert(
 $disabled = sr_reaction_write($pdo, 3, 'community', 'post', '3', 'disabled', 'apply', ['resolved_target' => $target]);
 $assert($disabled['ok'] === false && $disabled['error'] === 'reaction_not_allowed', 'disabled reaction key should block new write.');
 
+$widgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '1', ['id' => 3], ['resolved_target' => $target]);
+$assert(
+    str_contains($widgetHtml, 'data-sr-reaction-widget')
+        && str_contains($widgetHtml, 'data-reaction-key="like"')
+        && str_contains($widgetHtml, 'data-reaction-count="sad"'),
+    'public widget should render active reaction buttons and counts.'
+);
+$selfWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '1', ['id' => 7], ['resolved_target' => $target]);
+$assert(str_contains($selfWidgetHtml, '내가 작성한 대상에는 반응할 수 없습니다.'), 'public widget should show self-reaction block note.');
+$privateWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '2', ['id' => 3], ['resolved_target' => $privateTarget]);
+$assert($privateWidgetHtml === '', 'public widget should hide non-viewable targets.');
+
 $assert(sr_reaction_write_rate_limited($pdo, 9) === false, 'write rate limit should start open.');
 sr_reaction_record_write_rate_limit($pdo, 9);
 sr_reaction_record_write_rate_limit($pdo, 9);

@@ -8,6 +8,9 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $memberSettings = sr_member_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
@@ -15,6 +18,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         '/modules/banner/assets/public.css',
         '/modules/popup_layer/assets/public.css',
         '/modules/quiz/assets/public.css',
+        '/modules/reaction/assets/public.css',
     ]),
 ]));
 ?>
@@ -146,6 +150,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <div class="community-post-body">
                 <?php echo sr_community_post_body_html($post, $communityLayoutSettings, $pdo); ?>
             </div>
+            <?php if (function_exists('sr_reaction_render_widget')) { ?>
+                <?php echo sr_reaction_render_widget($pdo, 'community', 'post', (string) (int) ($post['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
+            <?php } ?>
 
             <?php if (is_array($communityQuizQuizzes ?? null) && $communityQuizQuizzes !== []) { ?>
                 <?php
@@ -314,6 +321,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             </p>
                             <?php if ($communityCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
+                                <?php if (function_exists('sr_reaction_render_widget')) { ?>
+                                    <?php echo sr_reaction_render_widget($pdo, 'community', 'comment', (string) (int) ($comment['id'] ?? 0), is_array($account ?? null) ? $account : null, ['label' => '댓글 리액션']); ?>
+                                <?php } ?>
                             <?php } else { ?>
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
                             <?php } ?>
@@ -453,4 +463,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         </section>
         <?php } ?>
     </main>
+<?php if (function_exists('sr_reaction_public_script_html')) { ?>
+    <?php echo sr_reaction_public_script_html(); ?>
+<?php } ?>
 <?php sr_public_layout_end(); ?>

@@ -3,6 +3,9 @@
 require_once __DIR__ . '/../../helpers.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
 $basePath = rtrim(sr_base_path(), '/');
@@ -116,6 +119,7 @@ if ((int) ($survey['estimated_minutes'] ?? 0) > 0 || (int) ($survey['target_samp
 }
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
     'body_class' => 'sr-survey-page',
+    'stylesheets' => ['/modules/reaction/assets/public.css'],
 ]));
 ?>
 <main class="sr-public-main">
@@ -129,6 +133,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                 <div class="sr-survey-info">
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 설문도 확인할 수 있으며 제출은 테스트 응답으로 저장되고 보상은 지급되지 않습니다.</p>
                 </div>
+            <?php endif; ?>
+            <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+                <?php echo sr_reaction_render_widget($pdo, 'survey', 'survey_form', (string) (int) ($survey['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
             <?php endif; ?>
             <?php if ($hasSurveyInfo): ?>
                 <section class="sr-survey-info" aria-labelledby="survey_info_title">
@@ -294,6 +301,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                     </div>
                                     <?php if ($surveyCommentCanViewBody): ?>
                                         <p><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
+                                        <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+                                            <?php echo sr_reaction_render_widget($pdo, 'survey', 'comment', (string) $surveyCommentId, is_array($currentAccount) ? $currentAccount : null, ['label' => '댓글 리액션']); ?>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         <p>비밀 댓글입니다.</p>
                                     <?php endif; ?>
@@ -375,4 +385,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     </section>
 </main>
 <?php
+if (function_exists('sr_reaction_public_script_html')) {
+    echo sr_reaction_public_script_html();
+}
 sr_public_layout_end();
