@@ -9,7 +9,7 @@
 | 관리자 대형 목록 | 회원, 게시글, 댓글, 콘텐츠, 원장, 알림, 감사 로그처럼 커지는 목록은 페이지네이션을 사용한다. | `.tools/bin/check-performance-baseline.php` |
 | 목록 쿼리 제한 | 관리자 목록 action은 `sr_admin_pagination_from_total()` 또는 `sr_admin_paginate_array()`를 사용하고, 조회 helper는 `LIMIT/OFFSET` 또는 pagination offset을 적용한다. | `.tools/bin/check-performance-baseline.php` |
 | 페이지네이션 런타임 | 페이지 번호 파싱, 마지막 페이지 clamp, offset, 배열 slice, 필터 유지 URL, summary/HTML 상태를 fixture로 확인한다. | `.tools/bin/check-admin-pagination-runtime.php` |
-| 인덱스 안전선 | 자산 원장, 쿠폰 사용, 알림 queue, 개인정보 요청, 콘텐츠/커뮤니티 활동 로그, board copy job처럼 증가하는 테이블은 계정/상태/시각/dedupe/reference 조회 인덱스를 설치 SQL에 유지한다. | `.tools/bin/check-performance-baseline.php` |
+| 인덱스 안전선 | 자산 원장, 쿠폰 사용, 알림 queue, 개인정보 대응 기록, 콘텐츠/커뮤니티 활동 로그, board copy job처럼 증가하는 테이블은 계정/상태/시각/dedupe/reference 조회 인덱스를 설치 SQL에 유지한다. | `.tools/bin/check-performance-baseline.php` |
 | 캐시 경로 | 파일 캐시는 `storage/cache/` 아래에서만 허용하고, 현재 기본 허용 경로는 HTML Purifier 정의 캐시인 `storage/cache/htmlpurifier`다. | `.tools/bin/check-performance-baseline.php`, `.tools/bin/check-dependency-policy.php` |
 | HTML 응답 캐시 | 관리자 HTML, 로그인 HTML, CSRF token 포함 화면, 개인정보 export 결과는 파일 캐시하지 않는다. | `docs/performance-policy.md`, `.tools/bin/check-performance-baseline.php` |
 | 동적 HTML no-store | 동적 HTML 진입점은 `Cache-Control: no-store`를 보내고 HTTP smoke가 이를 확인한다. 직접 `Cache-Control` 헤더를 쓰는 파일은 이미지, 다운로드, 재계산 stream 같은 허용 응답 파일과 값으로 고정한다. | `sr_send_security_headers()`, `.tools/bin/smoke-http.php`, `.tools/bin/check-performance-baseline.php` |
@@ -47,7 +47,7 @@
 | 포인트 만료 | 만료 대상 조회용 `expires_at, expires_remaining`, 만료 소비 연결용 source/consume transaction 인덱스 |
 | 쿠폰 | 쿠폰 정의 `status, target_type, target_id`, 회원 쿠폰 `account_id, status, expires_at`, 사용 dedupe unique, 참조 회수 `reference_module, reference_type, reference_id` |
 | 알림/운영 알림 | 회원 알림 `account_id, status, read_at`, delivery queue `channel, status`, 운영 알림 `status, severity, updated_at`, 이벤트 템플릿 unique |
-| 개인정보 요청 | `account_id`, `status`, `created_at` 기준 관리자/회원 조회 |
+| 개인정보 대응 기록 | `account_id`, `status`, `created_at` 기준 관리자 목록과 사본 제공 조회 |
 | 콘텐츠 | 공개/관리 목록 `status, updated_at`, 댓글 thread, 유료 접근/완료 dedupe, 파일 다운로드 환불 상태, 접근권 unique |
 | 커뮤니티 | 게시글 `board_id, status`, 댓글 thread, board copy job `status, stage, updated_at`, 자산 로그 dedupe, 접근권 unique |
 | 환전 | 환전 묶음 unique, 계정별 이력, 순환 방지 조회, 상태별 관리자 이력 |
