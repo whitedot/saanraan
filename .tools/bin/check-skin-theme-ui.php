@@ -95,11 +95,11 @@ function sr_skin_theme_check_admin_skin_material_icons(): void
             continue;
         }
 
-        if (!str_contains($content, 'sr_material_icon_html(')) {
+        if (!str_contains($content, 'sr_material_icon_html(') && !str_contains($content, 'sr_icon(')) {
             $errors[] = 'Admin skin layout-header must render Material icons through the common helper: ' . $relativePath;
         }
 
-        if (!str_contains($content, 'sr_material_icon_bootstrap_script();')) {
+        if (!str_contains($content, 'sr_material_icon_bootstrap_script();') && !str_contains($content, 'sr_icon_bootstrap_script();')) {
             $errors[] = 'Admin skin layout-header must load the Material icon readiness bootstrap: ' . $relativePath;
         }
 
@@ -235,7 +235,7 @@ $targets = [
             "sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_popup_layer_skin_key'",
             '<select id="popup_layer_admin_popup_layer_settings_popup_layer_skin_key" name="popup_layer_skin_key" class="form-select" required>',
             "sr_admin_form_label_help_html('popup_layer_admin_popup_layers_skin_key'",
-            '<select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select">',
+            '<select id="popup_layer_admin_popup_layers_skin_key" name="skin_key" class="form-select" required>',
             'foreach ($popupLayerSkinOptions as $skinKey => $skinOption)',
         ],
         'render_needles' => [
@@ -409,7 +409,7 @@ foreach (['modules', 'core'] as $viewRoot) {
 
 sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     '<select id="admin_settings_public_layout_key" name="public_layout_key" class="form-select">',
-    'foreach (sr_public_layout_options($pdo) as $layoutKey => $layoutOption)',
+    'foreach ($publicLayoutOptions as $layoutKey => $layoutOption)',
 ], 'Public layout setting UI');
 
 sr_skin_theme_check_contains('core/helpers/output.php', [
@@ -447,8 +447,8 @@ sr_skin_theme_check_contains('modules/admin/helpers/icons.php', [
 ], 'Admin icon common contract');
 
 sr_skin_theme_check_contains('modules/admin/skins/basic/layout-header.php', [
-    'sr_material_icon_html(',
-    'sr_material_icon_bootstrap_script();',
+    'sr_icon(',
+    'sr_icon_bootstrap_script();',
 ], 'Admin skin Material icon rendering');
 
 sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', [

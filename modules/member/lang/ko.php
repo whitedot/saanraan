@@ -330,7 +330,7 @@ return [
     'ui.password.settings.2e9da95f' => '비밀번호 재설정',
     'ui.password.settings.a3d420e5' => '새 비밀번호 설정',
     'ui.password.settings.be683f9d' => '비밀번호 재설정 제한',
-    'ui.privacy.216d449a' => '개인정보 처리 요청',
+    'ui.privacy.216d449a' => '개인정보 안내',
     'ui.privacy.2df1446d' => '개인정보 사본 내려받기',
     'ui.privacy.ae1af6ad' => '개인정보 처리방침에 동의합니다.',
     'ui.required.057abc7f' => '필수 약관에 동의합니다.',

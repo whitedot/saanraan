@@ -129,7 +129,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <div class="admin-list-summary-row">
         <?php if (empty($privacyRequestSort['is_default'])) { ?>
-            <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="개인정보 요청 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <a href="<?php echo sr_e(sr_admin_sort_url(sr_admin_privacy_request_sort_options(), sr_admin_privacy_request_default_sort())); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="개인정보 대응 기록 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
         <?php } ?>
         <?php echo sr_admin_pagination_summary_html($privacyRequestPagination); ?>
     </div>
@@ -228,7 +228,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
-<?php echo sr_admin_pagination_html($privacyRequestPagination, '개인정보 요청 목록 페이지'); ?>
+<?php echo sr_admin_pagination_html($privacyRequestPagination, '개인정보 대응 기록 목록 페이지'); ?>
 
 <script>
 (function () {
