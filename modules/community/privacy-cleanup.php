@@ -130,7 +130,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
                    value_json = NULL,
                    updated_at = :updated_at
                WHERE post_id IN (SELECT id FROM sr_community_posts WHERE author_account_id = :account_id)
-                 AND cleanup_policy_snapshot = 'anonymize'
+                 AND cleanup_policy_snapshot <> 'retain'
                  AND (COALESCE(value_text, '') <> '' OR value_json IS NOT NULL)"
             : "UPDATE sr_community_post_field_values v
                INNER JOIN sr_community_posts p ON p.id = v.post_id
@@ -138,7 +138,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
                    v.value_json = NULL,
                    v.updated_at = :updated_at
                WHERE p.author_account_id = :account_id
-                 AND v.cleanup_policy_snapshot = 'anonymize'
+                 AND v.cleanup_policy_snapshot <> 'retain'
                  AND (COALESCE(v.value_text, '') <> '' OR v.value_json IS NOT NULL)"
         );
         $stmt->execute([

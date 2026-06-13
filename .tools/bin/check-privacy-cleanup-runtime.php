@@ -303,7 +303,7 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_level_logs (account_id) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_community_access_entitlements (account_id, source_reference, anonymized_at) VALUES (7, 'ref7', NULL), (8, 'ref8', NULL)");
     $pdo->exec("INSERT INTO sr_community_posts (author_account_id, author_public_name_snapshot, extra_values_json) VALUES (7, 'post7', '{\"public\":{\"label\":\"Public\",\"value\":\"field7\",\"cleanup_policy\":\"anonymize\"},\"retain\":{\"label\":\"Retain\",\"value\":\"retain7\",\"cleanup_policy\":\"retain\"},\"legacy\":{\"label\":\"Legacy\",\"value\":\"legacy7\"}}'), (8, 'post8', '{\"public\":{\"label\":\"Public\",\"value\":\"field8\",\"cleanup_policy\":\"anonymize\"}}')");
-    $pdo->exec("INSERT INTO sr_community_post_field_values (post_id, cleanup_policy_snapshot, value_text, value_json, updated_at) VALUES (1, 'anonymize', 'field7', '{\"value\":\"field7\"}', ''), (1, 'retain', 'retain7', '{\"value\":\"retain7\"}', ''), (2, 'anonymize', 'field8', '{\"value\":\"field8\"}', '')");
+    $pdo->exec("INSERT INTO sr_community_post_field_values (post_id, cleanup_policy_snapshot, value_text, value_json, updated_at) VALUES (1, 'anonymize', 'field7', '{\"value\":\"field7\"}', ''), (1, 'retain', 'retain7', '{\"value\":\"retain7\"}', ''), (1, '', 'legacy7', '{\"value\":\"legacy7\"}', ''), (2, 'anonymize', 'field8', '{\"value\":\"field8\"}', '')");
     $pdo->exec("INSERT INTO sr_community_comments (author_account_id, author_public_name_snapshot) VALUES (7, 'comment7'), (8, 'comment8')");
     $pdo->exec("INSERT INTO sr_community_series (created_by, updated_by, moderated_by) VALUES (7, 7, 7), (8, 8, 8)");
     $pdo->exec("INSERT INTO sr_community_series_items (created_by) VALUES (7), (8)");
@@ -323,7 +323,7 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((int) ($result['community_access_entitlement_anonymized_count'] ?? -1) === 1, 'community cleanup must report access entitlement anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_author_snapshot_anonymized_count'] ?? -1) === 2, 'community cleanup must report author snapshot anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_post_extra_values_anonymized_count'] ?? -1) === 1, 'community cleanup must report post extra value snapshot anonymization count.');
-    sr_privacy_cleanup_runtime_assert((int) ($result['community_post_field_values_anonymized_count'] ?? -1) === 1, 'community cleanup must report post field values anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['community_post_field_values_anonymized_count'] ?? -1) === 2, 'community cleanup must report post field values anonymization count including legacy policy rows.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_submission_consent_anonymized_count'] ?? -1) === 1, 'community cleanup must report submission consent anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_series_scrap_deleted_count'] ?? -1) === 1, 'community cleanup must report series scrap deletion count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_series_metadata_anonymized_count'] ?? -1) === 4, 'community cleanup must report series metadata anonymization count.');
@@ -339,6 +339,7 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((string) ($cleanedExtraValues['retain']['value'] ?? '') === 'retain7', 'community cleanup must retain retain-policy post extra value snapshot.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT value_text FROM sr_community_post_field_values WHERE id = 1') === '', 'community cleanup must clear anonymize post field value.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT value_text FROM sr_community_post_field_values WHERE id = 2') === 'retain7', 'community cleanup must retain retain-policy post field value.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT value_text FROM sr_community_post_field_values WHERE id = 3') === '', 'community cleanup must treat legacy post field value policies as anonymize.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_community_comments WHERE id = 1') === '', 'community cleanup must clear target comment public name snapshot.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_series WHERE id = 1 AND created_by IS NULL AND updated_by IS NULL AND moderated_by IS NULL') === 1, 'community cleanup must clear target series metadata.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_series_items WHERE id = 1 AND created_by IS NULL') === 1, 'community cleanup must clear target series item metadata.');

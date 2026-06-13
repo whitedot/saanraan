@@ -446,6 +446,8 @@ if (!is_callable($privacyCleanup)) {
 }
 sr_community_release_file_contains('modules/community/privacy-cleanup.php', [
     'sr_community_extra_field_values_cleanup_json($originalJson)',
+    "cleanup_policy_snapshot <> 'retain'",
+    "v.cleanup_policy_snapshot <> 'retain'",
     "'community_post_extra_values_anonymized_count' => \$postExtraValuesAnonymizedCount",
 ], 'Community privacy cleanup additional field snapshot policy');
 if (!is_callable($sitemap)) {
