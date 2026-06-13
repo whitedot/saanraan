@@ -163,6 +163,43 @@ function sr_admin_icon_symbols(): array
                 'M14 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z',
             ],
         ],
+        'quiz' => [
+            'module_menu' => true,
+            'paths' => [
+                'M8 8a4 4 0 1 1 5.8 3.57c-1.1 .56 -1.8 1.43 -1.8 2.43',
+                'M12 18h.01',
+                'M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z',
+            ],
+        ],
+        'poll' => [
+            'module_menu' => true,
+            'paths' => [
+                'M4 19h16',
+                'M7 16v-6',
+                'M12 16v-10',
+                'M17 16v-3',
+                'M5 5h14',
+            ],
+        ],
+        'emoji_emotions' => [
+            'module_menu' => true,
+            'paths' => [
+                'M4 12a8 8 0 1 0 16 0a8 8 0 0 0 -16 0',
+                'M9 10h.01',
+                'M15 10h.01',
+                'M9 15c1.1 1 2 1.5 3 1.5s1.9 -.5 3 -1.5',
+            ],
+        ],
+        'integration_instructions' => [
+            'module_menu' => true,
+            'paths' => [
+                'M8 9l-4 3l4 3',
+                'M16 9l4 3l-4 3',
+                'M13 5l-2 14',
+                'M4 5h16',
+                'M4 19h16',
+            ],
+        ],
         'sidebar-toggle' => [
             'module_menu' => false,
             'paths' => [
@@ -329,6 +366,10 @@ function sr_admin_builtin_material_icon_names(): array
         'gift' => 'redeem',
         'message-circle' => 'forum',
         'service' => 'apps',
+        'quiz' => 'quiz',
+        'poll' => 'poll',
+        'emoji_emotions' => 'emoji_emotions',
+        'integration_instructions' => 'integration_instructions',
         'sidebar-toggle' => 'keyboard_double_arrow_left',
         'menu' => 'menu',
         'moon-stars' => 'dark_mode',
