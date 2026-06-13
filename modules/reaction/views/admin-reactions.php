@@ -14,6 +14,20 @@ $reactionRecordTargets = isset($reactionRecordTargets) && is_array($reactionReco
 $definitionStatuses = sr_reaction_definition_statuses();
 $presetStatuses = sr_reaction_preset_statuses();
 $iconTypes = sr_reaction_icon_types();
+$reactionStatusClasses = [
+    'active' => 'is-normal',
+    'disabled' => 'is-blocked',
+];
+$reactionTargetStatusClasses = [
+    'active' => 'is-normal',
+    'published' => 'is-normal',
+    'enabled' => 'is-normal',
+    'unknown' => 'is-left',
+    'broken' => 'is-blocked',
+    'deleted' => 'is-blocked',
+    'disabled' => 'is-blocked',
+    'hidden' => 'is-blocked',
+];
 $disabledDefinitions = array_values(array_filter($reactionDefinitions, static function (array $definition): bool {
     return (string) ($definition['status'] ?? '') === 'disabled' && (int) ($definition['record_count'] ?? 0) > 0;
 }));
@@ -45,14 +59,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div class="admin-local-nav-wrap">
     <div class="admin-summary-stats">
-        <span class="admin-summary-meta">정의 <strong><?php echo sr_e((string) count($reactionDefinitions)); ?>개</strong></span>
-        <span class="admin-summary-meta">Preset <strong><?php echo sr_e((string) count($reactionPresets)); ?>개</strong></span>
-        <span class="admin-summary-meta">공개 preset key 수는 최대 12개입니다.</span>
+        <?php if ($reactionAdminPage === 'definitions') { ?>
+            <span class="admin-summary-meta">정의 <strong><?php echo sr_e((string) count($reactionDefinitions)); ?>개</strong></span>
+            <span class="admin-summary-meta">사용 중지 처리 대상 <strong><?php echo sr_e((string) count($disabledDefinitions)); ?>개</strong></span>
+        <?php } elseif ($reactionAdminPage === 'presets') { ?>
+            <span class="admin-summary-meta">Preset <strong><?php echo sr_e((string) count($reactionPresets)); ?>개</strong></span>
+            <span class="admin-summary-meta">공개 preset key 수는 최대 12개입니다.</span>
+        <?php } else { ?>
+            <span class="admin-summary-meta">최근 레코드 <strong><?php echo sr_e((string) count($reactionRecords)); ?>개</strong></span>
+            <span class="admin-summary-meta">최대 100건까지 조회합니다.</span>
+        <?php } ?>
     </div>
 </div>
 
 <?php if ($reactionAdminPage === 'records') { ?>
-<form method="get" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="filtering-form ui-form-theme">
+<form method="get" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="filtering-form admin-reaction-record-filter ui-form-theme">
     <div class="filtering filtering-card<?php echo $reactionRecordFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
         <div class="filtering-fields">
             <div class="filtering-field">
@@ -91,17 +112,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title">리액션 레코드 목록</h2>
     </div>
+    <div class="admin-list-summary-row">
+        <span class="admin-summary-meta">조회 결과 <?php echo sr_e(number_format(count($reactionRecords))); ?>건</span>
+    </div>
     <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-reaction-record-table">
             <caption class="sr-only">리액션 레코드 최근 목록</caption>
             <thead class="ui-table-head">
                 <tr>
                     <th>ID</th>
                     <th>회원</th>
                     <th>대상</th>
-                    <th>상태</th>
+                    <th>대상 상태</th>
                     <th>리액션</th>
-                    <th>수정</th>
+                    <th>수정일</th>
                 </tr>
             </thead>
             <tbody>
@@ -131,7 +155,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap">
-                            <?php echo sr_e($recordTargetStatus); ?>
+                            <span class="admin-status <?php echo sr_e((string) ($reactionTargetStatusClasses[$recordTargetStatus] ?? 'is-blocked')); ?>"><?php echo sr_e($recordTargetStatus); ?></span>
                             <?php if (is_array($recordTarget) && empty($recordTarget['can_write'])) { ?>
                                 <br><span class="admin-summary-meta">쓰기 불가</span>
                             <?php } ?>
@@ -139,8 +163,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap">
                             <?php echo sr_e((string) ($record['reaction_label'] ?? $record['reaction_key'] ?? '')); ?>
                             <br><code><?php echo sr_e((string) ($record['reaction_key'] ?? '')); ?></code>
-                            <?php if ((string) ($record['reaction_status'] ?? '') === 'disabled') { ?>
-                                <br><span class="admin-summary-meta">사용 중지</span>
+                            <?php $recordReactionStatus = (string) ($record['reaction_status'] ?? ''); ?>
+                            <?php if ($recordReactionStatus !== '') { ?>
+                                <br><span class="admin-status <?php echo sr_e((string) ($reactionStatusClasses[$recordReactionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label($recordReactionStatus, 'module_status')); ?></span>
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($record['updated_at'] ?? '')); ?></td>
@@ -161,7 +186,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
     <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-reaction-definition-table">
             <caption class="sr-only">리액션 정의 목록</caption>
             <thead class="ui-table-head">
                 <tr>
@@ -187,7 +212,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-nowrap"><code><?php echo sr_e((string) ($definition['reaction_key'] ?? '')); ?></code></td>
                         <td class="admin-table-break">
-                            <?php echo sr_e((string) ($definition['label'] ?? $definition['reaction_key'] ?? '')); ?>
+                            <strong><?php echo sr_e((string) ($definition['label'] ?? $definition['reaction_key'] ?? '')); ?></strong>
                             <?php if ((string) ($definition['description'] ?? '') !== '') { ?>
                                 <br><span class="admin-summary-meta"><?php echo sr_e((string) ($definition['description'] ?? '')); ?></span>
                             <?php } ?>
@@ -201,7 +226,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <br><code><?php echo sr_e((string) ($definition['color_hex'] ?? '')); ?></code>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) ($definition['status'] ?? ''), 'module_status')); ?></td>
+                        <?php $definitionStatus = (string) ($definition['status'] ?? ''); ?>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($reactionStatusClasses[$definitionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label($definitionStatus, 'module_status')); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($definition['sort_order'] ?? 100)); ?></td>
                         <td class="admin-table-actions-cell">
@@ -228,7 +254,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <p class="admin-empty-state">처리할 사용 중지 key 레코드가 없습니다.</p>
     <?php } else { ?>
         <div class="table-wrapper">
-            <table class="table">
+            <table class="table admin-reaction-cleanup-table">
                 <caption class="sr-only">사용 중지 리액션 레코드 처리 대상</caption>
                 <thead class="ui-table-head">
                     <tr>
@@ -247,10 +273,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         ?>
                         <tr>
                             <td class="admin-table-nowrap"><code><?php echo sr_e($reactionKey); ?></code></td>
-                            <td><?php echo sr_e((string) ($definition['label'] ?? $reactionKey)); ?></td>
+                            <td><strong><?php echo sr_e((string) ($definition['label'] ?? $reactionKey)); ?></strong></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개</td>
                             <td class="admin-table-actions-cell">
-                                <button type="button" class="btn btn-sm btn-outline-danger" aria-haspopup="dialog" aria-expanded="<?php echo $cleanupModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($cleanupModalId); ?>" data-overlay="#<?php echo sr_e($cleanupModalId); ?>">처리</button>
+                                <div class="admin-row-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" aria-haspopup="dialog" aria-expanded="<?php echo $cleanupModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($cleanupModalId); ?>" data-overlay="#<?php echo sr_e($cleanupModalId); ?>">처리</button>
+                                </div>
                             </td>
                         </tr>
                     <?php } ?>
@@ -271,7 +299,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
     <p class="admin-summary-meta">1차 정책은 단일 선택만 지원합니다. 선택한 key 순서대로 공개 버튼이 표시됩니다.</p>
     <div class="table-wrapper">
-        <table class="table">
+        <table class="table admin-reaction-preset-table">
             <caption class="sr-only">리액션 preset 목록</caption>
             <thead class="ui-table-head">
                 <tr>
@@ -302,19 +330,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-nowrap"><code><?php echo sr_e($presetKey); ?></code></td>
                         <td class="admin-table-break">
-                            <?php echo sr_e((string) ($preset['label'] ?? $presetKey)); ?>
+                            <strong><?php echo sr_e((string) ($preset['label'] ?? $presetKey)); ?></strong>
                             <?php if ((string) ($preset['description'] ?? '') !== '') { ?>
                                 <br><span class="admin-summary-meta"><?php echo sr_e((string) ($preset['description'] ?? '')); ?></span>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) ($preset['status'] ?? ''), 'module_status')); ?></td>
+                        <?php $presetStatus = (string) ($preset['status'] ?? ''); ?>
+                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($reactionStatusClasses[$presetStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label($presetStatus, 'module_status')); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($preset['visible_key_limit'] ?? 6)); ?>개</td>
                         <td class="admin-table-break">
                             <?php if ($selectedKeys === []) { ?>
                                 <span class="admin-summary-meta">없음</span>
                             <?php } else { ?>
-                                <?php foreach ($selectedKeys as $selectedKey) { ?>
-                                    <code><?php echo sr_e($selectedKey); ?></code>
+                                <?php foreach ($selectedKeys as $selectedIndex => $selectedKey) { ?>
+                                    <?php echo $selectedIndex > 0 ? ' ' : ''; ?><code><?php echo sr_e($selectedKey); ?></code>
                                 <?php } ?>
                             <?php } ?>
                         </td>
