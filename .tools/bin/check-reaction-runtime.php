@@ -110,6 +110,10 @@ $pdo->exec(
         provider_message_id TEXT NOT NULL DEFAULT \'\',
         error_message TEXT NOT NULL DEFAULT \'\',
         attempted_at TEXT NULL,
+        locked_at TEXT NULL,
+        locked_by TEXT NOT NULL DEFAULT \'\',
+        attempt_count INTEGER NOT NULL DEFAULT 0,
+        next_attempt_at TEXT NULL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
     );

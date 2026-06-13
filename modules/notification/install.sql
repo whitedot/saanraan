@@ -25,11 +25,16 @@ CREATE TABLE IF NOT EXISTS sr_notification_deliveries (
     provider_message_id VARCHAR(120) NOT NULL DEFAULT '',
     error_message VARCHAR(255) NOT NULL DEFAULT '',
     attempted_at DATETIME NULL,
+    locked_at DATETIME NULL,
+    locked_by VARCHAR(80) NOT NULL DEFAULT '',
+    attempt_count INT UNSIGNED NOT NULL DEFAULT 0,
+    next_attempt_at DATETIME NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_sr_notification_deliveries_notification (notification_id),
-    KEY idx_sr_notification_deliveries_channel_status (channel, status, id)
+    KEY idx_sr_notification_deliveries_channel_status (channel, status, id),
+    KEY idx_sr_notification_deliveries_runner (status, next_attempt_at, locked_at, id)
 );
 
 CREATE TABLE IF NOT EXISTS sr_notification_reads (

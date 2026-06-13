@@ -151,9 +151,11 @@ function sr_admin_code_label_context_options(): array
         ],
         'delivery_status' => [
             'queued' => '발송 대기',
+            'processing' => '처리 중',
             'sent' => '발송 완료',
             'failed' => '실패',
             'canceled' => '취소',
+            'dead' => 'Dead-letter',
         ],
         'embed_manager_status' => [
             'active' => '정상',

@@ -14,6 +14,7 @@ $notificationSettingsSectionNavItems = [
     'notification-settings-section-email' => '메일 환경',
     'notification-settings-section-smtp' => 'SMTP',
     'notification-settings-section-http-api' => 'HTTP API',
+    'notification-settings-section-runner' => '발송 실행',
 ];
 ?>
 <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="알림 설정 섹션">
@@ -128,6 +129,59 @@ $notificationSettingsSectionNavItems = [
             <div class="admin-form-field">
                 <input id="notification_admin_settings_email_http_api_bearer_token" type="password" name="email_http_api_bearer_token" value="" maxlength="255" class="form-input form-control-full" autocomplete="new-password">
                 <small class="admin-form-help">비워두면 기존 저장값을 유지합니다.</small>
+            </div>
+        </div>
+    </section>
+
+    <section id="notification-settings-section-runner" class="admin-card card" data-admin-section-anchor>
+        <h2>발송 실행</h2>
+        <div class="admin-form-row">
+            <span class="form-label">웹 자동 실행</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('notification_admin_settings_delivery_web_runner_enabled', 'delivery_web_runner_enabled', '1', !empty($settings['delivery_web_runner_enabled']), '공개/관리자 GET 요청 말미에 대기 발송 처리', '', ''); ?>
+                <small class="admin-form-help">공유호스팅 기본 실행 방식입니다. 요청 응답 뒤 작은 배치만 처리합니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_web_runner_interval_seconds">웹 실행 간격 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_delivery_web_runner_interval_seconds" type="number" name="delivery_web_runner_interval_seconds" value="<?php echo sr_e((string) $settings['delivery_web_runner_interval_seconds']); ?>" min="10" max="3600" class="form-input" required>
+                <small class="admin-form-help">초 단위입니다. 10부터 3600까지 입력합니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_web_runner_batch_size">웹 배치 크기 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_delivery_web_runner_batch_size" type="number" name="delivery_web_runner_batch_size" value="<?php echo sr_e((string) $settings['delivery_web_runner_batch_size']); ?>" min="1" max="5" class="form-input" required>
+                <small class="admin-form-help">한 번의 웹 요청 말미에서 처리할 최대 발송 수입니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_manual_batch_size">수동 배치 크기 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_delivery_manual_batch_size" type="number" name="delivery_manual_batch_size" value="<?php echo sr_e((string) $settings['delivery_manual_batch_size']); ?>" min="1" max="50" class="form-input" required>
+                <small class="admin-form-help">관리자 발송 목록에서 수동 실행할 때 처리할 최대 발송 수입니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_cli_batch_size">CLI 배치 크기 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_delivery_cli_batch_size" type="number" name="delivery_cli_batch_size" value="<?php echo sr_e((string) $settings['delivery_cli_batch_size']); ?>" min="1" max="100" class="form-input" required>
+                <small class="admin-form-help">cron 또는 수동 CLI runner에서 처리할 최대 발송 수입니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_max_attempts">최대 재시도 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_delivery_max_attempts" type="number" name="delivery_max_attempts" value="<?php echo sr_e((string) $settings['delivery_max_attempts']); ?>" min="1" max="20" class="form-input" required>
+                <small class="admin-form-help">초과하면 dead-letter 상태로 전환합니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_lock_timeout_seconds">Lock 만료 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_delivery_lock_timeout_seconds" type="number" name="delivery_lock_timeout_seconds" value="<?php echo sr_e((string) $settings['delivery_lock_timeout_seconds']); ?>" min="30" max="3600" class="form-input" required>
+                <small class="admin-form-help">처리 중인 작업이 이 시간을 넘기면 다음 runner가 다시 claim할 수 있습니다.</small>
             </div>
         </div>
     </section>

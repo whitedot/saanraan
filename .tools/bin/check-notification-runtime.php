@@ -132,6 +132,10 @@ function sr_notification_runtime_pdo(): PDO
             provider_message_id TEXT NOT NULL DEFAULT \'\',
             error_message TEXT NOT NULL DEFAULT \'\',
             attempted_at TEXT NULL,
+            locked_at TEXT NULL,
+            locked_by TEXT NOT NULL DEFAULT \'\',
+            attempt_count INTEGER NOT NULL DEFAULT 0,
+            next_attempt_at TEXT NULL,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         )'
@@ -319,6 +323,10 @@ sr_notification_runtime_assert(
     sr_notification_delivery_status_transition('queued', 'unknown') === ['allowed' => false, 'operation' => ''],
     'notification delivery transition must reject unknown target.'
 );
+sr_notification_runtime_assert(
+    sr_notification_delivery_status_transition('dead', 'queued') === ['allowed' => true, 'operation' => 'retry'],
+    'notification delivery transition must allow dead-letter retry.'
+);
 
 $pdo->exec(
     "INSERT INTO sr_notification_deliveries
@@ -359,7 +367,8 @@ $adminView = file_get_contents($root . '/modules/notification/views/admin-notifi
 $adminNotificationAction = file_get_contents($root . '/modules/notification/actions/admin-admin-notifications.php');
 $adminNotificationView = file_get_contents($root . '/modules/notification/views/admin-admin-notifications.php');
 $notificationHelpers = file_get_contents($root . '/modules/notification/helpers.php');
-sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];"), 'notification delivery admin action must allow queued/sent/failed/canceled statuses.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, '$allowedDeliveryStatuses = sr_notification_delivery_statuses();'), 'notification delivery admin action must use shared delivery statuses.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'run_deliveries'"), 'notification delivery admin action must expose manual runner.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'delivery_status'"), 'notification delivery admin action must expose delivery status updates.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'sr_notification_update_delivery_status($pdo, $deliveryId, $status, sr_now())'), 'notification delivery admin action must use the shared status update helper.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "'before_status' => \$beforeStatus"), 'notification delivery audit log must include before_status.');

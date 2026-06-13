@@ -25,8 +25,8 @@ php .tools/bin/ops-status.php
 
 | 항목 | 의미 | 허용 지연 | 후속 확인 |
 | --- | --- | --- | --- |
-| `notification.deliveries.queued` | 이메일 등 외부 delivery가 아직 대기 중 | 1시간 | 알림 관리자 delivery 목록, provider 설정 |
-| `notification.deliveries.failed` | delivery 실패가 남아 있음 | 즉시 | 실패 사유, 재발송 또는 취소 기준 |
+| `notification.deliveries.queued` | 이메일 등 외부 delivery가 대기 또는 처리 중 | 1시간 | 알림 관리자 delivery 목록, provider 설정, runner 실행 상태 |
+| `notification.deliveries.failed` | delivery 실패 또는 dead-letter가 남아 있음 | 즉시 | 실패 사유, 설정 수정, 재발송 또는 취소 기준 |
 | `content.storage_cleanup.pending` | 콘텐츠 삭제 후 저장소 파일 정리 실패 | 24시간 | 콘텐츠 관리자 정리 실패 목록과 재시도 |
 | `community.storage_cleanup.pending` | 커뮤니티 삭제 후 저장소 파일 정리 실패 | 24시간 | 게시판 관리자 정리 실패 목록과 재시도 |
 | `community.board_copy.active` | 게시판 복사 작업이 대기 또는 실행 중 | 15분 | 복사 작업 진행 상태와 lock 만료 |
@@ -45,7 +45,13 @@ php .tools/bin/ops-status.php
 
 ### 알림 delivery 재시도/취소 기준
 
-`/admin/notification-deliveries`는 외부 발송 작업을 직접 전송하지 않고 상태 전이만 기록한다. 재시도는 `failed` 또는 `canceled` 상태를 `queued`로 되돌리는 작업이며, 이때 provider message ID, 오류 메시지, 시도 시각을 비워 다음 발송 시도와 이전 실패를 분리한다. 취소는 `queued` 또는 `failed` 상태를 `canceled`로 바꾸는 작업이다. `sent`는 터미널 상태로 보고 재시도나 취소 대상으로 되돌리지 않는다. 수동으로 `failed` 또는 `sent`로 표시하는 전이는 운영자가 외부 provider 상태를 확인한 뒤 수행하며, 모든 상태 변경은 CSRF, `/admin/notification-deliveries` edit 권한, 조건부 `before_status` 업데이트, 감사 로그의 이전 상태/새 상태/operation 기록을 거쳐야 한다.
+`/admin/notification-deliveries`는 외부 발송 작업 상태를 확인하고 이메일 delivery runner를 수동 실행할 수 있다. runner는 `queued` 작업을 `processing`으로 claim한 뒤 성공하면 `sent`, 실패하면 backoff를 둔 `queued` 또는 최대 시도 초과 시 `dead`로 전환한다. 재시도는 `failed`, `canceled`, `dead` 상태를 `queued`로 되돌리는 작업이며, 이때 provider message ID, 오류 메시지, 시도 시각, lock, 다음 시도 시각을 비워 다음 발송 시도와 이전 실패를 분리한다. 취소는 `queued`, `processing`, `failed`, `dead` 상태를 `canceled`로 바꾸는 작업이다. `sent`는 터미널 상태로 보고 재시도나 취소 대상으로 되돌리지 않는다. 수동으로 `failed`, `dead`, `sent`로 표시하는 전이는 운영자가 외부 provider 상태를 확인한 뒤 수행하며, 모든 상태 변경과 수동 runner 실행은 CSRF, `/admin/notification-deliveries` edit 권한, 조건부 상태 업데이트, 감사 로그 기록을 거쳐야 한다.
+
+알림 delivery 기본 실행 모델은 공유호스팅을 기준으로 한다. 웹 GET 요청 말미에는 설정된 간격마다 작은 배치만 처리하고, 관리자는 `/admin/notification-deliveries`에서 대기 작업을 수동 실행할 수 있다. cron이 가능한 환경에서는 다음 CLI runner를 권장한다.
+
+```sh
+php .tools/bin/run-notification-deliveries.php
+```
 
 ## 자산 원장 정합성
 
@@ -72,7 +78,7 @@ DB에서 balance row, 거래 row, `balance_after`를 직접 UPDATE하는 응급 
 | 작업 | 지연 허용 | 주의 기준 |
 | --- | --- | --- |
 | 사이트 알림 생성 | 낮음 | 생성 실패가 원 업무 실패로 전파되지 않아야 함 |
-| 이메일 delivery | 중간, 1시간 | `queued`가 오래 남거나 `failed`가 증가하면 provider 설정 확인 |
+| 이메일 delivery | 중간, 1시간 | `queued`/`processing`이 오래 남거나 `failed`/`dead`가 증가하면 provider 설정과 runner 확인 |
 | 포인트 만료 | 중간, 24시간 | 만료 예정 잔여분이 누적되면 수동 만료 실행 |
 | 저장소 파일 정리 | 중간, 24시간 | 실패 항목이 계속 남으면 파일 유실/권한 문제 확인 |
 | 게시판 복사 | 낮음, 15분 | `running` lock이 오래 유지되면 takeover 또는 실패 처리 기준 확인 |
@@ -86,6 +92,7 @@ cron을 사용할 수 있는 환경에서는 다음을 후보로 둔다. cron이
 php .tools/bin/expire-points.php --dry-run
 php .tools/bin/expire-points.php
 php .tools/bin/ops-status.php
+php .tools/bin/run-notification-deliveries.php
 ```
 
 `ops-status.php`는 read-only라 자동 실행해도 데이터를 바꾸지 않는다. 출력 결과를 운영 로그에 남기면 지연 증가 추세를 확인할 수 있다. `expire-points.php --dry-run`은 만료 대상 건수와 금액만 출력하고 원장을 만들지 않는다. `expire-points.php`는 만료 대상 포인트를 실제 `expire` 원장 거래로 차감하는 변경 명령이므로 운영 DB에서는 실행 전 `ops-status.php`, `expire-points.php --dry-run`, 또는 관리자 운영 상태 화면에서 대상 규모를 먼저 확인한다.

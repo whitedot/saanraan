@@ -206,6 +206,7 @@ $layoutCopyrightYear = date('Y');
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($layoutSeo, $layoutSite); ?>
     <?php echo $layoutFaviconHtml; ?>
+    <?php echo sr_pwa_head_tags($layoutPdo, $layoutSite); ?>
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
@@ -297,5 +298,6 @@ $layoutCopyrightYear = date('Y');
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/assets/mention-input.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/modules/community/assets/community-layout.js')); ?>" defer></script>
+    <?php echo sr_pwa_registration_script(); ?>
 </body>
 </html>

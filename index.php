@@ -81,6 +81,26 @@ if ($autoCleanupScope !== null) {
     }
 }
 
+if ($method === 'GET' && sr_module_enabled($pdo, 'notification') && is_file(SR_ROOT . '/modules/notification/helpers.php')) {
+    require_once SR_ROOT . '/modules/notification/helpers.php';
+    sr_notification_register_web_delivery_runner($pdo, is_array($site) ? $site : [], $method, $path);
+}
+
+if ($method === 'GET' && $path === '/manifest.webmanifest') {
+    header('Content-Type: application/manifest+json; charset=utf-8');
+    header('Cache-Control: no-cache');
+    echo json_encode(sr_pwa_manifest_payload($pdo, $site), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    exit;
+}
+
+if ($method === 'GET' && $path === '/service-worker.js') {
+    header('Content-Type: application/javascript; charset=utf-8');
+    header('Cache-Control: no-cache');
+    header('Service-Worker-Allowed: ' . sr_url('/'));
+    echo sr_pwa_service_worker_source();
+    exit;
+}
+
 if (
     $site !== null
     && $site['status'] === 'maintenance'

@@ -41,6 +41,13 @@ if (sr_request_method() === 'POST') {
         'email_timeout_seconds' => (int) sr_post_string('email_timeout_seconds', 10),
         'email_http_api_endpoint' => sr_notification_clean_setting_value(sr_post_string('email_http_api_endpoint', 255), 255),
         'email_http_api_bearer_token' => $emailHttpApiBearerToken !== '' ? $emailHttpApiBearerToken : (string) ($existingSettings['email_http_api_bearer_token'] ?? ''),
+        'delivery_web_runner_enabled' => ($_POST['delivery_web_runner_enabled'] ?? '') === '1',
+        'delivery_web_runner_interval_seconds' => (int) sr_post_string('delivery_web_runner_interval_seconds', 10),
+        'delivery_web_runner_batch_size' => (int) sr_post_string('delivery_web_runner_batch_size', 10),
+        'delivery_manual_batch_size' => (int) sr_post_string('delivery_manual_batch_size', 10),
+        'delivery_cli_batch_size' => (int) sr_post_string('delivery_cli_batch_size', 10),
+        'delivery_max_attempts' => (int) sr_post_string('delivery_max_attempts', 10),
+        'delivery_lock_timeout_seconds' => (int) sr_post_string('delivery_lock_timeout_seconds', 10),
     ];
 
     if (!array_key_exists($settings['email_transport'], sr_notification_email_transport_options())) {
@@ -57,6 +64,24 @@ if (sr_request_method() === 'POST') {
     }
     if ($settings['email_timeout_seconds'] < 3 || $settings['email_timeout_seconds'] > 30) {
         $errors[] = '메일 타임아웃은 3초부터 30초 사이로 입력하세요.';
+    }
+    if ($settings['delivery_web_runner_interval_seconds'] < 10 || $settings['delivery_web_runner_interval_seconds'] > 3600) {
+        $errors[] = '웹 자동 실행 간격은 10초부터 3600초 사이로 입력하세요.';
+    }
+    if ($settings['delivery_web_runner_batch_size'] < 1 || $settings['delivery_web_runner_batch_size'] > 5) {
+        $errors[] = '웹 자동 실행 배치 크기는 1부터 5 사이로 입력하세요.';
+    }
+    if ($settings['delivery_manual_batch_size'] < 1 || $settings['delivery_manual_batch_size'] > 50) {
+        $errors[] = '관리자 수동 실행 배치 크기는 1부터 50 사이로 입력하세요.';
+    }
+    if ($settings['delivery_cli_batch_size'] < 1 || $settings['delivery_cli_batch_size'] > 100) {
+        $errors[] = 'CLI 실행 배치 크기는 1부터 100 사이로 입력하세요.';
+    }
+    if ($settings['delivery_max_attempts'] < 1 || $settings['delivery_max_attempts'] > 20) {
+        $errors[] = '최대 재시도 횟수는 1부터 20 사이로 입력하세요.';
+    }
+    if ($settings['delivery_lock_timeout_seconds'] < 30 || $settings['delivery_lock_timeout_seconds'] > 3600) {
+        $errors[] = '처리 lock 만료 시간은 30초부터 3600초 사이로 입력하세요.';
     }
 
     if ($settings['email_channel_enabled'] && $settings['email_transport'] === 'smtp') {
@@ -90,6 +115,8 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'email_channel_enabled' => (bool) $settings['email_channel_enabled'],
                 'email_transport' => (string) $settings['email_transport'],
+                'delivery_web_runner_enabled' => (bool) $settings['delivery_web_runner_enabled'],
+                'delivery_max_attempts' => (int) $settings['delivery_max_attempts'],
             ],
         ]);
         $notice = '알림 환경설정을 저장했습니다.';

@@ -57,6 +57,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
             <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('notification::ui.all.e078b14a')); ?></a>
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-inline-form">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="run_deliveries">
+                <button type="submit" class="btn btn-solid-primary">대기 작업 실행</button>
+            </form>
         </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('notification::ui.text.34c94df2')); ?> <strong><?php echo sr_e((string) $totalDeliveries); ?><?php echo sr_e(sr_t('notification::ui.text.a57ab057')); ?></strong></span>
@@ -142,17 +147,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         $deliveryStatus = (string) $delivery['status'];
                         $deliveryStatusClass = match ($deliveryStatus) {
                             'sent' => 'is-normal',
-                            'failed', 'canceled' => 'is-left',
+                            'failed', 'canceled', 'dead' => 'is-left',
+                            'processing' => 'is-ready',
                             default => 'is-blocked',
                         };
+                        $deliveryRecipient = (string) ($delivery['recipient'] ?? '');
+                        $deliveryRecipientLabel = $deliveryRecipient !== '' ? sr_notification_mask_recipient($deliveryRecipient) : '-';
+                        $deliveryStatusTitleParts = [];
+                        if ((int) ($delivery['attempt_count'] ?? 0) > 0) {
+                            $deliveryStatusTitleParts[] = '시도 ' . (string) (int) ($delivery['attempt_count'] ?? 0) . '회';
+                        }
+                        if ((string) ($delivery['next_attempt_at'] ?? '') !== '') {
+                            $deliveryStatusTitleParts[] = '다음 시도 ' . (string) $delivery['next_attempt_at'];
+                        }
+                        if ((string) ($delivery['locked_at'] ?? '') !== '') {
+                            $deliveryStatusTitleParts[] = 'Lock ' . (string) $delivery['locked_at'];
+                        }
+                        $deliveryStatusTitle = $deliveryStatusTitleParts !== [] ? implode(' / ', $deliveryStatusTitleParts) : '';
                         ?>
                         <tr>
                             <td class="admin-table-break admin-notification-delivery-title-cell">
                                 <?php echo sr_e((string) ($delivery['notification_title'] ?? '')); ?>
                             </td>
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
-                            <td class="admin-table-break admin-notification-delivery-recipient-cell"><?php echo sr_e((string) (($delivery['recipient'] ?? '') !== '' ? $delivery['recipient'] : '-')); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($deliveryStatusClass); ?>"><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span></td>
+                            <td class="admin-table-break admin-notification-delivery-recipient-cell" title="<?php echo sr_e($deliveryRecipient !== '' ? sr_notification_mask_recipient($deliveryRecipient) : '-'); ?>"><?php echo sr_e($deliveryRecipientLabel); ?></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($deliveryStatusClass); ?>"<?php echo $deliveryStatusTitle !== '' ? ' title="' . sr_e($deliveryStatusTitle) . '"' : ''; ?>><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span></td>
                             <td class="admin-table-nowrap admin-notification-delivery-date-cell"><?php echo sr_notification_time_html((string) $delivery['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">

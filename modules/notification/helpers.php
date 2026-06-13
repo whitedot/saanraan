@@ -23,32 +23,83 @@ function sr_notification_delivery_status_transition(string $currentStatus, strin
 {
     $currentStatus = trim($currentStatus);
     $targetStatus = trim($targetStatus);
+    $knownStatuses = sr_notification_delivery_statuses();
 
-    if (!in_array($currentStatus, ['queued', 'sent', 'failed', 'canceled'], true)
-        || !in_array($targetStatus, ['queued', 'sent', 'failed', 'canceled'], true)
+    if (!in_array($currentStatus, $knownStatuses, true)
+        || !in_array($targetStatus, $knownStatuses, true)
         || $currentStatus === $targetStatus
         || $currentStatus === 'sent'
     ) {
         return ['allowed' => false, 'operation' => ''];
     }
 
-    if ($targetStatus === 'queued' && in_array($currentStatus, ['failed', 'canceled'], true)) {
+    if ($targetStatus === 'queued' && in_array($currentStatus, ['failed', 'canceled', 'dead'], true)) {
         return ['allowed' => true, 'operation' => 'retry'];
     }
 
-    if ($targetStatus === 'canceled' && in_array($currentStatus, ['queued', 'failed'], true)) {
+    if ($targetStatus === 'canceled' && in_array($currentStatus, ['queued', 'processing', 'failed', 'dead'], true)) {
         return ['allowed' => true, 'operation' => 'cancel'];
     }
 
-    if ($targetStatus === 'failed' && $currentStatus === 'queued') {
+    if ($targetStatus === 'failed' && in_array($currentStatus, ['queued', 'processing'], true)) {
         return ['allowed' => true, 'operation' => 'mark_failed'];
     }
 
-    if ($targetStatus === 'sent' && in_array($currentStatus, ['queued', 'failed', 'canceled'], true)) {
+    if ($targetStatus === 'dead' && in_array($currentStatus, ['queued', 'processing', 'failed'], true)) {
+        return ['allowed' => true, 'operation' => 'mark_dead'];
+    }
+
+    if ($targetStatus === 'sent' && in_array($currentStatus, ['queued', 'processing', 'failed', 'canceled'], true)) {
         return ['allowed' => true, 'operation' => 'mark_sent'];
     }
 
     return ['allowed' => false, 'operation' => ''];
+}
+
+function sr_notification_delivery_statuses(): array
+{
+    return ['queued', 'processing', 'sent', 'failed', 'canceled', 'dead'];
+}
+
+function sr_notification_delivery_runner_lock_id(): string
+{
+    $host = gethostname();
+    $host = is_string($host) && $host !== '' ? $host : 'web';
+    return sr_notification_clean_single_line($host . ':' . getmypid(), 80);
+}
+
+function sr_notification_delivery_error_message(string $message): string
+{
+    $message = sr_notification_clean_single_line($message, 255);
+    $patterns = [
+        '/Bearer\s+[A-Za-z0-9._~+\-\/]+=*/i',
+        '/(token|secret|password|passwd|pwd|key)=([^&\s]+)/i',
+        '/https?:\/\/[^\s@\/]+:[^\s@\/]+@[^\s]+/i',
+    ];
+
+    return preg_replace($patterns, '$1=[masked]', $message) ?? 'masked error';
+}
+
+function sr_notification_mask_recipient(string $recipient): string
+{
+    $recipient = trim($recipient);
+    if ($recipient === '') {
+        return '';
+    }
+
+    if (filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+        [$local, $domain] = explode('@', $recipient, 2);
+        $localPrefix = function_exists('mb_substr') ? mb_substr($local, 0, 2) : substr($local, 0, 2);
+        return $localPrefix . '***@' . $domain;
+    }
+
+    if (sr_is_http_url($recipient)) {
+        $host = parse_url($recipient, PHP_URL_HOST);
+        return is_string($host) && $host !== '' ? 'https://' . $host . '/[masked]' : '[masked]';
+    }
+
+    $prefix = function_exists('mb_substr') ? mb_substr($recipient, 0, 4) : substr($recipient, 0, 4);
+    return $prefix . '***';
 }
 
 function sr_notification_update_delivery_status_row(PDO $pdo, int $deliveryId, string $beforeStatus, string $targetStatus, string $now): array
@@ -77,7 +128,7 @@ function sr_notification_update_delivery_status_row(PDO $pdo, int $deliveryId, s
     }
 
     $stmt = $pdo->prepare(
-        'UPDATE sr_notification_deliveries
+        "UPDATE sr_notification_deliveries
          SET status = :status,
              attempted_at = CASE
                  WHEN CAST(:clear_attempted_at AS INTEGER) = 1 THEN NULL
@@ -86,9 +137,12 @@ function sr_notification_update_delivery_status_row(PDO $pdo, int $deliveryId, s
              END,
              provider_message_id = COALESCE(:provider_message_id, provider_message_id),
              error_message = COALESCE(:error_message, error_message),
+             locked_at = NULL,
+             locked_by = '',
+             next_attempt_at = NULL,
              updated_at = :updated_at
          WHERE id = :id
-           AND status = :before_status'
+           AND status = :before_status"
     );
     $stmt->execute([
         'status' => $targetStatus,
@@ -118,6 +172,309 @@ function sr_notification_update_delivery_status_row(PDO $pdo, int $deliveryId, s
         'status' => $targetStatus,
         'operation' => (string) ($transition['operation'] ?? ''),
     ];
+}
+
+function sr_notification_mail_config_from_settings(array $settings): array
+{
+    return [
+        'transport' => (string) ($settings['email_transport'] ?? 'php_mail'),
+        'from_email' => (string) ($settings['email_from_email'] ?? ''),
+        'from_name' => (string) ($settings['email_from_name'] ?? ''),
+        'host' => (string) ($settings['email_smtp_host'] ?? ''),
+        'port' => (int) ($settings['email_smtp_port'] ?? 587),
+        'encryption' => (string) ($settings['email_smtp_encryption'] ?? 'tls'),
+        'username' => (string) ($settings['email_smtp_username'] ?? ''),
+        'password' => (string) ($settings['email_smtp_password'] ?? ''),
+        'timeout_seconds' => (int) ($settings['email_timeout_seconds'] ?? 10),
+        'endpoint' => (string) ($settings['email_http_api_endpoint'] ?? ''),
+        'bearer_token' => (string) ($settings['email_http_api_bearer_token'] ?? ''),
+    ];
+}
+
+function sr_notification_claim_email_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds): ?array
+{
+    $lockCutoff = date('Y-m-d H:i:s', strtotime($now) - max(30, $lockTimeoutSeconds));
+    $stmt = $pdo->prepare(
+        "SELECT d.id
+         FROM sr_notification_deliveries d
+         WHERE d.channel = 'email'
+           AND (
+                (d.status = 'queued' AND (d.next_attempt_at IS NULL OR d.next_attempt_at <= :now_due))
+                OR (d.status = 'processing' AND (d.locked_at IS NULL OR d.locked_at <= :lock_cutoff))
+           )
+         ORDER BY d.id ASC
+         LIMIT 1"
+    );
+    $stmt->execute([
+        'now_due' => $now,
+        'lock_cutoff' => $lockCutoff,
+    ]);
+    $row = $stmt->fetch();
+    if (!is_array($row)) {
+        return null;
+    }
+
+    $deliveryId = (int) ($row['id'] ?? 0);
+    if ($deliveryId <= 0) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "UPDATE sr_notification_deliveries
+         SET status = 'processing',
+             locked_at = :locked_at,
+             locked_by = :locked_by,
+             attempt_count = attempt_count + 1,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND channel = 'email'
+           AND (
+                (status = 'queued' AND (next_attempt_at IS NULL OR next_attempt_at <= :now_due))
+                OR (status = 'processing' AND (locked_at IS NULL OR locked_at <= :lock_cutoff))
+           )"
+    );
+    $stmt->execute([
+        'locked_at' => $now,
+        'locked_by' => $lockId,
+        'updated_at' => $now,
+        'id' => $deliveryId,
+        'now_due' => $now,
+        'lock_cutoff' => $lockCutoff,
+    ]);
+    if ($stmt->rowCount() < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.attempt_count,
+                n.title, n.body_text, n.body_format, n.link_url
+         FROM sr_notification_deliveries d
+         INNER JOIN sr_notifications n ON n.id = d.notification_id
+         WHERE d.id = :id
+         LIMIT 1"
+    );
+    $stmt->execute(['id' => $deliveryId]);
+    $delivery = $stmt->fetch();
+
+    return is_array($delivery) ? $delivery : null;
+}
+
+function sr_notification_mark_delivery_sent(PDO $pdo, int $deliveryId, string $now, string $providerMessageId = ''): void
+{
+    $providerMessageId = sr_notification_clean_single_line($providerMessageId, 120);
+    $stmt = $pdo->prepare(
+        "UPDATE sr_notification_deliveries
+         SET status = 'sent',
+             provider_message_id = :provider_message_id,
+             error_message = '',
+             attempted_at = :attempted_at,
+             locked_at = NULL,
+             locked_by = '',
+             next_attempt_at = NULL,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = 'processing'"
+    );
+    $stmt->execute([
+        'provider_message_id' => $providerMessageId,
+        'attempted_at' => $now,
+        'updated_at' => $now,
+        'id' => $deliveryId,
+    ]);
+}
+
+function sr_notification_mark_delivery_failed(PDO $pdo, int $deliveryId, string $now, string $errorMessage, int $attemptCount, int $maxAttempts): string
+{
+    $attemptCount = max(1, $attemptCount);
+    $maxAttempts = max(1, $maxAttempts);
+    $errorMessage = sr_notification_delivery_error_message($errorMessage);
+    $status = $attemptCount >= $maxAttempts ? 'dead' : 'queued';
+    $nextAttemptAt = $status === 'queued'
+        ? date('Y-m-d H:i:s', strtotime($now) + min(3600, 60 * (2 ** min(5, $attemptCount - 1))))
+        : null;
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_notification_deliveries
+         SET status = :status,
+             error_message = :error_message,
+             attempted_at = :attempted_at,
+             locked_at = NULL,
+             locked_by = \'\',
+             next_attempt_at = :next_attempt_at,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = \'processing\''
+    );
+    $stmt->execute([
+        'status' => $status,
+        'error_message' => $errorMessage,
+        'attempted_at' => $now,
+        'next_attempt_at' => $nextAttemptAt,
+        'updated_at' => $now,
+        'id' => $deliveryId,
+    ]);
+
+    return $status;
+}
+
+function sr_notification_process_email_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
+{
+    $deliveryId = (int) ($delivery['id'] ?? 0);
+    $recipient = (string) ($delivery['recipient'] ?? '');
+    $attemptCount = (int) ($delivery['attempt_count'] ?? 1);
+    if ($deliveryId <= 0 || !filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+        $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, 'invalid email recipient', $attemptCount, $maxAttempts);
+        return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+    }
+
+    if (empty($settings['email_channel_enabled'])) {
+        $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, 'email channel disabled', $attemptCount, $maxAttempts);
+        return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+    }
+
+    $subject = sr_notification_clean_single_line((string) ($delivery['title'] ?? '알림'), 160);
+    $body = (string) ($delivery['body_text'] ?? '');
+    if ((string) ($delivery['body_format'] ?? 'plain') === 'html') {
+        $body = trim(strip_tags($body));
+    }
+    $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
+    if ($linkUrl !== '') {
+        $body .= ($body !== '' ? "\n\n" : '') . (sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl));
+    }
+
+    $previousConfig = sr_runtime_config();
+    $runnerConfig = $previousConfig;
+    $runnerConfig['mail'] = sr_notification_mail_config_from_settings($settings);
+    sr_set_runtime_config($runnerConfig);
+    try {
+        $sent = sr_send_mail($site, $recipient, $subject, $body);
+    } finally {
+        sr_set_runtime_config($previousConfig);
+    }
+
+    if ($sent) {
+        sr_notification_mark_delivery_sent($pdo, $deliveryId, $now, 'email:' . (string) $deliveryId);
+        return ['status' => 'sent', 'sent' => 1, 'failed' => 0, 'dead' => 0];
+    }
+
+    $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, 'email provider send failed', $attemptCount, $maxAttempts);
+    return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+}
+
+function sr_notification_run_delivery_batch(PDO $pdo, array $site, int $batchSize = 5, ?string $lockId = null): array
+{
+    $batchSize = max(1, min(50, $batchSize));
+    $settings = sr_notification_settings($pdo);
+    $maxAttempts = max(1, min(20, (int) ($settings['delivery_max_attempts'] ?? 5)));
+    $lockTimeoutSeconds = max(30, min(3600, (int) ($settings['delivery_lock_timeout_seconds'] ?? 300)));
+    $lockId = $lockId !== null && $lockId !== '' ? sr_notification_clean_single_line($lockId, 80) : sr_notification_delivery_runner_lock_id();
+    $result = [
+        'claimed' => 0,
+        'sent' => 0,
+        'failed' => 0,
+        'dead' => 0,
+        'skipped' => 0,
+    ];
+
+    for ($i = 0; $i < $batchSize; $i++) {
+        $now = sr_now();
+        $delivery = sr_notification_claim_email_delivery($pdo, $lockId, $now, $lockTimeoutSeconds);
+        if ($delivery === null) {
+            break;
+        }
+
+        $result['claimed']++;
+        try {
+            $deliveryResult = sr_notification_process_email_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
+            $result['sent'] += (int) ($deliveryResult['sent'] ?? 0);
+            $result['failed'] += (int) ($deliveryResult['failed'] ?? 0);
+            $result['dead'] += (int) ($deliveryResult['dead'] ?? 0);
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'notification_delivery_runner');
+            $status = sr_notification_mark_delivery_failed(
+                $pdo,
+                (int) ($delivery['id'] ?? 0),
+                sr_now(),
+                'runner exception',
+                (int) ($delivery['attempt_count'] ?? 1),
+                $maxAttempts
+            );
+            if ($status === 'dead') {
+                $result['dead']++;
+            } else {
+                $result['failed']++;
+            }
+        }
+    }
+
+    return $result;
+}
+
+function sr_notification_save_module_runtime_setting(PDO $pdo, string $settingKey, string $settingValue, string $valueType = 'string'): void
+{
+    if (preg_match('/\A[a-z0-9_.-]{1,120}\z/', $settingKey) !== 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'notification' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        return;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'module_id' => (int) $module['id'],
+        'setting_key' => $settingKey,
+        'setting_value' => $settingValue,
+        'value_type' => $valueType,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    sr_clear_module_settings_cache('notification');
+}
+
+function sr_notification_register_web_delivery_runner(PDO $pdo, array $site, string $method, string $path): void
+{
+    if ($method !== 'GET') {
+        return;
+    }
+    if ($path === '/manifest.webmanifest' || $path === '/service-worker.js') {
+        return;
+    }
+
+    $settings = sr_notification_settings($pdo);
+    if (empty($settings['delivery_web_runner_enabled'])) {
+        return;
+    }
+
+    $lastRunAt = (string) sr_module_setting($pdo, 'notification', 'delivery_last_web_runner_at', '');
+    $lastRunTime = $lastRunAt === '' ? false : strtotime($lastRunAt);
+    $interval = max(10, (int) ($settings['delivery_web_runner_interval_seconds'] ?? 60));
+    if ($lastRunTime !== false && time() - $lastRunTime < $interval) {
+        return;
+    }
+
+    $batchSize = max(1, min(5, (int) ($settings['delivery_web_runner_batch_size'] ?? 1)));
+    register_shutdown_function(static function () use ($pdo, $site, $batchSize): void {
+        try {
+            sr_notification_save_module_runtime_setting($pdo, 'delivery_last_web_runner_at', sr_now(), 'string');
+            sr_notification_run_delivery_batch($pdo, $site, $batchSize, sr_notification_delivery_runner_lock_id());
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'notification_web_runner_failed');
+        }
+    });
 }
 
 function sr_notification_update_delivery_status(PDO $pdo, int $deliveryId, string $targetStatus, string $now): array
@@ -987,6 +1344,13 @@ function sr_notification_default_settings(): array
         'email_timeout_seconds' => 10,
         'email_http_api_endpoint' => '',
         'email_http_api_bearer_token' => '',
+        'delivery_web_runner_enabled' => true,
+        'delivery_web_runner_interval_seconds' => 60,
+        'delivery_web_runner_batch_size' => 1,
+        'delivery_manual_batch_size' => 10,
+        'delivery_cli_batch_size' => 20,
+        'delivery_max_attempts' => 5,
+        'delivery_lock_timeout_seconds' => 300,
     ];
 }
 
@@ -998,6 +1362,13 @@ function sr_notification_settings(PDO $pdo): array
     $settings['email_smtp_port'] = max(1, min(65535, (int) $settings['email_smtp_port']));
     $settings['email_smtp_encryption'] = in_array((string) $settings['email_smtp_encryption'], ['none', 'tls', 'ssl'], true) ? (string) $settings['email_smtp_encryption'] : 'tls';
     $settings['email_timeout_seconds'] = max(3, min(30, (int) $settings['email_timeout_seconds']));
+    $settings['delivery_web_runner_enabled'] = (bool) $settings['delivery_web_runner_enabled'];
+    $settings['delivery_web_runner_interval_seconds'] = max(10, min(3600, (int) $settings['delivery_web_runner_interval_seconds']));
+    $settings['delivery_web_runner_batch_size'] = max(1, min(5, (int) $settings['delivery_web_runner_batch_size']));
+    $settings['delivery_manual_batch_size'] = max(1, min(50, (int) $settings['delivery_manual_batch_size']));
+    $settings['delivery_cli_batch_size'] = max(1, min(100, (int) $settings['delivery_cli_batch_size']));
+    $settings['delivery_max_attempts'] = max(1, min(20, (int) $settings['delivery_max_attempts']));
+    $settings['delivery_lock_timeout_seconds'] = max(30, min(3600, (int) $settings['delivery_lock_timeout_seconds']));
 
     return $settings;
 }
@@ -1047,6 +1418,13 @@ function sr_notification_save_settings(PDO $pdo, array $settings): void
         ['email_timeout_seconds', (string) $settings['email_timeout_seconds'], 'int'],
         ['email_http_api_endpoint', (string) $settings['email_http_api_endpoint'], 'string'],
         ['email_http_api_bearer_token', (string) $settings['email_http_api_bearer_token'], 'string'],
+        ['delivery_web_runner_enabled', !empty($settings['delivery_web_runner_enabled']) ? '1' : '0', 'bool'],
+        ['delivery_web_runner_interval_seconds', (string) $settings['delivery_web_runner_interval_seconds'], 'int'],
+        ['delivery_web_runner_batch_size', (string) $settings['delivery_web_runner_batch_size'], 'int'],
+        ['delivery_manual_batch_size', (string) $settings['delivery_manual_batch_size'], 'int'],
+        ['delivery_cli_batch_size', (string) $settings['delivery_cli_batch_size'], 'int'],
+        ['delivery_max_attempts', (string) $settings['delivery_max_attempts'], 'int'],
+        ['delivery_lock_timeout_seconds', (string) $settings['delivery_lock_timeout_seconds'], 'int'],
     ];
 
     $stmt = $pdo->prepare(

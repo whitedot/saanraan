@@ -38,7 +38,7 @@
 | 서비스 | `survey` | 설문 작성, 응답, 통계, CSV, 보상 기반 |
 | 서비스 | `embed_manager` | 본문 임베드 참조 점검과 marker/refs 동기화 |
 | 서비스 | `reaction` | 콘텐츠, 커뮤니티, 퀴즈, 설문 공통 리액션 정의와 원장 |
-| 운영 | `notification` | 사이트 알림, 이메일 delivery queue |
+| 운영 | `notification` | 사이트 알림, 이메일 delivery queue, 공유호스팅 runner |
 | 운영 | `privacy` | 관리자 전용 개인정보 대응 기록과 사본 제공 보조 |
 | 플러그인 | `ckeditor` | textarea 에디터 강화 |
 
@@ -62,6 +62,7 @@
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
 | 임베드 | `/admin/embed-manager` |
 | 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests` 안내, `/admin/privacy-requests` |
+| PWA | `/manifest.webmanifest`, `/service-worker.js` |
 
 ## 주요 DB 테이블
 

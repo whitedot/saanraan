@@ -13,7 +13,7 @@ $allowedNotificationStatuses = sr_notification_admin_statuses();
 $allowedChannels = sr_notification_allowed_channels();
 $allowedCreateChannels = sr_notification_create_channels($pdo);
 $allowedDeliveryChannels = array_values(array_intersect($allowedChannels, ['email']));
-$allowedDeliveryStatuses = ['queued', 'sent', 'failed', 'canceled'];
+$allowedDeliveryStatuses = sr_notification_delivery_statuses();
 $errors = [];
 $notice = '';
 $flashResult = sr_admin_pop_flash_result();
@@ -85,7 +85,7 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     if ($intent === 'delete_notification') {
         sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notifications', 'delete');
-    } elseif ($intent === 'delivery_status') {
+    } elseif ($intent === 'delivery_status' || $intent === 'run_deliveries') {
         sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notification-deliveries', 'edit');
     } else {
         sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notifications', 'edit');
@@ -144,6 +144,46 @@ if (sr_request_method() === 'POST') {
                 }
 
                 $errors[] = '알림 삭제 중 오류가 발생했습니다.';
+            }
+        }
+    } elseif ($intent === 'run_deliveries') {
+        if ($notificationAdminPage !== 'deliveries') {
+            $errors[] = '허용되지 않은 발송 실행 요청입니다.';
+        }
+
+        if ($errors === []) {
+            $settings = sr_notification_settings($pdo);
+            $batchSize = (int) ($settings['delivery_manual_batch_size'] ?? 10);
+            try {
+                $deliveryRunResult = sr_notification_run_delivery_batch($pdo, is_array($site ?? null) ? $site : [], $batchSize, 'admin:' . (string) (int) $account['id']);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'notification.delivery.runner_ran',
+                    'target_type' => 'notification_delivery',
+                    'target_id' => '',
+                    'result' => 'success',
+                    'message' => 'Notification delivery runner ran manually.',
+                    'metadata' => [
+                        'batch_size' => $batchSize,
+                        'claimed' => (int) ($deliveryRunResult['claimed'] ?? 0),
+                        'sent' => (int) ($deliveryRunResult['sent'] ?? 0),
+                        'failed' => (int) ($deliveryRunResult['failed'] ?? 0),
+                        'dead' => (int) ($deliveryRunResult['dead'] ?? 0),
+                    ],
+                ]);
+                $notice = '발송 실행을 완료했습니다. 처리 '
+                    . number_format((int) ($deliveryRunResult['claimed'] ?? 0))
+                    . '건, 성공 '
+                    . number_format((int) ($deliveryRunResult['sent'] ?? 0))
+                    . '건, 재시도 대기 '
+                    . number_format((int) ($deliveryRunResult['failed'] ?? 0))
+                    . '건, dead-letter '
+                    . number_format((int) ($deliveryRunResult['dead'] ?? 0))
+                    . '건입니다.';
+            } catch (Throwable $exception) {
+                sr_log_exception($exception, 'notification_manual_runner_failed');
+                $errors[] = '발송 실행 중 오류가 발생했습니다.';
             }
         }
     } elseif ($intent === 'delivery_status') {
@@ -501,6 +541,7 @@ $deliverySortOptions = [
 $deliveryDefaultSort = sr_admin_sort_default('updated_at', 'desc');
 $deliverySort = sr_admin_sort_from_request($deliverySortOptions, $deliveryDefaultSort);
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.attempted_at, d.updated_at,
+                       d.attempt_count, d.next_attempt_at, d.locked_at,
                        n.title AS notification_title
                 FROM sr_notification_deliveries d
                 LEFT JOIN sr_notifications n ON n.id = d.notification_id';
