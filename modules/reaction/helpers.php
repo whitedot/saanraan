@@ -297,6 +297,71 @@ function sr_reaction_default_preset_key(PDO $pdo): string
     return $key !== '' ? $key : 'emotions';
 }
 
+function sr_reaction_setting_preset_key(PDO $pdo, mixed $value): string
+{
+    $presetKey = sr_reaction_clean_key((string) $value);
+    if ($presetKey === '') {
+        return '';
+    }
+
+    return sr_reaction_preset_is_available($pdo, $presetKey) ? $presetKey : '';
+}
+
+function sr_reaction_preset_is_available(PDO $pdo, string $presetKey): bool
+{
+    $presetKey = sr_reaction_clean_key($presetKey);
+    if ($presetKey === '' || !sr_reaction_tables_available($pdo)) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT 1
+         FROM sr_reaction_presets
+         WHERE preset_key = :preset_key
+           AND status = 'active'
+           AND selection_policy = 'single'
+         LIMIT 1"
+    );
+    $stmt->execute(['preset_key' => $presetKey]);
+
+    return $stmt->fetchColumn() !== false;
+}
+
+function sr_reaction_preset_options(PDO $pdo, bool $includeDefault = true): array
+{
+    $options = [];
+    if ($includeDefault) {
+        $defaultKey = sr_reaction_default_preset_key($pdo);
+        $options[''] = '리액션 기본값 (' . $defaultKey . ')';
+    }
+
+    if (!sr_reaction_tables_available($pdo)) {
+        return $options;
+    }
+
+    $stmt = $pdo->query(
+        "SELECT preset_key, label
+         FROM sr_reaction_presets
+         WHERE status = 'active'
+           AND selection_policy = 'single'
+         ORDER BY sort_order ASC, id ASC"
+    );
+    if ($stmt === false) {
+        return $options;
+    }
+
+    foreach ($stmt->fetchAll() as $row) {
+        $presetKey = sr_reaction_clean_key((string) ($row['preset_key'] ?? ''));
+        if ($presetKey === '') {
+            continue;
+        }
+        $label = trim((string) ($row['label'] ?? ''));
+        $options[$presetKey] = ($label !== '' ? $label : $presetKey) . ' (' . $presetKey . ')';
+    }
+
+    return $options;
+}
+
 function sr_reaction_active_definition(PDO $pdo, string $reactionKey): ?array
 {
     $reactionKey = sr_reaction_clean_key($reactionKey);
