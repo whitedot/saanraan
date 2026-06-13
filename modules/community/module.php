@@ -38,6 +38,7 @@ return [
             'popup-layer-references.php',
             'member-group-references.php',
             'embed-manager-targets.php',
+            'reaction-targets.php',
         ],
         'consumes' => [
             'member-assets.php',

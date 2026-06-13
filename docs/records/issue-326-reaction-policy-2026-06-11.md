@@ -8,6 +8,7 @@
 - 익명 반응 쓰기는 허용하지 않는다. `account_id`는 반응 원장의 필수값이며, 비로그인 사용자는 공개 가능한 target의 집계만 읽을 수 있고 내 반응 상태는 `N/A`로 취급한다.
 - 작성자 본인은 자신이 작성한 글/댓글/콘텐츠/퀴즈/설문 target에 리액션할 수 없다. 관리자도 작성자 본인인 target에는 신규 적용/변경 write를 할 수 없다.
 - 내 게시글이나 댓글에 누군가 리액션하면 target 작성자/소유자에게 알림을 보내되, notification 모듈은 hard dependency가 아니다. 알림 생성 경로에서도 actor와 recipient가 같으면 no-op 처리한다.
+- 쓰기 자체가 불가능한 target, 공개/권한 정책상 viewer가 반응할 수 없는 target, target 계약에서 알림 제외로 표시한 target은 알림 생성에서도 제외한다.
 - 회원 탈퇴 또는 익명화 시 해당 계정의 reaction record는 삭제한다. 통계 보존 요구가 생기면 계정 연결이 없는 별도 aggregate snapshot을 새로 설계한다.
 - reaction은 스크랩, 콘텐츠 완료, 퀴즈 시도, 설문 응답, 보상 grant를 대신하지 않는다. 반응 수를 보상 조건, 응답 제한, 완료 판정, SEO/랭킹 정책에 바로 연결하지 않는다.
 
@@ -31,6 +32,7 @@
 - 공개 URL과 관리자 URL 후보
 - 공개 가능한 label snapshot
 - target owner account id 또는 알림 수신자 후보
+- 알림 생성 가능 여부. 쓰기 자체가 불가능한 target은 알림 대상에서도 제외해야 한다.
 - 적용 preset key 또는 허용 reaction key 목록
 
 목록 화면의 N+1 조회를 피하기 위해 batch resolve는 1차 필수 요구사항이다. 도메인 계약은 target 존재와 접근 가능성을 판단하고, reaction 모듈은 그 결과 위에서 key 적용, 취소, 변경, 중복, 작성자 본인 제한을 판단한다.
@@ -70,6 +72,7 @@
 - 공개 표시는 `private`, `deleted`, `broken` target의 집계를 숨긴다.
 - 비밀 댓글, 유료/회원그룹 제한 콘텐츠, 비공개/예약/숨김 target은 viewer별 열람 가능 여부를 기준으로 count 노출과 write 허용을 판단한다. 접근 불가 viewer에게는 count를 0으로 표시하지 않고 reaction UI 자체를 숨긴다.
 - 댓글 target은 댓글 상태와 부모 target 상태를 함께 보고 더 제한적인 상태를 우선한다.
+- 알림 생성은 신규 적용/변경 write가 실제로 성공한 뒤에만 시도하며, target 상태가 `active`가 아니거나 `can_write=false`이면 이벤트를 만들지 않는다.
 - 같은 key `apply` 반복, `cancel` 반복, unique 충돌은 멱등 결과로 처리한다.
 - write 응답은 최종 내 상태와 target 집계를 반환한다.
 - 읽기 집계는 원장 기준 집계 또는 짧은 TTL의 read-time 캐시를 우선한다. 장기 daemon, DB trigger, 백그라운드 worker를 필수 전제로 두지 않는다.

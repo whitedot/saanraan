@@ -308,6 +308,7 @@ $requiredPackageEntries = [
     'popup-layer-references.php',
     'privacy-cleanup.php',
     'privacy-export.php',
+    'reaction-targets.php',
     'sitemap.php',
     'skins',
     'themes',
@@ -346,6 +347,7 @@ $requiredContracts = [
     'popup-layer-references.php',
     'member-group-references.php',
     'embed-manager-targets.php',
+    'reaction-targets.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
     ? array_values(array_map('strval', $module['contracts']['provides']))

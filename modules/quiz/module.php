@@ -37,6 +37,7 @@ return [
             'coupon-references.php',
             'sitemap.php',
             'embed-manager-targets.php',
+            'reaction-targets.php',
         ],
         'consumes' => [
             'member-assets.php',

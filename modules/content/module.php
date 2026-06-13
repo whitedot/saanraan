@@ -56,6 +56,7 @@ return [
             'member-group-references.php',
             'layout-options.php',
             'embed-manager-targets.php',
+            'reaction-targets.php',
         ],
         'consumes' => [
             'member-assets.php',

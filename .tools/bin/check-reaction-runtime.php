@@ -134,6 +134,16 @@ $assert($self['ok'] === false && $self['error'] === 'self_reaction_not_allowed',
 $privateTarget = array_merge($target, ['status' => 'private', 'can_view' => false, 'can_write' => false]);
 $blocked = sr_reaction_write($pdo, 3, 'community', 'post', '2', 'like', 'apply', ['resolved_target' => $privateTarget]);
 $assert($blocked['ok'] === false && $blocked['error'] === 'target_not_writable', 'private target should block new write.');
+$assert(
+    sr_reaction_create_account_event($pdo, 7, 3, $privateTarget, 'like') === false,
+    'non-writable target should not create a reaction notification.'
+);
+
+$notificationDisabledTarget = array_merge($target, ['notification_enabled' => false]);
+$assert(
+    sr_reaction_create_account_event($pdo, 7, 3, $notificationDisabledTarget, 'like') === false,
+    'target contract should be able to disable reaction notifications.'
+);
 
 $disabled = sr_reaction_write($pdo, 3, 'community', 'post', '3', 'disabled', 'apply', ['resolved_target' => $target]);
 $assert($disabled['ok'] === false && $disabled['error'] === 'reaction_not_allowed', 'disabled reaction key should block new write.');

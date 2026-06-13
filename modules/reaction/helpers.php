@@ -104,6 +104,7 @@ function sr_reaction_normalize_target(array $target, string $targetModule, strin
         'can_write' => $canWrite,
         'owner_account_id' => $ownerAccountId,
         'recipient_account_id' => $recipientAccountId,
+        'notification_enabled' => !array_key_exists('notification_enabled', $target) || (bool) $target['notification_enabled'],
         'preset_key' => sr_reaction_clean_key((string) ($target['preset_key'] ?? '')),
         'reaction_keys' => array_values(array_unique($reactionKeys)),
         'label' => (string) ($target['label'] ?? ($target['label_snapshot'] ?? '')),
@@ -303,6 +304,9 @@ function sr_reaction_counts(PDO $pdo, string $targetModule, string $targetType, 
 function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int $actorAccountId, array $target, string $reactionKey): bool
 {
     if ($recipientAccountId < 1 || $actorAccountId < 1 || $recipientAccountId === $actorAccountId) {
+        return false;
+    }
+    if ((string) ($target['status'] ?? '') !== 'active' || empty($target['can_write']) || empty($target['notification_enabled'])) {
         return false;
     }
 
