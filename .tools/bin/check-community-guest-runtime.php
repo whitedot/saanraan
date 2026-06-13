@@ -62,6 +62,13 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_member_nicknames (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            nickname TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
         'CREATE TABLE sr_community_board_groups (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             group_key TEXT NOT NULL,
@@ -315,6 +322,34 @@ function sr_community_guest_runtime_check(): void
     sr_community_guest_runtime_assert((string) ($post['guest_user_agent_hash'] ?? '') === hash('sha256', 'Saanraan-Guest-Runtime'), 'guest post must store user-agent hash.');
     sr_community_guest_runtime_assert((int) sr_community_guest_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_post_field_values WHERE post_id = :post_id', ['post_id' => $postId]) === 1, 'guest post must persist additional field values.');
     sr_community_guest_runtime_assert((string) sr_community_guest_runtime_scalar($pdo, 'SELECT value_text FROM sr_community_post_field_values WHERE post_id = :post_id AND field_key = "company"', ['post_id' => $postId]) === '런타임 회사', 'guest post additional field value must be stored.');
+    $pdo->prepare(
+        'INSERT INTO sr_community_post_field_values
+            (post_id, field_key, label_snapshot, field_type_snapshot, visibility_snapshot, show_on_view_snapshot, show_in_admin_snapshot, privacy_purpose_snapshot, export_policy_snapshot, cleanup_policy_snapshot, value_text, value_json, created_at, updated_at)
+         VALUES
+            (:post_id, "hidden_admin", "비표시", "text", "admin", 0, 0, "", "exclude", "retain", "숨은검색값", NULL, :created_at, :updated_at)'
+    )->execute([
+        'post_id' => $postId,
+        'created_at' => sr_now(),
+        'updated_at' => sr_now(),
+    ]);
+    sr_community_guest_runtime_assert(
+        sr_community_admin_post_count($pdo, [
+            'field' => 'extra',
+            'q' => '런타임 회사',
+            'extra_values_supported' => true,
+            'extra_field_values_supported' => true,
+        ]) === 1,
+        'admin post extra search must find admin-visible additional field values.'
+    );
+    sr_community_guest_runtime_assert(
+        sr_community_admin_post_count($pdo, [
+            'field' => 'extra',
+            'q' => '숨은검색값',
+            'extra_values_supported' => true,
+            'extra_field_values_supported' => true,
+        ]) === 0,
+        'admin post extra search must not match hidden additional field values.'
+    );
 
     $readablePost = sr_community_post_for_read($pdo, $postId, null);
     sr_community_guest_runtime_assert(is_array($readablePost), 'guest-created post must be readable publicly.');

@@ -1487,18 +1487,25 @@ function sr_community_admin_post_query_parts(array $filters, bool $categorySuppo
             $where[] = '(b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword)';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
-        } elseif ($field === 'extra' && !empty($filters['extra_values_supported'])) {
-            $where[] = 'p.extra_values_json LIKE :extra_values_keyword';
+        } elseif ($field === 'extra' && (!empty($filters['extra_field_values_supported']) || !empty($filters['extra_values_supported']))) {
+            $where[] = !empty($filters['extra_field_values_supported'])
+                ? 'EXISTS (SELECT 1 FROM sr_community_post_field_values ev WHERE ev.post_id = p.id AND ev.show_in_admin_snapshot = 1 AND ev.value_text LIKE :extra_values_keyword)'
+                : 'p.extra_values_json LIKE :extra_values_keyword';
             $params['extra_values_keyword'] = '%' . $keyword . '%';
         } else {
-            $extraValuesCondition = !empty($filters['extra_values_supported']) ? ' OR p.extra_values_json LIKE :extra_values_keyword' : '';
+            $extraValuesCondition = '';
+            if (!empty($filters['extra_field_values_supported'])) {
+                $extraValuesCondition = ' OR EXISTS (SELECT 1 FROM sr_community_post_field_values ev WHERE ev.post_id = p.id AND ev.show_in_admin_snapshot = 1 AND ev.value_text LIKE :extra_values_keyword)';
+            } elseif (!empty($filters['extra_values_supported'])) {
+                $extraValuesCondition = ' OR p.extra_values_json LIKE :extra_values_keyword';
+            }
             $where[] = '(p.title LIKE :title_keyword OR a.display_name LIKE :author_keyword OR (a.status NOT IN (\'withdrawn\', \'anonymized\') AND author_nickname.nickname LIKE :author_nickname_keyword) OR b.title LIKE :board_title_keyword OR b.board_key LIKE :board_key_keyword' . $extraValuesCondition . ')';
             $params['title_keyword'] = '%' . $keyword . '%';
             $params['author_keyword'] = '%' . $keyword . '%';
             $params['author_nickname_keyword'] = '%' . $keyword . '%';
             $params['board_title_keyword'] = '%' . $keyword . '%';
             $params['board_key_keyword'] = '%' . $keyword . '%';
-            if (!empty($filters['extra_values_supported'])) {
+            if (!empty($filters['extra_field_values_supported']) || !empty($filters['extra_values_supported'])) {
                 $params['extra_values_keyword'] = '%' . $keyword . '%';
             }
         }

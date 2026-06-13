@@ -53,6 +53,7 @@ $postListFilters = [
     'field' => sr_get_string('field', 20),
     'q' => trim(sr_get_string('q', 120)),
     'extra_values_supported' => sr_community_post_extra_values_column_exists($pdo),
+    'extra_field_values_supported' => sr_community_post_field_values_table_exists($pdo),
 ];
 $postSearchFields = ['all', 'title', 'author', 'board'];
 if (!empty($postListFilters['extra_values_supported'])) {

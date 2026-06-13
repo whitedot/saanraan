@@ -859,6 +859,7 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
 sr_community_release_file_contains('modules/community/actions/admin-posts.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communityPostsPermissionPath, 'view')",
     "'extra_values_supported' => sr_community_post_extra_values_column_exists(\$pdo)",
+    "'extra_field_values_supported' => sr_community_post_field_values_table_exists(\$pdo)",
     "'extra'",
     '$allowedPostStatuses = sr_community_post_statuses()',
     'sr_community_update_post_status($pdo, $postId, $status)',
@@ -869,6 +870,10 @@ sr_community_release_file_contains('modules/community/views/admin-posts.php', [
     "postSearchFieldOptions['extra'] = '추가 입력'",
     'sr_community_extra_fields_admin_summary_html(sr_community_extra_field_values_from_json',
 ], 'Community admin post extra field list display');
+sr_community_release_file_contains('modules/community/helpers/posts.php', [
+    'ev.show_in_admin_snapshot = 1',
+    'ev.value_text LIKE :extra_values_keyword',
+], 'Community admin post extra field search visibility');
 sr_community_release_file_contains('modules/community/actions/admin-posts.php', [
     "\$communityPostsPermissionPath = \$communityPostsPage === 'comments' ? '/admin/community/comments' : '/admin/community/posts'",
     '$allowedCommentStatuses = sr_community_comment_statuses()',
