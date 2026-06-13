@@ -6,18 +6,26 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/reaction/helpers.php';
 
+$reactionAdminPage = 'definitions';
+$requestPath = sr_request_path();
+if ($requestPath === '/admin/reactions/presets') {
+    $reactionAdminPage = 'presets';
+} elseif ($requestPath === '/admin/reactions/records') {
+    $reactionAdminPage = 'records';
+}
+$reactionPermissionPath = $requestPath;
 $account = sr_member_require_login($pdo);
-sr_admin_require_permission($pdo, (int) $account['id'], '/admin/reactions', 'view');
+sr_admin_require_permission($pdo, (int) $account['id'], $reactionPermissionPath, 'view');
 
 $errors = [];
 $notice = '';
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/reactions', 'edit');
+    sr_admin_require_permission($pdo, (int) $account['id'], $reactionPermissionPath, 'edit');
 
     $intent = sr_post_string('intent', 40);
-    if ($intent === 'save_definition') {
+    if ($intent === 'save_definition' && $reactionAdminPage === 'definitions') {
         $result = sr_reaction_save_definition($pdo, [
             'id' => (int) sr_post_string('id', 20),
             'reaction_key' => sr_post_string('reaction_key', 80),
@@ -56,7 +64,7 @@ if (sr_request_method() === 'POST') {
         } else {
             $errors = array_merge($errors, (array) ($result['errors'] ?? []));
         }
-    } elseif ($intent === 'save_preset') {
+    } elseif ($intent === 'save_preset' && $reactionAdminPage === 'presets') {
         $result = sr_reaction_save_preset($pdo, [
             'id' => (int) sr_post_string('id', 20),
             'preset_key' => sr_post_string('preset_key', 80),
@@ -91,10 +99,10 @@ if (sr_request_method() === 'POST') {
         } else {
             $errors = array_merge($errors, (array) ($result['errors'] ?? []));
         }
-    } elseif ($intent === 'cleanup_records') {
+    } elseif ($intent === 'cleanup_records' && $reactionAdminPage === 'definitions') {
         $policy = sr_post_string('cleanup_policy', 40);
         if (in_array($policy, ['delete', 'merge'], true)) {
-            sr_admin_require_permission($pdo, (int) $account['id'], '/admin/reactions', 'delete');
+            sr_admin_require_permission($pdo, (int) $account['id'], $reactionPermissionPath, 'delete');
         }
         $reactionKey = sr_post_string('reaction_key', 80);
         $result = sr_reaction_cleanup_disabled_records(
@@ -134,28 +142,32 @@ if (sr_request_method() === 'POST') {
 $reactionDefinitions = sr_reaction_admin_definitions($pdo);
 $reactionPresets = sr_reaction_admin_presets($pdo);
 $reactionPresetItems = sr_reaction_admin_preset_items($pdo);
-$reactionRecordFilters = sr_reaction_admin_record_filters([
-    'account_id' => sr_get_string('account_id', 20),
-    'target_module' => sr_get_string('target_module', 60),
-    'target_type' => sr_get_string('target_type', 60),
-    'target_id' => sr_get_string('target_id', 60),
-    'reaction_key' => sr_get_string('reaction_key', 80),
-]);
-$reactionRecords = sr_reaction_admin_records($pdo, $reactionRecordFilters, 100);
+$reactionRecordFilters = sr_reaction_admin_record_filters([]);
+$reactionRecords = [];
 $reactionRecordTargets = [];
 $reactionRecordTargetGroups = [];
-foreach ($reactionRecords as $reactionRecord) {
-    $groupKey = (string) ($reactionRecord['target_module'] ?? '') . '/' . (string) ($reactionRecord['target_type'] ?? '');
-    $targetId = sr_reaction_target_id((string) ($reactionRecord['target_id'] ?? ''));
-    if ($groupKey !== '/' && $targetId !== '') {
-        $reactionRecordTargetGroups[$groupKey][] = $targetId;
+if ($reactionAdminPage === 'records') {
+    $reactionRecordFilters = sr_reaction_admin_record_filters([
+        'account_id' => sr_get_string('account_id', 20),
+        'target_module' => sr_get_string('target_module', 60),
+        'target_type' => sr_get_string('target_type', 60),
+        'target_id' => sr_get_string('target_id', 60),
+        'reaction_key' => sr_get_string('reaction_key', 80),
+    ]);
+    $reactionRecords = sr_reaction_admin_records($pdo, $reactionRecordFilters, 100);
+    foreach ($reactionRecords as $reactionRecord) {
+        $groupKey = (string) ($reactionRecord['target_module'] ?? '') . '/' . (string) ($reactionRecord['target_type'] ?? '');
+        $targetId = sr_reaction_target_id((string) ($reactionRecord['target_id'] ?? ''));
+        if ($groupKey !== '/' && $targetId !== '') {
+            $reactionRecordTargetGroups[$groupKey][] = $targetId;
+        }
     }
-}
-foreach ($reactionRecordTargetGroups as $groupKey => $targetIds) {
-    [$targetModule, $targetType] = array_pad(explode('/', $groupKey, 2), 2, '');
-    $resolvedTargets = sr_reaction_resolve_targets($pdo, $targetModule, $targetType, $targetIds, (int) ($account['id'] ?? 0), ['context' => 'admin']);
-    foreach ($resolvedTargets as $targetId => $target) {
-        $reactionRecordTargets[$groupKey . '/' . (string) $targetId] = $target;
+    foreach ($reactionRecordTargetGroups as $groupKey => $targetIds) {
+        [$targetModule, $targetType] = array_pad(explode('/', $groupKey, 2), 2, '');
+        $resolvedTargets = sr_reaction_resolve_targets($pdo, $targetModule, $targetType, $targetIds, (int) ($account['id'] ?? 0), ['context' => 'admin']);
+        foreach ($resolvedTargets as $targetId => $target) {
+            $reactionRecordTargets[$groupKey . '/' . (string) $targetId] = $target;
+        }
     }
 }
 

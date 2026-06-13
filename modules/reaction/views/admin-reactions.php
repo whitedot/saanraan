@@ -1,6 +1,9 @@
 <?php
 
-$adminPageTitle = '리액션 관리';
+$reactionAdminPage = isset($reactionAdminPage) && is_string($reactionAdminPage) ? $reactionAdminPage : 'definitions';
+$reactionAdminPath = $reactionAdminPage === 'presets' ? '/admin/reactions/presets' : ($reactionAdminPage === 'records' ? '/admin/reactions/records' : '/admin/reactions');
+$reactionAdminFormAction = sr_url($reactionAdminPath);
+$adminPageTitle = $reactionAdminPage === 'presets' ? '리액션 Preset 관리' : ($reactionAdminPage === 'records' ? '리액션 레코드 점검' : '리액션 정의 관리');
 $adminContainerClass = 'admin-page-reactions admin-ui-scope';
 $reactionDefinitions = isset($reactionDefinitions) && is_array($reactionDefinitions) ? $reactionDefinitions : [];
 $reactionPresets = isset($reactionPresets) && is_array($reactionPresets) ? $reactionPresets : [];
@@ -43,17 +46,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span class="admin-summary-meta">Preset <strong><?php echo sr_e((string) count($reactionPresets)); ?>개</strong></span>
         <span class="admin-summary-meta">공개 preset key 수는 최대 12개입니다.</span>
     </div>
-    <div class="admin-page-title-actions">
-        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $reactionCreateDefinitionModalOpen ? 'true' : 'false'; ?>" aria-controls="reaction-definition-create-modal" data-overlay="#reaction-definition-create-modal"><?php echo sr_material_icon_html('add'); ?>정의 추가</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $reactionCreatePresetModalOpen ? 'true' : 'false'; ?>" aria-controls="reaction-preset-create-modal" data-overlay="#reaction-preset-create-modal"><?php echo sr_material_icon_html('add'); ?>Preset 추가</button>
-    </div>
+    <?php if ($reactionAdminPage === 'definitions') { ?>
+        <div class="admin-page-title-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $reactionCreateDefinitionModalOpen ? 'true' : 'false'; ?>" aria-controls="reaction-definition-create-modal" data-overlay="#reaction-definition-create-modal"><?php echo sr_material_icon_html('add'); ?>정의 추가</button>
+        </div>
+    <?php } elseif ($reactionAdminPage === 'presets') { ?>
+        <div class="admin-page-title-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $reactionCreatePresetModalOpen ? 'true' : 'false'; ?>" aria-controls="reaction-preset-create-modal" data-overlay="#reaction-preset-create-modal"><?php echo sr_material_icon_html('add'); ?>Preset 추가</button>
+        </div>
+    <?php } ?>
 </div>
 
+<?php if ($reactionAdminPage === 'records') { ?>
 <section class="admin-card card">
     <div class="card-header">
         <h2 class="card-title">리액션 레코드 점검</h2>
     </div>
-    <form method="get" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="admin-form ui-form-theme">
+    <form method="get" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="admin-form ui-form-theme">
         <div class="admin-form-grid">
             <div class="admin-form-field">
                 <label for="reaction_record_account_id">회원 ID</label>
@@ -78,7 +87,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <div class="admin-form-actions">
             <button type="submit" class="btn btn-solid-primary">조회</button>
-            <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/reactions')); ?>">초기화</a>
+            <a class="btn btn-solid-light" href="<?php echo sr_e($reactionAdminFormAction); ?>">초기화</a>
         </div>
     </form>
     <div class="table-wrapper">
@@ -140,7 +149,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
     </div>
 </section>
+<?php } ?>
 
+<?php if ($reactionAdminPage === 'definitions') { ?>
 <section class="admin-card card">
     <div class="card-header">
         <h2 class="card-title">리액션 정의</h2>
@@ -242,7 +253,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     <?php } ?>
 </section>
+<?php } ?>
 
+<?php if ($reactionAdminPage === 'presets') { ?>
 <section class="admin-card card">
     <div class="card-header">
         <h2 class="card-title">Preset</h2>
@@ -309,10 +322,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
     </div>
 </section>
+<?php } ?>
 
+<?php if ($reactionAdminPage === 'definitions') { ?>
 <div id="reaction-definition-create-modal" class="<?php echo sr_e($reactionModalClass($reactionCreateDefinitionModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="reaction-definition-create-modal-title"<?php echo $reactionModalHiddenAttrs($reactionCreateDefinitionModalOpen); ?>>
     <div class="modal-dialog">
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="modal-content admin-form ui-form-theme">
+        <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_definition">
             <input type="hidden" name="status" value="active">
@@ -375,7 +390,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($definitionModalId); ?>" class="<?php echo sr_e($reactionModalClass($definitionModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($definitionModalTitleId); ?>"<?php echo $reactionModalHiddenAttrs($definitionModalOpen); ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="modal-content admin-form ui-form-theme">
+            <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="save_definition">
                 <input type="hidden" name="id" value="<?php echo sr_e((string) $definitionId); ?>">
@@ -445,7 +460,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($cleanupModalId); ?>" class="<?php echo sr_e($reactionModalClass($cleanupModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($cleanupModalTitleId); ?>"<?php echo $reactionModalHiddenAttrs($cleanupModalOpen); ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="modal-content admin-form ui-form-theme">
+            <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="cleanup_records">
                 <input type="hidden" name="reaction_key" value="<?php echo sr_e($reactionKey); ?>">
@@ -489,10 +504,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 <?php } ?>
+<?php } ?>
 
+<?php if ($reactionAdminPage === 'presets') { ?>
 <div id="reaction-preset-create-modal" class="<?php echo sr_e($reactionModalClass($reactionCreatePresetModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="reaction-preset-create-modal-title"<?php echo $reactionModalHiddenAttrs($reactionCreatePresetModalOpen); ?>>
     <div class="modal-dialog">
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="modal-content admin-form ui-form-theme">
+        <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save_preset">
             <input type="hidden" name="status" value="active">
@@ -559,7 +576,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($presetModalId); ?>" class="<?php echo sr_e($reactionModalClass($presetModalOpen)); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($presetModalTitleId); ?>"<?php echo $reactionModalHiddenAttrs($presetModalOpen); ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="modal-content admin-form ui-form-theme">
+            <form method="post" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="modal-content admin-form ui-form-theme">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="save_preset">
                 <input type="hidden" name="id" value="<?php echo sr_e((string) $presetId); ?>">
@@ -612,6 +629,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </div>
     </div>
+<?php } ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
