@@ -150,46 +150,48 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr><td colspan="6" class="admin-empty-state">등록된 리액션 정의가 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($reactionDefinitions as $definition) { ?>
-                    <?php $definitionId = (int) ($definition['id'] ?? 0); ?>
+                    <?php
+                    $definitionId = (int) ($definition['id'] ?? 0);
+                    $definitionFormId = 'reaction_definition_form_' . (string) $definitionId;
+                    ?>
                     <tr>
                         <td class="admin-table-nowrap">
+                            <form id="<?php echo sr_e($definitionFormId); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="admin-inline-form ui-form-theme"></form>
+                            <input type="hidden" name="intent" value="save_definition" form="<?php echo sr_e($definitionFormId); ?>">
+                            <input type="hidden" name="id" value="<?php echo sr_e((string) $definitionId); ?>" form="<?php echo sr_e($definitionFormId); ?>">
                             <code><?php echo sr_e((string) ($definition['reaction_key'] ?? '')); ?></code>
                         </td>
                         <td>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="admin-inline-form ui-form-theme">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="save_definition">
-                                <input type="hidden" name="id" value="<?php echo sr_e((string) $definitionId); ?>">
-                                <div class="admin-form-grid">
-                                    <input type="text" name="label" class="form-input" maxlength="80" value="<?php echo sr_e((string) ($definition['label'] ?? '')); ?>" required>
-                                    <select name="icon_type" class="form-select">
-                                        <?php foreach ($iconTypes as $iconType) { ?>
-                                            <option value="<?php echo sr_e($iconType); ?>"<?php echo (string) ($definition['icon_type'] ?? '') === $iconType ? ' selected' : ''; ?>><?php echo sr_e($iconType); ?></option>
-                                        <?php } ?>
-                                    </select>
-                                    <input type="text" name="icon_value" class="form-input" maxlength="40" value="<?php echo sr_e((string) ($definition['icon_value'] ?? '')); ?>">
-                                    <input type="text" name="color_hex" class="form-input" maxlength="20" value="<?php echo sr_e((string) ($definition['color_hex'] ?? '')); ?>">
-                                    <input type="hidden" name="color_swatch" value="<?php echo sr_e((string) ($definition['color_swatch'] ?? '')); ?>">
-                                </div>
-                                <input type="text" name="description" class="form-input" maxlength="255" value="<?php echo sr_e((string) ($definition['description'] ?? '')); ?>">
-                        </td>
-                        <td class="admin-table-nowrap">
-                                <select name="status" class="form-select">
-                                    <?php foreach ($definitionStatuses as $status) { ?>
-                                        <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($definition['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?></option>
+                            <input type="hidden" name="csrf_token" value="<?php echo sr_e(sr_csrf_token()); ?>" form="<?php echo sr_e($definitionFormId); ?>">
+                            <div class="admin-form-grid">
+                                <input type="text" name="label" class="form-input" maxlength="80" value="<?php echo sr_e((string) ($definition['label'] ?? '')); ?>" required form="<?php echo sr_e($definitionFormId); ?>">
+                                <select name="icon_type" class="form-select" form="<?php echo sr_e($definitionFormId); ?>">
+                                    <?php foreach ($iconTypes as $iconType) { ?>
+                                        <option value="<?php echo sr_e($iconType); ?>"<?php echo (string) ($definition['icon_type'] ?? '') === $iconType ? ' selected' : ''; ?>><?php echo sr_e($iconType); ?></option>
                                     <?php } ?>
                                 </select>
-                                <?php if ((string) ($definition['status'] ?? '') === 'disabled') { ?>
-                                    <p class="admin-form-help">사용 중지된 key의 기존 레코드는 기본적으로 보관됩니다.</p>
+                                <input type="text" name="icon_value" class="form-input" maxlength="40" value="<?php echo sr_e((string) ($definition['icon_value'] ?? '')); ?>" form="<?php echo sr_e($definitionFormId); ?>">
+                                <input type="text" name="color_hex" class="form-input" maxlength="20" value="<?php echo sr_e((string) ($definition['color_hex'] ?? '')); ?>" form="<?php echo sr_e($definitionFormId); ?>">
+                                <input type="hidden" name="color_swatch" value="<?php echo sr_e((string) ($definition['color_swatch'] ?? '')); ?>" form="<?php echo sr_e($definitionFormId); ?>">
+                            </div>
+                            <input type="text" name="description" class="form-input" maxlength="255" value="<?php echo sr_e((string) ($definition['description'] ?? '')); ?>" form="<?php echo sr_e($definitionFormId); ?>">
+                        </td>
+                        <td class="admin-table-nowrap">
+                            <select name="status" class="form-select" form="<?php echo sr_e($definitionFormId); ?>">
+                                <?php foreach ($definitionStatuses as $status) { ?>
+                                    <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($definition['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?></option>
                                 <?php } ?>
+                            </select>
+                            <?php if ((string) ($definition['status'] ?? '') === 'disabled') { ?>
+                                <p class="admin-form-help">사용 중지된 key의 기존 레코드는 기본적으로 보관됩니다.</p>
+                            <?php } ?>
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap">
-                                <input type="number" name="sort_order" class="form-input" min="0" max="999999" value="<?php echo sr_e((string) (int) ($definition['sort_order'] ?? 100)); ?>">
+                            <input type="number" name="sort_order" class="form-input" min="0" max="999999" value="<?php echo sr_e((string) (int) ($definition['sort_order'] ?? 100)); ?>" form="<?php echo sr_e($definitionFormId); ?>">
                         </td>
                         <td class="admin-table-actions-cell">
-                                <button type="submit" class="btn btn-sm btn-solid-primary">저장</button>
-                            </form>
+                            <button type="submit" class="btn btn-sm btn-solid-primary" form="<?php echo sr_e($definitionFormId); ?>">저장</button>
                         </td>
                     </tr>
                 <?php } ?>
