@@ -318,6 +318,13 @@ function sr_community_guest_runtime_check(): void
         sr_community_validate_extra_field_values($requiredCheckboxDefinitions, ['agree' => '1']) === [],
         'required additional checkbox validation must accept checked values server-side.'
     );
+    $_POST['community_extra_fields'] = ['agree' => ['array']];
+    $invalidCheckboxValues = sr_community_extra_field_input_values($requiredCheckboxDefinitions);
+    unset($_POST['community_extra_fields']);
+    sr_community_guest_runtime_assert(
+        sr_community_validate_extra_field_values($requiredCheckboxDefinitions, $invalidCheckboxValues) !== [],
+        'additional checkbox input parsing must reject array payloads server-side.'
+    );
     $invalidDefinitionJson = json_encode([
         ['key' => 'company', 'label' => '회사명', 'type' => 'text'],
         ['key' => 'company', 'label' => '중복', 'type' => 'text'],

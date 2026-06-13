@@ -691,6 +691,7 @@ sr_community_release_file_contains('modules/community/helpers/posts.php', [
     'function sr_community_extra_field_definition_validation_errors',
     'function sr_community_extra_field_definitions_input_errors',
     'function sr_community_extra_field_value_max_length',
+    'isset($posted[$key]) && !is_scalar($posted[$key])',
     '$values[$key] = is_scalar($value) ? trim((string) $value)',
     "\$errors[] = \$label . '을(를) 확인해 주세요.'",
     '$valueLength > $maxLength',

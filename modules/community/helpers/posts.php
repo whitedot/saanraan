@@ -782,6 +782,10 @@ function sr_community_extra_field_input_values(array $definitions): array
         $key = (string) ($definition['key'] ?? '');
         $type = (string) ($definition['type'] ?? 'text');
         if ($type === 'checkbox') {
+            if (isset($posted[$key]) && !is_scalar($posted[$key])) {
+                $values[$key] = ['invalid_extra_field_value' => true];
+                continue;
+            }
             $values[$key] = isset($posted[$key]) && (string) $posted[$key] === '1' ? '1' : '0';
             continue;
         }
