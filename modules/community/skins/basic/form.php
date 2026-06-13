@@ -11,8 +11,14 @@ $fileAttachmentMaxCount = min(5, max(0, (int) ($settings['file_attachment_max_co
 $fileAllowedExtensions = is_array($settings['file_allowed_extensions'] ?? null) ? sr_community_normalize_file_extensions($settings['file_allowed_extensions']) : [];
 $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled'] ?? 0) === 1 && $fileAttachmentMaxCount > 0;
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
+$isGuestAuthorForm = isset($isGuestAuthor) && !empty($isGuestAuthor);
+$showGuestAuthorFields = $isGuestAuthorForm && !isset($postIdField);
+if ($isGuestAuthorForm) {
+    $fileUploadEnabled = false;
+    $imageUploadEnabled = false;
+}
 $secretPostsEnabled = !empty($secretPostsEnabled);
-$ckeditorEnabled = $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
+$ckeditorEnabled = !$isGuestAuthorForm && $pdo instanceof PDO && sr_community_html_post_body_enabled($pdo, $board, $settings);
 $communityEditorToolbarPreset = $pdo instanceof PDO ? sr_community_post_toolbar_preset($pdo, $settings) : 'community_post_basic';
 $editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
 $communityEditorAttributes = $ckeditorEnabled ? ' data-sr-editor="ckeditor" data-sr-editor-preset="' . sr_e($communityEditorToolbarPreset) . '" data-sr-editor-upload-url="' . sr_e(sr_community_body_file_upload_url($board, $editorPostId)) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_community_body_file_upload_token()) . '"' : '';
@@ -79,6 +85,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php if (isset($postIdField) && is_int($postIdField)) { ?>
                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $postIdField); ?>">
             <?php } ?>
+            <?php if ($showGuestAuthorFields) { ?>
+                <p>
+                    <label for="modules_community_form_guest_author_name">
+                        <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                        <input id="modules_community_form_guest_author_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo sr_e((string) ($values['guest_author_name'] ?? '')); ?>" required>
+                    </label>
+                </p>
+                <p>
+                    <label for="modules_community_form_guest_password">
+                        <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                        <input id="modules_community_form_guest_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required>
+                    </label>
+                    <br>
+                    <small><?php echo sr_e('비회원 글 수정과 삭제에 사용됩니다.'); ?></small>
+                </p>
+            <?php } ?>
             <?php if (isset($categories) && is_array($categories) && $categories !== []) { ?>
                 <p>
                     <label for="modules_community_form_category_id">
@@ -122,6 +144,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <div class="sr-link-card-picker-results" data-link-card-results><?php echo sr_e('콘텐츠, 퀴즈, 설문을 검색해 본문에 임베드 참조로 삽입합니다.'); ?></div>
                 </div>
             <?php } ?>
+            <?php if (!$isGuestAuthorForm) { ?>
             <fieldset>
                 <legend><?php echo sr_e('시리즈'); ?></legend>
                 <p>
@@ -176,6 +199,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     </label>
                 </p>
             </fieldset>
+            <?php } ?>
             <?php if ($imageUploadEnabled) { ?>
                 <p>
                     <label for="modules_community_form_image_attachment">

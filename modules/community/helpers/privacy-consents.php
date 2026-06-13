@@ -176,7 +176,7 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
 
 function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $accountId, string $subjectType, int $subjectId, array $actionKeys, array $board): int
 {
-    if ($boardId < 1 || $accountId < 1 || $subjectType === '' || $subjectId < 1 || $actionKeys === []) {
+    if ($boardId < 1 || $subjectType === '' || $subjectId < 1 || $actionKeys === []) {
         return 0;
     }
     if (!sr_community_submission_consents_table_exists($pdo)) {
@@ -209,7 +209,7 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
             'subject_type' => $subjectType,
             'subject_id' => $subjectId,
             'action_key' => $actionKey,
-            'account_id' => $accountId,
+            'account_id' => $accountId > 0 ? $accountId : null,
             'consent_title_snapshot' => (string) $config['title'],
             'consent_body_snapshot' => (string) $config['body'],
             'consent_version_snapshot' => (string) $config['version'],

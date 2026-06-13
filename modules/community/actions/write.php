@@ -6,17 +6,21 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
-$account = sr_member_require_login($pdo);
+$account = sr_member_current_account($pdo);
 $boardKey = sr_get_string('key', 60);
 $board = sr_community_board_by_key($pdo, $boardKey);
 if (!is_array($board) || (string) $board['status'] !== 'enabled') {
     sr_render_error(404, sr_t('community::action.error.board_not_found'));
 }
 
-$isAdminWriter = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
-if (!sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)) {
+$isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
+if (!sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter)) {
+    if (!is_array($account) && sr_community_effective_board_policy($pdo, $board, 'write_policy') !== 'guest') {
+        $account = sr_member_require_login($pdo);
+    }
     sr_render_error(403, sr_t('community::action.error.board_write_forbidden'));
 }
+$isGuestAuthor = !is_array($account);
 
 $settings = sr_community_settings($pdo);
 $settings['attachment_max_bytes'] = sr_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
@@ -32,7 +36,7 @@ $postRewardConfig = sr_community_asset_event_config($pdo, $board, $settings, 'po
 $categories = sr_community_categories($pdo, (int) $board['id'], true);
 $currentCategory = null;
 $categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
-$seriesOptions = sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']);
+$seriesOptions = is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
 $currentSeriesItem = null;
 $seriesValues = [
     'series_mode' => 'none',
@@ -59,6 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     sr_require_csrf();
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    if ($isGuestAuthor) {
+        $values['body_format'] = 'plain';
+        $values = array_merge($values, sr_community_guest_author_input_values());
+    }
     $seriesSortOrder = sr_community_series_post_sort_order();
     $seriesValues = [
         'series_mode' => sr_post_string('series_mode', 20),
@@ -71,11 +79,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $seriesValues['series_mode'] = 'none';
     }
     $errors = sr_community_validate_post_input($values);
+    if ($isGuestAuthor) {
+        if (!sr_community_guest_author_columns_exist($pdo, 'sr_community_posts')) {
+            $errors[] = '비회원 작성 스키마 업데이트가 아직 적용되지 않았습니다.';
+        }
+        $errors = array_merge($errors, sr_community_validate_guest_author_input($values));
+        if (sr_community_uploaded_file_present($_FILES['image_attachment'] ?? null)
+            || sr_community_uploaded_file_present($_FILES['file_attachments'] ?? null)
+            || sr_community_privacy_consent_body_upload_targets_from_values($values) !== []) {
+            $errors[] = '비회원은 첨부 업로드를 사용할 수 없습니다.';
+        }
+    }
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values));
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
     if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
         $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
+    }
+    if ($isGuestAuthor && (string) $seriesValues['series_mode'] !== 'none') {
+        $errors[] = '비회원은 시리즈를 연결할 수 없습니다.';
     }
     if ((string) $seriesValues['series_mode'] !== 'none' && $seriesSortOrder === null) {
         $errors[] = '시리즈 정렬 순서를 확인해 주세요.';
@@ -83,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ((string) $seriesValues['series_mode'] === 'existing') {
         $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);
         if (!is_array($selectedSeries)
+            || !is_array($account)
             || (int) ($selectedSeries['owner_account_id'] ?? 0) !== (int) $account['id']
             || (int) ($selectedSeries['board_id'] ?? 0) !== (int) $board['id']
             || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)
@@ -93,30 +116,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = '새 시리즈 제목을 입력해 주세요.';
     }
 
-    if ($errors === [] && sr_community_post_rate_limited($pdo, (int) $account['id'], $settings)) {
+    if ($errors === [] && ($isGuestAuthor ? sr_community_guest_post_rate_limited($pdo, $settings) : sr_community_post_rate_limited($pdo, (int) $account['id'], $settings))) {
         $errors[] = sr_t('community::action.rate_limit.post');
     }
 
     if ($errors === [] && sr_community_asset_event_required($writeChargeConfig)) {
+        if ($isGuestAuthor) {
+            $errors[] = '포인트/금액 차감이 필요한 게시판에는 비회원으로 작성할 수 없습니다.';
+        }
         $assetModules = sr_community_asset_module_keys_from_value($writeChargeConfig['asset_module'] ?? '', true);
-        if (!sr_community_asset_modules_available($pdo, $assetModules)) {
+        if ($errors === [] && !sr_community_asset_modules_available($pdo, $assetModules)) {
             $errors[] = sr_t('community::action.error.write_asset_modules_unavailable');
-        } elseif (!sr_community_asset_use_balance_available($pdo, $writeChargeConfig, (int) $account['id'])) {
+        } elseif ($errors === [] && !sr_community_asset_use_balance_available($pdo, $writeChargeConfig, (int) $account['id'])) {
             $errors[] = sr_t('community::action.error.write_asset_balance_low');
         }
     }
 
     if ($errors === []) {
-        $postId = sr_community_create_post($pdo, (int) $board['id'], (int) $account['id'], $values);
+        $authorAccountId = is_array($account) ? (int) $account['id'] : 0;
+        $postId = sr_community_create_post($pdo, (int) $board['id'], $authorAccountId, $values);
         $privacyConsentRecordCount = 0;
-        $writeChargeResult = sr_community_asset_event_required($writeChargeConfig)
-            ? sr_community_run_asset_event($pdo, $writeChargeConfig, (int) $account['id'], 'post_write_charge', 'community.post', $postId, 'use', 'community.post.write')
+        $writeChargeResult = !$isGuestAuthor && sr_community_asset_event_required($writeChargeConfig)
+            ? sr_community_run_asset_event($pdo, $writeChargeConfig, $authorAccountId, 'post_write_charge', 'community.post', $postId, 'use', 'community.post.write')
             : ['allowed' => true, 'processed' => false];
         if (empty($writeChargeResult['allowed'])) {
             sr_community_update_post_status($pdo, $postId, 'deleted');
             sr_render_error(403, (string) ($writeChargeResult['message'] ?? sr_t('community::action.error.write_charge_failed')));
         }
-        $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], (int) $account['id'], 'community.post', $postId, $privacyConsentActionKeys, $board);
+        $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], $authorAccountId, 'community.post', $postId, $privacyConsentActionKeys, $board);
         if ((string) $seriesValues['series_mode'] === 'new') {
             $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
                 'title' => (string) $seriesValues['new_series_title'],
@@ -128,8 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true)) {
             sr_community_set_post_series($pdo, $postId, (int) $seriesValues['series_id'], (string) $seriesValues['episode_label'], (int) $seriesValues['sort_order'], (int) $account['id']);
         }
-        $postRewardResult = sr_community_asset_event_required($postRewardConfig)
-            ? sr_community_run_asset_event($pdo, $postRewardConfig, (int) $account['id'], 'post_reward', 'community.post', $postId, 'grant', 'community.post.reward')
+        $postRewardResult = !$isGuestAuthor && sr_community_asset_event_required($postRewardConfig)
+            ? sr_community_run_asset_event($pdo, $postRewardConfig, $authorAccountId, 'post_reward', 'community.post', $postId, 'grant', 'community.post.reward')
             : ['allowed' => true, 'processed' => false];
         if (!empty($postRewardResult['processed'])) {
             $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.asset_granted', [
@@ -137,15 +164,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'amount' => number_format((int) $postRewardConfig['amount']),
             ]);
         }
-        sr_community_record_post_rate_limit($pdo, (int) $account['id'], $settings);
-        $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, (int) $account['id'], $settings, 'post_created');
-        $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, (int) $account['id'], [
-            'source_module_key' => 'community',
-        ]);
+        if ($isGuestAuthor) {
+            sr_community_record_guest_post_rate_limit($pdo, $settings);
+            $levelSnapshot = ['level_value' => 0, 'score_value' => 0];
+            $groupEvaluationSummary = [];
+        } else {
+            sr_community_record_post_rate_limit($pdo, $authorAccountId, $settings);
+            $levelSnapshot = sr_community_maybe_recalculate_account_level($pdo, $authorAccountId, $settings, 'post_created');
+            $groupEvaluationSummary = sr_member_group_evaluate_account($pdo, $authorAccountId, [
+                'source_module_key' => 'community',
+            ]);
+        }
         $attachmentId = null;
         $attachmentIds = [];
         $attachmentResults = [];
-        if ((int) $board['image_uploads_enabled'] === 1 && isset($_FILES['image_attachment']) && is_array($_FILES['image_attachment'])) {
+        if (!$isGuestAuthor && (int) $board['image_uploads_enabled'] === 1 && isset($_FILES['image_attachment']) && is_array($_FILES['image_attachment'])) {
             try {
                 $attachmentId = sr_community_upload_post_image($pdo, $postId, (int) $account['id'], $_FILES['image_attachment'], $settings);
                 if (is_int($attachmentId) && $attachmentId > 0) {
@@ -175,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['sr_community_post_notice'] = sr_t('community::action.notice.image_attach_failed_after_post');
             }
         }
-        if ((int) $board['file_uploads_enabled'] === 1 && isset($_FILES['file_attachments']) && is_array($_FILES['file_attachments'])) {
+        if (!$isGuestAuthor && (int) $board['file_uploads_enabled'] === 1 && isset($_FILES['file_attachments']) && is_array($_FILES['file_attachments'])) {
             try {
                 $fileAttachmentIds = sr_community_upload_post_files($pdo, $postId, (int) $account['id'], $_FILES['file_attachments'], $settings);
                 foreach ($fileAttachmentIds as $fileAttachmentId) {
@@ -206,8 +239,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         sr_audit_log($pdo, [
-            'actor_account_id' => (int) $account['id'],
-            'actor_type' => 'member',
+            'actor_account_id' => $authorAccountId > 0 ? $authorAccountId : null,
+            'actor_type' => $isGuestAuthor ? 'guest' : 'member',
             'event_type' => 'community.post.created',
             'target_type' => 'community_post',
             'target_id' => (string) $postId,

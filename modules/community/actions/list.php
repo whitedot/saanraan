@@ -20,7 +20,7 @@ if (!sr_community_account_can_read_board($pdo, $board, is_array($account) ? $acc
 }
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
-$canWriteBoard = is_array($account) && sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter);
+$canWriteBoard = sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
 
 $settings = sr_community_settings($pdo);
 $postsPerPage = max(1, min(100, (int) ($settings['posts_per_page'] ?? 20)));

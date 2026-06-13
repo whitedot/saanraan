@@ -34,11 +34,11 @@ function sr_community_policy_values(string $policy): array
     }
 
     if ($policy === 'write') {
-        return ['member', 'group', 'admin'];
+        return ['guest', 'member', 'group', 'admin'];
     }
 
     if ($policy === 'comment') {
-        return ['member', 'group', 'disabled'];
+        return ['guest', 'member', 'group', 'disabled'];
     }
 
     return [];

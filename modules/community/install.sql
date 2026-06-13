@@ -138,8 +138,12 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     board_id BIGINT UNSIGNED NOT NULL,
     category_id BIGINT UNSIGNED NULL,
-    author_account_id BIGINT UNSIGNED NOT NULL,
+    author_account_id BIGINT UNSIGNED NULL,
     author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
+    guest_author_name VARCHAR(120) NOT NULL DEFAULT '',
+    guest_password_hash VARCHAR(255) NULL,
+    guest_ip_hash CHAR(64) NULL,
+    guest_user_agent_hash CHAR(64) NULL,
     title VARCHAR(160) NOT NULL,
     body_text MEDIUMTEXT NOT NULL,
     body_format VARCHAR(20) NOT NULL DEFAULT 'plain',
@@ -164,6 +168,7 @@ CREATE TABLE IF NOT EXISTS sr_community_posts (
     KEY idx_sr_community_posts_board_status_id (board_id, status, id),
     KEY idx_sr_community_posts_board_category_status_id (board_id, category_id, status, id),
     KEY idx_sr_community_posts_author_id (author_account_id, id),
+    KEY idx_sr_community_posts_guest_ip_id (guest_ip_hash, id),
     KEY idx_sr_community_posts_og_image_attachment (og_image_attachment_id),
     KEY idx_sr_community_posts_status_updated (status, updated_at)
 );
@@ -174,8 +179,12 @@ CREATE TABLE IF NOT EXISTS sr_community_comments (
     parent_comment_id BIGINT UNSIGNED NULL,
     thread_root_id BIGINT UNSIGNED NULL,
     depth TINYINT UNSIGNED NOT NULL DEFAULT 1,
-    author_account_id BIGINT UNSIGNED NOT NULL,
+    author_account_id BIGINT UNSIGNED NULL,
     author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
+    guest_author_name VARCHAR(120) NOT NULL DEFAULT '',
+    guest_password_hash VARCHAR(255) NULL,
+    guest_ip_hash CHAR(64) NULL,
+    guest_user_agent_hash CHAR(64) NULL,
     body_text TEXT NOT NULL,
     is_secret TINYINT(1) NOT NULL DEFAULT 0,
     status VARCHAR(30) NOT NULL DEFAULT 'published',
@@ -191,7 +200,8 @@ CREATE TABLE IF NOT EXISTS sr_community_comments (
     KEY idx_sr_community_comments_post_status_id (post_id, status, id),
     KEY idx_sr_community_comments_thread (post_id, status, thread_root_id, parent_comment_id, id),
     KEY idx_sr_community_comments_parent (parent_comment_id),
-    KEY idx_sr_community_comments_author_id (author_account_id, id)
+    KEY idx_sr_community_comments_author_id (author_account_id, id),
+    KEY idx_sr_community_comments_guest_ip_id (guest_ip_hash, id)
 );
 
 CREATE TABLE IF NOT EXISTS sr_community_attachments (

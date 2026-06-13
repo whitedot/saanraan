@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
-$account = sr_member_require_login($pdo);
+$account = sr_member_current_account($pdo);
 sr_require_csrf();
 
 $commentIdValue = sr_post_string('comment_id', 20);
@@ -15,12 +15,17 @@ if (!is_array($comment)) {
     sr_render_error(404, sr_t('community::action.error.comment_not_found'));
 }
 
-$post = sr_community_post_for_read($pdo, (int) $comment['post_id'], $account);
+$post = sr_community_post_for_read($pdo, (int) $comment['post_id'], is_array($account) ? $account : null);
 if (!is_array($post)) {
     sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
-if (!sr_community_account_can_edit_comment($comment, $account)) {
+$isGuestEdit = !is_array($account) && (int) ($comment['author_account_id'] ?? 0) < 1;
+if ($isGuestEdit) {
+    if (!sr_community_guest_can_edit_comment($comment, sr_post_string_without_truncation('guest_password', 255) ?? '')) {
+        sr_render_error(403, sr_t('community::action.error.comment_edit_forbidden'));
+    }
+} elseif (!is_array($account) || !sr_community_account_can_edit_comment($comment, $account)) {
     sr_render_error(403, sr_t('community::action.error.comment_edit_forbidden'));
 }
 
@@ -36,7 +41,7 @@ if ($errors !== []) {
 }
 
 sr_community_update_comment_content($pdo, $commentId, $values);
-$commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
+$commentMentionNotificationResult = $isGuestEdit || (int) ($values['is_secret'] ?? 0) === 1
     ? ['mention_candidate_count' => 0, 'mention_notification_count' => 0, 'mention_account_hashes' => []]
     : sr_community_create_comment_mention_notifications(
         $pdo,
@@ -48,8 +53,8 @@ $commentMentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1
         (string) ($comment['body_text'] ?? '')
     );
 sr_audit_log($pdo, [
-    'actor_account_id' => (int) $account['id'],
-    'actor_type' => 'member',
+    'actor_account_id' => is_array($account) ? (int) $account['id'] : null,
+    'actor_type' => $isGuestEdit ? 'guest' : 'member',
     'event_type' => 'community.comment.updated_by_author',
     'target_type' => 'community_comment',
     'target_id' => (string) $commentId,

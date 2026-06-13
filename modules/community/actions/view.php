@@ -199,9 +199,9 @@ foreach ($attachments as $attachment) {
         $fileAttachments[] = $attachment;
     }
 }
-$canComment = !$paidReadConfirmationRequired && $canViewPostBody && is_array($account) && sr_community_account_can_comment_post($pdo, $post, $account);
+$canComment = !$paidReadConfirmationRequired && $canViewPostBody && sr_community_account_can_comment_post($pdo, $post, is_array($account) ? $account : null);
 $commentUnavailableMessage = '';
-if (!is_array($account)) {
+if (!$canComment && !is_array($account)) {
     $commentUnavailableMessage = sr_t('community::action.notice.login_required_to_comment');
 } elseif (!$canComment) {
     $commentUnavailableMessage = sr_t('community::action.notice.comment_unavailable');

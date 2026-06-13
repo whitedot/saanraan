@@ -667,16 +667,19 @@ sr_community_release_file_contains('modules/community/actions/attachment.php', [
 ], 'Community attachment download policy');
 
 sr_community_release_file_contains('modules/community/actions/write.php', [
-    'sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)',
+    'sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter)',
+    'sr_community_guest_post_rate_limited($pdo, $settings)',
     'sr_community_post_rate_limited($pdo, (int) $account[\'id\'], $settings)',
     "sr_community_asset_event_config(\$pdo, \$board, \$settings, 'write_charge', 'every_action')",
-    'sr_community_record_post_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_record_guest_post_rate_limit($pdo, $settings)',
+    'sr_community_record_post_rate_limit($pdo, $authorAccountId, $settings)',
     "'event_type' => 'community.post.created'",
 ], 'Community write action policy');
 sr_community_release_file_contains('modules/community/actions/edit.php', [
     'sr_community_account_can_edit_post($post, $account)',
     '$submittedPostId !== $postId',
-    'sr_community_update_post_content($pdo, $postId, $values, (int) $account[\'id\'])',
+    'sr_community_guest_can_edit_post($post, sr_post_string_without_truncation(\'guest_password\', 255) ?? \'\')',
+    'sr_community_update_post_content($pdo, $postId, $values, $authorAccountId)',
     "'event_type' => 'community.post.updated_by_author'",
 ], 'Community edit action policy');
 sr_community_release_file_contains('modules/community/actions/delete.php', [
@@ -705,21 +708,25 @@ sr_community_release_file_contains('modules/community/helpers/posts.php', [
     "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'delete_post')",
 ], 'Community delegated post delete policy');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
-    'sr_community_account_can_comment_post($pdo, $post, $account)',
+    'sr_community_account_can_comment_post($pdo, $post, is_array($account) ? $account : null)',
+    'sr_community_guest_comment_rate_limited($pdo, $settings)',
     'sr_community_comment_rate_limited($pdo, (int) $account[\'id\'], $settings)',
     "sr_community_asset_event_config(\$pdo, \$board, \$settings, 'comment_charge', 'every_action')",
-    'sr_community_record_comment_rate_limit($pdo, (int) $account[\'id\'], $settings)',
+    'sr_community_record_guest_comment_rate_limit($pdo, $settings)',
+    'sr_community_record_comment_rate_limit($pdo, $authorAccountId, $settings)',
     "'event_type' => 'community.comment.created'",
     'sr_community_create_account_event_notification(',
     "'comment.created'",
 ], 'Community comment action policy');
 sr_community_release_file_contains('modules/community/actions/comment-edit.php', [
     'sr_community_account_can_edit_comment($comment, $account)',
+    'sr_community_guest_can_edit_comment($comment, sr_post_string_without_truncation(\'guest_password\', 255) ?? \'\')',
     'sr_community_update_comment_content($pdo, $commentId, $values)',
     "'event_type' => 'community.comment.updated_by_author'",
 ], 'Community comment edit action policy');
 sr_community_release_file_contains('modules/community/actions/comment-delete.php', [
     'sr_community_account_can_delete_comment($comment, $account)',
+    'sr_community_guest_can_delete_comment($comment, sr_post_string_without_truncation(\'guest_password\', 255) ?? \'\')',
     'sr_community_update_comment_status($pdo, $commentId, \'deleted\')',
     "'event_type' => 'community.comment.deleted_by_author'",
 ], 'Community comment delete action policy');

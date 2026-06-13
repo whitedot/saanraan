@@ -5,19 +5,28 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
 
-$account = sr_member_require_login($pdo);
+$account = sr_member_current_account($pdo);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     sr_require_csrf();
 }
 
 $postIdValue = sr_get_string('id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
-$post = sr_community_post_for_read($pdo, $postId, $account);
+$post = sr_community_post_for_read($pdo, $postId, is_array($account) ? $account : null);
 if (!is_array($post)) {
     sr_render_error(404, sr_t('community::action.error.post_not_found'));
 }
 
-if (!sr_community_account_can_edit_post($post, $account)) {
+$isGuestAuthor = !is_array($account) && (int) ($post['author_account_id'] ?? 0) < 1 && (string) ($post['guest_password_hash'] ?? '') !== '';
+$guestEditSessionKey = 'sr_community_guest_post_edit_' . (string) $postId;
+if ($isGuestAuthor && $_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION[$guestEditSessionKey]) && sr_community_guest_can_edit_post($post, sr_post_string_without_truncation('guest_password', 255) ?? '')) {
+    $_SESSION[$guestEditSessionKey] = hash('sha256', (string) ($post['guest_password_hash'] ?? ''));
+}
+$guestEditVerified = $isGuestAuthor
+    && isset($_SESSION[$guestEditSessionKey])
+    && hash_equals((string) $_SESSION[$guestEditSessionKey], hash('sha256', (string) ($post['guest_password_hash'] ?? '')));
+
+if (!(is_array($account) && sr_community_account_can_edit_post($post, $account)) && !$guestEditVerified) {
     sr_render_error(403, sr_t('community::action.error.post_edit_forbidden'));
 }
 
@@ -39,9 +48,10 @@ if (is_array($currentCategory) && (string) $currentCategory['status'] !== 'enabl
     $categories[] = $currentCategory;
 }
 $categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
-$seriesOptions = sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']);
+$seriesOptions = is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
 $currentSeriesItem = sr_community_active_series_item_for_post($pdo, $postId);
 if (is_array($currentSeriesItem)
+    && is_array($account)
     && (int) ($currentSeriesItem['owner_account_id'] ?? 0) === (int) $account['id']
     && (int) ($currentSeriesItem['board_id'] ?? 0) === (int) $board['id']
 ) {
@@ -79,6 +89,11 @@ $values = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['title']) && $guestEditVerified) {
+        $_SESSION['sr_community_post_notice'] = '비회원 글 수정 비밀번호를 확인했습니다.';
+        sr_redirect('/community/edit?id=' . (string) $postId);
+    }
+
     $submittedPostIdValue = sr_post_string('post_id', 20);
     $submittedPostId = preg_match('/\A[1-9][0-9]*\z/', $submittedPostIdValue) === 1 ? (int) $submittedPostIdValue : 0;
     if ($submittedPostId !== $postId) {
@@ -108,12 +123,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ((string) $seriesValues['series_mode'] !== 'none' && !sr_community_series_supported($pdo)) {
         $errors[] = '커뮤니티 시리즈 스키마 업데이트가 아직 적용되지 않았습니다.';
     }
+    if (!is_array($account) && (string) $seriesValues['series_mode'] !== 'none') {
+        $errors[] = '비회원 글은 시리즈를 연결할 수 없습니다.';
+    }
     if ((string) $seriesValues['series_mode'] !== 'none' && $seriesSortOrder === null) {
         $errors[] = '시리즈 정렬 순서를 확인해 주세요.';
     }
     if ((string) $seriesValues['series_mode'] === 'existing') {
         $selectedSeries = sr_community_series_by_id($pdo, (int) $seriesValues['series_id']);
         if (!is_array($selectedSeries)
+            || !is_array($account)
             || (int) ($selectedSeries['owner_account_id'] ?? 0) !== (int) $account['id']
             || (int) ($selectedSeries['board_id'] ?? 0) !== (int) $board['id']
             || !in_array((string) ($selectedSeries['status'] ?? ''), ['pending', 'active', 'hidden'], true)
@@ -125,27 +144,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors === []) {
-        sr_community_update_post_content($pdo, $postId, $values, (int) $account['id']);
-        $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], (int) $account['id'], 'community.post', $postId, $privacyConsentActionKeys, $board);
+        $authorAccountId = is_array($account) ? (int) $account['id'] : 0;
+        sr_community_update_post_content($pdo, $postId, $values, $authorAccountId);
+        $privacyConsentRecordCount = sr_community_record_submission_consents($pdo, (int) $board['id'], $authorAccountId, 'community.post', $postId, $privacyConsentActionKeys, $board);
         if ((string) $seriesValues['series_mode'] === 'new') {
             $seriesValues['series_id'] = sr_community_create_series($pdo, (int) $board['id'], (int) $account['id'], [
                 'title' => (string) $seriesValues['new_series_title'],
                 'description' => '',
                 'status' => 'active',
                 'visibility' => 'public',
-            ], (int) $account['id']);
+            ], $authorAccountId);
         }
-        sr_community_set_post_series(
-            $pdo,
-            $postId,
-            in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true) ? (int) $seriesValues['series_id'] : 0,
-            (string) $seriesValues['episode_label'],
-            (int) $seriesValues['sort_order'],
-            (int) $account['id']
-        );
+        if (is_array($account)) {
+            sr_community_set_post_series(
+                $pdo,
+                $postId,
+                in_array((string) $seriesValues['series_mode'], ['existing', 'new'], true) ? (int) $seriesValues['series_id'] : 0,
+                (string) $seriesValues['episode_label'],
+                (int) $seriesValues['sort_order'],
+                $authorAccountId
+            );
+        }
         sr_audit_log($pdo, [
-            'actor_account_id' => (int) $account['id'],
-            'actor_type' => 'member',
+            'actor_account_id' => $authorAccountId > 0 ? $authorAccountId : null,
+            'actor_type' => is_array($account) ? 'member' : 'guest',
             'event_type' => 'community.post.updated_by_author',
             'target_type' => 'community_post',
             'target_id' => (string) $postId,

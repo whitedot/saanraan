@@ -120,6 +120,32 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <button type="submit"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
                     </form>
                 <?php } ?>
+            <?php } elseif ((int) ($post['author_account_id'] ?? 0) < 1 && (string) ($post['guest_password_hash'] ?? '') !== '') { ?>
+                <details>
+                    <summary class="btn btn-solid-light"><?php echo sr_e('비회원 글 관리'); ?></summary>
+                    <form method="post" action="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                        <p>
+                            <label for="modules_community_view_guest_post_password">
+                                <span><?php echo sr_e('수정 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                <input id="modules_community_view_guest_post_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                            </label>
+                        </p>
+                        <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></button>
+                    </form>
+                    <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                        <p>
+                            <label for="modules_community_view_guest_post_delete_password">
+                                <span><?php echo sr_e('삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                <input id="modules_community_view_guest_post_delete_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                            </label>
+                        </p>
+                        <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                    </form>
+                </details>
             <?php } elseif ($postActionUnavailableMessage !== '') { ?>
                 <p><?php echo sr_e($postActionUnavailableMessage); ?></p>
             <?php } ?>
@@ -317,6 +343,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
                             $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post);
+                            $communityCommentIsGuestAuthor = (int) ($comment['author_account_id'] ?? 0) < 1 && (string) ($comment['guest_password_hash'] ?? '') !== '';
                             $communityCommentCanHide = sr_community_account_can_hide_comment($pdo, $comment, $post, is_array($account ?? null) ? $account : null);
                             $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
@@ -351,8 +378,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <?php } else { ?>
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
                             <?php } ?>
-                            <?php if (is_array($account)) { ?>
-                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanHide || $communityCommentCanReply) { ?>
+                            <?php if (is_array($account) || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
+                                <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanHide || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
                                     <div class="community-comment-actions">
                                         <?php if ($communityCommentCanReply) { ?>
                                             <details<?php echo $commentParentId === (int) $comment['id'] ? ' open' : ''; ?>>
@@ -364,9 +391,23 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentReplyId); ?>">
                                                             <span>답글 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                            <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
+                                                        <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
+                                                    </label>
+                                                </p>
+                                                <?php if (!is_array($account)) { ?>
+                                                    <p>
+                                                        <label for="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>">
+                                                            <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>" type="text" name="guest_author_name" maxlength="120" required>
                                                         </label>
                                                     </p>
+                                                    <p>
+                                                        <label for="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>">
+                                                            <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                            <input id="<?php echo sr_e($communityCommentReplyId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required>
+                                                        </label>
+                                                    </p>
+                                                <?php } ?>
                                                     <?php if (!empty($secretCommentsEnabled)) { ?>
                                                         <label class="community-comment-secret-toggle">
                                                             <input type="checkbox" name="is_secret" value="1"<?php echo $commentParentId === (int) $comment['id'] && !empty($commentIsSecret) ? ' checked' : ''; ?>>
@@ -407,6 +448,39 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                 <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
                                             </form>
                                         <?php } ?>
+                                        <?php if (!is_array($account) && $communityCommentIsGuestAuthor) { ?>
+                                            <details>
+                                                <summary class="btn btn-solid-light"><?php echo sr_e('비회원 댓글 관리'); ?></summary>
+                                                <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
+                                                    <?php echo sr_csrf_field(); ?>
+                                                    <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                    <p>
+                                                        <label for="<?php echo sr_e($communityCommentEditId); ?>">
+                                                            <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                            <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required><?php echo sr_e((string) $comment['body_text']); ?></textarea>
+                                                        </label>
+                                                    </p>
+                                                    <p>
+                                                        <label for="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>">
+                                                            <span><?php echo sr_e('수정 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                            <input id="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                                                        </label>
+                                                    </p>
+                                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                                </form>
+                                                <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
+                                                    <?php echo sr_csrf_field(); ?>
+                                                    <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                    <p>
+                                                        <label for="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>">
+                                                            <span><?php echo sr_e('삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                                            <input id="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
+                                                        </label>
+                                                    </p>
+                                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                                </form>
+                                            </details>
+                                        <?php } ?>
                                         <?php if ($communityCommentCanHide) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
@@ -416,7 +490,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                         <?php } ?>
                                     </div>
                                 <?php } ?>
-                                <?php if ($communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
+                                <?php if (is_array($account) && $communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="target_type" value="comment">
@@ -462,9 +536,23 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <p>
                         <label for="modules_community_view_body_text_2">
                     <span><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
+                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
                         </label>
                     </p>
+                    <?php if (!is_array($account)) { ?>
+                        <p>
+                            <label for="modules_community_view_guest_comment_name">
+                                <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                <input id="modules_community_view_guest_comment_name" type="text" name="guest_author_name" maxlength="120" required>
+                            </label>
+                        </p>
+                        <p>
+                            <label for="modules_community_view_guest_comment_password">
+                                <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                <input id="modules_community_view_guest_comment_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required>
+                            </label>
+                        </p>
+                    <?php } ?>
                     <?php if (!empty($secretCommentsEnabled)) { ?>
                         <label class="community-comment-secret-toggle">
                             <input type="checkbox" name="is_secret" value="1"<?php echo !empty($commentIsSecret) ? ' checked' : ''; ?>>

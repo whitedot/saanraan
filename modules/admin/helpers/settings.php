@@ -44,6 +44,14 @@ function sr_admin_code_label_context_options(): array
             'installing' => '설치 중',
             'failed' => '실패',
         ],
+        'policy' => [
+            'public' => '전체 공개',
+            'guest' => '비회원',
+            'member' => '회원',
+            'group' => '회원 그룹',
+            'admin' => '관리자',
+            'disabled' => '사용 안 함',
+        ],
         'content_status' => [
             'draft' => '임시 저장',
             'scheduled' => '예약',

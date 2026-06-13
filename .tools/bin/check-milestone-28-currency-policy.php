@@ -72,7 +72,7 @@ sr_milestone_28_check_contains('core/actions/install.php', [
     'if (!sr_currency_is_known($values[\'default_currency\']))',
     '\'site.default_currency\' => [\'value\' => $values[\'default_currency\'], \'type\' => \'string\']',
     '\'content\' => [' . "\n" . '        \'name\' => \'콘텐츠\',' . "\n" . '        \'version\' => \'2026.06.021\'',
-    '\'community\' => [' . "\n" . '        \'name\' => \'커뮤니티\',' . "\n" . '        \'version\' => \'2026.06.021\'',
+    '\'community\' => [' . "\n" . '        \'name\' => \'커뮤니티\',' . "\n" . '        \'version\' => \'2026.06.022\'',
 ]);
 
 sr_milestone_28_check_contains('modules/content/helpers.php', [
