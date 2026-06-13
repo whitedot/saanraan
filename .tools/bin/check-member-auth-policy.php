@@ -528,34 +528,21 @@ if ($privacyHelper !== '') {
 $privacyRequestsAction = sr_member_auth_policy_read('modules/privacy/actions/account-privacy-requests.php');
 if ($privacyRequestsAction !== '') {
     sr_member_auth_policy_assert(
-        strpos($privacyRequestsAction, "\$values = [\n    'request_type' => 'access',\n    'request_message' => '',\n];") !== false
-            && strpos($privacyRequestsAction, "'request_type' => \$requestType") !== false
-            && strpos($privacyRequestsAction, "'request_message' => \$requestMessage") !== false,
-        'Privacy request action should preserve submitted form values.'
-    );
-    sr_member_auth_policy_assert(
-        strpos($privacyRequestsAction, "sr_post_string_without_truncation('request_type', 40)") !== false
-            && strpos($privacyRequestsAction, "sr_post_string_without_truncation('request_message', 2000)") !== false
-            && strpos($privacyRequestsAction, '$requestMessage === null') !== false,
-        'Privacy request action should reject overlong raw request inputs instead of truncating them.'
-    );
-    sr_member_auth_policy_assert(
-        strpos($privacyRequestsAction, "AND status IN (\\'requested\\', \\'reviewing\\')") !== false
-            && strpos($privacyRequestsAction, '이미 처리 대기 중인 같은 유형의 개인정보 처리 요청이 있습니다.') !== false,
-        'Privacy request action should block duplicate in-progress requests of the same type.'
+        strpos($privacyRequestsAction, "if (sr_request_method() === 'POST')") !== false
+            && strpos($privacyRequestsAction, 'sr_require_csrf();') !== false
+            && strpos($privacyRequestsAction, "sr_render_error(405, sr_t('privacy::action.error.method_not_allowed'))") !== false
+            && strpos($privacyRequestsAction, 'INSERT INTO sr_privacy_requests') === false,
+        'Member-facing privacy request action should be guidance-only and must not create ticket rows.'
     );
 }
 
 $privacyRequestsView = sr_member_auth_policy_read('modules/privacy/views/account-privacy-requests.php');
 if ($privacyRequestsView !== '') {
     sr_member_auth_policy_assert(
-        strpos($privacyRequestsView, "\$values['request_type'] === \$requestType ? ' selected' : ''") !== false
-            && strpos($privacyRequestsView, "sr_e(\$values['request_message'])") !== false,
-        'Privacy request view should render preserved form values safely.'
-    );
-    sr_member_auth_policy_assert(
-        strpos($privacyRequestsView, "sr_admin_privacy_request_list_preview(\$request['admin_note'] ?? null)") !== false,
-        'Privacy request view should render admin notes through the bounded preview helper.'
+        strpos($privacyRequestsView, "sr_t('privacy::ui.privacy.guidance.body.1')") !== false
+            && strpos($privacyRequestsView, "sr_t('privacy::ui.privacy.guidance.body.2')") !== false
+            && strpos($privacyRequestsView, '<form method="post" action="<?php echo sr_e(sr_url(\'/account/privacy-requests\')); ?>">') === false,
+        'Member-facing privacy request view should show guidance without a ticket submission form.'
     );
 }
 
@@ -567,6 +554,12 @@ if ($adminPrivacyRequestsAction !== '') {
             && strpos($adminPrivacyRequestsAction, "'filters' => \$privacyRequestListFilters") !== false
             && strpos($adminPrivacyRequestsAction, "'result_count' => count(\$requests)") !== false,
         'Admin privacy request list views should be audited without logging raw request contents.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsAction, "sr_post_string('intent', 40)") !== false
+            && strpos($adminPrivacyRequestsAction, "\$intent === 'create_request'") !== false
+            && strpos($adminPrivacyRequestsAction, 'sr_admin_handle_privacy_request_create_post($pdo, $account, $allowedTypes)') !== false,
+        'Admin privacy request action should keep manual response record creation admin-only.'
     );
 }
 
@@ -589,6 +582,15 @@ if ($adminPrivacyRequestsHelper !== '') {
             && strpos($adminPrivacyRequestsHelper, "sr_post_string_without_truncation('admin_note', 2000)") !== false
             && strpos($adminPrivacyRequestsHelper, '$adminNote === null') !== false,
         'Admin privacy request helper should reject overlong raw status/admin note inputs instead of truncating them.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsHelper, 'function sr_admin_handle_privacy_request_create_post') !== false
+            && strpos($adminPrivacyRequestsHelper, "sr_admin_post_positive_int('account_id')") !== false
+            && strpos($adminPrivacyRequestsHelper, "sr_post_string_without_truncation('request_message', 2000)") !== false
+            && strpos($adminPrivacyRequestsHelper, '계정 ID 또는 요청자 중 하나를 입력하세요.') !== false
+            && strpos($adminPrivacyRequestsHelper, "sr_hmac_hash(sr_normalize_identifier(\$requesterSnapshot), sr_runtime_config())") !== false
+            && strpos($adminPrivacyRequestsHelper, "'source' => 'admin_manual'") !== false,
+        'Admin privacy request helper should create minimal manual response records without member-facing ticket intake.'
     );
     sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_export_reauth_errors') !== false
@@ -614,6 +616,14 @@ if ($adminPrivacyRequestsView !== '') {
             && strpos($adminPrivacyRequestsView, "><?php echo sr_e((string) (\$request['admin_note'] ?? '')); ?></textarea>") === false
             && strpos($adminPrivacyRequestsView, "><?php echo sr_e(\$request['admin_note'] ?? ''); ?></textarea>") === false,
         'Admin privacy request view should not prefill stored admin notes in list forms.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsView, 'name="intent" value="create_request"') !== false
+            && strpos($adminPrivacyRequestsView, 'name="account_id"') !== false
+            && strpos($adminPrivacyRequestsView, 'name="requester_snapshot"') !== false
+            && strpos($adminPrivacyRequestsView, 'name="request_message"') !== false
+            && strpos($adminPrivacyRequestsView, '외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요.') !== false,
+        'Admin privacy request view should provide a minimal manual record form for external contact cases.'
     );
     sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsView, 'name="admin_password"') !== false

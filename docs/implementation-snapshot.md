@@ -39,7 +39,7 @@
 | 서비스 | `embed_manager` | 본문 임베드 참조 점검과 marker/refs 동기화 |
 | 서비스 | `reaction` | 콘텐츠, 커뮤니티, 퀴즈, 설문 공통 리액션 정의와 원장 |
 | 운영 | `notification` | 사이트 알림, 이메일 delivery queue |
-| 운영 | `privacy` | 개인정보 요청과 사본 제공 조정 |
+| 운영 | `privacy` | 관리자 전용 개인정보 대응 기록과 사본 제공 보조 |
 | 플러그인 | `ckeditor` | textarea 에디터 강화 |
 
 ## 주요 요청 표면
@@ -61,7 +61,7 @@
 | 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/rewards/settings`, `/admin/deposits`, `/admin/deposits/settings`, `/admin/asset-exchange`, `/admin/asset-exchange/settings`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
 | 임베드 | `/admin/embed-manager` |
-| 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests`, `/admin/privacy-requests` |
+| 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests` 안내, `/admin/privacy-requests` |
 
 ## 주요 DB 테이블
 

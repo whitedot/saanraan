@@ -21,7 +21,12 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/privacy-requests', 'edit');
 
-    $postResult = sr_admin_handle_privacy_request_post($pdo, $account, $allowedStatuses);
+    $intent = sr_post_string('intent', 40);
+    if ($intent === 'create_request') {
+        $postResult = sr_admin_handle_privacy_request_create_post($pdo, $account, $allowedTypes);
+    } else {
+        $postResult = sr_admin_handle_privacy_request_post($pdo, $account, $allowedStatuses);
+    }
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
     $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');

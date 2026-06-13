@@ -81,6 +81,109 @@ function sr_admin_privacy_request_requester_display(array $request): string
     return sr_admin_privacy_request_list_preview($snapshot, 80);
 }
 
+function sr_admin_handle_privacy_request_create_post(PDO $pdo, array $account, array $allowedTypes): array
+{
+    $errors = [];
+    $notice = '';
+    $accountId = sr_admin_post_positive_int('account_id');
+    $requestType = sr_post_string_without_truncation('request_type', 40);
+    if ($requestType === null) {
+        $requestType = '';
+    }
+    $requesterSnapshot = sr_post_string_without_truncation('requester_snapshot', 255);
+    if ($requesterSnapshot === null) {
+        $errors[] = '요청자는 255자 이하로 입력하세요.';
+        $requesterSnapshot = '';
+    }
+    $requestMessage = sr_post_string_without_truncation('request_message', 2000);
+    if ($requestMessage === null) {
+        $errors[] = '요청 내용은 2000자 이하로 입력하세요.';
+        $requestMessage = '';
+    }
+    $adminNote = sr_post_string_without_truncation('admin_note', 2000);
+    if ($adminNote === null) {
+        $errors[] = '관리자 메모는 2000자 이하로 입력하세요.';
+        $adminNote = '';
+    }
+
+    $requesterSnapshot = trim($requesterSnapshot);
+    $requestMessage = trim($requestMessage);
+    $adminNote = trim($adminNote);
+    $linkedAccount = null;
+
+    if (!in_array((string) $requestType, $allowedTypes, true)) {
+        $errors[] = '요청 유형 값이 올바르지 않습니다.';
+    }
+
+    if ($requestMessage === '') {
+        $errors[] = '요청 내용을 입력하세요.';
+    }
+
+    if ($accountId < 1 && $requesterSnapshot === '') {
+        $errors[] = '계정 ID 또는 요청자 중 하나를 입력하세요.';
+    }
+
+    if ($accountId > 0 && $errors === []) {
+        $stmt = $pdo->prepare('SELECT id, email, display_name FROM sr_member_accounts WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $accountId]);
+        $memberAccount = $stmt->fetch();
+        if (!is_array($memberAccount)) {
+            $errors[] = '연결할 회원 계정을 찾을 수 없습니다.';
+        } else {
+            $linkedAccount = $memberAccount;
+            if ($requesterSnapshot === '') {
+                $requesterSnapshot = (string) ($memberAccount['email'] ?? '');
+            }
+        }
+    }
+
+    $requesterEmailHash = '';
+    if ($errors === [] && filter_var($requesterSnapshot, FILTER_VALIDATE_EMAIL)) {
+        $requesterEmailHash = sr_hmac_hash(sr_normalize_identifier($requesterSnapshot), sr_runtime_config());
+    }
+
+    if ($errors === []) {
+        $now = sr_now();
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_privacy_requests
+                (account_id, request_type, status, requester_email_hash, requester_snapshot, request_message, admin_note, handled_by_account_id, handled_at, created_at, updated_at)
+             VALUES
+                (:account_id, :request_type, :status, :requester_email_hash, :requester_snapshot, :request_message, :admin_note, NULL, NULL, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'account_id' => $accountId > 0 ? $accountId : null,
+            'request_type' => (string) $requestType,
+            'status' => 'requested',
+            'requester_email_hash' => $requesterEmailHash,
+            'requester_snapshot' => $requesterSnapshot,
+            'request_message' => $requestMessage,
+            'admin_note' => $adminNote !== '' ? $adminNote : null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $requestId = (int) $pdo->lastInsertId();
+
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'admin',
+            'event_type' => 'privacy.request.created',
+            'target_type' => 'privacy_request',
+            'target_id' => (string) $requestId,
+            'result' => 'success',
+            'message' => 'Privacy request created.',
+            'metadata' => [
+                'source' => 'admin_manual',
+                'request_type' => (string) $requestType,
+                'linked_account_id' => $linkedAccount !== null ? (int) $linkedAccount['id'] : null,
+            ],
+        ]);
+
+        $notice = '개인정보 대응 기록을 추가했습니다.';
+    }
+
+    return sr_admin_action_result($errors, $notice);
+}
+
 function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $allowedStatuses): array
 {
     $errors = [];

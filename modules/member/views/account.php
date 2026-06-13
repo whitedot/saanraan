@@ -198,7 +198,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <?php echo sr_csrf_field(); ?>
             <button type="submit"><?php echo sr_e(sr_t('member::ui.text.919c1b32')); ?></button>
         </form>
-        <p><a href="<?php echo sr_e(sr_url('/account/privacy-requests')); ?>"><?php echo sr_e(sr_t('member::ui.privacy.216d449a')); ?></a></p>
         <?php if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'notification')) { ?>
             <p><a href="<?php echo sr_e(sr_url('/account/notifications')); ?>"><?php echo sr_e(sr_t('member::ui.notification.12ddd6ca')); ?></a></p>
         <?php } ?>

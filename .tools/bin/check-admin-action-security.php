@@ -642,8 +642,12 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_list_preview') === false
     || strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_requester_display') === false
     || strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_terminal_statuses') === false
+    || strpos($adminPrivacyRequestsHelper, 'function sr_admin_handle_privacy_request_create_post') === false
     || strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_export_reauth_errors') === false
     || strpos($adminPrivacyRequestsHelper, 'privacy_request_export_reauth') === false
+    || strpos($adminPrivacyRequestsHelper, "sr_admin_post_positive_int('account_id')") === false
+    || strpos($adminPrivacyRequestsHelper, "sr_post_string_without_truncation('request_message', 2000)") === false
+    || strpos($adminPrivacyRequestsHelper, "'source' => 'admin_manual'") === false
     || strpos($adminPrivacyRequestsHelper, "sr_post_string_without_truncation('admin_note', 2000)") === false
     || strpos($adminPrivacyRequestsHelper, '$adminNote === null') === false
     || strpos($adminPrivacyRequestsHelper, 'catch (Throwable $exception)') === false
@@ -663,6 +667,8 @@ if (!is_string($adminPrivacyRequestsView)) {
 } elseif (
     strpos($adminPrivacyRequestsView, 'sr_admin_privacy_request_requester_display($request)') === false
     || strpos($adminPrivacyRequestsView, "sr_admin_privacy_request_list_preview(\$request['request_message'] ?? null)") === false
+    || strpos($adminPrivacyRequestsView, 'name="intent" value="create_request"') === false
+    || strpos($adminPrivacyRequestsView, 'name="requester_snapshot"') === false
     || strpos($adminPrivacyRequestsView, 'name="admin_password"') === false
     || strpos($adminPrivacyRequestsView, "placeholder=\"<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>\"") === false
     || strpos($adminPrivacyRequestsView, "><?php echo sr_e((string) (\$request['admin_note'] ?? '')); ?></textarea>") !== false

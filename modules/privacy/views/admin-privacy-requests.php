@@ -79,6 +79,50 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
+<section class="admin-card card admin-form-card">
+    <div class="card-header">
+        <h2 class="card-title">대응 기록 추가</h2>
+    </div>
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests' . $privacyRequestActionSuffix)); ?>" class="admin-form ui-form-theme">
+        <?php echo sr_csrf_field(); ?>
+        <input type="hidden" name="intent" value="create_request">
+        <div class="admin-form-grid">
+            <label for="privacy_create_account_id">
+                <span>계정 ID</span>
+                <input id="privacy_create_account_id" type="number" name="account_id" class="form-input" min="1" inputmode="numeric">
+                <small class="admin-form-help">회원 계정과 연결할 때만 입력하세요.</small>
+            </label>
+            <label for="privacy_create_requester_snapshot">
+                <span>요청자</span>
+                <input id="privacy_create_requester_snapshot" type="text" name="requester_snapshot" class="form-input" maxlength="255" autocomplete="off">
+                <small class="admin-form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요.</small>
+            </label>
+            <label for="privacy_create_request_type">
+                <span>요청 유형 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
+                <select id="privacy_create_request_type" name="request_type" class="form-select" required>
+                    <option value="">선택</option>
+                    <?php foreach ($allowedTypes as $requestType) { ?>
+                        <option value="<?php echo sr_e($requestType); ?>"><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+        </div>
+        <label for="privacy_create_request_message">
+            <span>요청 내용 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
+            <textarea id="privacy_create_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required></textarea>
+            <small class="admin-form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요.</small>
+        </label>
+        <label for="privacy_create_admin_note">
+            <span>관리자 메모</span>
+            <textarea id="privacy_create_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"></textarea>
+            <small class="admin-form-help">본인 확인 경로, 회신 채널, 내부 확인 사항을 필요한 만큼만 남기세요.</small>
+        </label>
+        <div class="admin-form-actions">
+            <button type="submit" class="btn btn-solid-primary">기록 추가</button>
+        </div>
+    </form>
+</section>
+
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></h2>

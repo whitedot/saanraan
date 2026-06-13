@@ -268,7 +268,7 @@ $postGuardPaths = [
     '188' => ['/admin/notifications/create', '/admin/notifications/delete', '/admin/notification-deliveries/status'],
     '189' => ['/admin/banners/save', '/admin/popup-layers/save', '/admin/site-menus', '/admin/logo-manager', '/admin/seo', '/admin/ckeditor/settings'],
     '192' => ['/login', '/register', '/password/reset'],
-    '193' => ['/account', '/account/withdraw', '/account/privacy-requests'],
+    '193' => ['/account', '/account/withdraw'],
     '194' => ['/content/comment', '/content/action', '/content/download'],
     '195' => ['/community/write?key=free', '/community/edit', '/community/delete', '/community/comment', '/community/report', '/community/skin-action'],
     '196' => ['/community/series', '/community/scrap', '/community/message/write', '/community/message/delete'],

@@ -4,7 +4,7 @@ return [
     'name' => '개인정보',
     'version' => '2026.05.002',
     'type' => 'module',
-    'description' => '개인정보 처리 요청과 개인정보 사본 제공 조정 모듈입니다.',
+    'description' => '관리자 전용 개인정보 사본 제공과 처리 보조 도구 모듈입니다.',
     'requires' => [
         'modules' => ['member', 'admin'],
     ],
