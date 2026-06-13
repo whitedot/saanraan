@@ -35,6 +35,9 @@ $reactionModalHiddenAttrs = static function (bool $open): string {
 $reactionCloseLabel = sr_t('admin::ui.close.1e8c1020');
 $reactionCreateDefinitionModalOpen = $errors !== [] && $reactionPostedIntent === 'save_definition' && $reactionPostedId < 1;
 $reactionCreatePresetModalOpen = $errors !== [] && $reactionPostedIntent === 'save_preset' && $reactionPostedId < 1;
+$reactionRecordFilterOpen = array_filter($reactionRecordFilters, static function (mixed $value): bool {
+    return (string) $value !== '' && (string) $value !== '0';
+}) !== [];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -46,50 +49,48 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span class="admin-summary-meta">Preset <strong><?php echo sr_e((string) count($reactionPresets)); ?>개</strong></span>
         <span class="admin-summary-meta">공개 preset key 수는 최대 12개입니다.</span>
     </div>
-    <?php if ($reactionAdminPage === 'definitions') { ?>
-        <div class="admin-page-title-actions">
-            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $reactionCreateDefinitionModalOpen ? 'true' : 'false'; ?>" aria-controls="reaction-definition-create-modal" data-overlay="#reaction-definition-create-modal"><?php echo sr_material_icon_html('add'); ?>정의 추가</button>
-        </div>
-    <?php } elseif ($reactionAdminPage === 'presets') { ?>
-        <div class="admin-page-title-actions">
-            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $reactionCreatePresetModalOpen ? 'true' : 'false'; ?>" aria-controls="reaction-preset-create-modal" data-overlay="#reaction-preset-create-modal"><?php echo sr_material_icon_html('add'); ?>Preset 추가</button>
-        </div>
-    <?php } ?>
 </div>
 
 <?php if ($reactionAdminPage === 'records') { ?>
-<section class="admin-card card">
-    <div class="card-header">
-        <h2 class="card-title">리액션 레코드 점검</h2>
+<form method="get" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="filtering-form ui-form-theme">
+    <div class="filtering filtering-card<?php echo $reactionRecordFilterOpen ? ' filtering-open' : ''; ?>" data-filtering>
+        <div class="filtering-fields">
+            <div class="filtering-field">
+                <label for="reaction_record_account_id" class="filtering-label">회원 ID</label>
+                <input id="reaction_record_account_id" type="number" name="account_id" class="form-input filtering-input" min="1" value="<?php echo (int) ($reactionRecordFilters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $reactionRecordFilters['account_id']) : ''; ?>">
+            </div>
+            <div class="filtering-field filtering-field-fill">
+                <label for="reaction_record_key" class="filtering-label">리액션 key</label>
+                <input id="reaction_record_key" type="text" name="reaction_key" class="form-input filtering-input" maxlength="80" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['reaction_key'] ?? '')); ?>">
+            </div>
+        </div>
+        <div id="reaction_record_detail_filters" class="filtering-body" data-filtering-body<?php echo $reactionRecordFilterOpen ? '' : ' hidden'; ?>>
+            <div class="filtering-fields">
+                <div class="filtering-field">
+                    <label for="reaction_record_target_module" class="filtering-label">대상 모듈</label>
+                    <input id="reaction_record_target_module" type="text" name="target_module" class="form-input filtering-input" maxlength="60" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['target_module'] ?? '')); ?>">
+                </div>
+                <div class="filtering-field">
+                    <label for="reaction_record_target_type" class="filtering-label">대상 유형</label>
+                    <input id="reaction_record_target_type" type="text" name="target_type" class="form-input filtering-input" maxlength="60" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['target_type'] ?? '')); ?>">
+                </div>
+                <div class="filtering-field">
+                    <label for="reaction_record_target_id" class="filtering-label">대상 ID</label>
+                    <input id="reaction_record_target_id" type="number" name="target_id" class="form-input filtering-input" min="1" value="<?php echo (string) ($reactionRecordFilters['target_id'] ?? '') !== '' ? sr_e((string) $reactionRecordFilters['target_id']) : ''; ?>">
+                </div>
+            </div>
+        </div>
+        <div class="filtering-actions">
+            <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="<?php echo $reactionRecordFilterOpen ? 'true' : 'false'; ?>" aria-controls="reaction_record_detail_filters">상세검색</button>
+            <button type="button" class="btn btn-outline-light" data-filtering-reset><?php echo sr_material_icon_html('restart_alt'); ?>초기화</button>
+            <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
+        </div>
     </div>
-    <form method="get" action="<?php echo sr_e($reactionAdminFormAction); ?>" class="admin-form ui-form-theme">
-        <div class="admin-form-grid">
-            <div class="admin-form-field">
-                <label for="reaction_record_account_id">회원 ID</label>
-                <input id="reaction_record_account_id" type="number" name="account_id" class="form-input" min="1" value="<?php echo (int) ($reactionRecordFilters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $reactionRecordFilters['account_id']) : ''; ?>">
-            </div>
-            <div class="admin-form-field">
-                <label for="reaction_record_target_module">대상 모듈</label>
-                <input id="reaction_record_target_module" type="text" name="target_module" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['target_module'] ?? '')); ?>">
-            </div>
-            <div class="admin-form-field">
-                <label for="reaction_record_target_type">대상 유형</label>
-                <input id="reaction_record_target_type" type="text" name="target_type" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['target_type'] ?? '')); ?>">
-            </div>
-            <div class="admin-form-field">
-                <label for="reaction_record_target_id">대상 ID</label>
-                <input id="reaction_record_target_id" type="number" name="target_id" class="form-input" min="1" value="<?php echo (string) ($reactionRecordFilters['target_id'] ?? '') !== '' ? sr_e((string) $reactionRecordFilters['target_id']) : ''; ?>">
-            </div>
-            <div class="admin-form-field">
-                <label for="reaction_record_key">리액션 key</label>
-                <input id="reaction_record_key" type="text" name="reaction_key" class="form-input" maxlength="80" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['reaction_key'] ?? '')); ?>">
-            </div>
-        </div>
-        <div class="admin-form-actions">
-            <button type="submit" class="btn btn-solid-primary">조회</button>
-            <a class="btn btn-solid-light" href="<?php echo sr_e($reactionAdminFormAction); ?>">초기화</a>
-        </div>
-    </form>
+</form>
+<section class="admin-card admin-list-card card admin-list-form">
+    <div class="card-header">
+        <h2 class="card-title">리액션 레코드 목록</h2>
+    </div>
     <div class="table-wrapper">
         <table class="table">
             <caption class="sr-only">리액션 레코드 최근 목록</caption>
@@ -152,7 +153,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($reactionAdminPage === 'definitions') { ?>
-<section class="admin-card card">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">리액션 정의</h2>
         <div class="card-actions">
@@ -204,16 +205,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($definition['sort_order'] ?? 100)); ?></td>
                         <td class="admin-table-actions-cell">
-                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="리액션 정의 수정" title="수정" aria-haspopup="dialog" aria-expanded="<?php echo $definitionModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($definitionModalId); ?>" data-overlay="#<?php echo sr_e($definitionModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
+                            <div class="admin-row-actions">
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="리액션 정의 수정" title="수정" aria-haspopup="dialog" aria-expanded="<?php echo $definitionModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($definitionModalId); ?>" data-overlay="#<?php echo sr_e($definitionModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
     </div>
+    <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
+    </div>
 </section>
 
-<section class="admin-card card">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">사용 중지 key의 기존 레코드 처리</h2>
     </div>
@@ -256,7 +262,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($reactionAdminPage === 'presets') { ?>
-<section class="admin-card card">
+<section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">Preset</h2>
         <div class="card-actions">
@@ -314,12 +320,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($preset['sort_order'] ?? 100)); ?></td>
                         <td class="admin-table-actions-cell">
-                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="Preset 수정" title="수정" aria-haspopup="dialog" aria-expanded="<?php echo $presetModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($presetModalId); ?>" data-overlay="#<?php echo sr_e($presetModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
+                            <div class="admin-row-actions">
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="Preset 수정" title="수정" aria-haspopup="dialog" aria-expanded="<?php echo $presetModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($presetModalId); ?>" data-overlay="#<?php echo sr_e($presetModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
+    </div>
+    <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
     </div>
 </section>
 <?php } ?>
