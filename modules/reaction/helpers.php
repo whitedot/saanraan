@@ -879,6 +879,12 @@ function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int
         return false;
     }
 
+    $actorName = function_exists('sr_member_public_name_for_account_id')
+        ? sr_member_public_name_for_account_id($pdo, $actorAccountId, '회원')
+        : '회원';
+    $definition = sr_reaction_active_definition($pdo, $reactionKey);
+    $reactionLabel = is_array($definition) ? (string) ($definition['label'] ?? $reactionKey) : $reactionKey;
+
     try {
         return $createAccountEventFunction($pdo, [
             'account_id' => $recipientAccountId,
@@ -887,6 +893,8 @@ function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int
             'created_by_account_id' => $actorAccountId,
             'metadata' => [
                 'reaction_key' => $reactionKey,
+                'reaction_label' => $reactionLabel,
+                'member_name' => $actorName,
                 'target_module' => (string) ($target['target_module'] ?? ''),
                 'target_type' => (string) ($target['target_type'] ?? ''),
                 'target_id' => (string) ($target['target_id'] ?? ''),
