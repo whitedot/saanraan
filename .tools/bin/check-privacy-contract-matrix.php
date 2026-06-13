@@ -175,6 +175,7 @@ $expected = [
     'popup_layer' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'privacy' => ['status' => 'coordinator_direct', 'export' => false, 'cleanup' => false, 'consumes_export' => true],
     'quiz' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
+    'reaction' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'reward' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
     'seo' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'site_menu' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],

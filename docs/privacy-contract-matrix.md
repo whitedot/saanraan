@@ -36,6 +36,7 @@
 | `popup_layer` | `no_member_personal_data` | 없음 | 없음 | 팝업 설정과 노출 정책은 현재 회원 귀속 데이터가 아니다. |
 | `privacy` | `coordinator_direct` | 소비 | 없음 | 개인정보 요청과 사본 제공을 조정한다. `sr_privacy_export_data()`가 요청 이력을 직접 포함하고 다른 모듈 export 계약을 수집한다. |
 | `quiz` | `export_cleanup` | 제공 | 제공 | 응시, 답안 snapshot, 결과, 댓글, 보상 grant, IP/UA hash를 가진다. |
+| `reaction` | `export_cleanup` | 제공 | 제공 | 계정별 target reaction 원장을 가지며, 탈퇴/익명화 시 해당 계정의 reaction record를 삭제한다. |
 | `reward` | `export_retained` | 제공 | 없음 | 적립금 잔액, 원장, 출금 신청 계좌 정보는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `seo` | `no_member_personal_data` | 없음 | 없음 | SEO 설정과 sitemap 정책은 현재 회원 귀속 데이터가 아니다. |
 | `site_menu` | `no_member_personal_data` | 없음 | 없음 | 메뉴 구조는 현재 회원 귀속 데이터가 아니다. |

@@ -15,7 +15,7 @@
 
 ## 번들 모듈
 
-현재 저장소에는 다음 21개 모듈 또는 플러그인이 포함되어 있다. `reaction` 모듈은 이슈 #326 기준으로 구현 예정인 공식 선택 모듈이며, 구현이 병합되면 이 목록과 DB 표에 추가한다.
+현재 저장소에는 다음 22개 모듈 또는 플러그인이 포함되어 있다.
 
 | 분류 | key | 성격 |
 | --- | --- | --- |
@@ -37,6 +37,7 @@
 | 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계 보상 기반 |
 | 서비스 | `survey` | 설문 작성, 응답, 통계, CSV, 보상 기반 |
 | 서비스 | `embed_manager` | 본문 임베드 참조 점검과 marker/refs 동기화 |
+| 서비스 | `reaction` | 콘텐츠, 커뮤니티, 퀴즈, 설문 공통 리액션 정의와 원장 |
 | 운영 | `notification` | 사이트 알림, 이메일 delivery queue |
 | 운영 | `privacy` | 개인정보 요청과 사본 제공 조정 |
 | 플러그인 | `ckeditor` | textarea 에디터 강화 |
@@ -80,7 +81,7 @@
 | 사이트 운영 | `sr_site_menus`, `sr_site_menu_items`, `sr_logo_manager_logos`, `sr_logo_manager_icon_variants`, `sr_banners`, `sr_banner_targets`, `sr_banner_clicks`, `sr_popup_layers`, `sr_popup_layer_targets` |
 | 임베드 | `sr_embed_manager_refs` |
 | 알림 | `sr_notifications`, `sr_notification_reads`, `sr_notification_deliveries`, `sr_notification_event_templates`, `sr_admin_notifications`, `sr_admin_notification_reads` |
-| 리액션 예정 | `sr_reaction_definitions`, `sr_reaction_presets`, `sr_reaction_preset_items`, `sr_reaction_records` |
+| 리액션 | `sr_reaction_definitions`, `sr_reaction_presets`, `sr_reaction_preset_items`, `sr_reaction_records` |
 
 상세 컬럼과 인덱스는 설치 SQL과 Wiki DB 명세를 정본으로 본다. 이 문서는 1.0 전 구현 표면을 빠르게 확인하기 위한 보조 문서다.
 

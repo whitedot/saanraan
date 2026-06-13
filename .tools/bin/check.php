@@ -171,6 +171,7 @@ function sr_check_module_lifecycle_metadata(): void
         'notification-events.php' => true,
         'admin-notification-events.php' => true,
         'embed-manager-targets.php' => true,
+        'reaction-targets.php' => true,
     ];
 
     foreach ($requiredModules as $moduleKey) {
