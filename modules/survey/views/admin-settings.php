@@ -42,6 +42,14 @@ $surveySettingsHelp = [
             '관리자 목록과 응답 목록의 페이지 크기는 관리자 공통 페이징 설정을 계속 사용합니다.',
         ]),
     ],
+    'theme_key' => [
+        'id' => 'survey-settings-help-theme-key',
+        'title' => '설문 테마',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '설문 공개 화면의 색감과 강조 표현을 고릅니다.',
+            '개별 설문에서 선택안함을 고르면 이 기본 테마를 사용합니다.',
+        ]),
+    ],
     'skin_key' => [
         'id' => 'survey-settings-help-skin-key',
         'title' => '설문 스킨',
@@ -78,6 +86,19 @@ $surveySettingsHelp = [
             <h2 class="card-title">공개 화면/새 설문 기본값</h2>
         </div>
         <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_theme_key', '설문 테마', $surveySettingsHelp['theme_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <select id="survey_settings_theme_key" name="theme_key" class="form-select" required>
+                        <?php foreach (sr_survey_theme_options() as $themeKey => $themeLabel) { ?>
+                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($settings['theme_key'] ?? 'basic') === (string) $themeKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) $themeLabel); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">색감과 강조 표현을 정합니다.</p>
+                </div>
+            </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_skin_key', '설문 스킨', $surveySettingsHelp['skin_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">

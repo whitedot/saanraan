@@ -25,6 +25,7 @@ $previewMode = $canPreviewAsAdmin;
 if (!is_array($survey) || (!$isPubliclyOpen && !$canPreviewAsAdmin)) {
     sr_render_error(404, '설문을 찾을 수 없습니다.');
 }
+$settings = sr_survey_display_settings_for_survey($settings, $survey);
 
 $questions = sr_survey_questions_with_choices($pdo, (int) $survey['id']);
 $currentAccountId = is_array($currentAccount) ? (int) ($currentAccount['id'] ?? 0) : 0;

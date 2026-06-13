@@ -497,6 +497,15 @@ $quizHelp = [
             '정답 채점만 쓰는 퀴즈라면 카테고리 Key와 가중치는 비워둘 수 있습니다.',
         ]),
     ],
+    'display' => [
+        'id' => 'quiz-help-display-modal',
+        'title' => '공개 화면 표시',
+        'body_html' => $quizHelpBodyHtml([
+            '테마는 같은 화면 구조에서 색감과 강조 표현을 바꾸는 값입니다.',
+            '스킨은 목록, 상세, 결과 같은 공개 화면 템플릿 파일을 바꾸는 값입니다.',
+            '선택안함으로 두면 퀴즈 환경설정의 기본 테마와 스킨을 사용합니다.',
+        ]),
+    ],
     'reward' => [
         'id' => 'quiz-help-reward-modal',
         'title' => '보상 정책',
@@ -613,6 +622,30 @@ $quizSectionNavItems = [
                 <label class="form-label" for="quiz_description">설명</label>
                 <div class="admin-form-field">
                     <textarea id="quiz_description" name="description" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('quiz_theme_key', '테마', $quizHelp['display']['id'], $quizHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <select id="quiz_theme_key" name="theme_key" class="form-select">
+                        <option value="">환경설정 기본값 사용</option>
+                        <?php foreach (sr_quiz_theme_options() as $themeKey => $themeLabel) { ?>
+                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($values['theme_key'] ?? '') === (string) $themeKey ? ' selected' : ''; ?>><?php echo sr_e((string) $themeLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">같은 퀴즈 화면 구조 안에서 색감, 밀도, 강조 표현을 바꿉니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('quiz_skin_key', '스킨', $quizHelp['display']['id'], $quizHelpOpenLabel); ?>
+                <div class="admin-form-field">
+                    <select id="quiz_skin_key" name="skin_key" class="form-select">
+                        <option value="">환경설정 기본값 사용</option>
+                        <?php foreach (sr_quiz_skin_options() as $skinKey => $skinLabel) { ?>
+                            <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($values['skin_key'] ?? '') === (string) $skinKey ? ' selected' : ''; ?>><?php echo sr_e((string) $skinLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">퀴즈 상세, 응시, 결과 화면에 사용할 출력 템플릿 묶음을 고릅니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">

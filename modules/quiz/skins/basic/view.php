@@ -30,6 +30,7 @@ if (!is_array($quiz) || (!$isPubliclyOpen && !$canPreviewAsAdmin)) {
 }
 $questions = sr_quiz_questions_with_choices($pdo, (int) ($quiz['id'] ?? 0));
 $quizSettings = sr_quiz_settings($pdo);
+$quizSettings = sr_quiz_display_settings_for_quiz($quizSettings, $quiz);
 $attemptAccess = $canPreviewAsAdmin
     ? ['allowed' => false, 'message' => '관리자 미리보기에서는 제출할 수 없습니다.']
     : (is_array($currentAccount)

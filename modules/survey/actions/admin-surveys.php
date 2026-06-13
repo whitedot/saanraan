@@ -50,6 +50,8 @@ if (sr_request_method() === 'POST') {
     $surveyKey = sr_survey_clean_key(sr_post_string('survey_key', 64), 64);
     $title = sr_survey_clean_single_line(sr_post_string('title', 190), 190);
     $description = sr_survey_clean_text(sr_post_string('description', 2000), 2000);
+    $themeKey = sr_survey_optional_option_key_from_post(sr_post_string('theme_key', 40), sr_survey_theme_options());
+    $skinKey = sr_survey_optional_option_key_from_post(sr_post_string('skin_key', 40), sr_survey_skin_options());
     $researchPurpose = sr_survey_clean_text(sr_post_string('research_purpose', 4000), 4000);
     $targetPopulation = sr_survey_clean_text(sr_post_string('target_population', 2000), 2000);
     $recruitmentMethod = sr_survey_clean_text(sr_post_string('recruitment_method', 2000), 2000);
@@ -128,6 +130,12 @@ if (sr_request_method() === 'POST') {
     }
     if ($title === '') {
         $errors[] = '설문 제목을 입력하세요.';
+    }
+    if ($themeKey !== '' && !isset(sr_survey_theme_options()[$themeKey])) {
+        $errors[] = '설문 테마 값이 올바르지 않습니다.';
+    }
+    if ($skinKey !== '' && !isset(sr_survey_skin_options()[$skinKey])) {
+        $errors[] = '설문 스킨 값이 올바르지 않습니다.';
     }
     if ($surveyId > 0 && !is_array($existingSurveyForSave)) {
         $errors[] = '수정할 설문을 찾을 수 없습니다.';
@@ -280,6 +288,7 @@ if (sr_request_method() === 'POST') {
                 $pdo->prepare(
                     'UPDATE sr_survey_forms
                      SET survey_key = :survey_key, title = :title, description = :description,
+                         theme_key = :theme_key, skin_key = :skin_key,
                          research_purpose = :research_purpose, target_population = :target_population, recruitment_method = :recruitment_method,
                          project_brief = :project_brief, sponsor_name = :sponsor_name, research_region = :research_region, research_language = :research_language,
                          fieldwork_method = :fieldwork_method, sample_frame = :sample_frame, sample_method = :sample_method, target_sample_size = :target_sample_size,
@@ -300,6 +309,8 @@ if (sr_request_method() === 'POST') {
                     'survey_key' => $surveyKey,
                     'title' => $title,
                     'description' => $description,
+                    'theme_key' => $themeKey,
+                    'skin_key' => $skinKey,
                     'research_purpose' => $researchPurpose,
                     'target_population' => $targetPopulation,
                     'recruitment_method' => $recruitmentMethod,
@@ -354,7 +365,7 @@ if (sr_request_method() === 'POST') {
             } else {
                 $pdo->prepare(
                     'INSERT INTO sr_survey_forms
-                        (survey_key, title, description, research_purpose, target_population, recruitment_method, estimated_minutes,
+                        (survey_key, title, description, theme_key, skin_key, research_purpose, target_population, recruitment_method, estimated_minutes,
                          project_brief, sponsor_name, research_region, research_language, fieldwork_method, sample_frame, sample_method, target_sample_size,
                          quota_policy, response_rate_basis, analysis_plan, weighting_policy, margin_error_note, methodology_disclosure, ethics_note,
                          sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
@@ -363,7 +374,7 @@ if (sr_request_method() === 'POST') {
                          public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
-                        (:survey_key, :title, :description, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
+                        (:survey_key, :title, :description, :theme_key, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
                          :project_brief, :sponsor_name, :research_region, :research_language, :fieldwork_method, :sample_frame, :sample_method, :target_sample_size,
                          :quota_policy, :response_rate_basis, :analysis_plan, :weighting_policy, :margin_error_note, :methodology_disclosure, :ethics_note,
                          :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
@@ -375,6 +386,8 @@ if (sr_request_method() === 'POST') {
                     'survey_key' => $surveyKey,
                     'title' => $title,
                     'description' => $description,
+                    'theme_key' => $themeKey,
+                    'skin_key' => $skinKey,
                     'research_purpose' => $researchPurpose,
                     'target_population' => $targetPopulation,
                     'recruitment_method' => $recruitmentMethod,
@@ -822,6 +835,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'survey_key' => '',
         'title' => '',
         'description' => '',
+        'theme_key' => '',
+        'skin_key' => '',
         'research_purpose' => '',
         'target_population' => '',
         'recruitment_method' => '',
@@ -943,6 +958,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 '댓글 본문의 @닉네임 멘션은 회원 알림과 표시 스타일에 연결됩니다.',
             ]),
         ],
+        'display' => [
+            'id' => 'survey-help-display-modal',
+            'title' => '공개 화면 표시',
+            'body_html' => $surveyHelpBodyHtml([
+                '테마는 같은 화면 구조에서 색감과 강조 표현을 바꾸는 값입니다.',
+                '스킨은 목록, 상세/응답, 완료 같은 공개 화면 템플릿 파일을 바꾸는 값입니다.',
+                '선택안함으로 두면 설문 환경설정의 기본 테마와 스킨을 사용합니다.',
+            ]),
+        ],
         'consent' => [
             'id' => 'survey-help-consent-modal',
             'title' => '참여 동의',
@@ -1028,6 +1052,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <label class="form-label" for="survey_description">설명</label>
                 <textarea id="survey_description" name="description" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <?php echo sr_admin_form_label_help_html('survey_theme_key', '테마', $surveyHelp['display']['id'], $surveyHelpOpenLabel); ?>
+                    <select id="survey_theme_key" name="theme_key" class="form-select">
+                        <option value="">환경설정 기본값 사용</option>
+                        <?php foreach (sr_survey_theme_options() as $themeKey => $themeLabel): ?>
+                            <option value="<?php echo sr_e((string) $themeKey); ?>"<?php echo (string) ($values['theme_key'] ?? '') === (string) $themeKey ? ' selected' : ''; ?>><?php echo sr_e((string) $themeLabel); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="admin-form-help">같은 설문 화면 구조 안에서 색감과 강조 표현을 바꿉니다.</p>
+                </div>
+                <div class="form-field">
+                    <?php echo sr_admin_form_label_help_html('survey_skin_key', '스킨', $surveyHelp['display']['id'], $surveyHelpOpenLabel); ?>
+                    <select id="survey_skin_key" name="skin_key" class="form-select">
+                        <option value="">환경설정 기본값 사용</option>
+                        <?php foreach (sr_survey_skin_options() as $skinKey => $skinLabel): ?>
+                            <option value="<?php echo sr_e((string) $skinKey); ?>"<?php echo (string) ($values['skin_key'] ?? '') === (string) $skinKey ? ' selected' : ''; ?>><?php echo sr_e((string) $skinLabel); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="admin-form-help">설문 상세, 응답, 완료 화면에 사용할 출력 템플릿 묶음을 고릅니다.</p>
+                </div>
             </div>
             <div class="form-field">
                 <label class="form-label" for="survey_research_purpose">연구 목적</label>

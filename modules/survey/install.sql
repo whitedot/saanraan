@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS sr_survey_forms (
     survey_key VARCHAR(64) NOT NULL,
     title VARCHAR(190) NOT NULL,
     description TEXT NULL,
+    theme_key VARCHAR(40) NOT NULL DEFAULT '',
+    skin_key VARCHAR(40) NOT NULL DEFAULT '',
     research_purpose TEXT NULL,
     target_population TEXT NULL,
     recruitment_method TEXT NULL,
