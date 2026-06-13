@@ -223,6 +223,14 @@ function sr_community_guest_runtime_check(): void
         ],
     ]);
     $extraFieldValues = ['company' => '런타임 회사'];
+    $extraFieldValuesJson = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
+    $extraFieldValuesSnapshot = json_decode($extraFieldValuesJson, true);
+    sr_community_guest_runtime_assert(
+        is_array($extraFieldValuesSnapshot)
+            && !empty($extraFieldValuesSnapshot['company']['show_in_admin'])
+            && str_contains(sr_community_extra_fields_admin_summary_html($extraFieldValuesSnapshot), '런타임 회사'),
+        'additional field value snapshot must preserve show_in_admin for admin list summaries.'
+    );
     sr_community_guest_runtime_assert(
         sr_community_validate_extra_field_values($extraFieldDefinitions, ['company' => str_repeat('가', 1001)]) !== [],
         'additional text field validation must reject overlong values instead of truncating them.'

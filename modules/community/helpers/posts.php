@@ -820,6 +820,7 @@ function sr_community_extra_field_values_json(array $definitions, array $values)
             'value' => $value,
             'visibility' => (string) ($definition['visibility'] ?? 'public'),
             'show_on_view' => !empty($definition['show_on_view']),
+            'show_in_admin' => !empty($definition['show_in_admin']),
         ];
     }
 

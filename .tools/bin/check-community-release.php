@@ -684,6 +684,7 @@ sr_community_release_file_contains('modules/community/helpers/posts.php', [
     'function sr_community_extra_field_value_max_length',
     '$values[$key] = is_scalar($value) ? trim((string) $value)',
     '$valueLength > $maxLength',
+    "'show_in_admin' => !empty(\$definition['show_in_admin'])",
     '값 형식이 올바르지 않습니다.',
 ], 'Community post extra field input validation');
 sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
