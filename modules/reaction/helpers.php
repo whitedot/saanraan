@@ -636,6 +636,54 @@ function sr_reaction_admin_preset_items(PDO $pdo): array
     return $items;
 }
 
+function sr_reaction_admin_record_filters(array $input): array
+{
+    return [
+        'account_id' => max(0, (int) ($input['account_id'] ?? 0)),
+        'target_module' => sr_reaction_clean_key((string) ($input['target_module'] ?? ''), 60),
+        'target_type' => sr_reaction_clean_key((string) ($input['target_type'] ?? ''), 60),
+        'target_id' => sr_reaction_target_id((string) ($input['target_id'] ?? '')),
+        'reaction_key' => sr_reaction_clean_key((string) ($input['reaction_key'] ?? '')),
+    ];
+}
+
+function sr_reaction_admin_records(PDO $pdo, array $filters = [], int $limit = 100): array
+{
+    if (!sr_reaction_tables_available($pdo)) {
+        return [];
+    }
+
+    $filters = sr_reaction_admin_record_filters($filters);
+    $limit = max(1, min(200, $limit));
+    $where = [];
+    $params = [];
+
+    if ((int) $filters['account_id'] > 0) {
+        $where[] = 'r.account_id = :account_id';
+        $params['account_id'] = (int) $filters['account_id'];
+    }
+    foreach (['target_module', 'target_type', 'target_id', 'reaction_key'] as $field) {
+        if ((string) $filters[$field] !== '') {
+            $where[] = 'r.' . $field . ' = :' . $field;
+            $params[$field] = (string) $filters[$field];
+        }
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT r.*,
+                d.label AS reaction_label,
+                d.status AS reaction_status
+         FROM sr_reaction_records r
+         LEFT JOIN sr_reaction_definitions d ON d.reaction_key = r.reaction_key
+         ' . ($where === [] ? '' : 'WHERE ' . implode(' AND ', $where)) . '
+         ORDER BY r.updated_at DESC, r.id DESC
+         LIMIT ' . (string) $limit
+    );
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
 function sr_reaction_clean_label(string $value, int $maxLength = 80): string
 {
     $value = trim(preg_replace('/\s+/u', ' ', $value) ?? $value);

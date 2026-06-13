@@ -112,5 +112,29 @@ if (sr_request_method() === 'POST') {
 $reactionDefinitions = sr_reaction_admin_definitions($pdo);
 $reactionPresets = sr_reaction_admin_presets($pdo);
 $reactionPresetItems = sr_reaction_admin_preset_items($pdo);
+$reactionRecordFilters = sr_reaction_admin_record_filters([
+    'account_id' => sr_get_string('account_id', 20),
+    'target_module' => sr_get_string('target_module', 60),
+    'target_type' => sr_get_string('target_type', 60),
+    'target_id' => sr_get_string('target_id', 60),
+    'reaction_key' => sr_get_string('reaction_key', 80),
+]);
+$reactionRecords = sr_reaction_admin_records($pdo, $reactionRecordFilters, 100);
+$reactionRecordTargets = [];
+$reactionRecordTargetGroups = [];
+foreach ($reactionRecords as $reactionRecord) {
+    $groupKey = (string) ($reactionRecord['target_module'] ?? '') . '/' . (string) ($reactionRecord['target_type'] ?? '');
+    $targetId = sr_reaction_target_id((string) ($reactionRecord['target_id'] ?? ''));
+    if ($groupKey !== '/' && $targetId !== '') {
+        $reactionRecordTargetGroups[$groupKey][] = $targetId;
+    }
+}
+foreach ($reactionRecordTargetGroups as $groupKey => $targetIds) {
+    [$targetModule, $targetType] = array_pad(explode('/', $groupKey, 2), 2, '');
+    $resolvedTargets = sr_reaction_resolve_targets($pdo, $targetModule, $targetType, $targetIds, (int) ($account['id'] ?? 0), ['context' => 'admin']);
+    foreach ($resolvedTargets as $targetId => $target) {
+        $reactionRecordTargets[$groupKey . '/' . (string) $targetId] = $target;
+    }
+}
 
 include SR_ROOT . '/modules/reaction/views/admin-reactions.php';

@@ -206,6 +206,17 @@ $presetCreate = sr_reaction_save_preset($pdo, [
 $assert(!empty($presetCreate['ok']), 'admin preset create should save selected keys.');
 $presetItemCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_preset_items WHERE preset_key = 'funny'")->fetchColumn();
 $assert($presetItemCount === 2, 'admin preset create should replace preset items.');
+$pdo->exec("INSERT INTO sr_reaction_records (account_id, target_module, target_type, target_id, reaction_key, created_at, updated_at) VALUES (3, 'community', 'post', '1', 'like', '$now', '$now')");
+$adminRecordFilters = sr_reaction_admin_record_filters([
+    'account_id' => '3',
+    'target_module' => 'community',
+    'target_type' => 'post',
+    'target_id' => '1',
+    'reaction_key' => 'like',
+]);
+$assert($adminRecordFilters['account_id'] === 3 && $adminRecordFilters['target_id'] === '1', 'admin record filters should normalize query input.');
+$adminRecords = sr_reaction_admin_records($pdo, ['account_id' => '3', 'target_module' => 'community', 'target_type' => 'post'], 20);
+$assert(count($adminRecords) === 1 && (string) ($adminRecords[0]['reaction_key'] ?? '') === 'like', 'admin record lookup should filter reaction records.');
 
 $pdo->exec(
     "INSERT INTO sr_reaction_records (account_id, target_module, target_type, target_id, reaction_key, created_at, updated_at) VALUES

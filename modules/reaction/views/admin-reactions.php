@@ -5,6 +5,9 @@ $adminContainerClass = 'admin-page-reactions admin-ui-scope';
 $reactionDefinitions = isset($reactionDefinitions) && is_array($reactionDefinitions) ? $reactionDefinitions : [];
 $reactionPresets = isset($reactionPresets) && is_array($reactionPresets) ? $reactionPresets : [];
 $reactionPresetItems = isset($reactionPresetItems) && is_array($reactionPresetItems) ? $reactionPresetItems : [];
+$reactionRecordFilters = isset($reactionRecordFilters) && is_array($reactionRecordFilters) ? sr_reaction_admin_record_filters($reactionRecordFilters) : sr_reaction_admin_record_filters([]);
+$reactionRecords = isset($reactionRecords) && is_array($reactionRecords) ? $reactionRecords : [];
+$reactionRecordTargets = isset($reactionRecordTargets) && is_array($reactionRecordTargets) ? $reactionRecordTargets : [];
 $definitionStatuses = sr_reaction_definition_statuses();
 $presetStatuses = sr_reaction_preset_statuses();
 $iconTypes = sr_reaction_icon_types();
@@ -126,6 +129,98 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </div>
     <?php } ?>
+</section>
+
+<section class="admin-card card">
+    <div class="card-header">
+        <h2 class="card-title">리액션 레코드 점검</h2>
+    </div>
+    <form method="get" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="admin-form ui-form-theme">
+        <div class="admin-form-grid">
+            <div class="admin-form-field">
+                <label for="reaction_record_account_id">회원 ID</label>
+                <input id="reaction_record_account_id" type="number" name="account_id" class="form-input" min="1" value="<?php echo (int) ($reactionRecordFilters['account_id'] ?? 0) > 0 ? sr_e((string) (int) $reactionRecordFilters['account_id']) : ''; ?>">
+            </div>
+            <div class="admin-form-field">
+                <label for="reaction_record_target_module">대상 모듈</label>
+                <input id="reaction_record_target_module" type="text" name="target_module" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['target_module'] ?? '')); ?>">
+            </div>
+            <div class="admin-form-field">
+                <label for="reaction_record_target_type">대상 유형</label>
+                <input id="reaction_record_target_type" type="text" name="target_type" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['target_type'] ?? '')); ?>">
+            </div>
+            <div class="admin-form-field">
+                <label for="reaction_record_target_id">대상 ID</label>
+                <input id="reaction_record_target_id" type="number" name="target_id" class="form-input" min="1" value="<?php echo (string) ($reactionRecordFilters['target_id'] ?? '') !== '' ? sr_e((string) $reactionRecordFilters['target_id']) : ''; ?>">
+            </div>
+            <div class="admin-form-field">
+                <label for="reaction_record_key">리액션 key</label>
+                <input id="reaction_record_key" type="text" name="reaction_key" class="form-input" maxlength="80" pattern="[a-z][a-z0-9_]*" data-admin-key-input value="<?php echo sr_e((string) ($reactionRecordFilters['reaction_key'] ?? '')); ?>">
+            </div>
+        </div>
+        <div class="admin-form-actions">
+            <button type="submit" class="btn btn-solid-primary">조회</button>
+            <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/reactions')); ?>">초기화</a>
+        </div>
+    </form>
+    <div class="table-wrapper">
+        <table class="table">
+            <caption class="sr-only">리액션 레코드 최근 목록</caption>
+            <thead class="ui-table-head">
+                <tr>
+                    <th>ID</th>
+                    <th>회원</th>
+                    <th>대상</th>
+                    <th>상태</th>
+                    <th>리액션</th>
+                    <th>수정</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($reactionRecords === []) { ?>
+                    <tr><td colspan="6" class="admin-empty-state">조회된 리액션 레코드가 없습니다.</td></tr>
+                <?php } ?>
+                <?php foreach ($reactionRecords as $record) { ?>
+                    <?php
+                    $recordTargetKey = (string) ($record['target_module'] ?? '') . '/' . (string) ($record['target_type'] ?? '') . '/' . (string) ($record['target_id'] ?? '');
+                    $recordTarget = isset($reactionRecordTargets[$recordTargetKey]) && is_array($reactionRecordTargets[$recordTargetKey]) ? $reactionRecordTargets[$recordTargetKey] : null;
+                    $recordTargetStatus = is_array($recordTarget) ? (string) ($recordTarget['status'] ?? 'broken') : 'unknown';
+                    $recordTargetLabel = is_array($recordTarget) && (string) ($recordTarget['label'] ?? '') !== '' ? (string) $recordTarget['label'] : '#' . (string) ($record['target_id'] ?? '');
+                    ?>
+                    <tr>
+                        <td class="admin-table-nowrap">#<?php echo sr_e((string) (int) ($record['id'] ?? 0)); ?></td>
+                        <td class="admin-table-nowrap">#<?php echo sr_e((string) (int) ($record['account_id'] ?? 0)); ?></td>
+                        <td class="admin-table-break">
+                            <code><?php echo sr_e((string) ($record['target_module'] ?? '')); ?>/<?php echo sr_e((string) ($record['target_type'] ?? '')); ?>/<?php echo sr_e((string) ($record['target_id'] ?? '')); ?></code>
+                            <br>
+                            <?php if (is_array($recordTarget) && (string) ($recordTarget['public_url'] ?? '') !== '') { ?>
+                                <a href="<?php echo sr_e(sr_url((string) $recordTarget['public_url'])); ?>" target="_blank" rel="noopener"><?php echo sr_e($recordTargetLabel); ?></a>
+                            <?php } else { ?>
+                                <?php echo sr_e($recordTargetLabel); ?>
+                            <?php } ?>
+                            <?php if (is_array($recordTarget) && (string) ($recordTarget['admin_url'] ?? '') !== '') { ?>
+                                <br><a href="<?php echo sr_e(sr_url((string) $recordTarget['admin_url'])); ?>">관리 화면</a>
+                            <?php } ?>
+                        </td>
+                        <td class="admin-table-nowrap">
+                            <?php echo sr_e($recordTargetStatus); ?>
+                            <?php if (is_array($recordTarget) && empty($recordTarget['can_write'])) { ?>
+                                <br><span class="admin-summary-meta">쓰기 불가</span>
+                            <?php } ?>
+                        </td>
+                        <td class="admin-table-nowrap">
+                            <?php echo sr_e((string) ($record['reaction_label'] ?? $record['reaction_key'] ?? '')); ?>
+                            <br><code><?php echo sr_e((string) ($record['reaction_key'] ?? '')); ?></code>
+                            <?php if ((string) ($record['reaction_status'] ?? '') === 'disabled') { ?>
+                                <br><span class="admin-summary-meta">사용 중지</span>
+                            <?php } ?>
+                        </td>
+                        <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($record['updated_at'] ?? '')); ?></td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
 </section>
 
 <section class="admin-card card">
