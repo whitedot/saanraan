@@ -48,7 +48,7 @@
 
 `field_key`는 관리용 key이므로 소문자 영문, 숫자, `_`만 허용한다. 공개 slug처럼 hyphen을 허용하는 필드와 구분한다. 필수/조건부 필드는 UI 표시, 브라우저 속성, 서버 POST 검증을 모두 맞추며 서버 검증을 최종 기준으로 둔다.
 
-필드 정의에는 공개 출력, 관리자 목록 표시, 검색/필터 포함, CSV/export 포함, 개인정보 처리 목적, 보관/cleanup 정책을 분리해 저장한다. 현재 커뮤니티 게시글 목록은 `show_in_admin` snapshot이 켜진 추가 입력값만 관리자 목록에 표시하고, 추가 입력 검색은 게시글 snapshot 컬럼을 기준으로 제공한다. 제출값은 text/select 1000자, textarea 5000자를 넘거나 배열 payload이면 잘라 저장하지 않고 서버에서 거부한다. 개인정보 사본 제공은 `export_policy_snapshot=include`, cleanup은 `cleanup_policy_snapshot=anonymize` 기준으로 처리한다.
+필드 정의에는 공개 출력, 관리자 목록 표시, 검색/필터 포함, CSV/export 포함, 개인정보 처리 목적, 보관/cleanup 정책을 분리해 저장한다. 잘못된 key, 중복 key, 빈 라벨, 잘못된 유형/정책, 선택지 누락은 조용히 항목을 버리지 않고 게시판/게시판 그룹 저장 오류로 처리한다. 현재 커뮤니티 게시글 목록은 `show_in_admin` snapshot이 켜진 추가 입력값만 관리자 목록에 표시하고, 추가 입력 검색은 게시글 snapshot 컬럼을 기준으로 제공한다. 제출값은 text/select 1000자, textarea 5000자를 넘거나 배열 payload이면 잘라 저장하지 않고 서버에서 거부한다. 개인정보 사본 제공은 `export_policy_snapshot=include`, cleanup은 `cleanup_policy_snapshot=anonymize` 기준으로 처리한다.
 
 관리자 게시판 생성/수정 화면은 추가 입력 항목을 보조 목록과 추가/수정 모달로 편집하고, 최종 저장값은 기존 게시판 저장 form의 `extra_fields_json`에 반영한다. 모달의 적용은 화면 입력값만 바꾸며 실제 DB 반영은 게시판 저장 action에서 서버 정규화와 검증을 통과한 뒤 이루어진다.
 

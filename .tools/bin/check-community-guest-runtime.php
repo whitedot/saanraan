@@ -242,6 +242,18 @@ function sr_community_guest_runtime_check(): void
         sr_community_validate_extra_field_values($textareaDefinitions, ['memo' => str_repeat('나', 5001)]) !== [],
         'additional textarea field validation must reject overlong values instead of truncating them.'
     );
+    $invalidDefinitionJson = json_encode([
+        ['key' => 'company', 'label' => '회사명', 'type' => 'text'],
+        ['key' => 'company', 'label' => '중복', 'type' => 'text'],
+    ], JSON_UNESCAPED_UNICODE);
+    sr_community_guest_runtime_assert(
+        is_string($invalidDefinitionJson) && sr_community_extra_field_definitions_input_errors($invalidDefinitionJson) !== [],
+        'additional field definition validation must report duplicate keys.'
+    );
+    sr_community_guest_runtime_assert(
+        is_string($invalidDefinitionJson) && sr_community_extra_field_definitions_json_from_input($invalidDefinitionJson) === null,
+        'additional field definition JSON must not silently drop invalid definitions.'
+    );
     $postValues = [
         'title' => '비회원 런타임 게시글',
         'category_id' => 0,

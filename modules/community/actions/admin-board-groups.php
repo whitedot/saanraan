@@ -143,7 +143,8 @@ if (sr_request_method() === 'POST') {
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_comment_preset_key', 80)) : '';
         $extraFieldsInput = sr_post_string_without_truncation('group_extra_fields_json', 20000);
-        $extraFieldsJson = is_string($extraFieldsInput) ? sr_community_extra_field_definitions_json_from_input($extraFieldsInput) : null;
+        $extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput);
+        $extraFieldsJson = $extraFieldDefinitionErrors === [] && is_string($extraFieldsInput) ? sr_community_extra_field_definitions_json_from_input($extraFieldsInput) : null;
         $publicDisplaySettingValues = [];
         foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
             $publicDisplaySettingValues[$displaySettingKey] = sr_admin_post_int_in_range('group_' . $displaySettingKey, 0, 999999999);
@@ -369,8 +370,8 @@ if (sr_request_method() === 'POST') {
                 break;
             }
         }
-        if ($extraFieldsJson === null) {
-            $errors[] = '게시판 그룹 추가 입력 항목 JSON 형식을 확인해 주세요.';
+        if ($extraFieldDefinitionErrors !== []) {
+            $errors = array_merge($errors, $extraFieldDefinitionErrors);
             $extraFieldsJson = '[]';
         }
 

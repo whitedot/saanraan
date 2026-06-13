@@ -678,11 +678,21 @@ sr_community_release_file_contains('modules/community/actions/write.php', [
     "'event_type' => 'community.post.created'",
 ], 'Community write action policy');
 sr_community_release_file_contains('modules/community/helpers/posts.php', [
+    'function sr_community_extra_field_definition_validation_errors',
+    'function sr_community_extra_field_definitions_input_errors',
     'function sr_community_extra_field_value_max_length',
     '$values[$key] = is_scalar($value) ? trim((string) $value)',
     '$valueLength > $maxLength',
     '값 형식이 올바르지 않습니다.',
 ], 'Community post extra field input validation');
+sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
+    '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
+    '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
+], 'Community admin board extra field definition validation');
+sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
+    '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
+    '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
+], 'Community admin board group extra field definition validation');
 sr_community_release_file_contains('modules/community/actions/edit.php', [
     'sr_community_account_can_edit_post($post, $account)',
     '$submittedPostId !== $postId',

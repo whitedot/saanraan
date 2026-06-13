@@ -442,6 +442,105 @@ function sr_community_normalize_extra_field_definitions(mixed $raw): array
     return $definitions;
 }
 
+function sr_community_extra_field_definition_validation_errors(mixed $raw): array
+{
+    $errors = [];
+    if (!is_array($raw)) {
+        return ['추가 입력 항목 JSON은 배열이어야 합니다.'];
+    }
+    if (count($raw) > 20) {
+        $errors[] = '추가 입력 항목은 20개 이하로 입력해 주세요.';
+    }
+
+    $seenKeys = [];
+    foreach ($raw as $index => $item) {
+        $rowLabel = '추가 입력 항목 #' . (string) ((int) $index + 1);
+        if (!is_array($item)) {
+            $errors[] = $rowLabel . ' 형식이 올바르지 않습니다.';
+            continue;
+        }
+
+        $key = strtolower(trim((string) ($item['key'] ?? '')));
+        if (preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $key) !== 1) {
+            $errors[] = $rowLabel . '의 관리용 키는 영문 소문자로 시작하고 소문자, 숫자, _만 사용할 수 있습니다.';
+        } elseif (isset($seenKeys[$key])) {
+            $errors[] = $rowLabel . '의 관리용 키가 중복되었습니다.';
+        }
+        if ($key !== '') {
+            $seenKeys[$key] = true;
+        }
+
+        $label = trim(preg_replace('/\s+/', ' ', (string) ($item['label'] ?? '')) ?? '');
+        $labelLength = function_exists('mb_strlen') ? mb_strlen($label) : strlen($label);
+        if ($label === '') {
+            $errors[] = $rowLabel . '의 라벨을 입력해 주세요.';
+        } elseif ($labelLength > 120) {
+            $errors[] = $rowLabel . '의 라벨은 120자 이하로 입력해 주세요.';
+        }
+
+        $type = (string) ($item['type'] ?? 'text');
+        if (!in_array($type, ['text', 'textarea', 'select', 'checkbox'], true)) {
+            $errors[] = $rowLabel . '의 유형 값이 올바르지 않습니다.';
+        }
+
+        $visibility = (string) ($item['visibility'] ?? 'public');
+        if (!in_array($visibility, ['public', 'admin'], true)) {
+            $errors[] = $rowLabel . '의 공개 범위 값이 올바르지 않습니다.';
+        }
+
+        $privacyPurpose = trim((string) ($item['privacy_purpose'] ?? ''));
+        $privacyPurposeLength = function_exists('mb_strlen') ? mb_strlen($privacyPurpose) : strlen($privacyPurpose);
+        if ($privacyPurposeLength > 255) {
+            $errors[] = $rowLabel . '의 개인정보 목적은 255자 이하로 입력해 주세요.';
+        }
+
+        $exportPolicy = (string) ($item['export_policy'] ?? 'include');
+        if (!in_array($exportPolicy, ['include', 'exclude'], true)) {
+            $errors[] = $rowLabel . '의 export 정책 값이 올바르지 않습니다.';
+        }
+
+        $cleanupPolicy = (string) ($item['cleanup_policy'] ?? 'anonymize');
+        if (!in_array($cleanupPolicy, ['anonymize', 'retain'], true)) {
+            $errors[] = $rowLabel . '의 cleanup 정책 값이 올바르지 않습니다.';
+        }
+
+        if ($type === 'select') {
+            if (!is_array($item['options'] ?? null)) {
+                $errors[] = $rowLabel . '의 선택지는 배열이어야 합니다.';
+                continue;
+            }
+            $options = [];
+            foreach ((array) $item['options'] as $optionIndex => $option) {
+                if (!is_scalar($option)) {
+                    $errors[] = $rowLabel . '의 선택지 #' . (string) ((int) $optionIndex + 1) . ' 형식이 올바르지 않습니다.';
+                    continue;
+                }
+                $optionValue = trim(preg_replace('/\s+/', ' ', (string) $option) ?? '');
+                $optionLength = function_exists('mb_strlen') ? mb_strlen($optionValue) : strlen($optionValue);
+                if ($optionValue === '') {
+                    $errors[] = $rowLabel . '의 선택지는 빈 값으로 저장할 수 없습니다.';
+                    continue;
+                }
+                if ($optionLength > 120) {
+                    $errors[] = $rowLabel . '의 선택지는 120자 이하로 입력해 주세요.';
+                }
+                if (in_array($optionValue, $options, true)) {
+                    $errors[] = $rowLabel . '의 선택지가 중복되었습니다.';
+                }
+                $options[] = $optionValue;
+            }
+            if ($options === []) {
+                $errors[] = $rowLabel . '의 선택지는 하나 이상 입력해 주세요.';
+            }
+            if (count($options) > 50) {
+                $errors[] = $rowLabel . '의 선택지는 50개 이하로 입력해 주세요.';
+            }
+        }
+    }
+
+    return $errors;
+}
+
 function sr_community_extra_field_definitions_from_storage(PDO $pdo, int $boardId): array
 {
     if ($boardId < 1 || !sr_community_board_field_definitions_table_exists($pdo)) {
@@ -499,8 +598,30 @@ function sr_community_extra_field_definitions_json_from_input(string $json): ?st
     if (!is_array($decoded)) {
         return null;
     }
+    if (sr_community_extra_field_definition_validation_errors($decoded) !== []) {
+        return null;
+    }
 
     return json_encode(sr_community_normalize_extra_field_definitions($decoded), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function sr_community_extra_field_definitions_input_errors(?string $json): array
+{
+    if (!is_string($json)) {
+        return ['추가 입력 항목 JSON은 20000자 이하로 입력해 주세요.'];
+    }
+
+    $json = trim($json);
+    if ($json === '') {
+        return [];
+    }
+
+    $decoded = json_decode($json, true);
+    if (!is_array($decoded)) {
+        return ['추가 입력 항목 JSON 형식을 확인해 주세요.'];
+    }
+
+    return sr_community_extra_field_definition_validation_errors($decoded);
 }
 
 function sr_community_board_extra_field_definitions(PDO $pdo, array $board): array
