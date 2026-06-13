@@ -97,6 +97,7 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
     return $html . '</select>';
 };
 $assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
+$reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $assetModuleChoiceOptions = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
@@ -334,6 +335,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $communityBoardGroupSectionNavItems = [
         'community-board-group-section-basic' => '기본 정보',
         'community-board-group-section-defaults' => '작성 기본값',
+        'community-board-group-section-reaction' => '리액션',
         'community-board-group-section-banner' => '배너',
         'community-board-group-section-popup' => '팝업',
         'community-board-group-section-assets' => '포인트/금액',
@@ -550,6 +552,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="community_admin_board_groups_group_file_allowed_extensions" type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip" data-community-file-extensions<?php echo $groupFileExtensionsRequired ? ' required' : ''; ?>>
                     </div>
                 </div>
+        </section>
+
+        <section id="community-board-group-section-reaction" class="admin-card card" data-admin-section-anchor>
+            <h2>리액션 기본값</h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_board_group_reaction_post_preset_key">게시글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="community_board_group_reaction_post_preset_key" name="group_reaction_post_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $groupSettingValue($formGroupSettings, 'reaction_post_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">게시판 개별 설정이 비어 있으면 이 그룹 설정을 사용하고, 그룹 설정도 비어 있으면 커뮤니티 환경설정을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_board_group_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="community_board_group_reaction_comment_preset_key" name="group_reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $groupSettingValue($formGroupSettings, 'reaction_comment_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
         </section>
 
         <section id="community-board-group-section-banner" class="admin-card card" data-admin-section-anchor>

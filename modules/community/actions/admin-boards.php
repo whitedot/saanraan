@@ -11,6 +11,9 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'view');
@@ -34,6 +37,7 @@ $settings = sr_community_settings($pdo);
 $editorOptions = sr_editor_options($pdo);
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $assetPolicySets = sr_community_asset_policy_sets($pdo);
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $maxLevel = sr_community_max_level_value($settings);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
     ? sr_banner_public_banners($pdo)
@@ -456,6 +460,8 @@ if (sr_request_method() === 'POST') {
         $categoryRequired = ($_POST['category_required'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
+        $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
         $privacyConsentTitle = trim(sr_post_string('privacy_consent_title', 120));
         $privacyConsentBodyInput = sr_post_string_without_truncation('privacy_consent_body', 5000);
@@ -782,6 +788,12 @@ if (sr_request_method() === 'POST') {
             $errors[] = '첨부 다운로드 게시자 리워드 지급률이 올바르지 않습니다.';
             $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
+        foreach ([$reactionPostPresetKey, $reactionCommentPresetKey] as $reactionPresetKey) {
+            if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
+                $errors[] = '게시판 리액션 프리셋 값이 올바르지 않습니다.';
+                break;
+            }
+        }
 
         if ($errors === [] && $intent === 'create' && sr_community_board_by_key($pdo, $boardKey) !== null) {
             $errors[] = sr_t('community::action.admin.board_key_duplicate');
@@ -804,6 +816,8 @@ if (sr_request_method() === 'POST') {
                 'category_required' => $categoryRequired ? '1' : '0',
                 'secret_posts_enabled' => $secretPostsEnabled ? '1' : '0',
                 'secret_comments_enabled' => $secretCommentsEnabled ? '1' : '0',
+                'reaction_post_preset_key' => $reactionPostPresetKey,
+                'reaction_comment_preset_key' => $reactionCommentPresetKey,
                 'privacy_consent_enabled' => $privacyConsentEnabled ? '1' : '0',
                 'privacy_consent_title' => $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의',
                 'privacy_consent_body' => $privacyConsentBody,
@@ -898,6 +912,8 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
+            sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
+            sr_community_set_board_setting($pdo, $boardId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
             sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
             sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
@@ -978,6 +994,8 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
+                sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
+                sr_community_set_board_setting($pdo, $boardId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
                 sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
                 foreach ($boardSettingValues as $settingKey => $settingValue) {
@@ -1136,6 +1154,8 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
     $board['post_editor'] = sr_community_post_editor_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'post_editor') ?? 'textarea'));
     $board['effective_post_editor'] = sr_community_effective_post_editor($pdo, $board, $settings);
+    $board['reaction_post_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_post_preset_key') ?? '');
+    $board['reaction_comment_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_comment_preset_key') ?? '');
     foreach (sr_community_privacy_consent_setting_keys() as $privacyConsentSettingKey) {
         $defaultValue = in_array($privacyConsentSettingKey, ['privacy_consent_title', 'privacy_consent_version'], true)
             ? ($privacyConsentSettingKey === 'privacy_consent_title' ? '개인정보 수집 및 이용동의' : '1')

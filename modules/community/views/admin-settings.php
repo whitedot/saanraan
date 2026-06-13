@@ -55,6 +55,7 @@ $assetDeductionPriorityHelp = $assetDeductionPriorityLabels !== []
     ? sr_t('community::ui.text.706623d8') . implode(', ', $assetDeductionPriorityLabels)
     : sr_t('community::ui.text.3e195cdd');
 $communityAssetAuditUrl = sr_admin_asset_settings_audit_url('community.settings.asset_settings.updated', 'module', 'community');
+$reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $messageWritePolicyLabels = [
     'member' => sr_t('community::ui.message_policy.member'),
     'group' => sr_t('community::ui.message_policy.group'),
@@ -151,6 +152,7 @@ $communitySettingsSectionNavItems = [
     'community-settings-section-level' => '레벨 기본값',
     'community-settings-section-message' => '쪽지 정책',
     'community-settings-section-assets' => '자산/과금',
+    'community-settings-section-reaction' => '리액션',
     'community-settings-section-display' => '공개 화면',
 ];
 ?>
@@ -363,6 +365,31 @@ $communitySettingsSectionNavItems = [
                     <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_once_history_policy', 'once_history_policy', sr_community_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="community-settings-section-reaction" class="admin-card card" data-admin-section-anchor>
+        <h2>리액션</h2>
+        <div class="admin-form-row">
+            <label class="form-label" for="community_admin_settings_reaction_post_preset_key">게시글 리액션 프리셋</label>
+            <div class="admin-form-field">
+                <select id="community_admin_settings_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select">
+                    <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_post_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="community_admin_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+            <div class="admin-form-field">
+                <select id="community_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                    <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                    <?php } ?>
+                </select>
+                <p class="admin-form-help">게시판 그룹과 게시판에서 따로 선택하지 않은 대상에 적용합니다.</p>
             </div>
         </div>
     </section>

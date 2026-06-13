@@ -69,6 +69,7 @@ $boardField = static function (array $board, string $key, string $default = ''):
 };
 $memberSearchUrl = sr_url('/admin/community/boards/member-search');
 $assetModuleChoiceOptions = [];
+$reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
 }
@@ -200,6 +201,7 @@ $communityBoardSectionNavItems = [
     'community-board-section-basic' => '기본 정보',
     'community-board-section-seo' => 'SEO/OG',
     'community-board-section-policy' => '접근/작성',
+    'community-board-section-reaction' => '리액션',
     'community-board-section-privacy-consent' => '개인정보 동의',
     'community-board-section-policy-attachments' => '첨부',
     'community-board-section-banner' => '배너',
@@ -654,6 +656,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-field">
                     <input id="community_admin_boards_level_comment_score" type="number" name="level_comment_score" min="0" max="10000" value="<?php echo sr_e($boardField($formBoard, 'level_comment_score', (string) ($settings['level_comment_score'] ?? 2))); ?>" required class="form-input" data-community-level-score="comment">
                     <?php echo $settingSourceRadioHtml('source_level_comment_score', $boardSettingSource($formBoard, 'level_comment_score')); ?>
+                </div>
+            </div>
+        </section>
+
+        <section id="community-board-section-reaction" class="admin-card card" data-admin-section-anchor>
+            <h2>리액션</h2>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_reaction_post_preset_key">게시글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="community_admin_boards_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $boardField($formBoard, 'reaction_post_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <?php echo $settingSourceRadioHtml('source_reaction_post_preset_key', $boardSettingSource($formBoard, 'reaction_post_preset_key')); ?>
+                    <p class="admin-form-help">비어 있으면 게시판 그룹 설정을, 그룹 설정도 비어 있으면 커뮤니티 환경설정을 사용합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+                <div class="admin-form-field">
+                    <select id="community_admin_boards_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                        <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
+                            <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo $boardField($formBoard, 'reaction_comment_preset_key', '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <?php echo $settingSourceRadioHtml('source_reaction_comment_preset_key', $boardSettingSource($formBoard, 'reaction_comment_preset_key')); ?>
                 </div>
             </div>
         </section>

@@ -5,6 +5,9 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 
@@ -20,6 +23,7 @@ sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermis
 $communityLayoutOptions = sr_public_layout_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_community_post_toolbar_preset_options();
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $siteMenuOptions = [];
 if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
     require_once SR_ROOT . '/modules/site_menu/helpers.php';
@@ -63,6 +67,8 @@ if (sr_request_method() === 'POST') {
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
+        $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
         $messageWriteGroupKeys = sr_community_board_group_keys_from_input_value($messageWriteGroupKeysInput);
         $onceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
@@ -152,6 +158,12 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('community::action.admin.once_history_policy_invalid');
             $onceHistoryPolicy = (string) ($settings['once_history_policy'] ?? 'all_access');
         }
+        foreach (['reaction_post_preset_key' => $reactionPostPresetKey, 'reaction_comment_preset_key' => $reactionCommentPresetKey] as $reactionSettingKey => $reactionPresetKey) {
+            if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
+                $errors[] = '커뮤니티 리액션 프리셋 값이 올바르지 않습니다.';
+                break;
+            }
+        }
 
         foreach (sr_community_asset_setting_prefixes() as $assetPrefix) {
             $assetLabel = sr_community_asset_setting_label($assetPrefix);
@@ -235,6 +247,8 @@ if (sr_request_method() === 'POST') {
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
+                ['reaction_post_preset_key', $reactionPostPresetKey, 'string'],
+                ['reaction_comment_preset_key', $reactionCommentPresetKey, 'string'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
                 ['post_reward_asset_module', (string) $assetSettings['post_reward_asset_module'], 'string'],
                 ['post_reward_amount', (string) $assetSettings['post_reward_amount'], 'int'],
@@ -340,6 +354,8 @@ if (sr_request_method() === 'POST') {
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
                         'secret_posts_enabled' => $secretPostsEnabled,
                         'secret_comments_enabled' => $secretCommentsEnabled,
+                        'reaction_post_preset_key' => $reactionPostPresetKey,
+                        'reaction_comment_preset_key' => $reactionCommentPresetKey,
                         'once_history_policy' => $onceHistoryPolicy,
                         'asset_settings' => $assetSettings,
                     ],

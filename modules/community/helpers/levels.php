@@ -48,6 +48,8 @@ function sr_community_default_settings(): array
         'plain_text_auto_link_urls' => (bool) ($settings['plain_text_auto_link_urls'] ?? false),
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
         'secret_comments_enabled' => (bool) ($settings['secret_comments_enabled'] ?? false),
+        'reaction_post_preset_key' => is_string($settings['reaction_post_preset_key'] ?? null) ? (string) $settings['reaction_post_preset_key'] : '',
+        'reaction_comment_preset_key' => is_string($settings['reaction_comment_preset_key'] ?? null) ? (string) $settings['reaction_comment_preset_key'] : '',
         'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
         'post_reward_asset_module' => is_string($settings['post_reward_asset_module'] ?? null) ? (string) $settings['post_reward_asset_module'] : '',
         'post_reward_amount' => (int) ($settings['post_reward_amount'] ?? 0),
@@ -163,6 +165,8 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['plain_text_auto_link_urls'] = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
     $settings['secret_posts_enabled'] = sr_community_bool_setting($settings['secret_posts_enabled'] ?? false);
     $settings['secret_comments_enabled'] = sr_community_bool_setting($settings['secret_comments_enabled'] ?? false);
+    $settings['reaction_post_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_post_preset_key'] ?? '') : '';
+    $settings['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {
         $settings[$assetPrefix . '_enabled'] = sr_community_bool_setting($settings[$assetPrefix . '_enabled'] ?? false);
         $settings[$assetPrefix . '_asset_module'] = sr_community_asset_prefix_uses_composite($assetPrefix)

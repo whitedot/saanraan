@@ -62,6 +62,8 @@ function sr_community_board_group_setting_keys(): array
         'category_required',
         'secret_posts_enabled',
         'secret_comments_enabled',
+        'reaction_post_preset_key',
+        'reaction_comment_preset_key',
         'level_post_score',
         'level_comment_score',
         'image_uploads_enabled',
@@ -169,6 +171,8 @@ function sr_community_board_group_default_settings(array $settings): array
         'privacy_consent_require_post' => !empty($settings['privacy_consent_require_post']) ? '1' : '0',
         'privacy_consent_require_comment' => !empty($settings['privacy_consent_require_comment']) ? '1' : '0',
         'privacy_consent_require_attachment_upload' => !empty($settings['privacy_consent_require_attachment_upload']) ? '1' : '0',
+        'reaction_post_preset_key' => (string) ($settings['reaction_post_preset_key'] ?? ''),
+        'reaction_comment_preset_key' => (string) ($settings['reaction_comment_preset_key'] ?? ''),
     ];
 
     foreach (sr_community_public_display_setting_labels() as $settingKey => $settingLabel) {
@@ -200,6 +204,8 @@ function sr_community_board_default_settings(array $settings, array $groupSettin
             $defaults[(string) $settingKey] = (string) $groupSettings[(string) $settingKey];
         }
     }
+    $defaults['reaction_post_preset_key'] = '';
+    $defaults['reaction_comment_preset_key'] = '';
 
     $arrayKeys = ['read_group_keys', 'write_group_keys', 'comment_group_keys'];
     foreach ($arrayKeys as $settingKey) {
@@ -1161,7 +1167,19 @@ function sr_community_effective_board_setting(PDO $pdo, array $board, string $se
     }
 
     $boardValue = sr_community_board_setting_value($pdo, $boardId, $settingKey);
-    return is_string($boardValue) && $boardValue !== '' ? $boardValue : (string) $default;
+    if (is_string($boardValue) && $boardValue !== '') {
+        return $boardValue;
+    }
+
+    $groupId = (int) ($board['board_group_id'] ?? 0);
+    if ($groupId > 0) {
+        $groupValue = sr_community_board_group_setting_value($pdo, $groupId, $settingKey);
+        if (is_string($groupValue) && $groupValue !== '') {
+            return $groupValue;
+        }
+    }
+
+    return (string) $default;
 }
 
 function sr_community_effective_board_policy(PDO $pdo, array $board, string $settingKey): string

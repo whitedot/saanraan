@@ -11,6 +11,9 @@ if (is_file(SR_ROOT . '/modules/banner/helpers.php')) {
 if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
     require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 }
+if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+    require_once SR_ROOT . '/modules/reaction/helpers.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/board-groups', 'view');
@@ -32,6 +35,7 @@ $allowedCommentPolicies = sr_community_policy_values('comment');
 $settings = sr_community_settings($pdo);
 $maxLevel = sr_community_max_level_value($settings);
 $editorOptions = sr_editor_options($pdo);
+$reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $assetPolicySets = sr_community_asset_policy_sets($pdo);
 $publicBanners = function_exists('sr_banner_public_banners') && sr_module_enabled($pdo, 'banner')
@@ -136,6 +140,8 @@ if (sr_request_method() === 'POST') {
         $commentMinLevel = sr_admin_post_int_in_range('group_comment_min_level', 0, $maxLevel);
         $levelPostScore = sr_admin_post_int_in_range('group_level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('group_level_comment_score', 0, 10000);
+        $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_post_preset_key', 80)) : '';
+        $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_comment_preset_key', 80)) : '';
         $publicDisplaySettingValues = [];
         foreach ($publicDisplaySettingLabels as $displaySettingKey => $displaySettingLabel) {
             $publicDisplaySettingValues[$displaySettingKey] = sr_admin_post_int_in_range('group_' . $displaySettingKey, 0, 999999999);
@@ -355,6 +361,12 @@ if (sr_request_method() === 'POST') {
             $errors[] = '첨부 다운로드 게시자 리워드 지급률이 올바르지 않습니다.';
             $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
+        foreach ([$reactionPostPresetKey, $reactionCommentPresetKey] as $reactionPresetKey) {
+            if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
+                $errors[] = '게시판 그룹 리액션 프리셋 값이 올바르지 않습니다.';
+                break;
+            }
+        }
 
         if ($errors === [] && $intent === 'create_group' && sr_community_board_group_by_key($pdo, $groupKey) !== null) {
             $errors[] = sr_t('community::action.admin.board_group_key_duplicate');
@@ -430,6 +442,8 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'comment_min_level', (string) $commentMinLevel, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'level_post_score', (string) $levelPostScore, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'level_comment_score', (string) $levelCommentScore, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
+            sr_community_set_board_group_setting($pdo, $groupId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
             foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
                 sr_community_set_board_group_setting($pdo, $groupId, (string) $displaySettingKey, (string) $displaySettingValue, 'int');
             }

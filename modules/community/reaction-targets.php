@@ -64,6 +64,8 @@ if (!function_exists('sr_community_reaction_post_result')) {
         $postId = (int) ($post['id'] ?? 0);
         $status = sr_community_reaction_status((string) ($post['status'] ?? ''), $board);
         $canView = $status === 'active' && is_array($board) && sr_community_reaction_can_view_post($pdo, $post, $board, $viewerAccountId);
+        $settings = sr_community_settings($pdo);
+        $presetKey = is_array($board) ? sr_community_effective_board_setting($pdo, $board, 'reaction_post_preset_key', (string) ($settings['reaction_post_preset_key'] ?? '')) : (string) ($settings['reaction_post_preset_key'] ?? '');
 
         return [
             'target_id' => (string) $postId,
@@ -75,7 +77,7 @@ if (!function_exists('sr_community_reaction_post_result')) {
             'can_write' => $canView,
             'owner_account_id' => (int) ($post['author_account_id'] ?? 0),
             'recipient_account_id' => (int) ($post['author_account_id'] ?? 0),
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
@@ -112,6 +114,8 @@ if (!function_exists('sr_community_reaction_comment_result')) {
             && is_array($board)
             && sr_community_reaction_can_view_post($pdo, $post, $board, $viewerAccountId)
             && sr_community_account_can_view_comment_body($comment, $post, $account, $pdo);
+        $settings = sr_community_settings($pdo);
+        $presetKey = is_array($board) ? sr_community_effective_board_setting($pdo, $board, 'reaction_comment_preset_key', (string) ($settings['reaction_comment_preset_key'] ?? '')) : (string) ($settings['reaction_comment_preset_key'] ?? '');
 
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),
@@ -123,7 +127,7 @@ if (!function_exists('sr_community_reaction_comment_result')) {
             'can_write' => $canView,
             'owner_account_id' => (int) ($row['author_account_id'] ?? 0),
             'recipient_account_id' => (int) ($row['author_account_id'] ?? 0),
-            'preset_key' => 'emotions',
+            'preset_key' => $presetKey,
         ];
     }
 }
