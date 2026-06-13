@@ -25,6 +25,14 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - Make request flow visible by reading files, not hidden behind automatic registration.
 - Prioritize clear module boundaries over adding core features.
 
+## Scope Control
+
+- Treat the user's latest scope correction as a hard stop or boundary, even when an older broad goal says to keep reviewing, fixing, or committing.
+- Do not turn a review request into open-ended defect hunting. Review only the requested issue, feature, file set, or acceptance criteria unless the user explicitly expands the scope.
+- When the user says the work feels excessive, unrealistic, or off-goal, stop autonomous changes immediately, revert any uncommitted scope-creep edits, and ask for or wait for a narrower target.
+- Do not justify adjacent security, privacy, cleanup, refactor, or quality improvements merely because they are nearby. If they are not required for the current target, leave them as notes unless the user asks to implement them.
+- Prefer proving the requested end state over finding more work. Once the stated target is satisfied and verified, report completion instead of continuing the review loop.
+
 ## Core Boundary Rules
 
 - Keep the core as a small execution foundation, not a management system.
