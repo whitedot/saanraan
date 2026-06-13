@@ -8,6 +8,12 @@ $reactionPresetItems = isset($reactionPresetItems) && is_array($reactionPresetIt
 $definitionStatuses = sr_reaction_definition_statuses();
 $presetStatuses = sr_reaction_preset_statuses();
 $iconTypes = sr_reaction_icon_types();
+$disabledDefinitions = array_values(array_filter($reactionDefinitions, static function (array $definition): bool {
+    return (string) ($definition['status'] ?? '') === 'disabled' && (int) ($definition['record_count'] ?? 0) > 0;
+}));
+$activeDefinitions = array_values(array_filter($reactionDefinitions, static function (array $definition): bool {
+    return (string) ($definition['status'] ?? '') === 'active';
+}));
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -69,6 +75,57 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="submit" class="btn btn-solid-primary">정의 추가</button>
         </div>
     </form>
+</section>
+
+<section class="admin-card card">
+    <div class="card-header">
+        <h2 class="card-title">사용 중지 key의 기존 레코드 처리</h2>
+    </div>
+    <p class="admin-summary-meta">사용 중지된 key는 신규 적용/변경이 차단되고 공개 UI에서 숨겨집니다. 기존 레코드는 보관하거나, 삭제하거나, 다른 active key로 병합할 수 있습니다.</p>
+    <?php if ($disabledDefinitions === []) { ?>
+        <p class="admin-empty-state">처리할 사용 중지 key 레코드가 없습니다.</p>
+    <?php } else { ?>
+        <div class="admin-grid-two">
+            <?php foreach ($disabledDefinitions as $definition) { ?>
+                <?php $reactionKey = (string) ($definition['reaction_key'] ?? ''); ?>
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/reactions')); ?>" class="admin-card card ui-form-theme">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="cleanup_records">
+                    <input type="hidden" name="reaction_key" value="<?php echo sr_e($reactionKey); ?>">
+                    <h3 class="card-title"><?php echo sr_e((string) ($definition['label'] ?? $reactionKey)); ?> <code><?php echo sr_e($reactionKey); ?></code></h3>
+                    <p class="admin-summary-meta">
+                        기존 레코드 <?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개
+                    </p>
+                    <div class="admin-form-field">
+                        <label for="reaction_cleanup_policy_<?php echo sr_e($reactionKey); ?>">처리 방식</label>
+                        <select id="reaction_cleanup_policy_<?php echo sr_e($reactionKey); ?>" name="cleanup_policy" class="form-select">
+                            <option value="keep_public_hidden">보관하고 공개 UI에서 숨김</option>
+                            <option value="keep_admin_statistics">보관하고 관리자/통계에만 표시</option>
+                            <option value="delete">기존 레코드 삭제</option>
+                            <option value="merge">다른 reaction key로 병합</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-field">
+                        <label for="reaction_merge_target_<?php echo sr_e($reactionKey); ?>">병합 대상 key</label>
+                        <select id="reaction_merge_target_<?php echo sr_e($reactionKey); ?>" name="merge_target_key" class="form-select">
+                            <option value="">선택 안 함</option>
+                            <?php foreach ($activeDefinitions as $activeDefinition) { ?>
+                                <?php $activeKey = (string) ($activeDefinition['reaction_key'] ?? ''); ?>
+                                <option value="<?php echo sr_e($activeKey); ?>"><?php echo sr_e((string) ($activeDefinition['label'] ?? $activeKey)); ?> (<?php echo sr_e($activeKey); ?>)</option>
+                            <?php } ?>
+                        </select>
+                        <p class="admin-form-help">병합을 선택할 때만 사용합니다. 같은 회원/target에 대상 key가 이미 있으면 source row는 삭제됩니다.</p>
+                    </div>
+                    <div class="admin-form-field">
+                        <label for="reaction_cleanup_confirm_<?php echo sr_e($reactionKey); ?>">확인 문구</label>
+                        <input id="reaction_cleanup_confirm_<?php echo sr_e($reactionKey); ?>" type="text" name="confirmation_key" class="form-input" maxlength="80">
+                        <p class="admin-form-help">삭제 또는 병합을 실행하려면 <code><?php echo sr_e($reactionKey); ?></code>를 입력하세요.</p>
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger">처리 적용</button>
+                </form>
+            <?php } ?>
+        </div>
+    <?php } ?>
 </section>
 
 <section class="admin-card card">

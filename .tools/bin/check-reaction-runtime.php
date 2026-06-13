@@ -207,6 +207,19 @@ $assert(!empty($presetCreate['ok']), 'admin preset create should save selected k
 $presetItemCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_preset_items WHERE preset_key = 'funny'")->fetchColumn();
 $assert($presetItemCount === 2, 'admin preset create should replace preset items.');
 
+$pdo->exec(
+    "INSERT INTO sr_reaction_records (account_id, target_module, target_type, target_id, reaction_key, created_at, updated_at) VALUES
+        (11, 'community', 'post', '11', 'disabled', '$now', '$now'),
+        (12, 'community', 'post', '12', 'disabled', '$now', '$now');"
+);
+$impact = sr_reaction_record_impact($pdo, 'disabled');
+$assert($impact['record_count'] === 2 && $impact['target_count'] === 2 && $impact['account_count'] === 2, 'disabled key impact summary should count records, targets, and accounts.');
+$mergeCleanup = sr_reaction_cleanup_disabled_records($pdo, 'disabled', 'merge', 'like', 'disabled', 1);
+$assert(!empty($mergeCleanup['ok']) && (int) ($mergeCleanup['merged_count'] ?? 0) === 2, 'disabled key merge cleanup should update existing records.');
+$mergedDisabledCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE reaction_key = 'disabled'")->fetchColumn();
+$mergedLikeCount = (int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE reaction_key = 'like' AND account_id IN (11, 12)")->fetchColumn();
+$assert($mergedDisabledCount === 0 && $mergedLikeCount === 2, 'disabled key merge cleanup should remove source key usage.');
+
 $module = include SR_ROOT . '/modules/reaction/module.php';
 $paths = include SR_ROOT . '/modules/reaction/paths.php';
 $adminMenu = include SR_ROOT . '/modules/reaction/admin-menu.php';

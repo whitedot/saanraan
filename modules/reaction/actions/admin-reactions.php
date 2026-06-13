@@ -69,6 +69,41 @@ if (sr_request_method() === 'POST') {
         } else {
             $errors = array_merge($errors, (array) ($result['errors'] ?? []));
         }
+    } elseif ($intent === 'cleanup_records') {
+        $policy = sr_post_string('cleanup_policy', 40);
+        if (in_array($policy, ['delete', 'merge'], true)) {
+            sr_admin_require_permission($pdo, (int) $account['id'], '/admin/reactions', 'delete');
+        }
+        $reactionKey = sr_post_string('reaction_key', 80);
+        $result = sr_reaction_cleanup_disabled_records(
+            $pdo,
+            $reactionKey,
+            $policy,
+            sr_post_string('merge_target_key', 80),
+            sr_post_string('confirmation_key', 80),
+            (int) $account['id']
+        );
+        if (!empty($result['ok'])) {
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'reaction.records.cleanup',
+                'target_type' => 'reaction_definition',
+                'target_id' => $reactionKey,
+                'result' => 'success',
+                'message' => 'Reaction records cleanup policy applied.',
+                'metadata' => [
+                    'policy' => (string) ($result['policy'] ?? ''),
+                    'impact' => $result['impact'] ?? [],
+                    'deleted_count' => (int) ($result['deleted_count'] ?? 0),
+                    'merged_count' => (int) ($result['merged_count'] ?? 0),
+                    'conflict_deleted_count' => (int) ($result['conflict_deleted_count'] ?? 0),
+                ],
+            ]);
+            $notice = '기존 레코드 처리 방식을 적용했습니다.';
+        } else {
+            $errors = array_merge($errors, (array) ($result['errors'] ?? []));
+        }
     } else {
         $errors[] = '알 수 없는 요청입니다.';
     }

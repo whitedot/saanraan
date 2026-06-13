@@ -865,6 +865,148 @@ function sr_reaction_save_preset(PDO $pdo, array $input, int $actorAccountId): a
     }
 }
 
+function sr_reaction_cleanup_policies(): array
+{
+    return ['keep_public_hidden', 'keep_admin_statistics', 'delete', 'merge'];
+}
+
+function sr_reaction_record_impact(PDO $pdo, string $reactionKey): array
+{
+    $reactionKey = sr_reaction_clean_key($reactionKey);
+    if ($reactionKey === '' || !sr_reaction_tables_available($pdo)) {
+        return ['record_count' => 0, 'target_count' => 0, 'account_count' => 0];
+    }
+
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable) {
+        $driver = '';
+    }
+    $targetExpression = $driver === 'sqlite'
+        ? "target_module || '/' || target_type || '/' || target_id"
+        : "CONCAT(target_module, '/', target_type, '/', target_id)";
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) AS record_count,
+                COUNT(DISTINCT ' . $targetExpression . ') AS target_count,
+                COUNT(DISTINCT account_id) AS account_count
+         FROM sr_reaction_records
+         WHERE reaction_key = :reaction_key'
+    );
+    $stmt->execute(['reaction_key' => $reactionKey]);
+    $row = $stmt->fetch();
+
+    return [
+        'record_count' => is_array($row) ? (int) ($row['record_count'] ?? 0) : 0,
+        'target_count' => is_array($row) ? (int) ($row['target_count'] ?? 0) : 0,
+        'account_count' => is_array($row) ? (int) ($row['account_count'] ?? 0) : 0,
+    ];
+}
+
+function sr_reaction_cleanup_disabled_records(PDO $pdo, string $reactionKey, string $policy, string $mergeTargetKey, string $confirmation, int $actorAccountId): array
+{
+    $reactionKey = sr_reaction_clean_key($reactionKey);
+    $policy = sr_reaction_clean_key($policy, 40);
+    $mergeTargetKey = sr_reaction_clean_key($mergeTargetKey);
+    $errors = [];
+    if ($reactionKey === '') {
+        $errors[] = '정리할 리액션 키를 확인하세요.';
+    }
+    if (!in_array($policy, sr_reaction_cleanup_policies(), true)) {
+        $errors[] = '처리 방식을 확인하세요.';
+    }
+
+    $definition = null;
+    if ($reactionKey !== '') {
+        $stmt = $pdo->prepare('SELECT * FROM sr_reaction_definitions WHERE reaction_key = :reaction_key LIMIT 1');
+        $stmt->execute(['reaction_key' => $reactionKey]);
+        $definition = $stmt->fetch();
+        if (!is_array($definition)) {
+            $errors[] = '리액션 정의를 찾을 수 없습니다.';
+        } elseif ((string) ($definition['status'] ?? '') !== 'disabled') {
+            $errors[] = '사용 중지된 리액션만 기존 레코드를 정리할 수 있습니다.';
+        }
+    }
+
+    if (in_array($policy, ['delete', 'merge'], true) && $confirmation !== $reactionKey) {
+        $errors[] = '확인 문구로 리액션 키를 정확히 입력하세요.';
+    }
+    if ($policy === 'merge') {
+        if ($mergeTargetKey === '' || $mergeTargetKey === $reactionKey) {
+            $errors[] = '병합 대상 리액션 키를 확인하세요.';
+        } elseif (sr_reaction_active_definition($pdo, $mergeTargetKey) === null) {
+            $errors[] = '병합 대상은 사용 중인 리액션이어야 합니다.';
+        }
+    }
+    if ($errors !== []) {
+        return ['ok' => false, 'errors' => $errors];
+    }
+
+    $impact = sr_reaction_record_impact($pdo, $reactionKey);
+    if (in_array($policy, ['keep_public_hidden', 'keep_admin_statistics'], true)) {
+        return [
+            'ok' => true,
+            'policy' => $policy,
+            'impact' => $impact,
+            'deleted_count' => 0,
+            'merged_count' => 0,
+            'conflict_deleted_count' => 0,
+        ];
+    }
+
+    $deletedCount = 0;
+    $mergedCount = 0;
+    $conflictDeletedCount = 0;
+    $pdo->beginTransaction();
+    try {
+        if ($policy === 'delete') {
+            $stmt = $pdo->prepare('DELETE FROM sr_reaction_records WHERE reaction_key = :reaction_key');
+            $stmt->execute(['reaction_key' => $reactionKey]);
+            $deletedCount = $stmt->rowCount();
+        } else {
+            $stmt = $pdo->prepare('SELECT * FROM sr_reaction_records WHERE reaction_key = :reaction_key ORDER BY id ASC');
+            $stmt->execute(['reaction_key' => $reactionKey]);
+            foreach ($stmt->fetchAll() as $row) {
+                $recordId = (int) ($row['id'] ?? 0);
+                $accountId = (int) ($row['account_id'] ?? 0);
+                $targetModule = (string) ($row['target_module'] ?? '');
+                $targetType = (string) ($row['target_type'] ?? '');
+                $targetId = (string) ($row['target_id'] ?? '');
+                $existing = sr_reaction_my_record($pdo, $accountId, $targetModule, $targetType, $targetId, true);
+                if (is_array($existing) && (int) ($existing['id'] ?? 0) !== $recordId && (string) ($existing['reaction_key'] ?? '') === $mergeTargetKey) {
+                    $delete = $pdo->prepare('DELETE FROM sr_reaction_records WHERE id = :id');
+                    $delete->execute(['id' => $recordId]);
+                    $conflictDeletedCount += $delete->rowCount();
+                    continue;
+                }
+
+                $update = $pdo->prepare('UPDATE sr_reaction_records SET reaction_key = :reaction_key, updated_at = :updated_at WHERE id = :id');
+                $update->execute([
+                    'reaction_key' => $mergeTargetKey,
+                    'updated_at' => sr_now(),
+                    'id' => $recordId,
+                ]);
+                $mergedCount += $update->rowCount();
+            }
+        }
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        sr_log_exception($exception, 'reaction_disabled_records_cleanup');
+        return ['ok' => false, 'errors' => ['기존 레코드 처리 중 오류가 발생했습니다.']];
+    }
+
+    return [
+        'ok' => true,
+        'policy' => $policy,
+        'impact' => $impact,
+        'deleted_count' => $deletedCount,
+        'merged_count' => $mergedCount,
+        'conflict_deleted_count' => $conflictDeletedCount,
+    ];
+}
+
 function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int $actorAccountId, array $target, string $reactionKey): bool
 {
     if ($recipientAccountId < 1 || $actorAccountId < 1 || $recipientAccountId === $actorAccountId) {
