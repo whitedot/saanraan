@@ -10,7 +10,7 @@ return [
         'category_label' => '서비스',
         'category_order' => 30,
         'menu_order' => 11,
-        'icon' => ['type' => 'symbol', 'name' => 'service'],
+        'icon' => ['type' => 'symbol', 'name' => 'quiz'],
         'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [

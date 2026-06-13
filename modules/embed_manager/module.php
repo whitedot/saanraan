@@ -10,7 +10,7 @@ return [
         'category_label' => '서비스',
         'category_order' => 30,
         'menu_order' => 990,
-        'icon' => ['type' => 'symbol', 'name' => 'ink_highlighter'],
+        'icon' => ['type' => 'symbol', 'name' => 'integration_instructions'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',
