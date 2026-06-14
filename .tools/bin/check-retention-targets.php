@@ -35,7 +35,7 @@ $expectedKeys = [
     'module_backups',
 ];
 
-$targets = sr_admin_retention_target_definitions(true, true, true, true, true, true, true);
+$targets = sr_admin_retention_target_definitions(true, true, true, true, true, true, true, true);
 if (array_keys($targets) !== $expectedKeys) {
     sr_retention_check_error($errors, 'Retention target keys changed unexpectedly.');
 }
@@ -97,8 +97,37 @@ if ($cleanupKeys !== $sortedExpectedKeys) {
     sr_retention_check_error($errors, 'Retention cleanup keys do not match target keys.');
 }
 
-if (($targets['banner_clicks']['cutoff_key'] ?? '') !== 'banner_clicks' || !str_contains((string) ($targets['banner_clicks']['delete_sql'] ?? ''), 'sr_banner_clicks')) {
+$defaults = sr_admin_retention_default_values();
+if (($defaults['banner_clicks_days'] ?? null) !== 180) {
+    sr_retention_check_error($errors, 'Banner click hash retention default must stay 180 days.');
+}
+
+$bannerClickSql = implode("\n", [
+    (string) ($targets['banner_clicks']['count_sql'] ?? ''),
+    (string) ($targets['banner_clicks']['delete_sql'] ?? ''),
+    (string) ($targets['banner_clicks']['delete_limited_sql'] ?? ''),
+]);
+if (($targets['banner_clicks']['enabled'] ?? null) !== true
+    || ($targets['banner_clicks']['auto_scope'] ?? '') !== 'public'
+    || ($targets['banner_clicks']['cutoff_key'] ?? '') !== 'banner_clicks'
+    || !str_contains($bannerClickSql, 'sr_banner_clicks')
+    || str_contains($bannerClickSql, 'sr_banners')
+    || str_contains($bannerClickSql, 'click_count')) {
     sr_retention_check_error($errors, 'Banner click hash retention target is missing.');
+}
+
+$bannerHelper = file_get_contents($root . '/modules/banner/helpers.php');
+if (!is_string($bannerHelper)) {
+    sr_retention_check_error($errors, 'Banner helper cannot be read.');
+} elseif (
+    strpos($bannerHelper, "return 'account:' . (string) \$accountId;") === false
+    || strpos($bannerHelper, "return 'session:' . hash('sha256', \$sessionId);") === false
+    || strpos($bannerHelper, "return 'guest:' . sr_client_ip() . '|' . hash('sha256', sr_client_user_agent());") === false
+    || strpos($bannerHelper, "sr_hmac_hash('banner-click|' . (string) \$bannerId . '|' . sr_banner_click_subject(), \$config)") === false
+    || strpos($bannerHelper, 'INSERT IGNORE INTO sr_banner_clicks') === false
+    || strpos($bannerHelper, 'SET click_count = click_count + 1') === false
+) {
+    sr_retention_check_error($errors, 'Banner click dedupe hash and counter contract changed unexpectedly.');
 }
 
 $cleanupOrder = sr_admin_retention_cleanup_target_keys();
