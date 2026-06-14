@@ -29,6 +29,10 @@ function sr_privacy_cookie_consent_optional_items(): array
 function sr_privacy_cookie_consent_essential_items(): array
 {
     return [
+        'cookie_preferences' => [
+            'label' => sr_t('privacy::cookie.item.cookie_preferences.label'),
+            'description' => sr_t('privacy::cookie.item.cookie_preferences.description'),
+        ],
         'session_security' => [
             'label' => sr_t('privacy::cookie.item.session_security.label'),
             'description' => sr_t('privacy::cookie.item.session_security.description'),

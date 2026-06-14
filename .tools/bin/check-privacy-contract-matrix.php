@@ -530,6 +530,7 @@ foreach ([
         'function sr_privacy_cookie_consent_cookie_name(): string',
         "'sr_cookie_consent'",
         'function sr_privacy_cookie_consent_essential_items(): array',
+        "'cookie_preferences'",
         "'session_security'",
         'function sr_privacy_cookie_consent_optional_items(): array',
         "'popup_dismissal'",

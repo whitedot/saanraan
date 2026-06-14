@@ -11,6 +11,8 @@ return [
     'cookie.essential' => '필수만 사용',
     'cookie.essential.group' => '필수 쿠키',
     'cookie.functional' => '기능성 허용',
+    'cookie.item.cookie_preferences.description' => '쿠키 동의 상태를 기억해 같은 선택을 매번 다시 묻지 않도록 저장합니다.',
+    'cookie.item.cookie_preferences.label' => '쿠키 설정 저장',
     'cookie.item.popup_dismissal.description' => '선택한 기간 동안 같은 팝업을 다시 보지 않게 저장합니다.',
     'cookie.item.popup_dismissal.label' => '팝업 닫기 기억',
     'cookie.item.session_security.description' => '로그인, 보안 확인, CSRF 보호와 요청 처리에 필요해 항상 사용합니다.',
