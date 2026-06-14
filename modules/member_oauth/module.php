@@ -12,7 +12,7 @@ return [
         'category' => 'member',
         'category_label' => '회원',
         'category_order' => 10,
-        'menu_order' => 40,
+        'menu_order' => 11,
         'icon' => ['type' => 'symbol', 'name' => 'link'],
     ],
     'saanraan' => [
