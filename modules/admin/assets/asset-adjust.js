@@ -33,7 +33,17 @@
     }
 
     function openOverlay(selector) {
-        if (!selector) {
+        if (!selector || selector === '#') {
+            return;
+        }
+
+        var overlay = null;
+        try {
+            overlay = document.querySelector(selector);
+        } catch (error) {
+            return;
+        }
+        if (overlay && overlay.classList.contains('overlay-open')) {
             return;
         }
 
@@ -301,10 +311,18 @@
             var memberInput = document.querySelector(memberOpen.getAttribute('data-target') || '');
             var memberModal = document.querySelector(memberOpen.getAttribute('data-overlay') || '');
             if (memberInput && memberModal) {
+                var memberReturnOverlay = memberOpen.getAttribute('data-return-overlay') || '';
+                var memberParentOverlay = memberOpen.closest('.overlay');
+                if (!memberReturnOverlay && memberParentOverlay && memberParentOverlay.id) {
+                    memberReturnOverlay = '#' + memberParentOverlay.id;
+                }
+                if (memberReturnOverlay) {
+                    memberModal.setAttribute('data-admin-return-overlay', memberReturnOverlay);
+                }
                 var memberForm = memberModal.querySelector(MEMBER_FORM_SELECTOR);
                 if (memberForm) {
                     memberForm.setAttribute('data-target', memberOpen.getAttribute('data-target') || '');
-                    memberForm.setAttribute('data-return-overlay', memberOpen.getAttribute('data-return-overlay') || '');
+                    memberForm.setAttribute('data-return-overlay', memberReturnOverlay);
                 }
                 var memberQuery = memberModal.querySelector('input[name="q"]');
                 if (memberQuery && memberQuery.value === '') {

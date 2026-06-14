@@ -23,7 +23,7 @@ $assetAdjustReferenceResultsId = $assetAdjustPrefix . '_reference_lookup_results
 ?>
 
 <?php if ($assetAdjustMemberInputId !== '') { ?>
-    <div id="<?php echo sr_e($assetAdjustMemberModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetAdjustMemberModalId); ?>_title" aria-hidden="true" inert data-admin-return-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">
+    <div id="<?php echo sr_e($assetAdjustMemberModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($assetAdjustMemberModalId); ?>_title" aria-hidden="true" inert data-overlay-stack="true" data-admin-return-overlay="#<?php echo sr_e($assetAdjustReturnOverlayId); ?>">
         <div class="modal-dialog admin-lookup-dialog">
             <div class="modal-content ui-form-theme">
                 <div class="modal-header">

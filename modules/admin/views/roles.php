@@ -372,7 +372,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<div id="admin-permission-member-lookup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-permission-member-lookup-modal-label" aria-hidden="true" inert data-admin-return-overlay="#admin-permission-add-modal">
+<div id="admin-permission-member-lookup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-permission-member-lookup-modal-label" aria-hidden="true" inert data-overlay-stack="true" data-admin-return-overlay="#admin-permission-add-modal">
     <div class="modal-dialog admin-lookup-dialog">
         <div class="modal-content ui-form-theme">
             <div class="modal-header">

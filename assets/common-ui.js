@@ -1401,6 +1401,12 @@
       return;
     }
 
+    if (parentOverlay && parentOverlay.classList.contains(ACTIVE_CLASS) && overlayIsActive) {
+      hideOverlay(parentOverlay);
+      focusOverlay(overlay);
+      return;
+    }
+
     if (parentOverlay && parentOverlay.classList.contains(ACTIVE_CLASS) && !shouldStack) {
       hideOverlay(parentOverlay);
     }
