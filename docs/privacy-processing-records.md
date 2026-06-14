@@ -187,6 +187,7 @@
 | `check-privacy-contract-matrix.php` | 26개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정 참조, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
 | `check-privacy-export-runtime.php` | SQLite fixture로 활동 데이터와 보존형 원장이 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다. |
 | `check-privacy-cleanup-runtime.php` | SQLite fixture로 탈퇴/익명화 cleanup이 공개 노출 데이터와 secret을 줄이고, 보존 원장은 유지하는지 확인한다. |
+| `check-privacy-request-admin-note.php` | 개인정보 대응 기록 관리자 메모가 저장/export sanitization에서 명백한 이메일, 휴대폰, 주민등록번호형 값과 secret류를 원문으로 남기지 않는지 확인한다. |
 | `check-doc-links.php` | 개인정보 계약, 처리활동 기록, 개발자 가이드, 실행 명령 링크가 깨지지 않았는지 확인한다. |
 
 `export_policy`, `cleanup_policy`, `lawful_basis` 정책 값에 `pending`, `TODO`, `TBD`, `미정`, `미확정`을 남기면 실패한다. 운영 상태값으로 쓰는 `pending`은 허용하지만, 개인정보 정책 근거와 export/cleanup 판정은 문서와 계약에서 확정된 값으로만 남긴다.
