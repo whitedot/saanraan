@@ -1,15 +1,10 @@
 <?php
 
-$pageTitle = sr_t('privacy::ui.privacy.guidance.title');
+$pageTitle = sr_t('privacy::cookie.manage.title');
 $seo = [
     'title' => $pageTitle,
     'robots' => 'noindex, nofollow',
 ];
-$cookieConsentSelectedItems = sr_privacy_cookie_consent_selected_items();
-$cookieConsentCurrent = $cookieConsentSelectedItems !== []
-    ? sr_t('privacy::cookie.manage.current.functional')
-    : sr_t('privacy::cookie.manage.current.essential');
-$cookieConsentReturnTo = sr_member_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/account/privacy-requests'));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'style_profile' => 'kit',
 ]);
@@ -17,21 +12,16 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     <main class="public-ui-scope">
         <section class="public-ui-form-panel">
             <h1 class="public-ui-title type-section-title"><?php echo sr_e($pageTitle); ?></h1>
-
-            <div class="public-ui-content-list">
-                <p class="public-ui-copy type-body"><?php echo sr_e(sr_t('privacy::ui.privacy.guidance.body.1')); ?></p>
-                <p class="public-ui-copy type-body"><?php echo sr_e(sr_t('privacy::ui.privacy.guidance.body.2')); ?></p>
-                <p><a href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('privacy::ui.text.13b28045')); ?></a></p>
-            </div>
-        </section>
-
-        <section class="public-ui-form-panel">
-            <h2 class="public-ui-title type-card-title"><?php echo sr_e(sr_t('privacy::cookie.manage.title')); ?></h2>
             <div class="public-ui-content-list">
                 <p class="public-ui-copy type-body"><?php echo sr_e(sr_t('privacy::cookie.manage.body')); ?></p>
-                <p class="public-ui-feedback type-small"><?php echo sr_e($cookieConsentCurrent); ?></p>
+                <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>" class="public-ui-content-list">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">
+                    <input type="hidden" name="consent" value="selected">
+                    <?php echo sr_privacy_cookie_consent_items_fields_html($cookieConsentSelectedItems); ?>
+                    <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('privacy::cookie.save.selection')); ?></button>
+                </form>
                 <div class="public-ui-actions">
-                    <a class="public-ui-button" href="<?php echo sr_e(sr_url(sr_privacy_cookie_settings_path($cookieConsentReturnTo))); ?>"><?php echo sr_e(sr_t('privacy::cookie.selected')); ?></a>
                     <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">

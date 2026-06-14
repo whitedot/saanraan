@@ -146,6 +146,11 @@ function sr_privacy_cookie_consent_items_fields_html(array $selectedItems): stri
     return is_string($html) ? $html : '';
 }
 
+function sr_privacy_cookie_settings_path(string $returnTo): string
+{
+    return '/privacy/cookie-settings?return_to=' . rawurlencode(sr_member_safe_next_path($returnTo));
+}
+
 function sr_privacy_cookie_consent_public_html(?PDO $pdo = null): string
 {
     if (sr_privacy_cookie_consent_value() !== '') {
@@ -163,18 +168,12 @@ function sr_privacy_cookie_consent_public_html(?PDO $pdo = null): string
             <p><?php echo sr_e(sr_t('privacy::cookie.body')); ?></p>
         </div>
         <div class="sr-cookie-consent-actions">
+            <a class="sr-cookie-consent-button sr-cookie-consent-button-secondary" href="<?php echo sr_e(sr_url(sr_privacy_cookie_settings_path($returnTo))); ?>"><?php echo sr_e(sr_t('privacy::cookie.selected')); ?></a>
             <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
                 <input type="hidden" name="consent" value="reject">
                 <button type="submit" class="sr-cookie-consent-button sr-cookie-consent-button-secondary"><?php echo sr_e(sr_t('privacy::cookie.reject')); ?></button>
-            </form>
-            <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
-                <input type="hidden" name="consent" value="selected">
-                <?php echo sr_privacy_cookie_consent_items_fields_html(sr_privacy_cookie_consent_optional_item_keys()); ?>
-                <button type="submit" class="sr-cookie-consent-button sr-cookie-consent-button-secondary"><?php echo sr_e(sr_t('privacy::cookie.selected')); ?></button>
             </form>
             <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                 <?php echo sr_csrf_field(); ?>

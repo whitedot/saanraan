@@ -10,6 +10,7 @@
 .sr-cookie-consent-item span{display:grid;gap:.125rem}
 .sr-cookie-consent-item small{color:#4b5563;font-size:.8rem}
 .sr-cookie-consent-button{min-height:2.25rem;padding:.5rem .75rem;border:1px solid transparent;border-radius:.375rem;font:inherit;font-size:.875rem;font-weight:700;cursor:pointer}
+a.sr-cookie-consent-button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .sr-cookie-consent-button-primary{border-color:#111827;background:#111827;color:#fff}
 .sr-cookie-consent-button-secondary{border-color:#d1d5db;background:#fff;color:#111827}
 .sr-cookie-consent-button:focus-visible{outline:3px solid rgba(37,99,235,.35);outline-offset:2px}
