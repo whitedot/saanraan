@@ -41,15 +41,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="antispam_admin_ttl_seconds">문제 유효 시간 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <input id="antispam_admin_ttl_seconds" type="number" name="ttl_seconds" min="60" max="3600" value="<?php echo sr_e((string) $settings['ttl_seconds']); ?>" required class="form-input">
-                <p class="admin-form-help">초 단위입니다.</p>
+                <div class="input-group admin-input-unit">
+                    <input id="antispam_admin_ttl_seconds" type="number" name="ttl_seconds" min="60" max="3600" value="<?php echo sr_e((string) $settings['ttl_seconds']); ?>" required class="form-input">
+                    <span class="input-group-text">초</span>
+                </div>
             </div>
         </div>
         <div class="admin-form-row">
             <label class="form-label" for="antispam_admin_min_submit_seconds">최소 제출 시간 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <input id="antispam_admin_min_submit_seconds" type="number" name="min_submit_seconds" min="0" max="60" value="<?php echo sr_e((string) $settings['min_submit_seconds']); ?>" required class="form-input">
-                <p class="admin-form-help">초 단위입니다.</p>
+                <div class="input-group admin-input-unit">
+                    <input id="antispam_admin_min_submit_seconds" type="number" name="min_submit_seconds" min="0" max="60" value="<?php echo sr_e((string) $settings['min_submit_seconds']); ?>" required class="form-input">
+                    <span class="input-group-text">초</span>
+                </div>
             </div>
         </div>
     </section>
@@ -75,8 +79,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <label class="form-label" for="antispam_admin_provider_timeout_seconds">provider timeout <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
-                <input id="antispam_admin_provider_timeout_seconds" type="number" name="provider_timeout_seconds" min="1" max="10" value="<?php echo sr_e((string) $settings['provider_timeout_seconds']); ?>" required class="form-input">
-                <p class="admin-form-help">초 단위입니다.</p>
+                <div class="input-group admin-input-unit">
+                    <input id="antispam_admin_provider_timeout_seconds" type="number" name="provider_timeout_seconds" min="1" max="10" value="<?php echo sr_e((string) $settings['provider_timeout_seconds']); ?>" required class="form-input">
+                    <span class="input-group-text">초</span>
+                </div>
             </div>
         </div>
         <div class="admin-form-row">
@@ -127,7 +133,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </section>
 
-    <div class="admin-form-sticky-actions admin-form-actions">
+    <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-primary">
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
