@@ -493,6 +493,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-list-summary{border-bottom:1px solid var(--color-default-200);color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);padding:calc(var(--spacing) * 3) calc(var(--spacing) * 4)}
 .admin-list-summary strong{color:var(--text-strong)}
 .admin-list-summary-row{align-items:center;border-bottom:1px solid var(--color-default-200);display:flex;gap:calc(var(--spacing) * 2);justify-content:space-between;padding:0 calc(var(--spacing) * 4)}
+.admin-operations-summary-row{padding-block:calc(var(--spacing) * 2)}
 .admin-list-summary-row .admin-list-summary{border-bottom:0;flex:1 1 auto;padding-left:0;padding-right:0}
 .admin-sort-reset{flex:0 0 auto}
 .admin-account-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(0,1fr) auto;align-items:end;gap:.875rem;display:grid}

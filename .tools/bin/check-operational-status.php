@@ -488,12 +488,12 @@ foreach ([
 }
 
 foreach ([
-    '운영 상태 요약',
     '지연/실패 신호',
-    '읽기 전용 점검',
+    '지연되었거나 실패한 작업을 확인만 하는 화면입니다.',
     '지연 초과',
     '허용 지연',
     'sr_admin_time_html($operationStatusCheckedAt)',
+    "sr_admin_code_label((string) (\$row['module'] ?? ''), 'module_key')",
 ] as $marker) {
     if (is_string($view) && !str_contains($view, $marker)) {
         sr_operational_status_error('Admin operational status view is missing marker: ' . $marker);
