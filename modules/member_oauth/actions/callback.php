@@ -28,13 +28,14 @@ if (!is_array($state)) {
 $profile = sr_member_oauth_mock_profile();
 $subjectHash = sr_member_oauth_subject_hash($config, $providerKey, (string) $profile['subject']);
 $oauthAccount = sr_member_oauth_account_by_subject($pdo, $providerKey, $subjectHash);
+$anyOauthAccount = is_array($oauthAccount) ? $oauthAccount : sr_member_oauth_account_by_subject_any($pdo, $providerKey, $subjectHash);
 if ((string) $state['flow_type'] === 'link') {
     $account = sr_member_require_login($pdo);
     if ((int) $state['account_id'] !== (int) $account['id']) {
         sr_render_error(403, 'OAuth link state is not valid for this account.');
     }
     $existingProviderAccount = sr_member_oauth_account_for_provider($pdo, (int) $account['id'], $providerKey);
-    if (is_array($oauthAccount) && (int) $oauthAccount['account_id'] !== (int) $account['id']) {
+    if (is_array($anyOauthAccount) && (int) $anyOauthAccount['account_id'] !== (int) $account['id']) {
         sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link_conflict', 'failure');
         sr_render_error(409, 'OAuth provider account is already linked.');
     }
@@ -42,7 +43,7 @@ if ((string) $state['flow_type'] === 'link') {
         sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link_provider_exists', 'failure');
         sr_render_error(409, 'OAuth provider is already linked to this account.');
     }
-    if (!is_array($oauthAccount) && !is_array($existingProviderAccount)) {
+    if (!is_array($existingProviderAccount)) {
         sr_member_oauth_link_account($pdo, (int) $account['id'], $providerKey, $subjectHash, $profile);
         sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link', 'success');
         sr_audit_log($pdo, [
@@ -66,11 +67,35 @@ if (is_array($oauthAccount)) {
     $memberSettings = sr_member_settings($pdo);
     if (!is_array($account) || (string) ($account['status'] ?? '') !== 'active' || sr_member_email_verification_blocks_login($memberSettings, $account)) {
         sr_member_log_auth($pdo, is_array($account) ? (int) $account['id'] : null, 'oauth_login_blocked', 'failure');
+        sr_audit_log($pdo, [
+            'actor_account_id' => is_array($account) ? (int) $account['id'] : null,
+            'actor_type' => 'member',
+            'event_type' => 'member.oauth.login.blocked',
+            'target_type' => 'member_account',
+            'target_id' => is_array($account) ? (string) $account['id'] : '',
+            'result' => 'failure',
+            'message' => 'OAuth login blocked by member account policy.',
+            'metadata' => [
+                'provider_key' => $providerKey,
+            ],
+        ]);
         sr_render_error(403, 'OAuth login is not allowed for this account.');
     }
     if (sr_member_login($pdo, $account)) {
         sr_member_group_evaluate_account($pdo, (int) $account['id']);
         sr_member_log_auth($pdo, (int) $account['id'], 'oauth_login', 'success');
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'member.oauth.login',
+            'target_type' => 'member_account',
+            'target_id' => (string) $account['id'],
+            'result' => 'success',
+            'message' => 'OAuth login succeeded.',
+            'metadata' => [
+                'provider_key' => $providerKey,
+            ],
+        ]);
         $stmt = $pdo->prepare('UPDATE sr_member_oauth_accounts SET last_login_at = :last_login_at, updated_at = :updated_at WHERE id = :id');
         $stmt->execute([
             'last_login_at' => sr_now(),
@@ -79,7 +104,24 @@ if (is_array($oauthAccount)) {
         ]);
         sr_redirect((string) $state['next_path']);
     }
+    sr_member_log_auth($pdo, (int) $account['id'], 'oauth_login_session_failed', 'failure');
+    sr_audit_log($pdo, [
+        'actor_account_id' => (int) $account['id'],
+        'actor_type' => 'member',
+        'event_type' => 'member.oauth.login.session_failed',
+        'target_type' => 'member_account',
+        'target_id' => (string) $account['id'],
+        'result' => 'failure',
+        'message' => 'OAuth login matched an account but session creation failed.',
+        'metadata' => [
+            'provider_key' => $providerKey,
+        ],
+    ]);
     sr_render_error(500, 'OAuth login session failed.');
+}
+
+if (is_array($anyOauthAccount)) {
+    sr_render_error(409, 'OAuth provider account was previously linked.');
 }
 
 $memberSettings = sr_member_settings($pdo);

@@ -198,6 +198,25 @@ function sr_member_oauth_account_by_subject(PDO $pdo, string $providerKey, strin
     return is_array($row) ? $row : null;
 }
 
+function sr_member_oauth_account_by_subject_any(PDO $pdo, string $providerKey, string $subjectHash): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_member_oauth_accounts
+         WHERE provider_key = :provider_key
+           AND provider_subject_hash = :provider_subject_hash
+         ORDER BY revoked_at IS NULL DESC, id DESC
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'provider_key' => $providerKey,
+        'provider_subject_hash' => $subjectHash,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function sr_member_oauth_accounts_for_account(PDO $pdo, int $accountId): array
 {
     if ($accountId < 1) {
@@ -276,6 +295,42 @@ function sr_member_oauth_revoke_account(PDO $pdo, int $oauthAccountId, int $acco
 function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $providerKey, string $subjectHash, array $profile): int
 {
     $now = sr_now();
+    $existing = sr_member_oauth_account_by_subject_any($pdo, $providerKey, $subjectHash);
+    if (is_array($existing)) {
+        if ((int) $existing['account_id'] !== $accountId) {
+            throw new RuntimeException('OAuth provider account is already linked.');
+        }
+        if ($existing['revoked_at'] === null) {
+            return (int) $existing['id'];
+        }
+
+        $stmt = $pdo->prepare(
+            'UPDATE sr_member_oauth_accounts
+             SET provider_subject_display = :provider_subject_display,
+                 email_snapshot = :email_snapshot,
+                 email_verified_snapshot = :email_verified_snapshot,
+                 display_name_snapshot = :display_name_snapshot,
+                 linked_at = :linked_at,
+                 revoked_at = NULL,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND account_id = :account_id
+               AND revoked_at IS NOT NULL'
+        );
+        $stmt->execute([
+            'provider_subject_display' => (string) ($profile['subject_display'] ?? ''),
+            'email_snapshot' => (string) ($profile['email'] ?? ''),
+            'email_verified_snapshot' => !empty($profile['email_verified']) ? 1 : 0,
+            'display_name_snapshot' => (string) ($profile['display_name'] ?? ''),
+            'linked_at' => $now,
+            'updated_at' => $now,
+            'id' => (int) $existing['id'],
+            'account_id' => $accountId,
+        ]);
+
+        return (int) $existing['id'];
+    }
+
     $stmt = $pdo->prepare(
         'INSERT INTO sr_member_oauth_accounts
             (account_id, provider_key, provider_subject_hash, provider_subject_display, email_snapshot,

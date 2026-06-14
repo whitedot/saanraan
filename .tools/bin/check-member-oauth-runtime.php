@@ -137,6 +137,7 @@ function sr_member_oauth_check_runtime_helpers(): void
     ]);
     sr_member_oauth_check_assert($oauthAccountId > 0, 'OAuth account link should be created.');
     sr_member_oauth_check_assert(sr_member_oauth_account_by_subject($pdo, 'mock', $subjectHash) !== null, 'OAuth account should be found by subject hash.');
+    sr_member_oauth_check_assert(sr_member_oauth_account_by_subject_any($pdo, 'mock', $subjectHash) !== null, 'OAuth account should be found by subject hash regardless of revocation state.');
     sr_member_oauth_check_assert(sr_member_oauth_account_for_provider($pdo, 7, 'mock') !== null, 'OAuth account should be found by account/provider.');
 
     $activeAccounts = sr_member_oauth_accounts_for_account($pdo, 7);
@@ -145,6 +146,21 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert(sr_member_oauth_can_unlink(['password_hash' => 'hash'], $activeAccounts), 'OAuth account should be unlinkable when password login exists.');
     sr_member_oauth_check_assert(sr_member_oauth_revoke_account($pdo, $oauthAccountId, 7), 'OAuth account should be revoked.');
     sr_member_oauth_check_assert(sr_member_oauth_account_by_subject($pdo, 'mock', $subjectHash) === null, 'Revoked OAuth account should not be returned for login.');
+    sr_member_oauth_check_assert(sr_member_oauth_account_by_subject_any($pdo, 'mock', $subjectHash) !== null, 'Revoked OAuth account should remain visible to conflict checks.');
+    $reactivatedAccountId = sr_member_oauth_link_account($pdo, 7, 'mock', $subjectHash, [
+        'subject_display' => 'mock-user',
+        'email' => 'mock-user@example.test',
+        'email_verified' => true,
+        'display_name' => 'mock_user',
+    ]);
+    sr_member_oauth_check_assert($reactivatedAccountId === $oauthAccountId, 'Relinking the same account/provider subject should reactivate the revoked link.');
+    sr_member_oauth_check_assert(sr_member_oauth_account_by_subject($pdo, 'mock', $subjectHash) !== null, 'Reactivated OAuth account should be returned for login.');
+    try {
+        sr_member_oauth_link_account($pdo, 8, 'mock', $subjectHash, []);
+        sr_member_oauth_check_assert(false, 'Linking the same provider subject to another account should fail.');
+    } catch (RuntimeException) {
+        sr_member_oauth_check_assert(true, 'Linking the same provider subject to another account should fail.');
+    }
 }
 
 sr_member_oauth_check_contains('modules/member_oauth/module.php', [
@@ -163,6 +179,7 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_create_state',
     'sr_member_oauth_consume_state',
     'sr_member_oauth_subject_hash',
+    'sr_member_oauth_account_by_subject_any',
     'sr_member_oauth_can_unlink',
     'sr_member_oauth_revoke_account',
 ]);
@@ -179,6 +196,8 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
     'sr_member_login($pdo, $account)',
     'sr_member_email_verification_blocks_login',
     'sr_member_oauth_create_completion_state',
+    'member.oauth.login',
+    'member.oauth.login.blocked',
     'member.oauth.linked',
 ]);
 sr_member_oauth_check_forbids('modules/member_oauth/actions/callback.php', [
