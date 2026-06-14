@@ -452,6 +452,8 @@ window.AdminShell = {
                 return;
             }
 
+            const pairByLink = new Map(pairs.map(pair => [pair.link, pair]));
+            const scrollBehavior = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
             const activePairFromScroll = () => {
                 const probeY = adminStickyOffset() + Math.min(96, window.innerHeight * 0.25);
                 let activePair = pairs[0];
@@ -484,8 +486,15 @@ window.AdminShell = {
             };
 
             links.forEach(link => {
-                link.addEventListener('click', () => {
+                link.addEventListener('click', event => {
+                    const pair = pairByLink.get(link);
+                    if (!pair) {
+                        return;
+                    }
+
+                    event.preventDefault();
                     setAnchorTabActive(tabs, link, { scrollTabIntoView: true });
+                    pair.section.scrollIntoView({ block: 'start', behavior: scrollBehavior });
                 });
             });
 
