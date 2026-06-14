@@ -23,7 +23,10 @@ $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo,
 $canWriteBoard = sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
 
 $settings = sr_community_settings($pdo);
-$postsPerPage = max(1, min(100, (int) ($settings['posts_per_page'] ?? 20)));
+$postsPerPage = sr_community_board_list_per_page($pdo, $board, $settings);
+$listDefaultSort = sr_community_board_list_default_sort($pdo, $board);
+$listExcerptEnabled = sr_community_board_list_excerpt_enabled($pdo, $board);
+$listExcerptLength = sr_community_board_list_excerpt_length($pdo, $board);
 $keywordValue = sr_get_string_without_truncation('q', 100);
 $keyword = is_string($keywordValue) ? trim($keywordValue) : '';
 $categories = sr_community_categories($pdo, (int) $board['id'], true);
@@ -42,7 +45,7 @@ $totalPages = max(1, (int) ceil($postCount / $postsPerPage));
 if ($page > $totalPages) {
     $page = $totalPages;
 }
-$posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId);
+$posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId, $listDefaultSort);
 $boardNotice = '';
 if (isset($_SESSION['sr_community_board_notice']) && is_string($_SESSION['sr_community_board_notice'])) {
     $boardNotice = $_SESSION['sr_community_board_notice'];

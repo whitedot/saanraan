@@ -460,6 +460,17 @@ if (sr_request_method() === 'POST') {
         $categoryRequired = ($_POST['category_required'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $postEditLockCommentCount = sr_admin_post_int_in_range('post_edit_lock_comment_count', 0, 1000000);
+        $postDeleteLockCommentCount = sr_admin_post_int_in_range('post_delete_lock_comment_count', 0, 1000000);
+        $postBodyMinLength = sr_admin_post_int_in_range('post_body_min_length', 0, 20000);
+        $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, 20000);
+        $commentBodyMinLength = sr_admin_post_int_in_range('comment_body_min_length', 0, 5000);
+        $commentBodyMaxLength = sr_admin_post_int_in_range('comment_body_max_length', 0, 5000);
+        $listExcerptEnabled = ($_POST['list_excerpt_enabled'] ?? '') === '1';
+        $listExcerptLength = sr_admin_post_int_in_range('list_excerpt_length', 1, 1000);
+        $listPerPage = sr_admin_post_int_in_range('list_per_page', 1, 100);
+        $listDefaultSortInput = sr_post_string('list_default_sort', 20);
+        $listDefaultSort = sr_community_board_list_sort_key($listDefaultSortInput);
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
@@ -679,6 +690,31 @@ if (sr_request_method() === 'POST') {
             }
         }
 
+        foreach ([
+            'postEditLockCommentCount' => ['value' => $postEditLockCommentCount, 'message' => '게시글 수정 잠금 댓글 수가 올바르지 않습니다.', 'fallback' => 0],
+            'postDeleteLockCommentCount' => ['value' => $postDeleteLockCommentCount, 'message' => '게시글 삭제 잠금 댓글 수가 올바르지 않습니다.', 'fallback' => 0],
+            'postBodyMinLength' => ['value' => $postBodyMinLength, 'message' => '게시글 본문 최소 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'postBodyMaxLength' => ['value' => $postBodyMaxLength, 'message' => '게시글 본문 최대 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'commentBodyMinLength' => ['value' => $commentBodyMinLength, 'message' => '댓글 본문 최소 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'commentBodyMaxLength' => ['value' => $commentBodyMaxLength, 'message' => '댓글 본문 최대 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'listExcerptLength' => ['value' => $listExcerptLength, 'message' => '목록 본문 요약 길이가 올바르지 않습니다.', 'fallback' => 120],
+            'listPerPage' => ['value' => $listPerPage, 'message' => '목록 페이지당 글 수가 올바르지 않습니다.', 'fallback' => 20],
+        ] as $numericSettingKey => $numericSetting) {
+            if ($numericSetting['value'] === null) {
+                $errors[] = (string) $numericSetting['message'];
+                ${$numericSettingKey} = (int) $numericSetting['fallback'];
+            }
+        }
+        if ($postBodyMinLength > 0 && $postBodyMaxLength > 0 && $postBodyMinLength > $postBodyMaxLength) {
+            $errors[] = '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
+        }
+        if ($commentBodyMinLength > 0 && $commentBodyMaxLength > 0 && $commentBodyMinLength > $commentBodyMaxLength) {
+            $errors[] = '댓글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
+        }
+        if ($listDefaultSortInput !== $listDefaultSort) {
+            $errors[] = '목록 기본 정렬 값이 올바르지 않습니다.';
+        }
+
         if (!is_string($privacyConsentBodyInput)) {
             $errors[] = '개인정보 수집 및 이용동의 본문이 너무 깁니다.';
             $privacyConsentBody = '';
@@ -823,6 +859,16 @@ if (sr_request_method() === 'POST') {
                 'category_required' => $categoryRequired ? '1' : '0',
                 'secret_posts_enabled' => $secretPostsEnabled ? '1' : '0',
                 'secret_comments_enabled' => $secretCommentsEnabled ? '1' : '0',
+                'post_edit_lock_comment_count' => (string) $postEditLockCommentCount,
+                'post_delete_lock_comment_count' => (string) $postDeleteLockCommentCount,
+                'post_body_min_length' => (string) $postBodyMinLength,
+                'post_body_max_length' => (string) $postBodyMaxLength,
+                'comment_body_min_length' => (string) $commentBodyMinLength,
+                'comment_body_max_length' => (string) $commentBodyMaxLength,
+                'list_excerpt_enabled' => $listExcerptEnabled ? '1' : '0',
+                'list_excerpt_length' => (string) $listExcerptLength,
+                'list_per_page' => (string) $listPerPage,
+                'list_default_sort' => $listDefaultSort,
                 'reaction_post_preset_key' => $reactionPostPresetKey,
                 'reaction_comment_preset_key' => $reactionCommentPresetKey,
                 'privacy_consent_enabled' => $privacyConsentEnabled ? '1' : '0',

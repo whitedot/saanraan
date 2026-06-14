@@ -135,6 +135,7 @@ php .tools/bin/smoke-http.php
 - `.tools/bin/check-site-menu-seed-order.php`는 사이트 메뉴 seed order, 공개 렌더링, 현재 항목/상위 항목 표시, 3단계 제한, 외부 링크 보호, URL fail-closed를 확인한다. 하위 메뉴가 있는 항목의 `sr-site-menu-item-has-children`, `aria-haspopup`, `aria-expanded`, `aria-controls`와 헤더 dropdown CSS/JS marker도 확인한다. 같은 요청에서 동일 `menu_key` 렌더링이 반복될 때 enabled item tree 조회가 반복되지 않고, `sr_site_menu_clear_runtime_cache()` 호출 후 다음 렌더링이 새 tree를 조회하는지도 SQLite fixture로 확인한다.
 - `.tools/bin/check-community-board-copy-job-lock.php`는 게시판 복사 작업의 `lock_token` 검증 helper와 stage/map 처리 경로의 token 전달 marker를 확인하고, stale token과 종료 상태 job이 lock assertion을 통과하지 못하는지 SQLite fixture로 확인한다.
 - `.tools/bin/check-community-privacy-consent.php`는 커뮤니티 개인정보 수집 및 이용동의의 전역 기본값 normalization, 게시판 그룹 설정 상속, 게시판 설정 override, 미동의 서버 거부, 비회원 `account_id = NULL` 동의 snapshot, 제목/버전/IP hash 저장을 SQLite fixture로 확인한다. 정적 마커는 환경설정, 게시판 그룹, 게시판 개별 설정 UI와 저장 action, 공개 게시글/수정/댓글/첨부 업로드 검증 연결, 게시글/댓글 관리자 목록 동의 증적 표시를 함께 확인한다.
+- `.tools/bin/check-community-board-settings.php`는 게시판 그룹/게시판 운영 설정 key, 관리자 저장 action, 공개 목록 페이지당 글 수/기본 정렬/본문 요약 적용, 게시글·댓글 본문 길이 검증, 댓글 수 기반 게시글 수정·삭제 잠금 marker를 확인한다. 런타임 fixture는 정렬 key normalization, HTML 본문 plain length 계산, 본문 요약 자르기 helper가 기대값을 유지하는지 확인한다.
 - 공유호스팅에서 실시간 실행을 보장하지 않는다는 한계는 README와 운영 문서에서 함께 설명해야 한다.
 
 ### 자작 보안 컴포넌트

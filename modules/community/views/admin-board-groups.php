@@ -487,6 +487,79 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_post_edit_lock_comment_count">게시글 수정 잠금 댓글 수 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_post_edit_lock_comment_count" type="number" name="group_post_edit_lock_comment_count" min="0" max="1000000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'post_edit_lock_comment_count', '0')); ?>" required class="form-input">
+                        <p class="admin-form-help">0이면 댓글 수로 게시글 수정을 잠그지 않습니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_post_delete_lock_comment_count">게시글 삭제 잠금 댓글 수 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_post_delete_lock_comment_count" type="number" name="group_post_delete_lock_comment_count" min="0" max="1000000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'post_delete_lock_comment_count', '0')); ?>" required class="form-input">
+                        <p class="admin-form-help">0이면 댓글 수로 게시글 삭제를 잠그지 않습니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_post_body_min_length">게시글 본문 최소 길이 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_post_body_min_length" type="number" name="group_post_body_min_length" min="0" max="20000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'post_body_min_length', '0')); ?>" required class="form-input">
+                        <p class="admin-form-help">0이면 최소 길이를 검사하지 않습니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_post_body_max_length">게시글 본문 최대 길이 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_post_body_max_length" type="number" name="group_post_body_max_length" min="0" max="20000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'post_body_max_length', '0')); ?>" required class="form-input">
+                        <p class="admin-form-help">0이면 최대 길이를 검사하지 않습니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_comment_body_min_length">댓글 본문 최소 길이 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_comment_body_min_length" type="number" name="group_comment_body_min_length" min="0" max="5000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'comment_body_min_length', '0')); ?>" required class="form-input">
+                        <p class="admin-form-help">0이면 최소 길이를 검사하지 않습니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_comment_body_max_length">댓글 본문 최대 길이 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_comment_body_max_length" type="number" name="group_comment_body_max_length" min="0" max="5000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'comment_body_max_length', '0')); ?>" required class="form-input">
+                        <p class="admin-form-help">0이면 최대 길이를 검사하지 않습니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_list_excerpt_enabled">목록 본문 요약</label>
+                    <div class="admin-form-field">
+                        <label class="admin-form-check form-label" for="community_admin_board_groups_group_list_excerpt_enabled">
+                            <input id="community_admin_board_groups_group_list_excerpt_enabled" type="checkbox" name="group_list_excerpt_enabled" value="1" class="form-switch form-choice-dark"<?php echo $groupSettingValue($formGroupSettings, 'list_excerpt_enabled', '0') === '1' ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html('게시글 목록에 본문 요약 표시'); ?>
+                        </label>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_list_excerpt_length">목록 본문 요약 길이 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_list_excerpt_length" type="number" name="group_list_excerpt_length" min="1" max="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'list_excerpt_length', '120')); ?>" required class="form-input">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_list_per_page">목록 페이지당 글 수 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_list_per_page" type="number" name="group_list_per_page" min="1" max="100" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'list_per_page', (string) ($settings['posts_per_page'] ?? 20))); ?>" required class="form-input">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_list_default_sort">목록 기본 정렬 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <select id="community_admin_board_groups_group_list_default_sort" name="group_list_default_sort" class="form-select" required>
+                            <?php foreach (sr_community_board_list_sort_values() as $communitySortKey) { ?>
+                                <option value="<?php echo sr_e($communitySortKey); ?>"<?php echo $groupSettingValue($formGroupSettings, 'list_default_sort', 'latest') === $communitySortKey ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($communitySortKey, 'sort')); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-row">
                     <label class="form-label" for="community_admin_board_groups_group_level_post_score"><?php echo sr_e(sr_t('community::ui.text.99092cba')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                     <div class="admin-form-field">
                         <input id="community_admin_board_groups_group_level_post_score" type="number" name="group_level_post_score" min="0" max="10000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'level_post_score', (string) ($settings['level_post_score'] ?? 10))); ?>" required class="form-input">

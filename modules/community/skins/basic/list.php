@@ -115,6 +115,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">
                                     <?php echo sr_e((string) $post['title']); ?>
                                 </a>
+                                <?php if (!empty($listExcerptEnabled)) { ?>
+                                    <?php $communityListExcerpt = sr_community_body_excerpt((string) ($post['body_text'] ?? ''), (string) ($post['body_format'] ?? 'plain'), (int) ($listExcerptLength ?? 120)); ?>
+                                    <?php if ($communityListExcerpt !== '') { ?>
+                                        <p><?php echo sr_e($communityListExcerpt); ?></p>
+                                    <?php } ?>
+                                <?php } ?>
                             </td>
                             <td>
                                 <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>

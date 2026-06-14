@@ -34,9 +34,13 @@ $board = sr_community_board_by_id($pdo, (int) $post['board_id']);
 if (!is_array($board)) {
     $board = [
         'id' => (int) $post['board_id'],
+        'board_group_id' => (int) ($post['board_group_id'] ?? 0),
         'board_key' => (string) $post['board_key'],
         'title' => (string) $post['board_title'],
     ];
+}
+if (sr_community_post_locked_by_comments($pdo, $board, $postId, 'edit')) {
+    sr_render_error(409, '댓글 수 기준에 따라 이 게시글은 더 이상 수정할 수 없습니다.');
 }
 $settings = sr_community_settings($pdo);
 $board['image_uploads_enabled'] = 0;
@@ -129,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $seriesValues['series_mode'] = 'none';
     }
     $errors = sr_community_validate_post_input($values);
+    $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values));
     $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
     if ($extraFieldDefinitions !== [] && !sr_community_post_extra_values_column_exists($pdo)) {
         $errors[] = '게시판 추가 입력 스키마 업데이트가 아직 적용되지 않았습니다.';

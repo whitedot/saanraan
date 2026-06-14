@@ -140,6 +140,17 @@ if (sr_request_method() === 'POST') {
         $commentMinLevel = sr_admin_post_int_in_range('group_comment_min_level', 0, $maxLevel);
         $levelPostScore = sr_admin_post_int_in_range('group_level_post_score', 0, 10000);
         $levelCommentScore = sr_admin_post_int_in_range('group_level_comment_score', 0, 10000);
+        $postEditLockCommentCount = sr_admin_post_int_in_range('group_post_edit_lock_comment_count', 0, 1000000);
+        $postDeleteLockCommentCount = sr_admin_post_int_in_range('group_post_delete_lock_comment_count', 0, 1000000);
+        $postBodyMinLength = sr_admin_post_int_in_range('group_post_body_min_length', 0, 20000);
+        $postBodyMaxLength = sr_admin_post_int_in_range('group_post_body_max_length', 0, 20000);
+        $commentBodyMinLength = sr_admin_post_int_in_range('group_comment_body_min_length', 0, 5000);
+        $commentBodyMaxLength = sr_admin_post_int_in_range('group_comment_body_max_length', 0, 5000);
+        $listExcerptEnabled = ($_POST['group_list_excerpt_enabled'] ?? '') === '1';
+        $listExcerptLength = sr_admin_post_int_in_range('group_list_excerpt_length', 1, 1000);
+        $listPerPage = sr_admin_post_int_in_range('group_list_per_page', 1, 100);
+        $listDefaultSortInput = sr_post_string('group_list_default_sort', 20);
+        $listDefaultSort = sr_community_board_list_sort_key($listDefaultSortInput);
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['group_privacy_consent_enabled'] ?? '') === '1';
@@ -284,6 +295,31 @@ if (sr_request_method() === 'POST') {
         if ($levelCommentScore === null) {
             $errors[] = sr_t('community::action.admin.comment_score_invalid');
             $levelCommentScore = (int) $settings['level_comment_score'];
+        }
+
+        foreach ([
+            'postEditLockCommentCount' => ['value' => $postEditLockCommentCount, 'message' => '게시판 그룹의 게시글 수정 잠금 댓글 수가 올바르지 않습니다.', 'fallback' => 0],
+            'postDeleteLockCommentCount' => ['value' => $postDeleteLockCommentCount, 'message' => '게시판 그룹의 게시글 삭제 잠금 댓글 수가 올바르지 않습니다.', 'fallback' => 0],
+            'postBodyMinLength' => ['value' => $postBodyMinLength, 'message' => '게시판 그룹의 게시글 본문 최소 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'postBodyMaxLength' => ['value' => $postBodyMaxLength, 'message' => '게시판 그룹의 게시글 본문 최대 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'commentBodyMinLength' => ['value' => $commentBodyMinLength, 'message' => '게시판 그룹의 댓글 본문 최소 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'commentBodyMaxLength' => ['value' => $commentBodyMaxLength, 'message' => '게시판 그룹의 댓글 본문 최대 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'listExcerptLength' => ['value' => $listExcerptLength, 'message' => '게시판 그룹의 목록 본문 요약 길이가 올바르지 않습니다.', 'fallback' => 120],
+            'listPerPage' => ['value' => $listPerPage, 'message' => '게시판 그룹의 목록 페이지당 글 수가 올바르지 않습니다.', 'fallback' => 20],
+        ] as $numericSettingKey => $numericSetting) {
+            if ($numericSetting['value'] === null) {
+                $errors[] = (string) $numericSetting['message'];
+                ${$numericSettingKey} = (int) $numericSetting['fallback'];
+            }
+        }
+        if ($postBodyMinLength > 0 && $postBodyMaxLength > 0 && $postBodyMinLength > $postBodyMaxLength) {
+            $errors[] = '게시판 그룹의 게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
+        }
+        if ($commentBodyMinLength > 0 && $commentBodyMaxLength > 0 && $commentBodyMinLength > $commentBodyMaxLength) {
+            $errors[] = '게시판 그룹의 댓글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
+        }
+        if ($listDefaultSortInput !== $listDefaultSort) {
+            $errors[] = '게시판 그룹의 목록 기본 정렬 값이 올바르지 않습니다.';
         }
 
         foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
@@ -478,6 +514,16 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'comment_min_level', (string) $commentMinLevel, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'level_post_score', (string) $levelPostScore, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'level_comment_score', (string) $levelCommentScore, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'post_edit_lock_comment_count', (string) $postEditLockCommentCount, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'post_delete_lock_comment_count', (string) $postDeleteLockCommentCount, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'post_body_min_length', (string) $postBodyMinLength, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'post_body_max_length', (string) $postBodyMaxLength, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'comment_body_min_length', (string) $commentBodyMinLength, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'comment_body_max_length', (string) $commentBodyMaxLength, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'list_excerpt_enabled', $listExcerptEnabled ? '1' : '0', 'bool');
+            sr_community_set_board_group_setting($pdo, $groupId, 'list_excerpt_length', (string) $listExcerptLength, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'list_per_page', (string) $listPerPage, 'int');
+            sr_community_set_board_group_setting($pdo, $groupId, 'list_default_sort', $listDefaultSort, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_enabled', $privacyConsentEnabled ? '1' : '0', 'bool');

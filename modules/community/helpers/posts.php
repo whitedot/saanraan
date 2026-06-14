@@ -54,11 +54,37 @@ function sr_community_board_requires_login(array $board): bool
     return in_array((string) ($board['effective_read_policy'] ?? $board['read_policy'] ?? ''), ['member', 'group'], true);
 }
 
-function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0): array
+function sr_community_board_list_sort_values(): array
+{
+    return ['latest', 'oldest', 'views', 'comments'];
+}
+
+function sr_community_board_list_sort_key(string $value): string
+{
+    return in_array($value, sr_community_board_list_sort_values(), true) ? $value : 'latest';
+}
+
+function sr_community_board_list_sort_sql(string $sort): string
+{
+    if ($sort === 'oldest') {
+        return 'p.id ASC';
+    }
+    if ($sort === 'views') {
+        return 'p.view_count DESC, p.id DESC';
+    }
+    if ($sort === 'comments') {
+        return 'published_comment_count DESC, p.id DESC';
+    }
+
+    return 'p.id DESC';
+}
+
+function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest'): array
 {
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
     $keyword = trim($keyword);
+    $orderSql = sr_community_board_list_sort_sql(sr_community_board_list_sort_key($sort));
     $categorySupported = sr_community_categories_supported($pdo);
     $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
@@ -95,7 +121,7 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
          LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
          ' . $categoryJoinSql . '
          WHERE ' . $where . '
-         ORDER BY p.id DESC
+         ORDER BY ' . $orderSql . '
          LIMIT :limit_value OFFSET :offset_value'
     );
     foreach ($params as $key => $value) {
@@ -106,6 +132,157 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $stmt->execute();
 
     return $stmt->fetchAll();
+}
+
+function sr_community_effective_board_int_setting(PDO $pdo, array $board, string $settingKey, int $default, int $min, int $max): int
+{
+    $value = sr_community_effective_board_setting($pdo, $board, $settingKey, (string) $default);
+
+    return min($max, max($min, (int) $value));
+}
+
+function sr_community_board_post_edit_lock_comment_count(PDO $pdo, array $board): int
+{
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_edit_lock_comment_count', 0, 0, 1000000);
+}
+
+function sr_community_board_post_delete_lock_comment_count(PDO $pdo, array $board): int
+{
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_delete_lock_comment_count', 0, 0, 1000000);
+}
+
+function sr_community_board_post_body_min_length(PDO $pdo, array $board): int
+{
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_min_length', 0, 0, 20000);
+}
+
+function sr_community_board_post_body_max_length(PDO $pdo, array $board): int
+{
+    return sr_community_effective_board_int_setting($pdo, $board, 'post_body_max_length', 0, 0, 20000);
+}
+
+function sr_community_board_comment_body_min_length(PDO $pdo, array $board): int
+{
+    return sr_community_effective_board_int_setting($pdo, $board, 'comment_body_min_length', 0, 0, 5000);
+}
+
+function sr_community_board_comment_body_max_length(PDO $pdo, array $board): int
+{
+    return sr_community_effective_board_int_setting($pdo, $board, 'comment_body_max_length', 0, 0, 5000);
+}
+
+function sr_community_board_list_excerpt_enabled(PDO $pdo, array $board): bool
+{
+    return in_array(sr_community_effective_board_setting($pdo, $board, 'list_excerpt_enabled', '0'), ['1', 'true', 'yes', 'on'], true);
+}
+
+function sr_community_board_list_excerpt_length(PDO $pdo, array $board): int
+{
+    return sr_community_effective_board_int_setting($pdo, $board, 'list_excerpt_length', 120, 1, 1000);
+}
+
+function sr_community_board_list_per_page(PDO $pdo, array $board, array $settings = []): int
+{
+    $default = min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
+
+    return sr_community_effective_board_int_setting($pdo, $board, 'list_per_page', $default, 1, 100);
+}
+
+function sr_community_board_list_default_sort(PDO $pdo, array $board): string
+{
+    return sr_community_board_list_sort_key(sr_community_effective_board_setting($pdo, $board, 'list_default_sort', 'latest'));
+}
+
+function sr_community_body_plain_text(string $bodyText, string $bodyFormat = 'plain'): string
+{
+    if ($bodyFormat === 'html') {
+        $bodyText = str_replace(['<br>', '<br/>', '<br />'], ' ', $bodyText);
+        $bodyText = html_entity_decode(strip_tags($bodyText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    return trim(preg_replace('/\s+/', ' ', $bodyText) ?? '');
+}
+
+function sr_community_body_plain_length(string $bodyText, string $bodyFormat = 'plain'): int
+{
+    $plainText = sr_community_body_plain_text($bodyText, $bodyFormat);
+
+    return function_exists('mb_strlen') ? mb_strlen($plainText) : strlen($plainText);
+}
+
+function sr_community_body_excerpt(string $bodyText, string $bodyFormat, int $length): string
+{
+    $length = max(1, min(1000, $length));
+    $plainText = sr_community_body_plain_text($bodyText, $bodyFormat);
+    $textLength = function_exists('mb_strlen') ? mb_strlen($plainText) : strlen($plainText);
+    if ($textLength <= $length) {
+        return $plainText;
+    }
+
+    return (function_exists('mb_substr') ? mb_substr($plainText, 0, $length) : substr($plainText, 0, $length)) . '...';
+}
+
+function sr_community_validate_post_body_length(PDO $pdo, array $board, array $values): array
+{
+    $bodyText = $values['body_text'] ?? '';
+    if (!is_string($bodyText)) {
+        return [];
+    }
+
+    $length = sr_community_body_plain_length($bodyText, (string) ($values['body_format'] ?? 'plain'));
+    $minLength = sr_community_board_post_body_min_length($pdo, $board);
+    $maxLength = sr_community_board_post_body_max_length($pdo, $board);
+    $errors = [];
+    if ($minLength > 0 && $length < $minLength) {
+        $errors[] = '게시글 본문은 최소 ' . number_format($minLength) . '자 이상 입력해 주세요.';
+    }
+    if ($maxLength > 0 && $length > $maxLength) {
+        $errors[] = '게시글 본문은 최대 ' . number_format($maxLength) . '자까지 입력할 수 있습니다.';
+    }
+
+    return $errors;
+}
+
+function sr_community_validate_comment_body_length(PDO $pdo, array $board, array $values): array
+{
+    $bodyText = $values['body_text'] ?? '';
+    if (!is_string($bodyText)) {
+        return [];
+    }
+
+    $length = sr_community_body_plain_length($bodyText);
+    $minLength = sr_community_board_comment_body_min_length($pdo, $board);
+    $maxLength = sr_community_board_comment_body_max_length($pdo, $board);
+    $errors = [];
+    if ($minLength > 0 && $length < $minLength) {
+        $errors[] = '댓글 본문은 최소 ' . number_format($minLength) . '자 이상 입력해 주세요.';
+    }
+    if ($maxLength > 0 && $length > $maxLength) {
+        $errors[] = '댓글 본문은 최대 ' . number_format($maxLength) . '자까지 입력할 수 있습니다.';
+    }
+
+    return $errors;
+}
+
+function sr_community_post_published_comment_count(PDO $pdo, int $postId): int
+{
+    if ($postId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM sr_community_comments WHERE post_id = :post_id AND status = 'published'");
+    $stmt->execute(['post_id' => $postId]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_community_post_locked_by_comments(PDO $pdo, array $board, int $postId, string $action): bool
+{
+    $threshold = $action === 'delete'
+        ? sr_community_board_post_delete_lock_comment_count($pdo, $board)
+        : sr_community_board_post_edit_lock_comment_count($pdo, $board);
+
+    return $threshold > 0 && sr_community_post_published_comment_count($pdo, $postId) >= $threshold;
 }
 
 function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0): int

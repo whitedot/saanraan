@@ -85,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $seriesValues['series_mode'] = 'none';
     }
     $errors = sr_community_validate_post_input($values);
+    $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values));
     $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
     if ($extraFieldDefinitions !== [] && !sr_community_post_extra_values_column_exists($pdo)) {
         $errors[] = '게시판 추가 입력 스키마 업데이트가 아직 적용되지 않았습니다.';

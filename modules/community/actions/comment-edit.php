@@ -35,6 +35,9 @@ if (!is_array($board) || !sr_community_effective_board_secret_comments_enabled($
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
 }
 $errors = sr_community_validate_comment_input($values);
+if (is_array($board)) {
+    $errors = array_merge($errors, sr_community_validate_comment_body_length($pdo, $board, $values));
+}
 if ($errors !== []) {
     $_SESSION['sr_community_comment_errors'] = $errors;
     sr_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');

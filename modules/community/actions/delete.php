@@ -37,6 +37,17 @@ if ($isGuestDelete) {
     sr_render_error(403, sr_t('community::action.error.post_delete_forbidden'));
 }
 
+$board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+if (!is_array($board)) {
+    $board = [
+        'id' => (int) ($post['board_id'] ?? 0),
+        'board_group_id' => (int) ($post['board_group_id'] ?? 0),
+    ];
+}
+if (sr_community_post_locked_by_comments($pdo, $board, $postId, 'delete')) {
+    sr_render_error(409, '댓글 수 기준에 따라 이 게시글은 더 이상 삭제할 수 없습니다.');
+}
+
 $settings = sr_community_settings($pdo);
 if (!$isGuestDelete && !empty($settings['post_reward_reversal_enabled'])) {
     $reversalResult = sr_community_reverse_asset_grant($pdo, (int) $post['author_account_id'], 'post_reward', 'community.post', $postId, 'post_reward_reversal', 'community.post.reward_reversal');
