@@ -18,6 +18,13 @@ if (!function_exists('sr_normalize_identifier')) {
     }
 }
 
+if (!function_exists('sr_now')) {
+    function sr_now(): string
+    {
+        return '2026-06-14 00:00:00';
+    }
+}
+
 function sr_privacy_export_runtime_error(string $message): void
 {
     global $errors;
@@ -38,6 +45,45 @@ function sr_privacy_export_runtime_pdo(): PDO
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
     return $pdo;
+}
+
+function sr_privacy_export_runtime_check_member(): void
+{
+    $export = include 'modules/member/privacy-export.php';
+    if (!is_callable($export)) {
+        sr_privacy_export_runtime_error('member privacy export contract is not callable.');
+        return;
+    }
+
+    $pdo = sr_privacy_export_runtime_pdo();
+    $pdo->exec(
+        'CREATE TABLE sr_member_accounts (
+            id INTEGER PRIMARY KEY,
+            email TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            locale TEXT NOT NULL,
+            status TEXT NOT NULL,
+            email_verified_at TEXT NULL,
+            last_login_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec('CREATE TABLE sr_member_profiles (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, phone TEXT NOT NULL, birth_date TEXT NULL, avatar_path TEXT NOT NULL, profile_text TEXT NULL)');
+    $pdo->exec('CREATE TABLE sr_member_consents (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, consent_key TEXT NOT NULL, consent_version TEXT NOT NULL, policy_document_key_snapshot TEXT NOT NULL, policy_version_key_snapshot TEXT NOT NULL, policy_document_version_id INTEGER NULL, consent_title_snapshot TEXT NOT NULL, consent_body_hash TEXT NOT NULL, consent_required INTEGER NOT NULL, consented INTEGER NOT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_member_auth_logs (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, event_type TEXT NOT NULL, result TEXT NOT NULL, ip_address TEXT NOT NULL, user_agent TEXT NULL, created_at TEXT NOT NULL)');
+
+    $pdo->exec("INSERT INTO sr_member_accounts (id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at) VALUES (7, 'member7@example.test', 'Member 7', 'ko', 'active', '', '', '', ''), (8, 'member8@example.test', 'Member 8', 'ko', 'active', '', '', '', '')");
+    $pdo->exec("INSERT INTO sr_member_profiles (id, account_id, phone, birth_date, avatar_path, profile_text) VALUES (1, 7, '010-0000-0007', '1990-01-02', '', 'profile7'), (2, 8, '010-0000-0008', '1988-03-04', '', 'profile8')");
+    $pdo->exec("INSERT INTO sr_member_consents (id, account_id, consent_key, consent_version, policy_document_key_snapshot, policy_version_key_snapshot, policy_document_version_id, consent_title_snapshot, consent_body_hash, consent_required, consented, created_at) VALUES (1, 7, 'privacy', 'v1', 'privacy', 'v1', 1, 'Privacy', 'hash7', 1, 1, ''), (2, 8, 'privacy', 'v1', 'privacy', 'v1', 1, 'Privacy', 'hash8', 1, 1, '')");
+    $pdo->exec("INSERT INTO sr_member_auth_logs (id, account_id, event_type, result, ip_address, user_agent, created_at) VALUES (1, 7, 'login', 'success', '127.0.0.1', 'ua7', ''), (2, 8, 'login', 'success', '127.0.0.2', 'ua8', '')");
+
+    $result = $export($pdo, 7);
+    sr_privacy_export_runtime_assert(($result['account']['email'] ?? '') === 'member7@example.test', 'member export must include target account.');
+    sr_privacy_export_runtime_assert(($result['profile']['birth_date'] ?? '') === '1990-01-02', 'member export must include optional birth date profile data as age-related personal data.');
+    sr_privacy_export_runtime_assert(($result['profile']['phone'] ?? '') === '010-0000-0007', 'member export must include target profile phone.');
+    sr_privacy_export_runtime_assert(count($result['consents'] ?? []) === 1 && ($result['consents'][0]['consent_body_hash'] ?? '') === 'hash7', 'member export must include target consent evidence only.');
+    sr_privacy_export_runtime_assert(count($result['auth_logs'] ?? []) === 1 && ($result['auth_logs'][0]['user_agent'] ?? '') === 'ua7', 'member export must include target auth logs only.');
 }
 
 function sr_privacy_export_runtime_check_quiz(): void
@@ -730,6 +776,7 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     sr_privacy_export_runtime_assert(count($reward['withdrawal_requests'] ?? []) === 1 && ($reward['withdrawal_requests'][0]['bank_account_number'] ?? '') === '222-7', 'reward retained export must include target withdrawal account evidence.');
 }
 
+sr_privacy_export_runtime_check_member();
 sr_privacy_export_runtime_check_quiz();
 sr_privacy_export_runtime_check_survey();
 sr_privacy_export_runtime_check_content();
