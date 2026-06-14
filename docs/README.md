@@ -4,7 +4,7 @@
 
 ## 문서 배치
 
-`docs/` 루트에는 자주 참조하는 현재 기준 문서를 둔다. 구현 기능과 특장점 요약은 [산란 특장점 소개](operator-feature-list.md)를 기준으로 하고, PM 검토용 모듈별 화면/버튼/명령어 기능정의는 [모듈별 기능정의서](module-feature-spec.md)를 기준으로 한다. 구현 전 계획은 `docs/plans/`, 일회성 점검 기록은 `docs/records/`에 둔다.
+`docs/` 루트에는 자주 참조하는 현재 기준 문서를 둔다. 구현 기능과 특장점 요약은 [산란 특장점 소개](operator-feature-list.md)를 기준으로 한다. 구현 전 계획은 `docs/plans/`, 일회성 점검 기록은 `docs/records/`에 둔다.
 
 [산란 특장점 소개](operator-feature-list.md)는 회원·콘텐츠·커뮤니티·퀴즈·설문·리액션·자산·쿠폰·알림·개인정보·사이트 운영 기능이 제공하는 기능과 편의를 정리한다. DB 컬럼, 요청 매핑, 관리자 화면별 상세 필드는 Wiki 또는 [1.0 전 구현 스냅샷](implementation-snapshot.md)을 우선한다.
 
@@ -27,7 +27,6 @@
 | [1.0 범위 잠금 기준](1.0-scope.md) | 1.0 전 안정화 범위와 제외 범위 |
 | [1.0 전 구현 스냅샷](implementation-snapshot.md) | Wiki 구현 명세 정리 전 임시 핵심 표면 |
 | [산란 특장점 소개](operator-feature-list.md) | 현재 구현 기능과 특장점 요약 |
-| [모듈별 기능정의서](module-feature-spec.md) | PM 검토용 번들 모듈 기능, 화면, 버튼/명령어 동작 단일 문서 |
 | [산란 포지셔닝 기준](positioning.md) | 경쟁 범위와 사용 판단 기준 |
 | [검증 상태와 증거 기준](verification-status.md) | 기능 목록을 운영 신뢰로 연결하기 위한 증거 기준 |
 | [모듈 상태 등급](module-status.md) | 번들 모듈별 운영 신뢰 등급과 1.0 전 보강 기준 |
