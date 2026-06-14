@@ -119,6 +119,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.7a617d5f')); ?></h2>
         </div>
         <div class="admin-form-row">
+            <span class="form-label admin-form-label-help">
+                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('admin::ui.text.642180ad') . ' ' . $retentionHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($retentionHelp['auto_cleanup_enabled']['id']); ?>" data-overlay="#<?php echo sr_e($retentionHelp['auto_cleanup_enabled']['id']); ?>">
+                    <?php echo sr_material_icon_html('help'); ?>
+                </button>
+                <span><?php echo sr_e(sr_t('admin::ui.text.642180ad')); ?></span>
+            </span>
+            <div class="admin-form-field">
+                <label class="admin-form-check form-label" for="modules_admin_retention_auto_cleanup_enabled">
+                                    <input id="modules_admin_retention_auto_cleanup_enabled" type="checkbox" name="auto_cleanup_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
+                                    <?php echo sr_admin_choice_label_html(sr_t('admin::ui.active.93c558d7')); ?>
+                                </label>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <?php echo sr_admin_form_label_help_html('admin_retention_auto_cleanup_interval_hours', sr_t('admin::ui.text.3a13e62b'), $retentionHelp['auto_cleanup_interval_hours']['id'], $retentionHelpOpenLabel, true); ?>
+            <div class="admin-form-field">
+                <input id="admin_retention_auto_cleanup_interval_hours" type="number" name="auto_cleanup_interval_hours" value="<?php echo sr_e((string) $values['auto_cleanup_interval_hours']); ?>" class="form-input" min="1" max="720" required>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <?php echo sr_admin_form_label_help_html('admin_retention_auto_cleanup_batch_size', sr_t('admin::ui.text.df1bcbf1'), $retentionHelp['auto_cleanup_batch_size']['id'], $retentionHelpOpenLabel, true); ?>
+            <div class="admin-form-field">
+                <input id="admin_retention_auto_cleanup_batch_size" type="number" name="auto_cleanup_batch_size" value="<?php echo sr_e((string) $values['auto_cleanup_batch_size']); ?>" class="form-input" min="1" max="5000" required>
+            </div>
+        </div>
+        <div class="admin-form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_auth_logs_days', sr_t('admin::ui.text.6cc455be'), $retentionHelp['auth_logs_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <input id="admin_retention_auth_logs_days" type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" class="form-input" min="1" max="3650" required>
@@ -162,32 +188,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('admin_retention_module_backups_days', sr_t('admin::ui.text.b4268fef'), $retentionHelp['module_backups_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <input id="admin_retention_module_backups_days" type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" class="form-input" min="1" max="3650" required>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <span class="form-label admin-form-label-help">
-                <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="<?php echo sr_e(sr_t('admin::ui.text.642180ad') . ' ' . $retentionHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($retentionHelp['auto_cleanup_enabled']['id']); ?>" data-overlay="#<?php echo sr_e($retentionHelp['auto_cleanup_enabled']['id']); ?>">
-                    <?php echo sr_material_icon_html('help'); ?>
-                </button>
-                <span><?php echo sr_e(sr_t('admin::ui.text.642180ad')); ?></span>
-            </span>
-            <div class="admin-form-field">
-                <label class="admin-form-check form-label" for="modules_admin_retention_auto_cleanup_enabled">
-                                    <input id="modules_admin_retention_auto_cleanup_enabled" type="checkbox" name="auto_cleanup_enabled" value="1" class="form-switch form-choice-dark"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
-                                    <?php echo sr_admin_choice_label_html(sr_t('admin::ui.active.93c558d7')); ?>
-                                </label>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('admin_retention_auto_cleanup_interval_hours', sr_t('admin::ui.text.3a13e62b'), $retentionHelp['auto_cleanup_interval_hours']['id'], $retentionHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <input id="admin_retention_auto_cleanup_interval_hours" type="number" name="auto_cleanup_interval_hours" value="<?php echo sr_e((string) $values['auto_cleanup_interval_hours']); ?>" class="form-input" min="1" max="720" required>
-            </div>
-        </div>
-        <div class="admin-form-row">
-            <?php echo sr_admin_form_label_help_html('admin_retention_auto_cleanup_batch_size', sr_t('admin::ui.text.df1bcbf1'), $retentionHelp['auto_cleanup_batch_size']['id'], $retentionHelpOpenLabel, true); ?>
-            <div class="admin-form-field">
-                <input id="admin_retention_auto_cleanup_batch_size" type="number" name="auto_cleanup_batch_size" value="<?php echo sr_e((string) $values['auto_cleanup_batch_size']); ?>" class="form-input" min="1" max="5000" required>
             </div>
         </div>
     </section>
