@@ -211,21 +211,84 @@ function sr_antispam_session_key(string $surface, string $formKey): string
     return 'sr_antispam_' . hash('sha256', $surface . '|' . $formKey);
 }
 
+function sr_antispam_math_challenge_generate(?int $forcedVariant = null): array
+{
+    $variant = $forcedVariant !== null && $forcedVariant >= 1 && $forcedVariant <= 6 ? $forcedVariant : random_int(1, 6);
+    if ($variant === 1) {
+        $left = random_int(12, 79);
+        $right = random_int(11, 39);
+
+        return [
+            'question' => (string) $left . ' + ' . (string) $right,
+            'answer' => $left + $right,
+            'variant' => 'two_digit_add',
+        ];
+    }
+    if ($variant === 2) {
+        $left = random_int(30, 99);
+        $right = random_int(10, $left - 1);
+
+        return [
+            'question' => (string) $left . ' - ' . (string) $right,
+            'answer' => $left - $right,
+            'variant' => 'two_digit_subtract',
+        ];
+    }
+    if ($variant === 3) {
+        $first = random_int(12, 39);
+        $second = random_int(11, 29);
+        $third = random_int(3, min(25, $first + $second - 1));
+
+        return [
+            'question' => (string) $first . ' + ' . (string) $second . ' - ' . (string) $third,
+            'answer' => $first + $second - $third,
+            'variant' => 'three_term_mixed',
+        ];
+    }
+    if ($variant === 4) {
+        $left = random_int(3, 9);
+        $right = random_int(4, 9);
+        $plus = random_int(6, 19);
+
+        return [
+            'question' => (string) $left . ' 곱하기 ' . (string) $right . '에 ' . (string) $plus . '를 더한 값',
+            'answer' => ($left * $right) + $plus,
+            'variant' => 'multiply_plus_sentence',
+        ];
+    }
+    if ($variant === 5) {
+        $left = random_int(15, 49);
+        $right = random_int(8, 37);
+
+        return [
+            'question' => (string) $left . '에 ' . (string) $right . '를 더한 값',
+            'answer' => $left + $right,
+            'variant' => 'add_sentence',
+        ];
+    }
+
+    $left = random_int(35, 99);
+    $right = random_int(11, $left - 1);
+
+    return [
+        'question' => (string) $left . '에서 ' . (string) $right . '를 뺀 값',
+        'answer' => $left - $right,
+        'variant' => 'subtract_sentence',
+    ];
+}
+
 function sr_antispam_challenge_create(string $surface, string $formKey, array $options = []): array
 {
-    $left = random_int(2, 9);
-    $right = random_int(1, 9);
-    $operator = random_int(0, 1) === 1 ? '+' : '-';
-    if ($operator === '-' && $right > $left) {
-        [$left, $right] = [$right, $left];
-    }
-    $answer = $operator === '+' ? $left + $right : $left - $right;
+    $mathChallenge = sr_antispam_math_challenge_generate();
+    $answer = (int) $mathChallenge['answer'];
+    $question = (string) $mathChallenge['question'];
     $issuedAt = time();
     $token = bin2hex(random_bytes(16));
     $_SESSION[sr_antispam_session_key($surface, $formKey)] = [
         'answer_hash' => hash_hmac('sha256', (string) $answer, $token),
         'token' => $token,
-        'question' => (string) $left . ' ' . $operator . ' ' . (string) $right,
+        'question' => $question,
+        'variant' => (string) ($mathChallenge['variant'] ?? ''),
         'issued_at' => $issuedAt,
         'expires_at' => $issuedAt + min(3600, max(60, (int) ($options['ttl_seconds'] ?? 600))),
     ];
@@ -234,7 +297,7 @@ function sr_antispam_challenge_create(string $surface, string $formKey, array $o
         'surface' => $surface,
         'form_key' => $formKey,
         'type' => 'math',
-        'question' => (string) $left . ' ' . $operator . ' ' . (string) $right,
+        'question' => $question,
     ];
 }
 
@@ -310,10 +373,15 @@ function sr_antispam_verify(PDO $pdo, string $surface, string $formKey, array $p
         'form_key' => $formKey,
     ]);
     if (empty($providerResult['ok']) && (string) $settings['provider_failure_policy'] === 'fallback_math') {
-        $errors = array_merge($errors, sr_antispam_verify_math($surface, $formKey, $post, $settings));
-        return ['ok' => $errors === [], 'required' => true, 'errors' => $errors, 'provider' => 'math'];
+        if (sr_antispam_provider_result_allows_math_fallback($providerResult)) {
+            $errors = array_merge($errors, sr_antispam_verify_math($surface, $formKey, $post, $settings));
+            return ['ok' => $errors === [], 'required' => true, 'errors' => $errors, 'provider' => 'math', 'codes' => $providerResult['codes'] ?? []];
+        }
+
+        unset($_SESSION[sr_antispam_session_key($surface, $formKey)]);
     }
     if (empty($providerResult['ok'])) {
+        unset($_SESSION[sr_antispam_session_key($surface, $formKey)]);
         $errors[] = '자동등록방지 검증에 실패했습니다.';
     } else {
         unset($_SESSION[sr_antispam_session_key($surface, $formKey)]);
@@ -344,6 +412,11 @@ function sr_antispam_verify_math(string $surface, string $formKey, array $post, 
     }
 
     return [];
+}
+
+function sr_antispam_provider_result_allows_math_fallback(array $providerResult): bool
+{
+    return in_array('provider_unavailable', (array) ($providerResult['codes'] ?? []), true);
 }
 
 function sr_antispam_verify_local_timing(string $surface, string $formKey, array $settings): array

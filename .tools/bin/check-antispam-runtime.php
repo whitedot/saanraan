@@ -35,17 +35,34 @@ function sr_antispam_check_read(string $path): string
     return $content;
 }
 
-function sr_antispam_check_answer(string $question): string
+function sr_antispam_check_session_answer(string $surface, string $formKey): string
 {
-    if (preg_match('/\A(\d+) ([+-]) (\d+)\z/', $question, $matches) !== 1) {
-        sr_antispam_check_error('Antispam math fixture question format is invalid: ' . $question);
+    $stored = $_SESSION[sr_antispam_session_key($surface, $formKey)] ?? null;
+    if (!is_array($stored)) {
+        sr_antispam_check_error('Antispam math fixture session challenge is missing: ' . $formKey);
         return '';
     }
 
-    $left = (int) $matches[1];
-    $right = (int) $matches[3];
+    $token = (string) ($stored['token'] ?? '');
+    $expected = (string) ($stored['answer_hash'] ?? '');
+    if ($token === '' || $expected === '') {
+        sr_antispam_check_error('Antispam math fixture session challenge must store token and answer hash only.');
+        return '';
+    }
 
-    return (string) ((string) $matches[2] === '+' ? $left + $right : $left - $right);
+    for ($answer = 0; $answer <= 160; $answer++) {
+        if (hash_equals($expected, hash_hmac('sha256', (string) $answer, $token))) {
+            return (string) $answer;
+        }
+    }
+
+    sr_antispam_check_error('Antispam math fixture could not derive bounded answer for: ' . $formKey);
+    return '';
+}
+
+function sr_antispam_check_provider_result(array $codes): array
+{
+    return ['ok' => false, 'codes' => $codes];
 }
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -137,6 +154,7 @@ sr_antispam_check_assert($settings['provider_action_check_enabled'] === true, 'A
 sr_antispam_check_assert($settings['provider_hostname_check_enabled'] === true, 'Antispam settings must normalize provider hostname check boolean.');
 sr_antispam_check_assert($settings['surface_member_register'] === 'always', 'Antispam surface settings must fall back to default mode.');
 sr_antispam_check_assert(str_contains($helpers, "if (\$errors !== []) {\n        return ['ok' => false"), 'Antispam verification must stop before provider calls when local request checks fail.');
+sr_antispam_check_assert(str_contains($helpers, 'sr_antispam_provider_result_allows_math_fallback'), 'Antispam provider fallback must use a shared strict fallback policy.');
 
 $providerOptions = sr_antispam_provider_options();
 foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
@@ -144,29 +162,55 @@ foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
 }
 sr_antispam_check_assert((string) ($providerOptions['turnstile']['widget_class'] ?? '') === 'cf-turnstile', 'Antispam provider options must keep widget class from plugin contract.');
 
+$variants = [];
+for ($i = 1; $i <= 6; $i++) {
+    $generated = sr_antispam_math_challenge_generate($i);
+    $question = (string) ($generated['question'] ?? '');
+    $answer = (int) ($generated['answer'] ?? -1);
+    $variant = (string) ($generated['variant'] ?? '');
+    $variants[$variant] = true;
+    sr_antispam_check_assert($question !== '', 'Antispam strengthened math challenge must include a question.');
+    sr_antispam_check_assert($answer >= 0 && $answer <= 160, 'Antispam strengthened math challenge answer must stay mobile-friendly and non-negative.');
+    sr_antispam_check_assert(preg_match('/\A[2-9] [+-] [1-9]\z/', $question) !== 1, 'Antispam strengthened math challenge must not use legacy one-digit add/subtract only.');
+}
+foreach (['two_digit_add', 'two_digit_subtract', 'three_term_mixed', 'multiply_plus_sentence', 'add_sentence', 'subtract_sentence'] as $variant) {
+    sr_antispam_check_assert(isset($variants[$variant]), 'Antispam strengthened math challenge variant missing from fixture run: ' . $variant);
+}
+
 $challenge = sr_antispam_challenge_create('member.register', 'fixture', ['ttl_seconds' => 60]);
-$answer = sr_antispam_check_answer((string) $challenge['question']);
+$answer = sr_antispam_check_session_answer('member.register', 'fixture');
+$challengeKey = sr_antispam_session_key((string) $challenge['surface'], (string) $challenge['form_key']);
+sr_antispam_check_assert(!isset($_SESSION[$challengeKey]['answer']), 'Antispam challenge must not store the raw answer in the session.');
 $mathErrors = sr_antispam_verify_math('member.register', 'fixture', [
     'sr_antispam_form_key' => 'fixture',
     'sr_antispam_answer' => $answer,
 ], $settings);
 sr_antispam_check_assert($mathErrors === [], 'Antispam math challenge must accept the correct answer.');
+sr_antispam_check_assert(!isset($_SESSION[$challengeKey]), 'Antispam math challenge must be discarded after success.');
+$reuseErrors = sr_antispam_verify_math('member.register', 'fixture', [
+    'sr_antispam_form_key' => 'fixture',
+    'sr_antispam_answer' => $answer,
+], $settings);
+sr_antispam_check_assert($reuseErrors !== [], 'Antispam math challenge must reject reuse after success.');
 
-sr_antispam_challenge_create('member.register', 'fixture_wrong', ['ttl_seconds' => 60]);
+$wrong = sr_antispam_challenge_create('member.register', 'fixture_wrong', ['ttl_seconds' => 60]);
+$wrongKey = sr_antispam_session_key((string) $wrong['surface'], (string) $wrong['form_key']);
 $wrongErrors = sr_antispam_verify_math('member.register', 'fixture_wrong', [
     'sr_antispam_form_key' => 'fixture_wrong',
     'sr_antispam_answer' => '999',
 ], $settings);
 sr_antispam_check_assert($wrongErrors !== [], 'Antispam math challenge must reject wrong answers.');
+sr_antispam_check_assert(!isset($_SESSION[$wrongKey]), 'Antispam math challenge must be discarded after failure.');
 
 $expired = sr_antispam_challenge_create('member.register', 'fixture_expired', ['ttl_seconds' => 60]);
 $expiredKey = sr_antispam_session_key((string) $expired['surface'], (string) $expired['form_key']);
 $_SESSION[$expiredKey]['expires_at'] = time() - 1;
 $expiredErrors = sr_antispam_verify_math('member.register', 'fixture_expired', [
     'sr_antispam_form_key' => 'fixture_expired',
-    'sr_antispam_answer' => sr_antispam_check_answer((string) $expired['question']),
+    'sr_antispam_answer' => sr_antispam_check_session_answer('member.register', 'fixture_expired'),
 ], $settings);
 sr_antispam_check_assert($expiredErrors !== [], 'Antispam math challenge must reject expired answers.');
+sr_antispam_check_assert(!isset($_SESSION[$expiredKey]), 'Antispam math challenge must be discarded after expiry failure.');
 
 $timing = sr_antispam_challenge_create('member.register', 'fixture_timing', ['ttl_seconds' => 60]);
 $timingKey = sr_antispam_session_key((string) $timing['surface'], (string) $timing['form_key']);
@@ -195,6 +239,10 @@ $providerHostnameMismatch = sr_antispam_provider_response_result('turnstile', ['
 sr_antispam_check_assert(empty($providerHostnameMismatch['ok']) && in_array('hostname_mismatch', (array) ($providerHostnameMismatch['codes'] ?? []), true), 'Antispam provider fixture must reject hostname mismatch.');
 $providerHostnameIgnored = sr_antispam_provider_response_result('turnstile', ['success' => true, 'hostname' => 'bad.example'], ['settings' => ['provider_hostname_check_enabled' => false], 'expected_hostname' => 'good.example']);
 sr_antispam_check_assert(!empty($providerHostnameIgnored['ok']), 'Antispam provider fixture must allow disabling hostname mismatch checks.');
+sr_antispam_check_assert(sr_antispam_provider_result_allows_math_fallback(sr_antispam_check_provider_result(['provider_unavailable'])), 'Antispam provider fallback must allow provider_unavailable.');
+sr_antispam_check_assert(!sr_antispam_provider_result_allows_math_fallback(sr_antispam_check_provider_result(['missing_input'])), 'Antispam provider fallback must not allow missing input.');
+sr_antispam_check_assert(!sr_antispam_provider_result_allows_math_fallback(sr_antispam_check_provider_result(['score_low'])), 'Antispam provider fallback must not allow score_low.');
+sr_antispam_check_assert(!sr_antispam_provider_result_allows_math_fallback(sr_antispam_check_provider_result(['badinput'])), 'Antispam provider fallback must not allow bad token failures.');
 
 if ($errors !== []) {
     fwrite(STDERR, "antispam checks failed:\n");
