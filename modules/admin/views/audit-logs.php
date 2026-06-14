@@ -107,7 +107,7 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
         <thead class="ui-table-head">
             <tr>
                 <th<?php echo sr_admin_sort_aria('created_at', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.faea4ccf'), 'created_at', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
-                <th<?php echo sr_admin_sort_aria('actor_account_id', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.750086e9'), 'actor_account_id', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
+                <th><?php echo sr_e(sr_t('admin::ui.text.750086e9')); ?></th>
                 <th<?php echo sr_admin_sort_aria('event_type', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.46b289bb'), 'event_type', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
                 <th<?php echo sr_admin_sort_aria('target_type', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.8c609deb'), 'target_type', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>
                 <th<?php echo sr_admin_sort_aria('result', $auditSort); ?>><?php echo sr_admin_sort_header_html(sr_t('admin::ui.text.109383e3'), 'result', $auditSort, $auditSortOptions, $auditDefaultSort); ?></th>

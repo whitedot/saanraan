@@ -490,22 +490,6 @@ function sr_admin_audit_log_display_target(array $log): string
 {
     $targetType = (string) ($log['target_type'] ?? '');
     $targetId = (string) ($log['target_id'] ?? '');
-    $moduleLabels = [
-        'admin' => '관리자',
-        'banner' => '배너',
-        'community' => '커뮤니티',
-        'content' => '콘텐츠',
-        'deposit' => '예치금',
-        'logo_manager' => '로고 관리',
-        'member' => '회원',
-        'notification' => '알림',
-        'point' => '포인트',
-        'popup_layer' => '팝업레이어',
-        'privacy' => '개인정보 처리',
-        'reward' => '적립금',
-        'seo' => 'SEO',
-        'site_menu' => '사이트 메뉴',
-    ];
 
     if ($targetType === 'retention') {
         return '데이터 정리';
@@ -515,14 +499,20 @@ function sr_admin_audit_log_display_target(array $log): string
         return '환경설정';
     }
 
-    if ($targetType === 'module' && isset($moduleLabels[$targetId])) {
-        return $moduleLabels[$targetId];
+    if ($targetType === 'module' && $targetId !== '') {
+        $moduleLabel = sr_admin_code_label($targetId, 'module_key');
+        if ($moduleLabel !== $targetId) {
+            return $moduleLabel;
+        }
     }
 
     if ($targetType === 'module' && str_contains($targetId, ':')) {
         $moduleKey = strtok($targetId, ':');
-        if (is_string($moduleKey) && isset($moduleLabels[$moduleKey])) {
-            return $moduleLabels[$moduleKey];
+        if (is_string($moduleKey)) {
+            $moduleLabel = sr_admin_code_label($moduleKey, 'module_key');
+            if ($moduleLabel !== $moduleKey) {
+                return $moduleLabel;
+            }
         }
     }
 

@@ -181,7 +181,6 @@ function sr_admin_audit_log_sort_options(): array
 {
     return [
         'created_at' => ['columns' => ['created_at', 'id']],
-        'actor_account_id' => ['columns' => ['actor_account_id', 'id']],
         'event_type' => ['columns' => ['event_type', 'id']],
         'target_type' => ['columns' => ['target_type', 'target_id', 'id']],
         'result' => ['columns' => ['result', 'id']],
