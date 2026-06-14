@@ -211,7 +211,7 @@ if (sr_request_method() === 'POST') {
                     'amount' => $amount,
                     'transaction_type' => $transactionType,
                     'approval_account_id' => $approvalAccountId,
-                    'approval_note' => $approvalAccountId > 0 ? $approvalNote : '',
+                    'approval_note' => $approvalNote,
                 ],
             ]);
 

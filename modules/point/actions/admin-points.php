@@ -157,7 +157,7 @@ if (sr_request_method() === 'POST') {
                     'transaction_type' => $transactionType,
                     'refund_expiration_policy' => $transactionType === 'refund' ? $refundExpirationPolicy : '',
                     'approval_account_id' => $approvalAccountId,
-                    'approval_note' => $approvalAccountId > 0 ? $approvalNote : '',
+                    'approval_note' => $approvalNote,
                 ],
             ]);
 

@@ -54,6 +54,8 @@ foreach ($assets as $moduleKey => $asset) {
         || strpos($action, '$approvalIdentifier = $targetAccountIdentifier;') === false
         || strpos($action, '$approvalNote = $reason;') === false
         || strpos($action, "'approval_account_id' => \$approvalAccountId") === false
+        || strpos($action, "'approval_note' => \$approvalNote") === false
+        || strpos($action, "'approval_note' => \$approvalAccountId > 0 ? \$approvalNote : ''") !== false
     ) {
         $errors[] = $moduleKey . ' admin action must call the server-side adjustment limit validator before saving and derive large-adjustment metadata from the target member and reason.';
     }
