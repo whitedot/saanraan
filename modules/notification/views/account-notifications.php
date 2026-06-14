@@ -17,6 +17,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <?php if ($notice !== '') { ?>
             <p><?php echo sr_e($notice); ?></p>
         <?php } ?>
+        <?php if ($errors !== []) { ?>
+            <ul>
+                <?php foreach ($errors as $error) { ?>
+                    <li><?php echo sr_e((string) $error); ?></li>
+                <?php } ?>
+            </ul>
+        <?php } ?>
 
         <section>
             <h2><?php echo sr_e(sr_t('notification::ui.text.50f30154')); ?></h2>
@@ -26,6 +33,88 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <dt><?php echo sr_e(sr_t('notification::ui.text.62808119')); ?></dt>
                 <dd><?php echo sr_e((string) $notificationSummary['unread']); ?></dd>
             </dl>
+        </section>
+
+        <section>
+            <h2>외부 푸시</h2>
+            <p>Telegram 개인 chat으로 새 알림 도착 사실만 받습니다.</p>
+
+            <?php if (!$pushProviderReady) { ?>
+                <p>현재 Telegram 푸시 연결을 사용할 수 없습니다.</p>
+            <?php } ?>
+
+            <?php if ($pushEndpoints !== []) { ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>제공자</th>
+                            <th>수신처</th>
+                            <th>상태</th>
+                            <th>연결일</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($pushEndpoints as $pushEndpoint) { ?>
+                            <tr>
+                                <td>Telegram</td>
+                                <td>
+                                    <?php echo sr_e((string) ((string) ($pushEndpoint['recipient_label'] ?? '') !== '' ? $pushEndpoint['recipient_label'] : $pushEndpoint['recipient_masked'])); ?>
+                                    <?php if ((string) ($pushEndpoint['recipient_label'] ?? '') !== '') { ?>
+                                        <br><?php echo sr_e((string) $pushEndpoint['recipient_masked']); ?>
+                                    <?php } ?>
+                                </td>
+                                <td><?php echo sr_e((string) $pushEndpoint['status'] === 'active' ? '사용 중' : '해제됨'); ?></td>
+                                <td><?php echo sr_notification_time_html((string) $pushEndpoint['created_at']); ?></td>
+                                <td>
+                                    <?php if ((string) $pushEndpoint['status'] === 'active') { ?>
+                                        <form method="post" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="intent" value="disable_push_endpoint">
+                                            <input type="hidden" name="endpoint_id" value="<?php echo sr_e((string) $pushEndpoint['id']); ?>">
+                                            <label for="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>">
+                                                <span>현재 비밀번호</span>
+                                                <input id="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>" type="password" name="current_password" autocomplete="current-password" required>
+                                            </label>
+                                            <button type="submit">해제</button>
+                                        </form>
+                                    <?php } else { ?>
+                                        해제됨
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            <?php } ?>
+
+            <?php if ($pushProviderReady && !$pushLimitReached) { ?>
+                <form method="post" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="connect_telegram_push">
+                    <p>
+                        <label for="modules_notification_telegram_chat_id">
+                            <span>Telegram chat ID</span>
+                            <input id="modules_notification_telegram_chat_id" type="text" name="telegram_chat_id" maxlength="120" required>
+                        </label>
+                    </p>
+                    <p>
+                        <label for="modules_notification_telegram_label">
+                            <span>표시 이름</span>
+                            <input id="modules_notification_telegram_label" type="text" name="recipient_label" maxlength="120">
+                        </label>
+                    </p>
+                    <p>
+                        <label for="modules_notification_connect_push_password">
+                            <span>현재 비밀번호</span>
+                            <input id="modules_notification_connect_push_password" type="password" name="current_password" autocomplete="current-password" required>
+                        </label>
+                    </p>
+                    <button type="submit">Telegram 푸시 연결</button>
+                </form>
+            <?php } elseif ($pushProviderReady) { ?>
+                <p>Telegram 푸시 수신처는 최대 5개까지 연결할 수 있습니다.</p>
+            <?php } ?>
         </section>
 
         <form method="get" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">

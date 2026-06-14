@@ -25,6 +25,8 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
     $notificationId = (int) sr_post_string('notification_id', 20);
+    $requiresPushReauth = in_array($intent, ['connect_telegram_push', 'disable_push_endpoint'], true);
+    $currentPassword = '';
 
     if ($intent === 'mark_all_read') {
         $now = sr_now();
@@ -57,6 +59,87 @@ if (sr_request_method() === 'POST') {
     } elseif ($notificationId > 0) {
         if (sr_notification_mark_read($pdo, $notificationId, (int) $account['id'])) {
             $notice = '알림을 읽음 처리했습니다.';
+        }
+    } elseif ($requiresPushReauth) {
+        $currentPasswordValue = sr_post_string_without_truncation('current_password', 255);
+        $currentPassword = is_string($currentPasswordValue) ? $currentPasswordValue : '';
+        $reauthThrottle = sr_member_reauth_throttle_status($pdo, (int) $account['id']);
+        if (!empty($reauthThrottle['limited'])) {
+            $errors[] = sr_t('member::action.reauth.throttled');
+            sr_member_log_auth($pdo, (int) $account['id'], 'reauth_blocked', 'failure');
+        } elseif (!password_verify($currentPassword, (string) ($account['password_hash'] ?? ''))) {
+            $errors[] = sr_t('member::action.account.current_password_invalid');
+            sr_member_log_auth($pdo, (int) $account['id'], 'notification_push_reauth', 'failure');
+        }
+
+        if ($errors === [] && $intent === 'connect_telegram_push') {
+            $telegramChatId = sr_post_string('telegram_chat_id', 120);
+            $recipientLabel = sr_post_string('recipient_label', 120);
+            try {
+                $endpointId = sr_notification_save_member_push_endpoint($pdo, [
+                    'account_id' => (int) $account['id'],
+                    'provider_key' => 'telegram_bot',
+                    'endpoint' => $telegramChatId,
+                    'recipient_label' => $recipientLabel,
+                ]);
+                sr_member_log_auth($pdo, (int) $account['id'], 'notification_push_connect', 'success');
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'member',
+                    'event_type' => 'notification.member_push_endpoint.connected',
+                    'target_type' => 'notification_push_endpoint',
+                    'target_id' => (string) $endpointId,
+                    'result' => 'success',
+                    'message' => 'Member Telegram push endpoint connected.',
+                    'metadata' => [
+                        'provider_key' => 'telegram_bot',
+                    ],
+                ]);
+                sr_notification_create($pdo, [
+                    'account_id' => (int) $account['id'],
+                    'audience' => 'account',
+                    'title' => '외부 푸시 수신처가 연결되었습니다.',
+                    'body_text' => 'Telegram 개인 수신처가 알림 푸시에 연결되었습니다.',
+                    'link_url' => '/account/notifications',
+                    'channels' => ['site'],
+                ]);
+                $notice = 'Telegram 푸시 수신처를 연결했습니다.';
+            } catch (InvalidArgumentException) {
+                $errors[] = 'Telegram chat ID를 확인해 주세요.';
+                sr_member_log_auth($pdo, (int) $account['id'], 'notification_push_connect', 'failure');
+            } catch (RuntimeException) {
+                $errors[] = '현재 Telegram 푸시 연결을 사용할 수 없습니다.';
+                sr_member_log_auth($pdo, (int) $account['id'], 'notification_push_connect', 'failure');
+            }
+        } elseif ($errors === [] && $intent === 'disable_push_endpoint') {
+            $endpointId = (int) sr_post_string('endpoint_id', 20);
+            if (sr_notification_disable_member_push_endpoint($pdo, (int) $account['id'], $endpointId)) {
+                sr_member_log_auth($pdo, (int) $account['id'], 'notification_push_disable', 'success');
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'member',
+                    'event_type' => 'notification.member_push_endpoint.disabled',
+                    'target_type' => 'notification_push_endpoint',
+                    'target_id' => (string) $endpointId,
+                    'result' => 'success',
+                    'message' => 'Member Telegram push endpoint disabled.',
+                    'metadata' => [
+                        'provider_key' => 'telegram_bot',
+                    ],
+                ]);
+                sr_notification_create($pdo, [
+                    'account_id' => (int) $account['id'],
+                    'audience' => 'account',
+                    'title' => '외부 푸시 수신처가 해제되었습니다.',
+                    'body_text' => 'Telegram 개인 수신처가 알림 푸시에서 해제되었습니다.',
+                    'link_url' => '/account/notifications',
+                    'channels' => ['site'],
+                ]);
+                $notice = 'Telegram 푸시 수신처를 해제했습니다.';
+            } else {
+                $errors[] = '해제할 수신처를 찾을 수 없습니다.';
+                sr_member_log_auth($pdo, (int) $account['id'], 'notification_push_disable', 'failure');
+            }
         }
     }
 
@@ -110,5 +193,11 @@ $notificationSummary = [
     'total' => is_array($summaryRow) ? (int) $summaryRow['total_count'] : 0,
     'unread' => is_array($summaryRow) ? (int) $summaryRow['unread_count'] : 0,
 ];
+
+$notificationSettings = sr_notification_settings($pdo);
+$pushProviderReady = sr_notification_member_external_provider_is_ready('telegram_bot', $notificationSettings);
+$pushEndpoints = sr_notification_member_push_endpoint_rows($pdo, (int) $account['id']);
+$pushActiveCount = sr_notification_member_push_active_count($pdo, (int) $account['id'], 'telegram_bot');
+$pushLimitReached = $pushActiveCount >= 5;
 
 include SR_ROOT . '/modules/notification/views/account-notifications.php';

@@ -348,10 +348,60 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT source_reference FROM sr_community_access_entitlements WHERE id = 2') === 'ref8', 'community cleanup must not alter other account entitlement.');
 }
 
+function sr_privacy_cleanup_runtime_check_notification(): void
+{
+    $cleanup = include 'modules/notification/privacy-cleanup.php';
+    if (!is_callable($cleanup)) {
+        sr_privacy_cleanup_runtime_error('notification privacy cleanup contract is not callable.');
+        return;
+    }
+
+    $pdo = sr_privacy_cleanup_runtime_pdo();
+    $pdo->exec(
+        'CREATE TABLE sr_notification_push_endpoints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            provider_key TEXT NOT NULL,
+            recipient_type TEXT NOT NULL DEFAULT "personal",
+            endpoint_ciphertext TEXT NOT NULL,
+            endpoint_fingerprint TEXT NOT NULL,
+            recipient_label TEXT NOT NULL DEFAULT "",
+            recipient_masked TEXT NOT NULL DEFAULT "",
+            status TEXT NOT NULL DEFAULT "active",
+            key_version TEXT NOT NULL DEFAULT "v1",
+            verified_at TEXT NULL,
+            disabled_at TEXT NULL,
+            last_used_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        "INSERT INTO sr_notification_push_endpoints
+            (account_id, provider_key, recipient_type, endpoint_ciphertext, endpoint_fingerprint, recipient_label, recipient_masked, status, created_at, updated_at)
+         VALUES
+            (7, 'telegram_bot', 'personal', 'secret7', 'fp7', 'phone7', '1234***', 'active', '', ''),
+            (8, 'telegram_bot', 'personal', 'secret8', 'fp8', 'phone8', '9876***', 'active', '', '')"
+    );
+
+    $invalidResult = $cleanup($pdo, 0, ['event_type' => 'withdrawal']);
+    sr_privacy_cleanup_runtime_assert(is_array($invalidResult) && ($invalidResult['cleaned'] ?? null) === false, 'notification cleanup must return cleaned=false for invalid account id.');
+
+    $result = $cleanup($pdo, 7, ['event_type' => 'withdrawal']);
+    sr_privacy_cleanup_runtime_assert(is_array($result), 'notification cleanup must return an array result.');
+    sr_privacy_cleanup_runtime_assert(($result['cleaned'] ?? null) === true, 'notification cleanup result must include cleaned=true.');
+    sr_privacy_cleanup_runtime_assert(($result['event_type'] ?? '') === 'withdrawal', 'notification cleanup result must preserve event_type.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['notification_push_endpoint_disabled_count'] ?? -1) === 1, 'notification cleanup must report push endpoint cleanup count.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT endpoint_ciphertext FROM sr_notification_push_endpoints WHERE id = 1') === '', 'notification cleanup must clear target push endpoint ciphertext.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT status FROM sr_notification_push_endpoints WHERE id = 1') === 'disabled', 'notification cleanup must disable target push endpoint.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT endpoint_ciphertext FROM sr_notification_push_endpoints WHERE id = 2') === 'secret8', 'notification cleanup must not alter other account push endpoint ciphertext.');
+}
+
 sr_privacy_cleanup_runtime_check_quiz();
 sr_privacy_cleanup_runtime_check_survey();
 sr_privacy_cleanup_runtime_check_content();
 sr_privacy_cleanup_runtime_check_community();
+sr_privacy_cleanup_runtime_check_notification();
 
 if ($errors !== []) {
     fwrite(STDERR, "privacy cleanup runtime checks failed:\n");

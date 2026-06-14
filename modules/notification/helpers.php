@@ -521,6 +521,117 @@ function sr_notification_member_push_endpoints(PDO $pdo, int $accountId, string 
     return $stmt->fetchAll();
 }
 
+function sr_notification_member_push_endpoint_rows(PDO $pdo, int $accountId): array
+{
+    if ($accountId <= 0) {
+        return [];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT id, account_id, provider_key, recipient_type, recipient_label, recipient_masked,
+                    status, verified_at, disabled_at, last_used_at, created_at, updated_at
+             FROM sr_notification_push_endpoints
+             WHERE account_id = :account_id
+               AND recipient_type = 'personal'
+             ORDER BY provider_key ASC, status ASC, id ASC"
+        );
+        $stmt->execute(['account_id' => $accountId]);
+    } catch (Throwable) {
+        return [];
+    }
+
+    return $stmt->fetchAll();
+}
+
+function sr_notification_member_push_active_count(PDO $pdo, int $accountId, string $providerKey): int
+{
+    if ($accountId <= 0 || !in_array($providerKey, sr_notification_member_external_channel_keys(), true)) {
+        return 0;
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT COUNT(*) AS endpoint_count
+             FROM sr_notification_push_endpoints
+             WHERE account_id = :account_id
+               AND provider_key = :provider_key
+               AND recipient_type = 'personal'
+               AND status = 'active'"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'provider_key' => $providerKey,
+        ]);
+    } catch (Throwable) {
+        return 0;
+    }
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_notification_disable_member_push_endpoint(PDO $pdo, int $accountId, int $endpointId, string $now = ''): bool
+{
+    if ($accountId <= 0 || $endpointId <= 0) {
+        return false;
+    }
+
+    $now = $now !== '' ? $now : sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_notification_push_endpoints
+             SET endpoint_ciphertext = '',
+                 status = 'disabled',
+                 disabled_at = :disabled_at,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND account_id = :account_id
+               AND recipient_type = 'personal'
+               AND status = 'active'"
+        );
+        $stmt->execute([
+            'disabled_at' => $now,
+            'updated_at' => $now,
+            'id' => $endpointId,
+            'account_id' => $accountId,
+        ]);
+
+        return $stmt->rowCount() > 0;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+function sr_notification_cleanup_member_push_endpoints(PDO $pdo, int $accountId, string $now = ''): int
+{
+    if ($accountId <= 0) {
+        return 0;
+    }
+
+    $now = $now !== '' ? $now : sr_now();
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_notification_push_endpoints
+             SET endpoint_ciphertext = '',
+                 status = 'disabled',
+                 disabled_at = COALESCE(disabled_at, :disabled_at),
+                 updated_at = :updated_at
+             WHERE account_id = :account_id
+               AND recipient_type = 'personal'
+               AND (endpoint_ciphertext <> '' OR status <> 'disabled')"
+        );
+        $stmt->execute([
+            'disabled_at' => $now,
+            'updated_at' => $now,
+            'account_id' => $accountId,
+        ]);
+
+        return $stmt->rowCount();
+    } catch (Throwable) {
+        return 0;
+    }
+}
+
 function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds, array $channels = []): ?array
 {
     $allowedChannels = array_values(array_filter(

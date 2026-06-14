@@ -172,7 +172,7 @@ $expected = [
     'embed_manager' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
     'logo_manager' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
     'member' => ['status' => 'export_owner', 'export' => true, 'cleanup' => false, 'consumes_cleanup' => true],
-    'notification' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
+    'notification' => ['status' => 'export_retained', 'export' => true, 'cleanup' => true],
     'point' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
     'popup_layer' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'privacy' => ['status' => 'coordinator_direct', 'export' => false, 'cleanup' => false, 'consumes_export' => true],
