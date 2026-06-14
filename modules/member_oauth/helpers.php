@@ -354,6 +354,16 @@ function sr_member_oauth_subject_hash(array $config, string $providerKey, string
     return sr_hmac_hash($providerKey . ':' . $subject, $config);
 }
 
+function sr_member_oauth_subject_display_from_hash(string $subjectHash): string
+{
+    $normalizedHash = strtolower(preg_replace('/[^a-f0-9]/i', '', $subjectHash) ?? '');
+    if (strlen($normalizedHash) < 12) {
+        return '';
+    }
+
+    return 'subject:' . substr($normalizedHash, 0, 12);
+}
+
 function sr_member_oauth_account_by_subject(PDO $pdo, string $providerKey, string $subjectHash): ?array
 {
     $stmt = $pdo->prepare(
@@ -470,6 +480,7 @@ function sr_member_oauth_revoke_account(PDO $pdo, int $oauthAccountId, int $acco
 function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $providerKey, string $subjectHash, array $profile): int
 {
     $now = sr_now();
+    $subjectDisplay = sr_member_oauth_subject_display_from_hash($subjectHash);
     $existing = sr_member_oauth_account_by_subject_any($pdo, $providerKey, $subjectHash);
     if (is_array($existing)) {
         if ((int) $existing['account_id'] !== $accountId) {
@@ -493,7 +504,7 @@ function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $provider
                AND revoked_at IS NOT NULL'
         );
         $stmt->execute([
-            'provider_subject_display' => (string) ($profile['subject_display'] ?? ''),
+            'provider_subject_display' => $subjectDisplay,
             'email_snapshot' => (string) ($profile['email'] ?? ''),
             'email_verified_snapshot' => !empty($profile['email_verified']) ? 1 : 0,
             'display_name_snapshot' => (string) ($profile['display_name'] ?? ''),
@@ -518,7 +529,7 @@ function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $provider
         'account_id' => $accountId,
         'provider_key' => $providerKey,
         'provider_subject_hash' => $subjectHash,
-        'provider_subject_display' => (string) ($profile['subject_display'] ?? ''),
+        'provider_subject_display' => $subjectDisplay,
         'email_snapshot' => (string) ($profile['email'] ?? ''),
         'email_verified_snapshot' => !empty($profile['email_verified']) ? 1 : 0,
         'display_name_snapshot' => (string) ($profile['display_name'] ?? ''),
@@ -631,6 +642,7 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
 function sr_member_oauth_create_completion_state(PDO $pdo, string $providerKey, string $subjectHash, array $profile, string $nextPath, int $ttlSeconds): string
 {
     $state = sr_member_oauth_create_state($pdo, $providerKey, 'completion', null, $nextPath, $ttlSeconds);
+    $subjectDisplay = sr_member_oauth_subject_display_from_hash($subjectHash);
     $stmt = $pdo->prepare(
         'UPDATE sr_member_oauth_states
          SET provider_subject_hash = :provider_subject_hash,
@@ -642,7 +654,7 @@ function sr_member_oauth_create_completion_state(PDO $pdo, string $providerKey, 
     );
     $stmt->execute([
         'provider_subject_hash' => $subjectHash,
-        'provider_subject_display' => (string) ($profile['subject_display'] ?? ''),
+        'provider_subject_display' => $subjectDisplay,
         'email_snapshot' => (string) ($profile['email'] ?? ''),
         'email_verified_snapshot' => !empty($profile['email_verified']) ? 1 : 0,
         'display_name_snapshot' => (string) ($profile['display_name'] ?? ''),

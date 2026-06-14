@@ -435,6 +435,8 @@ foreach ([
     '주민등록번호',
     'CI/DI 원문',
     'HMAC hash 또는 최소 결과 snapshot',
+    'provider subject 원문',
+    'HMAC hash prefix',
     '회원 선택 프로필',
     '`birth_date`',
     'OAuth/OIDC profile',

@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원 OAuth',
-    'version' => '2026.06.001',
+    'version' => '2026.06.002',
     'type' => 'module',
     'description' => 'OAuth/OIDC provider 로그인과 계정 연결을 회원 모듈 밖에서 소유합니다.',
     'requires' => [

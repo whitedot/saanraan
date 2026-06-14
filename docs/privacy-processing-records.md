@@ -77,7 +77,7 @@
 | --- | --- | --- |
 | 회원 선택 프로필 | `member`의 `birth_date`는 선택 프로필의 연령성 개인정보이며 `privacy-export.php`에 포함한다. | 성인 인증이나 법정대리인 확인이 필요하면 birth date 원문 재사용이 아니라 별도 선택 플러그인의 최소 결과 snapshot 기준을 따른다. |
 | 본인확인/성인 인증 | 번들 기본 모듈은 원문 신원정보를 저장하지 않는다. | 선택 플러그인은 provider 원문 응답, 주민등록번호, CI/DI 원문, 이름/휴대폰 원문 저장을 금지하고 HMAC hash 또는 최소 결과 snapshot만 저장한다. |
-| OAuth/OIDC profile | `member_oauth`는 provider subject hash와 최소 email snapshot만 보관한다. | scope를 추가하면 profile 원문 저장 금지, export 포함 범위, cleanup 기준을 먼저 갱신한다. |
+| OAuth/OIDC profile | `member_oauth`는 provider subject 원문이 아니라 HMAC hash와 최소 email snapshot만 보관한다. 화면·export용 subject 표시값도 원문 `sub`가 아니라 HMAC hash prefix로 저장한다. | scope를 추가하면 profile 원문 저장 금지, export 포함 범위, cleanup 기준을 먼저 갱신한다. |
 | CAPTCHA 검증 | `antispam`은 기본 DB 개인정보를 저장하지 않는다. | remote IP 전달을 켜거나 외부 provider script를 로딩하면 processor/국외이전 후보와 쿠키 동의 inventory에 포함한다. |
 | 퀴즈/설문 답변 | 답안/응답 snapshot은 사본 제공과 cleanup 대상이다. | 건강, 정치, 종교, 아동/연령, 고유식별자성 질문을 운영자가 추가하는 경우 별도 동의 문구와 보존/삭제 기준을 문서화해야 한다. |
 | 관리자 메모/감사 metadata | 제3자 개인정보와 민감정보 입력을 금지하고 redaction 기준을 적용한다. | #157에서 입력 가이드, 목록/상세/export 노출 범위, audit metadata 중복 노출을 점검한다. |

@@ -146,6 +146,18 @@ function sr_member_oauth_check_runtime_helpers(): void
 
     $subjectHash = sr_member_oauth_subject_hash($config, 'mock', 'provider-subject');
     sr_member_oauth_check_assert($subjectHash !== hash('sha256', 'mock:provider-subject'), 'Provider subject hash should use keyed HMAC.');
+    $subjectDisplay = sr_member_oauth_subject_display_from_hash($subjectHash);
+    sr_member_oauth_check_assert($subjectDisplay === 'subject:' . substr($subjectHash, 0, 12), 'Provider subject display should use a non-raw hash prefix.');
+    $completionStateToken = sr_member_oauth_create_completion_state($pdo, 'mock', $subjectHash, [
+        'subject_display' => 'provider-subject',
+        'email' => 'mock-user@example.test',
+        'email_verified' => true,
+        'display_name' => 'mock_user',
+    ], '/account', 120);
+    $completionState = sr_member_oauth_state_by_token($pdo, $completionStateToken, 'completion');
+    sr_member_oauth_check_assert(is_array($completionState), 'OAuth completion state should be readable before completion.');
+    sr_member_oauth_check_assert((string) ($completionState['provider_subject_display'] ?? '') === $subjectDisplay, 'OAuth completion state must store a non-raw provider subject display.');
+    sr_member_oauth_check_assert((string) ($completionState['provider_subject_display'] ?? '') !== 'provider-subject', 'OAuth completion state must not store the raw provider subject display.');
     $oauthAccountId = sr_member_oauth_link_account($pdo, 7, 'mock', $subjectHash, [
         'subject_display' => 'mock-user',
         'email' => 'mock-user@example.test',
@@ -156,6 +168,9 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert(sr_member_oauth_account_by_subject($pdo, 'mock', $subjectHash) !== null, 'OAuth account should be found by subject hash.');
     sr_member_oauth_check_assert(sr_member_oauth_account_by_subject_any($pdo, 'mock', $subjectHash) !== null, 'OAuth account should be found by subject hash regardless of revocation state.');
     sr_member_oauth_check_assert(sr_member_oauth_account_for_provider($pdo, 7, 'mock') !== null, 'OAuth account should be found by account/provider.');
+    $storedOauthAccount = sr_member_oauth_account_for_provider($pdo, 7, 'mock');
+    sr_member_oauth_check_assert(is_array($storedOauthAccount) && (string) ($storedOauthAccount['provider_subject_display'] ?? '') === $subjectDisplay, 'Linked OAuth account must store a non-raw provider subject display.');
+    sr_member_oauth_check_assert(is_array($storedOauthAccount) && (string) ($storedOauthAccount['provider_subject_display'] ?? '') !== 'mock-user', 'Linked OAuth account must not store the raw profile subject display.');
 
     $activeAccounts = sr_member_oauth_accounts_for_account($pdo, 7);
     sr_member_oauth_check_assert(count($activeAccounts) === 1, 'Active OAuth account list should include linked provider.');
@@ -204,6 +219,7 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_take_transient_secrets',
     'sr_member_oauth_provider_profile',
     'sr_member_oauth_subject_hash',
+    'sr_member_oauth_subject_display_from_hash',
     'sr_member_oauth_account_by_subject_any',
     'sr_member_oauth_can_unlink',
     'sr_member_oauth_revoke_account',
