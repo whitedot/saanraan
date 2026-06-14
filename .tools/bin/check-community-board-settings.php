@@ -39,6 +39,204 @@ function sr_check_community_board_settings_contains(string $path, array $needles
     }
 }
 
+function sr_check_community_board_settings_runtime(): void
+{
+    if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+        sr_check_community_board_settings_error('SQLite PDO driver is required for community board runtime fixture.');
+        return;
+    }
+
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec(
+        "CREATE TABLE sr_community_board_settings (
+            board_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL DEFAULT 'string',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (board_id, setting_key)
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_community_board_group_settings (
+            group_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL DEFAULT 'string',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (group_id, setting_key)
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_community_posts (
+            id INTEGER PRIMARY KEY,
+            board_id INTEGER NOT NULL,
+            author_account_id INTEGER NOT NULL DEFAULT 0,
+            title TEXT NOT NULL,
+            body_text TEXT NOT NULL,
+            body_format TEXT NOT NULL DEFAULT 'plain',
+            status TEXT NOT NULL,
+            view_count INTEGER NOT NULL DEFAULT 0,
+            last_commented_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_community_comments (
+            id INTEGER PRIMARY KEY,
+            post_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_community_attachments (
+            id INTEGER PRIMARY KEY,
+            post_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            mime_type TEXT NOT NULL,
+            storage_driver TEXT NOT NULL DEFAULT '',
+            storage_key TEXT NOT NULL DEFAULT '',
+            size_bytes INTEGER NOT NULL DEFAULT 0,
+            checksum_sha256 TEXT NOT NULL DEFAULT '',
+            width INTEGER NULL,
+            height INTEGER NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_member_accounts (
+            id INTEGER PRIMARY KEY,
+            status TEXT NOT NULL
+        )"
+    );
+
+    $now = '2026-06-14 12:00:00';
+    $board = [
+        'id' => 10,
+        'board_group_id' => 20,
+        'status' => 'enabled',
+        'read_policy' => 'public',
+    ];
+    $groupSettingStmt = $pdo->prepare(
+        'INSERT INTO sr_community_board_group_settings
+            (group_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (20, :setting_key, :setting_value, :value_type, :created_at, :updated_at)'
+    );
+    foreach ([
+        ['setting_key' => 'post_body_min_length', 'setting_value' => '3', 'value_type' => 'int'],
+        ['setting_key' => 'post_body_max_length', 'setting_value' => '5', 'value_type' => 'int'],
+        ['setting_key' => 'list_per_page', 'setting_value' => '2', 'value_type' => 'int'],
+        ['setting_key' => 'list_default_sort', 'setting_value' => 'comments', 'value_type' => 'string'],
+    ] as $setting) {
+        $groupSettingStmt->execute([
+            'setting_key' => $setting['setting_key'],
+            'setting_value' => $setting['setting_value'],
+            'value_type' => $setting['value_type'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    $boardSettingStmt = $pdo->prepare(
+        'INSERT INTO sr_community_board_settings
+            (board_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (10, :setting_key, :setting_value, :value_type, :created_at, :updated_at)'
+    );
+    foreach ([
+        ['setting_key' => 'post_body_max_length', 'setting_value' => '0', 'value_type' => 'int'],
+        ['setting_key' => 'post_edit_lock_comment_count', 'setting_value' => '2', 'value_type' => 'int'],
+        ['setting_key' => 'post_delete_lock_comment_count', 'setting_value' => '3', 'value_type' => 'int'],
+        ['setting_key' => 'comment_body_min_length', 'setting_value' => '2', 'value_type' => 'int'],
+        ['setting_key' => 'comment_body_max_length', 'setting_value' => '4', 'value_type' => 'int'],
+    ] as $setting) {
+        $boardSettingStmt->execute([
+            'setting_key' => $setting['setting_key'],
+            'setting_value' => $setting['setting_value'],
+            'value_type' => $setting['value_type'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_posts
+            (id, board_id, author_account_id, title, body_text, body_format, status, view_count, created_at, updated_at)
+         VALUES
+            (:id, 10, 0, :title, :body_text, :body_format, :status, :view_count, :created_at, :updated_at)'
+    );
+    foreach ([
+        ['id' => 1, 'title' => 'first', 'body_text' => 'alpha body', 'body_format' => 'plain', 'status' => 'published', 'view_count' => 5],
+        ['id' => 2, 'title' => 'second', 'body_text' => 'beta body', 'body_format' => 'plain', 'status' => 'published', 'view_count' => 30],
+        ['id' => 3, 'title' => 'third', 'body_text' => '<p>gamma<br>body</p>', 'body_format' => 'html', 'status' => 'published', 'view_count' => 10],
+        ['id' => 4, 'title' => 'draft', 'body_text' => 'hidden', 'body_format' => 'plain', 'status' => 'draft', 'view_count' => 999],
+    ] as $post) {
+        $stmt->execute([
+            'id' => $post['id'],
+            'title' => $post['title'],
+            'body_text' => $post['body_text'],
+            'body_format' => $post['body_format'],
+            'status' => $post['status'],
+            'view_count' => $post['view_count'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    $commentStmt = $pdo->prepare('INSERT INTO sr_community_comments (id, post_id, status, created_at) VALUES (:id, :post_id, :status, :created_at)');
+    foreach ([
+        ['id' => 1, 'post_id' => 1, 'status' => 'published'],
+        ['id' => 2, 'post_id' => 1, 'status' => 'published'],
+        ['id' => 3, 'post_id' => 1, 'status' => 'deleted'],
+        ['id' => 4, 'post_id' => 3, 'status' => 'published'],
+    ] as $comment) {
+        $commentStmt->execute([
+            'id' => $comment['id'],
+            'post_id' => $comment['post_id'],
+            'status' => $comment['status'],
+            'created_at' => $now,
+        ]);
+    }
+
+    if (sr_community_board_post_body_min_length($pdo, $board) !== 3) {
+        sr_check_community_board_settings_error('community board group fallback min length failed.');
+    }
+    if (sr_community_board_post_body_max_length($pdo, $board) !== 0) {
+        sr_check_community_board_settings_error('community board zero value override failed.');
+    }
+    if (sr_community_board_list_per_page($pdo, $board, ['posts_per_page' => 20]) !== 2) {
+        sr_check_community_board_settings_error('community board list per page group fallback failed.');
+    }
+    if (sr_community_board_list_default_sort($pdo, $board) !== 'comments') {
+        sr_check_community_board_settings_error('community board list default sort group fallback failed.');
+    }
+
+    $commentSortedIds = array_map('intval', array_column(sr_community_public_posts($pdo, 10, 10, 0, '', 0, 'comments'), 'id'));
+    if ($commentSortedIds !== [1, 3, 2]) {
+        sr_check_community_board_settings_error('community comment sort runtime order failed.');
+    }
+    $viewSortedIds = array_map('intval', array_column(sr_community_public_posts($pdo, 10, 2, 0, '', 0, 'views'), 'id'));
+    if ($viewSortedIds !== [2, 3]) {
+        sr_check_community_board_settings_error('community views sort and limit runtime order failed.');
+    }
+    if (!sr_community_post_locked_by_comments($pdo, $board, 1, 'edit')) {
+        sr_check_community_board_settings_error('community edit lock threshold runtime check failed.');
+    }
+    if (sr_community_post_locked_by_comments($pdo, $board, 1, 'delete')) {
+        sr_check_community_board_settings_error('community delete lock threshold runtime check failed.');
+    }
+    if (sr_community_validate_post_body_length($pdo, $board, ['body_text' => 'ab', 'body_format' => 'plain']) === []) {
+        sr_check_community_board_settings_error('community post body minimum runtime validation failed.');
+    }
+    if (sr_community_validate_comment_body_length($pdo, $board, ['body_text' => 'abcde']) === []) {
+        sr_check_community_board_settings_error('community comment body maximum runtime validation failed.');
+    }
+}
+
 $settingKeys = [
     'post_edit_lock_comment_count',
     'post_delete_lock_comment_count',
@@ -103,6 +301,8 @@ if (sr_community_body_plain_length('<p>안녕<br>하세요</p>', 'html') !== 6) 
 if (sr_community_body_excerpt('abcdef', 'plain', 3) !== 'abc...') {
     sr_check_community_board_settings_error('community body excerpt truncation failed.');
 }
+
+sr_check_community_board_settings_runtime();
 
 if ($errors !== []) {
     fwrite(STDERR, "community board setting checks failed:\n");
