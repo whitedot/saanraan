@@ -43,7 +43,7 @@ function sr_privacy_matrix_contracts(array $metadata, string $key): array
 
 function sr_privacy_matrix_account_reference_pattern(): string
 {
-    return '/\b[a-z0-9_]*account_id\b/i';
+    return '/\b(?:[a-z0-9_]*account_id|email|recipient|phone|birth_date|ip_hash|user_agent_hash|provider_subject_hash|consent_snapshot_json|answer_snapshot_json|metadata_snapshot_json)\b/i';
 }
 
 function sr_privacy_matrix_sql_files(string $moduleDir): array
@@ -293,12 +293,12 @@ if (is_array($moduleDirs)) {
         $accountReferenceFiles = sr_privacy_matrix_sql_account_reference_files($moduleDir);
         $hasAccountReference = $accountReferenceFiles !== [];
         if ($hasAccountReference && $matrix !== '' && strpos($matrix, '| `' . $moduleKey . '` |') === false) {
-            sr_privacy_matrix_error('install.sql has account references but matrix row is missing: ' . $moduleKey);
+            sr_privacy_matrix_error('SQL schema files have account or personal identifier columns but matrix row is missing: ' . $moduleKey);
         }
 
         $status = (string) ($expected[$moduleKey]['status'] ?? '');
         if ($status === 'no_member_personal_data' && $hasAccountReference) {
-            sr_privacy_matrix_error($moduleKey . ' is marked no_member_personal_data but SQL schema files contain account references: ' . implode(', ', $accountReferenceFiles));
+            sr_privacy_matrix_error($moduleKey . ' is marked no_member_personal_data but SQL schema files contain account or personal identifier columns: ' . implode(', ', $accountReferenceFiles));
         }
 
         if ($hasAccountReference && in_array($status, ['export_cleanup', 'export_retained', 'export_owner', 'coordinator_direct'], true)) {

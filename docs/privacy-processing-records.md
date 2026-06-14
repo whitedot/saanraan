@@ -199,7 +199,7 @@
 
 ## 운영 기준
 
-- 새 모듈이 `account_id`, `author_account_id`, `created_by_account_id`, `processed_by_account_id`, `handled_by_account_id`, `recipient`, `email`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, `consent_snapshot_json`, `answer_snapshot_json`, `metadata_snapshot_json` 같은 개인정보성 필드를 추가하면 이 문서와 [개인정보 계약 매트릭스](privacy-contract-matrix.md)를 함께 갱신한다.
+- 새 모듈이 `account_id`, `author_account_id`, `created_by_account_id`, `processed_by_account_id`, `handled_by_account_id`, `recipient`, `email`, `phone`, `birth_date`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, `consent_snapshot_json`, `answer_snapshot_json`, `metadata_snapshot_json` 같은 개인정보성 필드를 추가하면 이 문서와 [개인정보 계약 매트릭스](privacy-contract-matrix.md)를 함께 갱신한다.
 - 처리활동 row는 `processing_purpose`, `lawful_basis`, `retention_basis`, `retention_period`를 함께 적어 목적과 보존 근거가 분리되도록 한다.
 - 외부 provider script를 공개 화면에 추가하면 쿠키/브라우저 저장소 inventory와 processor/국외이전 후보에 포함한다.
 - 특별범주, 연령, 고유식별자성 데이터는 기본 번들 모듈에서 원문 저장하지 않는다. 필요하면 본인확인 같은 선택 플러그인이 원문 저장 금지와 결과 최소 snapshot 기준을 문서화해야 한다.

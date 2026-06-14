@@ -2,7 +2,7 @@
 
 이 문서는 번들 모듈이 회원 귀속 데이터에 대해 어떤 개인정보 계약을 가져야 하는지 고정한다. 목적은 모든 모듈에 무조건 `privacy-cleanup.php`를 붙이는 것이 아니라, 사본 제공 대상, 탈퇴/익명화 정리 대상, 운영 증빙 보관 대상을 분리해 누락을 보이게 만드는 것이다.
 
-`account_id`, `author_account_id`, `created_by_account_id`, `processed_by_account_id`, `handled_by_account_id`처럼 회원 계정과 연결되는 컬럼을 설치 SQL 또는 update SQL 기준으로 추가하면 이 문서를 먼저 갱신하고 `.tools/bin/check-privacy-contract-matrix.php`를 통과시켜야 한다.
+`account_id`, `author_account_id`, `created_by_account_id`, `processed_by_account_id`, `handled_by_account_id`처럼 회원 계정과 연결되는 컬럼이나 `email`, `recipient`, `phone`, `birth_date`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, 동의/답변/metadata snapshot처럼 개인 식별 가능성이 있는 컬럼을 설치 SQL 또는 update SQL 기준으로 추가하면 이 문서를 먼저 갱신하고 `.tools/bin/check-privacy-contract-matrix.php`를 통과시켜야 한다.
 
 ## 상태 값
 
@@ -81,7 +81,7 @@
 - 새 번들 모듈을 추가하면 위 표에 먼저 상태를 추가한다.
 - 게시글, 댓글, 응시, 응답처럼 사용자가 직접 제출하는 데이터의 작성자/접속/동의 보관 기준은 [이슈 #328 설계 기준](plans/issue-328-author-submission-data-design.md)의 매트릭스를 함께 갱신한다. 비회원 작성을 열거나 게시판별 추가 입력 항목을 저장하면 계정 연결 개인정보와 비회원 제출 증적의 export/cleanup 또는 보관 기간 cleanup 책임을 분리해 문서화한다.
 - `export_cleanup` 모듈은 `module.php`의 `contracts.provides`에 `privacy-export.php`와 `privacy-cleanup.php`를 모두 선언하고 실제 파일을 둔다. `.tools/bin/check-privacy-contract-matrix.php`는 계약 파일을 include해 `privacy-export.php`가 배열 또는 `(PDO $pdo, int $accountId): array` callable을 반환하고, `privacy-cleanup.php`가 최소 `(PDO $pdo, int $accountId): array` callable을 반환하는지 확인한다.
-- `.tools/bin/check-privacy-contract-matrix.php`는 `install.sql`뿐 아니라 `updates/*.sql`도 함께 훑어 `*_account_id` 계열 컬럼이나 참조가 생겼는데 매트릭스 상태가 `no_member_personal_data`로 남는 경우를 차단한다.
+- `.tools/bin/check-privacy-contract-matrix.php`는 `install.sql`뿐 아니라 `updates/*.sql`도 함께 훑어 `*_account_id`, `email`, `recipient`, `phone`, `birth_date`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, 동의/답변/metadata snapshot 계열 컬럼이나 참조가 생겼는데 매트릭스 상태가 `no_member_personal_data`로 남는 경우를 차단한다.
 - `.tools/bin/check-privacy-export-runtime.php`는 SQLite fixture로 `quiz`, `survey`, `content`, `community` export 계약과 `asset_exchange`, `coupon`, `deposit`, `notification`, `point`, `reward` 보존형 export 계약을 실행한다. 퀴즈/설문은 상세 답변과 JSON snapshot 구조화를 확인하고, 콘텐츠/커뮤니티는 접근권, 자산 로그, 다운로드 로그, 작가 신청, 시리즈, 댓글/게시글, 신고/쪽지/스크랩/동의 증적이 대상 계정 기준으로 포함되며 다른 계정 row가 섞이지 않는지 확인한다. 보존형 export fixture는 금액성 원장, 쿠폰 환불, 환불/출금 계좌, 알림 delivery, 포인트 만료 소비 매핑처럼 운영 증빙으로 남기는 고위험 필드가 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다.
 - `.tools/bin/check-privacy-cleanup-runtime.php`는 SQLite fixture로 `quiz`, `survey`, `content`, `community`, `notification` cleanup 계약을 실행한다. 퀴즈/설문은 응시/응답, 보상 grant, 댓글 작성자 snapshot을 확인하고, 콘텐츠/커뮤니티는 접근권, 다운로드 로그, 작가 신청, 닉네임, 레벨, 동의 증적, 시리즈 메타데이터, 작성자 snapshot이 대상 계정에 대해서만 익명화되며 다른 계정 row가 유지되는지 확인한다. notification은 push endpoint row를 disabled tombstone으로 전환하고 ciphertext를 비우는지 확인한다. 이 fixture는 설치 DB에서의 전체 개인정보 smoke를 대체하지 않고, 계약 반환 형태와 핵심 익명화 동작의 회귀를 막는 최소 런타임 증거다.
 - `export_retained` 모듈은 `privacy-export.php`를 제공해야 한다. cleanup이 없거나 일부 secret/부가 데이터만 정리하는 이유는 보존 정책, 회원 자산 정리 계약, 운영 증빙 중 하나로 설명한다.
