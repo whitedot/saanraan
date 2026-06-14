@@ -294,6 +294,7 @@ function sr_popup_layer_default_settings(): array
         'popup_layer_default_target_option' => sr_popup_layer_public_target_option_value(),
         'popup_layer_default_match_type' => 'all',
         'popup_layer_default_dismiss_cookie_days' => 1,
+        'popup_layer_editor' => 'textarea',
     ];
 }
 
@@ -324,6 +325,11 @@ function sr_popup_layer_default_match_type(array $settings): string
 function sr_popup_layer_default_dismiss_cookie_days(array $settings): int
 {
     return max(0, min(365, (int) ($settings['popup_layer_default_dismiss_cookie_days'] ?? 1)));
+}
+
+function sr_popup_layer_editor_key(PDO $pdo, array $settings): string
+{
+    return sr_editor_effective_key($pdo, (string) ($settings['popup_layer_editor'] ?? 'textarea'));
 }
 
 function sr_popup_layer_skin_options(): array
@@ -404,6 +410,9 @@ function sr_popup_layer_save_settings(PDO $pdo, array $settings): void
     }
     if (array_key_exists('popup_layer_default_dismiss_cookie_days', $settings)) {
         $rows[] = ['popup_layer_default_dismiss_cookie_days', (string) sr_popup_layer_default_dismiss_cookie_days($settings), 'int'];
+    }
+    if (array_key_exists('popup_layer_editor', $settings)) {
+        $rows[] = ['popup_layer_editor', sr_editor_normalize_key((string) $settings['popup_layer_editor']), 'string'];
     }
 
     foreach ($rows as $row) {

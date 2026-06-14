@@ -46,7 +46,7 @@ $selectedNotificationAudiences = is_array($notificationListFilters['audience'] ?
 $selectedNotificationStatuses = is_array($notificationListFilters['status'] ?? null) ? $notificationListFilters['status'] : [];
 $selectedDeliveryChannels = is_array($deliveryListFilters['delivery_channel'] ?? null) ? $deliveryListFilters['delivery_channel'] : [];
 $selectedDeliveryStatuses = is_array($deliveryListFilters['delivery_status'] ?? null) ? $deliveryListFilters['delivery_status'] : [];
-$notificationAdminEditorKey = $pdo instanceof PDO ? sr_admin_editor_key($pdo) : 'textarea';
+$notificationAdminEditorKey = 'textarea';
 $notificationEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $notificationAdminEditorKey, 'admin_basic') : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

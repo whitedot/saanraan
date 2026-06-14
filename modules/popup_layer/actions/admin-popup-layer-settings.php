@@ -38,6 +38,8 @@ $popupLayerDefaultStatus = sr_popup_layer_default_status($popupLayerSettings);
 $popupLayerDefaultTargetOption = sr_popup_layer_default_target_option($popupLayerSettings, $availableTargets);
 $popupLayerDefaultMatchType = sr_popup_layer_default_match_type($popupLayerSettings);
 $popupLayerDefaultDismissCookieDays = sr_popup_layer_default_dismiss_cookie_days($popupLayerSettings);
+$popupLayerEditorOptions = sr_editor_options($pdo);
+$popupLayerEditorKey = sr_popup_layer_editor_key($pdo, $popupLayerSettings);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -59,6 +61,8 @@ if (sr_request_method() === 'POST') {
     $postedDefaultTargetOption = (string) $postedDefaultTargetResult['option'];
     $postedDefaultMatchType = sr_post_string('popup_layer_default_match_type', 20);
     $postedDefaultDismissCookieDays = max(0, min(365, (int) sr_post_string('popup_layer_default_dismiss_cookie_days', 5)));
+    $postedEditorInput = sr_post_string('popup_layer_editor', 30);
+    $postedEditorKey = sr_editor_normalize_key($postedEditorInput);
     if ($errors === []) {
         if (!isset($popupLayerSkinOptions[$postedSkinKey])) {
             $errors[] = '팝업레이어 스킨 값이 올바르지 않습니다.';
@@ -72,6 +76,9 @@ if (sr_request_method() === 'POST') {
         if (!in_array($postedDefaultMatchType, $allowedMatchTypes, true)) {
             $errors[] = '팝업레이어 기본 매칭 방식이 올바르지 않습니다.';
         }
+        if ($postedEditorInput !== $postedEditorKey || !array_key_exists($postedEditorKey, $popupLayerEditorOptions)) {
+            $errors[] = '팝업레이어 에디터 값이 올바르지 않습니다.';
+        }
         if (sr_popup_layer_is_public_target_option($postedDefaultTargetOption)) {
             $postedDefaultMatchType = 'all';
         }
@@ -84,6 +91,7 @@ if (sr_request_method() === 'POST') {
             'popup_layer_default_target_option' => $postedDefaultTargetOption,
             'popup_layer_default_match_type' => $postedDefaultMatchType,
             'popup_layer_default_dismiss_cookie_days' => $postedDefaultDismissCookieDays,
+            'popup_layer_editor' => $postedEditorKey,
         ]);
         $popupLayerSettings = sr_popup_layer_settings($pdo);
         $popupLayerSkinKey = sr_popup_layer_skin_key($popupLayerSettings);
@@ -91,6 +99,7 @@ if (sr_request_method() === 'POST') {
         $popupLayerDefaultTargetOption = sr_popup_layer_default_target_option($popupLayerSettings, $availableTargets);
         $popupLayerDefaultMatchType = sr_popup_layer_default_match_type($popupLayerSettings);
         $popupLayerDefaultDismissCookieDays = sr_popup_layer_default_dismiss_cookie_days($popupLayerSettings);
+        $popupLayerEditorKey = sr_popup_layer_editor_key($pdo, $popupLayerSettings);
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',
@@ -105,6 +114,7 @@ if (sr_request_method() === 'POST') {
                 'popup_layer_default_target_option' => $popupLayerDefaultTargetOption,
                 'popup_layer_default_match_type' => $popupLayerDefaultMatchType,
                 'popup_layer_default_dismiss_cookie_days' => $popupLayerDefaultDismissCookieDays,
+                'popup_layer_editor' => $popupLayerEditorKey,
             ],
         ]);
         $notice = '팝업레이어 설정을 저장했습니다.';

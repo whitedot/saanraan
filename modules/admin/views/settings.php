@@ -314,13 +314,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="admin-form-row">
-            <label class="form-label" for="admin_settings_admin_editor">관리자 화면 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-            <div class="admin-form-field">
-                <?php echo sr_admin_radio_toggle_group_html('admin_settings_admin_editor', 'admin_editor', $adminEditorOptions, (string) ($values['admin_editor'] ?? 'textarea'), true); ?>
-                <p class="admin-form-help">알림 등록처럼 관리자에서 긴 본문을 작성하는 화면에 적용됩니다.</p>
-            </div>
-        </div>
-        <div class="admin-form-row">
             <span class="form-label"><?php echo sr_e(sr_t('admin::ui.admin.menu.icon.8b29d6ef')); ?></span>
             <div class="admin-form-field">
                 <div class="admin-icon-settings-summary">

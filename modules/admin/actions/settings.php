@@ -19,8 +19,6 @@ $adminSkinOptions = sr_admin_skin_options();
 $adminSkinKey = sr_admin_skin_key($adminSettings);
 $adminColorScheme = sr_admin_color_scheme($adminSettings);
 $listPaginationPerPage = sr_admin_list_pagination_per_page($adminSettings);
-$adminEditorKey = sr_admin_editor_key($pdo, $adminSettings);
-$adminEditorOptions = sr_editor_options($pdo);
 $adminIconDefaults = sr_admin_material_icon_names();
 $adminIconOverrides = sr_admin_icon_custom_map($pdo);
 $publicLayoutOptions = sr_admin_public_layout_options($pdo);
@@ -30,7 +28,6 @@ $values = array_merge($values, [
     'admin_skin_key' => $adminSkinKey,
     'admin_color_scheme' => $adminColorScheme,
     'list_pagination_per_page' => $listPaginationPerPage,
-    'admin_editor' => $adminEditorKey,
 ]);
 
 if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
@@ -38,8 +35,6 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
     sr_require_csrf();
     $postedSkinKey = sr_post_string('admin_skin_key', 40);
     $postedColorScheme = sr_post_string('admin_color_scheme', 20);
-    $postedAdminEditorInput = sr_post_string('admin_editor', 30);
-    $postedAdminEditor = sr_editor_normalize_key($postedAdminEditorInput);
     $postedListPaginationPerPageInput = trim(sr_post_string('list_pagination_per_page', 20));
     $postedListPaginationPerPage = null;
 
@@ -49,10 +44,6 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
 
     if (!isset(sr_color_scheme_options()[$postedColorScheme])) {
         $errors[] = '관리자 색상 모드 값이 올바르지 않습니다.';
-    }
-
-    if ($postedAdminEditorInput !== $postedAdminEditor || !array_key_exists($postedAdminEditor, $adminEditorOptions)) {
-        $errors[] = '관리자 화면 에디터 값이 올바르지 않습니다.';
     }
 
     if (preg_match('/\A[1-9][0-9]*\z/', $postedListPaginationPerPageInput) !== 1) {
@@ -69,7 +60,6 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
             'admin_skin_key' => $postedSkinKey,
             'admin_color_scheme' => $postedColorScheme,
             'list_pagination_per_page' => $postedListPaginationPerPageInput,
-            'admin_editor' => $postedAdminEditor,
         ]);
         $adminSkinKey = $postedSkinKey;
         $adminColorScheme = $postedColorScheme;
@@ -89,7 +79,6 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 'admin_skin_key' => $postedSkinKey,
                 'admin_color_scheme' => $postedColorScheme,
                 'list_pagination_per_page' => $postedListPaginationPerPageInput,
-                'admin_editor' => $postedAdminEditor,
             ]);
             $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
 
@@ -97,18 +86,15 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 $previousSkinKey = $adminSkinKey;
                 $previousColorScheme = $adminColorScheme;
                 $previousListPaginationPerPage = $listPaginationPerPage;
-                $previousAdminEditor = $adminEditorKey;
                 $adminSettingsBefore = [
                     'admin_skin_key' => $previousSkinKey,
                     'admin_color_scheme' => $previousColorScheme,
                     'list_pagination_per_page' => $previousListPaginationPerPage,
-                    'admin_editor' => $previousAdminEditor,
                 ];
                 $adminSettingsAfter = [
                     'admin_skin_key' => $postedSkinKey,
                     'admin_color_scheme' => $postedColorScheme,
                     'list_pagination_per_page' => (int) $postedListPaginationPerPage,
-                    'admin_editor' => $postedAdminEditor,
                 ];
 
                 if ($postedSkinKey !== $previousSkinKey) {
@@ -121,10 +107,6 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
 
                 if ((int) $postedListPaginationPerPage !== $previousListPaginationPerPage) {
                     sr_admin_save_list_pagination_per_page($pdo, (int) $postedListPaginationPerPage);
-                }
-
-                if ($postedAdminEditor !== $previousAdminEditor) {
-                    sr_admin_save_editor_key($pdo, $postedAdminEditor);
                 }
 
                 if ($adminSettingsAfter !== $adminSettingsBefore) {
@@ -147,19 +129,16 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 $adminSkinKey = sr_admin_skin_key($adminSettings);
                 $adminColorScheme = sr_admin_color_scheme($adminSettings);
                 $listPaginationPerPage = sr_admin_list_pagination_per_page($adminSettings);
-                $adminEditorKey = sr_admin_editor_key($pdo, $adminSettings);
                 $values = array_merge($values, [
                     'admin_skin_key' => $adminSkinKey,
                     'admin_color_scheme' => $adminColorScheme,
                     'list_pagination_per_page' => $listPaginationPerPage,
-                    'admin_editor' => $adminEditorKey,
                 ]);
                 $notice = '설정을 저장했습니다.';
             } else {
                 $adminSkinKey = $postedSkinKey;
                 $adminColorScheme = $postedColorScheme;
                 $listPaginationPerPage = $postedListPaginationPerPageInput;
-                $adminEditorKey = $postedAdminEditor;
             }
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'admin_settings_save_failed');
@@ -168,12 +147,10 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
                 'admin_skin_key' => $postedSkinKey,
                 'admin_color_scheme' => $postedColorScheme,
                 'list_pagination_per_page' => $postedListPaginationPerPageInput,
-                'admin_editor' => $postedAdminEditor,
             ]);
             $adminSkinKey = $postedSkinKey;
             $adminColorScheme = $postedColorScheme;
             $listPaginationPerPage = $postedListPaginationPerPageInput;
-            $adminEditorKey = $postedAdminEditor;
         }
     }
 } elseif (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'icon_settings') {
@@ -409,7 +386,6 @@ if (sr_request_method() === 'POST' && sr_post_string('intent', 40) === 'site') {
             'admin_skin_key' => $adminSkinKey,
             'admin_color_scheme' => $adminColorScheme,
             'list_pagination_per_page' => $listPaginationPerPage,
-            'admin_editor' => $adminEditorKey,
         ]);
         $site = is_array($postResult['site']) ? $postResult['site'] : ($site ?? null);
     } catch (Throwable $exception) {

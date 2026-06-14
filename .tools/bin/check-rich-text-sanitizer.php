@@ -278,7 +278,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
                 ': sr_notification_clean_text((string) ($data[\'body_text\'] ?? \'\'), 5000);',
             ],
             'modules/notification/actions/admin-notifications.php' => [
-                '$bodyFormat = $adminEditorKey === \'ckeditor\' && sr_post_string(\'body_format\', 20) === \'html\' ? \'html\' : \'plain\';',
+                '$bodyFormat = \'plain\';',
                 '? sr_sanitize_rich_text_html(sr_notification_clean_text($rawBodyText, 5000))',
             ],
         ],

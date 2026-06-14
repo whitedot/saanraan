@@ -231,13 +231,14 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 }
 #container>form.admin-form>section.card>.admin-form-grid>.admin-form-row:last-child{border-bottom-width:0}
 #container>form.admin-form>section.card>.admin-form-grid:has(+ .admin-form-row)>.admin-form-row:last-child{border-bottom-width:1px}
-.modal-body>.admin-form-row{align-items:start;column-gap:calc(var(--spacing) * 5);display:grid;grid-template-columns:minmax(7rem,11rem) minmax(0,1fr);margin-top:0;padding-block:calc(var(--spacing) * 3)}
-.modal-body>.admin-form-row:not([hidden]):not(.hidden):has(~ .admin-form-row:not([hidden]):not(.hidden)){border-bottom:1px dashed var(--color-default-200)}
-.modal-body>.admin-form-row>.form-label{align-items:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;min-height:calc(var(--spacing) * 9.25);padding-top:0}
-.modal-body>.admin-form-row>.admin-form-field{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);min-height:calc(var(--spacing) * 9.25);min-width:0}
-.modal-body>.admin-form-row>.admin-form-field label{font-weight:var(--font-weight-normal)}
-.modal-body>.admin-form-row>.admin-form-field .form-switch{--form-choice-color:var(--color-choice-light-active,#718cb0)}
-.modal-body>.admin-form-row>.admin-form-field>.admin-form-help{flex-basis:100%;margin-top:0}
+.modal-body .admin-form-row{align-items:start;column-gap:calc(var(--spacing) * 5);display:grid;grid-template-columns:minmax(7rem,11rem) minmax(0,1fr);margin-top:0;padding-block:calc(var(--spacing) * 3)}
+.modal-body .admin-form-row:not([hidden]):not(.hidden):has(~ .admin-form-row:not([hidden]):not(.hidden)){border-bottom:1px dashed var(--color-default-200)}
+.modal-body .admin-form-row>.form-label,
+.modal-body .admin-form-row>.admin-form-label{align-items:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;min-height:calc(var(--spacing) * 9.25);padding-top:0}
+.modal-body .admin-form-row>.admin-form-field{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);min-height:calc(var(--spacing) * 9.25);min-width:0}
+.modal-body .admin-form-row>.admin-form-field label{font-weight:var(--font-weight-normal)}
+.modal-body .admin-form-row>.admin-form-field .form-switch{--form-choice-color:var(--color-choice-light-active,#718cb0)}
+.modal-body .admin-form-row>.admin-form-field>.admin-form-help{flex-basis:100%;margin-top:0}
 .admin-lookup-control{align-items:center;display:flex;gap:calc(var(--spacing) * 2);min-width:0;width:100%}
 .admin-lookup-control>.form-input,.admin-lookup-control>.form-select{min-width:0}
 .admin-lookup-control>.form-input{flex:1 1 16rem;width:auto}
@@ -382,8 +383,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-permission-summary{display:grid;gap:calc(var(--spacing) * 1);min-width:0}
 .admin-permission-summary-preview,.admin-permission-summary-empty{color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height)}
 .admin-permission-summary-preview{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.admin-permission-add-modal .modal-body>.admin-form-row>.admin-form-field .form-select,
-.admin-permission-add-modal .modal-body>.admin-form-row>.admin-form-field .form-input{max-width:100%;width:100%}
+.admin-permission-add-modal .modal-body .admin-form-row>.admin-form-field .form-select,
+.admin-permission-add-modal .modal-body .admin-form-row>.admin-form-field .form-input{max-width:100%;width:100%}
 .admin-permission-member-summary{display:grid;gap:calc(var(--spacing) * .75);min-width:0}
 .admin-permission-member-summary strong{color:var(--text-strong);font-size:var(--type-small-size);line-height:var(--type-small-line-height);overflow-wrap:anywhere}
 .admin-permission-member-summary span{color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);overflow-wrap:anywhere}
@@ -553,6 +554,11 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-module-detail-list dt{color:var(--text-muted);font-weight:var(--font-weight-semibold)}
 .admin-module-detail-list dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .admin-module-detail-list ul{margin:0;padding-left:1.2rem}
+.modal-body :is(.admin-module-detail-list,.admin-meta-list)>dt,
+.modal-body :is(.admin-module-detail-list,.admin-meta-list)>dd{border-bottom:1px dashed var(--color-default-200)}
+.modal-body :is(.admin-module-detail-list,.admin-meta-list)>dt{font-size:.875rem}
+.modal-body :is(.admin-module-detail-list,.admin-meta-list)>dt:nth-last-child(2),
+.modal-body :is(.admin-module-detail-list,.admin-meta-list)>dd:last-child{border-bottom-width:0}
 .admin-inline-edit-details{position:relative}
 .admin-inline-edit-details>summary{list-style:none}
 .admin-inline-edit-details>summary::-webkit-details-marker{display:none}
@@ -779,7 +785,7 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         width:100%;
     }
 
-    .modal-body>.admin-form-row{
+    .modal-body .admin-form-row{
         gap:calc(var(--spacing) * 2);
         grid-template-columns:1fr;
     }

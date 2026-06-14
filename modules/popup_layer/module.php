@@ -38,5 +38,6 @@ return [
         'popup_layer_default_target_option' => '__public__',
         'popup_layer_default_match_type' => 'all',
         'popup_layer_default_dismiss_cookie_days' => 1,
+        'popup_layer_editor' => 'textarea',
     ],
 ];

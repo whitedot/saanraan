@@ -386,8 +386,7 @@ if (sr_request_method() === 'POST') {
         }
         $accountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $accountIdentifier);
         $title = sr_notification_clean_single_line(sr_post_string('title', 160), 160);
-        $adminEditorKey = sr_admin_editor_key($pdo);
-        $bodyFormat = $adminEditorKey === 'ckeditor' && sr_post_string('body_format', 20) === 'html' ? 'html' : 'plain';
+        $bodyFormat = 'plain';
         $rawBodyText = sr_post_string_without_truncation('body_text', 5000);
         $rawBodyText = is_string($rawBodyText) ? $rawBodyText : '';
         $bodyText = $bodyFormat === 'html'

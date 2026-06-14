@@ -37,6 +37,12 @@ $popupLayerSettingsHelp = [
         'title' => sr_t('popup_layer::settings.help.default_dismiss_cookie_days.title'),
         'body' => $popupLayerSettingsHelpBodyHtml(['popup_layer::settings.help.default_dismiss_cookie_days.body.1', 'popup_layer::settings.help.default_dismiss_cookie_days.body.2']),
     ],
+    'editor' => [
+        'id' => 'popup_layer_admin_settings_help_editor',
+        'title' => '팝업 본문 에디터 도움말',
+        'body' => '<p>' . sr_e('팝업 등록과 수정 화면의 본문 입력 방식입니다.') . '</p>'
+            . '<p>' . sr_e('CKEditor를 선택하면 팝업 본문은 허용된 HTML만 정화해 저장합니다.') . '</p>',
+    ],
 ];
 $popupLayerTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);
 $popupLayerDefaultTargetServiceKey = sr_popup_layer_selected_target_service_key($popupLayerDefaultTargetOption);
@@ -123,6 +129,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-field">
                 <input id="popup_layer_admin_popup_layer_settings_default_dismiss_cookie_days" type="number" name="popup_layer_default_dismiss_cookie_days" value="<?php echo sr_e((string) $popupLayerDefaultDismissCookieDays); ?>" class="form-input" min="0" max="365">
                 <p class="admin-form-help"><?php echo sr_e(sr_t('popup_layer::settings.help.default_dismiss_cookie_days.inline')); ?></p>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_editor', '본문 에디터', $popupLayerSettingsHelp['editor']['id'], $popupLayerHelpOpenLabel, true); ?>
+            <div class="admin-form-field">
+                <?php echo sr_admin_radio_toggle_group_html('popup_layer_admin_popup_layer_settings_editor', 'popup_layer_editor', $popupLayerEditorOptions, $popupLayerEditorKey, true); ?>
+                <p class="admin-form-help">팝업 등록/수정 화면의 본문 입력에만 적용됩니다.</p>
             </div>
         </div>
     </section>

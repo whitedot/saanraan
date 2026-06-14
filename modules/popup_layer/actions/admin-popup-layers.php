@@ -41,7 +41,7 @@ $popupLayerDefaultStatus = sr_popup_layer_default_status($popupLayerSettings);
 $popupLayerDefaultTargetOption = sr_popup_layer_default_target_option($popupLayerSettings, $availableTargets);
 $popupLayerDefaultMatchType = sr_popup_layer_default_match_type($popupLayerSettings);
 $popupLayerDefaultDismissCookieDays = sr_popup_layer_default_dismiss_cookie_days($popupLayerSettings);
-$popupLayerEditorKey = sr_admin_editor_key($pdo);
+$popupLayerEditorKey = sr_popup_layer_editor_key($pdo, $popupLayerSettings);
 $popupLayerEditorAttributes = sr_editor_textarea_attributes($pdo, $popupLayerEditorKey, 'admin_basic');
 if ($popupLayerEditorAttributes !== '' && $popupLayerEditorKey === 'ckeditor') {
     $popupLayerEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_popup_layer_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_popup_layer_body_file_upload_token()) . '"';
