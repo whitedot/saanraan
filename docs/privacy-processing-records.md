@@ -189,6 +189,8 @@
 | `check-privacy-cleanup-runtime.php` | SQLite fixture로 탈퇴/익명화 cleanup이 공개 노출 데이터와 secret을 줄이고, 보존 원장은 유지하는지 확인한다. |
 | `check-doc-links.php` | 개인정보 계약, 처리활동 기록, 개발자 가이드, 실행 명령 링크가 깨지지 않았는지 확인한다. |
 
+`export_policy`, `cleanup_policy`, `lawful_basis` 정책 값에 `pending`, `TODO`, `TBD`, `미정`, `미확정`을 남기면 실패한다. 운영 상태값으로 쓰는 `pending`은 허용하지만, 개인정보 정책 근거와 export/cleanup 판정은 문서와 계약에서 확정된 값으로만 남긴다.
+
 설치 DB smoke는 `.tools/bin/check.php`를 대체하지 않는다. 로컬 또는 스테이징 DB와 mutation 허용 조건이 준비된 때 `release-installed-gate-status.php --run-privacy-smoke` 또는 관련 smoke를 추가 실행하고, 실패하면 환경 문제인지 실제 개인정보 계약 회귀인지 구분해 기록한다.
 
 ## 운영 기준

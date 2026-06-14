@@ -149,6 +149,30 @@ function sr_privacy_matrix_check_contract_return(string $moduleKey, string $cont
     }
 }
 
+function sr_privacy_matrix_check_pending_policy_values(string $file, string $contents): void
+{
+    $lines = preg_split('/\R/u', $contents);
+    if (!is_array($lines)) {
+        $lines = [$contents];
+    }
+
+    foreach ($lines as $lineNumber => $line) {
+        if (strpos($line, '정책 값에 `pending`, `TODO`, `TBD`, `미정`, `미확정`을 남기면 실패한다') !== false) {
+            continue;
+        }
+
+        foreach ([
+            '/(export_policy|cleanup_policy|lawful_basis).{0,80}(pending|todo|tbd|미정|미확정)/iu',
+            '/(pending|todo|tbd|미정|미확정).{0,80}(export_policy|cleanup_policy|lawful_basis)/iu',
+        ] as $pattern) {
+            if (preg_match($pattern, $line) === 1) {
+                sr_privacy_matrix_error('privacy policy value must not be left pending in ' . $file . ':' . ((int) $lineNumber + 1));
+                return;
+            }
+        }
+    }
+}
+
 $matrixFile = 'docs/privacy-contract-matrix.md';
 if (!is_file($matrixFile)) {
     sr_privacy_matrix_error('privacy contract matrix document is missing.');
@@ -163,6 +187,15 @@ if (!is_file($processingRecordsFile)) {
     $processingRecords = '';
 } else {
     $processingRecords = (string) file_get_contents($processingRecordsFile);
+}
+
+foreach ([
+    $matrixFile => $matrix,
+    $processingRecordsFile => $processingRecords,
+] as $policyFile => $policyContents) {
+    if ($policyContents !== '') {
+        sr_privacy_matrix_check_pending_policy_values((string) $policyFile, (string) $policyContents);
+    }
 }
 
 $expected = [
@@ -202,6 +235,12 @@ foreach ($expected as $moduleKey => $policy) {
     }
 
     $metadata = sr_privacy_matrix_module_metadata($moduleKey);
+    $moduleFile = 'modules/' . $moduleKey . '/module.php';
+    $moduleContents = is_file($moduleFile) ? file_get_contents($moduleFile) : false;
+    if (is_string($moduleContents)) {
+        sr_privacy_matrix_check_pending_policy_values($moduleFile, $moduleContents);
+    }
+
     $provides = sr_privacy_matrix_contracts($metadata, 'provides');
     $consumes = sr_privacy_matrix_contracts($metadata, 'consumes');
 
@@ -219,6 +258,11 @@ foreach ($expected as $moduleKey => $policy) {
         }
 
         if ($hasFile) {
+            $contractContents = file_get_contents('modules/' . $moduleKey . '/' . $contractFile);
+            if (is_string($contractContents)) {
+                sr_privacy_matrix_check_pending_policy_values('modules/' . $moduleKey . '/' . $contractFile, $contractContents);
+            }
+
             sr_privacy_matrix_check_contract_return($moduleKey, $contractFile);
         }
     }
@@ -383,6 +427,7 @@ foreach ([
     'check-privacy-cleanup-runtime.php',
     'check-doc-links.php',
     '설치 DB smoke',
+    '정책 값에 `pending`, `TODO`, `TBD`, `미정`, `미확정`을 남기면 실패한다',
     '주민등록번호',
     'CI/DI 원문',
     'HMAC hash 또는 최소 결과 snapshot',
