@@ -36,9 +36,22 @@ function sr_logo_manager_default_position_options(): array
 
 function sr_logo_manager_position_options(?PDO $pdo = null): array
 {
+    $cache = $GLOBALS['sr_logo_manager_position_options_runtime_cache'] ?? [];
+    if (!is_array($cache)) {
+        $cache = [];
+    }
+
+    $locale = function_exists('sr_locale') ? sr_locale() : 'ko';
+    $cacheKey = ($pdo instanceof PDO ? (string) spl_object_id($pdo) : 'no-pdo') . ':' . $locale;
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
     $options = sr_logo_manager_default_position_options();
     if (!$pdo instanceof PDO) {
-        return $options;
+        $cache[$cacheKey] = $options;
+        $GLOBALS['sr_logo_manager_position_options_runtime_cache'] = $cache;
+        return $cache[$cacheKey];
     }
 
     foreach (sr_enabled_module_contract_files($pdo, 'logo-positions.php', ['logo_manager']) as $moduleKey => $file) {
@@ -76,7 +89,10 @@ function sr_logo_manager_position_options(?PDO $pdo = null): array
         return strcmp((string) ($left['label'] ?? ''), (string) ($right['label'] ?? ''));
     });
 
-    return $options;
+    $cache[$cacheKey] = $options;
+    $GLOBALS['sr_logo_manager_position_options_runtime_cache'] = $cache;
+
+    return $cache[$cacheKey];
 }
 
 function sr_logo_manager_clean_position_key(string $positionKey): string

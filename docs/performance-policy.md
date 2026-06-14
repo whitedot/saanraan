@@ -35,6 +35,12 @@
 
 관리자 저장/삭제와 신규 설치 seed가 같은 요청 안에서 후속 렌더링을 수행하는 경우를 대비해 `sr_site_menu_clear_runtime_cache()`로 요청 cache를 비울 수 있다. 파일 캐시나 공유 캐시를 추가하려면 메뉴 저장, 항목 저장, 정렬, 삭제, menu key 변경, 설치 seed의 무효화 기준을 별도 구현 범위에서 검증해야 한다.
 
+## 반복 렌더링 계약 캐시
+
+공개 레이아웃 후보, 로고 위치 후보, output slot renderer 목록처럼 한 요청 안에서 반복 조회되는 모듈 계약 목록은 요청 단위 메모리 캐시를 사용할 수 있다. 이 cache value는 배열, 문자열, 숫자, bool 같은 직렬화 가능한 데이터만 담는다.
+
+`sr_render_output_slot()`은 renderer 결과 HTML을 캐시하지 않는다. output slot cache는 `module_key`와 `contract_file` metadata만 저장하고, 실제 계약 파일 로딩, callable 확인, renderer 실행은 요청 흐름에서 명시적으로 수행한다. 로그인 상태 HTML, 관리자 HTML, CSRF token, 개인정보, 권리 상태는 이 캐시 대상이 아니다.
+
 ## DB와 목록 성능
 
 1. 관리자 목록은 기본적으로 페이지네이션을 사용한다.

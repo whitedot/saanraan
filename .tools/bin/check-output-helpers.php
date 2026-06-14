@@ -10,6 +10,7 @@ require_once $root . '/core/version.php';
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/output.php';
+require_once $root . '/modules/logo_manager/helpers.php';
 require_once $root . '/modules/site_menu/helpers.php';
 require_once $root . '/modules/seo/helpers.php';
 
@@ -95,6 +96,24 @@ function sr_output_helper_run_fixture(string $name, string $body): array
         'status' => $status,
         'contract' => $contract,
     ];
+}
+
+class SrOutputHelperCheckPdo extends PDO
+{
+    public int $moduleKeyQueryCount = 0;
+
+    public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
+    {
+        if (str_contains($query, 'SELECT module_key FROM sr_modules')) {
+            $this->moduleKeyQueryCount++;
+        }
+
+        if ($fetchMode === null) {
+            return parent::query($query);
+        }
+
+        return parent::query($query, $fetchMode, ...$fetchModeArgs);
+    }
 }
 
 $_SERVER['SCRIPT_NAME'] = '/index.php';
@@ -399,14 +418,42 @@ if (is_string($commonUiScript)) {
         'Custom time tooltip script should remove native title attributes to prevent duplicate tooltips.'
     );
 }
-$layoutPdo = new PDO('sqlite::memory:');
+$layoutPdo = new SrOutputHelperCheckPdo('sqlite::memory:');
 $layoutPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $layoutPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $layoutPdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)");
-$layoutPdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('community', 'enabled')");
+$layoutPdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('community', 'enabled'), ('site_menu', 'enabled'), ('content', 'enabled')");
 sr_output_helper_assert(
     sr_public_layout_optional_view_file('community.basic', 'community_home', $layoutPdo) === $root . '/modules/community/themes/basic/home.php',
     'Optional public layout view lookup should include enabled module layout contracts when PDO is provided.'
+);
+$GLOBALS['sr_public_layout_options_runtime_cache'] = [];
+$layoutPdo->moduleKeyQueryCount = 0;
+sr_public_layout_options($layoutPdo);
+sr_public_layout_options($layoutPdo);
+sr_output_helper_assert(
+    $layoutPdo->moduleKeyQueryCount === 1,
+    'Public layout options should reuse request runtime cache for repeated enabled module contract lookups.'
+);
+$layoutPdo->moduleKeyQueryCount = 0;
+sr_logo_manager_position_options($layoutPdo);
+sr_logo_manager_position_options($layoutPdo);
+sr_output_helper_assert(
+    $layoutPdo->moduleKeyQueryCount === 1,
+    'Logo position options should reuse request runtime cache for repeated contract lookups.'
+);
+$layoutPdo->moduleKeyQueryCount = 0;
+$outputSlotContracts = sr_output_slot_renderer_contracts($layoutPdo, 'core');
+sr_output_slot_renderer_contracts($layoutPdo, 'core');
+sr_output_helper_assert(
+    $layoutPdo->moduleKeyQueryCount === 1,
+    'Output slot renderer metadata should reuse request runtime cache for repeated contract lookups.'
+);
+sr_output_helper_assert(
+    $outputSlotContracts !== []
+        && isset($outputSlotContracts[0]['module_key'], $outputSlotContracts[0]['contract_file'])
+        && !isset($outputSlotContracts[0]['html'], $outputSlotContracts[0]['callable']),
+    'Output slot renderer cache should store serializable metadata only.'
 );
 $seoPdo = new PDO('sqlite::memory:');
 $seoPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
