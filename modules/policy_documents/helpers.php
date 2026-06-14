@@ -217,16 +217,18 @@ function sr_policy_document_create_version(PDO $pdo, int $documentId, array $dat
     }
 
     try {
-        if ($status === 'published') {
+        if ($status === 'published' && ($effectiveFrom === '' || $effectiveFrom <= $now)) {
             $archiveStmt = $pdo->prepare(
                 'UPDATE sr_policy_document_versions
                  SET status = "archived",
                      updated_at = :updated_at
                  WHERE document_id = :document_id
-                   AND status = "published"'
+                   AND status = "published"
+                   AND (effective_from IS NULL OR effective_from <= :effective_at)'
             );
             $archiveStmt->execute([
                 'document_id' => $documentId,
+                'effective_at' => $now,
                 'updated_at' => $now,
             ]);
         }

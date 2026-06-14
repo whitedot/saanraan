@@ -141,6 +141,23 @@ sr_policy_documents_check_assert(
     (int) $pdo->query('SELECT id FROM sr_policy_document_versions WHERE status = "published"')->fetchColumn() === $secondVersionId,
     'the latest published policy document version should remain published.'
 );
+$futureVersionId = sr_policy_document_create_version($pdo, 1, [
+    'version_key' => '2026.06.003',
+    'title' => '이용약관',
+    'body_html' => '<p>미래 버전</p>',
+    'summary_text' => '',
+    'status' => 'published',
+    'effective_from' => '2099-01-01T00:00',
+]);
+sr_policy_documents_check_assert($futureVersionId > $secondVersionId, 'future policy document version should be inserted.');
+sr_policy_documents_check_assert(
+    (int) $pdo->query('SELECT id FROM sr_policy_document_versions WHERE status = "published" AND (effective_from IS NULL OR effective_from <= CURRENT_TIMESTAMP) ORDER BY id DESC LIMIT 1')->fetchColumn() === $secondVersionId,
+    'future published policy document versions should not archive the currently effective version.'
+);
+sr_policy_documents_check_assert(
+    (string) sr_policy_document_published_version($pdo, 'member_terms')['version_key'] === '2026.06.002',
+    'current policy document lookup should ignore future effective versions until their effective time.'
+);
 
 $jobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);
 try {
