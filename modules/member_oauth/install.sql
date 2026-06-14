@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS sr_member_oauth_accounts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id BIGINT UNSIGNED NOT NULL,
+    provider_key VARCHAR(60) NOT NULL,
+    provider_subject_hash CHAR(64) NOT NULL,
+    provider_subject_display VARCHAR(120) NOT NULL DEFAULT '',
+    email_snapshot VARCHAR(255) NOT NULL DEFAULT '',
+    email_verified_snapshot TINYINT(1) NOT NULL DEFAULT 0,
+    display_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
+    linked_at DATETIME NOT NULL,
+    last_login_at DATETIME NULL,
+    revoked_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_member_oauth_provider_subject (provider_key, provider_subject_hash),
+    KEY idx_sr_member_oauth_account_provider (account_id, provider_key, revoked_at),
+    KEY idx_sr_member_oauth_account (account_id)
+);
+
+CREATE TABLE IF NOT EXISTS sr_member_oauth_states (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    state_hash CHAR(64) NOT NULL,
+    nonce_hash CHAR(64) NOT NULL DEFAULT '',
+    code_verifier_hash CHAR(64) NOT NULL DEFAULT '',
+    provider_key VARCHAR(60) NOT NULL,
+    flow_type VARCHAR(30) NOT NULL,
+    account_id BIGINT UNSIGNED NULL,
+    next_path VARCHAR(255) NOT NULL DEFAULT '/',
+    provider_subject_hash CHAR(64) NOT NULL DEFAULT '',
+    provider_subject_display VARCHAR(120) NOT NULL DEFAULT '',
+    email_snapshot VARCHAR(255) NOT NULL DEFAULT '',
+    email_verified_snapshot TINYINT(1) NOT NULL DEFAULT 0,
+    display_name_snapshot VARCHAR(120) NOT NULL DEFAULT '',
+    issued_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_member_oauth_state_hash (state_hash),
+    KEY idx_sr_member_oauth_states_provider_flow (provider_key, flow_type, expires_at),
+    KEY idx_sr_member_oauth_states_account (account_id)
+);

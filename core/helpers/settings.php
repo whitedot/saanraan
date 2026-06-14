@@ -660,6 +660,7 @@ function sr_module_known_contract_files(): array
         'notification-events.php',
         'admin-notification-events.php',
         'antispam-providers.php',
+        'oauth-providers.php',
         'embed-manager-targets.php',
         'reaction-targets.php',
     ];

@@ -171,6 +171,7 @@ function sr_check_module_lifecycle_metadata(): void
         'notification-events.php' => true,
         'admin-notification-events.php' => true,
         'antispam-providers.php' => true,
+        'oauth-providers.php' => true,
         'embed-manager-targets.php' => true,
         'reaction-targets.php' => true,
     ];
@@ -333,6 +334,7 @@ function sr_check_module_contract_files(): void
         'notification-events.php',
         'admin-notification-events.php',
         'antispam-providers.php',
+        'oauth-providers.php',
         'embed-manager-targets.php',
     ];
     $requiredConsumes = [

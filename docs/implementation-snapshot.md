@@ -22,6 +22,7 @@
 | 시스템 | `admin` | 관리자 대시보드, 설정, 메뉴, 모듈, 업데이트, 권한 |
 | 시스템 | `asset_ledger` | 숨김 기반 잔액 처리 primitive, 자산 모듈 자동 준비 |
 | 회원 | `member` | 계정, 인증, 프로필, 그룹, 탈퇴 |
+| 회원 | `member_oauth` | OAuth/OIDC provider state, 계정 연결, completion 기반 |
 | 회원 | `point` | 포인트 잔액과 거래 원장 |
 | 회원 | `reward` | 적립금 잔액과 거래 원장 |
 | 회원 | `deposit` | 예치금 잔액과 거래 원장 |
@@ -74,6 +75,7 @@
 | 코어 | `sr_site_settings`, `sr_modules`, `sr_module_settings`, `sr_sessions`, `sr_rate_limits`, `sr_schema_versions`, `sr_audit_logs` |
 | 관리자 | `sr_admin_account_permissions`, `sr_admin_account_roles`, `sr_admin_menu_overrides` |
 | 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_nicknames`, `sr_member_sessions`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
+| 회원 OAuth | `sr_member_oauth_accounts`, `sr_member_oauth_states` |
 | 정책 문서 | `sr_policy_documents`, `sr_policy_document_versions`, `sr_policy_document_mail_jobs`, `sr_policy_document_mail_deliveries` |
 | 개인정보 | `sr_privacy_requests` |
 | 콘텐츠 | `sr_content_items`, `sr_content_revisions`, `sr_content_groups`, `sr_content_group_settings`, `sr_content_setting_sources`, `sr_content_series`, `sr_content_series_items`, `sr_content_comments`, `sr_content_link_refs`, `sr_content_asset_policy_sets`, `sr_content_files`, `sr_content_file_links`, `sr_content_file_download_logs`, `sr_content_asset_access_logs`, `sr_content_access_entitlements`, `sr_content_asset_action_logs`, `sr_content_author_applications`, `sr_content_author_permissions`, `sr_content_submissions`, `sr_content_author_reward_logs`, `sr_content_storage_cleanup_failures` |
