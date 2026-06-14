@@ -65,6 +65,71 @@ function sr_antispam_check_provider_result(array $codes): array
     return ['ok' => false, 'codes' => $codes];
 }
 
+function sr_antispam_check_pdo(array $settings, bool $providersEnabled = false): PDO
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->exec(
+        'CREATE TABLE sr_modules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_key TEXT NOT NULL,
+            name TEXT NOT NULL,
+            version TEXT NOT NULL,
+            status TEXT NOT NULL,
+            is_bundled INTEGER NOT NULL,
+            installed_at TEXT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_module_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NULL,
+            value_type TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $insertModule = $pdo->prepare('INSERT INTO sr_modules (module_key, name, version, status, is_bundled, installed_at, updated_at) VALUES (:module_key, :name, :version, :status, 1, :installed_at, :updated_at)');
+    $insertModule->execute([
+        'module_key' => 'antispam',
+        'name' => 'Antispam',
+        'version' => '2026.06.001',
+        'status' => 'enabled',
+        'installed_at' => '',
+        'updated_at' => '',
+    ]);
+    $moduleId = (int) $pdo->lastInsertId();
+    if ($providersEnabled) {
+        $insertModule->execute([
+            'module_key' => 'antispam_captcha_providers',
+            'name' => 'Antispam CAPTCHA Providers',
+            'version' => '2026.06.001',
+            'status' => 'enabled',
+            'installed_at' => '',
+            'updated_at' => '',
+        ]);
+    }
+
+    $insertSetting = $pdo->prepare('INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at) VALUES (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)');
+    foreach ($settings as $key => $value) {
+        $valueType = is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string');
+        $insertSetting->execute([
+            'module_id' => $moduleId,
+            'setting_key' => (string) $key,
+            'setting_value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
+            'value_type' => $valueType,
+            'created_at' => '',
+            'updated_at' => '',
+        ]);
+    }
+    sr_clear_module_settings_cache('antispam');
+
+    return $pdo;
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
@@ -153,7 +218,7 @@ sr_antispam_check_assert($settings['recaptcha_min_score'] === 0.7, 'Antispam set
 sr_antispam_check_assert($settings['provider_action_check_enabled'] === true, 'Antispam settings must normalize provider action check boolean.');
 sr_antispam_check_assert($settings['provider_hostname_check_enabled'] === true, 'Antispam settings must normalize provider hostname check boolean.');
 sr_antispam_check_assert($settings['surface_member_register'] === 'always', 'Antispam surface settings must fall back to default mode.');
-sr_antispam_check_assert(str_contains($helpers, "if (\$errors !== []) {\n        return ['ok' => false"), 'Antispam verification must stop before provider calls when local request checks fail.');
+sr_antispam_check_assert(str_contains($helpers, "if (\$errors !== []) {\n        unset(\$_SESSION[sr_antispam_session_key(\$surface, \$formKey)]);"), 'Antispam verification must stop before provider calls and discard challenge when local request checks fail.');
 sr_antispam_check_assert(str_contains($helpers, 'sr_antispam_provider_result_allows_math_fallback'), 'Antispam provider fallback must use a shared strict fallback policy.');
 
 $providerOptions = sr_antispam_provider_options();
@@ -211,6 +276,42 @@ $expiredErrors = sr_antispam_verify_math('member.register', 'fixture_expired', [
 ], $settings);
 sr_antispam_check_assert($expiredErrors !== [], 'Antispam math challenge must reject expired answers.');
 sr_antispam_check_assert(!isset($_SESSION[$expiredKey]), 'Antispam math challenge must be discarded after expiry failure.');
+
+$localFailurePdo = sr_antispam_check_pdo([
+    'enabled' => true,
+    'default_mode' => 'always',
+    'challenge_type' => 'math',
+    'min_submit_seconds' => 0,
+]);
+$localFailure = sr_antispam_challenge_create('member.register', 'fixture_local_failure', ['ttl_seconds' => 60]);
+$localFailureKey = sr_antispam_session_key((string) $localFailure['surface'], (string) $localFailure['form_key']);
+$localFailureResult = sr_antispam_verify($localFailurePdo, 'member.register', 'fixture_local_failure', [
+    'sr_antispam_hp' => 'filled',
+    'sr_antispam_form_key' => 'fixture_local_failure',
+    'sr_antispam_answer' => sr_antispam_check_session_answer('member.register', 'fixture_local_failure'),
+]);
+sr_antispam_check_assert(empty($localFailureResult['ok']), 'Antispam full verify must reject local request failures.');
+sr_antispam_check_assert(!isset($_SESSION[$localFailureKey]), 'Antispam full verify must discard challenge after local request failure.');
+
+$providerTimingPdo = sr_antispam_check_pdo([
+    'enabled' => true,
+    'default_mode' => 'always',
+    'challenge_type' => 'turnstile',
+    'min_submit_seconds' => 5,
+    'provider_failure_policy' => 'fallback_math',
+    'turnstile_site_key' => 'site-key',
+    'turnstile_secret_key' => 'secret-key',
+], true);
+$providerTiming = sr_antispam_challenge_create('member.register', 'fixture_provider_timing', ['ttl_seconds' => 60]);
+$providerTimingKey = sr_antispam_session_key((string) $providerTiming['surface'], (string) $providerTiming['form_key']);
+$_SESSION[$providerTimingKey]['issued_at'] = time();
+$providerTimingResult = sr_antispam_verify($providerTimingPdo, 'member.register', 'fixture_provider_timing', [
+    'sr_antispam_form_key' => 'fixture_provider_timing',
+    'sr_antispam_answer' => sr_antispam_check_session_answer('member.register', 'fixture_provider_timing'),
+    'cf-turnstile-response' => 'dummy-token',
+]);
+sr_antispam_check_assert(empty($providerTimingResult['ok']), 'Antispam provider full verify must reject too-fast submissions before provider calls.');
+sr_antispam_check_assert(!isset($_SESSION[$providerTimingKey]), 'Antispam provider full verify must discard challenge after local timing failure.');
 
 $timing = sr_antispam_challenge_create('member.register', 'fixture_timing', ['ttl_seconds' => 60]);
 $timingKey = sr_antispam_session_key((string) $timing['surface'], (string) $timing['form_key']);

@@ -355,6 +355,7 @@ function sr_antispam_verify(PDO $pdo, string $surface, string $formKey, array $p
         $errors[] = '자동등록방지 요청 값이 올바르지 않습니다.';
     }
     if ($errors !== []) {
+        unset($_SESSION[sr_antispam_session_key($surface, $formKey)]);
         return ['ok' => false, 'required' => true, 'errors' => $errors, 'provider' => (string) $policy['type']];
     }
 
@@ -365,6 +366,7 @@ function sr_antispam_verify(PDO $pdo, string $surface, string $formKey, array $p
 
     $errors = array_merge($errors, sr_antispam_verify_local_timing($surface, $formKey, $settings));
     if ($errors !== []) {
+        unset($_SESSION[sr_antispam_session_key($surface, $formKey)]);
         return ['ok' => false, 'required' => true, 'errors' => $errors, 'provider' => (string) $policy['type']];
     }
 
