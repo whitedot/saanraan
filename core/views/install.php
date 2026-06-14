@@ -539,7 +539,42 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
         (function () {
             document.body.classList.add('sr-install-enhanced');
 
-            function syncRestrictedInput(input, normalizeValue) {
+            function restrictedInputMessage(input) {
+                return input.getAttribute('data-validation-message') || '영문, 숫자, 밑줄만 입력 가능합니다.';
+            }
+
+            function clearRestrictedInputValidation(input) {
+                if (!input || input.getAttribute('data-restricted-input-validation-active') !== '1') {
+                    return;
+                }
+
+                input.removeAttribute('data-restricted-input-validation-active');
+                if (typeof input.setCustomValidity === 'function') {
+                    input.setCustomValidity('');
+                }
+            }
+
+            function showRestrictedInputValidation(input) {
+                if (!input || typeof input.setCustomValidity !== 'function') {
+                    return;
+                }
+
+                window.clearTimeout(input._installRestrictedInputValidationTimer);
+                input.setAttribute('data-restricted-input-validation-active', '1');
+                input.setCustomValidity(restrictedInputMessage(input));
+                if (typeof input.reportValidity === 'function') {
+                    input.reportValidity();
+                }
+                input._installRestrictedInputValidationTimer = window.setTimeout(function () {
+                    clearRestrictedInputValidation(input);
+                }, 1800);
+            }
+
+            function hasRestrictedInputBlockedData(value) {
+                return /[^a-zA-Z0-9_]/.test(String(value || ''));
+            }
+
+            function syncRestrictedInput(input, normalizeValue, reportBlockedInput) {
                 if (!input || input.readOnly || input.disabled) {
                     return;
                 }
@@ -547,6 +582,7 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                 var previousValue = input.value;
                 var nextValue = normalizeValue(previousValue);
                 if (previousValue === nextValue) {
+                    clearRestrictedInputValidation(input);
                     return;
                 }
 
@@ -556,6 +592,9 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
                 input.value = nextValue;
                 if (typeof input.setSelectionRange === 'function') {
                     input.setSelectionRange(nextSelectionStart, nextSelectionStart);
+                }
+                if (reportBlockedInput && hasRestrictedInputBlockedData(previousValue)) {
+                    showRestrictedInputValidation(input);
                 }
             }
 
@@ -687,16 +726,30 @@ foreach ($selectedOptionalModuleKeys as $moduleKey) {
 
             document.querySelectorAll('[data-install-key-input]').forEach(function (input) {
                 syncRestrictedInput(input, normalizeKeyValue);
+                input.addEventListener('beforeinput', function (event) {
+                    if (!String(event.inputType || '').startsWith('insert') || !event.data || !hasRestrictedInputBlockedData(event.data)) {
+                        return;
+                    }
+                    event.preventDefault();
+                    showRestrictedInputValidation(input);
+                });
                 input.addEventListener('input', function () {
-                    syncRestrictedInput(input, normalizeKeyValue);
+                    syncRestrictedInput(input, normalizeKeyValue, true);
                     updateSummary();
                 });
             });
 
             document.querySelectorAll('[data-install-table-prefix-input]').forEach(function (input) {
                 syncRestrictedInput(input, normalizeTablePrefixValue);
+                input.addEventListener('beforeinput', function (event) {
+                    if (!String(event.inputType || '').startsWith('insert') || !event.data || !hasRestrictedInputBlockedData(event.data)) {
+                        return;
+                    }
+                    event.preventDefault();
+                    showRestrictedInputValidation(input);
+                });
                 input.addEventListener('input', function () {
-                    syncRestrictedInput(input, normalizeTablePrefixValue);
+                    syncRestrictedInput(input, normalizeTablePrefixValue, true);
                     updateSummary();
                 });
             });

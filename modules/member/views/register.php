@@ -174,10 +174,40 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 return String(value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[^a-z]+/, '');
             }
 
-            function syncLoginId() {
+            function clearLoginIdValidation() {
+                if (input.getAttribute('data-restricted-input-validation-active') !== '1') {
+                    return;
+                }
+
+                input.removeAttribute('data-restricted-input-validation-active');
+                if (typeof input.setCustomValidity === 'function') {
+                    input.setCustomValidity('');
+                }
+            }
+
+            function showLoginIdValidation() {
+                if (typeof input.setCustomValidity !== 'function') {
+                    return;
+                }
+
+                window.clearTimeout(input._memberLoginIdValidationTimer);
+                input.setAttribute('data-restricted-input-validation-active', '1');
+                input.setCustomValidity('영문, 숫자, 밑줄만 입력 가능합니다.');
+                if (typeof input.reportValidity === 'function') {
+                    input.reportValidity();
+                }
+                input._memberLoginIdValidationTimer = window.setTimeout(clearLoginIdValidation, 1800);
+            }
+
+            function hasBlockedLoginIdData(value) {
+                return /[^a-zA-Z0-9_]/.test(String(value || ''));
+            }
+
+            function syncLoginId(reportBlockedInput) {
                 var previousValue = input.value;
                 var nextValue = normalizeLoginId(previousValue);
                 if (previousValue === nextValue) {
+                    clearLoginIdValidation();
                     return;
                 }
 
@@ -188,10 +218,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 if (typeof input.setSelectionRange === 'function') {
                     input.setSelectionRange(nextSelectionStart, nextSelectionStart);
                 }
+                if (reportBlockedInput && hasBlockedLoginIdData(previousValue)) {
+                    showLoginIdValidation();
+                }
             }
 
             syncLoginId();
-            input.addEventListener('input', syncLoginId);
+            input.addEventListener('beforeinput', function (event) {
+                if (!String(event.inputType || '').startsWith('insert') || !event.data || !hasBlockedLoginIdData(event.data)) {
+                    return;
+                }
+                event.preventDefault();
+                showLoginIdValidation();
+            });
+            input.addEventListener('input', function () {
+                syncLoginId(true);
+            });
         }());
     </script>
 <?php sr_public_layout_end(); ?>

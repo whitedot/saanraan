@@ -41,6 +41,7 @@ window.AdminShell = {
         let hideScrollbarTimer = null;
         let themeSaving = false;
 
+        const restrictedKeyInputSelector = '[data-admin-key-input], [data-admin-login-id-input]';
         const normalizeKeyInputValue = value => value.toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[^a-z]+/, '');
         const normalizeSlugInputValue = value => value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+/, '');
         const assetAmountDigits = value => value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '').slice(0, 9);
@@ -776,7 +777,43 @@ window.AdminShell = {
             });
         };
 
-        const syncRestrictedInputValue = (input, normalizeValue) => {
+        const restrictedInputMessage = input => {
+            const custom = input ? input.getAttribute('data-validation-message') || input.getAttribute('data-restricted-input-message') || '' : '';
+            return custom !== '' ? custom : '영문, 숫자, 밑줄만 입력 가능합니다.';
+        };
+
+        const clearRestrictedInputValidation = input => {
+            if (!input || input.getAttribute('data-restricted-input-validation-active') !== '1') {
+                return;
+            }
+
+            input.removeAttribute('data-restricted-input-validation-active');
+            if (typeof input.setCustomValidity === 'function') {
+                input.setCustomValidity('');
+            }
+            refreshValidationControl(input);
+        };
+
+        const showRestrictedInputValidation = input => {
+            if (!input || typeof input.setCustomValidity !== 'function') {
+                return;
+            }
+
+            window.clearTimeout(input._adminRestrictedInputValidationTimer);
+            input.setAttribute('data-restricted-input-validation-active', '1');
+            input.setCustomValidity(restrictedInputMessage(input));
+            refreshValidationControl(input);
+            if (typeof input.reportValidity === 'function') {
+                input.reportValidity();
+            }
+            input._adminRestrictedInputValidationTimer = window.setTimeout(() => {
+                clearRestrictedInputValidation(input);
+            }, 1800);
+        };
+
+        const restrictedKeyInputHasBlockedData = value => /[^a-zA-Z0-9_]/.test(String(value || ''));
+
+        const syncRestrictedInputValue = (input, normalizeValue, reportBlockedInput) => {
             if (!input || input.readOnly || input.disabled) {
                 return;
             }
@@ -784,6 +821,7 @@ window.AdminShell = {
             const previousValue = input.value;
             const nextValue = normalizeValue(previousValue);
             if (previousValue === nextValue) {
+                clearRestrictedInputValidation(input);
                 return;
             }
 
@@ -796,9 +834,16 @@ window.AdminShell = {
             if (typeof input.setSelectionRange === 'function') {
                 input.setSelectionRange(nextSelectionStart, nextSelectionStart);
             }
+            if (reportBlockedInput) {
+                showRestrictedInputValidation(input);
+            }
         };
 
-        const syncKeyInputValue = input => syncRestrictedInputValue(input, normalizeKeyInputValue);
+        const syncKeyInputValue = (input, reportBlockedInput) => syncRestrictedInputValue(
+            input,
+            normalizeKeyInputValue,
+            !!reportBlockedInput && restrictedKeyInputHasBlockedData(input ? input.value : '')
+        );
         const syncSlugInputValue = input => syncRestrictedInputValue(input, normalizeSlugInputValue);
 
         const syncFilteringToggleGroup = group => {
@@ -1154,6 +1199,20 @@ window.AdminShell = {
             }
         }, true);
 
+        document.addEventListener('beforeinput', event => {
+            const keyInput = event.target && event.target.closest
+                ? event.target.closest(restrictedKeyInputSelector)
+                : null;
+            if (!keyInput || keyInput.readOnly || keyInput.disabled || !String(event.inputType || '').startsWith('insert')) {
+                return;
+            }
+
+            if (event.data && restrictedKeyInputHasBlockedData(event.data)) {
+                event.preventDefault();
+                showRestrictedInputValidation(keyInput);
+            }
+        });
+
         if (desktopToggle) {
             desktopToggle.addEventListener('click', () => {
                 const nextCollapsed = !(gnb && gnb.classList.contains('gnb_small'));
@@ -1435,14 +1494,14 @@ window.AdminShell = {
             }
 
             const keyInput = event.target && event.target.closest
-                ? event.target.closest('[data-admin-key-input], [data-admin-login-id-input]')
+                ? event.target.closest(restrictedKeyInputSelector)
                 : null;
             if (keyInput) {
                 if (keyInput.hasAttribute('data-admin-key-suggest-source')) {
                     keyInput.setAttribute('data-admin-key-touched', '1');
                     keyInput.removeAttribute('data-admin-key-suggested');
                 }
-                syncKeyInputValue(keyInput);
+                syncKeyInputValue(keyInput, true);
                 return;
             }
 
