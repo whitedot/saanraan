@@ -189,33 +189,77 @@ function sr_policy_document_create_version(PDO $pdo, int $documentId, array $dat
     }
 
     $now = sr_now();
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_policy_document_versions
-            (document_id, version_key, title_snapshot, body_html, summary_text, body_hash, status, effective_from, published_at, created_at, updated_at)
-         VALUES
-            (:document_id, :version_key, :title_snapshot, :body_html, :summary_text, :body_hash, :status, :effective_from, :published_at, :created_at, :updated_at)'
-    );
-    $stmt->execute([
-        'document_id' => $documentId,
-        'version_key' => $versionKey,
-        'title_snapshot' => $title,
-        'body_html' => $bodyHtml,
-        'summary_text' => $summaryText,
-        'body_hash' => sr_policy_document_body_hash($bodyHtml),
-        'status' => $status,
-        'effective_from' => $effectiveFrom,
-        'published_at' => $status === 'published' ? $now : null,
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
+    $ownsTransaction = !$pdo->inTransaction();
+    if ($ownsTransaction) {
+        $pdo->beginTransaction();
+    }
 
-    return (int) $pdo->lastInsertId();
+    try {
+        if ($status === 'published') {
+            $archiveStmt = $pdo->prepare(
+                'UPDATE sr_policy_document_versions
+                 SET status = "archived",
+                     updated_at = :updated_at
+                 WHERE document_id = :document_id
+                   AND status = "published"'
+            );
+            $archiveStmt->execute([
+                'document_id' => $documentId,
+                'updated_at' => $now,
+            ]);
+        }
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO sr_policy_document_versions
+                (document_id, version_key, title_snapshot, body_html, summary_text, body_hash, status, effective_from, published_at, created_at, updated_at)
+             VALUES
+                (:document_id, :version_key, :title_snapshot, :body_html, :summary_text, :body_hash, :status, :effective_from, :published_at, :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            'document_id' => $documentId,
+            'version_key' => $versionKey,
+            'title_snapshot' => $title,
+            'body_html' => $bodyHtml,
+            'summary_text' => $summaryText,
+            'body_hash' => sr_policy_document_body_hash($bodyHtml),
+            'status' => $status,
+            'effective_from' => $effectiveFrom,
+            'published_at' => $status === 'published' ? $now : null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $versionId = (int) $pdo->lastInsertId();
+
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
+
+        return $versionId;
+    } catch (Throwable $exception) {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
 }
 
 function sr_policy_document_create_notice_job(PDO $pdo, int $documentId, int $versionId, string $subject, string $body, bool $dryRun = false): int
 {
     $jobKey = 'policy_document_' . (string) $versionId . '_notice';
     $now = sr_now();
+    $existingStmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_policy_document_mail_jobs
+         WHERE job_key = :job_key
+         LIMIT 1'
+    );
+    $existingStmt->execute(['job_key' => $jobKey]);
+    $existingJobId = $existingStmt->fetchColumn();
+    if (is_numeric($existingJobId) && (int) $existingJobId > 0) {
+        sr_policy_document_seed_notice_deliveries($pdo, (int) $existingJobId);
+        return (int) $existingJobId;
+    }
+
     $stmt = $pdo->prepare(
         'INSERT INTO sr_policy_document_mail_jobs
             (document_id, version_id, job_key, status, target_status_snapshot, subject_snapshot, body_snapshot, dry_run, created_at, updated_at)
@@ -289,6 +333,34 @@ function sr_policy_document_mail_jobs(PDO $pdo): array
 function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId, int $limit = 20): array
 {
     $limit = min(100, max(1, $limit));
+    $now = sr_now();
+    $skipSelectStmt = $pdo->prepare(
+        'SELECT d.id
+         FROM sr_policy_document_mail_deliveries d
+         LEFT JOIN sr_member_accounts a ON a.id = d.account_id
+         WHERE d.job_id = :job_id
+           AND d.status = "queued"
+           AND (a.id IS NULL OR a.status <> "active")'
+    );
+    $skipSelectStmt->execute(['job_id' => $jobId]);
+    $skipIds = array_map('intval', array_column($skipSelectStmt->fetchAll(), 'id'));
+    $skipUpdateStmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_deliveries
+         SET status = "skipped",
+             failure_code = "account_not_active",
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = "queued"'
+    );
+    $skipped = 0;
+    foreach ($skipIds as $skipId) {
+        $skipUpdateStmt->execute([
+            'id' => $skipId,
+            'updated_at' => $now,
+        ]);
+        $skipped += $skipUpdateStmt->rowCount() > 0 ? 1 : 0;
+    }
+
     $stmt = $pdo->prepare(
         'SELECT d.id, d.account_id, a.email, j.subject_snapshot, j.body_snapshot, j.dry_run
          FROM sr_policy_document_mail_deliveries d
@@ -305,7 +377,6 @@ function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId
 
     $sent = 0;
     $failed = 0;
-    $now = sr_now();
     $updateStmt = $pdo->prepare(
         'UPDATE sr_policy_document_mail_deliveries
          SET status = :status,
@@ -341,6 +412,7 @@ function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId
         'claimed' => count($rows),
         'sent' => $sent,
         'failed' => $failed,
+        'skipped' => $skipped,
     ];
 }
 
