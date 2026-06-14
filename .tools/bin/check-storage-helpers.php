@@ -94,6 +94,7 @@ if (is_string($storageHelperSource)) {
         'function sr_thumbnail_delete_variants',
         'function sr_storage_copy_to_temp_file',
         'function sr_storage_http_download_to_temp_file',
+        '$detectedImageMime',
         'max_source_pixels',
         "storage/cache/thumbnails",
     ] as $marker) {
@@ -106,6 +107,7 @@ if (is_string($storageHelperSource)) {
 
 $htaccess = file_get_contents($root . '/.htaccess');
 $devRouter = file_get_contents($root . '/.tools/bin/dev-router.php');
+$nginxSample = file_get_contents($root . '/docs/deployment/nginx-saanraan.conf');
 $coreHelpers = file_get_contents($root . '/core/helpers.php');
 $frontController = file_get_contents($root . '/index.php');
 $communityAttachments = file_get_contents($root . '/modules/community/helpers/attachments.php');
@@ -124,6 +126,12 @@ sr_storage_helper_assert(
 sr_storage_helper_assert(
     is_string($devRouter) && strpos($devRouter, '$thumbnailCacheRequest') !== false,
     'Dev router must allow only generated thumbnail cache images under storage/cache/thumbnails.'
+);
+sr_storage_helper_assert(
+    is_string($nginxSample)
+        && strpos($nginxSample, '^/storage/cache/thumbnails/[a-f0-9]{2}') !== false
+        && strpos($nginxSample, '^/storage/cache/thumbnails/[a-z][a-z0-9_]{1,39}') !== false,
+    'Nginx sample must allow only generated thumbnail cache images under storage/cache/thumbnails.'
 );
 sr_storage_helper_assert(
     is_string($coreHelpers)
@@ -264,6 +272,10 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
         'checksum_sha256' => hash_file('sha256', $fixturePath) ?: '',
         'public_url' => '/fallback.png',
     ];
+    sr_storage_helper_assert(
+        sr_thumbnail_public_url(new PDO('sqlite::memory:'), $source, ['width' => 160, 'height' => 90, 'max_source_bytes' => 1]) === '/fallback.png',
+        'Thumbnail helper must apply source byte limits to local sources before generating a variant.'
+    );
     $thumbnailUrl = sr_thumbnail_public_url(new PDO('sqlite::memory:'), $source, [
         'width' => 160,
         'height' => 90,

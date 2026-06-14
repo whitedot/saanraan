@@ -176,16 +176,21 @@ function sr_storage_copy_to_temp_file(string $driver, string $key, array $option
     }
 
     $driver = strtolower(trim($driver));
+    $maxBytes = max(1, (int) ($options['max_bytes'] ?? 20971520));
     if ($driver === 'local') {
         $path = sr_storage_local_path($key);
         if (!is_string($path)) {
+            return null;
+        }
+        $contentLength = (int) filesize($path);
+        if ($contentLength < 1 || $contentLength > $maxBytes) {
             return null;
         }
 
         return [
             'path' => $path,
             'content_type' => sr_upload_detect_mime($path),
-            'content_length' => (int) filesize($path),
+            'content_length' => $contentLength,
             'version_marker' => 'local:' . (string) (@filemtime($path) ?: '0') . ':' . (string) (@filesize($path) ?: '0'),
             'cleanup' => false,
         ];
@@ -196,7 +201,6 @@ function sr_storage_copy_to_temp_file(string $driver, string $key, array $option
     }
 
     $config = isset($options['config']) && is_array($options['config']) ? $options['config'] : sr_runtime_config();
-    $maxBytes = max(1, (int) ($options['max_bytes'] ?? 20971520));
     $head = sr_storage_s3_head($config, $key);
     if ($head === null || (int) ($head['content_length'] ?? 0) < 1 || (int) ($head['content_length'] ?? 0) > $maxBytes) {
         return null;
@@ -394,6 +398,14 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         }
         return $publicUrl;
     }
+    $detectedImageMime = strtolower(trim((string) ($imageInfo['mime'] ?? sr_upload_detect_mime($sourcePath))));
+    if (!in_array($detectedImageMime, sr_thumbnail_supported()['mime_types'], true)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return $publicUrl;
+    }
+    $mimeType = $detectedImageMime;
     $sourcePixels = (int) ($imageInfo[0] ?? 0) * (int) ($imageInfo[1] ?? 0);
     if ($sourcePixels > max(1, (int) ($options['max_source_pixels'] ?? 40000000))) {
         if (!empty($sourceFile['cleanup'])) {
