@@ -203,6 +203,7 @@
         background: rgba(0, 0, 0, .035);
         border: 0;
         box-shadow: none;
+        display: none;
         left: auto;
         margin: 2px 0 4px 12px;
         max-width: none;
