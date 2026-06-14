@@ -81,9 +81,6 @@ return static function (PDO $pdo, int $accountId): array {
         if ($accountNotificationIds !== []) {
             $adminExternalChannels = ['slack_webhook', 'discord_webhook', 'telegram_bot'];
             $adminExternalPlaceholders = implode(',', array_fill(0, count($adminExternalChannels), '?'));
-            $deliveryWhere = '(' . $deliveryWhere . ') OR (notification_id IN (' . $accountPlaceholders . ') AND channel NOT IN (' . $adminExternalPlaceholders . '))';
-            $deliveryParams = array_merge($deliveryParams, $accountNotificationIds);
-            $deliveryParams = array_merge($deliveryParams, $adminExternalChannels);
             $deliveryWhere = '(' . $deliveryWhere . ') OR (notification_id IN (' . $accountPlaceholders . ') AND channel IN (' . $adminExternalPlaceholders . ') AND recipient LIKE ?)';
             $deliveryParams = array_merge($deliveryParams, $accountNotificationIds);
             $deliveryParams = array_merge($deliveryParams, $adminExternalChannels, ['endpoint:%']);

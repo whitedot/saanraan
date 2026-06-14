@@ -705,10 +705,13 @@ sr_notification_runtime_assert(
 );
 sr_notification_runtime_assert(
     is_string($notificationPrivacyExport)
-        && str_contains($notificationPrivacyExport, 'channel NOT IN (')
+        && !str_contains($notificationPrivacyExport, 'channel NOT IN (')
+        && str_contains($notificationPrivacyExport, 'channel IN (')
+        && str_contains($notificationPrivacyExport, 'recipient LIKE ?')
+        && str_contains($notificationPrivacyExport, "'endpoint:%'")
         && str_contains($notificationPrivacyExport, "'discord_webhook'")
         && str_contains($notificationPrivacyExport, "'telegram_bot'"),
-    'notification privacy export must exclude admin external deliveries from account delivery exports.'
+    'notification privacy export must include only endpoint-reference push deliveries from account external exports.'
 );
 sr_notification_runtime_assert(
     is_string($notificationHelpers)
