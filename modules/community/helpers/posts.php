@@ -321,9 +321,9 @@ function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword =
     return (int) $stmt->fetchColumn();
 }
 
-function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0): array
+function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest'): array
 {
-    return sr_community_board_posts($pdo, $boardId, $limit, $offset, $keyword, $categoryId);
+    return sr_community_board_posts($pdo, $boardId, $limit, $offset, $keyword, $categoryId, $sort);
 }
 
 function sr_community_public_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0): int
