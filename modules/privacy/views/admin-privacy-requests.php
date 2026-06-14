@@ -115,7 +115,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <label for="privacy_create_admin_note">
             <span>관리자 메모</span>
             <textarea id="privacy_create_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"></textarea>
-            <small class="admin-form-help">본인 확인 경로, 회신 채널, 내부 확인 사항을 필요한 만큼만 남기세요.</small>
+            <small class="admin-form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
         </label>
         <div class="admin-form-actions">
             <button type="submit" class="btn btn-solid-primary">기록 추가</button>
@@ -202,6 +202,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <label for="privacy_note_<?php echo sr_e($requestId); ?>">
                                         <span><?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?> <span class="sr-required-label" data-privacy-note-required<?php echo $noteRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
                                         <textarea name="admin_note" id="privacy_note_<?php echo sr_e($requestId); ?>" class="form-textarea" rows="3" cols="30" placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.79636dee')); ?>" data-privacy-note<?php echo $noteRequired ? ' required' : ''; ?>></textarea>
+                                        <small class="admin-form-help">처리 근거와 결과만 적고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
                                     </label>
                                     <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                                         <span class="filtering-toggle-item">

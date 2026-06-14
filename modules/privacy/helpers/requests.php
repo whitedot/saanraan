@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
+require_once dirname(__DIR__, 3) . '/core/helpers/ops.php';
 
 function sr_admin_privacy_request_statuses(): array
 {
@@ -68,6 +69,21 @@ function sr_admin_privacy_request_list_preview(?string $value, int $maxLength = 
     return substr($preview, 0, $maxLength) . '...';
 }
 
+function sr_admin_privacy_request_admin_note_sanitize(?string $value): string
+{
+    $text = trim((string) $value);
+    if ($text === '') {
+        return '';
+    }
+
+    $text = sr_log_sensitive_text_sanitize($text);
+    $text = preg_replace('/\b\d{6}[- ]?[1-4]\d{6}\b/u', '[redacted-rrn]', $text) ?? $text;
+    $text = preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/iu', '[redacted-email]', $text) ?? $text;
+    $text = preg_replace('/(?<!\d)(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}(?!\d)/u', '[redacted-phone]', $text) ?? $text;
+
+    return $text;
+}
+
 function sr_admin_privacy_request_requester_display(array $request): string
 {
     $snapshot = (string) ($request['requester_snapshot'] ?? '');
@@ -108,7 +124,7 @@ function sr_admin_handle_privacy_request_create_post(PDO $pdo, array $account, a
 
     $requesterSnapshot = trim($requesterSnapshot);
     $requestMessage = trim($requestMessage);
-    $adminNote = trim($adminNote);
+    $adminNote = sr_admin_privacy_request_admin_note_sanitize($adminNote);
     $linkedAccount = null;
 
     if (!in_array((string) $requestType, $allowedTypes, true)) {
@@ -227,6 +243,7 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
     if ($errors === []) {
         $storedAdminNote = (string) ($privacyRequest['admin_note'] ?? '');
         $nextAdminNote = $adminNote !== '' ? $adminNote : $storedAdminNote;
+        $nextAdminNote = sr_admin_privacy_request_admin_note_sanitize($nextAdminNote);
 
         if (in_array($status, sr_admin_privacy_request_terminal_statuses(), true) && $nextAdminNote === '') {
             $errors[] = '종결 상태로 변경할 때는 관리자 메모를 남기세요.';
@@ -475,7 +492,7 @@ function sr_admin_privacy_request_export_data(PDO $pdo, array $privacyRequest): 
             'status' => (string) $privacyRequest['status'],
             'requester_snapshot' => (string) $privacyRequest['requester_snapshot'],
             'request_message' => $privacyRequest['request_message'],
-            'admin_note' => $privacyRequest['admin_note'],
+            'admin_note' => sr_admin_privacy_request_admin_note_sanitize($privacyRequest['admin_note'] ?? null),
             'handled_by_account_id' => $privacyRequest['handled_by_account_id'] !== null ? (int) $privacyRequest['handled_by_account_id'] : null,
             'handled_at' => $privacyRequest['handled_at'],
             'created_at' => (string) $privacyRequest['created_at'],
@@ -504,11 +521,17 @@ function sr_privacy_export_data(PDO $pdo, int $accountId): array
          ORDER BY id ASC'
     );
     $stmt->execute(['account_id' => $accountId]);
+    $privacyRequests = $stmt->fetchAll();
+    foreach ($privacyRequests as $index => $privacyRequest) {
+        if (is_array($privacyRequest)) {
+            $privacyRequests[$index]['admin_note'] = sr_admin_privacy_request_admin_note_sanitize($privacyRequest['admin_note'] ?? null);
+        }
+    }
 
     return [
         'exported_at' => sr_now(),
         'account_id' => $accountId,
-        'privacy_requests' => $stmt->fetchAll(),
+        'privacy_requests' => $privacyRequests,
         'module_exports' => sr_privacy_module_exports($pdo, $accountId),
     ];
 }
