@@ -207,7 +207,12 @@ function sr_storage_copy_to_temp_file(string $driver, string $key, array $option
     }
 
     try {
-        $downloadUrl = sr_storage_s3_presigned_url($config, $key, 300);
+        $headMetadata = isset($head['metadata']) && is_array($head['metadata']) ? $head['metadata'] : [];
+        $downloadOptions = [];
+        if (trim((string) ($headMetadata['version_id'] ?? '')) !== '') {
+            $downloadOptions['versionId'] = trim((string) $headMetadata['version_id']);
+        }
+        $downloadUrl = sr_storage_s3_presigned_url($config, $key, 300, $downloadOptions);
     } catch (Throwable $exception) {
         return null;
     }
@@ -215,12 +220,11 @@ function sr_storage_copy_to_temp_file(string $driver, string $key, array $option
     if ($download === null) {
         return null;
     }
-    $metadata = isset($head['metadata']) && is_array($head['metadata']) ? $head['metadata'] : [];
     return [
         'path' => (string) $download['path'],
         'content_type' => (string) ($download['headers']['content-type'] ?? $head['content_type'] ?? ''),
         'content_length' => (int) ($download['content_length'] ?? 0),
-        'version_marker' => sr_storage_s3_version_marker($metadata, $head),
+        'version_marker' => sr_storage_s3_version_marker($headMetadata, $head),
         'cleanup' => true,
     ];
 }
@@ -382,14 +386,6 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         return $publicUrl;
     }
     $sourcePath = (string) $sourceFile['path'];
-
-    $mimeType = strtolower(trim((string) ($source['mime_type'] ?? $sourceFile['content_type'] ?? sr_upload_detect_mime($sourcePath))));
-    if (!in_array($mimeType, sr_thumbnail_supported()['mime_types'], true)) {
-        if (!empty($sourceFile['cleanup'])) {
-            @unlink($sourcePath);
-        }
-        return $publicUrl;
-    }
 
     $imageInfo = @getimagesize($sourcePath);
     if (!is_array($imageInfo) || (int) ($imageInfo[0] ?? 0) < 1 || (int) ($imageInfo[1] ?? 0) < 1) {
@@ -759,7 +755,7 @@ function sr_storage_s3_presigned_url(array $config, string $key, int $ttlSeconds
         'X-Amz-Expires' => (string) $ttlSeconds,
         'X-Amz-SignedHeaders' => 'host',
     ];
-    foreach (['response-content-type', 'response-content-disposition'] as $keyName) {
+    foreach (['response-content-type', 'response-content-disposition', 'versionId'] as $keyName) {
         if (isset($options[$keyName]) && is_string($options[$keyName]) && $options[$keyName] !== '') {
             $query[$keyName] = $options[$keyName];
         }
@@ -1026,7 +1022,13 @@ function sr_storage_http_download_to_temp_file_with_stream(string $url, string $
     $bytes = 0;
     while (!feof($stream)) {
         $chunk = fread($stream, 8192);
-        if (!is_string($chunk) || $chunk === '') {
+        if (!is_string($chunk)) {
+            fclose($file);
+            fclose($stream);
+            @unlink($temporary);
+            return null;
+        }
+        if ($chunk === '') {
             continue;
         }
         $bytes += strlen($chunk);

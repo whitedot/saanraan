@@ -74,6 +74,11 @@ sr_storage_helper_assert(
     str_starts_with($developmentSignedUrl, 'http://sr-bucket.s3.local/banner/images/test.jpg?'),
     'Development S3 signed URL should keep HTTP-compatible local endpoint support.'
 );
+$developmentVersionedSignedUrl = sr_storage_signed_url('s3', 'banner/images/test.jpg', 300, ['versionId' => 'test-version-123'], $developmentHttpConfig);
+sr_storage_helper_assert(
+    str_contains($developmentVersionedSignedUrl, 'versionId=test-version-123'),
+    'S3 signed URL should include VersionId when requested for exact object reads.'
+);
 sr_storage_helper_assert(
     sr_storage_public_url('s3', 'banner/images/test.jpg', $developmentHttpConfig) === 'http://cdn.local/banner/images/test.jpg',
     'Development S3 public URL should keep HTTP-compatible local endpoint support.'
@@ -268,7 +273,7 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
         'module_key' => 'community',
         'storage_driver' => 'local',
         'storage_key' => $storageKey,
-        'mime_type' => 'image/png',
+        'mime_type' => 'application/octet-stream',
         'checksum_sha256' => hash_file('sha256', $fixturePath) ?: '',
         'public_url' => '/fallback.png',
     ];
@@ -284,7 +289,7 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
     ]);
     sr_storage_helper_assert(
         preg_match('#\A/storage/cache/thumbnails/community/[a-f0-9]{2}/[a-f0-9]{64}_w160_h90_cover_q82_source_[a-f0-9]{16}\.png\z#', $thumbnailUrl) === 1,
-        'Thumbnail helper must return a module-key source-version public cache URL when GD can generate the variant.'
+        'Thumbnail helper must use the actual image MIME and return a module-key source-version public cache URL when GD can generate the variant.'
     );
     $thumbnailPath = $root . parse_url($thumbnailUrl, PHP_URL_PATH);
     sr_storage_helper_assert(is_file($thumbnailPath), 'Thumbnail helper must create the cache image file.');
