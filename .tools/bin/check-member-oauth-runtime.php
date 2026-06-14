@@ -195,6 +195,10 @@ sr_member_oauth_check_contains('modules/member_oauth/install.sql', [
 sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_create_state',
     'sr_member_oauth_consume_state',
+    'sr_member_oauth_save_settings',
+    'sr_member_oauth_provider_setting_key',
+    'sr_member_oauth_apply_provider_settings',
+    'sr_member_oauth_secret_display',
     'sr_member_oauth_authorization_url',
     'sr_member_oauth_store_transient_secrets',
     'sr_member_oauth_take_transient_secrets',
@@ -210,6 +214,23 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/start.php', [
     'sr_member_oauth_create_state',
     'sr_member_oauth_store_transient_secrets',
     'sr_redirect_trusted_external(sr_member_oauth_authorization_url',
+]);
+sr_member_oauth_check_contains('modules/member_oauth/actions/admin-settings.php', [
+    'sr_admin_require_owner',
+    "sr_post_string('intent', 40)",
+    'sr_admin_post_int_in_range',
+    'sr_post_string_without_truncation($secretKey, 512)',
+    'sr_member_oauth_save_settings',
+    'member_oauth.settings.updated',
+    'sr_admin_redirect_with_result',
+]);
+sr_member_oauth_check_contains('modules/member_oauth/views/admin-settings.php', [
+    'sr_admin_feedback_toasts($notice, $errors)',
+    'sr_csrf_field()',
+    'sr_member_oauth_secret_display',
+    'autocomplete="new-password"',
+    'data-oauth-required-provider',
+    '비워 두면 기존 secret을 유지합니다',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
     'sr_member_oauth_state_by_token($pdo, $stateToken, \'login\')',

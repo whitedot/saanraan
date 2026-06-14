@@ -14,10 +14,82 @@ function sr_member_oauth_settings(PDO $pdo): array
     return array_merge($defaults, sr_module_settings($pdo, 'member_oauth'));
 }
 
+function sr_member_oauth_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'member_oauth' LIMIT 1");
+    $stmt->execute();
+    $module = $stmt->fetch();
+    if (!is_array($module)) {
+        throw new RuntimeException('Member OAuth module is not installed.');
+    }
+
+    $save = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $now = sr_now();
+    foreach ($settings as $key => $value) {
+        $valueType = is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string');
+        $save->execute([
+            'module_id' => (int) $module['id'],
+            'setting_key' => (string) $key,
+            'setting_value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
+            'value_type' => $valueType,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    sr_clear_module_settings_cache('member_oauth');
+}
+
 function sr_member_oauth_provider_key(string $providerKey): string
 {
     $providerKey = strtolower(trim($providerKey));
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $providerKey) === 1 ? $providerKey : '';
+}
+
+function sr_member_oauth_provider_setting_key(string $providerKey, string $settingKey): string
+{
+    $providerKey = sr_member_oauth_provider_key($providerKey);
+    if ($providerKey === '' || preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $settingKey) !== 1) {
+        return '';
+    }
+
+    return 'provider_' . $providerKey . '_' . $settingKey;
+}
+
+function sr_member_oauth_apply_provider_settings(array $provider, array $settings): array
+{
+    $providerKey = sr_member_oauth_provider_key((string) ($provider['provider_key'] ?? ''));
+    if ($providerKey === '' || !empty($provider['mock'])) {
+        return $provider;
+    }
+
+    foreach (['label', 'client_id', 'client_secret', 'scope', 'sort_order'] as $settingKey) {
+        $storedKey = sr_member_oauth_provider_setting_key($providerKey, $settingKey);
+        if ($storedKey !== '' && array_key_exists($storedKey, $settings)) {
+            $provider[$settingKey] = $settings[$storedKey];
+        }
+    }
+
+    $enabledKey = sr_member_oauth_provider_setting_key($providerKey, 'enabled');
+    if ($enabledKey !== '' && array_key_exists($enabledKey, $settings)) {
+        $provider['enabled'] = !empty($settings[$enabledKey]);
+    }
+
+    return $provider;
+}
+
+function sr_member_oauth_secret_display(string $value): string
+{
+    return $value === '' ? '' : '********';
 }
 
 function sr_member_oauth_builtin_providers(PDO $pdo): array
@@ -39,6 +111,7 @@ function sr_member_oauth_builtin_providers(PDO $pdo): array
 
 function sr_member_oauth_providers(PDO $pdo): array
 {
+    $settings = sr_member_oauth_settings($pdo);
     $providers = sr_member_oauth_builtin_providers($pdo);
     foreach (sr_installed_module_contract_files($pdo, 'oauth-providers.php', ['member_oauth']) as $moduleKey => $contractFile) {
         $contract = sr_load_module_contract_file($moduleKey, $contractFile);
@@ -53,15 +126,29 @@ function sr_member_oauth_providers(PDO $pdo): array
             $providers[$normalizedKey] = array_merge($provider, ['provider_key' => $normalizedKey]);
         }
     }
+    foreach ($providers as $providerKey => $provider) {
+        $providers[$providerKey] = sr_member_oauth_apply_provider_settings($provider, $settings);
+    }
 
     return $providers;
 }
 
 function sr_member_oauth_public_providers(PDO $pdo): array
 {
-    return array_values(array_filter(sr_member_oauth_providers($pdo), static function (array $provider): bool {
+    $providers = array_values(array_filter(sr_member_oauth_providers($pdo), static function (array $provider): bool {
         return !empty($provider['enabled']) || !empty($provider['mock']);
     }));
+    usort($providers, static function (array $left, array $right): int {
+        $leftOrder = (int) ($left['sort_order'] ?? 0);
+        $rightOrder = (int) ($right['sort_order'] ?? 0);
+        if ($leftOrder !== $rightOrder) {
+            return $leftOrder <=> $rightOrder;
+        }
+
+        return strcmp((string) ($left['label'] ?? $left['provider_key'] ?? ''), (string) ($right['label'] ?? $right['provider_key'] ?? ''));
+    });
+
+    return $providers;
 }
 
 function sr_member_oauth_provider_value(array $provider, string $key): string
