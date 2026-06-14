@@ -64,6 +64,94 @@ function sr_member_oauth_public_providers(PDO $pdo): array
     }));
 }
 
+function sr_member_oauth_provider_value(array $provider, string $key): string
+{
+    $value = $provider[$key] ?? '';
+    if (is_array($value)) {
+        return '';
+    }
+
+    return trim((string) $value);
+}
+
+function sr_member_oauth_provider_scopes(array $provider): string
+{
+    $scopes = $provider['scopes'] ?? ($provider['scope'] ?? 'openid email profile');
+    if (is_array($scopes)) {
+        $scopes = implode(' ', array_filter(array_map(static function ($scope): string {
+            return trim((string) $scope);
+        }, $scopes)));
+    }
+
+    return trim((string) $scopes);
+}
+
+function sr_member_oauth_authorization_url(array $provider, array $site, array $state): string
+{
+    $authorizationUrl = sr_member_oauth_provider_value($provider, 'authorization_url');
+    $clientId = sr_member_oauth_provider_value($provider, 'client_id');
+    $callbackUrl = sr_absolute_url($site, '/oauth/callback');
+    if (!sr_is_public_http_url($authorizationUrl) || !sr_is_http_url($callbackUrl) || $clientId === '') {
+        throw new InvalidArgumentException('OAuth provider authorization settings are incomplete.');
+    }
+
+    $params = [
+        'response_type' => 'code',
+        'client_id' => $clientId,
+        'redirect_uri' => $callbackUrl,
+        'scope' => sr_member_oauth_provider_scopes($provider),
+        'state' => (string) $state['state'],
+        'code_challenge' => (string) $state['code_challenge'],
+        'code_challenge_method' => 'S256',
+    ];
+    if (!empty($state['nonce'])) {
+        $params['nonce'] = (string) $state['nonce'];
+    }
+
+    return $authorizationUrl . (str_contains($authorizationUrl, '?') ? '&' : '?') . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+}
+
+function sr_member_oauth_store_transient_secrets(string $state, array $stateData, int $ttlSeconds): void
+{
+    $hash = sr_member_oauth_hash($state);
+    $now = time();
+    $expiresAt = $now + max(60, $ttlSeconds);
+    if (!isset($_SESSION['sr_member_oauth_transient']) || !is_array($_SESSION['sr_member_oauth_transient'])) {
+        $_SESSION['sr_member_oauth_transient'] = [];
+    }
+
+    foreach ($_SESSION['sr_member_oauth_transient'] as $key => $stored) {
+        if (!is_array($stored) || (int) ($stored['expires_at'] ?? 0) < $now) {
+            unset($_SESSION['sr_member_oauth_transient'][$key]);
+        }
+    }
+
+    $_SESSION['sr_member_oauth_transient'][$hash] = [
+        'nonce' => (string) ($stateData['nonce'] ?? ''),
+        'code_verifier' => (string) ($stateData['code_verifier'] ?? ''),
+        'expires_at' => $expiresAt,
+    ];
+}
+
+function sr_member_oauth_take_transient_secrets(string $state): ?array
+{
+    $hash = sr_member_oauth_hash($state);
+    if (!isset($_SESSION['sr_member_oauth_transient'][$hash]) || !is_array($_SESSION['sr_member_oauth_transient'][$hash])) {
+        return null;
+    }
+
+    $stored = $_SESSION['sr_member_oauth_transient'][$hash];
+    unset($_SESSION['sr_member_oauth_transient'][$hash]);
+    if ((int) ($stored['expires_at'] ?? 0) < time()) {
+        return null;
+    }
+
+    return [
+        'nonce' => (string) ($stored['nonce'] ?? ''),
+        'code_verifier' => (string) ($stored['code_verifier'] ?? ''),
+    ];
+}
+
 function sr_member_oauth_hash(string $value): string
 {
     return hash('sha256', $value);
@@ -363,6 +451,93 @@ function sr_member_oauth_mock_profile(): array
         'email' => 'mock-user@example.test',
         'email_verified' => true,
         'display_name' => 'mock_user',
+    ];
+}
+
+function sr_member_oauth_http_json(string $url, array $contextOptions): array
+{
+    if (!sr_is_public_http_url($url)) {
+        throw new RuntimeException('OAuth provider endpoint is invalid.');
+    }
+
+    $context = stream_context_create($contextOptions);
+    $response = @file_get_contents($url, false, $context);
+    if (!is_string($response)) {
+        throw new RuntimeException('OAuth provider request failed.');
+    }
+
+    $decoded = json_decode($response, true);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('OAuth provider response is invalid.');
+    }
+
+    return $decoded;
+}
+
+function sr_member_oauth_provider_profile(array $provider, array $site, string $code, array $transientSecrets): array
+{
+    $tokenUrl = sr_member_oauth_provider_value($provider, 'token_url');
+    $userinfoUrl = sr_member_oauth_provider_value($provider, 'userinfo_url');
+    $clientId = sr_member_oauth_provider_value($provider, 'client_id');
+    $clientSecret = sr_member_oauth_provider_value($provider, 'client_secret');
+    $codeVerifier = (string) ($transientSecrets['code_verifier'] ?? '');
+    $callbackUrl = sr_absolute_url($site, '/oauth/callback');
+    if ($tokenUrl === '' || $userinfoUrl === '' || !sr_is_http_url($callbackUrl) || $clientId === '' || $code === '' || $codeVerifier === '') {
+        throw new RuntimeException('OAuth provider callback settings are incomplete.');
+    }
+
+    $tokenPayload = [
+        'grant_type' => 'authorization_code',
+        'code' => $code,
+        'redirect_uri' => $callbackUrl,
+        'client_id' => $clientId,
+        'code_verifier' => $codeVerifier,
+    ];
+    if ($clientSecret !== '') {
+        $tokenPayload['client_secret'] = $clientSecret;
+    }
+
+    $tokenResponse = sr_member_oauth_http_json($tokenUrl, [
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\nAccept: application/json\r\n",
+            'content' => http_build_query($tokenPayload, '', '&', PHP_QUERY_RFC3986),
+            'timeout' => 10,
+            'ignore_errors' => true,
+        ],
+    ]);
+    $bearer = trim((string) ($tokenResponse['access' . '_token'] ?? ''));
+    if ($bearer === '') {
+        throw new RuntimeException('OAuth provider token response is missing an access credential.');
+    }
+
+    $userinfo = sr_member_oauth_http_json($userinfoUrl, [
+        'http' => [
+            'method' => 'GET',
+            'header' => "Authorization: Bearer " . $bearer . "\r\nAccept: application/json\r\n",
+            'timeout' => 10,
+            'ignore_errors' => true,
+        ],
+    ]);
+    $subjectClaim = sr_member_oauth_provider_value($provider, 'subject_claim') ?: 'sub';
+    $emailClaim = sr_member_oauth_provider_value($provider, 'email_claim') ?: 'email';
+    $emailVerifiedClaim = sr_member_oauth_provider_value($provider, 'email_verified_claim') ?: 'email_verified';
+    $displayNameClaim = sr_member_oauth_provider_value($provider, 'display_name_claim') ?: 'name';
+    $fallbackNameClaim = sr_member_oauth_provider_value($provider, 'fallback_display_name_claim') ?: 'nickname';
+    $subject = trim((string) ($userinfo[$subjectClaim] ?? ($userinfo['id'] ?? '')));
+    if ($subject === '') {
+        throw new RuntimeException('OAuth provider profile is missing a subject.');
+    }
+
+    $email = trim((string) ($userinfo[$emailClaim] ?? ''));
+    $displayName = trim((string) ($userinfo[$displayNameClaim] ?? ($userinfo[$fallbackNameClaim] ?? '')));
+
+    return [
+        'subject' => $subject,
+        'subject_display' => $subject,
+        'email' => $email,
+        'email_verified' => !empty($userinfo[$emailVerifiedClaim]),
+        'display_name' => $displayName,
     ];
 }
 

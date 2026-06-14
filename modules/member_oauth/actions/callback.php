@@ -8,8 +8,13 @@ require_once SR_ROOT . '/modules/member_oauth/helpers.php';
 $providerKey = sr_member_oauth_provider_key(sr_get_string('provider', 60));
 $stateToken = sr_get_string_without_truncation('state', 255) ?? '';
 $providers = sr_member_oauth_providers($pdo);
-if (!isset($providers[$providerKey]) || empty($providers[$providerKey]['mock'])) {
-    sr_render_error(501, 'OAuth provider adapter is not implemented.');
+if ($providerKey === '' || !isset($providers[$providerKey])) {
+    sr_render_error(404, 'OAuth provider not found.');
+}
+
+$providerError = sr_get_string_without_truncation('error', 255) ?? '';
+if ($providerError !== '') {
+    sr_render_error(400, 'OAuth provider returned an error.');
 }
 
 $statePreview = sr_member_oauth_state_by_token($pdo, $stateToken, 'login');
@@ -25,7 +30,20 @@ if (!is_array($state)) {
     sr_render_error(400, 'OAuth state is invalid.');
 }
 
-$profile = sr_member_oauth_mock_profile();
+if (!empty($providers[$providerKey]['mock'])) {
+    $profile = sr_member_oauth_mock_profile();
+} else {
+    $code = sr_get_string_without_truncation('code', 4096) ?? '';
+    $transientSecrets = sr_member_oauth_take_transient_secrets($stateToken);
+    if ($code === '' || !is_array($transientSecrets)) {
+        sr_render_error(400, 'OAuth callback is invalid.');
+    }
+    try {
+        $profile = sr_member_oauth_provider_profile($providers[$providerKey], $site ?? [], $code, $transientSecrets);
+    } catch (Throwable) {
+        sr_render_error(502, 'OAuth provider profile could not be loaded.');
+    }
+}
 $subjectHash = sr_member_oauth_subject_hash($config, $providerKey, (string) $profile['subject']);
 $oauthAccount = sr_member_oauth_account_by_subject($pdo, $providerKey, $subjectHash);
 $anyOauthAccount = is_array($oauthAccount) ? $oauthAccount : sr_member_oauth_account_by_subject_any($pdo, $providerKey, $subjectHash);

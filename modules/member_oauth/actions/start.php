@@ -26,4 +26,9 @@ if (!empty($providers[$providerKey]['mock'])) {
     sr_redirect('/oauth/callback?provider=' . rawurlencode($providerKey) . '&state=' . rawurlencode((string) $state['state']) . '&code=mock');
 }
 
-sr_render_error(501, 'OAuth provider adapter is not implemented.');
+try {
+    sr_member_oauth_store_transient_secrets((string) $state['state'], $state, (int) $settings['state_ttl_seconds']);
+    sr_redirect_trusted_external(sr_member_oauth_authorization_url($providers[$providerKey], $site ?? [], $state));
+} catch (Throwable) {
+    sr_render_error(500, 'OAuth provider settings are invalid.');
+}

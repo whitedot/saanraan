@@ -119,6 +119,23 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert((string) $stored['state_hash'] !== (string) $state['state'], 'OAuth raw state must not be stored.');
     sr_member_oauth_check_assert((string) $stored['code_verifier_hash'] !== (string) $state['code_verifier'], 'OAuth raw PKCE verifier must not be stored.');
 
+    $authUrl = sr_member_oauth_authorization_url([
+        'authorization_url' => 'https://example.com/authorize',
+        'client_id' => 'client-fixture',
+        'scopes' => ['openid', 'email'],
+    ], ['base_url' => 'https://site.example'], $state);
+    $authParts = parse_url($authUrl);
+    parse_str((string) ($authParts['query'] ?? ''), $authQuery);
+    sr_member_oauth_check_assert((string) ($authParts['scheme'] ?? '') === 'https', 'OAuth authorization URL should be external HTTPS.');
+    sr_member_oauth_check_assert((string) ($authQuery['state'] ?? '') === (string) $state['state'], 'OAuth authorization URL should include the state token.');
+    sr_member_oauth_check_assert((string) ($authQuery['code_challenge'] ?? '') === (string) $state['code_challenge'], 'OAuth authorization URL should include the PKCE challenge.');
+    sr_member_oauth_check_assert((string) ($authQuery['redirect_uri'] ?? '') === 'https://site.example/oauth/callback', 'OAuth authorization URL should include the callback URL.');
+
+    sr_member_oauth_store_transient_secrets((string) $state['state'], $state, 120);
+    $transient = sr_member_oauth_take_transient_secrets((string) $state['state']);
+    sr_member_oauth_check_assert(is_array($transient) && (string) $transient['code_verifier'] === (string) $state['code_verifier'], 'OAuth raw PKCE verifier should be recoverable only from the transient session store.');
+    sr_member_oauth_check_assert(sr_member_oauth_take_transient_secrets((string) $state['state']) === null, 'OAuth transient session secrets should be single use.');
+
     $consumed = sr_member_oauth_consume_state($pdo, (string) $state['state'], 'mock', 'login');
     sr_member_oauth_check_assert(is_array($consumed), 'OAuth state should be consumed once.');
     sr_member_oauth_check_assert(sr_member_oauth_consume_state($pdo, (string) $state['state'], 'mock', 'login') === null, 'OAuth state reuse should be rejected.');
@@ -178,6 +195,10 @@ sr_member_oauth_check_contains('modules/member_oauth/install.sql', [
 sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_create_state',
     'sr_member_oauth_consume_state',
+    'sr_member_oauth_authorization_url',
+    'sr_member_oauth_store_transient_secrets',
+    'sr_member_oauth_take_transient_secrets',
+    'sr_member_oauth_provider_profile',
     'sr_member_oauth_subject_hash',
     'sr_member_oauth_account_by_subject_any',
     'sr_member_oauth_can_unlink',
@@ -187,11 +208,15 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/start.php', [
     "sr_get_string('flow', 20) === 'link'",
     'sr_member_require_login($pdo)',
     'sr_member_oauth_create_state',
+    'sr_member_oauth_store_transient_secrets',
+    'sr_redirect_trusted_external(sr_member_oauth_authorization_url',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [
     'sr_member_oauth_state_by_token($pdo, $stateToken, \'login\')',
     'sr_member_oauth_state_by_token($pdo, $stateToken, \'link\')',
     'sr_member_oauth_consume_state',
+    'sr_member_oauth_take_transient_secrets',
+    'sr_member_oauth_provider_profile',
     'sr_member_oauth_account_by_subject',
     'sr_member_login($pdo, $account)',
     'sr_member_email_verification_blocks_login',
