@@ -128,9 +128,7 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
                     <td>
                         <?php $actorAccountId = (int) ($log['actor_account_id'] ?? 0); ?>
                         <?php if ($actorAccountId > 0) { ?>
-                            <button type="button" class="btn btn-sm btn-soft-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($auditActorMemberModalId); ?>" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>" data-admin-audit-actor-member data-account-id="<?php echo sr_e((string) $actorAccountId); ?>" data-member-url="<?php echo sr_e(sr_url('/admin/members/summary?id=' . (string) $actorAccountId)); ?>">
-                                회원 정보
-                            </button>
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="처리자 회원 정보" title="처리자 회원 정보" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($auditActorMemberModalId); ?>" data-overlay="#<?php echo sr_e($auditActorMemberModalId); ?>" data-admin-audit-actor-member data-account-id="<?php echo sr_e((string) $actorAccountId); ?>" data-member-url="<?php echo sr_e(sr_url('/admin/members/summary?id=' . (string) $actorAccountId)); ?>"><?php echo sr_material_icon_html('person_search'); ?></button>
                         <?php } else { ?>
                             <?php echo sr_e(sr_admin_audit_log_display_actor_type($log)); ?>
                         <?php } ?>
