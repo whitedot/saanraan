@@ -5,6 +5,9 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
+    require_once SR_ROOT . '/modules/antispam/helpers.php';
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();

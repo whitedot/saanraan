@@ -131,6 +131,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                         <?php echo sr_e(sr_t('member::ui.text.be6df05e')); ?>
                     </label>
                 </p>
+                <?php if (function_exists('sr_antispam_challenge_render')) { ?>
+                    <?php echo sr_antispam_challenge_render($pdo, 'member.register', 'member_register', $antispamRegisterContext ?? ['account' => null]); ?>
+                <?php } ?>
                 <button type="submit"><?php echo sr_e(sr_t('member::ui.text.ac31175f')); ?></button>
             </form>
         <?php } else { ?>

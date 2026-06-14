@@ -76,6 +76,12 @@ $optionalModules = [
         'label' => 'CKEditor',
         'description' => '관리자와 모듈 입력 화면에 CKEditor 5 편집기 선택지를 설치합니다.',
     ],
+    'antispam' => [
+        'name' => '자동등록방지',
+        'version' => '2026.06.001',
+        'label' => '자동등록방지',
+        'description' => '회원가입과 공개 제출 폼의 자동등록방지 challenge와 외부 CAPTCHA provider 설정을 설치합니다.',
+    ],
     'embed_manager' => [
         'name' => '임베드 매니저',
         'version' => '2026.06.001',

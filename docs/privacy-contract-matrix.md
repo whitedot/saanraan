@@ -20,6 +20,7 @@
 | 모듈 | 상태 | `privacy-export.php` | `privacy-cleanup.php` | 근거 |
 | --- | --- | --- | --- | --- |
 | `admin` | `operational_retained` | 없음 | 없음 | 관리자 권한과 감사성 운영 데이터는 회원 계정과 연결될 수 있으나, 현재는 관리자 운영 보존 데이터로 분류한다. |
+| `antispam` | `no_member_personal_data` | 없음 | 없음 | 자동등록방지 설정, 산술 challenge 세션, 외부 provider 검증 요청만 다루며 현재 설치 SQL 또는 update SQL 기준 회원 귀속 개인정보를 저장하지 않는다. |
 | `asset_exchange` | `export_retained` | 제공 | 없음 | 회원별 환전 이력과 실행자 메타데이터는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `asset_ledger` | `no_member_personal_data` | 없음 | 없음 | 공통 원장 점검 helper와 화면만 제공하고 자기 회원 귀속 테이블을 만들지 않는다. |
 | `banner` | `no_member_personal_data` | 없음 | 없음 | 배너 설정과 노출 정책은 현재 회원 귀속 데이터가 아니다. |

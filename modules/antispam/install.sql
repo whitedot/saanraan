@@ -1,0 +1,1 @@
+-- Antispam module stores settings in sr_module_settings and does not create tables.

@@ -159,6 +159,7 @@ if (!is_file($matrixFile)) {
 
 $expected = [
     'admin' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
+    'antispam' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'asset_exchange' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
     'asset_ledger' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'banner' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],

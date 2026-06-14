@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
+    require_once SR_ROOT . '/modules/antispam/helpers.php';
+}
 
 $account = sr_member_current_account($pdo);
 if ($account !== null) {
@@ -29,12 +32,17 @@ $values = [
 ];
 $registrationExtensionValues = sr_member_registration_extension_empty_values($registrationExtensionFields);
 $profileValues = sr_member_empty_profile();
+$antispamRegisterContext = ['account' => null];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     if (!$registrationAllowed) {
         $errors[] = sr_t('member::action.register.disabled');
+    }
+    if (function_exists('sr_antispam_verify')) {
+        $antispamResult = sr_antispam_verify($pdo, 'member.register', 'member_register', $_POST, $antispamRegisterContext);
+        $errors = array_merge($errors, (array) ($antispamResult['errors'] ?? []));
     }
 
     $email = sr_post_string_without_truncation('email', 255);

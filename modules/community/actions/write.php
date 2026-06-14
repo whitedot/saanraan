@@ -5,6 +5,9 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
+    require_once SR_ROOT . '/modules/antispam/helpers.php';
+}
 
 $account = sr_member_current_account($pdo);
 $boardKey = sr_get_string('key', 60);
@@ -21,6 +24,7 @@ if (!sr_community_account_can_write_board($pdo, $board, is_array($account) ? $ac
     sr_render_error(403, sr_t('community::action.error.board_write_forbidden'));
 }
 $isGuestAuthor = !is_array($account);
+$antispamPostContext = ['account' => is_array($account) ? $account : null];
 
 $settings = sr_community_settings($pdo);
 $settings['attachment_max_bytes'] = sr_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
@@ -72,6 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($isGuestAuthor) {
         $values['body_format'] = 'plain';
         $values = array_merge($values, sr_community_guest_author_input_values());
+    }
+    if (function_exists('sr_antispam_verify')) {
+        $antispamResult = sr_antispam_verify($pdo, 'community.post.guest', 'community_post_' . (string) (int) $board['id'], $_POST, $antispamPostContext);
+        $errors = array_merge($errors, (array) ($antispamResult['errors'] ?? []));
     }
     $seriesSortOrder = sr_community_series_post_sort_order();
     $seriesValues = [

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
+    require_once SR_ROOT . '/modules/antispam/helpers.php';
+}
 
 $account = sr_member_current_account($pdo);
 sr_require_csrf();
@@ -28,13 +31,19 @@ $board = sr_community_board_by_id($pdo, (int) $post['board_id']);
 $commentChargeConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_charge', 'every_action') : ['enabled' => false];
 $commentRewardConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_reward', 'once') : ['enabled' => false];
 $values = sr_community_comment_input_values();
+$errors = [];
 if ($isGuestAuthor) {
     $values = array_merge($values, sr_community_guest_author_input_values());
+}
+$antispamCommentContext = ['account' => is_array($account) ? $account : null];
+if (function_exists('sr_antispam_verify')) {
+    $antispamResult = sr_antispam_verify($pdo, 'community.comment.guest', 'community_comment_' . (string) $postId . '_' . (string) (int) ($values['parent_comment_id'] ?? 0), $_POST, $antispamCommentContext);
+    $errors = array_merge($errors, (array) ($antispamResult['errors'] ?? []));
 }
 if (!is_array($board) || !sr_community_effective_board_secret_comments_enabled($pdo, $board, $settings)) {
     $values['is_secret'] = 0;
 }
-$errors = sr_community_validate_comment_input($values);
+$errors = array_merge($errors, sr_community_validate_comment_input($values));
 if (is_array($board)) {
     $errors = array_merge($errors, sr_community_validate_comment_body_length($pdo, $board, $values));
 }
