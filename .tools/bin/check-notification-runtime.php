@@ -73,7 +73,27 @@ if (!function_exists('sr_normalize_identifier')) {
 if (!function_exists('sr_module_settings')) {
     function sr_module_settings(PDO $pdo, string $moduleKey): array
     {
-        return ['email_channel_enabled' => true];
+        return [
+            'email_channel_enabled' => true,
+            'external_push_enabled' => true,
+            'slack_webhook_url' => 'https://hooks.slack.com/services/T000/B000/fixture',
+            'slack_channel_label' => '운영 알림',
+            'external_push_failure_policy' => 'retry',
+        ];
+    }
+}
+
+if (!function_exists('sr_admin_normalize_permission_action')) {
+    function sr_admin_normalize_permission_action(string $value): string
+    {
+        return in_array($value, ['view', 'edit', 'delete'], true) ? $value : 'view';
+    }
+}
+
+if (!function_exists('sr_admin_normalize_permission_path')) {
+    function sr_admin_normalize_permission_path(string $value): string
+    {
+        return str_starts_with($value, '/admin') ? $value : '';
     }
 }
 
@@ -162,6 +182,44 @@ function sr_notification_runtime_pdo(): PDO
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             UNIQUE(module_key, event_key)
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_admin_notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            body_text TEXT NULL,
+            severity TEXT NOT NULL DEFAULT \'info\',
+            source_module_key TEXT NOT NULL DEFAULT \'\',
+            event_key TEXT NOT NULL DEFAULT \'\',
+            target_type TEXT NOT NULL DEFAULT \'\',
+            target_id TEXT NOT NULL DEFAULT \'\',
+            action_url TEXT NOT NULL DEFAULT \'\',
+            permission_path TEXT NOT NULL DEFAULT \'\',
+            permission_action TEXT NOT NULL DEFAULT \'view\',
+            status TEXT NOT NULL DEFAULT \'open\',
+            dedupe_key TEXT NOT NULL DEFAULT \'\',
+            occurrence_count INTEGER NOT NULL DEFAULT 1,
+            created_by_account_id INTEGER NULL,
+            processed_by_account_id INTEGER NULL,
+            processed_at TEXT NULL,
+            archived_at TEXT NULL,
+            last_occurred_at TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(dedupe_key)
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_admin_notification_reads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            notification_id INTEGER NOT NULL,
+            account_id INTEGER NOT NULL,
+            read_at TEXT NULL,
+            acknowledged_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(notification_id, account_id)
         )'
     );
     $pdo->exec(
@@ -287,6 +345,52 @@ try {
 }
 sr_notification_runtime_assert($unknownChannelRejected, 'notification runtime fixture must reject unknown delivery channels.');
 
+sr_notification_runtime_assert(in_array('slack_webhook', sr_notification_allowed_channels(), true), 'notification runtime fixture must expose slack_webhook as an allowed delivery channel.');
+sr_notification_runtime_assert(!in_array('slack_webhook', sr_notification_create_channels($pdo), true), 'notification runtime fixture must keep external push out of member notification create channels.');
+$memberSlackRejected = false;
+try {
+    sr_notification_create($pdo, [
+        'account_id' => 7,
+        'audience' => 'account',
+        'title' => '회원 Slack 차단',
+        'channels' => ['slack_webhook'],
+        'recipient' => '운영 알림',
+    ]);
+} catch (InvalidArgumentException) {
+    $memberSlackRejected = true;
+}
+sr_notification_runtime_assert($memberSlackRejected, 'notification runtime fixture must reject slack_webhook for member notifications.');
+sr_notification_runtime_assert(sr_notification_webhook_url_is_allowed('https://hooks.slack.com/services/T000/B000/fixture'), 'notification runtime fixture must allow HTTPS Slack webhook URLs.');
+sr_notification_runtime_assert(!sr_notification_webhook_url_is_allowed('http://hooks.slack.com/services/T000/B000/fixture'), 'notification runtime fixture must reject non-HTTPS webhook URLs.');
+sr_notification_runtime_assert(sr_notification_secret_display('https://hooks.slack.com/services/T000/B000/fixture') === '********', 'notification runtime fixture must mask stored webhook URLs.');
+
+$pdo->exec(
+    "INSERT INTO sr_admin_notifications
+        (id, title, body_text, severity, source_module_key, event_key, target_type, target_id, action_url,
+         permission_path, permission_action, status, dedupe_key, occurrence_count, last_occurred_at, created_at, updated_at)
+     VALUES
+        (101, '운영 상태 경고', 'delivery 실패가 누적되었습니다.', 'warning', 'notification', 'delivery.failed',
+         'notification_delivery', '9', '/admin/notification-deliveries', '', 'view', 'open',
+         'fixture-slack-admin-alert', 1, '2026-06-11 12:00:00', '2026-06-11 12:00:00', '2026-06-11 12:00:00')"
+);
+$adminNotificationId = 101;
+sr_notification_runtime_assert(sr_notification_queue_admin_external_deliveries($pdo, $adminNotificationId) === 1, 'notification runtime fixture must queue external delivery for admin notification.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'slack_webhook\' AND recipient = \'운영 알림\'', ['id' => $adminNotificationId]) === 1, 'notification runtime fixture must queue slack_webhook delivery for admin notification.');
+
+$claimedSlack = sr_notification_claim_delivery($pdo, 'fixture-lock', '2026-06-11 12:10:00', 300, ['slack_webhook']);
+sr_notification_runtime_assert(is_array($claimedSlack) && (string) ($claimedSlack['title'] ?? '') === '운영 상태 경고', 'notification runtime fixture must claim slack_webhook delivery with admin notification title.');
+$slackDisabledResult = sr_notification_process_delivery($pdo, ['site_name' => '산란'], $claimedSlack, [
+    'external_push_enabled' => false,
+    'external_push_failure_policy' => 'dead',
+    'slack_webhook_url' => '',
+    'email_timeout_seconds' => 10,
+], '2026-06-11 12:11:00', 5);
+sr_notification_runtime_assert(($slackDisabledResult['dead'] ?? 0) === 1, 'notification runtime fixture must dead-letter disabled external push when policy is dead.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT status FROM sr_notification_deliveries WHERE id = :id', ['id' => (int) ($claimedSlack['id'] ?? 0)]) === 'dead', 'notification runtime fixture must persist slack_webhook dead-letter status.');
+sr_notification_runtime_assert(!empty(sr_notification_slack_webhook_response_result(['ok' => true, 'status' => 200, 'body' => 'ok'])['ok']), 'notification runtime fixture must accept Slack webhook ok response.');
+$slackFailure = sr_notification_slack_webhook_response_result(['ok' => true, 'status' => 403, 'body' => 'invalid_auth token=secret']);
+sr_notification_runtime_assert(empty($slackFailure['ok']) && !str_contains((string) ($slackFailure['error'] ?? ''), 'secret'), 'notification runtime fixture must sanitize Slack webhook error summaries.');
+
 sr_notification_runtime_assert(
     sr_notification_delivery_status_transition('failed', 'queued') === ['allowed' => true, 'operation' => 'retry'],
     'notification delivery transition must allow failed retry.'
@@ -367,7 +471,10 @@ $adminView = file_get_contents($root . '/modules/notification/views/admin-notifi
 $adminNotificationAction = file_get_contents($root . '/modules/notification/actions/admin-admin-notifications.php');
 $adminNotificationView = file_get_contents($root . '/modules/notification/views/admin-admin-notifications.php');
 $notificationHelpers = file_get_contents($root . '/modules/notification/helpers.php');
+$notificationPrivacyExport = file_get_contents($root . '/modules/notification/privacy-export.php');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, '$allowedDeliveryStatuses = sr_notification_delivery_statuses();'), 'notification delivery admin action must use shared delivery statuses.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "['email', 'slack_webhook']"), 'notification delivery admin action must expose slack_webhook delivery filters.');
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "channel <> 'slack_webhook'"), 'notification delete action must not delete admin slack_webhook deliveries with colliding notification ids.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'run_deliveries'"), 'notification delivery admin action must expose manual runner.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$intent === 'delivery_status'"), 'notification delivery admin action must expose delivery status updates.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'sr_notification_update_delivery_status($pdo, $deliveryId, $status, sr_now())'), 'notification delivery admin action must use the shared status update helper.');
@@ -376,9 +483,35 @@ sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAct
 sr_notification_runtime_assert(is_string($adminView) && str_contains($adminView, 'sr_notification_delivery_status_transition($deliveryStatus, $status)'), 'notification delivery admin view must only render allowed transition buttons.');
 sr_notification_runtime_assert(
     is_string($notificationHelpers)
+        && str_contains($notificationHelpers, 'function sr_notification_claim_delivery(')
+        && str_contains($notificationHelpers, 'function sr_notification_process_delivery(')
+        && str_contains($notificationHelpers, 'function sr_notification_process_slack_webhook_delivery('),
+    'notification delivery runner must use common claim/process helpers with slack_webhook dispatch.'
+);
+sr_notification_runtime_assert(
+    is_string($notificationHelpers)
+        && str_contains($notificationHelpers, 'sr_notification_queue_admin_external_deliveries($pdo, $id)'),
+    'admin notification creation must queue configured external push deliveries.'
+);
+sr_notification_runtime_assert(
+    is_string($notificationPrivacyExport)
+        && str_contains($notificationPrivacyExport, "channel <> ?")
+        && str_contains($notificationPrivacyExport, "'slack_webhook'"),
+    'notification privacy export must exclude admin slack_webhook deliveries from account delivery exports.'
+);
+sr_notification_runtime_assert(
+    is_string($notificationHelpers)
         && str_contains($notificationHelpers, 'DELETE FROM sr_admin_notification_reads WHERE notification_id = :notification_id'),
     'admin notification duplicate reopen must clear per-account read rows so the topbar unread badge returns.'
 );
+$settingsAction = sr_notification_runtime_file('modules/notification/actions/admin-notification-settings.php');
+$settingsView = sr_notification_runtime_file('modules/notification/views/admin-notification-settings.php');
+sr_notification_runtime_assert(str_contains($settingsAction, "'external_push_enabled' => (bool) \$settings['external_push_enabled']"), 'notification settings audit metadata must include external push policy without webhook secret.');
+$settingsAuditPos = strpos($settingsAction, 'sr_audit_log($pdo, [');
+$settingsAuditBlock = $settingsAuditPos === false ? '' : substr($settingsAction, $settingsAuditPos, 1200);
+sr_notification_runtime_assert($settingsAuditBlock !== '' && !str_contains($settingsAuditBlock, "'slack_webhook_url' =>"), 'notification settings audit metadata must not include Slack webhook URL.');
+sr_notification_runtime_assert(str_contains($settingsView, 'type="password" name="slack_webhook_url"'), 'notification settings view must render Slack webhook URL as a password field.');
+sr_notification_runtime_assert(str_contains($settingsView, 'sr_notification_secret_display'), 'notification settings view must mask stored Slack webhook URLs.');
 sr_notification_runtime_assert(
     is_string($notificationHelpers)
         && str_contains($notificationHelpers, 'function sr_notification_admin_mark_unread(')

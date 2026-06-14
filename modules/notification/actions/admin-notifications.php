@@ -12,7 +12,7 @@ $allowedAudiences = ['account', 'all'];
 $allowedNotificationStatuses = sr_notification_admin_statuses();
 $allowedChannels = sr_notification_allowed_channels();
 $allowedCreateChannels = sr_notification_create_channels($pdo);
-$allowedDeliveryChannels = array_values(array_intersect($allowedChannels, ['email']));
+$allowedDeliveryChannels = array_values(array_intersect($allowedChannels, ['email', 'slack_webhook']));
 $allowedDeliveryStatuses = sr_notification_delivery_statuses();
 $errors = [];
 $notice = '';
@@ -110,7 +110,7 @@ if (sr_request_method() === 'POST') {
             try {
                 $pdo->beginTransaction();
 
-                $stmt = $pdo->prepare('DELETE FROM sr_notification_deliveries WHERE notification_id = :notification_id');
+                $stmt = $pdo->prepare("DELETE FROM sr_notification_deliveries WHERE notification_id = :notification_id AND channel <> 'slack_webhook'");
                 $stmt->execute(['notification_id' => $notificationId]);
                 $deletedDeliveries = $stmt->rowCount();
 
@@ -542,9 +542,10 @@ $deliveryDefaultSort = sr_admin_sort_default('updated_at', 'desc');
 $deliverySort = sr_admin_sort_from_request($deliverySortOptions, $deliveryDefaultSort);
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.attempted_at, d.updated_at,
                        d.attempt_count, d.next_attempt_at, d.locked_at,
-                       n.title AS notification_title
+                       CASE WHEN d.channel = \'slack_webhook\' THEN an.title ELSE n.title END AS notification_title
                 FROM sr_notification_deliveries d
-                LEFT JOIN sr_notifications n ON n.id = d.notification_id';
+                LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel <> \'slack_webhook\'
+                LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel = \'slack_webhook\'';
 $deliveryParams = [];
 $deliveryWhere = ["d.channel <> 'site'"];
 if ((int) ($deliveryListFilters['delivery_id'] ?? 0) > 0) {
@@ -570,13 +571,13 @@ if ($deliveryListFilters['q'] !== '') {
         $deliveryWhere[] = 'CAST(d.notification_id AS CHAR) LIKE :delivery_q';
         $deliveryParams['delivery_q'] = $deliveryLike;
     } elseif ($deliveryListFilters['field'] === 'title') {
-        $deliveryWhere[] = 'n.title LIKE :delivery_q';
+        $deliveryWhere[] = "(CASE WHEN d.channel = 'slack_webhook' THEN an.title ELSE n.title END) LIKE :delivery_q";
         $deliveryParams['delivery_q'] = $deliveryLike;
     } elseif ($deliveryListFilters['field'] === 'recipient') {
         $deliveryWhere[] = 'd.recipient LIKE :delivery_q';
         $deliveryParams['delivery_q'] = $deliveryLike;
     } else {
-        $deliveryWhere[] = '(CAST(d.id AS CHAR) LIKE :delivery_q_id OR CAST(d.notification_id AS CHAR) LIKE :delivery_q_notification OR n.title LIKE :delivery_q_title OR d.recipient LIKE :delivery_q_recipient OR d.provider_message_id LIKE :delivery_q_provider OR d.error_message LIKE :delivery_q_error)';
+        $deliveryWhere[] = "(CAST(d.id AS CHAR) LIKE :delivery_q_id OR CAST(d.notification_id AS CHAR) LIKE :delivery_q_notification OR (CASE WHEN d.channel = 'slack_webhook' THEN an.title ELSE n.title END) LIKE :delivery_q_title OR d.recipient LIKE :delivery_q_recipient OR d.provider_message_id LIKE :delivery_q_provider OR d.error_message LIKE :delivery_q_error)";
         $deliveryParams['delivery_q_id'] = $deliveryLike;
         $deliveryParams['delivery_q_notification'] = $deliveryLike;
         $deliveryParams['delivery_q_title'] = $deliveryLike;
@@ -592,7 +593,8 @@ $deliveryPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($notificationAdminPage === 'deliveries') {
     $deliveryCountSql = 'SELECT COUNT(*) AS count_value
                          FROM sr_notification_deliveries d
-                         LEFT JOIN sr_notifications n ON n.id = d.notification_id'
+                         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel <> \'slack_webhook\'
+                         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel = \'slack_webhook\''
         . ($deliveryWhere !== [] ? ' WHERE ' . implode(' AND ', $deliveryWhere) : '');
     $stmt = $pdo->prepare($deliveryCountSql);
     $stmt->execute($deliveryParams);

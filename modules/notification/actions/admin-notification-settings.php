@@ -28,6 +28,7 @@ if (sr_request_method() === 'POST') {
     $existingSettings = $settings;
     $emailSmtpPassword = sr_post_string('email_smtp_password', 255);
     $emailHttpApiBearerToken = sr_post_string('email_http_api_bearer_token', 255);
+    $slackWebhookUrlInput = sr_post_string_without_truncation('slack_webhook_url', 255);
     $settings = [
         'email_channel_enabled' => ($_POST['email_channel_enabled'] ?? '') === '1',
         'email_transport' => sr_post_string('email_transport', 30),
@@ -41,6 +42,10 @@ if (sr_request_method() === 'POST') {
         'email_timeout_seconds' => (int) sr_post_string('email_timeout_seconds', 10),
         'email_http_api_endpoint' => sr_notification_clean_setting_value(sr_post_string('email_http_api_endpoint', 255), 255),
         'email_http_api_bearer_token' => $emailHttpApiBearerToken !== '' ? $emailHttpApiBearerToken : (string) ($existingSettings['email_http_api_bearer_token'] ?? ''),
+        'external_push_enabled' => ($_POST['external_push_enabled'] ?? '') === '1',
+        'slack_webhook_url' => $slackWebhookUrlInput !== null && trim($slackWebhookUrlInput) !== '' ? trim($slackWebhookUrlInput) : (string) ($existingSettings['slack_webhook_url'] ?? ''),
+        'slack_channel_label' => sr_notification_clean_setting_value(sr_post_string('slack_channel_label', 80), 80),
+        'external_push_failure_policy' => sr_post_string('external_push_failure_policy', 20),
         'delivery_web_runner_enabled' => ($_POST['delivery_web_runner_enabled'] ?? '') === '1',
         'delivery_web_runner_interval_seconds' => (int) sr_post_string('delivery_web_runner_interval_seconds', 10),
         'delivery_web_runner_batch_size' => (int) sr_post_string('delivery_web_runner_batch_size', 10),
@@ -83,6 +88,12 @@ if (sr_request_method() === 'POST') {
     if ($settings['delivery_lock_timeout_seconds'] < 30 || $settings['delivery_lock_timeout_seconds'] > 3600) {
         $errors[] = '처리 lock 만료 시간은 30초부터 3600초 사이로 입력하세요.';
     }
+    if ($slackWebhookUrlInput === null) {
+        $errors[] = 'Slack webhook URL은 255자 이내로 입력하세요.';
+    }
+    if (!in_array($settings['external_push_failure_policy'], ['retry', 'dead'], true)) {
+        $errors[] = '외부 푸시 실패 정책을 선택하세요.';
+    }
 
     if ($settings['email_channel_enabled'] && $settings['email_transport'] === 'smtp') {
         if ($settings['email_from_email'] === '') {
@@ -100,6 +111,14 @@ if (sr_request_method() === 'POST') {
             $errors[] = '메일 HTTP API endpoint는 공개 HTTPS URL이어야 합니다.';
         }
     }
+    if ($settings['external_push_enabled']) {
+        if ($settings['slack_channel_label'] === '') {
+            $errors[] = 'Slack 채널 표시명을 입력하세요.';
+        }
+        if (!sr_notification_webhook_url_is_allowed((string) $settings['slack_webhook_url'])) {
+            $errors[] = 'Slack webhook URL은 HTTPS URL이어야 합니다.';
+        }
+    }
 
     if ($errors === []) {
         sr_notification_save_settings($pdo, $settings);
@@ -115,6 +134,8 @@ if (sr_request_method() === 'POST') {
             'metadata' => [
                 'email_channel_enabled' => (bool) $settings['email_channel_enabled'],
                 'email_transport' => (string) $settings['email_transport'],
+                'external_push_enabled' => (bool) $settings['external_push_enabled'],
+                'external_push_failure_policy' => (string) $settings['external_push_failure_policy'],
                 'delivery_web_runner_enabled' => (bool) $settings['delivery_web_runner_enabled'],
                 'delivery_max_attempts' => (int) $settings['delivery_max_attempts'],
             ],

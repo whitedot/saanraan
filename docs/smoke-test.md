@@ -101,6 +101,8 @@ PWA 1차 지원을 확인할 때는 설치된 로컬 또는 staging에서 `/mani
 php .tools/bin/run-notification-deliveries.php
 ```
 
+알림 외부 푸시를 확인할 때는 `/admin/notifications/settings`에서 외부 푸시 채널, Slack 채널 표시명, Slack webhook URL, 실패 정책을 저장한다. webhook URL은 HTTPS만 허용되어야 하고 화면, 감사 로그, delivery 목록, 오류 로그에 원문이 노출되지 않아야 한다. 관리자 운영 알림이 생성되면 `slack_webhook` delivery가 queue되고, `/admin/notification-deliveries` 수동 실행 또는 CLI runner가 이메일과 같은 batch 안에서 처리해야 한다. 실제 Slack URL 대신 로컬/staging mock endpoint를 우선 사용하고, 실제 provider key는 staging에서만 짧게 확인한다. 운영 DB에서는 webhook 설정 변경이나 테스트 발송을 실행하지 않는다.
+
 설치 화면을 수정한 경우에는 `기본 정보` 단계의 기본 통화 선택지가 `sr_known_currency_min_units()` 기준과 일치하는지, 선택값이 최종 요약에 표시되는지, 설치 후 `/admin/settings`에서는 읽기 전용으로만 보이고 일반 설정 POST로 바뀌지 않는지 확인한다. 이 값은 신규 가격/정책 row 기본값이며 기존 가격·로그·구매력 snapshot 변환 스위치가 아니라는 안내도 함께 확인한다.
 
 커뮤니티 모듈이 설치되어 있어야 하는 스테이징 검수에서는 404 허용을 제거한 강한 모드로 실행한다.

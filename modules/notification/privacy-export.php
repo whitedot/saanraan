@@ -64,8 +64,9 @@ return static function (PDO $pdo, int $accountId): array {
             $deliveryParams = array_merge($deliveryParams, $notificationIds, ['email', $accountEmail]);
         }
         if ($accountNotificationIds !== []) {
-            $deliveryWhere = '(' . $deliveryWhere . ') OR notification_id IN (' . $accountPlaceholders . ')';
+            $deliveryWhere = '(' . $deliveryWhere . ') OR (notification_id IN (' . $accountPlaceholders . ') AND channel <> ?)';
             $deliveryParams = array_merge($deliveryParams, $accountNotificationIds);
+            $deliveryParams[] = 'slack_webhook';
         }
 
         $stmt = $pdo->prepare(

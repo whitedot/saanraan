@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '알림 환경설정';
-$adminPageSubtitle = '메일 발송 환경을 관리합니다.';
+$adminPageSubtitle = '메일 발송과 외부 운영 푸시 환경을 관리합니다.';
 $emailTransportOptions = sr_notification_email_transport_options();
 $emailEncryptionOptions = sr_notification_email_encryption_options();
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -14,6 +14,7 @@ $notificationSettingsSectionNavItems = [
     'notification-settings-section-email' => '메일 환경',
     'notification-settings-section-smtp' => 'SMTP',
     'notification-settings-section-http-api' => 'HTTP API',
+    'notification-settings-section-external-push' => '외부 푸시',
     'notification-settings-section-runner' => '발송 실행',
 ];
 ?>
@@ -129,6 +130,40 @@ $notificationSettingsSectionNavItems = [
             <div class="admin-form-field">
                 <input id="notification_admin_settings_email_http_api_bearer_token" type="password" name="email_http_api_bearer_token" value="" maxlength="255" class="form-input form-control-full" autocomplete="new-password">
                 <small class="admin-form-help">비워두면 기존 저장값을 유지합니다.</small>
+            </div>
+        </div>
+    </section>
+
+    <section id="notification-settings-section-external-push" class="admin-card card" data-admin-section-anchor>
+        <h2>외부 운영 푸시</h2>
+        <div class="admin-form-row">
+            <span class="form-label">외부 푸시 채널</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '관리자 운영 알림을 Slack webhook으로 발송', '', ''); ?>
+                <small class="admin-form-help">회원 대상 외부 푸시는 아직 사용하지 않습니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_slack_channel_label">Slack 채널 표시명</label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_slack_channel_label" type="text" name="slack_channel_label" value="<?php echo sr_e((string) $settings['slack_channel_label']); ?>" maxlength="80" class="form-input form-control-full">
+                <small class="admin-form-help">발송 목록의 recipient 칸에 저장할 식별용 label입니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_slack_webhook_url">Slack webhook URL</label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_slack_webhook_url" type="password" name="slack_webhook_url" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['slack_webhook_url'])); ?>" class="form-input form-control-full" autocomplete="new-password">
+                <small class="admin-form-help">HTTPS URL만 허용합니다. 비워두면 기존 저장값을 유지합니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_external_push_failure_policy">외부 푸시 실패 정책 <span class="sr-required-label">(필수)</span></label>
+            <div class="admin-form-field">
+                <select id="notification_admin_settings_external_push_failure_policy" name="external_push_failure_policy" class="form-select" required>
+                    <option value="retry"<?php echo (string) $settings['external_push_failure_policy'] === 'retry' ? ' selected' : ''; ?>>재시도 후 dead-letter</option>
+                    <option value="dead"<?php echo (string) $settings['external_push_failure_policy'] === 'dead' ? ' selected' : ''; ?>>즉시 dead-letter</option>
+                </select>
             </div>
         </div>
     </section>

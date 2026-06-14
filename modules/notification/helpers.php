@@ -191,24 +191,77 @@ function sr_notification_mail_config_from_settings(array $settings): array
     ];
 }
 
-function sr_notification_claim_email_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds): ?array
+function sr_notification_external_provider_options(): array
 {
+    return [
+        'slack_webhook' => [
+            'label' => 'Slack webhook',
+            'webhook_url_setting' => 'slack_webhook_url',
+            'channel_label_setting' => 'slack_channel_label',
+        ],
+    ];
+}
+
+function sr_notification_external_failure_policy(string $value): string
+{
+    return in_array($value, ['retry', 'dead'], true) ? $value : 'retry';
+}
+
+function sr_notification_secret_display(string $value): string
+{
+    return trim($value) === '' ? '' : '********';
+}
+
+function sr_notification_webhook_url_is_allowed(string $url): bool
+{
+    $url = trim($url);
+    if ($url === '' || strlen($url) > 255 || filter_var($url, FILTER_VALIDATE_URL) === false) {
+        return false;
+    }
+
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+    $host = parse_url($url, PHP_URL_HOST);
+
+    return is_string($scheme)
+        && strtolower($scheme) === 'https'
+        && is_string($host)
+        && $host !== '';
+}
+
+function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds, array $channels = []): ?array
+{
+    $allowedChannels = array_values(array_filter(
+        sr_notification_normalize_channels($channels === [] ? ['email', 'slack_webhook'] : $channels),
+        static fn (string $channel): bool => $channel !== 'site'
+    ));
+    if ($allowedChannels === []) {
+        return null;
+    }
+
     $lockCutoff = date('Y-m-d H:i:s', strtotime($now) - max(30, $lockTimeoutSeconds));
-    $stmt = $pdo->prepare(
-        "SELECT d.id
-         FROM sr_notification_deliveries d
-         WHERE d.channel = 'email'
-           AND (
-                (d.status = 'queued' AND (d.next_attempt_at IS NULL OR d.next_attempt_at <= :now_due))
-                OR (d.status = 'processing' AND (d.locked_at IS NULL OR d.locked_at <= :lock_cutoff))
-           )
-         ORDER BY d.id ASC
-         LIMIT 1"
-    );
-    $stmt->execute([
+    $channelPlaceholders = [];
+    $params = [
         'now_due' => $now,
         'lock_cutoff' => $lockCutoff,
-    ]);
+    ];
+    foreach ($allowedChannels as $index => $channel) {
+        $paramKey = 'channel_' . (string) $index;
+        $channelPlaceholders[] = ':' . $paramKey;
+        $params[$paramKey] = $channel;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT d.id
+         FROM sr_notification_deliveries d
+         WHERE d.channel IN (' . implode(', ', $channelPlaceholders) . ')
+           AND (
+                (d.status = \'queued\' AND (d.next_attempt_at IS NULL OR d.next_attempt_at <= :now_due))
+                OR (d.status = \'processing\' AND (d.locked_at IS NULL OR d.locked_at <= :lock_cutoff))
+           )
+         ORDER BY d.id ASC
+         LIMIT 1'
+    );
+    $stmt->execute($params);
     $row = $stmt->fetch();
     if (!is_array($row)) {
         return null;
@@ -219,37 +272,40 @@ function sr_notification_claim_email_delivery(PDO $pdo, string $lockId, string $
         return null;
     }
 
+    $updateParams = array_merge($params, [
+        'locked_at' => $now,
+        'locked_by' => $lockId,
+        'updated_at' => $now,
+        'id' => $deliveryId,
+    ]);
     $stmt = $pdo->prepare(
-        "UPDATE sr_notification_deliveries
-         SET status = 'processing',
+        'UPDATE sr_notification_deliveries
+         SET status = \'processing\',
              locked_at = :locked_at,
              locked_by = :locked_by,
              attempt_count = attempt_count + 1,
              updated_at = :updated_at
          WHERE id = :id
-           AND channel = 'email'
+           AND channel IN (' . implode(', ', $channelPlaceholders) . ')
            AND (
-                (status = 'queued' AND (next_attempt_at IS NULL OR next_attempt_at <= :now_due))
-                OR (status = 'processing' AND (locked_at IS NULL OR locked_at <= :lock_cutoff))
-           )"
+                (status = \'queued\' AND (next_attempt_at IS NULL OR next_attempt_at <= :now_due))
+                OR (status = \'processing\' AND (locked_at IS NULL OR locked_at <= :lock_cutoff))
+           )'
     );
-    $stmt->execute([
-        'locked_at' => $now,
-        'locked_by' => $lockId,
-        'updated_at' => $now,
-        'id' => $deliveryId,
-        'now_due' => $now,
-        'lock_cutoff' => $lockCutoff,
-    ]);
+    $stmt->execute($updateParams);
     if ($stmt->rowCount() < 1) {
         return null;
     }
 
     $stmt = $pdo->prepare(
         "SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.attempt_count,
-                n.title, n.body_text, n.body_format, n.link_url
+                CASE WHEN d.channel = 'slack_webhook' THEN an.title ELSE n.title END AS title,
+                CASE WHEN d.channel = 'slack_webhook' THEN an.body_text ELSE n.body_text END AS body_text,
+                CASE WHEN d.channel = 'slack_webhook' THEN 'plain' ELSE n.body_format END AS body_format,
+                CASE WHEN d.channel = 'slack_webhook' THEN an.action_url ELSE n.link_url END AS link_url
          FROM sr_notification_deliveries d
-         INNER JOIN sr_notifications n ON n.id = d.notification_id
+         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel <> 'slack_webhook'
+         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel = 'slack_webhook'
          WHERE d.id = :id
          LIMIT 1"
     );
@@ -257,6 +313,11 @@ function sr_notification_claim_email_delivery(PDO $pdo, string $lockId, string $
     $delivery = $stmt->fetch();
 
     return is_array($delivery) ? $delivery : null;
+}
+
+function sr_notification_claim_email_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds): ?array
+{
+    return sr_notification_claim_delivery($pdo, $lockId, $now, $lockTimeoutSeconds, ['email']);
 }
 
 function sr_notification_mark_delivery_sent(PDO $pdo, int $deliveryId, string $now, string $providerMessageId = ''): void
@@ -361,6 +422,119 @@ function sr_notification_process_email_delivery(PDO $pdo, array $site, array $de
     return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
 }
 
+function sr_notification_slack_webhook_payload(array $delivery, array $site): array
+{
+    $siteName = sr_notification_clean_single_line((string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'), 80);
+    $title = sr_notification_clean_single_line((string) ($delivery['title'] ?? '운영 알림'), 160);
+    $body = trim(strip_tags((string) ($delivery['body_text'] ?? '')));
+    $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
+    $lines = ['[' . $siteName . '] ' . $title];
+    if ($body !== '') {
+        $lines[] = sr_notification_clean_text($body, 1500);
+    }
+    if ($linkUrl !== '') {
+        $lines[] = sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl);
+    }
+
+    return ['text' => implode("\n\n", $lines)];
+}
+
+function sr_notification_http_json_post(string $url, array $payload, int $timeoutSeconds): array
+{
+    if (!sr_notification_webhook_url_is_allowed($url) || !ini_get('allow_url_fopen')) {
+        return ['ok' => false, 'status' => 0, 'body' => '', 'error' => 'provider_unavailable'];
+    }
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => sr_json_encode($payload),
+            'timeout' => min(30, max(3, $timeoutSeconds)),
+            'ignore_errors' => true,
+        ],
+    ]);
+    $body = @file_get_contents($url, false, $context);
+    $status = 0;
+    foreach (($http_response_header ?? []) as $header) {
+        if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', (string) $header, $matches) === 1) {
+            $status = (int) $matches[1];
+            break;
+        }
+    }
+
+    return [
+        'ok' => is_string($body),
+        'status' => $status,
+        'body' => is_string($body) ? $body : '',
+        'error' => is_string($body) ? '' : 'provider_unavailable',
+    ];
+}
+
+function sr_notification_slack_webhook_response_result(array $response): array
+{
+    $status = (int) ($response['status'] ?? 0);
+    $body = trim((string) ($response['body'] ?? ''));
+    if (!empty($response['ok']) && $status >= 200 && $status < 300 && ($body === '' || strtolower($body) === 'ok')) {
+        return ['ok' => true, 'provider_message_id' => 'slack_webhook', 'error' => ''];
+    }
+
+    $error = sr_notification_delivery_error_message($body !== '' ? $body : (string) ($response['error'] ?? 'slack webhook failed'));
+    return ['ok' => false, 'provider_message_id' => '', 'error' => $error];
+}
+
+function sr_notification_process_slack_webhook_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
+{
+    $deliveryId = (int) ($delivery['id'] ?? 0);
+    $attemptCount = (int) ($delivery['attempt_count'] ?? 1);
+    $failureMaxAttempts = (string) ($settings['external_push_failure_policy'] ?? 'retry') === 'dead' ? 1 : $maxAttempts;
+    if ($deliveryId <= 0) {
+        return ['status' => 'skipped', 'sent' => 0, 'failed' => 0, 'dead' => 0];
+    }
+    if (empty($settings['external_push_enabled'])) {
+        $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, 'external push channel disabled', $attemptCount, $failureMaxAttempts);
+        return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+    }
+
+    $webhookUrl = (string) ($settings['slack_webhook_url'] ?? '');
+    if (!sr_notification_webhook_url_is_allowed($webhookUrl)) {
+        $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, 'slack webhook url missing or invalid', $attemptCount, $failureMaxAttempts);
+        return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+    }
+
+    $response = sr_notification_http_json_post($webhookUrl, sr_notification_slack_webhook_payload($delivery, $site), (int) ($settings['email_timeout_seconds'] ?? 10));
+    $providerResult = sr_notification_slack_webhook_response_result($response);
+    if (!empty($providerResult['ok'])) {
+        sr_notification_mark_delivery_sent($pdo, $deliveryId, $now, (string) ($providerResult['provider_message_id'] ?? 'slack_webhook'));
+        return ['status' => 'sent', 'sent' => 1, 'failed' => 0, 'dead' => 0];
+    }
+
+    $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, (string) ($providerResult['error'] ?? 'slack webhook failed'), $attemptCount, $failureMaxAttempts);
+    return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+}
+
+function sr_notification_process_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
+{
+    $channel = (string) ($delivery['channel'] ?? '');
+    if ($channel === 'email') {
+        return sr_notification_process_email_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
+    }
+    if ($channel === 'slack_webhook') {
+        return sr_notification_process_slack_webhook_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
+    }
+
+    $status = sr_notification_mark_delivery_failed(
+        $pdo,
+        (int) ($delivery['id'] ?? 0),
+        $now,
+        'unsupported delivery channel',
+        (int) ($delivery['attempt_count'] ?? 1),
+        $maxAttempts
+    );
+
+    return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+}
+
 function sr_notification_run_delivery_batch(PDO $pdo, array $site, int $batchSize = 5, ?string $lockId = null): array
 {
     $batchSize = max(1, min(50, $batchSize));
@@ -378,14 +552,14 @@ function sr_notification_run_delivery_batch(PDO $pdo, array $site, int $batchSiz
 
     for ($i = 0; $i < $batchSize; $i++) {
         $now = sr_now();
-        $delivery = sr_notification_claim_email_delivery($pdo, $lockId, $now, $lockTimeoutSeconds);
+        $delivery = sr_notification_claim_delivery($pdo, $lockId, $now, $lockTimeoutSeconds, ['email', 'slack_webhook']);
         if ($delivery === null) {
             break;
         }
 
         $result['claimed']++;
         try {
-            $deliveryResult = sr_notification_process_email_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
+            $deliveryResult = sr_notification_process_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
             $result['sent'] += (int) ($deliveryResult['sent'] ?? 0);
             $result['failed'] += (int) ($deliveryResult['failed'] ?? 0);
             $result['dead'] += (int) ($deliveryResult['dead'] ?? 0);
@@ -1063,6 +1237,7 @@ function sr_notification_create_admin_notification(PDO $pdo, array $data): ?int
     if ($id > 0) {
         $stmt = $pdo->prepare('DELETE FROM sr_admin_notification_reads WHERE notification_id = :notification_id');
         $stmt->execute(['notification_id' => $id]);
+        sr_notification_queue_admin_external_deliveries($pdo, $id);
     }
 
     return $id > 0 ? $id : null;
@@ -1326,7 +1501,7 @@ function sr_notification_admin_set_status(PDO $pdo, int $notificationId, int $ac
 
 function sr_notification_allowed_channels(): array
 {
-    return ['site', 'email', 'sms', 'alimtalk'];
+    return ['site', 'email', 'slack_webhook', 'sms', 'alimtalk'];
 }
 
 function sr_notification_default_settings(): array
@@ -1344,6 +1519,10 @@ function sr_notification_default_settings(): array
         'email_timeout_seconds' => 10,
         'email_http_api_endpoint' => '',
         'email_http_api_bearer_token' => '',
+        'external_push_enabled' => false,
+        'slack_webhook_url' => '',
+        'slack_channel_label' => '운영 알림',
+        'external_push_failure_policy' => 'retry',
         'delivery_web_runner_enabled' => true,
         'delivery_web_runner_interval_seconds' => 60,
         'delivery_web_runner_batch_size' => 1,
@@ -1362,6 +1541,10 @@ function sr_notification_settings(PDO $pdo): array
     $settings['email_smtp_port'] = max(1, min(65535, (int) $settings['email_smtp_port']));
     $settings['email_smtp_encryption'] = in_array((string) $settings['email_smtp_encryption'], ['none', 'tls', 'ssl'], true) ? (string) $settings['email_smtp_encryption'] : 'tls';
     $settings['email_timeout_seconds'] = max(3, min(30, (int) $settings['email_timeout_seconds']));
+    $settings['external_push_enabled'] = (bool) $settings['external_push_enabled'];
+    $settings['slack_webhook_url'] = sr_notification_clean_setting_value((string) $settings['slack_webhook_url'], 255);
+    $settings['slack_channel_label'] = sr_notification_clean_setting_value((string) $settings['slack_channel_label'], 80);
+    $settings['external_push_failure_policy'] = sr_notification_external_failure_policy((string) $settings['external_push_failure_policy']);
     $settings['delivery_web_runner_enabled'] = (bool) $settings['delivery_web_runner_enabled'];
     $settings['delivery_web_runner_interval_seconds'] = max(10, min(3600, (int) $settings['delivery_web_runner_interval_seconds']));
     $settings['delivery_web_runner_batch_size'] = max(1, min(5, (int) $settings['delivery_web_runner_batch_size']));
@@ -1418,6 +1601,10 @@ function sr_notification_save_settings(PDO $pdo, array $settings): void
         ['email_timeout_seconds', (string) $settings['email_timeout_seconds'], 'int'],
         ['email_http_api_endpoint', (string) $settings['email_http_api_endpoint'], 'string'],
         ['email_http_api_bearer_token', (string) $settings['email_http_api_bearer_token'], 'string'],
+        ['external_push_enabled', !empty($settings['external_push_enabled']) ? '1' : '0', 'bool'],
+        ['slack_webhook_url', (string) $settings['slack_webhook_url'], 'string'],
+        ['slack_channel_label', (string) $settings['slack_channel_label'], 'string'],
+        ['external_push_failure_policy', (string) $settings['external_push_failure_policy'], 'string'],
         ['delivery_web_runner_enabled', !empty($settings['delivery_web_runner_enabled']) ? '1' : '0', 'bool'],
         ['delivery_web_runner_interval_seconds', (string) $settings['delivery_web_runner_interval_seconds'], 'int'],
         ['delivery_web_runner_batch_size', (string) $settings['delivery_web_runner_batch_size'], 'int'],
@@ -1460,6 +1647,55 @@ function sr_notification_create_channels(PDO $pdo): array
     }
 
     return $channels;
+}
+
+function sr_notification_admin_external_channels(PDO $pdo): array
+{
+    $settings = sr_notification_settings($pdo);
+    if (empty($settings['external_push_enabled']) || !sr_notification_webhook_url_is_allowed((string) ($settings['slack_webhook_url'] ?? ''))) {
+        return [];
+    }
+
+    return ['slack_webhook'];
+}
+
+function sr_notification_queue_admin_external_deliveries(PDO $pdo, int $adminNotificationId, array $channels = []): int
+{
+    if ($adminNotificationId <= 0) {
+        return 0;
+    }
+
+    $settings = sr_notification_settings($pdo);
+    $channels = $channels === [] ? sr_notification_admin_external_channels($pdo) : sr_notification_normalize_channels($channels);
+    $channels = array_values(array_filter($channels, static fn (string $channel): bool => $channel === 'slack_webhook'));
+    if ($channels === []) {
+        return 0;
+    }
+
+    $recipient = sr_notification_clean_single_line((string) ($settings['slack_channel_label'] ?? '운영 알림'), 80);
+    if ($recipient === '') {
+        $recipient = 'slack_webhook';
+    }
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_notification_deliveries
+            (notification_id, channel, recipient, status, provider_message_id, error_message, attempted_at, created_at, updated_at)
+         VALUES
+            (:notification_id, :channel, :recipient, \'queued\', \'\', \'\', NULL, :created_at, :updated_at)'
+    );
+    $queued = 0;
+    foreach ($channels as $channel) {
+        $stmt->execute([
+            'notification_id' => $adminNotificationId,
+            'channel' => $channel,
+            'recipient' => $recipient,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $queued += $stmt->rowCount() > 0 ? 1 : 0;
+    }
+
+    return $queued;
 }
 
 function sr_notification_normalize_channels(array $channels): array
@@ -1803,6 +2039,9 @@ function sr_notification_create(PDO $pdo, array $data): int
         throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
     }
     foreach ($externalChannels as $externalChannel) {
+        if ($externalChannel === 'slack_webhook') {
+            throw new InvalidArgumentException('Slack webhook delivery is only available for admin operational notifications.');
+        }
         if ($externalChannel !== 'email' && $recipient === '') {
             throw new InvalidArgumentException('External notification delivery requires recipient.');
         }
@@ -1869,6 +2108,9 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
         throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
     }
     foreach (sr_notification_external_channels($channels) as $externalChannel) {
+        if ($externalChannel === 'slack_webhook') {
+            throw new InvalidArgumentException('Slack webhook delivery is only available for admin operational notifications.');
+        }
         if ($externalChannel !== 'email' && $recipient === '') {
             throw new InvalidArgumentException('External notification delivery requires recipient.');
         }
