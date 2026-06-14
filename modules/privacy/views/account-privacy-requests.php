@@ -6,7 +6,8 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $cookieConsentValue = sr_privacy_cookie_consent_value();
-$cookieConsentCurrent = $cookieConsentValue === 'functional'
+$cookieConsentSelectedItems = sr_privacy_cookie_consent_selected_items();
+$cookieConsentCurrent = $cookieConsentSelectedItems !== []
     ? sr_t('privacy::cookie.manage.current.functional')
     : sr_t('privacy::cookie.manage.current.essential');
 $cookieConsentReturnTo = sr_member_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/account/privacy-requests'));
@@ -40,8 +41,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">
-                        <input type="hidden" name="consent" value="functional">
-                        <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('privacy::cookie.functional')); ?></button>
+                        <input type="hidden" name="consent" value="custom">
+                        <?php echo sr_privacy_cookie_consent_items_fields_html($cookieConsentSelectedItems); ?>
+                        <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('privacy::cookie.save.selection')); ?></button>
                     </form>
                 </div>
             </div>

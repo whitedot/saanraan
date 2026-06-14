@@ -1,7 +1,16 @@
 (function () {
     function functionalCookieAllowed() {
         return document.cookie.split(';').some(function (part) {
-            return part.trim() === 'sr_cookie_consent=functional';
+            var cookie = part.trim();
+            var prefix = 'sr_cookie_consent=items:';
+            if (cookie === 'sr_cookie_consent=functional') {
+                return true;
+            }
+            if (cookie.indexOf(prefix) !== 0) {
+                return false;
+            }
+
+            return cookie.substring(prefix.length).split(',').indexOf('popup_dismissal') !== -1;
         });
     }
 
