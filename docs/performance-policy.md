@@ -38,9 +38,9 @@
 
 ## 반복 렌더링 계약 캐시
 
-공개 레이아웃 후보, 로고 위치 후보, output slot renderer 목록처럼 한 요청 안에서 반복 조회되는 모듈 계약 목록은 요청 단위 메모리 캐시를 사용할 수 있다. 이 cache value는 배열, 문자열, 숫자, bool 같은 직렬화 가능한 데이터만 담는다.
+공개 레이아웃 후보, 로고 위치 후보, output slot renderer 목록처럼 한 요청 안에서 반복 조회되는 모듈 계약 목록은 요청 단위 메모리 캐시를 사용할 수 있다. 이 cache key에는 enabled/installed 모드, locale, `SR_MODULE_CONTRACT_VERSION`처럼 출력 후보에 영향을 주는 marker를 반영하고, cache value는 배열, 문자열, 숫자, bool 같은 직렬화 가능한 데이터만 담는다.
 
-`sr_render_output_slot()`은 renderer 결과 HTML을 캐시하지 않는다. output slot cache는 `module_key`와 `contract_file` metadata만 저장하고, 실제 계약 파일 로딩, callable 확인, renderer 실행은 요청 흐름에서 명시적으로 수행한다. 로그인 상태 HTML, 관리자 HTML, CSRF token, 개인정보, 권리 상태는 이 캐시 대상이 아니다.
+`sr_render_output_slot()`은 renderer 결과 HTML을 캐시하지 않는다. output slot cache는 `module_key`, `contract_name`, `contract_version`, `contract_file` metadata만 저장하고, 실제 계약 파일 로딩, callable 확인, renderer 실행은 요청 흐름에서 명시적으로 수행한다. 로그인 상태 HTML, 관리자 HTML, CSRF token, 개인정보, 권리 상태는 이 캐시 대상이 아니다.
 
 ## DB와 목록 성능
 

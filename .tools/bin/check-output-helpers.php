@@ -451,9 +451,11 @@ sr_output_helper_assert(
 );
 sr_output_helper_assert(
     $outputSlotContracts !== []
-        && isset($outputSlotContracts[0]['module_key'], $outputSlotContracts[0]['contract_file'])
+        && isset($outputSlotContracts[0]['module_key'], $outputSlotContracts[0]['contract_name'], $outputSlotContracts[0]['contract_version'], $outputSlotContracts[0]['contract_file'])
+        && $outputSlotContracts[0]['contract_name'] === 'output-slots.php'
+        && $outputSlotContracts[0]['contract_version'] === SR_MODULE_CONTRACT_VERSION
         && !isset($outputSlotContracts[0]['html'], $outputSlotContracts[0]['callable']),
-    'Output slot renderer cache should store serializable metadata only.'
+    'Output slot renderer cache should store serializable contract metadata only.'
 );
 $seoPdo = new PDO('sqlite::memory:');
 $seoPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

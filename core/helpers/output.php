@@ -1038,6 +1038,7 @@ function sr_public_layout_options(?PDO $pdo = null, bool $includeInstalledModule
         $pdo instanceof PDO ? (string) spl_object_id($pdo) : 'no-pdo',
         $includeInstalledModules ? 'installed' : 'enabled',
         function_exists('sr_locale') ? sr_locale() : 'ko',
+        defined('SR_MODULE_CONTRACT_VERSION') ? SR_MODULE_CONTRACT_VERSION : 'contract-unknown',
     ]);
     if (isset($cache[$cacheKey])) {
         return $cache[$cacheKey];
@@ -1365,7 +1366,14 @@ function sr_output_slot_renderer_contracts(PDO $pdo, string $excludedModuleKey):
         $cache = [];
     }
 
-    $cacheKey = (string) spl_object_id($pdo) . ':output-slots.php:' . $excludedModuleKey;
+    $contractName = 'output-slots.php';
+    $contractVersion = defined('SR_MODULE_CONTRACT_VERSION') ? SR_MODULE_CONTRACT_VERSION : 'contract-unknown';
+    $cacheKey = implode(':', [
+        (string) spl_object_id($pdo),
+        $contractName,
+        $excludedModuleKey,
+        $contractVersion,
+    ]);
     if (isset($cache[$cacheKey])) {
         return $cache[$cacheKey];
     }
@@ -1376,6 +1384,8 @@ function sr_output_slot_renderer_contracts(PDO $pdo, string $excludedModuleKey):
     foreach (sr_enabled_module_contract_files($pdo, 'output-slots.php', $excludedModuleKey !== '' ? [$excludedModuleKey] : []) as $rendererModuleKey => $file) {
         $contracts[] = [
             'module_key' => (string) $rendererModuleKey,
+            'contract_name' => $contractName,
+            'contract_version' => $contractVersion,
             'contract_file' => (string) $file,
         ];
     }
