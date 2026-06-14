@@ -87,10 +87,14 @@
 - [본인확인 플러그인 계획](plans/identity-verification-plugin-plan.md)
 - [회원 마이그레이션 계획](plans/member-migration-plan.md)
 - [결제 플러그인 계획](plans/payment-plugin-plan.md)
+- [이슈 #260 관리자 독립 form 조사 및 안내 계획](plans/issue-260-admin-independent-forms-plan.md)
+- [이슈 #261 긴 관리자 폼 섹션 내비게이션 계획](plans/issue-261-long-admin-forms-plan.md)
+- [이슈 #328 작성 보관 정보와 추가 입력 항목 설계](plans/issue-328-author-submission-data-design.md)
 - [마일스톤 2 퀴즈 보상 모듈 정합성 평가](plans/quiz-reward-module-plan.md)
 - [마일스톤 13 읽기 참조 계약 계획](plans/read-reference-contract-plan.md)
 - [보상 부정 수급 공통 기준 초안](plans/reward-abuse-common-standards.md)
 - [설문 모듈 MVP/의존성 지도](plans/survey-module-mvp-map.md): 구현 완료 후에도 설문 보상/통계/개인정보 정합성 기준을 빠르게 확인하기 위해 유지
+- [썸네일 캐시 S3 확장 계획](plans/thumbnail-cache-s3-plan.md)
 
 ## 점검 기록
 
@@ -114,8 +118,6 @@
 - [이슈 #214 콘텐츠 커버 이미지 구현 기록 - 2026-06-06](records/issue-214-content-cover-image-2026-06-06.md)
 - [이슈 #221 알림 이벤트 검토 기록 - 2026-06-06](records/issue-221-notification-events-2026-06-06.md)
 - [마일스톤 18-20 보상·퀴즈·설문 구현 기록 - 2026-06-07](records/milestone-18-20-reward-quiz-survey-2026-06-07.md)
-- [이슈 #260 관리자 독립 form 조사 및 안내 계획 - 2026-06-08](records/issue-260-admin-independent-forms-2026-06-08.md)
-- [이슈 #261 긴 관리자 폼 섹션 내비게이션 계획 - 2026-06-08](records/issue-261-long-admin-forms-2026-06-08.md)
 - [이슈 #303 삭제 글 댓글 보존 정책 점검 - 2026-06-10](records/issue-303-delete-retention-policy-2026-06-10.md)
 - [이슈 #115 settlement 기반 복합 차감 계약 결정 - 2026-06-11](records/issue-115-settlement-contract-2026-06-11.md)
 - [이슈 #326 공통 리액션 정책 결정 - 2026-06-11](records/issue-326-reaction-policy-2026-06-11.md)

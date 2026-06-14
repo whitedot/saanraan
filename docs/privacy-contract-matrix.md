@@ -47,7 +47,7 @@
 ## 보강 기준
 
 - 새 번들 모듈을 추가하면 위 표에 먼저 상태를 추가한다.
-- 게시글, 댓글, 응시, 응답처럼 사용자가 직접 제출하는 데이터의 작성자/접속/동의 보관 기준은 [이슈 #328 설계 기록](records/issue-328-author-submission-data-design-2026-06-13.md)의 매트릭스를 함께 갱신한다. 비회원 작성을 열거나 게시판별 추가 입력 항목을 저장하면 계정 연결 개인정보와 비회원 제출 증적의 export/cleanup 또는 보관 기간 cleanup 책임을 분리해 문서화한다.
+- 게시글, 댓글, 응시, 응답처럼 사용자가 직접 제출하는 데이터의 작성자/접속/동의 보관 기준은 [이슈 #328 설계 기준](plans/issue-328-author-submission-data-design.md)의 매트릭스를 함께 갱신한다. 비회원 작성을 열거나 게시판별 추가 입력 항목을 저장하면 계정 연결 개인정보와 비회원 제출 증적의 export/cleanup 또는 보관 기간 cleanup 책임을 분리해 문서화한다.
 - `export_cleanup` 모듈은 `module.php`의 `contracts.provides`에 `privacy-export.php`와 `privacy-cleanup.php`를 모두 선언하고 실제 파일을 둔다. `.tools/bin/check-privacy-contract-matrix.php`는 계약 파일을 include해 `privacy-export.php`가 배열 또는 `(PDO $pdo, int $accountId): array` callable을 반환하고, `privacy-cleanup.php`가 최소 `(PDO $pdo, int $accountId): array` callable을 반환하는지 확인한다.
 - `.tools/bin/check-privacy-contract-matrix.php`는 `install.sql`뿐 아니라 `updates/*.sql`도 함께 훑어 `*_account_id` 계열 컬럼이나 참조가 생겼는데 매트릭스 상태가 `no_member_personal_data`로 남는 경우를 차단한다.
 - `.tools/bin/check-privacy-export-runtime.php`는 SQLite fixture로 `quiz`, `survey`, `content`, `community` export 계약과 `asset_exchange`, `coupon`, `deposit`, `notification`, `point`, `reward` 보존형 export 계약을 실행한다. 퀴즈/설문은 상세 답변과 JSON snapshot 구조화를 확인하고, 콘텐츠/커뮤니티는 접근권, 자산 로그, 다운로드 로그, 작가 신청, 시리즈, 댓글/게시글, 신고/쪽지/스크랩/동의 증적이 대상 계정 기준으로 포함되며 다른 계정 row가 섞이지 않는지 확인한다. 보존형 export fixture는 금액성 원장, 쿠폰 환불, 환불/출금 계좌, 알림 delivery, 포인트 만료 소비 매핑처럼 운영 증빙으로 남기는 고위험 필드가 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다.
