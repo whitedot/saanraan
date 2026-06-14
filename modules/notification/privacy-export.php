@@ -111,13 +111,19 @@ return static function (PDO $pdo, int $accountId): array {
         } catch (Throwable) {
             $endpointMasks = [];
         }
-        foreach ($deliveries as $index => $delivery) {
+        $filteredDeliveries = [];
+        foreach ($deliveries as $delivery) {
             $recipient = (string) ($delivery['recipient'] ?? '');
             if (preg_match('/\Aendpoint:([1-9][0-9]*)\z/', $recipient, $matches) === 1) {
                 $endpointId = (int) $matches[1];
-                $deliveries[$index]['recipient'] = (string) ($endpointMasks[$endpointId] ?? 'endpoint:[masked]');
+                if (!array_key_exists($endpointId, $endpointMasks)) {
+                    continue;
+                }
+                $delivery['recipient'] = (string) ($endpointMasks[$endpointId] !== '' ? $endpointMasks[$endpointId] : 'endpoint:[masked]');
             }
+            $filteredDeliveries[] = $delivery;
         }
+        $deliveries = $filteredDeliveries;
     }
 
     return [

@@ -136,7 +136,7 @@
 | --- | --- |
 | site delivery export | 대상 회원에게 연결된 알림 또는 전체 알림의 site delivery는 사본 제공에 포함한다. |
 | email delivery export | 대상 계정의 현재 email과 일치하는 recipient만 포함하고 다른 회원 email recipient는 제외한다. |
-| push endpoint export | endpoint id 형태의 delivery recipient는 `recipient_masked`로 대체하고 endpoint ciphertext는 export하지 않는다. |
+| push endpoint export | 대상 계정 소유 endpoint id 형태의 delivery recipient는 `recipient_masked`로 대체하고 endpoint ciphertext는 export하지 않는다. 대상 계정 소유 endpoint로 확인되지 않는 endpoint delivery는 제외한다. |
 | external admin channel | Slack/Discord/Telegram 같은 운영 채널은 회원 알림 export에 섞지 않는다. 대상 회원 알림과 연결된 endpoint reference도 masked 값만 제공한다. |
 | 탈퇴/익명화 cleanup | `notification` cleanup은 회원 push endpoint를 disabled tombstone으로 바꾸고 `endpoint_ciphertext`를 비운다. `policy_documents` cleanup은 안내메일 delivery의 `account_id` 연결을 제거한다. |
 | retention | 일반 알림, delivery, read 기록은 `/admin/retention`의 알림 보관일(`notifications_days`)을 따른다. 재발송 가능 기간이 끝난 delivery는 오래 보존하지 않는다. |
