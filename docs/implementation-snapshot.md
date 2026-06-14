@@ -10,7 +10,7 @@
 | 모듈 계약 버전 | `2.0` |
 | PHP 기준 | `8.1` 이상 |
 | DB 기준 | MySQL 또는 MySQL 호환 DB, `pdo_mysql` |
-| 요청 흐름 | `index.php`가 활성 모듈의 `paths.php`를 읽고 action 파일을 명시적으로 include |
+| 요청 흐름 | `index.php`가 `core/request-bootstrap.php`의 요청 준비 함수를 순서대로 호출한 뒤 활성 모듈의 `paths.php`를 읽고 action 파일을 명시적으로 include |
 | 기본 DB prefix | `sr_` |
 
 ## 번들 모듈

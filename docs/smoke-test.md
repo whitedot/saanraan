@@ -255,6 +255,7 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /modules/community/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/community/module.php 직접 접근에서 커뮤니티 모듈 코드가 노출되지 않는지 확인
 /core/helpers.php 직접 접근에서 PHP 코드가 노출되지 않는지 확인
+/core/request-bootstrap.php 직접 접근에서 PHP 코드가 노출되지 않는지 확인
 /config/.gitignore 직접 접근에서 config 디렉터리 내용이 노출되지 않는지 확인
 /config/config.php 직접 접근에서 DB 설정, 비밀번호, app key가 노출되지 않는지 확인
 /storage/.gitignore 직접 접근에서 storage 디렉터리 내용이 노출되지 않는지 확인

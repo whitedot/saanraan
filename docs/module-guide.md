@@ -384,6 +384,7 @@ return [
 
 ```text
 index.php
+-> core/request-bootstrap.php의 요청 준비 함수 호출
 -> method/path 확인
 -> 설치 상태 확인
 -> DB와 사이트 설정 로드
@@ -394,6 +395,8 @@ index.php
 -> action include
 -> 요청 contract 검사
 ```
+
+`core/request-bootstrap.php`는 자동 dispatcher나 service provider가 아니다. 요청 준비 함수를 담는 파일이며, 실제 호출 순서는 `index.php`에 남긴다.
 
 `paths.php`는 단순 배열만 반환한다.
 

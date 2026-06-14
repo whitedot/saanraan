@@ -189,11 +189,14 @@
 
 ```text
 index.php
+-> core/request-bootstrap.php의 요청 준비 함수를 명시적으로 호출
 -> path와 method 확인
 -> 사이트 설정과 활성 모듈 확인
 -> 허용된 모듈/action 파일인지 검증
 -> 명시적 include
 ```
+
+`core/request-bootstrap.php`는 파일을 읽는 것만으로 요청을 처리하지 않는다. CLI 내장 서버 정적 파일 처리, 오류 처리기, 설정/DB/session/locale 준비, 공유호스팅용 보조 runner처럼 요청 실행 전에 필요한 준비 단계를 작은 함수로 제공하고, `index.php`가 필요한 순서대로 호출한다.
 
 요청 분기는 다음 방식을 피합니다.
 

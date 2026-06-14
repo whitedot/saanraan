@@ -4,37 +4,15 @@ declare(strict_types=1);
 
 define('SR_ROOT', __DIR__);
 
-if (PHP_SAPI === 'cli-server') {
-    $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-    if (
-        is_string($requestPath)
-        && (
-            str_starts_with($requestPath, '/assets/')
-            || preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/assets/#', $requestPath) === 1
-            || in_array($requestPath, ['/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js', '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'], true)
-        )
-    ) {
-        $staticPath = realpath(SR_ROOT . $requestPath);
-        if (is_string($staticPath) && str_starts_with($staticPath, SR_ROOT . DIRECTORY_SEPARATOR) && is_file($staticPath)) {
-            return false;
-        }
-    }
+require SR_ROOT . '/core/request-bootstrap.php';
+
+if (sr_request_bootstrap_cli_static_asset(SR_ROOT)) {
+    return false;
 }
 
 require SR_ROOT . '/core/helpers.php';
 sr_send_security_headers();
-
-set_exception_handler(function (Throwable $exception): void {
-    sr_render_error(500, '서버 오류가 발생했습니다.', $exception);
-});
-
-set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
-    if ((error_reporting() & $severity) === 0) {
-        return false;
-    }
-
-    throw new ErrorException($message, 0, $severity, $file, $line);
-});
+sr_request_bootstrap_error_handlers();
 
 $method = sr_request_method();
 $path = sr_request_path();
@@ -45,46 +23,16 @@ if (!sr_is_installed()) {
     exit;
 }
 
-$config = sr_load_config();
-sr_set_runtime_config($config);
-sr_apply_runtime_config($config);
-sr_send_security_headers($config);
-
+$config = sr_request_bootstrap_config();
 try {
-    $pdo = sr_db($config);
-    $site = sr_load_site($pdo);
-    sr_apply_site_runtime_settings($site);
-    sr_start_session($config, $pdo);
-    sr_set_locale(sr_resolve_locale($pdo, $site));
+    [$pdo, $site] = sr_request_bootstrap_site($config);
 } catch (Throwable $exception) {
     sr_render_error(500, 'DB 연결 또는 사이트 설정을 확인할 수 없습니다.', $exception);
     exit;
 }
 
-$autoCleanupScope = null;
-if ($method === 'GET') {
-    $autoCleanupScope = $path === '/admin' || str_starts_with($path, '/admin/') ? 'admin' : 'public';
-}
-
-if ($autoCleanupScope !== null) {
-    $autoCleanupEnabled = sr_site_setting($pdo, 'admin.retention.auto_cleanup_enabled', true);
-    $autoCleanupEnabled = in_array($autoCleanupEnabled, [true, 1, '1', 'true', 'yes', 'on'], true);
-    $autoCleanupLastAt = (string) sr_site_setting($pdo, 'admin.retention.last_auto_cleanup_at.' . $autoCleanupScope, '');
-    $autoCleanupLastTime = $autoCleanupLastAt === '' ? false : strtotime($autoCleanupLastAt);
-    $autoCleanupInterval = sr_site_setting($pdo, 'admin.retention.auto_cleanup_interval_hours', 24);
-    $autoCleanupIntervalHours = is_int($autoCleanupInterval) ? $autoCleanupInterval : (ctype_digit((string) $autoCleanupInterval) ? (int) $autoCleanupInterval : 24);
-    $autoCleanupDue = $autoCleanupLastTime === false || time() - $autoCleanupLastTime >= max(1, $autoCleanupIntervalHours) * 3600;
-    if ($autoCleanupEnabled && $autoCleanupDue && sr_module_enabled($pdo, 'admin')) {
-        require_once SR_ROOT . '/modules/member/helpers.php';
-        require_once SR_ROOT . '/modules/admin/helpers.php';
-        sr_admin_retention_maybe_run_auto_cleanup($pdo, $autoCleanupScope);
-    }
-}
-
-if ($method === 'GET' && sr_module_enabled($pdo, 'notification') && is_file(SR_ROOT . '/modules/notification/helpers.php')) {
-    require_once SR_ROOT . '/modules/notification/helpers.php';
-    sr_notification_register_web_delivery_runner($pdo, is_array($site) ? $site : [], $method, $path);
-}
+sr_request_bootstrap_retention_cleanup($pdo, $method, $path);
+sr_request_bootstrap_notification_runner($pdo, $site, $method, $path);
 
 if ($method === 'GET' && $path === '/manifest.webmanifest') {
     header('Content-Type: application/manifest+json; charset=utf-8');

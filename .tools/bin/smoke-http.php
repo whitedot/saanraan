@@ -429,6 +429,11 @@ $checks = [
         'must_not_expose' => ['require_once SR_ROOT'],
     ],
     [
+        'label' => 'request bootstrap PHP protection',
+        'path' => '/core/request-bootstrap.php',
+        'must_not_expose' => ['function sr_request_bootstrap_'],
+    ],
+    [
         'label' => 'config directory protection',
         'path' => '/config/.gitignore',
         'must_not_expose' => ['config-*.tmp.php'],

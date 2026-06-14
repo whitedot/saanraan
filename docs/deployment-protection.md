@@ -42,6 +42,7 @@ LICENSE
 /database/core/install.sql 직접 접근 차단
 /modules/member/install.sql 직접 접근 차단
 /core/helpers.php 직접 접근 차단
+/core/request-bootstrap.php 직접 접근 차단
 /docs/deployment-protection.md 직접 접근 차단
 /AGENTS.md 직접 접근 차단
 /.tools/bin/check.php 직접 접근 차단
