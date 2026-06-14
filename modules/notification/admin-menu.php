@@ -7,7 +7,7 @@ return [
         [
             'label' => '운영 알림',
             'path' => '/admin/admin-notifications',
-            'order' => 5,
+            'order' => 25,
         ],
         [
             'label' => sr_t('notification::ui.notification.list.7475cac1'),

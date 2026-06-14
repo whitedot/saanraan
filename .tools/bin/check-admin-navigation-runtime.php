@@ -109,6 +109,14 @@ foreach ($groups as $group) {
 sr_admin_navigation_runtime_assert(isset($moduleGroups['seo']), 'Admin navigation runtime fixture must expose SEO module menu group.');
 sr_admin_navigation_runtime_assert(isset($moduleGroups['notification']), 'Admin navigation runtime fixture must expose notification module menu group.');
 sr_admin_navigation_runtime_assert((int) ($moduleGroups['seo']['order'] ?? 0) === 50, 'Admin navigation runtime fixture must use SEO module admin menu order.');
+$notificationMenuPaths = array_map(
+    static fn (array $item): string => (string) ($item['path'] ?? ''),
+    array_values(array_filter((array) ($moduleGroups['notification']['items'] ?? []), 'is_array'))
+);
+sr_admin_navigation_runtime_assert(
+    array_search('/admin/admin-notifications', $notificationMenuPaths, true) === array_search('/admin/notifications/settings', $notificationMenuPaths, true) - 1,
+    'Admin navigation runtime fixture must place admin notifications directly before notification settings.'
+);
 
 sr_admin_navigation_runtime_assert(sr_admin_first_permitted_menu_path($pdo, 2) === '/admin/seo', 'Admin navigation runtime fixture must return first permitted module menu for limited admin.');
 sr_admin_navigation_runtime_assert(sr_admin_first_permitted_menu_path($pdo, 3) === '/admin/operations', 'Admin navigation runtime fixture must return first permitted built-in menu for limited admin.');
