@@ -70,14 +70,21 @@ function sr_notification_delivery_runner_lock_id(): string
 
 function sr_notification_delivery_error_message(string $message): string
 {
-    $message = sr_notification_clean_single_line($message, 255);
-    $patterns = [
-        '/Bearer\s+[A-Za-z0-9._~+\-\/]+=*/i',
-        '/(token|secret|password|passwd|pwd|key)=([^&\s]+)/i',
-        '/https?:\/\/[^\s@\/]+:[^\s@\/]+@[^\s]+/i',
+    $message = sr_notification_clean_single_line($message, 2000);
+    $replacements = [
+        ['/Bearer\s+[A-Za-z0-9._~+\-\/]+=*/i', 'Bearer [masked]'],
+        ['/(token|secret|password|passwd|pwd|key)=([^&\s]+)/i', '$1=[masked]'],
+        ['#https://hooks\.slack\.com/services/[^\s]+#i', 'https://hooks.slack.com/services/[masked]'],
+        ['#https://discord(?:app)?\.com/api/webhooks/[^\s]+#i', 'https://discord.com/api/webhooks/[masked]'],
+        ['#https://api\.telegram\.org/bot[0-9A-Za-z:_-]+/sendMessage#i', 'https://api.telegram.org/bot[masked]/sendMessage'],
+        ['#https?://[^\s@/]+:[^\s@/]+@[^\s]+#i', '[masked-url]'],
     ];
 
-    return preg_replace($patterns, '$1=[masked]', $message) ?? 'masked error';
+    foreach ($replacements as $replacement) {
+        $message = preg_replace($replacement[0], $replacement[1], $message) ?? 'masked error';
+    }
+
+    return sr_notification_clean_single_line($message, 255);
 }
 
 function sr_notification_mask_recipient(string $recipient): string
@@ -196,10 +203,34 @@ function sr_notification_external_provider_options(): array
     return [
         'slack_webhook' => [
             'label' => 'Slack webhook',
+            'enabled_setting' => 'slack_webhook_enabled',
             'webhook_url_setting' => 'slack_webhook_url',
             'channel_label_setting' => 'slack_channel_label',
         ],
+        'discord_webhook' => [
+            'label' => 'Discord webhook',
+            'enabled_setting' => 'discord_webhook_enabled',
+            'webhook_url_setting' => 'discord_webhook_url',
+            'channel_label_setting' => 'discord_channel_label',
+        ],
+        'telegram_bot' => [
+            'label' => 'Telegram bot',
+            'enabled_setting' => 'telegram_bot_enabled',
+            'bot_token_setting' => 'telegram_bot_token',
+            'chat_id_setting' => 'telegram_chat_id',
+            'channel_label_setting' => 'telegram_channel_label',
+        ],
     ];
+}
+
+function sr_notification_admin_external_channel_keys(): array
+{
+    return array_keys(sr_notification_external_provider_options());
+}
+
+function sr_notification_admin_external_channel_sql_list(): string
+{
+    return "'" . implode("', '", sr_notification_admin_external_channel_keys()) . "'";
 }
 
 function sr_notification_external_failure_policy(string $value): string
@@ -228,10 +259,24 @@ function sr_notification_webhook_url_is_allowed(string $url): bool
         && $host !== '';
 }
 
+function sr_notification_telegram_bot_token_is_allowed(string $token): bool
+{
+    $token = trim($token);
+    return $token !== '' && strlen($token) <= 215 && preg_match('/\A[0-9]{5,20}:[A-Za-z0-9_-]{20,194}\z/', $token) === 1;
+}
+
+function sr_notification_telegram_chat_id_is_allowed(string $chatId): bool
+{
+    $chatId = trim($chatId);
+    return $chatId !== ''
+        && strlen($chatId) <= 120
+        && (preg_match('/\A-?[0-9]{1,20}\z/', $chatId) === 1 || preg_match('/\A@[A-Za-z][A-Za-z0-9_]{4,31}\z/', $chatId) === 1);
+}
+
 function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds, array $channels = []): ?array
 {
     $allowedChannels = array_values(array_filter(
-        sr_notification_normalize_channels($channels === [] ? ['email', 'slack_webhook'] : $channels),
+        sr_notification_normalize_channels($channels === [] ? array_merge(['email'], sr_notification_admin_external_channel_keys()) : $channels),
         static fn (string $channel): bool => $channel !== 'site'
     ));
     if ($allowedChannels === []) {
@@ -299,13 +344,13 @@ function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, i
 
     $stmt = $pdo->prepare(
         "SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.attempt_count,
-                CASE WHEN d.channel = 'slack_webhook' THEN an.title ELSE n.title END AS title,
-                CASE WHEN d.channel = 'slack_webhook' THEN an.body_text ELSE n.body_text END AS body_text,
-                CASE WHEN d.channel = 'slack_webhook' THEN 'plain' ELSE n.body_format END AS body_format,
-                CASE WHEN d.channel = 'slack_webhook' THEN an.action_url ELSE n.link_url END AS link_url
+                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN an.title ELSE n.title END AS title,
+                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN an.body_text ELSE n.body_text END AS body_text,
+                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN 'plain' ELSE n.body_format END AS body_format,
+                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN an.action_url ELSE n.link_url END AS link_url
          FROM sr_notification_deliveries d
-         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel <> 'slack_webhook'
-         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel = 'slack_webhook'
+         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel NOT IN (" . sr_notification_admin_external_channel_sql_list() . ")
+         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ")
          WHERE d.id = :id
          LIMIT 1"
     );
@@ -422,7 +467,7 @@ function sr_notification_process_email_delivery(PDO $pdo, array $site, array $de
     return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
 }
 
-function sr_notification_slack_webhook_payload(array $delivery, array $site): array
+function sr_notification_external_push_text(array $delivery, array $site): string
 {
     $siteName = sr_notification_clean_single_line((string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'), 80);
     $title = sr_notification_clean_single_line((string) ($delivery['title'] ?? '운영 알림'), 160);
@@ -436,7 +481,24 @@ function sr_notification_slack_webhook_payload(array $delivery, array $site): ar
         $lines[] = sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl);
     }
 
-    return ['text' => implode("\n\n", $lines)];
+    return implode("\n\n", $lines);
+}
+
+function sr_notification_external_push_payload(string $channel, array $delivery, array $site, array $settings): array
+{
+    $text = sr_notification_external_push_text($delivery, $site);
+    if ($channel === 'discord_webhook') {
+        return ['content' => $text];
+    }
+    if ($channel === 'telegram_bot') {
+        return [
+            'chat_id' => (string) ($settings['telegram_chat_id'] ?? ''),
+            'text' => $text,
+            'disable_web_page_preview' => true,
+        ];
+    }
+
+    return ['text' => $text];
 }
 
 function sr_notification_http_json_post(string $url, array $payload, int $timeoutSeconds): array
@@ -471,21 +533,74 @@ function sr_notification_http_json_post(string $url, array $payload, int $timeou
     ];
 }
 
-function sr_notification_slack_webhook_response_result(array $response): array
+function sr_notification_external_push_response_result(string $channel, array $response): array
 {
     $status = (int) ($response['status'] ?? 0);
     $body = trim((string) ($response['body'] ?? ''));
-    if (!empty($response['ok']) && $status >= 200 && $status < 300 && ($body === '' || strtolower($body) === 'ok')) {
+    if ($channel === 'slack_webhook' && !empty($response['ok']) && $status >= 200 && $status < 300 && ($body === '' || strtolower($body) === 'ok')) {
         return ['ok' => true, 'provider_message_id' => 'slack_webhook', 'error' => ''];
     }
 
-    $error = sr_notification_delivery_error_message($body !== '' ? $body : (string) ($response['error'] ?? 'slack webhook failed'));
+    if ($channel === 'discord_webhook' && !empty($response['ok']) && $status >= 200 && $status < 300) {
+        return ['ok' => true, 'provider_message_id' => 'discord_webhook', 'error' => ''];
+    }
+
+    if ($channel === 'telegram_bot' && !empty($response['ok']) && $status >= 200 && $status < 300) {
+        $decoded = json_decode($body, true);
+        if (is_array($decoded) && !empty($decoded['ok'])) {
+            $messageId = '';
+            if (isset($decoded['result']) && is_array($decoded['result']) && isset($decoded['result']['message_id'])) {
+                $messageId = 'telegram:' . (string) $decoded['result']['message_id'];
+            }
+            return ['ok' => true, 'provider_message_id' => $messageId !== '' ? $messageId : 'telegram_bot', 'error' => ''];
+        }
+    }
+
+    $error = sr_notification_delivery_error_message($body !== '' ? $body : (string) ($response['error'] ?? $channel . ' failed'));
     return ['ok' => false, 'provider_message_id' => '', 'error' => $error];
 }
 
-function sr_notification_process_slack_webhook_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
+function sr_notification_slack_webhook_response_result(array $response): array
+{
+    return sr_notification_external_push_response_result('slack_webhook', $response);
+}
+
+function sr_notification_external_push_endpoint(string $channel, array $settings): string
+{
+    if ($channel === 'telegram_bot') {
+        $token = trim((string) ($settings['telegram_bot_token'] ?? ''));
+        return sr_notification_telegram_bot_token_is_allowed($token) ? 'https://api.telegram.org/bot' . $token . '/sendMessage' : '';
+    }
+
+    $options = sr_notification_external_provider_options();
+    $urlSetting = (string) ($options[$channel]['webhook_url_setting'] ?? '');
+    return $urlSetting !== '' ? (string) ($settings[$urlSetting] ?? '') : '';
+}
+
+function sr_notification_external_provider_is_ready(string $channel, array $settings): bool
+{
+    $options = sr_notification_external_provider_options();
+    if (!isset($options[$channel]) || empty($settings['external_push_enabled'])) {
+        return false;
+    }
+
+    $enabledSetting = (string) ($options[$channel]['enabled_setting'] ?? '');
+    if ($enabledSetting !== '' && empty($settings[$enabledSetting])) {
+        return false;
+    }
+
+    if ($channel === 'telegram_bot') {
+        return sr_notification_telegram_bot_token_is_allowed((string) ($settings['telegram_bot_token'] ?? ''))
+            && sr_notification_telegram_chat_id_is_allowed((string) ($settings['telegram_chat_id'] ?? ''));
+    }
+
+    return sr_notification_webhook_url_is_allowed(sr_notification_external_push_endpoint($channel, $settings));
+}
+
+function sr_notification_process_external_push_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
 {
     $deliveryId = (int) ($delivery['id'] ?? 0);
+    $channel = (string) ($delivery['channel'] ?? '');
     $attemptCount = (int) ($delivery['attempt_count'] ?? 1);
     $failureMaxAttempts = (string) ($settings['external_push_failure_policy'] ?? 'retry') === 'dead' ? 1 : $maxAttempts;
     if ($deliveryId <= 0) {
@@ -496,21 +611,30 @@ function sr_notification_process_slack_webhook_delivery(PDO $pdo, array $site, a
         return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
     }
 
-    $webhookUrl = (string) ($settings['slack_webhook_url'] ?? '');
-    if (!sr_notification_webhook_url_is_allowed($webhookUrl)) {
-        $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, 'slack webhook url missing or invalid', $attemptCount, $failureMaxAttempts);
+    if (!in_array($channel, sr_notification_admin_external_channel_keys(), true) || !sr_notification_external_provider_is_ready($channel, $settings)) {
+        $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, $channel . ' provider missing or invalid', $attemptCount, $failureMaxAttempts);
         return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
     }
 
-    $response = sr_notification_http_json_post($webhookUrl, sr_notification_slack_webhook_payload($delivery, $site), (int) ($settings['email_timeout_seconds'] ?? 10));
-    $providerResult = sr_notification_slack_webhook_response_result($response);
+    $response = sr_notification_http_json_post(
+        sr_notification_external_push_endpoint($channel, $settings),
+        sr_notification_external_push_payload($channel, $delivery, $site, $settings),
+        (int) ($settings['email_timeout_seconds'] ?? 10)
+    );
+    $providerResult = sr_notification_external_push_response_result($channel, $response);
     if (!empty($providerResult['ok'])) {
-        sr_notification_mark_delivery_sent($pdo, $deliveryId, $now, (string) ($providerResult['provider_message_id'] ?? 'slack_webhook'));
+        sr_notification_mark_delivery_sent($pdo, $deliveryId, $now, (string) ($providerResult['provider_message_id'] ?? $channel));
         return ['status' => 'sent', 'sent' => 1, 'failed' => 0, 'dead' => 0];
     }
 
-    $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, (string) ($providerResult['error'] ?? 'slack webhook failed'), $attemptCount, $failureMaxAttempts);
+    $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, (string) ($providerResult['error'] ?? $channel . ' failed'), $attemptCount, $failureMaxAttempts);
     return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+}
+
+function sr_notification_process_slack_webhook_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
+{
+    $delivery['channel'] = 'slack_webhook';
+    return sr_notification_process_external_push_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
 }
 
 function sr_notification_process_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
@@ -519,8 +643,8 @@ function sr_notification_process_delivery(PDO $pdo, array $site, array $delivery
     if ($channel === 'email') {
         return sr_notification_process_email_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
     }
-    if ($channel === 'slack_webhook') {
-        return sr_notification_process_slack_webhook_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
+    if (in_array($channel, sr_notification_admin_external_channel_keys(), true)) {
+        return sr_notification_process_external_push_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
     }
 
     $status = sr_notification_mark_delivery_failed(
@@ -552,7 +676,7 @@ function sr_notification_run_delivery_batch(PDO $pdo, array $site, int $batchSiz
 
     for ($i = 0; $i < $batchSize; $i++) {
         $now = sr_now();
-        $delivery = sr_notification_claim_delivery($pdo, $lockId, $now, $lockTimeoutSeconds, ['email', 'slack_webhook']);
+        $delivery = sr_notification_claim_delivery($pdo, $lockId, $now, $lockTimeoutSeconds, array_merge(['email'], sr_notification_admin_external_channel_keys()));
         if ($delivery === null) {
             break;
         }
@@ -1501,7 +1625,7 @@ function sr_notification_admin_set_status(PDO $pdo, int $notificationId, int $ac
 
 function sr_notification_allowed_channels(): array
 {
-    return ['site', 'email', 'slack_webhook', 'sms', 'alimtalk'];
+    return ['site', 'email', 'slack_webhook', 'discord_webhook', 'telegram_bot', 'sms', 'alimtalk'];
 }
 
 function sr_notification_default_settings(): array
@@ -1520,8 +1644,16 @@ function sr_notification_default_settings(): array
         'email_http_api_endpoint' => '',
         'email_http_api_bearer_token' => '',
         'external_push_enabled' => false,
+        'slack_webhook_enabled' => true,
         'slack_webhook_url' => '',
         'slack_channel_label' => '운영 알림',
+        'discord_webhook_enabled' => false,
+        'discord_webhook_url' => '',
+        'discord_channel_label' => '운영 알림',
+        'telegram_bot_enabled' => false,
+        'telegram_bot_token' => '',
+        'telegram_chat_id' => '',
+        'telegram_channel_label' => '운영 알림',
         'external_push_failure_policy' => 'retry',
         'delivery_web_runner_enabled' => true,
         'delivery_web_runner_interval_seconds' => 60,
@@ -1542,8 +1674,16 @@ function sr_notification_settings(PDO $pdo): array
     $settings['email_smtp_encryption'] = in_array((string) $settings['email_smtp_encryption'], ['none', 'tls', 'ssl'], true) ? (string) $settings['email_smtp_encryption'] : 'tls';
     $settings['email_timeout_seconds'] = max(3, min(30, (int) $settings['email_timeout_seconds']));
     $settings['external_push_enabled'] = (bool) $settings['external_push_enabled'];
+    $settings['slack_webhook_enabled'] = (bool) $settings['slack_webhook_enabled'];
     $settings['slack_webhook_url'] = sr_notification_clean_setting_value((string) $settings['slack_webhook_url'], 255);
     $settings['slack_channel_label'] = sr_notification_clean_setting_value((string) $settings['slack_channel_label'], 80);
+    $settings['discord_webhook_enabled'] = (bool) $settings['discord_webhook_enabled'];
+    $settings['discord_webhook_url'] = sr_notification_clean_setting_value((string) $settings['discord_webhook_url'], 255);
+    $settings['discord_channel_label'] = sr_notification_clean_setting_value((string) $settings['discord_channel_label'], 80);
+    $settings['telegram_bot_enabled'] = (bool) $settings['telegram_bot_enabled'];
+    $settings['telegram_bot_token'] = sr_notification_clean_setting_value((string) $settings['telegram_bot_token'], 255);
+    $settings['telegram_chat_id'] = sr_notification_clean_setting_value((string) $settings['telegram_chat_id'], 120);
+    $settings['telegram_channel_label'] = sr_notification_clean_setting_value((string) $settings['telegram_channel_label'], 80);
     $settings['external_push_failure_policy'] = sr_notification_external_failure_policy((string) $settings['external_push_failure_policy']);
     $settings['delivery_web_runner_enabled'] = (bool) $settings['delivery_web_runner_enabled'];
     $settings['delivery_web_runner_interval_seconds'] = max(10, min(3600, (int) $settings['delivery_web_runner_interval_seconds']));
@@ -1602,8 +1742,16 @@ function sr_notification_save_settings(PDO $pdo, array $settings): void
         ['email_http_api_endpoint', (string) $settings['email_http_api_endpoint'], 'string'],
         ['email_http_api_bearer_token', (string) $settings['email_http_api_bearer_token'], 'string'],
         ['external_push_enabled', !empty($settings['external_push_enabled']) ? '1' : '0', 'bool'],
+        ['slack_webhook_enabled', !empty($settings['slack_webhook_enabled']) ? '1' : '0', 'bool'],
         ['slack_webhook_url', (string) $settings['slack_webhook_url'], 'string'],
         ['slack_channel_label', (string) $settings['slack_channel_label'], 'string'],
+        ['discord_webhook_enabled', !empty($settings['discord_webhook_enabled']) ? '1' : '0', 'bool'],
+        ['discord_webhook_url', (string) $settings['discord_webhook_url'], 'string'],
+        ['discord_channel_label', (string) $settings['discord_channel_label'], 'string'],
+        ['telegram_bot_enabled', !empty($settings['telegram_bot_enabled']) ? '1' : '0', 'bool'],
+        ['telegram_bot_token', (string) $settings['telegram_bot_token'], 'string'],
+        ['telegram_chat_id', (string) $settings['telegram_chat_id'], 'string'],
+        ['telegram_channel_label', (string) $settings['telegram_channel_label'], 'string'],
         ['external_push_failure_policy', (string) $settings['external_push_failure_policy'], 'string'],
         ['delivery_web_runner_enabled', !empty($settings['delivery_web_runner_enabled']) ? '1' : '0', 'bool'],
         ['delivery_web_runner_interval_seconds', (string) $settings['delivery_web_runner_interval_seconds'], 'int'],
@@ -1652,11 +1800,18 @@ function sr_notification_create_channels(PDO $pdo): array
 function sr_notification_admin_external_channels(PDO $pdo): array
 {
     $settings = sr_notification_settings($pdo);
-    if (empty($settings['external_push_enabled']) || !sr_notification_webhook_url_is_allowed((string) ($settings['slack_webhook_url'] ?? ''))) {
+    if (empty($settings['external_push_enabled'])) {
         return [];
     }
 
-    return ['slack_webhook'];
+    $channels = [];
+    foreach (sr_notification_admin_external_channel_keys() as $channel) {
+        if (sr_notification_external_provider_is_ready($channel, $settings)) {
+            $channels[] = $channel;
+        }
+    }
+
+    return $channels;
 }
 
 function sr_notification_queue_admin_external_deliveries(PDO $pdo, int $adminNotificationId, array $channels = []): int
@@ -1667,15 +1822,15 @@ function sr_notification_queue_admin_external_deliveries(PDO $pdo, int $adminNot
 
     $settings = sr_notification_settings($pdo);
     $channels = $channels === [] ? sr_notification_admin_external_channels($pdo) : sr_notification_normalize_channels($channels);
-    $channels = array_values(array_filter($channels, static fn (string $channel): bool => $channel === 'slack_webhook'));
+    $channels = array_values(array_filter(
+        $channels,
+        static fn (string $channel): bool => in_array($channel, sr_notification_admin_external_channel_keys(), true)
+            && sr_notification_external_provider_is_ready($channel, $settings)
+    ));
     if ($channels === []) {
         return 0;
     }
-
-    $recipient = sr_notification_clean_single_line((string) ($settings['slack_channel_label'] ?? '운영 알림'), 80);
-    if ($recipient === '') {
-        $recipient = 'slack_webhook';
-    }
+    $providerOptions = sr_notification_external_provider_options();
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_notification_deliveries
@@ -1685,6 +1840,11 @@ function sr_notification_queue_admin_external_deliveries(PDO $pdo, int $adminNot
     );
     $queued = 0;
     foreach ($channels as $channel) {
+        $labelSetting = (string) ($providerOptions[$channel]['channel_label_setting'] ?? '');
+        $recipient = sr_notification_clean_single_line($labelSetting !== '' ? (string) ($settings[$labelSetting] ?? '') : '', 80);
+        if ($recipient === '') {
+            $recipient = $channel;
+        }
         $stmt->execute([
             'notification_id' => $adminNotificationId,
             'channel' => $channel,
@@ -2039,8 +2199,8 @@ function sr_notification_create(PDO $pdo, array $data): int
         throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
     }
     foreach ($externalChannels as $externalChannel) {
-        if ($externalChannel === 'slack_webhook') {
-            throw new InvalidArgumentException('Slack webhook delivery is only available for admin operational notifications.');
+        if (in_array($externalChannel, sr_notification_admin_external_channel_keys(), true)) {
+            throw new InvalidArgumentException('External push delivery is only available for admin operational notifications.');
         }
         if ($externalChannel !== 'email' && $recipient === '') {
             throw new InvalidArgumentException('External notification delivery requires recipient.');
@@ -2108,8 +2268,8 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
         throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
     }
     foreach (sr_notification_external_channels($channels) as $externalChannel) {
-        if ($externalChannel === 'slack_webhook') {
-            throw new InvalidArgumentException('Slack webhook delivery is only available for admin operational notifications.');
+        if (in_array($externalChannel, sr_notification_admin_external_channel_keys(), true)) {
+            throw new InvalidArgumentException('External push delivery is only available for admin operational notifications.');
         }
         if ($externalChannel !== 'email' && $recipient === '') {
             throw new InvalidArgumentException('External notification delivery requires recipient.');

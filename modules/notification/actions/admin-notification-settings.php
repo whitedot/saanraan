@@ -29,6 +29,8 @@ if (sr_request_method() === 'POST') {
     $emailSmtpPassword = sr_post_string('email_smtp_password', 255);
     $emailHttpApiBearerToken = sr_post_string('email_http_api_bearer_token', 255);
     $slackWebhookUrlInput = sr_post_string_without_truncation('slack_webhook_url', 255);
+    $discordWebhookUrlInput = sr_post_string_without_truncation('discord_webhook_url', 255);
+    $telegramBotTokenInput = sr_post_string_without_truncation('telegram_bot_token', 255);
     $settings = [
         'email_channel_enabled' => ($_POST['email_channel_enabled'] ?? '') === '1',
         'email_transport' => sr_post_string('email_transport', 30),
@@ -43,8 +45,16 @@ if (sr_request_method() === 'POST') {
         'email_http_api_endpoint' => sr_notification_clean_setting_value(sr_post_string('email_http_api_endpoint', 255), 255),
         'email_http_api_bearer_token' => $emailHttpApiBearerToken !== '' ? $emailHttpApiBearerToken : (string) ($existingSettings['email_http_api_bearer_token'] ?? ''),
         'external_push_enabled' => ($_POST['external_push_enabled'] ?? '') === '1',
+        'slack_webhook_enabled' => ($_POST['slack_webhook_enabled'] ?? '') === '1',
         'slack_webhook_url' => $slackWebhookUrlInput !== null && trim($slackWebhookUrlInput) !== '' ? trim($slackWebhookUrlInput) : (string) ($existingSettings['slack_webhook_url'] ?? ''),
         'slack_channel_label' => sr_notification_clean_setting_value(sr_post_string('slack_channel_label', 80), 80),
+        'discord_webhook_enabled' => ($_POST['discord_webhook_enabled'] ?? '') === '1',
+        'discord_webhook_url' => $discordWebhookUrlInput !== null && trim($discordWebhookUrlInput) !== '' ? trim($discordWebhookUrlInput) : (string) ($existingSettings['discord_webhook_url'] ?? ''),
+        'discord_channel_label' => sr_notification_clean_setting_value(sr_post_string('discord_channel_label', 80), 80),
+        'telegram_bot_enabled' => ($_POST['telegram_bot_enabled'] ?? '') === '1',
+        'telegram_bot_token' => $telegramBotTokenInput !== null && trim($telegramBotTokenInput) !== '' ? trim($telegramBotTokenInput) : (string) ($existingSettings['telegram_bot_token'] ?? ''),
+        'telegram_chat_id' => sr_notification_clean_setting_value(sr_post_string('telegram_chat_id', 120), 120),
+        'telegram_channel_label' => sr_notification_clean_setting_value(sr_post_string('telegram_channel_label', 80), 80),
         'external_push_failure_policy' => sr_post_string('external_push_failure_policy', 20),
         'delivery_web_runner_enabled' => ($_POST['delivery_web_runner_enabled'] ?? '') === '1',
         'delivery_web_runner_interval_seconds' => (int) sr_post_string('delivery_web_runner_interval_seconds', 10),
@@ -91,6 +101,12 @@ if (sr_request_method() === 'POST') {
     if ($slackWebhookUrlInput === null) {
         $errors[] = 'Slack webhook URL은 255자 이내로 입력하세요.';
     }
+    if ($discordWebhookUrlInput === null) {
+        $errors[] = 'Discord webhook URL은 255자 이내로 입력하세요.';
+    }
+    if ($telegramBotTokenInput === null) {
+        $errors[] = 'Telegram bot token은 255자 이내로 입력하세요.';
+    }
     if (!in_array($settings['external_push_failure_policy'], ['retry', 'dead'], true)) {
         $errors[] = '외부 푸시 실패 정책을 선택하세요.';
     }
@@ -112,11 +128,39 @@ if (sr_request_method() === 'POST') {
         }
     }
     if ($settings['external_push_enabled']) {
-        if ($settings['slack_channel_label'] === '') {
+        $enabledProviderCount = 0;
+        if ($settings['slack_webhook_enabled']) {
+            $enabledProviderCount++;
+        }
+        if ($settings['discord_webhook_enabled']) {
+            $enabledProviderCount++;
+        }
+        if ($settings['telegram_bot_enabled']) {
+            $enabledProviderCount++;
+        }
+        if ($enabledProviderCount < 1) {
+            $errors[] = '외부 푸시 사용 시 provider를 하나 이상 켜세요.';
+        }
+        if ($settings['slack_webhook_enabled'] && $settings['slack_channel_label'] === '') {
             $errors[] = 'Slack 채널 표시명을 입력하세요.';
         }
-        if (!sr_notification_webhook_url_is_allowed((string) $settings['slack_webhook_url'])) {
+        if ($settings['slack_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['slack_webhook_url'])) {
             $errors[] = 'Slack webhook URL은 HTTPS URL이어야 합니다.';
+        }
+        if ($settings['discord_webhook_enabled'] && $settings['discord_channel_label'] === '') {
+            $errors[] = 'Discord 채널 표시명을 입력하세요.';
+        }
+        if ($settings['discord_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['discord_webhook_url'])) {
+            $errors[] = 'Discord webhook URL은 HTTPS URL이어야 합니다.';
+        }
+        if ($settings['telegram_bot_enabled'] && $settings['telegram_channel_label'] === '') {
+            $errors[] = 'Telegram 채널 표시명을 입력하세요.';
+        }
+        if ($settings['telegram_bot_enabled'] && !sr_notification_telegram_bot_token_is_allowed((string) $settings['telegram_bot_token'])) {
+            $errors[] = 'Telegram bot token 형식이 올바르지 않습니다.';
+        }
+        if ($settings['telegram_bot_enabled'] && !sr_notification_telegram_chat_id_is_allowed((string) $settings['telegram_chat_id'])) {
+            $errors[] = 'Telegram chat ID 형식이 올바르지 않습니다.';
         }
     }
 
@@ -135,6 +179,9 @@ if (sr_request_method() === 'POST') {
                 'email_channel_enabled' => (bool) $settings['email_channel_enabled'],
                 'email_transport' => (string) $settings['email_transport'],
                 'external_push_enabled' => (bool) $settings['external_push_enabled'],
+                'slack_webhook_enabled' => (bool) $settings['slack_webhook_enabled'],
+                'discord_webhook_enabled' => (bool) $settings['discord_webhook_enabled'],
+                'telegram_bot_enabled' => (bool) $settings['telegram_bot_enabled'],
                 'external_push_failure_policy' => (string) $settings['external_push_failure_policy'],
                 'delivery_web_runner_enabled' => (bool) $settings['delivery_web_runner_enabled'],
                 'delivery_max_attempts' => (int) $settings['delivery_max_attempts'],

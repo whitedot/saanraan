@@ -142,7 +142,11 @@ function sr_admin_code_label_context_options(): array
         'notification_channel' => [
             'site' => '사이트',
             'email' => '이메일',
+            'slack_webhook' => 'Slack',
+            'discord_webhook' => 'Discord',
+            'telegram_bot' => 'Telegram',
             'sms' => '문자',
+            'alimtalk' => '알림톡',
         ],
         'notification_status' => [
             'queued' => '등록 대기',

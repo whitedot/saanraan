@@ -139,8 +139,14 @@ $notificationSettingsSectionNavItems = [
         <div class="admin-form-row">
             <span class="form-label">외부 푸시 채널</span>
             <div class="admin-form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '관리자 운영 알림을 Slack webhook으로 발송', '', ''); ?>
+                <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '관리자 운영 알림을 외부 provider로 발송', '', ''); ?>
                 <small class="admin-form-help">회원 대상 외부 푸시는 아직 사용하지 않습니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label">Slack provider</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('notification_admin_settings_slack_webhook_enabled', 'slack_webhook_enabled', '1', !empty($settings['slack_webhook_enabled']), 'Slack webhook 사용', '', ''); ?>
             </div>
         </div>
         <div class="admin-form-row">
@@ -155,6 +161,53 @@ $notificationSettingsSectionNavItems = [
             <div class="admin-form-field">
                 <input id="notification_admin_settings_slack_webhook_url" type="password" name="slack_webhook_url" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['slack_webhook_url'])); ?>" class="form-input form-control-full" autocomplete="new-password">
                 <small class="admin-form-help">HTTPS URL만 허용합니다. 비워두면 기존 저장값을 유지합니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label">Discord provider</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('notification_admin_settings_discord_webhook_enabled', 'discord_webhook_enabled', '1', !empty($settings['discord_webhook_enabled']), 'Discord webhook 사용', '', ''); ?>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_discord_channel_label">Discord 채널 표시명</label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_discord_channel_label" type="text" name="discord_channel_label" value="<?php echo sr_e((string) $settings['discord_channel_label']); ?>" maxlength="80" class="form-input form-control-full">
+                <small class="admin-form-help">발송 목록의 recipient 칸에 저장할 식별용 label입니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_discord_webhook_url">Discord webhook URL</label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_discord_webhook_url" type="password" name="discord_webhook_url" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['discord_webhook_url'])); ?>" class="form-input form-control-full" autocomplete="new-password">
+                <small class="admin-form-help">HTTPS URL만 허용합니다. 비워두면 기존 저장값을 유지합니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label">Telegram provider</span>
+            <div class="admin-form-field">
+                <?php echo sr_admin_switch_html('notification_admin_settings_telegram_bot_enabled', 'telegram_bot_enabled', '1', !empty($settings['telegram_bot_enabled']), 'Telegram bot 사용', '', ''); ?>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_telegram_channel_label">Telegram 채널 표시명</label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_telegram_channel_label" type="text" name="telegram_channel_label" value="<?php echo sr_e((string) $settings['telegram_channel_label']); ?>" maxlength="80" class="form-input form-control-full">
+                <small class="admin-form-help">발송 목록의 recipient 칸에 저장할 식별용 label입니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_telegram_bot_token">Telegram bot token</label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_telegram_bot_token" type="password" name="telegram_bot_token" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['telegram_bot_token'])); ?>" class="form-input form-control-full" autocomplete="new-password">
+                <small class="admin-form-help">비워두면 기존 저장값을 유지합니다.</small>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="notification_admin_settings_telegram_chat_id">Telegram chat ID</label>
+            <div class="admin-form-field">
+                <input id="notification_admin_settings_telegram_chat_id" type="text" name="telegram_chat_id" value="<?php echo sr_e((string) $settings['telegram_chat_id']); ?>" maxlength="120" class="form-input form-control-full">
+                <small class="admin-form-help">숫자 ID 또는 @channel 형식입니다.</small>
             </div>
         </div>
         <div class="admin-form-row">
