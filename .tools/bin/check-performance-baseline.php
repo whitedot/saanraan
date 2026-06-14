@@ -333,6 +333,7 @@ $allowedStorageCacheFiles = [
     'docs/customization-guide.md' => true,
     'docs/deployment-protection.md' => true,
     'docs/admin-ui-guide.md' => true,
+    'docs/module-guide.md' => true,
     'docs/performance-policy.md' => true,
     'docs/performance-baseline-evidence.md' => true,
     'docs/plans/thumbnail-cache-s3-plan.md' => true,
