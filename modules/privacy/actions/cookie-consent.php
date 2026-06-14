@@ -7,10 +7,14 @@ require_once SR_ROOT . '/modules/privacy/helpers.php';
 sr_require_csrf();
 
 $consent = sr_post_string('consent', 40);
-if ($consent === 'custom') {
+if ($consent === 'all') {
+    $consent = sr_privacy_cookie_consent_value_from_items(sr_privacy_cookie_consent_optional_item_keys());
+} elseif ($consent === 'selected') {
     $postedItems = $_POST['optional_items'] ?? [];
     $postedItems = is_array($postedItems) ? $postedItems : [];
     $consent = sr_privacy_cookie_consent_value_from_items(array_values($postedItems));
+} elseif ($consent === 'reject') {
+    $consent = 'essential';
 } elseif (!in_array($consent, sr_privacy_cookie_consent_values(), true)) {
     $consent = 'essential';
 }

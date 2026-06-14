@@ -35,15 +35,21 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">
-                        <input type="hidden" name="consent" value="essential">
-                        <button type="submit" class="public-ui-button public-ui-button-secondary"><?php echo sr_e(sr_t('privacy::cookie.essential')); ?></button>
+                        <input type="hidden" name="consent" value="reject">
+                        <button type="submit" class="public-ui-button public-ui-button-secondary"><?php echo sr_e(sr_t('privacy::cookie.reject')); ?></button>
                     </form>
                     <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">
-                        <input type="hidden" name="consent" value="custom">
+                        <input type="hidden" name="consent" value="selected">
                         <?php echo sr_privacy_cookie_consent_items_fields_html($cookieConsentSelectedItems); ?>
-                        <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('privacy::cookie.save.selection')); ?></button>
+                        <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('privacy::cookie.selected')); ?></button>
+                    </form>
+                    <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">
+                        <input type="hidden" name="consent" value="all">
+                        <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('privacy::cookie.all')); ?></button>
                     </form>
                 </div>
             </div>
