@@ -207,6 +207,7 @@ function sr_quiz_check_paths_and_admin(): void
         'comments_enabled',
         'sr_quiz_display_settings_for_quiz',
         'sr_quiz_optional_option_key_from_post',
+        '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',
         'skin_key = :skin_key',
         "'card' => '카드형'",
         "'focus' => '집중형'",

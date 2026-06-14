@@ -126,6 +126,11 @@ foreach (['sr_survey_display_settings_for_survey', 'sr_survey_optional_option_ke
     );
 }
 sr_survey_check_contains(
+    'modules/survey/helpers.php',
+    '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',
+    'Survey skin renderer must pass the runtime site context to public layout views'
+);
+sr_survey_check_contains(
     'modules/survey/privacy-cleanup.php',
     "dedupe_key = CONCAT(\\'anonymized:survey_reward:\\', id)",
     'Survey reward dedupe keys must be anonymized during privacy cleanup'
