@@ -94,6 +94,7 @@ $communityCommentAction = sr_antispam_check_read('modules/community/actions/comm
 $communityCommentView = sr_antispam_check_read('modules/community/skins/basic/view.php');
 sr_antispam_check_assert(str_contains($communityWriteAction, "sr_antispam_verify(\$pdo, 'community.post.guest'"), 'Community guest post action must verify antispam challenge server-side.');
 sr_antispam_check_assert(str_contains($communityWriteView, "sr_antispam_challenge_render(\$pdo, 'community.post.guest'"), 'Community guest post form must render antispam challenge.');
+sr_antispam_check_assert(str_contains($communityWriteView, '!isset($postIdField) && function_exists(\'sr_antispam_challenge_render\')'), 'Community guest post form must not render antispam challenge on post edit forms.');
 sr_antispam_check_assert(str_contains($communityCommentAction, "sr_antispam_verify(\$pdo, 'community.comment.guest'"), 'Community guest comment action must verify antispam challenge server-side.');
 sr_antispam_check_assert(str_contains($communityCommentView, "sr_antispam_challenge_render(\$pdo, 'community.comment.guest'"), 'Community guest comment form must render antispam challenge.');
 
