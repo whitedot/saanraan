@@ -212,6 +212,228 @@ function sr_storage_local_path(string $key): ?string
     return str_starts_with($realPath, $storagePrefix) ? $realPath : null;
 }
 
+function sr_thumbnail_supported(): array
+{
+    $mimeTypes = [];
+    if (extension_loaded('gd')) {
+        if (function_exists('imagecreatefromjpeg') && function_exists('imagejpeg')) {
+            $mimeTypes[] = 'image/jpeg';
+        }
+        if (function_exists('imagecreatefrompng') && function_exists('imagepng')) {
+            $mimeTypes[] = 'image/png';
+        }
+        if (function_exists('imagecreatefromgif') && function_exists('imagegif')) {
+            $mimeTypes[] = 'image/gif';
+        }
+        if (function_exists('imagecreatefromwebp') && function_exists('imagewebp')) {
+            $mimeTypes[] = 'image/webp';
+        }
+    }
+
+    return [
+        'gd' => extension_loaded('gd'),
+        'imagick' => extension_loaded('imagick'),
+        'mime_types' => $mimeTypes,
+    ];
+}
+
+function sr_thumbnail_normalize_options(array $options): array
+{
+    $width = max(1, min(2000, (int) ($options['width'] ?? $options['max_width'] ?? 320)));
+    $height = max(1, min(2000, (int) ($options['height'] ?? $options['max_height'] ?? 180)));
+    $mode = strtolower(trim((string) ($options['mode'] ?? $options['fit'] ?? 'cover')));
+    $format = strtolower(trim((string) ($options['format'] ?? 'source')));
+
+    return [
+        'width' => $width,
+        'height' => $height,
+        'mode' => in_array($mode, ['cover', 'contain'], true) ? $mode : 'cover',
+        'quality' => max(1, min(95, (int) ($options['quality'] ?? 82))),
+        'format' => in_array($format, ['source', 'jpg', 'jpeg', 'png', 'gif', 'webp'], true) ? $format : 'source',
+    ];
+}
+
+function sr_thumbnail_variant_key(array $options): string
+{
+    $normalized = sr_thumbnail_normalize_options($options);
+    $format = $normalized['format'] === 'jpeg' ? 'jpg' : $normalized['format'];
+
+    return 'w' . (string) $normalized['width']
+        . '_h' . (string) $normalized['height']
+        . '_' . $normalized['mode']
+        . '_q' . (string) $normalized['quality']
+        . '_' . $format;
+}
+
+function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): string
+{
+    unset($pdo);
+
+    $publicUrl = trim((string) ($source['public_url'] ?? ''));
+    $publicSource = !empty($source['public']) || $publicUrl !== '';
+    $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
+    $key = (string) ($source['storage_key'] ?? $source['key'] ?? '');
+    if (!$publicSource || $driver !== 'local' || !sr_storage_key_is_safe($key)) {
+        return $publicUrl;
+    }
+
+    $sourcePath = sr_storage_local_path($key);
+    if (!is_string($sourcePath)) {
+        return $publicUrl;
+    }
+
+    $mimeType = strtolower(trim((string) ($source['mime_type'] ?? sr_upload_detect_mime($sourcePath))));
+    if (!in_array($mimeType, sr_thumbnail_supported()['mime_types'], true)) {
+        return $publicUrl;
+    }
+
+    $imageInfo = @getimagesize($sourcePath);
+    if (!is_array($imageInfo) || (int) ($imageInfo[0] ?? 0) < 1 || (int) ($imageInfo[1] ?? 0) < 1) {
+        return $publicUrl;
+    }
+
+    $normalized = sr_thumbnail_normalize_options($options);
+    $format = $normalized['format'] === 'source' ? sr_thumbnail_format_for_mime($mimeType) : $normalized['format'];
+    $format = $format === 'jpeg' ? 'jpg' : $format;
+    if (!in_array($format, ['jpg', 'png', 'gif', 'webp'], true)) {
+        return $publicUrl;
+    }
+
+    $sourceMtime = (string) (@filemtime($sourcePath) ?: '0');
+    $sourceHash = hash('sha256', $driver . ':' . $key);
+    $variantKey = sr_thumbnail_variant_key($normalized);
+    $cacheRelative = 'cache/thumbnails/' . substr($sourceHash, 0, 2) . '/' . $sourceHash . '_' . $variantKey . '_' . $sourceMtime . '.' . $format;
+    $cachePath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $cacheRelative);
+    if (is_file($cachePath)) {
+        return '/storage/' . str_replace('%2F', '/', rawurlencode($cacheRelative));
+    }
+
+    $cacheDir = dirname($cachePath);
+    if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0755, true) && !is_dir($cacheDir)) {
+        return $publicUrl;
+    }
+
+    if (!sr_thumbnail_create_gd($sourcePath, $cachePath, $mimeType, $format, $normalized)) {
+        @unlink($cachePath);
+        return $publicUrl;
+    }
+
+    return '/storage/' . str_replace('%2F', '/', rawurlencode($cacheRelative));
+}
+
+function sr_thumbnail_delete_variants(array $source): void
+{
+    $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
+    $key = (string) ($source['storage_key'] ?? $source['key'] ?? '');
+    if (!sr_storage_key_is_safe($key)) {
+        return;
+    }
+
+    $sourceHash = hash('sha256', $driver . ':' . $key);
+    $dir = SR_ROOT . '/storage/cache/thumbnails/' . substr($sourceHash, 0, 2);
+    if (!is_dir($dir)) {
+        return;
+    }
+
+    foreach (glob($dir . '/' . $sourceHash . '_*') ?: [] as $file) {
+        if (is_file($file)) {
+            @unlink($file);
+        }
+    }
+}
+
+function sr_thumbnail_format_for_mime(string $mimeType): string
+{
+    return match (strtolower(trim($mimeType))) {
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        default => '',
+    };
+}
+
+function sr_thumbnail_create_gd(string $sourcePath, string $targetPath, string $mimeType, string $format, array $options): bool
+{
+    if (!extension_loaded('gd')) {
+        return false;
+    }
+
+    $sourceImage = match ($mimeType) {
+        'image/jpeg' => function_exists('imagecreatefromjpeg') ? @imagecreatefromjpeg($sourcePath) : false,
+        'image/png' => function_exists('imagecreatefrompng') ? @imagecreatefrompng($sourcePath) : false,
+        'image/gif' => function_exists('imagecreatefromgif') ? @imagecreatefromgif($sourcePath) : false,
+        'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($sourcePath) : false,
+        default => false,
+    };
+    if (!$sourceImage instanceof GdImage) {
+        return false;
+    }
+
+    $sourceWidth = imagesx($sourceImage);
+    $sourceHeight = imagesy($sourceImage);
+    $targetWidth = (int) $options['width'];
+    $targetHeight = (int) $options['height'];
+    if ($sourceWidth < 1 || $sourceHeight < 1 || $targetWidth < 1 || $targetHeight < 1) {
+        imagedestroy($sourceImage);
+        return false;
+    }
+
+    if ((string) $options['mode'] === 'contain') {
+        $scale = min($targetWidth / $sourceWidth, $targetHeight / $sourceHeight);
+        $copyWidth = max(1, (int) round($sourceWidth * $scale));
+        $copyHeight = max(1, (int) round($sourceHeight * $scale));
+        $dstX = (int) floor(($targetWidth - $copyWidth) / 2);
+        $dstY = (int) floor(($targetHeight - $copyHeight) / 2);
+        $srcX = 0;
+        $srcY = 0;
+        $srcWidth = $sourceWidth;
+        $srcHeight = $sourceHeight;
+    } else {
+        $scale = max($targetWidth / $sourceWidth, $targetHeight / $sourceHeight);
+        $srcWidth = max(1, (int) floor($targetWidth / $scale));
+        $srcHeight = max(1, (int) floor($targetHeight / $scale));
+        $srcX = max(0, (int) floor(($sourceWidth - $srcWidth) / 2));
+        $srcY = max(0, (int) floor(($sourceHeight - $srcHeight) / 2));
+        $copyWidth = $targetWidth;
+        $copyHeight = $targetHeight;
+        $dstX = 0;
+        $dstY = 0;
+    }
+
+    $targetImage = imagecreatetruecolor($targetWidth, $targetHeight);
+    if (!$targetImage instanceof GdImage) {
+        imagedestroy($sourceImage);
+        return false;
+    }
+
+    imagealphablending($targetImage, false);
+    imagesavealpha($targetImage, true);
+    $transparent = imagecolorallocatealpha($targetImage, 255, 255, 255, 127);
+    if ($transparent !== false) {
+        imagefilledrectangle($targetImage, 0, 0, $targetWidth, $targetHeight, $transparent);
+    }
+
+    $resampled = imagecopyresampled($targetImage, $sourceImage, $dstX, $dstY, $srcX, $srcY, $copyWidth, $copyHeight, $srcWidth, $srcHeight);
+    imagedestroy($sourceImage);
+    if (!$resampled) {
+        imagedestroy($targetImage);
+        return false;
+    }
+
+    $quality = (int) $options['quality'];
+    $saved = match ($format) {
+        'jpg' => function_exists('imagejpeg') ? @imagejpeg($targetImage, $targetPath, $quality) : false,
+        'png' => function_exists('imagepng') ? @imagepng($targetImage, $targetPath, max(0, min(9, (int) round((100 - $quality) / 11)))) : false,
+        'gif' => function_exists('imagegif') ? @imagegif($targetImage, $targetPath) : false,
+        'webp' => function_exists('imagewebp') ? @imagewebp($targetImage, $targetPath, $quality) : false,
+        default => false,
+    };
+    imagedestroy($targetImage);
+
+    return $saved && is_file($targetPath);
+}
+
 function sr_storage_s3_config(array $config): array
 {
     $storage = isset($config['storage']) && is_array($config['storage']) ? $config['storage'] : [];

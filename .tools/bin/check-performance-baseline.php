@@ -324,10 +324,14 @@ sr_performance_baseline_require_markers('modules/survey/actions/admin-export.php
 ]);
 
 $allowedStorageCacheFiles = [
+    '.tools/bin/dev-router.php' => true,
+    '.tools/bin/check-storage-helpers.php' => true,
+    'core/helpers/storage.php' => true,
     'core/helpers/output.php' => true,
     'docs/core-decisions.md' => true,
     'docs/dependency-policy.md' => true,
     'docs/customization-guide.md' => true,
+    'docs/deployment-protection.md' => true,
     'docs/performance-policy.md' => true,
     'docs/performance-baseline-evidence.md' => true,
     'docs/rich-text-sanitizer-policy.md' => true,

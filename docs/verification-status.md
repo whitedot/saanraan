@@ -188,6 +188,7 @@ php .tools/bin/smoke-http.php
 - [성능과 캐시 기준](performance-policy.md)은 요청 단위 메모리 캐시, 정적 asset 캐시, HTML/개인정보/권리 상태 캐시 금지 기준을 정리한다.
 - [성능 베이스라인 증거표](performance-baseline-evidence.md)는 관리자 목록, 인덱스 안전선, 캐시 경로, sitemap/export 상한, 관리자 CSV export 상한의 정적 기준을 정리한다.
 - `.tools/bin/check-performance-baseline.php`는 주요 관리자 목록의 pagination marker, 증가 테이블의 핵심 인덱스 marker, 동적 HTML `no-store` 헤더와 HTTP smoke marker, 다운로드 `Cache-Control` 정규화 runtime fixture, 직접 `Cache-Control` 헤더 allowlist, 파일 기반 HTML/cache 쓰기 후보, `storage/cache` 허용 참조, sitemap/export `LIMIT 1000` marker, 설문 관리자 CSV export 타입별 상한과 감사 로그 metadata marker를 확인한다. 설문 CSV export의 실제 필터/상한/escaping 동작은 `.tools/bin/check-survey-export-runtime.php`가 fixture로 확인한다.
+- `.tools/bin/check-storage-helpers.php`는 S3 공개 URL/서명 URL 설정 검증과 함께 `sr_thumbnail_*` helper, `storage/cache/thumbnails` 캐시 파일명 보호 규칙, GD가 있는 환경의 썸네일 생성/재사용/삭제 fixture를 확인한다.
 - `.tools/bin/check-admin-pagination-runtime.php`는 페이지 번호 파싱, 마지막 페이지 clamp, offset 계산, 배열 slice, 필터 유지 pagination URL, summary/HTML disabled 상태를 fixture로 확인한다.
 - `.tools/bin/check-community-board-copy-limits.php`는 커뮤니티 게시판 전체 복사의 동기 상한, 배치 전환 조건, hard block 조건, 저장소 용량 경고를 fixture로 확인한다.
 - 정적 점검은 실제 DB 실행 계획이나 운영 트래픽 부하를 증명하지 않으므로, 릴리스 후보에서는 느린 화면 수동 점검 기록을 남긴다.

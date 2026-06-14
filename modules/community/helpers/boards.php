@@ -1637,6 +1637,10 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
     foreach ($attachmentFiles as $attachmentFile) {
         $driver = (string) $attachmentFile['driver'];
         $key = (string) $attachmentFile['key'];
+        sr_thumbnail_delete_variants([
+            'storage_driver' => $driver,
+            'storage_key' => $key,
+        ]);
         if (!sr_storage_delete($driver, $key)) {
             $failedAttachmentFiles++;
             $failedAttachmentFileRefs[] = $driver . ':' . $key;

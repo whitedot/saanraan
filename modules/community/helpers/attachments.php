@@ -116,6 +116,42 @@ function sr_community_first_public_image_attachment_id(PDO $pdo, int $postId): i
     return is_array($attachment) ? (int) ($attachment['id'] ?? 0) : 0;
 }
 
+function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $board, array $settings): string
+{
+    if ((int) ($post['list_image_attachment_id'] ?? 0) < 1 || !sr_community_post_allows_public_list_thumbnail($pdo, $post, $board, $settings)) {
+        return '';
+    }
+
+    return sr_thumbnail_public_url($pdo, [
+        'public' => true,
+        'storage_driver' => (string) ($post['list_image_storage_driver'] ?? 'local'),
+        'storage_key' => (string) ($post['list_image_storage_key'] ?? ''),
+        'mime_type' => (string) ($post['list_image_mime_type'] ?? ''),
+        'width' => (int) ($post['list_image_width'] ?? 0),
+        'height' => (int) ($post['list_image_height'] ?? 0),
+        'public_url' => sr_url('/community/attachment?id=' . rawurlencode((string) (int) $post['list_image_attachment_id'])),
+    ], [
+        'width' => 160,
+        'height' => 90,
+        'mode' => 'cover',
+        'quality' => 82,
+        'format' => 'source',
+    ]);
+}
+
+function sr_community_post_allows_public_list_thumbnail(PDO $pdo, array $post, array $board, array $settings): bool
+{
+    if ((string) ($board['read_policy'] ?? '') !== 'public' && (string) ($board['effective_read_policy'] ?? '') !== 'public') {
+        return false;
+    }
+    if ((int) ($post['is_secret'] ?? 0) === 1) {
+        return false;
+    }
+
+    $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
+    return !sr_community_asset_event_required($paidReadConfig);
+}
+
 function sr_community_upload_post_image(PDO $pdo, int $postId, int $uploaderAccountId, array $file, array $settings = []): ?int
 {
     if ($postId < 1 || $uploaderAccountId < 1 || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -374,6 +410,10 @@ function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId): in
     foreach ($attachments as $attachment) {
         $driver = sr_community_attachment_storage_driver($attachment);
         $key = sr_community_attachment_storage_key($attachment);
+        sr_thumbnail_delete_variants([
+            'storage_driver' => $driver,
+            'storage_key' => $key,
+        ]);
         if ($key !== '' && !sr_storage_delete($driver, $key)) {
             sr_community_record_storage_cleanup_failure(
                 $pdo,

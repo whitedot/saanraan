@@ -106,6 +106,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php foreach ($posts as $post) { ?>
                         <tr>
                             <td>
+                                <?php $thumbnailUrl = sr_community_post_list_thumbnail_url($pdo, $post, $board, $communityLayoutSettings); ?>
+                                <?php if ($thumbnailUrl !== '') { ?>
+                                    <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>" aria-hidden="true" tabindex="-1">
+                                        <img src="<?php echo sr_e($thumbnailUrl); ?>" alt="" width="160" height="90" loading="lazy">
+                                    </a>
+                                <?php } ?>
                                 <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>">
                                     <?php echo sr_e((string) $post['title']); ?>
                                 </a>

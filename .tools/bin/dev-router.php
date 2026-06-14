@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+$thumbnailCacheRequest = is_string($requestPath)
+    && preg_match('#\A/storage/cache/thumbnails/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[0-9]+\.(?:jpe?g|png|gif|webp)\z#i', $requestPath) === 1;
 
 if (
     is_string($requestPath)
+    && !$thumbnailCacheRequest
     && (
         preg_match('#\A/(?:config|core|database|docs|examples|storage|\.git|\.tools|\.claude)(?:/|\z)#', $requestPath) === 1
         || (preg_match('#\A/modules/#', $requestPath) === 1
@@ -25,6 +28,7 @@ if (
     is_string($requestPath)
     && (
         str_starts_with($requestPath, '/assets/')
+        || $thumbnailCacheRequest
         || preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/assets/#', $requestPath) === 1
         || in_array($requestPath, ['/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js', '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'], true)
     )
