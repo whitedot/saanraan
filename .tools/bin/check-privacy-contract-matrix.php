@@ -233,6 +233,9 @@ foreach ($expected as $moduleKey => $policy) {
     if ($matrix !== '' && strpos($matrix, '| `' . $moduleKey . '` | `' . $policy['status'] . '` |') === false) {
         sr_privacy_matrix_error('privacy matrix row is missing or status changed without checker update: ' . $moduleKey);
     }
+    if ($processingRecords !== '' && strpos($processingRecords, '| `' . $moduleKey . '` |') === false) {
+        sr_privacy_matrix_error('privacy processing records seed row is missing for bundled module: ' . $moduleKey);
+    }
 
     $metadata = sr_privacy_matrix_module_metadata($moduleKey);
     $moduleFile = 'modules/' . $moduleKey . '/module.php';
@@ -399,6 +402,7 @@ foreach ([
     'ROPA',
     'activity_key',
     'module_key',
+    'surface',
     'data_subjects',
     'data_categories',
     'processing_purpose',
@@ -406,6 +410,9 @@ foreach ([
     'special_category_policy',
     'retention_basis',
     'retention_period',
+    'retention_policy',
+    'export_policy',
+    'cleanup_policy',
     'processors',
     '재수탁사',
     'international_transfer',
