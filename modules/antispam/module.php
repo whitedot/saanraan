@@ -4,7 +4,7 @@ return [
     'name' => '자동등록방지',
     'version' => '2026.06.001',
     'type' => 'module',
-    'description' => '회원가입과 공개 제출 폼의 자동등록방지 challenge와 외부 CAPTCHA provider 검증을 제공합니다.',
+    'description' => '회원가입과 공개 제출 폼의 자동등록방지 challenge와 provider 검증 정책을 제공합니다.',
     'admin' => [
         'category' => 'security',
         'category_label' => '보안',
@@ -25,6 +25,9 @@ return [
         'provides' => [
             'paths.php',
             'admin-menu.php',
+        ],
+        'consumes' => [
+            'antispam-providers.php',
         ],
     ],
     'settings' => [

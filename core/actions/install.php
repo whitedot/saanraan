@@ -80,7 +80,13 @@ $optionalModules = [
         'name' => '자동등록방지',
         'version' => '2026.06.001',
         'label' => '자동등록방지',
-        'description' => '회원가입과 공개 제출 폼의 자동등록방지 challenge와 외부 CAPTCHA provider 설정을 설치합니다.',
+        'description' => '회원가입과 공개 제출 폼의 자동등록방지 challenge와 적용 정책을 설치합니다.',
+    ],
+    'antispam_captcha_providers' => [
+        'name' => '자동등록방지 CAPTCHA 제공자',
+        'version' => '2026.06.001',
+        'label' => '자동등록방지 CAPTCHA 제공자',
+        'description' => '자동등록방지 모듈에 Turnstile, hCaptcha, reCAPTCHA provider 계약을 설치합니다.',
     ],
     'embed_manager' => [
         'name' => '임베드 매니저',

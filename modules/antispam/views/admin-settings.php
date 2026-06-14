@@ -97,27 +97,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </div>
         </div>
-        <?php foreach (sr_antispam_provider_options() as $providerKey => $provider) { ?>
+        <?php foreach ($providerOptions as $providerKey => $provider) { ?>
+            <?php
+            $siteKeySetting = (string) $provider['site_key_setting'];
+            $secretKeySetting = (string) $provider['secret_key_setting'];
+            ?>
             <div class="admin-form-row">
                 <label class="form-label" for="<?php echo sr_e('antispam_admin_' . $providerKey . '_site_key'); ?>"><?php echo sr_e((string) $provider['label']); ?> site key</label>
                 <div class="admin-form-field">
-                    <input id="<?php echo sr_e('antispam_admin_' . $providerKey . '_site_key'); ?>" type="text" name="<?php echo sr_e($providerKey . '_site_key'); ?>" maxlength="255" value="<?php echo sr_e((string) $settings[$providerKey . '_site_key']); ?>" class="form-input form-control-full">
+                    <input id="<?php echo sr_e('antispam_admin_' . $providerKey . '_site_key'); ?>" type="text" name="<?php echo sr_e($siteKeySetting); ?>" maxlength="255" value="<?php echo sr_e((string) ($settings[$siteKeySetting] ?? '')); ?>" class="form-input form-control-full">
                 </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="<?php echo sr_e('antispam_admin_' . $providerKey . '_secret_key'); ?>"><?php echo sr_e((string) $provider['label']); ?> secret key</label>
                 <div class="admin-form-field">
-                    <input id="<?php echo sr_e('antispam_admin_' . $providerKey . '_secret_key'); ?>" type="password" name="<?php echo sr_e($providerKey . '_secret_key'); ?>" maxlength="255" value="" placeholder="<?php echo sr_e(sr_antispam_secret_display((string) $settings[$providerKey . '_secret_key'])); ?>" class="form-input form-control-full" autocomplete="new-password">
+                    <input id="<?php echo sr_e('antispam_admin_' . $providerKey . '_secret_key'); ?>" type="password" name="<?php echo sr_e($secretKeySetting); ?>" maxlength="255" value="" placeholder="<?php echo sr_e(sr_antispam_secret_display((string) ($settings[$secretKeySetting] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password">
                     <p class="admin-form-help">비워 두면 기존 secret을 유지합니다.</p>
                 </div>
             </div>
+            <?php if ((string) ($provider['score_setting'] ?? '') !== '') { ?>
+                <?php $scoreSetting = (string) $provider['score_setting']; ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="<?php echo sr_e('antispam_admin_' . $scoreSetting); ?>"><?php echo sr_e((string) $provider['label']); ?> 최소 점수 <span class="sr-required-label">(필수)</span></label>
+                    <div class="admin-form-field">
+                        <input id="<?php echo sr_e('antispam_admin_' . $scoreSetting); ?>" type="number" name="<?php echo sr_e($scoreSetting); ?>" min="0" max="1" step="0.1" value="<?php echo sr_e((string) ($settings[$scoreSetting] ?? '0.5')); ?>" required class="form-input">
+                    </div>
+                </div>
+            <?php } ?>
         <?php } ?>
-        <div class="admin-form-row">
-            <label class="form-label" for="antispam_admin_recaptcha_min_score">reCAPTCHA 최소 점수 <span class="sr-required-label">(필수)</span></label>
-            <div class="admin-form-field">
-                <input id="antispam_admin_recaptcha_min_score" type="number" name="recaptcha_min_score" min="0" max="1" step="0.1" value="<?php echo sr_e((string) $settings['recaptcha_min_score']); ?>" required class="form-input">
-            </div>
-        </div>
     </section>
 
     <div class="admin-form-sticky-actions admin-form-actions">

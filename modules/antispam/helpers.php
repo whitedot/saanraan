@@ -13,13 +13,6 @@ function sr_antispam_default_settings(): array
         'provider_timeout_seconds' => 3,
         'provider_failure_policy' => 'fail_closed',
         'verify_remote_ip_enabled' => false,
-        'turnstile_site_key' => '',
-        'turnstile_secret_key' => '',
-        'hcaptcha_site_key' => '',
-        'hcaptcha_secret_key' => '',
-        'recaptcha_site_key' => '',
-        'recaptcha_secret_key' => '',
-        'recaptcha_min_score' => 0.5,
         'surface_member_register' => 'always',
         'surface_community_post_guest' => 'guest',
         'surface_community_comment_guest' => 'guest',
@@ -28,10 +21,13 @@ function sr_antispam_default_settings(): array
 
 function sr_antispam_settings(PDO $pdo): array
 {
-    return sr_antispam_normalize_settings(array_merge(sr_antispam_default_settings(), sr_module_settings($pdo, 'antispam')));
+    return sr_antispam_normalize_settings(
+        array_merge(sr_antispam_default_settings(), sr_module_settings($pdo, 'antispam')),
+        sr_antispam_provider_options($pdo)
+    );
 }
 
-function sr_antispam_normalize_settings(array $settings): array
+function sr_antispam_normalize_settings(array $settings, ?array $providerOptions = null): array
 {
     $settings['enabled'] = sr_antispam_bool($settings['enabled'] ?? false);
     $settings['default_mode'] = sr_antispam_mode((string) ($settings['default_mode'] ?? 'guest'));
@@ -43,10 +39,20 @@ function sr_antispam_normalize_settings(array $settings): array
         ? (string) $settings['provider_failure_policy']
         : 'fail_closed';
     $settings['verify_remote_ip_enabled'] = sr_antispam_bool($settings['verify_remote_ip_enabled'] ?? false);
-    foreach (['turnstile_site_key', 'turnstile_secret_key', 'hcaptcha_site_key', 'hcaptcha_secret_key', 'recaptcha_site_key', 'recaptcha_secret_key'] as $key) {
-        $settings[$key] = trim((string) ($settings[$key] ?? ''));
+    foreach (($providerOptions ?? sr_antispam_provider_options()) as $provider) {
+        $siteKeySetting = (string) ($provider['site_key_setting'] ?? '');
+        $secretKeySetting = (string) ($provider['secret_key_setting'] ?? '');
+        if ($siteKeySetting !== '') {
+            $settings[$siteKeySetting] = trim((string) ($settings[$siteKeySetting] ?? ''));
+        }
+        if ($secretKeySetting !== '') {
+            $settings[$secretKeySetting] = trim((string) ($settings[$secretKeySetting] ?? ''));
+        }
+        $scoreSetting = (string) ($provider['score_setting'] ?? '');
+        if ($scoreSetting !== '') {
+            $settings[$scoreSetting] = min(1.0, max(0.0, (float) ($settings[$scoreSetting] ?? 0.5)));
+        }
     }
-    $settings['recaptcha_min_score'] = min(1.0, max(0.0, (float) ($settings['recaptcha_min_score'] ?? 0.5)));
     foreach (sr_antispam_surface_keys() as $surfaceKey) {
         $settings['surface_' . str_replace('.', '_', $surfaceKey)] = sr_antispam_mode((string) ($settings['surface_' . str_replace('.', '_', $surfaceKey)] ?? $settings['default_mode']));
     }
@@ -66,7 +72,7 @@ function sr_antispam_mode(string $value): string
 
 function sr_antispam_challenge_type(string $value): string
 {
-    return in_array($value, ['math', 'turnstile', 'hcaptcha', 'recaptcha'], true) ? $value : 'math';
+    return $value === 'math' || preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $value) === 1 ? $value : 'math';
 }
 
 function sr_antispam_surface_keys(): array
@@ -83,43 +89,90 @@ function sr_antispam_mode_options(): array
     ];
 }
 
-function sr_antispam_challenge_type_options(): array
+function sr_antispam_challenge_type_options(?PDO $pdo = null): array
 {
-    return [
+    $options = [
         'math' => '산술 문제',
-        'turnstile' => 'Cloudflare Turnstile',
-        'hcaptcha' => 'hCaptcha',
-        'recaptcha' => 'reCAPTCHA',
     ];
+
+    foreach (sr_antispam_provider_options($pdo) as $providerKey => $provider) {
+        $options[$providerKey] = (string) ($provider['label'] ?? $providerKey);
+    }
+
+    return $options;
 }
 
-function sr_antispam_provider_options(): array
+function sr_antispam_provider_options(?PDO $pdo = null): array
 {
+    $providers = [];
+    $contractFiles = [];
+    if ($pdo instanceof PDO) {
+        $contractFiles = sr_enabled_module_contract_files($pdo, 'antispam-providers.php', ['antispam']);
+    } else {
+        $bundledProviderFile = SR_ROOT . '/modules/antispam_captcha_providers/antispam-providers.php';
+        if (is_file($bundledProviderFile)) {
+            $contractFiles = ['antispam_captcha_providers' => $bundledProviderFile];
+        }
+    }
+
+    foreach ($contractFiles as $moduleKey => $file) {
+        $contract = $pdo instanceof PDO
+            ? sr_load_module_contract_file((string) $moduleKey, (string) $file)
+            : include (string) $file;
+        if (!is_array($contract)) {
+            continue;
+        }
+
+        foreach ($contract as $providerKey => $provider) {
+            $providerKey = is_string($providerKey) ? $providerKey : '';
+            if ($providerKey === '' || preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $providerKey) !== 1 || !is_array($provider)) {
+                continue;
+            }
+
+            $normalized = sr_antispam_normalize_provider_definition($provider);
+            if ($normalized !== []) {
+                $providers[$providerKey] = $normalized;
+            }
+        }
+    }
+
+    ksort($providers);
+    return $providers;
+}
+
+function sr_antispam_normalize_provider_definition(array $provider): array
+{
+    $label = trim((string) ($provider['label'] ?? ''));
+    $siteKeySetting = trim((string) ($provider['site_key_setting'] ?? ''));
+    $secretKeySetting = trim((string) ($provider['secret_key_setting'] ?? ''));
+    $responseField = trim((string) ($provider['response_field'] ?? ''));
+    $endpoint = trim((string) ($provider['endpoint'] ?? ''));
+    $scriptUrl = trim((string) ($provider['script_url'] ?? ''));
+    $widgetClass = trim((string) ($provider['widget_class'] ?? ''));
+    $scoreSetting = trim((string) ($provider['score_setting'] ?? ''));
+    if (
+        $label === ''
+        || preg_match('/\A[a-z][a-z0-9_]{1,80}\z/', $siteKeySetting) !== 1
+        || preg_match('/\A[a-z][a-z0-9_]{1,80}\z/', $secretKeySetting) !== 1
+        || $responseField === ''
+        || $endpoint === ''
+        || $scriptUrl === ''
+        || $widgetClass === ''
+        || filter_var($endpoint, FILTER_VALIDATE_URL) === false
+        || filter_var($scriptUrl, FILTER_VALIDATE_URL) === false
+    ) {
+        return [];
+    }
+
     return [
-        'turnstile' => [
-            'label' => 'Cloudflare Turnstile',
-            'site_key_setting' => 'turnstile_site_key',
-            'secret_key_setting' => 'turnstile_secret_key',
-            'response_field' => 'cf-turnstile-response',
-            'endpoint' => 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-            'script_url' => 'https://challenges.cloudflare.com/turnstile/v0/api.js',
-        ],
-        'hcaptcha' => [
-            'label' => 'hCaptcha',
-            'site_key_setting' => 'hcaptcha_site_key',
-            'secret_key_setting' => 'hcaptcha_secret_key',
-            'response_field' => 'h-captcha-response',
-            'endpoint' => 'https://hcaptcha.com/siteverify',
-            'script_url' => 'https://js.hcaptcha.com/1/api.js',
-        ],
-        'recaptcha' => [
-            'label' => 'reCAPTCHA',
-            'site_key_setting' => 'recaptcha_site_key',
-            'secret_key_setting' => 'recaptcha_secret_key',
-            'response_field' => 'g-recaptcha-response',
-            'endpoint' => 'https://www.google.com/recaptcha/api/siteverify',
-            'script_url' => 'https://www.google.com/recaptcha/api.js',
-        ],
+        'label' => $label,
+        'site_key_setting' => $siteKeySetting,
+        'secret_key_setting' => $secretKeySetting,
+        'response_field' => $responseField,
+        'endpoint' => $endpoint,
+        'script_url' => $scriptUrl,
+        'widget_class' => $widgetClass,
+        'score_setting' => preg_match('/\A[a-z][a-z0-9_]{1,80}\z/', $scoreSetting) === 1 ? $scoreSetting : '',
     ];
 }
 
@@ -131,7 +184,7 @@ function sr_antispam_policy(PDO $pdo, string $surface, array $context = []): arr
     $isGuest = !is_array($account);
     $required = !empty($settings['enabled']) && ($mode === 'always' || ($mode === 'guest' && $isGuest));
     $type = (string) $settings['challenge_type'];
-    $providers = sr_antispam_provider_options();
+    $providers = sr_antispam_provider_options($pdo);
     if ($type !== 'math' && isset($providers[$type])) {
         $siteKey = (string) ($settings[(string) $providers[$type]['site_key_setting']] ?? '');
         $secretKey = (string) ($settings[(string) $providers[$type]['secret_key_setting']] ?? '');
@@ -199,13 +252,12 @@ function sr_antispam_challenge_render(PDO $pdo, string $surface, string $formKey
         $html .= '<span class="sr-antispam-question">' . sr_e((string) $challenge['question']) . ' = ?</span>';
         $html .= '<input id="' . sr_e($inputId) . '" type="text" name="sr_antispam_answer" inputmode="numeric" autocomplete="off" required></label></p>';
     } else {
-        $providers = sr_antispam_provider_options();
+        $providers = sr_antispam_provider_options($pdo);
         $provider = $providers[(string) $policy['type']] ?? null;
         $siteKey = is_array($provider) ? (string) ($settings[(string) $provider['site_key_setting']] ?? '') : '';
         if (is_array($provider) && $siteKey !== '') {
-            $className = (string) $policy['type'] === 'turnstile' ? 'cf-turnstile' : ((string) $policy['type'] === 'hcaptcha' ? 'h-captcha' : 'g-recaptcha');
             $html .= '<script src="' . sr_e((string) $provider['script_url']) . '" async defer></script>';
-            $html .= '<div class="' . sr_e($className) . '" data-sitekey="' . sr_e($siteKey) . '"></div>';
+            $html .= '<div class="' . sr_e((string) $provider['widget_class']) . '" data-sitekey="' . sr_e($siteKey) . '"></div>';
         }
         if ((string) ($settings['provider_failure_policy'] ?? '') === 'fallback_math') {
             $challenge = sr_antispam_challenge_create($surface, $formKey, ['ttl_seconds' => (int) $settings['ttl_seconds']]);
@@ -284,7 +336,7 @@ function sr_antispam_verify_math(string $surface, string $formKey, array $post, 
 
 function sr_antispam_provider_verify(PDO $pdo, string $providerKey, array $post, array $context = []): array
 {
-    $providers = sr_antispam_provider_options();
+    $providers = sr_antispam_provider_options($pdo);
     if (!isset($providers[$providerKey])) {
         return ['ok' => false, 'codes' => ['provider_invalid']];
     }

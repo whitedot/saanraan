@@ -6,7 +6,7 @@
 
 SEO 설정 화면 스모크에서는 사이트맵 확인 링크와 URL 복사 버튼이 설정 저장 submit을 발생시키지 않는지, 사이트맵 확인 링크와 robots 파일 확인 버튼이 새 탭으로 열리는지, 복사 성공/실패 피드백이 버튼 텍스트로 돌아오는지, robots 파일 확인 버튼이 카드 헤더 오른쪽에 표시되고 미리보기 텍스트가 좁은 화면에서도 넘치지 않는지 확인한다.
 
-자동등록방지 모듈을 활성화한 로컬 또는 staging 환경에서는 `/admin/antispam/settings`에서 산술 문제와 Turnstile/hCaptcha/reCAPTCHA provider 설정 저장을 각각 확인한다. provider secret key는 화면과 감사 로그에 원문이 노출되지 않아야 하며, 빈 secret 입력은 기존 값을 유지해야 한다. 회원가입, 비회원 커뮤니티 글, 비회원 커뮤니티 댓글은 설정된 적용 모드에 따라 challenge가 렌더링되고 서버 검증 실패 시 저장되지 않아야 한다. 외부 provider는 실제 staging key 또는 mock endpoint로 성공, 실패, timeout/fallback 정책, reCAPTCHA 최소 점수 미달을 확인하고, provider 장애 시 `fallback_math` 정책에서는 산술 문제 정답 없이는 제출이 거부되는지 기록한다. 운영 DB에서는 자동등록방지 설정을 바꾸거나 mutation smoke를 실행하지 않는다.
+자동등록방지 모듈을 활성화한 로컬 또는 staging 환경에서는 `/admin/antispam/settings`에서 산술 문제와 활성 `antispam-providers.php` 계약이 제공하는 Turnstile/hCaptcha/reCAPTCHA provider 설정 저장을 각각 확인한다. provider secret key는 화면과 감사 로그에 원문이 노출되지 않아야 하며, 빈 secret 입력은 기존 값을 유지해야 한다. 회원가입, 비회원 커뮤니티 글, 비회원 커뮤니티 댓글은 설정된 적용 모드에 따라 challenge가 렌더링되고 서버 검증 실패 시 저장되지 않아야 한다. 외부 provider는 `antispam_captcha_providers` 플러그인을 활성화한 뒤 실제 staging key 또는 mock endpoint로 성공, 실패, timeout/fallback 정책, reCAPTCHA 최소 점수 미달을 확인하고, provider 장애 시 `fallback_math` 정책에서는 산술 문제 정답 없이는 제출이 거부되는지 기록한다. 운영 DB에서는 자동등록방지 설정을 바꾸거나 mutation smoke를 실행하지 않는다.
 
 ## 기본 정적 점검
 

@@ -1,0 +1,2 @@
+-- This plugin provides CAPTCHA provider contracts only.
+-- Provider settings are stored by the antispam module in sr_module_settings.

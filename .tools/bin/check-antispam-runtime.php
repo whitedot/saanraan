@@ -57,10 +57,24 @@ sr_antispam_check_assert(is_array($module), 'Antispam module metadata must retur
 sr_antispam_check_assert(($module['admin']['settings_path'] ?? '') === '/admin/antispam/settings', 'Antispam module must expose admin settings path.');
 sr_antispam_check_assert(in_array('paths.php', (array) ($module['contracts']['provides'] ?? []), true), 'Antispam module must declare paths.php contract.');
 sr_antispam_check_assert(in_array('admin-menu.php', (array) ($module['contracts']['provides'] ?? []), true), 'Antispam module must declare admin-menu.php contract.');
+sr_antispam_check_assert(in_array('antispam-providers.php', (array) ($module['contracts']['consumes'] ?? []), true), 'Antispam module must consume provider contract.');
+
+$providerPlugin = include SR_ROOT . '/modules/antispam_captcha_providers/module.php';
+sr_antispam_check_assert(is_array($providerPlugin), 'Antispam provider plugin metadata must return an array.');
+sr_antispam_check_assert(($providerPlugin['type'] ?? '') === 'plugin', 'Antispam CAPTCHA providers must be packaged as a plugin.');
+sr_antispam_check_assert(in_array('antispam', (array) ($providerPlugin['requires']['modules'] ?? []), true), 'Antispam provider plugin must require antispam module.');
+sr_antispam_check_assert(in_array('antispam-providers.php', (array) ($providerPlugin['contracts']['provides'] ?? []), true), 'Antispam provider plugin must provide antispam-providers.php contract.');
+
+$providerContract = include SR_ROOT . '/modules/antispam_captcha_providers/antispam-providers.php';
+sr_antispam_check_assert(is_array($providerContract), 'Antispam provider contract must return an array.');
+foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
+    sr_antispam_check_assert(isset($providerContract[$providerKey]), 'Antispam provider plugin contract marker missing: ' . $providerKey);
+}
 
 $install = sr_antispam_check_read('core/actions/install.php');
 sr_antispam_check_assert(str_contains($install, "'antispam' => ["), 'Installer optional module list must include antispam.');
-sr_antispam_check_assert(str_contains($install, '외부 CAPTCHA provider'), 'Installer optional module description must mention external CAPTCHA provider.');
+sr_antispam_check_assert(str_contains($install, "'antispam_captcha_providers' => ["), 'Installer optional module list must include antispam provider plugin.');
+sr_antispam_check_assert(str_contains($install, 'Turnstile, hCaptcha, reCAPTCHA provider 계약'), 'Installer optional module description must mention external CAPTCHA provider plugin.');
 
 $adminAction = sr_antispam_check_read('modules/antispam/actions/admin-settings.php');
 sr_antispam_check_assert(str_contains($adminAction, 'sr_admin_require_permission'), 'Antispam admin settings must require admin permissions.');
@@ -74,11 +88,13 @@ $adminView = sr_antispam_check_read('modules/antispam/views/admin-settings.php')
 sr_antispam_check_assert(str_contains($adminView, 'type="password"'), 'Antispam admin view must mask provider secret fields.');
 sr_antispam_check_assert(str_contains($adminView, 'sr_antispam_secret_display'), 'Antispam admin view must display stored secrets as masked placeholders.');
 sr_antispam_check_assert(str_contains($adminView, 'provider_failure_policy'), 'Antispam admin view must expose provider failure policy.');
+sr_antispam_check_assert(str_contains($adminView, '$providerOptions'), 'Antispam admin view must render provider settings from provider contracts.');
 
 $helpers = sr_antispam_check_read('modules/antispam/helpers.php');
-foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
-    sr_antispam_check_assert(str_contains($helpers, $providerKey), 'Antispam helper must include provider marker: ' . $providerKey);
-}
+sr_antispam_check_assert(str_contains($helpers, "sr_enabled_module_contract_files(\$pdo, 'antispam-providers.php'"), 'Antispam helper must read provider plugin contracts.');
+sr_antispam_check_assert(!str_contains($helpers, 'https://challenges.cloudflare.com/turnstile/v0/siteverify'), 'Antispam helper must not inline Turnstile provider endpoint.');
+sr_antispam_check_assert(!str_contains($helpers, 'https://hcaptcha.com/siteverify'), 'Antispam helper must not inline hCaptcha provider endpoint.');
+sr_antispam_check_assert(!str_contains($helpers, 'https://www.google.com/recaptcha/api/siteverify'), 'Antispam helper must not inline reCAPTCHA provider endpoint.');
 foreach (['sr_antispam_hp', 'min_submit_seconds', 'fallback_math', 'provider_timeout_seconds', 'verify_remote_ip_enabled'] as $marker) {
     sr_antispam_check_assert(str_contains($helpers, $marker), 'Antispam helper marker missing: ' . $marker);
 }
@@ -114,6 +130,12 @@ sr_antispam_check_assert($settings['min_submit_seconds'] === 0, 'Antispam settin
 sr_antispam_check_assert($settings['recaptcha_min_score'] === 0.7, 'Antispam settings must normalize reCAPTCHA score.');
 sr_antispam_check_assert($settings['surface_member_register'] === 'always', 'Antispam surface settings must fall back to default mode.');
 sr_antispam_check_assert(str_contains($helpers, "if (\$errors !== []) {\n        return ['ok' => false"), 'Antispam verification must stop before provider calls when local request checks fail.');
+
+$providerOptions = sr_antispam_provider_options();
+foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
+    sr_antispam_check_assert(isset($providerOptions[$providerKey]), 'Antispam provider options must load bundled plugin contract without PDO: ' . $providerKey);
+}
+sr_antispam_check_assert((string) ($providerOptions['turnstile']['widget_class'] ?? '') === 'cf-turnstile', 'Antispam provider options must keep widget class from plugin contract.');
 
 $challenge = sr_antispam_challenge_create('member.register', 'fixture', ['ttl_seconds' => 60]);
 $answer = sr_antispam_check_answer((string) $challenge['question']);

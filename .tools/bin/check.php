@@ -170,6 +170,7 @@ function sr_check_module_lifecycle_metadata(): void
         'logo-positions.php' => true,
         'notification-events.php' => true,
         'admin-notification-events.php' => true,
+        'antispam-providers.php' => true,
         'embed-manager-targets.php' => true,
         'reaction-targets.php' => true,
     ];
@@ -331,6 +332,7 @@ function sr_check_module_contract_files(): void
         'logo-positions.php',
         'notification-events.php',
         'admin-notification-events.php',
+        'antispam-providers.php',
         'embed-manager-targets.php',
     ];
     $requiredConsumes = [
