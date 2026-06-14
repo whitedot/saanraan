@@ -419,13 +419,17 @@ function sr_notification_save_member_push_endpoint(PDO $pdo, array $data): int
     $masked = sr_notification_push_endpoint_mask($providerKey, $endpoint);
     $now = sr_now();
 
-    $stmt = $pdo->prepare('SELECT id FROM sr_notification_push_endpoints WHERE provider_key = :provider_key AND endpoint_fingerprint = :endpoint_fingerprint LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, account_id FROM sr_notification_push_endpoints WHERE provider_key = :provider_key AND endpoint_fingerprint = :endpoint_fingerprint LIMIT 1');
     $stmt->execute([
         'provider_key' => $providerKey,
         'endpoint_fingerprint' => $fingerprint,
     ]);
-    $existingId = (int) $stmt->fetchColumn();
+    $existingEndpoint = $stmt->fetch();
+    $existingId = is_array($existingEndpoint) ? (int) ($existingEndpoint['id'] ?? 0) : 0;
     if ($existingId > 0) {
+        if ((int) ($existingEndpoint['account_id'] ?? 0) !== $accountId) {
+            throw new InvalidArgumentException('Member push endpoint is already connected.');
+        }
         $stmt = $pdo->prepare(
             "UPDATE sr_notification_push_endpoints
              SET account_id = :account_id,
@@ -449,6 +453,21 @@ function sr_notification_save_member_push_endpoint(PDO $pdo, array $data): int
             'id' => $existingId,
         ]);
         return $existingId;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*) AS endpoint_count
+         FROM sr_notification_push_endpoints
+         WHERE account_id = :account_id
+           AND provider_key = :provider_key
+           AND status = 'active'"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'provider_key' => $providerKey,
+    ]);
+    if ((int) $stmt->fetchColumn() >= 5) {
+        throw new InvalidArgumentException('Member push endpoint limit exceeded.');
     }
 
     $stmt = $pdo->prepare(
@@ -769,6 +788,11 @@ function sr_notification_member_push_delivery_context(PDO $pdo, array $delivery)
     return is_array($row) ? $row : null;
 }
 
+function sr_notification_is_member_push_delivery(PDO $pdo, array $delivery): bool
+{
+    return sr_notification_member_push_delivery_context($pdo, $delivery) !== null;
+}
+
 function sr_notification_process_member_external_push_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
 {
     $deliveryId = (int) ($delivery['id'] ?? 0);
@@ -1011,6 +1035,7 @@ function sr_notification_process_delivery(PDO $pdo, array $site, array $delivery
     }
     if (sr_notification_delivery_endpoint_id((string) ($delivery['recipient'] ?? '')) > 0
         && in_array($channel, sr_notification_member_external_channel_keys(), true)
+        && sr_notification_is_member_push_delivery($pdo, $delivery)
     ) {
         return sr_notification_process_member_external_push_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
     }
@@ -2265,7 +2290,7 @@ function sr_notification_queue_admin_external_deliveries(PDO $pdo, int $adminNot
     foreach ($channels as $channel) {
         $labelSetting = (string) ($providerOptions[$channel]['channel_label_setting'] ?? '');
         $recipient = sr_notification_clean_single_line($labelSetting !== '' ? (string) ($settings[$labelSetting] ?? '') : '', 80);
-        if ($recipient === '') {
+        if ($recipient === '' || sr_notification_delivery_endpoint_id($recipient) > 0) {
             $recipient = $channel;
         }
         $stmt->execute([

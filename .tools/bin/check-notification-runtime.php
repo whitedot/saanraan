@@ -457,6 +457,40 @@ sr_notification_runtime_assert($memberTelegramEndpointId > 0, 'notification runt
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT endpoint_ciphertext FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberTelegramEndpointId]) !== '123456789', 'notification runtime fixture must not store member push endpoint plaintext.');
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT recipient_masked FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberTelegramEndpointId]) === '1234***', 'notification runtime fixture must store only masked member push endpoint label.');
 sr_notification_runtime_assert(in_array('telegram_bot', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Telegram push channel when endpoint exists.');
+$duplicateEndpointRejected = false;
+try {
+    sr_notification_save_member_push_endpoint($pdo, [
+        'account_id' => 8,
+        'provider_key' => 'telegram_bot',
+        'endpoint' => '123456789',
+        'recipient_label' => '다른 계정 Telegram',
+    ]);
+} catch (InvalidArgumentException) {
+    $duplicateEndpointRejected = true;
+}
+sr_notification_runtime_assert($duplicateEndpointRejected, 'notification runtime fixture must reject duplicate member push endpoints owned by another account.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT account_id FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberTelegramEndpointId]) === 7, 'notification runtime fixture must not move endpoint ownership on duplicate connection.');
+
+for ($endpointIndex = 0; $endpointIndex < 4; $endpointIndex++) {
+    sr_notification_save_member_push_endpoint($pdo, [
+        'account_id' => 7,
+        'provider_key' => 'telegram_bot',
+        'endpoint' => (string) (223456789 + $endpointIndex),
+        'recipient_label' => '개인 Telegram ' . (string) $endpointIndex,
+    ]);
+}
+$endpointLimitRejected = false;
+try {
+    sr_notification_save_member_push_endpoint($pdo, [
+        'account_id' => 7,
+        'provider_key' => 'telegram_bot',
+        'endpoint' => '323456789',
+        'recipient_label' => '초과 Telegram',
+    ]);
+} catch (InvalidArgumentException) {
+    $endpointLimitRejected = true;
+}
+sr_notification_runtime_assert($endpointLimitRejected, 'notification runtime fixture must enforce member push endpoint count limit.');
 
 $memberPushNotificationId = sr_notification_create($pdo, [
     'account_id' => 7,
@@ -521,6 +555,10 @@ sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELEC
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = \'운영 Telegram\'', ['id' => $adminNotificationId]) === 1, 'notification runtime fixture must queue telegram_bot delivery for admin notification.');
 $notificationRuntimeSettings = ['discord_webhook_enabled' => false];
 sr_notification_runtime_assert(sr_notification_queue_admin_external_deliveries($pdo, $adminNotificationId, ['discord_webhook']) === 0, 'notification runtime fixture must not queue explicitly requested disabled external providers.');
+$notificationRuntimeSettings = ['telegram_channel_label' => 'endpoint:999'];
+sr_notification_runtime_assert(sr_notification_queue_admin_external_deliveries($pdo, $adminNotificationId, ['telegram_bot']) === 1, 'notification runtime fixture must queue admin Telegram even when label resembles an endpoint reference.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = \'endpoint:999\'', ['id' => $adminNotificationId]) === 0, 'notification runtime fixture must not store admin external recipient labels that look like endpoint references.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = \'telegram_bot\'', ['id' => $adminNotificationId]) === 1, 'notification runtime fixture must replace endpoint-like admin labels with the provider key.');
 $notificationRuntimeSettings = [];
 
 $claimedSlack = sr_notification_claim_delivery($pdo, 'fixture-lock', '2026-06-11 12:10:00', 300, ['slack_webhook']);
