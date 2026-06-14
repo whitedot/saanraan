@@ -233,7 +233,143 @@ function sr_policy_document_create_notice_job(PDO $pdo, int $documentId, int $ve
         'updated_at' => $now,
     ]);
 
-    return (int) $pdo->lastInsertId();
+    $jobId = (int) $pdo->lastInsertId();
+    sr_policy_document_seed_notice_deliveries($pdo, $jobId);
+
+    return $jobId;
+}
+
+function sr_policy_document_seed_notice_deliveries(PDO $pdo, int $jobId): int
+{
+    if ($jobId < 1) {
+        return 0;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_policy_document_mail_deliveries
+            (job_id, account_id, status, failure_code, created_at, updated_at)
+         SELECT :job_id, a.id, "queued", "", :created_at, :updated_at
+         FROM sr_member_accounts a
+         LEFT JOIN sr_policy_document_mail_deliveries existing_delivery
+            ON existing_delivery.job_id = :existing_job_id
+           AND existing_delivery.account_id = a.id
+         WHERE a.status = "active"
+           AND existing_delivery.id IS NULL'
+    );
+    $stmt->execute([
+        'job_id' => $jobId,
+        'existing_job_id' => $jobId,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return $stmt->rowCount();
+}
+
+function sr_policy_document_mail_jobs(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        'SELECT j.id, j.job_key, j.status, j.subject_snapshot, j.dry_run, j.created_at, j.updated_at,
+                d.document_key, v.version_key,
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id) AS delivery_count,
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "queued") AS queued_count,
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "sent") AS sent_count,
+                (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id AND q.status = "failed") AS failed_count
+         FROM sr_policy_document_mail_jobs j
+         INNER JOIN sr_policy_documents d ON d.id = j.document_id
+         INNER JOIN sr_policy_document_versions v ON v.id = j.version_id
+         ORDER BY j.id DESC
+         LIMIT 100'
+    );
+
+    return $stmt->fetchAll();
+}
+
+function sr_policy_document_process_mail_batch(PDO $pdo, array $site, int $jobId, int $limit = 20): array
+{
+    $limit = min(100, max(1, $limit));
+    $stmt = $pdo->prepare(
+        'SELECT d.id, d.account_id, a.email, j.subject_snapshot, j.body_snapshot, j.dry_run
+         FROM sr_policy_document_mail_deliveries d
+         INNER JOIN sr_policy_document_mail_jobs j ON j.id = d.job_id
+         INNER JOIN sr_member_accounts a ON a.id = d.account_id
+         WHERE d.job_id = :job_id
+           AND d.status = "queued"
+           AND a.status = "active"
+         ORDER BY d.id ASC
+         LIMIT ' . (string) $limit
+    );
+    $stmt->execute(['job_id' => $jobId]);
+    $rows = $stmt->fetchAll();
+
+    $sent = 0;
+    $failed = 0;
+    $now = sr_now();
+    $updateStmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_deliveries
+         SET status = :status,
+             failure_code = :failure_code,
+             claimed_at = COALESCE(claimed_at, :claimed_at),
+             sent_at = :sent_at,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = "queued"'
+    );
+
+    foreach ($rows as $row) {
+        $dryRun = !empty($row['dry_run']);
+        $ok = $dryRun ? true : sr_send_mail($site, (string) $row['email'], (string) $row['subject_snapshot'], (string) $row['body_snapshot']);
+        $updateStmt->execute([
+            'status' => $ok ? 'sent' : 'failed',
+            'failure_code' => $ok ? '' : 'send_failed',
+            'claimed_at' => $now,
+            'sent_at' => $ok ? $now : null,
+            'updated_at' => $now,
+            'id' => (int) $row['id'],
+        ]);
+        if ($ok) {
+            $sent++;
+        } else {
+            $failed++;
+        }
+    }
+
+    sr_policy_document_refresh_mail_job_status($pdo, $jobId);
+
+    return [
+        'claimed' => count($rows),
+        'sent' => $sent,
+        'failed' => $failed,
+    ];
+}
+
+function sr_policy_document_refresh_mail_job_status(PDO $pdo, int $jobId): void
+{
+    $stmt = $pdo->prepare(
+        'SELECT
+            SUM(CASE WHEN status = "queued" THEN 1 ELSE 0 END) AS queued_count,
+            SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) AS failed_count
+         FROM sr_policy_document_mail_deliveries
+         WHERE job_id = :job_id'
+    );
+    $stmt->execute(['job_id' => $jobId]);
+    $row = $stmt->fetch();
+    $queued = (int) ($row['queued_count'] ?? 0);
+    $failed = (int) ($row['failed_count'] ?? 0);
+    $status = $queued > 0 ? 'queued' : ($failed > 0 ? 'failed' : 'sent');
+
+    $updateStmt = $pdo->prepare(
+        'UPDATE sr_policy_document_mail_jobs
+         SET status = :status,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $updateStmt->execute([
+        'status' => $status,
+        'updated_at' => sr_now(),
+        'id' => $jobId,
+    ]);
 }
 
 function sr_policy_document_module_ready(PDO $pdo): bool

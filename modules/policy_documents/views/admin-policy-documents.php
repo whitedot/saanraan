@@ -123,5 +123,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </section>
+
+    <section class="admin-card">
+        <h2><?php echo sr_e(sr_t('policy_documents::ui.mail_jobs')); ?></h2>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?></th>
+                    <th><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></th>
+                    <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
+                    <th><?php echo sr_e(sr_t('policy_documents::ui.mail_counts')); ?></th>
+                    <th><?php echo sr_e(sr_t('policy_documents::ui.action')); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($mailJobs as $mailJob) { ?>
+                    <tr>
+                        <td><?php echo sr_e((string) $mailJob['document_key']); ?></td>
+                        <td><?php echo sr_e((string) $mailJob['version_key']); ?></td>
+                        <td><?php echo sr_e((string) $mailJob['status']); ?></td>
+                        <td><?php echo sr_e((string) (int) $mailJob['sent_count']); ?> / <?php echo sr_e((string) (int) $mailJob['delivery_count']); ?></td>
+                        <td>
+                            <?php if ((int) $mailJob['queued_count'] > 0) { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="action" value="run_mail_batch">
+                                    <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $mailJob['id']); ?>">
+                                    <button class="btn btn-sm btn-solid-primary" type="submit"><?php echo sr_e(sr_t('policy_documents::ui.mail_run')); ?></button>
+                                </form>
+                            <?php } ?>
+                        </td>
+                    </tr>
+                <?php } ?>
+                <?php if ($mailJobs === []) { ?>
+                    <tr>
+                        <td colspan="5" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.mail_job_empty')); ?></td>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </section>
 </section>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
