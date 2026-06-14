@@ -581,6 +581,9 @@ if (!is_string($coreOpsHelper)) {
     || strpos($coreOpsHelper, 'sr_audit_metadata_sanitize($metadata)') === false
     || strpos($coreOpsHelper, 'sr_audit_metadata_sanitize($payload)') === false
     || strpos($coreOpsHelper, 'password|token|secret|credential|bearer|authorization') === false
+    || strpos($coreOpsHelper, "'[redacted-email]'") === false
+    || strpos($coreOpsHelper, "'[redacted-phone]'") === false
+    || strpos($coreOpsHelper, "'[redacted-id]'") === false
     || strpos($coreOpsHelper, 'Bearer [masked]') === false
     || strpos($coreOpsHelper, "'[masked]'") === false
 ) {

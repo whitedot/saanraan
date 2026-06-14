@@ -118,7 +118,7 @@
 
 | 항목 | 기준 |
 | --- | --- |
-| 저장 전 처리 | `sr_audit_metadata_sanitize()`로 password, token, secret, credential, bearer, authorization 계열 값을 마스킹한다. |
+| 저장 전 처리 | `sr_audit_metadata_sanitize()`로 password, token, secret, credential, bearer, authorization 계열 값과 명백한 이메일·휴대폰·주민등록번호 형태를 마스킹한다. |
 | 표시 전 처리 | `/admin/audit-logs`는 `sr_admin_audit_log_display_message()`와 `sr_admin_audit_log_display_metadata()`를 거쳐 민감 문자열을 다시 마스킹한다. |
 | export 기준 | `privacy-export.php` 기본 수집 대상에서 제외한다. 본인 요청이라도 운영 책임 추적, 다른 관리자/회원/제3자 식별자, 보안 조사 맥락이 섞일 수 있기 때문이다. |
 | retention 기준 | `/admin/retention`의 관리자 작업 로그 보관일(`audit_logs_days`)을 따른다. |

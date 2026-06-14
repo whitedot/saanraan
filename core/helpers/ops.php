@@ -329,8 +329,12 @@ function sr_log_sensitive_text_sanitize(string $value): string
     $sanitized = preg_replace('/\b(Authorization)\s*([:=])\s*(?:Bearer|Basic)\s+[^&\s;,"\']+/i', '$1$2 [masked]', $value) ?? $value;
     $sanitized = preg_replace('/\bBearer\s+[A-Za-z0-9._~+\/=-]+/i', 'Bearer [masked]', $sanitized) ?? $sanitized;
     $pattern = '/((?:^|[?&\s;,"\'\[\]{}])(?:password|token|secret|credential|bearer|authorization|api[._-]?key|access[._-]?key|private[._-]?key|client[._-]?secret|app[._-]?key)\s*[=:]\s*)([^&\s;,"\'\[\]\}]+)/i';
+    $sanitized = preg_replace($pattern, '$1[masked]', $sanitized) ?? $sanitized;
+    $sanitized = preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/iu', '[redacted-email]', $sanitized) ?? $sanitized;
+    $sanitized = preg_replace('/(?<!\d)(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}(?!\d)/u', '[redacted-phone]', $sanitized) ?? $sanitized;
+    $sanitized = preg_replace('/(?<!\d)\d{6}[-\s]?[1-4]\d{6}(?!\d)/u', '[redacted-id]', $sanitized) ?? $sanitized;
 
-    return preg_replace($pattern, '$1[masked]', $sanitized) ?? $sanitized;
+    return $sanitized;
 }
 
 function sr_write_operational_marker(string $filename, array $data): void

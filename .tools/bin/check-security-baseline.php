@@ -107,10 +107,22 @@ function sr_security_baseline_check_runtime_fixtures(): void
         'Sensitive text fixture should mask password/token/authorization/api key values.'
     );
 
+    $personalLine = sr_log_sensitive_text_sanitize('contact admin@example.test 010-1234-5678 900101-1234567');
+    sr_security_baseline_assert(
+        str_contains($personalLine, '[redacted-email]')
+            && str_contains($personalLine, '[redacted-phone]')
+            && str_contains($personalLine, '[redacted-id]')
+            && !str_contains($personalLine, 'admin@example.test')
+            && !str_contains($personalLine, '010-1234-5678')
+            && !str_contains($personalLine, '900101-1234567'),
+        'Sensitive text fixture should redact obvious email, phone, and resident-id patterns.'
+    );
+
     $metadata = sr_audit_metadata_sanitize([
         'nested' => [
             'client_secret' => 'secret-value',
             'note' => 'Bearer bearer-value',
+            'contact' => 'admin@example.test 010-1234-5678 900101-1234567',
         ],
         'plain' => 'ok',
     ]);
@@ -118,8 +130,9 @@ function sr_security_baseline_check_runtime_fixtures(): void
         is_array($metadata)
             && (($metadata['nested']['client_secret'] ?? '') === '[masked]')
             && (($metadata['nested']['note'] ?? '') === 'Bearer [masked]')
+            && (($metadata['nested']['contact'] ?? '') === '[redacted-email] [redacted-phone] [redacted-id]')
             && (($metadata['plain'] ?? '') === 'ok'),
-        'Audit metadata fixture should mask nested secret keys and bearer values.'
+        'Audit metadata fixture should mask nested secret keys, bearer values, and obvious personal identifiers.'
     );
 
     sr_security_baseline_assert(
