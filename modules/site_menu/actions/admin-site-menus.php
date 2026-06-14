@@ -424,6 +424,10 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('site_menu::action.admin.intent_invalid');
     }
 
+    if ($errors === [] && $notice !== '') {
+        sr_site_menu_clear_runtime_cache();
+    }
+
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/site-menus');
 }
 

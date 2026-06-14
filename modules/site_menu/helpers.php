@@ -243,6 +243,9 @@ function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsB
         ]);
         $created += $insert->rowCount() > 0 ? 1 : 0;
     }
+    if ($created > 0) {
+        sr_site_menu_clear_runtime_cache('header');
+    }
 
     return $created;
 }
@@ -465,6 +468,40 @@ function sr_site_menu_render(PDO $pdo, string $menuKey, string $layoutSlotKey = 
         return '';
     }
 
+    $tree = sr_site_menu_tree($pdo, $menuKey);
+    $items = is_array($tree['items'] ?? null) ? $tree['items'] : [];
+    $itemsByParent = is_array($tree['items_by_parent'] ?? null) ? $tree['items_by_parent'] : [];
+    if ($items === []) {
+        return '';
+    }
+
+    $slotClass = $layoutSlotKey !== '' && preg_match('/\A[a-z0-9_]{1,80}\z/', $layoutSlotKey) === 1
+        ? ' sr-site-menu-slot-' . str_replace('_', '-', sr_e($layoutSlotKey))
+        : '';
+    $html = '<nav class="sr-site-menu sr-site-menu-' . sr_e($menuKey) . $slotClass . '" aria-label="' . sr_e($menuKey) . '">';
+    $html .= sr_site_menu_render_item_list($pdo, $itemsByParent, 0, 1);
+    $html .= '</nav>';
+
+    return $html;
+}
+
+function sr_site_menu_tree(PDO $pdo, string $menuKey): array
+{
+    $cache = $GLOBALS['sr_site_menu_runtime_tree_cache'] ?? [];
+    if (!is_array($cache)) {
+        $cache = [];
+    }
+
+    $menuKey = sr_site_menu_clean_key($menuKey);
+    if ($menuKey === '') {
+        return ['menu_key' => '', 'enabled' => false, 'items' => [], 'items_by_parent' => []];
+    }
+
+    $pdoCacheKey = (string) spl_object_id($pdo);
+    if (isset($cache[$pdoCacheKey][$menuKey])) {
+        return $cache[$pdoCacheKey][$menuKey];
+    }
+
     $iconNameSelect = sr_site_menu_items_icon_name_column_exists($pdo) ? 'i.icon_name' : "'' AS icon_name";
     $stmt = $pdo->prepare(
         "SELECT i.id, i.parent_id, i.label, i.url, " . $iconNameSelect . ", i.target
@@ -485,18 +522,39 @@ function sr_site_menu_render(PDO $pdo, string $menuKey, string $layoutSlotKey = 
         $itemsByParent[$parentId][] = $row;
     }
 
-    if ($items === []) {
-        return '';
+    $cache[$pdoCacheKey][$menuKey] = [
+        'menu_key' => $menuKey,
+        'enabled' => $items !== [],
+        'items' => $items,
+        'items_by_parent' => $itemsByParent,
+    ];
+    $GLOBALS['sr_site_menu_runtime_tree_cache'] = $cache;
+
+    return $cache[$pdoCacheKey][$menuKey];
+}
+
+function sr_site_menu_clear_runtime_cache(string $menuKey = ''): void
+{
+    $cache = $GLOBALS['sr_site_menu_runtime_tree_cache'] ?? [];
+    if (!is_array($cache)) {
+        $GLOBALS['sr_site_menu_runtime_tree_cache'] = [];
+        return;
     }
 
-    $slotClass = $layoutSlotKey !== '' && preg_match('/\A[a-z0-9_]{1,80}\z/', $layoutSlotKey) === 1
-        ? ' sr-site-menu-slot-' . str_replace('_', '-', sr_e($layoutSlotKey))
-        : '';
-    $html = '<nav class="sr-site-menu sr-site-menu-' . sr_e($menuKey) . $slotClass . '" aria-label="' . sr_e($menuKey) . '">';
-    $html .= sr_site_menu_render_item_list($pdo, $itemsByParent, 0, 1);
-    $html .= '</nav>';
+    if ($menuKey === '') {
+        $GLOBALS['sr_site_menu_runtime_tree_cache'] = [];
+        return;
+    }
 
-    return $html;
+    $menuKey = sr_site_menu_clean_key($menuKey);
+    if ($menuKey === '') {
+        return;
+    }
+
+    foreach (array_keys($cache) as $pdoCacheKey) {
+        unset($cache[$pdoCacheKey][$menuKey]);
+    }
+    $GLOBALS['sr_site_menu_runtime_tree_cache'] = $cache;
 }
 
 function sr_site_menu_render_item_list(PDO $pdo, array $itemsByParent, int $parentId, int $depth): string

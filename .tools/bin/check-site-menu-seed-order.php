@@ -24,6 +24,20 @@ function sr_site_menu_check_assert(bool $condition, string $message): void
     }
 }
 
+class SrSiteMenuCheckPdo extends PDO
+{
+    public int $siteMenuTreePrepareCount = 0;
+
+    public function prepare(string $query, array $options = []): PDOStatement|false
+    {
+        if (str_contains($query, 'FROM sr_site_menus m') && str_contains($query, 'INNER JOIN sr_site_menu_items i')) {
+            $this->siteMenuTreePrepareCount++;
+        }
+
+        return parent::prepare($query, $options);
+    }
+}
+
 $options = [];
 foreach (['content', 'quiz', 'survey', 'community'] as $moduleKey) {
     $metadata = sr_module_metadata($moduleKey);
@@ -42,7 +56,7 @@ if ($labels !== $expected) {
     sr_site_menu_check_error('Site menu seed order must follow admin service menu order: ' . implode(' > ', $labels));
 }
 
-$pdo = new PDO('sqlite::memory:');
+$pdo = new SrSiteMenuCheckPdo('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $pdo->exec(
@@ -92,14 +106,21 @@ $pdo->exec("INSERT INTO sr_community_posts (id, board_id) VALUES (42, 1)");
 
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 $_SERVER['REQUEST_URI'] = '/community/post?id=42';
+$pdo->siteMenuTreePrepareCount = 0;
 $html = sr_site_menu_render($pdo, 'header', 'navigation');
+$cachedHtml = sr_site_menu_render($pdo, 'header', 'primary_navigation');
 sr_site_menu_check_assert(str_contains($html, 'class="sr-site-menu sr-site-menu-header sr-site-menu-slot-navigation"'), 'Site menu render runtime fixture must include menu and slot classes.');
+sr_site_menu_check_assert(str_contains($cachedHtml, 'class="sr-site-menu sr-site-menu-header sr-site-menu-slot-primary-navigation"'), 'Site menu render runtime fixture must render cached tree with request-specific slot class.');
 sr_site_menu_check_assert(str_contains($html, 'href="/"'), 'Site menu render runtime fixture must render root link.');
 sr_site_menu_check_assert(str_contains($html, 'href="/community/board?key=free"'), 'Site menu render runtime fixture must render relative links.');
 sr_site_menu_check_assert(substr_count($html, 'aria-current="page"') >= 2, 'Site menu render runtime fixture must mark current post and matching community board.');
 sr_site_menu_check_assert(str_contains($html, 'target="_blank" rel="noopener noreferrer"'), 'Site menu render runtime fixture must protect blank external links.');
 sr_site_menu_check_assert(!str_contains($html, '너무 깊은 항목'), 'Site menu render runtime fixture must stop at depth 3.');
 sr_site_menu_check_assert(!str_contains($html, '비활성'), 'Site menu render runtime fixture must skip disabled items.');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 1, 'Site menu runtime cache must reuse the enabled item tree within the same request.');
+sr_site_menu_clear_runtime_cache('header');
+sr_site_menu_render($pdo, 'header', 'navigation');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu runtime cache clear must force the next tree lookup.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'footer', 'secondary_navigation') === '', 'Site menu render runtime fixture must skip disabled menus.');
 
 $_SERVER['REQUEST_URI'] = '/content/example';

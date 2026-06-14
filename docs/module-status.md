@@ -25,7 +25,7 @@
 | 회원 | `deposit` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, 환불 신청 상한 runtime fixture, read-only reconciliation CLI | 원장 reconciliation 실행 기록, 환불/출금/동시성 smoke |
 | 회원 | `asset_exchange` | `beta` | `check-asset-exchange-logs.php`, `check-asset-exchange-runtime.php`, 환전 정책/로그 점검, 완료 묶음 정정 fixture, 실행 성공/rollback runtime fixture, 실패 로그 runtime fixture, 순환 가치 증가 방지 기준 | 동시 실행, 설치 DB 수수료/실패 복구 smoke |
 | 회원 | `coupon` | `beta` | `check-coupon-admin-validation.php`, `check-coupon-redemption-runtime.php`, 유료 열람/다운로드 쿠폰 우선 적용 runtime fixture, 쿠폰 접근권 부분 실패 rollback fixture, 읽기 참조 계약 점검 | `release-installed-gate-status.php` 자산/쿠폰/유료 접근권 mutation smoke, 설치 DB 쿠폰 mutation smoke |
-| 사이트 | `site_menu` | `stable-candidate` | `check-site-menu-seed-order.php`, seed order 점검, 메뉴 렌더 runtime fixture, URL 안전성 fixture | 신규 설치 seed HTTP smoke |
+| 사이트 | `site_menu` | `stable-candidate` | `check-site-menu-seed-order.php`, seed order 점검, 메뉴 렌더 runtime fixture, 요청 단위 메뉴 tree cache fixture, URL 안전성 fixture | 신규 설치 seed HTTP smoke |
 | 사이트 | `logo_manager` | `beta` | `check-logo-manager-favicon.php`, favicon head link runtime fixture, 아이콘 세트 variant 선택, disabled/기간 필터 fixture, 배포 보호 기준 | 브라우저 head 출력/아이콘 세트 수동 smoke |
 | 사이트 | `banner` | `beta` | `check-popup-layer-targets.php`, popup/banner 대상 참조 점검, 기간/대상 조건 렌더 runtime fixture, 관리자 일괄 상태 smoke 기준 | 출력 슬롯과 외부 참조 차단 수동 smoke |
 | 사이트 | `popup_layer` | `beta` | `check-popup-layer-targets.php`, `check-ckeditor-assets.php`, 대상 참조 점검, 기간/대상 조건 렌더 runtime fixture, CKEditor 업로드와 임시 파일 cleanup fixture | 출력 슬롯, 본문 sanitizer, 브라우저 수동 smoke |
