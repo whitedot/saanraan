@@ -1606,11 +1606,16 @@ function sr_community_admin_posts(PDO $pdo, int $limit = 100, array $filters = [
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $privacyConsentSelectSql = sr_community_submission_consents_table_exists($pdo)
+        ? '(SELECT COUNT(*) FROM sr_community_submission_consents pc WHERE pc.subject_type = \'community.post\' AND pc.subject_id = p.id) AS privacy_consent_count,
+                   (SELECT MAX(pc.created_at) FROM sr_community_submission_consents pc WHERE pc.subject_type = \'community.post\' AND pc.subject_id = p.id) AS privacy_consent_latest_at,'
+        : '0 AS privacy_consent_count, NULL AS privacy_consent_latest_at,';
     $sql = 'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', p.title, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
                    author_nickname.nickname AS author_nickname,
                    a.status AS author_account_status,
+                   ' . $privacyConsentSelectSql . '
                    (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                    (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count
             FROM sr_community_posts p
@@ -2105,13 +2110,18 @@ function sr_community_admin_comments(PDO $pdo, int $limit = 100, array $filters 
     $threadSelectSql = sr_community_comment_thread_columns_exist($pdo)
         ? 'c.parent_comment_id, c.thread_root_id, c.depth,'
         : 'NULL AS parent_comment_id, c.id AS thread_root_id, 1 AS depth,';
+    $privacyConsentSelectSql = sr_community_submission_consents_table_exists($pdo)
+        ? '(SELECT COUNT(*) FROM sr_community_submission_consents pc WHERE pc.subject_type = \'community.comment\' AND pc.subject_id = c.id) AS privacy_consent_count,
+                   (SELECT MAX(pc.created_at) FROM sr_community_submission_consents pc WHERE pc.subject_type = \'community.comment\' AND pc.subject_id = c.id) AS privacy_consent_latest_at'
+        : '0 AS privacy_consent_count, NULL AS privacy_consent_latest_at';
     $sql = 'SELECT c.id, c.post_id, ' . $threadSelectSql . ' c.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ', c.body_text, c.status, c.created_at, c.updated_at,
                    ' . $secretSelectSql . '
                    p.title AS post_title,
                    b.board_key, b.title AS board_title,
                    a.display_name AS author_display_name,
                    author_nickname.nickname AS author_nickname,
-                   a.status AS author_account_status
+                   a.status AS author_account_status,
+                   ' . $privacyConsentSelectSql . '
             FROM sr_community_comments c
             INNER JOIN sr_community_posts p ON p.id = c.post_id
             INNER JOIN sr_community_boards b ON b.id = p.board_id

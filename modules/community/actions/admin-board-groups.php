@@ -142,6 +142,14 @@ if (sr_request_method() === 'POST') {
         $levelCommentScore = sr_admin_post_int_in_range('group_level_comment_score', 0, 10000);
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_comment_preset_key', 80)) : '';
+        $privacyConsentEnabled = ($_POST['group_privacy_consent_enabled'] ?? '') === '1';
+        $privacyConsentTitle = trim(sr_post_string('group_privacy_consent_title', 120));
+        $privacyConsentBodyInput = sr_post_string_without_truncation('group_privacy_consent_body', 5000);
+        $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
+        $privacyConsentVersion = trim(sr_post_string('group_privacy_consent_version', 60));
+        $privacyConsentRequirePost = ($_POST['group_privacy_consent_require_post'] ?? '') === '1';
+        $privacyConsentRequireComment = ($_POST['group_privacy_consent_require_comment'] ?? '') === '1';
+        $privacyConsentRequireAttachmentUpload = ($_POST['group_privacy_consent_require_attachment_upload'] ?? '') === '1';
         $extraFieldsInput = sr_post_string_without_truncation('group_extra_fields_json', 20000);
         $extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput);
         $extraFieldsJson = $extraFieldDefinitionErrors === [] && is_string($extraFieldsInput) ? sr_community_extra_field_definitions_json_from_input($extraFieldsInput) : null;
@@ -370,6 +378,27 @@ if (sr_request_method() === 'POST') {
                 break;
             }
         }
+        if (!is_string($privacyConsentBodyInput)) {
+            $errors[] = '개인정보 수집 및 이용동의 본문이 너무 깁니다.';
+            $privacyConsentBody = '';
+        }
+        if ($privacyConsentEnabled) {
+            if (!sr_community_submission_consents_table_exists($pdo)) {
+                $errors[] = '개인정보 수집 및 이용동의 스키마 업데이트가 아직 적용되지 않았습니다.';
+            }
+            if ($privacyConsentTitle === '') {
+                $errors[] = '개인정보 수집 및 이용동의 제목을 입력해 주세요.';
+            }
+            if ($privacyConsentBody === '') {
+                $errors[] = '개인정보 수집 및 이용동의 본문을 입력해 주세요.';
+            }
+            if ($privacyConsentVersion === '') {
+                $errors[] = '개인정보 수집 및 이용동의 버전을 입력해 주세요.';
+            }
+            if (!$privacyConsentRequirePost && !$privacyConsentRequireComment && !$privacyConsentRequireAttachmentUpload) {
+                $errors[] = '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.';
+            }
+        }
         if ($extraFieldDefinitionErrors !== []) {
             $errors = array_merge($errors, $extraFieldDefinitionErrors);
             $extraFieldsJson = '[]';
@@ -451,6 +480,13 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'level_comment_score', (string) $levelCommentScore, 'int');
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_enabled', $privacyConsentEnabled ? '1' : '0', 'bool');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_title', $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의', 'string');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_body', $privacyConsentBody, 'string');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_version', $privacyConsentVersion !== '' ? $privacyConsentVersion : '1', 'string');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_require_post', $privacyConsentRequirePost ? '1' : '0', 'bool');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_require_comment', $privacyConsentRequireComment ? '1' : '0', 'bool');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_require_attachment_upload', $privacyConsentRequireAttachmentUpload ? '1' : '0', 'bool');
             sr_community_set_board_group_setting($pdo, $groupId, 'extra_fields_json', $extraFieldsJson, 'json');
             foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
                 sr_community_set_board_group_setting($pdo, $groupId, (string) $displaySettingKey, (string) $displaySettingValue, 'int');

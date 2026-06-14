@@ -151,6 +151,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 $communitySettingsSectionNavItems = [
     'community-settings-section-level' => '레벨 기본값',
     'community-settings-section-message' => '쪽지 정책',
+    'community-settings-section-privacy-consent' => '개인정보 동의',
     'community-settings-section-assets' => '자산/과금',
     'community-settings-section-reaction' => '리액션',
     'community-settings-section-display' => '공개 화면',
@@ -245,6 +246,54 @@ $communitySettingsSectionNavItems = [
                                         </option>
                                     <?php } ?>
                                 </select>
+            </div>
+        </div>
+    </section>
+
+    <section id="community-settings-section-privacy-consent" class="admin-card card" data-admin-section-anchor>
+        <h2>개인정보 수집 및 이용동의 기본값</h2>
+        <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_settings_privacy_consent_enabled">동의 사용</label>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="community_admin_settings_privacy_consent_enabled">
+                        <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?>>
+                        <?php echo sr_admin_choice_label_html('새 게시판과 그룹 기본값에서 개인정보 수집 및 이용동의를 사용'); ?>
+                    </label>
+                    <p class="admin-form-help">게시판 개별 설정이나 게시판 그룹 설정에서 다른 값으로 재정의할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_settings_privacy_consent_title">동의 제목</label>
+                <div class="admin-form-field">
+                    <input id="community_admin_settings_privacy_consent_title" type="text" name="privacy_consent_title" maxlength="120" value="<?php echo sr_e((string) ($settings['privacy_consent_title'] ?? '개인정보 수집 및 이용동의')); ?>" class="form-input form-control-full">
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_settings_privacy_consent_version">동의 버전</label>
+                <div class="admin-form-field">
+                    <input id="community_admin_settings_privacy_consent_version" type="text" name="privacy_consent_version" maxlength="60" value="<?php echo sr_e((string) ($settings['privacy_consent_version'] ?? '1')); ?>" class="form-input">
+                    <p class="admin-form-help">문구가 바뀌면 버전을 올려 제출 당시 snapshot을 구분합니다.</p>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="community_admin_settings_privacy_consent_body">동의 본문</label>
+                <div class="admin-form-field">
+                    <textarea id="community_admin_settings_privacy_consent_body" name="privacy_consent_body" rows="6" class="form-input form-control-full"><?php echo sr_e((string) ($settings['privacy_consent_body'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label">적용 대상</span>
+                <div class="admin-form-field admin-checkbox-list">
+                    <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
+                        <?php $privacyConsentSettingKey = 'privacy_consent_require_' . $privacyConsentTargetKey; ?>
+                        <label class="admin-form-check form-label" for="<?php echo sr_e('community_admin_settings_' . $privacyConsentSettingKey); ?>">
+                            <input id="<?php echo sr_e('community_admin_settings_' . $privacyConsentSettingKey); ?>" type="checkbox" name="<?php echo sr_e($privacyConsentSettingKey); ?>" value="1" class="form-choice-dark"<?php echo !empty($settings[$privacyConsentSettingKey]) ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html(sr_community_privacy_consent_label($privacyConsentTargetKey)); ?>
+                        </label>
+                    <?php } ?>
+                    <p class="admin-form-help">동의 사용 시 서버에서 적용 대상 하나 이상, 제목, 본문, 버전을 검증합니다.</p>
+                </div>
             </div>
         </div>
     </section>

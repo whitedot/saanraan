@@ -335,6 +335,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $communityBoardGroupSectionNavItems = [
         'community-board-group-section-basic' => '기본 정보',
         'community-board-group-section-defaults' => '작성 기본값',
+        'community-board-group-section-privacy-consent' => '개인정보 동의',
         'community-board-group-section-reaction' => '리액션',
         'community-board-group-section-banner' => '배너',
         'community-board-group-section-popup' => '팝업',
@@ -559,6 +560,53 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="community_admin_board_groups_group_file_allowed_extensions" type="text" name="group_file_allowed_extensions" maxlength="1000" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'file_allowed_extensions', 'pdf,txt,csv,zip,doc,docx,xls,xlsx,ppt,pptx,hwp')); ?>" class="form-input form-control-full" placeholder="pdf, txt, zip" data-community-file-extensions<?php echo $groupFileExtensionsRequired ? ' required' : ''; ?>>
                     </div>
                 </div>
+        </section>
+
+        <section id="community-board-group-section-privacy-consent" class="admin-card card" data-admin-section-anchor>
+            <h2>개인정보 수집 및 이용동의 기본값</h2>
+            <div class="admin-form-grid">
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_enabled">동의 사용</label>
+                    <div class="admin-form-field">
+                        <label class="admin-form-check form-label" for="community_admin_board_groups_group_privacy_consent_enabled">
+                            <input id="community_admin_board_groups_group_privacy_consent_enabled" type="checkbox" name="group_privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, 'privacy_consent_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                            <?php echo sr_admin_choice_label_html('이 그룹 기본값을 쓰는 게시판 제출 흐름에 개인정보 수집 및 이용동의를 적용'); ?>
+                        </label>
+                        <p class="admin-form-help">게시판 설정에서 그룹값 상속을 선택한 항목에 적용됩니다. 기존 게시판의 현재만 저장 값은 자동 변경되지 않습니다.</p>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_title">동의 제목</label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_privacy_consent_title" type="text" name="group_privacy_consent_title" maxlength="120" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_title', '개인정보 수집 및 이용동의')); ?>" class="form-input form-control-full">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_version">동의 버전</label>
+                    <div class="admin-form-field">
+                        <input id="community_admin_board_groups_group_privacy_consent_version" type="text" name="group_privacy_consent_version" maxlength="60" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_version', '1')); ?>" class="form-input">
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_body">동의 본문</label>
+                    <div class="admin-form-field">
+                        <textarea id="community_admin_board_groups_group_privacy_consent_body" name="group_privacy_consent_body" rows="6" class="form-input form-control-full"><?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_body', '')); ?></textarea>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <span class="form-label">적용 대상</span>
+                    <div class="admin-form-field admin-checkbox-list">
+                        <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
+                            <?php $privacyConsentSettingKey = 'privacy_consent_require_' . $privacyConsentTargetKey; ?>
+                            <label class="admin-form-check form-label" for="<?php echo sr_e('community_admin_board_groups_group_' . $privacyConsentSettingKey); ?>">
+                                <input id="<?php echo sr_e('community_admin_board_groups_group_' . $privacyConsentSettingKey); ?>" type="checkbox" name="<?php echo sr_e('group_' . $privacyConsentSettingKey); ?>" value="1" class="form-choice-dark"<?php echo in_array($groupSettingValue($formGroupSettings, $privacyConsentSettingKey, '0'), ['1', 'true', 'yes', 'on'], true) ? ' checked' : ''; ?>>
+                                <?php echo sr_admin_choice_label_html(sr_community_privacy_consent_label($privacyConsentTargetKey)); ?>
+                            </label>
+                        <?php } ?>
+                        <p class="admin-form-help">동의 사용 시 서버에서 적용 대상 하나 이상, 제목, 본문, 버전을 검증합니다.</p>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="community-board-group-section-reaction" class="admin-card card" data-admin-section-anchor>

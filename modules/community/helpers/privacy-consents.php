@@ -174,6 +174,19 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
     return $html;
 }
 
+function sr_community_privacy_consent_admin_summary_html(array $row): string
+{
+    $count = (int) ($row['privacy_consent_count'] ?? 0);
+    if ($count < 1) {
+        return '<span class="admin-summary-meta">-</span>';
+    }
+
+    $latestAt = (string) ($row['privacy_consent_latest_at'] ?? '');
+    $latestHtml = $latestAt !== '' ? '<br><small>' . sr_community_time_html($latestAt) . '</small>' : '';
+
+    return '<span class="admin-status is-normal">동의 ' . sr_e((string) $count) . '</span>' . $latestHtml;
+}
+
 function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $accountId, string $subjectType, int $subjectId, array $actionKeys, array $board): int
 {
     if ($boardId < 1 || $subjectType === '' || $subjectId < 1 || $actionKeys === []) {

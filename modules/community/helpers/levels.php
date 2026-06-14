@@ -48,6 +48,13 @@ function sr_community_default_settings(): array
         'plain_text_auto_link_urls' => (bool) ($settings['plain_text_auto_link_urls'] ?? false),
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
         'secret_comments_enabled' => (bool) ($settings['secret_comments_enabled'] ?? false),
+        'privacy_consent_enabled' => (bool) ($settings['privacy_consent_enabled'] ?? false),
+        'privacy_consent_title' => is_string($settings['privacy_consent_title'] ?? null) ? (string) $settings['privacy_consent_title'] : '개인정보 수집 및 이용동의',
+        'privacy_consent_body' => is_string($settings['privacy_consent_body'] ?? null) ? (string) $settings['privacy_consent_body'] : '',
+        'privacy_consent_version' => is_string($settings['privacy_consent_version'] ?? null) ? (string) $settings['privacy_consent_version'] : '1',
+        'privacy_consent_require_post' => (bool) ($settings['privacy_consent_require_post'] ?? false),
+        'privacy_consent_require_comment' => (bool) ($settings['privacy_consent_require_comment'] ?? false),
+        'privacy_consent_require_attachment_upload' => (bool) ($settings['privacy_consent_require_attachment_upload'] ?? false),
         'reaction_post_preset_key' => is_string($settings['reaction_post_preset_key'] ?? null) ? (string) $settings['reaction_post_preset_key'] : '',
         'reaction_comment_preset_key' => is_string($settings['reaction_comment_preset_key'] ?? null) ? (string) $settings['reaction_comment_preset_key'] : '',
         'post_reward_enabled' => (bool) ($settings['post_reward_enabled'] ?? false),
@@ -165,6 +172,19 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['plain_text_auto_link_urls'] = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
     $settings['secret_posts_enabled'] = sr_community_bool_setting($settings['secret_posts_enabled'] ?? false);
     $settings['secret_comments_enabled'] = sr_community_bool_setting($settings['secret_comments_enabled'] ?? false);
+    $settings['privacy_consent_enabled'] = sr_community_bool_setting($settings['privacy_consent_enabled'] ?? false);
+    $settings['privacy_consent_title'] = trim((string) ($settings['privacy_consent_title'] ?? '개인정보 수집 및 이용동의'));
+    if ($settings['privacy_consent_title'] === '') {
+        $settings['privacy_consent_title'] = '개인정보 수집 및 이용동의';
+    }
+    $settings['privacy_consent_body'] = trim((string) ($settings['privacy_consent_body'] ?? ''));
+    $settings['privacy_consent_version'] = trim((string) ($settings['privacy_consent_version'] ?? '1'));
+    if ($settings['privacy_consent_version'] === '') {
+        $settings['privacy_consent_version'] = '1';
+    }
+    $settings['privacy_consent_require_post'] = sr_community_bool_setting($settings['privacy_consent_require_post'] ?? false);
+    $settings['privacy_consent_require_comment'] = sr_community_bool_setting($settings['privacy_consent_require_comment'] ?? false);
+    $settings['privacy_consent_require_attachment_upload'] = sr_community_bool_setting($settings['privacy_consent_require_attachment_upload'] ?? false);
     $settings['reaction_post_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_post_preset_key'] ?? '') : '';
     $settings['reaction_comment_preset_key'] = function_exists('sr_reaction_setting_preset_key') && $pdo instanceof PDO ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
     foreach (['post_reward', 'comment_reward', 'write_charge', 'comment_charge', 'paid_read', 'paid_attachment_download'] as $assetPrefix) {

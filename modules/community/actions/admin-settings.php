@@ -67,6 +67,14 @@ if (sr_request_method() === 'POST') {
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
+        $privacyConsentTitle = trim(sr_post_string('privacy_consent_title', 120));
+        $privacyConsentBodyInput = sr_post_string_without_truncation('privacy_consent_body', 5000);
+        $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
+        $privacyConsentVersion = trim(sr_post_string('privacy_consent_version', 60));
+        $privacyConsentRequirePost = ($_POST['privacy_consent_require_post'] ?? '') === '1';
+        $privacyConsentRequireComment = ($_POST['privacy_consent_require_comment'] ?? '') === '1';
+        $privacyConsentRequireAttachmentUpload = ($_POST['privacy_consent_require_attachment_upload'] ?? '') === '1';
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $messageWriteGroupKeysInput = $_POST['message_write_group_keys'] ?? [];
@@ -153,6 +161,27 @@ if (sr_request_method() === 'POST') {
         if ($postToolbarPresetInput !== $postToolbarPreset || !array_key_exists($postToolbarPreset, $toolbarPresetOptions)) {
             $errors[] = '게시글 툴바 구성 값이 올바르지 않습니다.';
             $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic');
+        }
+        if (!is_string($privacyConsentBodyInput)) {
+            $errors[] = '개인정보 수집 및 이용동의 본문이 너무 깁니다.';
+            $privacyConsentBody = '';
+        }
+        if ($privacyConsentEnabled) {
+            if (!sr_community_submission_consents_table_exists($pdo)) {
+                $errors[] = '개인정보 수집 및 이용동의 스키마 업데이트가 아직 적용되지 않았습니다.';
+            }
+            if ($privacyConsentTitle === '') {
+                $errors[] = '개인정보 수집 및 이용동의 제목을 입력해 주세요.';
+            }
+            if ($privacyConsentBody === '') {
+                $errors[] = '개인정보 수집 및 이용동의 본문을 입력해 주세요.';
+            }
+            if ($privacyConsentVersion === '') {
+                $errors[] = '개인정보 수집 및 이용동의 버전을 입력해 주세요.';
+            }
+            if (!$privacyConsentRequirePost && !$privacyConsentRequireComment && !$privacyConsentRequireAttachmentUpload) {
+                $errors[] = '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.';
+            }
         }
         if ($onceHistoryPolicyInput !== $onceHistoryPolicy) {
             $errors[] = sr_t('community::action.admin.once_history_policy_invalid');
@@ -247,6 +276,13 @@ if (sr_request_method() === 'POST') {
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
+                ['privacy_consent_enabled', $privacyConsentEnabled ? '1' : '0', 'bool'],
+                ['privacy_consent_title', $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의', 'string'],
+                ['privacy_consent_body', $privacyConsentBody, 'string'],
+                ['privacy_consent_version', $privacyConsentVersion !== '' ? $privacyConsentVersion : '1', 'string'],
+                ['privacy_consent_require_post', $privacyConsentRequirePost ? '1' : '0', 'bool'],
+                ['privacy_consent_require_comment', $privacyConsentRequireComment ? '1' : '0', 'bool'],
+                ['privacy_consent_require_attachment_upload', $privacyConsentRequireAttachmentUpload ? '1' : '0', 'bool'],
                 ['reaction_post_preset_key', $reactionPostPresetKey, 'string'],
                 ['reaction_comment_preset_key', $reactionCommentPresetKey, 'string'],
                 ['post_reward_enabled', $assetSettings['post_reward_enabled'] ? '1' : '0', 'bool'],
@@ -354,6 +390,12 @@ if (sr_request_method() === 'POST') {
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
                         'secret_posts_enabled' => $secretPostsEnabled,
                         'secret_comments_enabled' => $secretCommentsEnabled,
+                        'privacy_consent_enabled' => $privacyConsentEnabled,
+                        'privacy_consent_targets' => array_values(array_filter([
+                            $privacyConsentRequirePost ? 'post' : '',
+                            $privacyConsentRequireComment ? 'comment' : '',
+                            $privacyConsentRequireAttachmentUpload ? 'attachment_upload' : '',
+                        ])),
                         'reaction_post_preset_key' => $reactionPostPresetKey,
                         'reaction_comment_preset_key' => $reactionCommentPresetKey,
                         'once_history_policy' => $onceHistoryPolicy,

@@ -133,6 +133,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th<?php echo sr_admin_sort_aria('title', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.08b17e43'), 'title', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('author', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.f2ee20a7'), 'author', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th>추가 입력</th>
+                <th>개인정보 동의</th>
                 <th<?php echo sr_admin_sort_aria('status', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('published_comment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.c9fff683'), 'published_comment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('active_attachment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.353b76cf'), 'active_attachment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
@@ -143,7 +144,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($posts === []) { ?>
                 <tr>
-                    <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
+                    <td colspan="12" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($posts as $post) { ?>
@@ -176,6 +177,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-break admin-community-post-extra-cell">
                             <?php echo sr_community_extra_fields_admin_summary_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
                         </td>
+                        <td class="admin-table-nowrap"><?php echo sr_community_privacy_consent_admin_summary_html($post); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($postStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $post['published_comment_count']); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
@@ -301,6 +303,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th<?php echo sr_admin_sort_aria('post', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.0b138cfe'), 'post', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('author', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.f2ee20a7'), 'author', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('body', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.9118bb57'), 'body', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
+                <th>개인정보 동의</th>
                 <th<?php echo sr_admin_sort_aria('status', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('created_at', $commentSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.26c8f2fa'), 'created_at', $commentSort, sr_community_admin_comment_sort_options(), sr_community_admin_comment_default_sort()); ?></th>
                 <th class="text-end"><?php echo sr_e(sr_t('community::ui.text.460f7d7a')); ?></th>
@@ -309,7 +312,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($comments === []) { ?>
                 <tr>
-                    <td colspan="7" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.ff4a5d06')); ?></td>
+                    <td colspan="8" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.ff4a5d06')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($comments as $comment) { ?>
@@ -342,6 +345,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                             <?php echo sr_community_plain_text_html((string) $comment['body_text']); ?>
                         </td>
+                        <td class="admin-table-nowrap"><?php echo sr_community_privacy_consent_admin_summary_html($comment); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($commentStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-community-comment-date-cell"><?php echo sr_community_time_html((string) $comment['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
