@@ -88,7 +88,7 @@
 | 표면 | 저장 위치 | 목적 | 동의/차단 기준 | 검증 |
 | --- | --- | --- | --- | --- |
 | PHP session cookie | browser cookie | 로그인, CSRF, 관리자/회원 세션 유지 | 필수 보안 저장소로 분류한다. `HttpOnly`, `SameSite=Lax`, HTTPS 설정 시 `Secure`를 사용한다. | `core/helpers/runtime.php`, `.tools/bin/check-security-baseline.php` |
-| 쿠키 설정 상태 | browser cookie `sr_cookie_consent` | 기능성 저장소 허용 여부를 저장한다. | 공개 layout의 `privacy` 쿠키 설정 배너에서 `essential` 또는 `functional`을 선택한다. | `modules/privacy/helpers.php`, `modules/privacy/actions/cookie-consent.php` |
+| 쿠키 설정 상태 | browser cookie `sr_cookie_consent` | 기능성 저장소 허용 여부를 저장한다. | 공개 layout의 `privacy` 쿠키 설정 배너에서 `essential` 또는 `functional`을 선택한다. 로그인한 회원은 `/account/privacy-requests`의 쿠키 동의 관리에서 기능성 허용 또는 필수만 사용으로 변경하며, 필수만 사용은 기능성 저장소 동의 철회로 처리한다. | `modules/privacy/helpers.php`, `modules/privacy/actions/cookie-consent.php`, `modules/privacy/views/account-privacy-requests.php` |
 | 팝업 닫기 쿠키 | browser cookie `sr_popup_layer_{id}_dismissed` | 방문자가 선택한 기간 동안 같은 팝업을 다시 보지 않게 한다. | 기능성 선택 저장소다. `sr_cookie_consent=functional`일 때만 저장하고, 보관 기간은 팝업별 `dismiss_cookie_days`이며 0이면 쿠키를 만들지 않는다. | `modules/popup_layer/assets/saanraan-popup-layer.js`, `modules/popup_layer/helpers.php` |
 | CAPTCHA provider script | 외부 script와 provider cookie 가능성 | 공개 제출/회원가입 자동등록방지 | 보안 목적 provider 표면이다. Turnstile, hCaptcha, reCAPTCHA를 활성화하면 외부 처리자와 국외이전 후보에 포함한다. 마케팅/분석 목적 script와 함께 쓰면 사전 동의 gate를 추가해야 한다. | `modules/antispam/helpers.php`, `modules/antispam_captcha_providers/antispam-providers.php` |
 | CAPTCHA remote IP | provider 검증 POST payload | provider의 위험도 판단 보조 | 기본값은 `verify_remote_ip_enabled = false`다. 켜면 개인정보 처리활동 기록과 개인정보 안내문에 remote IP 전달을 반영한다. | `modules/antispam/module.php`, `modules/antispam/views/admin-settings.php` |
@@ -108,7 +108,7 @@
 | `restriction` 처리 제한 | 계정 상태, 공개 노출, 알림 발송, 신규 처리 중단이 필요한지 분리한다. | `member` 계정 정지/보류, `notification` 발송 중단, `community`/`content`/`quiz`/`survey` 공개 노출 제한, `reaction` 신규 write 제한은 별도 모듈 정책으로 처리한다. 금액성 원장은 정산/환불 가능성을 해치지 않는다. |
 | `portability` 이동권 | 산란이 보관하는 구조화 가능한 사본만 제공한다. | provider 원문, CI/DI 원문, 외부 처리자 내부 로그는 제공하지 않는다. export JSON은 다른 계정 row가 섞이지 않아야 한다. |
 | `objection` 처리 반대 | 정당한 이익이나 운영 목적 처리에 대한 중단 가능성을 검토한다. | 마케팅/분석/비필수 알림, 리액션/추천/통계 반영은 중단 후보로 두되, 보안/정산/법적 의무 기록은 보존 사유를 메모한다. |
-| `withdrawal` 동의 철회 | 회원 마케팅 수신 동의와 쿠키/추적 동의, 커뮤니티/설문 제출 동의를 분리한다. | `member`의 `marketing` 동의 철회 기록, #151 쿠키 consent 설정, `community` 제출 동의의 신규 제출 차단, `survey` 응답 철회 정책을 각각 처리한다. 과거 필수 동의의 증적은 보존할 수 있다. |
+| `withdrawal` 동의 철회 | 회원 마케팅 수신 동의와 쿠키/추적 동의, 커뮤니티/설문 제출 동의를 분리한다. | `member`의 `marketing` 동의 철회 기록, #151 쿠키 consent 설정, `/account/privacy-requests`의 기능성 쿠키 철회, `community` 제출 동의의 신규 제출 차단, `survey` 응답 철회 정책을 각각 처리한다. 과거 필수 동의의 증적은 보존할 수 있다. |
 
 권리 요청 전파는 자동 일괄 변경보다 모듈 소유 정책을 우선한다. 여러 모듈에 반복되는 동작이 확인되면 먼저 좁은 helper 또는 계약을 추가하고, 코어로 올리는 것은 도메인 정책이 사라진 뒤에만 검토한다.
 
