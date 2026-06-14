@@ -413,11 +413,50 @@ function sr_privacy_cleanup_runtime_check_notification(): void
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT endpoint_ciphertext FROM sr_notification_push_endpoints WHERE id = 2') === 'secret8', 'notification cleanup must not alter other account push endpoint ciphertext.');
 }
 
+function sr_privacy_cleanup_runtime_check_policy_documents(): void
+{
+    $cleanup = include 'modules/policy_documents/privacy-cleanup.php';
+    if (!is_callable($cleanup)) {
+        sr_privacy_cleanup_runtime_error('policy_documents privacy cleanup contract is not callable.');
+        return;
+    }
+
+    $pdo = sr_privacy_cleanup_runtime_pdo();
+    $pdo->exec(
+        'CREATE TABLE sr_policy_document_mail_deliveries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id INTEGER NOT NULL,
+            account_id INTEGER NULL,
+            status TEXT NOT NULL,
+            failure_code TEXT NOT NULL DEFAULT "",
+            claimed_at TEXT NULL,
+            sent_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        "INSERT INTO sr_policy_document_mail_deliveries
+            (job_id, account_id, status, created_at, updated_at)
+         VALUES
+            (1, 7, 'sent', '', ''),
+            (1, 8, 'sent', '', '')"
+    );
+
+    $result = $cleanup($pdo, 7, ['event_type' => 'withdrawal']);
+    sr_privacy_cleanup_runtime_assert(is_array($result), 'policy_documents cleanup must return an array result.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['policy_document_mail_deliveries_anonymized'] ?? -1) === 1, 'policy_documents cleanup must report delivery anonymization count.');
+    sr_privacy_cleanup_runtime_assert(sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_policy_document_mail_deliveries WHERE id = 1') === null, 'policy_documents cleanup must clear target delivery account id.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT updated_at FROM sr_policy_document_mail_deliveries WHERE id = 1') === sr_now(), 'policy_documents cleanup must timestamp target delivery anonymization.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_policy_document_mail_deliveries WHERE id = 2') === 8, 'policy_documents cleanup must not alter other account delivery account id.');
+}
+
 sr_privacy_cleanup_runtime_check_quiz();
 sr_privacy_cleanup_runtime_check_survey();
 sr_privacy_cleanup_runtime_check_content();
 sr_privacy_cleanup_runtime_check_community();
 sr_privacy_cleanup_runtime_check_notification();
+sr_privacy_cleanup_runtime_check_policy_documents();
 
 if ($errors !== []) {
     fwrite(STDERR, "privacy cleanup runtime checks failed:\n");
