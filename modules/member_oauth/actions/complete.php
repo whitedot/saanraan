@@ -82,7 +82,9 @@ if (sr_request_method() === 'POST') {
             }
             sr_member_record_consent($pdo, $accountId, 'terms', (string) $policyDocuments['terms']['version_key'], true, $policyDocuments['terms']);
             sr_member_record_consent($pdo, $accountId, 'privacy', (string) $policyDocuments['privacy']['version_key'], true, $policyDocuments['privacy']);
-            sr_member_record_consent($pdo, $accountId, 'marketing', (string) $policyDocuments['marketing']['version_key'], $marketingConsent, $policyDocuments['marketing']);
+            if (isset($policyDocuments['marketing'])) {
+                sr_member_record_consent($pdo, $accountId, 'marketing', (string) $policyDocuments['marketing']['version_key'], $marketingConsent, $policyDocuments['marketing']);
+            }
             sr_member_oauth_link_account($pdo, $accountId, (string) $usedState['provider_key'], (string) $usedState['provider_subject_hash'], [
                 'subject_display' => (string) $usedState['provider_subject_display'],
                 'email' => (string) $usedState['email_snapshot'],

@@ -47,7 +47,9 @@ function sr_member_registration_policy_documents(PDO $pdo): array
         $documentKey = (string) $spec['document_key'];
         $renderData = sr_policy_document_public_render_data($pdo, $documentKey);
         if (!is_array($renderData)) {
-            $errors[] = sr_t('member::action.register.policy_document_missing', ['key' => $documentKey]);
+            if (!empty($spec['required'])) {
+                $errors[] = sr_t('member::action.register.policy_document_missing', ['key' => $documentKey]);
+            }
             continue;
         }
 

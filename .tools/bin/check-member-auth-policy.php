@@ -728,8 +728,9 @@ if ($registerAction !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($registerAction, "\$marketingConsent = (\$_POST['marketing_consent'] ?? '') === '1';") !== false
+            && strpos($registerAction, "isset(\$transactionPolicyDocuments['marketing'])") !== false
             && strpos($registerAction, "sr_member_record_consent(\$pdo, \$accountId, 'marketing', (string) \$transactionPolicyDocuments['marketing']['version_key'], \$marketingConsent, \$transactionPolicyDocuments['marketing'])") !== false,
-        'Register action should record optional marketing consent history.'
+        'Register action should record optional marketing consent history only when the optional policy document is available.'
     );
     sr_member_auth_policy_assert(
         strpos($registerAction, 'sr_member_registration_policy_documents($pdo)') !== false

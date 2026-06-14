@@ -207,7 +207,9 @@ if (sr_request_method() === 'POST') {
             $transactionPolicyDocuments = $transactionPolicyDocumentState['documents'];
             sr_member_record_consent($pdo, $accountId, 'terms', (string) $transactionPolicyDocuments['terms']['version_key'], true, $transactionPolicyDocuments['terms']);
             sr_member_record_consent($pdo, $accountId, 'privacy', (string) $transactionPolicyDocuments['privacy']['version_key'], true, $transactionPolicyDocuments['privacy']);
-            sr_member_record_consent($pdo, $accountId, 'marketing', (string) $transactionPolicyDocuments['marketing']['version_key'], $marketingConsent, $transactionPolicyDocuments['marketing']);
+            if (isset($transactionPolicyDocuments['marketing'])) {
+                sr_member_record_consent($pdo, $accountId, 'marketing', (string) $transactionPolicyDocuments['marketing']['version_key'], $marketingConsent, $transactionPolicyDocuments['marketing']);
+            }
             if ($profileFieldsEnabled) {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
             }

@@ -213,6 +213,7 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/complete.php', [
     '$pdo->beginTransaction()',
     'sr_member_create_account',
     'sr_member_record_consent',
+    'isset($policyDocuments[\'marketing\'])',
     'sr_member_oauth_link_account',
     'sr_member_create_email_verification',
     '$emailVerificationEnabled',
