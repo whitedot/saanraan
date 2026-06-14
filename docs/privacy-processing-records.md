@@ -36,7 +36,7 @@
 | `antispam_captcha_providers` | Turnstile, hCaptcha, reCAPTCHA provider 계약 | 국외 처리와 외부 processor 후보로 기록하고, 동의 전 script 차단 필요 여부를 #151에서 결정한다. |
 | `asset_exchange` | 환전 로그와 정정 증빙 | 금액성 운영 증빙으로 export_retained, account 연결과 정정 가능 기간을 기록한다. |
 | `asset_ledger` | 자산 원장 primitive와 reconciliation 조회 | 자기 테이블은 없지만 금액성 모듈의 처리활동 verification과 관리자 조회 표면에 포함한다. |
-| `banner` | 배너 설정, 클릭 dedupe hash | `click_key_hash`는 account/session/IP/UA에서 파생될 수 있는 가명성 dedupe 데이터다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 정리한다. |
+| `banner` | 배너 설정, 클릭 dedupe hash | `click_key_hash`는 account/session/IP/UA에서 파생될 수 있는 가명성 dedupe 데이터다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 정리한다. 배너 복사는 집계 클릭 수만 선택 복사할 수 있고 dedupe hash row는 새 배너로 복제하지 않는다. |
 | `ckeditor` | 에디터 asset, 업로드 adapter, sanitizer | 본문 개인정보는 소유 모듈에 귀속하고, 업로드/임시 파일 접근 정책은 소유 모듈 처리활동에 연결한다. |
 | `community` | 게시글, 댓글, 쪽지, 신고, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/상대방/신고자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. |
 | `content` | 콘텐츠, 댓글, 작가 신청, 유료 접근권, 다운로드/자산 로그 | 작성자와 신청자, 유료 접근권, 다운로드/자산 로그의 export_cleanup과 금액성 보존 경계를 구분한다. |

@@ -31,7 +31,7 @@ if (!is_array($sourceBanner)) {
 $values = [
     'title' => sr_post_string('title', 120),
 ];
-$copyClicks = ($_POST['copy_clicks'] ?? '') === '1';
+$copyClickCount = ($_POST['copy_click_count'] ?? '') === '1';
 $errors = [];
 
 $title = sr_banner_clean_single_line((string) $values['title'], 120);
@@ -59,7 +59,7 @@ if ($errors === []) {
             'starts_at' => $sourceBanner['starts_at'] ?? null,
             'ends_at' => $sourceBanner['ends_at'] ?? null,
             'sort_order' => (int) ($sourceBanner['sort_order'] ?? 0),
-            'click_count' => $copyClicks ? (int) ($sourceBanner['click_count'] ?? 0) : 0,
+            'click_count' => $copyClickCount ? (int) ($sourceBanner['click_count'] ?? 0) : 0,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -76,19 +76,6 @@ if ($errors === []) {
             'created_at' => $now,
             'source_banner_id' => $bannerId,
         ]);
-        if ($copyClicks) {
-            $stmt = $pdo->prepare(
-                'INSERT IGNORE INTO sr_banner_clicks
-                    (banner_id, click_key_hash, clicked_at)
-                 SELECT :new_banner_id, click_key_hash, clicked_at
-                 FROM sr_banner_clicks
-                 WHERE banner_id = :source_banner_id'
-            );
-            $stmt->execute([
-                'new_banner_id' => $newBannerId,
-                'source_banner_id' => $bannerId,
-            ]);
-        }
         $pdo->commit();
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
@@ -100,7 +87,7 @@ if ($errors === []) {
             'message' => 'Banner copied.',
             'metadata' => [
                 'source_banner_id' => $bannerId,
-                'copy_clicks' => $copyClicks,
+                'copy_click_count' => $copyClickCount,
             ],
         ]);
         sr_admin_redirect_with_result(sr_admin_action_result([], '배너 복사본을 만들었습니다.'), '/admin/banners/edit?id=' . (string) $newBannerId);

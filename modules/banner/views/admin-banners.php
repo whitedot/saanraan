@@ -93,9 +93,9 @@ $bannerCopyModalHtml = static function (array $banner, string $returnTo): string
                             </div>
                         </div>
                         <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-copy-clicks"><?php echo sr_e('클릭 데이터'); ?></label>
+                            <label class="form-label" for="<?php echo sr_e($modalId); ?>-copy-click-count"><?php echo sr_e('클릭 수'); ?></label>
                             <div class="admin-form-field">
-                                <?php echo sr_admin_checkbox_toggle_html($modalId . '-copy-clicks', 'copy_clicks', '1', false, '클릭 수와 클릭 로그를 함께 복사'); ?>
+                                <?php echo sr_admin_checkbox_toggle_html($modalId . '-copy-click-count', 'copy_click_count', '1', false, '집계 클릭 수만 복사'); ?>
                                 <p class="admin-form-help"><?php echo sr_e('선택하지 않으면 복사본의 클릭 수는 0으로 시작합니다.'); ?></p>
                             </div>
                         </div>

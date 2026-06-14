@@ -130,6 +130,31 @@ if (!is_string($bannerHelper)) {
     sr_retention_check_error($errors, 'Banner click dedupe hash and counter contract changed unexpectedly.');
 }
 
+$bannerCopyAction = file_get_contents($root . '/modules/banner/actions/admin-banner-copy.php');
+if (!is_string($bannerCopyAction)) {
+    sr_retention_check_error($errors, 'Banner copy action cannot be read.');
+} elseif (
+    strpos($bannerCopyAction, "(\$_POST['copy_click_count'] ?? '') === '1'") === false
+    || strpos($bannerCopyAction, "'click_count' => \$copyClickCount ?") === false
+    || strpos($bannerCopyAction, "'copy_click_count' => \$copyClickCount") === false
+    || preg_match('/INSERT\s+(?:IGNORE\s+)?INTO\s+sr_banner_clicks/is', $bannerCopyAction) === 1
+    || strpos($bannerCopyAction, 'copy_clicks') !== false
+) {
+    sr_retention_check_error($errors, 'Banner copy must not duplicate click dedupe hashes.');
+}
+
+$bannerAdminView = file_get_contents($root . '/modules/banner/views/admin-banners.php');
+if (!is_string($bannerAdminView)) {
+    sr_retention_check_error($errors, 'Banner admin view cannot be read.');
+} elseif (
+    strpos($bannerAdminView, "'copy_click_count'") === false
+    || strpos($bannerAdminView, '집계 클릭 수만 복사') === false
+    || strpos($bannerAdminView, 'copy_clicks') !== false
+    || strpos($bannerAdminView, '클릭 수와 클릭 로그를 함께 복사') !== false
+) {
+    sr_retention_check_error($errors, 'Banner copy UI must only offer aggregate click count copy.');
+}
+
 $cleanupOrder = sr_admin_retention_cleanup_target_keys();
 $notificationsPosition = array_search('notifications', $cleanupOrder, true);
 foreach (['notification_deliveries', 'notification_reads'] as $key) {
