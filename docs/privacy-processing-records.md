@@ -154,14 +154,14 @@
 
 ## 자산 로그 account_id 보존 기준
 
-금액성 자산 로그는 포인트, 적립금, 예치금, 쿠폰, 환전, 콘텐츠/커뮤니티 과금, 퀴즈/설문 보상처럼 권리·정산·환불·정정 근거가 되는 `export_retained` 데이터다. 탈퇴/익명화 cleanup은 공개 표시와 서비스 접근 상태를 정리하되, 원장성 row의 account 연결과 실행 snapshot을 자동 삭제하지 않는다.
+금액성 자산 로그는 포인트, 적립금, 예치금, 쿠폰, 환전, 콘텐츠/커뮤니티 과금, 퀴즈/설문 보상처럼 권리·정산·환불·정정 근거가 되는 `export_retained` 데이터다. 탈퇴/익명화 cleanup은 공개 표시와 서비스 접근 상태를 정리하되, 원장성 row의 account 연결과 실행 snapshot을 자동 삭제하지 않는다. 단, 콘텐츠/커뮤니티 자산 처리 중 생성된 `log_status = 'pending'` placeholder는 아직 권리·정산 증빙 row가 아니므로 세션 보관 기준에 맞춰 관리자 보관 정책에서 정리할 수 있다.
 
 | 표면 | 보존 기준 | cleanup 기준 |
 | --- | --- | --- |
 | `point`, `reward`, `deposit` 원장 | 잔액, 거래 유형, 금액, reference, 처리 시각은 사본 제공과 운영 보존 대상이다. | 모듈 cleanup을 제공하지 않고 원장 보존으로 처리한다. |
 | `coupon`, `asset_exchange` 로그 | 지급/사용/환불/환전 묶음과 실패 사유는 권리성 증빙으로 유지한다. | 상태 정정은 반대 거래나 정정 row로 남기며 원거래 account 연결을 제거하지 않는다. |
-| `content` 자산 로그 | `sr_content_asset_access_logs`, `sr_content_asset_action_logs`, `sr_content_author_reward_logs`는 account id와 settlement snapshot을 유지한다. | `sr_content_access_entitlements`와 `sr_content_file_download_logs`는 접근 상태/다운로드 이력 최소화를 위해 account 연결을 제거할 수 있다. |
-| `community` 자산 로그 | `sr_community_asset_logs`, `sr_community_publisher_reward_logs`는 downloader/publisher account id와 settlement snapshot을 유지한다. | `sr_community_access_entitlements`는 접근권 상태이므로 account 연결과 source reference를 제거할 수 있다. |
+| `content` 자산 로그 | `sr_content_asset_access_logs`, `sr_content_asset_action_logs`, `sr_content_author_reward_logs`의 completed 원장성 row는 account id와 settlement snapshot을 유지한다. | `sr_content_access_entitlements`와 `sr_content_file_download_logs`는 접근 상태/다운로드 이력 최소화를 위해 account 연결을 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
+| `community` 자산 로그 | `sr_community_asset_logs`, `sr_community_publisher_reward_logs`의 completed 원장성 row는 downloader/publisher account id와 settlement snapshot을 유지한다. | `sr_community_access_entitlements`는 접근권 상태이므로 account 연결과 source reference를 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
 | `quiz`, `survey` 보상 grant | 보상 지급 dedupe와 provider reference는 중복 지급 방지와 권리 확인에 필요하다. | 현재 cleanup은 grant를 익명화하되 dedupe key를 `anonymized:*` 형태로 바꿔 재연결을 끊는다. 금액성 원장 자체는 자산 모듈 보존 기준을 따른다. |
 | verification | export runtime은 대상 계정의 금액성 row만 제공하는지 확인하고, cleanup runtime은 콘텐츠/커뮤니티 자산 로그 account id가 정리 중 유지되는지 확인한다. | 설치 DB smoke에서는 탈퇴 후 공개 UI 노출 제거와 원장 조회 가능성을 별도로 확인한다. |
 
