@@ -198,6 +198,81 @@ function sr_member_oauth_account_by_subject(PDO $pdo, string $providerKey, strin
     return is_array($row) ? $row : null;
 }
 
+function sr_member_oauth_accounts_for_account(PDO $pdo, int $accountId): array
+{
+    if ($accountId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_member_oauth_accounts
+         WHERE account_id = :account_id
+           AND revoked_at IS NULL
+         ORDER BY linked_at DESC, id DESC'
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return $stmt->fetchAll();
+}
+
+function sr_member_oauth_account_for_provider(PDO $pdo, int $accountId, string $providerKey): ?array
+{
+    if ($accountId < 1 || $providerKey === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_member_oauth_accounts
+         WHERE account_id = :account_id
+           AND provider_key = :provider_key
+           AND revoked_at IS NULL
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'provider_key' => $providerKey,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_member_oauth_password_login_available(array $account): bool
+{
+    return trim((string) ($account['password_hash'] ?? '')) !== '';
+}
+
+function sr_member_oauth_can_unlink(array $account, array $activeOauthAccounts): bool
+{
+    if (sr_member_oauth_password_login_available($account)) {
+        return true;
+    }
+
+    return count($activeOauthAccounts) > 1;
+}
+
+function sr_member_oauth_revoke_account(PDO $pdo, int $oauthAccountId, int $accountId): bool
+{
+    $stmt = $pdo->prepare(
+        'UPDATE sr_member_oauth_accounts
+         SET revoked_at = :revoked_at,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND account_id = :account_id
+           AND revoked_at IS NULL'
+    );
+    $stmt->execute([
+        'revoked_at' => sr_now(),
+        'updated_at' => sr_now(),
+        'id' => $oauthAccountId,
+        'account_id' => $accountId,
+    ]);
+
+    return $stmt->rowCount() > 0;
+}
+
 function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $providerKey, string $subjectHash, array $profile): int
 {
     $now = sr_now();
@@ -223,6 +298,17 @@ function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $provider
     ]);
 
     return (int) $pdo->lastInsertId();
+}
+
+function sr_member_oauth_mock_profile(): array
+{
+    return [
+        'subject' => 'mock-user',
+        'subject_display' => 'mock-user',
+        'email' => 'mock-user@example.test',
+        'email_verified' => true,
+        'display_name' => 'mock_user',
+    ];
 }
 
 function sr_member_oauth_create_completion_state(PDO $pdo, string $providerKey, string $subjectHash, array $profile, string $nextPath, int $ttlSeconds): string

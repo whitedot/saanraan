@@ -118,6 +118,37 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             </form>
         </section>
 
+        <?php if (!empty($oauthProviders)) { ?>
+            <section>
+                <h2>소셜 로그인</h2>
+                <?php if (!empty($oauthAccounts)) { ?>
+                    <dl>
+                        <?php foreach ($oauthAccounts as $oauthAccount) { ?>
+                            <dt><?php echo sr_e((string) $oauthAccount['provider_key']); ?></dt>
+                            <dd>
+                                <?php echo sr_e((string) $oauthAccount['provider_subject_display']); ?>
+                                <?php if (!empty($oauthAccount['last_login_at'])) { ?>
+                                    <span><?php echo sr_e((string) $oauthAccount['last_login_at']); ?></span>
+                                <?php } ?>
+                                <form method="post" action="<?php echo sr_e(sr_url('/account/oauth/unlink')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="oauth_account_id" value="<?php echo sr_e((string) $oauthAccount['id']); ?>">
+                                    <button type="submit"<?php echo $oauthCanUnlink ? '' : ' disabled'; ?>>연결 해제</button>
+                                </form>
+                            </dd>
+                        <?php } ?>
+                    </dl>
+                <?php } ?>
+                <p>
+                    <?php foreach ($oauthProviders as $oauthProvider) { ?>
+                        <a href="<?php echo sr_e(sr_url('/oauth/start?provider=' . rawurlencode((string) $oauthProvider['provider_key']) . '&flow=link&next=' . rawurlencode('/account'))); ?>">
+                            <?php echo sr_e((string) $oauthProvider['label']); ?> 연결
+                        </a>
+                    <?php } ?>
+                </p>
+            </section>
+        <?php } ?>
+
         <?php if ($profileFieldsEnabled) { ?>
             <section>
                 <h2><?php echo sr_e(sr_t('member::ui.select.2ea79f04')); ?></h2>

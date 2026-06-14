@@ -276,6 +276,15 @@ if (is_array($submittedProfile) && $errors !== []) {
     $profile = array_merge($profile, $submittedProfile);
 }
 $consents = sr_member_latest_consents($pdo, (int) $account['id']);
+$oauthProviders = [];
+$oauthAccounts = [];
+$oauthCanUnlink = false;
+if (sr_module_enabled($pdo, 'member_oauth') && is_file(SR_ROOT . '/modules/member_oauth/helpers.php')) {
+    require_once SR_ROOT . '/modules/member_oauth/helpers.php';
+    $oauthProviders = sr_member_oauth_public_providers($pdo);
+    $oauthAccounts = sr_member_oauth_accounts_for_account($pdo, (int) $account['id']);
+    $oauthCanUnlink = sr_member_oauth_can_unlink($account, $oauthAccounts);
+}
 
 $memberSkinView = sr_member_skin_view(sr_member_skin_key($memberSettings), 'account');
 include $memberSkinView;

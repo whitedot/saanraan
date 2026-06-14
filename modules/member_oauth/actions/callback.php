@@ -7,25 +7,60 @@ require_once SR_ROOT . '/modules/member_oauth/helpers.php';
 
 $providerKey = sr_member_oauth_provider_key(sr_get_string('provider', 60));
 $stateToken = sr_get_string_without_truncation('state', 255) ?? '';
-$state = sr_member_oauth_consume_state($pdo, $stateToken, $providerKey, 'login');
-if (!is_array($state)) {
-    sr_render_error(400, 'OAuth state is invalid.');
-}
-
 $providers = sr_member_oauth_providers($pdo);
 if (!isset($providers[$providerKey]) || empty($providers[$providerKey]['mock'])) {
     sr_render_error(501, 'OAuth provider adapter is not implemented.');
 }
 
-$subject = 'mock-user';
-$profile = [
-    'subject_display' => 'mock-user',
-    'email' => 'mock-user@example.test',
-    'email_verified' => true,
-    'display_name' => 'mock_user',
-];
-$subjectHash = sr_member_oauth_subject_hash($config, $providerKey, $subject);
+$statePreview = sr_member_oauth_state_by_token($pdo, $stateToken, 'login');
+if (!is_array($statePreview)) {
+    $statePreview = sr_member_oauth_state_by_token($pdo, $stateToken, 'link');
+}
+if (!is_array($statePreview) || (string) $statePreview['provider_key'] !== $providerKey) {
+    sr_render_error(400, 'OAuth state is invalid.');
+}
+
+$state = sr_member_oauth_consume_state($pdo, $stateToken, $providerKey, (string) $statePreview['flow_type']);
+if (!is_array($state)) {
+    sr_render_error(400, 'OAuth state is invalid.');
+}
+
+$profile = sr_member_oauth_mock_profile();
+$subjectHash = sr_member_oauth_subject_hash($config, $providerKey, (string) $profile['subject']);
 $oauthAccount = sr_member_oauth_account_by_subject($pdo, $providerKey, $subjectHash);
+if ((string) $state['flow_type'] === 'link') {
+    $account = sr_member_require_login($pdo);
+    if ((int) $state['account_id'] !== (int) $account['id']) {
+        sr_render_error(403, 'OAuth link state is not valid for this account.');
+    }
+    $existingProviderAccount = sr_member_oauth_account_for_provider($pdo, (int) $account['id'], $providerKey);
+    if (is_array($oauthAccount) && (int) $oauthAccount['account_id'] !== (int) $account['id']) {
+        sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link_conflict', 'failure');
+        sr_render_error(409, 'OAuth provider account is already linked.');
+    }
+    if (is_array($existingProviderAccount) && (!is_array($oauthAccount) || (int) $existingProviderAccount['id'] !== (int) $oauthAccount['id'])) {
+        sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link_provider_exists', 'failure');
+        sr_render_error(409, 'OAuth provider is already linked to this account.');
+    }
+    if (!is_array($oauthAccount) && !is_array($existingProviderAccount)) {
+        sr_member_oauth_link_account($pdo, (int) $account['id'], $providerKey, $subjectHash, $profile);
+        sr_member_log_auth($pdo, (int) $account['id'], 'oauth_link', 'success');
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) $account['id'],
+            'actor_type' => 'member',
+            'event_type' => 'member.oauth.linked',
+            'target_type' => 'member_account',
+            'target_id' => (string) $account['id'],
+            'result' => 'success',
+            'message' => 'OAuth provider linked to member account.',
+            'metadata' => [
+                'provider_key' => $providerKey,
+            ],
+        ]);
+    }
+    sr_redirect('/account');
+}
+
 if (is_array($oauthAccount)) {
     $account = sr_member_find_by_id($pdo, (int) $oauthAccount['account_id']);
     $memberSettings = sr_member_settings($pdo);
