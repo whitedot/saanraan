@@ -603,6 +603,10 @@ foreach ([
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
+    'modules/community/themes/basic/layout.php' => [
+        '/modules/privacy/assets/cookie-consent.css',
+        'sr_privacy_cookie_consent_public_html($layoutPdo)',
+    ],
     'modules/popup_layer/helpers.php' => [
         'function sr_popup_layer_cookie_name(int $popupId): string',
         'dismiss_cookie_days',

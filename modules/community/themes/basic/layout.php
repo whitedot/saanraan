@@ -65,6 +65,12 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
 if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
 }
+$layoutPrivacyCookieConsentHtml = '';
+if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_file(SR_ROOT . '/modules/privacy/helpers.php')) {
+    require_once SR_ROOT . '/modules/privacy/helpers.php';
+    $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
+    $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
+}
 if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey === '' && function_exists('sr_community_primary_menu_fallback_links')) {
     $layoutFallbackLinks = sr_community_primary_menu_fallback_links($layoutPdo);
     if ($layoutFallbackLinks !== []) {
@@ -298,6 +304,7 @@ $layoutCopyrightYear = date('Y');
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/assets/mention-input.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/modules/community/assets/community-layout.js')); ?>" defer></script>
+    <?php echo $layoutPrivacyCookieConsentHtml; ?>
     <?php echo sr_pwa_registration_script(); ?>
 </body>
 </html>
