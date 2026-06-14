@@ -105,6 +105,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <option value="<?php echo sr_e($requestType); ?>"><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                     <?php } ?>
                 </select>
+                <small class="admin-form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
             </label>
         </div>
         <label for="privacy_create_request_message">
@@ -187,6 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="request_id" value="<?php echo sr_e($requestId); ?>">
                                     <input type="hidden" name="status" value="<?php echo sr_e($requestStatus); ?>" data-privacy-status>
+                                    <p class="admin-form-help">상태 변경은 대응 기록만 저장합니다. 실제 정정, 처리 제한, 동의 철회 조치는 소유 모듈 화면에서 처리하고 메모에 근거를 남기세요.</p>
                                     <div class="admin-row-actions" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?>">
                                         <?php if (!in_array($requestStatus, sr_admin_privacy_request_terminal_statuses(), true)) { ?>
                                             <?php foreach ($allowedStatuses as $status) { ?>

@@ -632,6 +632,12 @@ if ($adminPrivacyRequestsView !== '') {
         'Admin privacy request view should provide a minimal manual record form for external contact cases.'
     );
     sr_member_auth_policy_assert(
+        strpos($adminPrivacyRequestsView, '요청 유형은 대응 기록입니다.') !== false
+            && strpos($adminPrivacyRequestsView, '상태 변경은 대응 기록만 저장합니다.') !== false
+            && strpos($adminPrivacyRequestsView, '실제 정정, 처리 제한, 동의 철회 조치는 소유 모듈 화면에서 처리') !== false,
+        'Admin privacy request view should explain that request status does not automatically propagate module actions.'
+    );
+    sr_member_auth_policy_assert(
         strpos($adminPrivacyRequestsView, 'name="admin_password"') !== false
             && strpos($adminPrivacyRequestsView, 'autocomplete="current-password" required') !== false,
         'Admin privacy request export form should ask for current admin password.'
