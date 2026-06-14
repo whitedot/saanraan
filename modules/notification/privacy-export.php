@@ -97,6 +97,30 @@ return static function (PDO $pdo, int $accountId): array {
         );
         $stmt->execute($deliveryParams);
         $deliveries = $stmt->fetchAll();
+        $endpointMasks = [];
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT id, recipient_masked
+                 FROM sr_notification_push_endpoints
+                 WHERE account_id = :account_id'
+            );
+            $stmt->execute(['account_id' => $accountId]);
+            foreach ($stmt->fetchAll() as $endpointRow) {
+                $endpointId = (int) ($endpointRow['id'] ?? 0);
+                if ($endpointId > 0) {
+                    $endpointMasks[$endpointId] = (string) ($endpointRow['recipient_masked'] ?? '');
+                }
+            }
+        } catch (Throwable) {
+            $endpointMasks = [];
+        }
+        foreach ($deliveries as $index => $delivery) {
+            $recipient = (string) ($delivery['recipient'] ?? '');
+            if (preg_match('/\Aendpoint:([1-9][0-9]*)\z/', $recipient, $matches) === 1) {
+                $endpointId = (int) $matches[1];
+                $deliveries[$index]['recipient'] = (string) ($endpointMasks[$endpointId] ?? 'endpoint:[masked]');
+            }
+        }
     }
 
     return [

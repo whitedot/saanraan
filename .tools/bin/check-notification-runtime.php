@@ -480,6 +480,16 @@ $pdo->prepare("UPDATE sr_notification_push_endpoints SET status = 'disabled', di
 $memberPushResult = sr_notification_process_delivery($pdo, ['site_name' => '산란'], $claimedMemberPush, sr_notification_settings($pdo), '2026-06-11 12:07:00', 5);
 sr_notification_runtime_assert(($memberPushResult['skipped'] ?? 0) === 1, 'notification runtime fixture must skip queued member push after endpoint is disabled.');
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT status FROM sr_notification_deliveries WHERE id = :id', ['id' => (int) ($claimedMemberPush['id'] ?? 0)]) === 'canceled', 'notification runtime fixture must cancel queued member push after endpoint is disabled.');
+$notificationPrivacyExporter = require $root . '/modules/notification/privacy-export.php';
+$notificationPrivacyExport = $notificationPrivacyExporter($pdo, 7);
+$exportedEndpointRecipients = [];
+foreach ((array) ($notificationPrivacyExport['deliveries'] ?? []) as $exportedDelivery) {
+    if ((string) ($exportedDelivery['channel'] ?? '') === 'telegram_bot') {
+        $exportedEndpointRecipients[] = (string) ($exportedDelivery['recipient'] ?? '');
+    }
+}
+sr_notification_runtime_assert(in_array('1234***', $exportedEndpointRecipients, true), 'notification runtime fixture must export member push delivery recipient as masked label.');
+sr_notification_runtime_assert(!in_array('endpoint:' . (string) $memberTelegramEndpointId, $exportedEndpointRecipients, true), 'notification runtime fixture must not export member push delivery endpoint references.');
 
 $pdo->exec(
     "INSERT INTO sr_notification_event_templates
