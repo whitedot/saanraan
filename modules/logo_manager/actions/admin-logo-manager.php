@@ -21,7 +21,7 @@ $iconVariantTableExists = sr_logo_manager_icon_variants_table_exists($pdo);
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/logo-manager', $intent === 'delete_logo' ? 'delete' : 'edit');
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/logo-manager', in_array($intent, ['delete_logo', 'purge_favicon_icons'], true) ? 'delete' : 'edit');
 
     $now = sr_now();
 
@@ -380,6 +380,83 @@ if (sr_request_method() === 'POST') {
             } catch (Throwable $exception) {
                 sr_log_exception($exception, 'logo_manager_icon_set_generate_failed');
                 $errors[] = $exception->getMessage();
+            }
+        }
+    } elseif ($intent === 'purge_favicon_icons') {
+        if (!$logoTableExists) {
+            $errors[] = '로고 매니저 DB 업데이트를 먼저 적용하세요.';
+        }
+
+        $faviconLogos = [];
+        $iconVariants = [];
+        if ($logoTableExists) {
+            $stmt = $pdo->prepare('SELECT * FROM sr_logo_manager_logos WHERE position_key = :position_key ORDER BY id ASC');
+            $stmt->execute(['position_key' => sr_logo_manager_public_symbol_position_key()]);
+            $faviconLogos = $stmt->fetchAll();
+
+            if ($iconVariantTableExists && $faviconLogos !== []) {
+                $faviconLogoIds = array_values(array_map(static fn (array $logo): int => (int) ($logo['id'] ?? 0), $faviconLogos));
+                $placeholders = implode(', ', array_fill(0, count($faviconLogoIds), '?'));
+                $stmt = $pdo->prepare('SELECT storage_driver, storage_key FROM sr_logo_manager_icon_variants WHERE logo_id IN (' . $placeholders . ')');
+                $stmt->execute($faviconLogoIds);
+                $iconVariants = $stmt->fetchAll();
+            }
+        }
+
+        if ($errors === []) {
+            $storageReferences = $iconVariants;
+            foreach ($faviconLogos as $faviconLogo) {
+                $storageReferences[] = [
+                    'storage_driver' => (string) ($faviconLogo['storage_driver'] ?? 'local'),
+                    'storage_key' => (string) ($faviconLogo['storage_key'] ?? ''),
+                ];
+            }
+
+            try {
+                $pdo->beginTransaction();
+
+                if ($faviconLogos !== []) {
+                    $faviconLogoIds = array_values(array_map(static fn (array $logo): int => (int) ($logo['id'] ?? 0), $faviconLogos));
+                    $placeholders = implode(', ', array_fill(0, count($faviconLogoIds), '?'));
+                    if ($iconVariantTableExists) {
+                        $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_icon_variants WHERE logo_id IN (' . $placeholders . ')');
+                        $stmt->execute($faviconLogoIds);
+                    }
+                    $stmt = $pdo->prepare('DELETE FROM sr_logo_manager_logos WHERE id IN (' . $placeholders . ')');
+                    $stmt->execute($faviconLogoIds);
+                }
+
+                sr_logo_manager_mark_favicon_reset($pdo, $now);
+                $pdo->commit();
+
+                $storageDeleteResult = sr_logo_manager_delete_storage_references($storageReferences);
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'logo_manager.favicon.purged',
+                    'target_type' => 'logo_manager_logo',
+                    'target_id' => sr_logo_manager_public_symbol_position_key(),
+                    'result' => 'success',
+                    'message' => 'Logo manager favicon and app icons purged.',
+                    'metadata' => [
+                        'logo_count' => count($faviconLogos),
+                        'icon_variant_count' => count($iconVariants),
+                        'deleted_storage_count' => (int) ($storageDeleteResult['deleted_count'] ?? 0),
+                        'failed_storage_refs' => array_slice(array_map('strval', is_array($storageDeleteResult['failed'] ?? null) ? $storageDeleteResult['failed'] : []), 0, 20),
+                        'reset_at' => $now,
+                    ],
+                ]);
+
+                $notice = '파비콘/앱 아이콘을 완전 삭제했습니다. 이후 화면은 빈 아이콘 link로 이전 캐시를 덮어씁니다.';
+                if (($storageDeleteResult['failed'] ?? []) !== []) {
+                    $notice .= ' 일부 저장소 파일은 정리하지 못했습니다.';
+                }
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                sr_log_exception($exception, 'logo_manager_favicon_purge_failed');
+                $errors[] = '파비콘/앱 아이콘 완전 삭제 중 오류가 발생했습니다.';
             }
         }
     } elseif ($intent === 'delete_logo') {

@@ -211,6 +211,68 @@ function sr_logo_manager_delete_storage_references(array $references): array
     ];
 }
 
+function sr_logo_manager_favicon_reset_setting_key(): string
+{
+    return 'favicon_reset_at';
+}
+
+function sr_logo_manager_favicon_reset_marker(PDO $pdo): string
+{
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT s.setting_value
+             FROM sr_module_settings s
+             INNER JOIN sr_modules m ON m.id = s.module_id
+             WHERE m.module_key = :module_key
+               AND s.setting_key = :setting_key
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'module_key' => 'logo_manager',
+            'setting_key' => sr_logo_manager_favicon_reset_setting_key(),
+        ]);
+
+        return trim((string) ($stmt->fetchColumn() ?: ''));
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'logo_manager_favicon_reset_marker_failed');
+        return '';
+    }
+}
+
+function sr_logo_manager_mark_favicon_reset(PDO $pdo, string $now): void
+{
+    $now = trim($now) !== '' ? $now : sr_now();
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'logo_manager' LIMIT 1");
+    $stmt->execute();
+    $moduleId = (int) ($stmt->fetchColumn() ?: 0);
+    if ($moduleId < 1) {
+        throw new RuntimeException('로고 매니저 모듈 정보를 찾을 수 없습니다.');
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ON DUPLICATE KEY UPDATE
+            setting_value = VALUES(setting_value),
+            value_type = VALUES(value_type),
+            updated_at = VALUES(updated_at)'
+    );
+    $stmt->execute([
+        'module_id' => $moduleId,
+        'setting_key' => sr_logo_manager_favicon_reset_setting_key(),
+        'setting_value' => $now,
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    if (function_exists('sr_clear_module_settings_cache')) {
+        sr_clear_module_settings_cache('logo_manager');
+    }
+}
+
 function sr_logo_manager_site_setting_reference_count(PDO $pdo, array $target, array $context): int
 {
     return count(sr_logo_manager_site_setting_reference_rows($pdo, $target, $context));
@@ -1246,7 +1308,7 @@ function sr_logo_manager_favicon_cache_version(PDO $pdo): string
         return '0';
     }
 
-    $versionParts = [];
+    $versionParts = [sr_logo_manager_favicon_reset_marker($pdo)];
     try {
         $stmt = $pdo->prepare(
             'SELECT MAX(updated_at) AS updated_at, MAX(id) AS max_id
@@ -1324,7 +1386,7 @@ function sr_logo_manager_favicon_link_tag(PDO $pdo): string
     $cacheVersion = sr_logo_manager_favicon_cache_version($pdo);
     $logo = sr_logo_manager_active_logo($pdo, 'public.favicon');
     if (!is_array($logo)) {
-        return sr_logo_manager_favicon_has_configured_logo($pdo)
+        return (sr_logo_manager_favicon_has_configured_logo($pdo) || sr_logo_manager_favicon_reset_marker($pdo) !== '')
             ? sr_logo_manager_disabled_favicon_link_tag($cacheVersion)
             : '';
     }

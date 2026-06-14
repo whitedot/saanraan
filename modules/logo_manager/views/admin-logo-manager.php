@@ -40,6 +40,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <span class="logo-manager-empty"><?php echo sr_e(sr_t('logo_manager::ui.text.8789bbce')); ?></span>
                     <small><?php echo sr_e((string) ($positionOption['hint'] ?? sr_t('logo_manager::ui.position.empty_help'))); ?></small>
                 <?php } ?>
+                <?php if ((string) $positionKey === sr_logo_manager_public_symbol_position_key() && $logoTableExists) { ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form logo-manager-current-action">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="purge_favicon_icons">
+                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" title="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" onclick="return confirm('<?php echo sr_e('파비콘/앱 아이콘 로고와 생성된 아이콘 파일을 완전 삭제할까요? 삭제 후에는 빈 아이콘 link로 이전 브라우저 캐시를 덮어씁니다.'); ?>');"><?php echo sr_material_icon_html('delete_forever'); ?></button>
+                    </form>
+                <?php } ?>
             </article>
         <?php } ?>
     </div>
@@ -287,6 +294,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('apps'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.icon_set')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.edit')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('toggle_on'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.status')); ?></span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete_forever'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.favicon_purge')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.delete')); ?></span>
     </div>
 </section>

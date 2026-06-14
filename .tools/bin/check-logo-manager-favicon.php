@@ -162,6 +162,24 @@ function sr_logo_manager_favicon_check_pdo(): PDO
             updated_at TEXT DEFAULT '2026-06-10 12:00:00'
         )"
     );
+    $pdo->exec(
+        "CREATE TABLE sr_modules (
+            id INTEGER PRIMARY KEY,
+            module_key TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
+        "CREATE TABLE sr_module_settings (
+            id INTEGER PRIMARY KEY,
+            module_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL DEFAULT 'string',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec("INSERT INTO sr_modules (id, module_key) VALUES (1, 'logo_manager')");
 
     return $pdo;
 }
@@ -383,6 +401,17 @@ sr_logo_manager_favicon_check_assert($html !== $activeHtml, 'favicon disabled st
 $pdo = sr_logo_manager_favicon_check_pdo();
 $html = sr_logo_manager_favicon_link_tag($pdo);
 sr_logo_manager_favicon_check_assert($html === '', 'empty favicon configuration should not render disabled data icon');
+
+$pdo = sr_logo_manager_favicon_check_pdo();
+$pdo->exec(
+    "INSERT INTO sr_module_settings
+        (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+     VALUES
+        (1, 'favicon_reset_at', '2026-06-10 12:00:00', 'string', '2026-06-10 12:00:00', '2026-06-10 12:00:00')"
+);
+$html = sr_logo_manager_favicon_link_tag($pdo);
+sr_logo_manager_favicon_check_assert_disabled_tag($html, 'favicon reset marker without configured logos');
+sr_logo_manager_favicon_check_assert(str_contains($html, 'data-sr-logo-manager-version'), 'favicon reset marker disabled data icon must include version marker');
 
 $moduleStatus = is_file('docs/module-status.md') ? file_get_contents('docs/module-status.md') : false;
 sr_logo_manager_favicon_check_assert(is_string($moduleStatus), 'docs/module-status.md must be readable');
