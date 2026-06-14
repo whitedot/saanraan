@@ -6,10 +6,10 @@ return [
     'type' => 'module',
     'description' => '본문 안에 여러 모듈 대상을 marker와 참조 행으로 연결하는 임베드 매니저 기반 모듈입니다.',
     'admin' => [
-        'category' => 'service',
-        'category_label' => '서비스',
-        'category_order' => 30,
-        'menu_order' => 990,
+        'category' => 'operation',
+        'category_label' => '운영',
+        'category_order' => 40,
+        'menu_order' => 40,
         'icon' => ['type' => 'symbol', 'name' => 'integration_instructions'],
     ],
     'saanraan' => [

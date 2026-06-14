@@ -2,7 +2,7 @@
 
 return [
     'label' => '리액션',
-    'order' => 29,
+    'order' => 30,
     'items' => [
         [
             'label' => '리액션 정의',

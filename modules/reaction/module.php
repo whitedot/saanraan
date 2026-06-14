@@ -6,10 +6,10 @@ return [
     'type' => 'module',
     'description' => '콘텐츠, 커뮤니티, 퀴즈, 설문이 함께 사용하는 공통 리액션 정의와 원장 모듈입니다.',
     'admin' => [
-        'category' => 'service',
-        'category_label' => '서비스',
-        'category_order' => 30,
-        'menu_order' => 980,
+        'category' => 'operation',
+        'category_label' => '운영',
+        'category_order' => 40,
+        'menu_order' => 30,
         'icon' => ['type' => 'symbol', 'name' => 'emoji_emotions'],
     ],
     'saanraan' => [

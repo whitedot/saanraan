@@ -2,7 +2,7 @@
 
 return [
     'label' => sr_t('policy_documents::ui.policy_documents'),
-    'order' => 30,
+    'order' => 50,
     'items' => [
         [
             'label' => sr_t('policy_documents::ui.document.list'),

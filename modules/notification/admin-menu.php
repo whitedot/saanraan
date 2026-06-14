@@ -2,7 +2,7 @@
 
 return [
     'label' => sr_t('notification::ui.notification.12ddd6ca'),
-    'order' => 27,
+    'order' => 10,
     'items' => [
         [
             'label' => '운영 알림',

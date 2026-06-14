@@ -20,7 +20,7 @@ function sr_admin_code_label_context_options(): array
             'member' => '회원',
             'notification' => '알림',
             'point' => '포인트',
-            'policy_documents' => '정책 문서',
+            'policy_documents' => '약관/방침 관리',
             'privacy' => '개인정보',
             'quiz' => '퀴즈',
             'reward' => '적립금',

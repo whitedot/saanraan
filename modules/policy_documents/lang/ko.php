@@ -23,7 +23,7 @@ return [
     'ui.mail_job_empty' => '생성된 안내메일 작업이 없습니다.',
     'ui.mail_jobs' => '변경 안내메일',
     'ui.mail_run' => '20건 발송',
-    'ui.policy_documents' => '정책 문서',
+    'ui.policy_documents' => '약관/방침 관리',
     'ui.published_at' => '게시 시각',
     'ui.published_version' => '현재 게시 버전',
     'ui.required' => '(필수)',
