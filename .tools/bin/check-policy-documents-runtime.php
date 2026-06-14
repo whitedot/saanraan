@@ -105,6 +105,19 @@ function sr_policy_documents_check_pdo(): PDO
 }
 
 $pdo = sr_policy_documents_check_pdo();
+try {
+    sr_policy_document_create_version($pdo, 404, [
+        'version_key' => '2026.06.000',
+        'title' => '없는 문서',
+        'body_html' => '<p>본문</p>',
+        'summary_text' => '',
+        'status' => 'published',
+    ]);
+    sr_policy_documents_check_assert(false, 'policy document version creation should reject missing document ids.');
+} catch (InvalidArgumentException) {
+    sr_policy_documents_check_assert(true, 'policy document version creation should reject missing document ids.');
+}
+
 $firstVersionId = sr_policy_document_create_version($pdo, 1, [
     'version_key' => '2026.06.001',
     'title' => '이용약관',
@@ -130,6 +143,12 @@ sr_policy_documents_check_assert(
 );
 
 $jobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);
+try {
+    sr_policy_document_create_notice_job($pdo, 404, $secondVersionId, 'subject', 'body', true);
+    sr_policy_documents_check_assert(false, 'policy document notice job creation should reject version/document mismatch.');
+} catch (InvalidArgumentException) {
+    sr_policy_documents_check_assert(true, 'policy document notice job creation should reject version/document mismatch.');
+}
 $sameJobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);
 sr_policy_documents_check_assert($jobId === $sameJobId, 'notice job creation should be idempotent per version.');
 sr_policy_documents_check_assert(

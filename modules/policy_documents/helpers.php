@@ -41,6 +41,24 @@ function sr_policy_document_by_key(PDO $pdo, string $documentKey): ?array
     return is_array($document) ? $document : null;
 }
 
+function sr_policy_document_by_id(PDO $pdo, int $documentId): ?array
+{
+    if ($documentId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, document_key, document_type, title, description, status, sort_order, created_at, updated_at
+         FROM sr_policy_documents
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $documentId]);
+    $document = $stmt->fetch();
+
+    return is_array($document) ? $document : null;
+}
+
 function sr_policy_document_published_version(PDO $pdo, string $documentKey, ?string $at = null): ?array
 {
     $document = sr_policy_document_by_key($pdo, $documentKey);
@@ -167,6 +185,10 @@ function sr_policy_document_versions(PDO $pdo, int $documentId): array
 
 function sr_policy_document_create_version(PDO $pdo, int $documentId, array $data): int
 {
+    if (!is_array(sr_policy_document_by_id($pdo, $documentId))) {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.document_required'));
+    }
+
     $versionKey = trim((string) ($data['version_key'] ?? ''));
     $title = sr_clean_single_line((string) ($data['title'] ?? ''), 190);
     $bodyHtml = sr_policy_document_sanitize_body((string) ($data['body_html'] ?? ''));
@@ -245,6 +267,21 @@ function sr_policy_document_create_version(PDO $pdo, int $documentId, array $dat
 
 function sr_policy_document_create_notice_job(PDO $pdo, int $documentId, int $versionId, string $subject, string $body, bool $dryRun = false): int
 {
+    $versionStmt = $pdo->prepare(
+        'SELECT id
+         FROM sr_policy_document_versions
+         WHERE id = :id
+           AND document_id = :document_id
+         LIMIT 1'
+    );
+    $versionStmt->execute([
+        'id' => $versionId,
+        'document_id' => $documentId,
+    ]);
+    if ((int) $versionStmt->fetchColumn() !== $versionId) {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.version_required'));
+    }
+
     $jobKey = 'policy_document_' . (string) $versionId . '_notice';
     $now = sr_now();
     $existingStmt = $pdo->prepare(

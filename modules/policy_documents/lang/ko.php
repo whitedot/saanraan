@@ -5,6 +5,7 @@ return [
     'error.document_required' => '문서를 선택해 주세요.',
     'error.title_required' => '제목을 입력해 주세요.',
     'error.version_key_invalid' => '버전 키 형식이 올바르지 않습니다.',
+    'error.version_required' => '문서 버전을 찾을 수 없습니다.',
     'mail.notice.body' => "정책 문서가 새 버전으로 게시되었습니다.\n\n관리자 화면 또는 공개 문서에서 변경 내용을 확인해 주세요.",
     'mail.notice.subject' => '정책 문서 변경 안내',
     'notice.mail_batch_processed' => '안내메일 batch를 처리했습니다. 발송 {sent}건, 실패 {failed}건.',
