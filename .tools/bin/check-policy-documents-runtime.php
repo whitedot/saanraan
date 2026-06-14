@@ -158,6 +158,16 @@ sr_policy_documents_check_assert(
     (string) sr_policy_document_published_version($pdo, 'member_terms')['version_key'] === '2026.06.002',
     'current policy document lookup should ignore future effective versions until their effective time.'
 );
+$currentDocuments = sr_policy_documents_with_current_versions($pdo);
+sr_policy_documents_check_assert(
+    (string) ($currentDocuments[0]['published_version_key'] ?? '') === '2026.06.002',
+    'admin policy document list should ignore future effective versions until their effective time.'
+);
+$enabledChoices = sr_policy_document_enabled_choices($pdo);
+sr_policy_documents_check_assert(
+    (string) ($enabledChoices[0]['published_version_key'] ?? '') === '2026.06.002',
+    'policy document choices should ignore future effective versions until their effective time.'
+);
 
 $jobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);
 try {

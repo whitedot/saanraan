@@ -131,27 +131,30 @@ function sr_policy_document_public_render_data(PDO $pdo, string $documentKey): ?
 
 function sr_policy_document_enabled_choices(PDO $pdo): array
 {
-    $stmt = $pdo->query(
+    $stmt = $pdo->prepare(
         'SELECT d.id, d.document_key, d.document_type, d.title, d.status,
                 v.id AS published_version_id, v.version_key AS published_version_key, v.published_at
          FROM sr_policy_documents d
          LEFT JOIN sr_policy_document_versions v ON v.id = (
             SELECT pv.id
             FROM sr_policy_document_versions pv
-            WHERE pv.document_id = d.id AND pv.status = "published"
+            WHERE pv.document_id = d.id
+              AND pv.status = "published"
+              AND (pv.effective_from IS NULL OR pv.effective_from <= :effective_at)
             ORDER BY COALESCE(pv.effective_from, pv.published_at, pv.created_at) DESC, pv.id DESC
             LIMIT 1
          )
          WHERE d.status = "enabled"
          ORDER BY d.sort_order ASC, d.id ASC'
     );
+    $stmt->execute(['effective_at' => sr_now()]);
 
     return $stmt->fetchAll();
 }
 
 function sr_policy_documents_with_current_versions(PDO $pdo): array
 {
-    $stmt = $pdo->query(
+    $stmt = $pdo->prepare(
         'SELECT d.id, d.document_key, d.document_type, d.title, d.description, d.status, d.sort_order,
                 d.created_at, d.updated_at,
                 v.id AS published_version_id, v.version_key AS published_version_key, v.published_at
@@ -159,12 +162,15 @@ function sr_policy_documents_with_current_versions(PDO $pdo): array
          LEFT JOIN sr_policy_document_versions v ON v.id = (
             SELECT pv.id
             FROM sr_policy_document_versions pv
-            WHERE pv.document_id = d.id AND pv.status = "published"
+            WHERE pv.document_id = d.id
+              AND pv.status = "published"
+              AND (pv.effective_from IS NULL OR pv.effective_from <= :effective_at)
             ORDER BY COALESCE(pv.effective_from, pv.published_at, pv.created_at) DESC, pv.id DESC
             LIMIT 1
          )
          ORDER BY d.sort_order ASC, d.id ASC'
     );
+    $stmt->execute(['effective_at' => sr_now()]);
 
     return $stmt->fetchAll();
 }
