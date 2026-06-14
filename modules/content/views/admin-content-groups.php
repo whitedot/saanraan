@@ -183,7 +183,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="delete_group">
                                             <input type="hidden" name="group_id" value="<?php echo sr_e((string) $pageGroup['id']); ?>">
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 그룹 삭제" title="콘텐츠 그룹 삭제" onclick="return confirm('이 콘텐츠 그룹을 삭제할까요? 연결 콘텐츠, 댓글, 파일도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 그룹 삭제" title="콘텐츠 그룹 삭제" onclick="return confirm('이 콘텐츠 그룹을 삭제할까요? 연결 콘텐츠는 삭제하지 않고 그룹 연결만 해제합니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
                                     </div>
                                 </td>
@@ -207,7 +207,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="card-header">
                 <div>
                     <h2 class="card-title">저장소 정리 실패</h2>
-                    <p class="admin-dashboard-meta">콘텐츠 그룹 삭제 후 남은 파일 정리 대상입니다.</p>
+                    <p class="admin-dashboard-meta">콘텐츠 삭제 후 남은 파일 정리 대상입니다.</p>
                 </div>
             </div>
             <div class="table-wrapper">
@@ -618,8 +618,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="hidden" name="intent" value="delete_group">
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($editPageGroup['id'] ?? 0)); ?>">
                         <p class="admin-form-help">
-                            콘텐츠 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
-                            연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건,
+                            콘텐츠 그룹을 삭제하면 그룹 설정이 함께 삭제되고,
+                            연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건은 삭제하지 않고 그룹 연결만 해제됩니다.
                             댓글 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['comments'] ?? 0)); ?>건,
                             파일 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['files'] ?? 0)); ?>건,
                             revision snapshot 참조 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['revision_references'] ?? 0)); ?>건,

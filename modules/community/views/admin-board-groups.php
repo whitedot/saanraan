@@ -314,7 +314,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="delete_group">
                                     <input type="hidden" name="group_id" value="<?php echo sr_e((string) $boardGroup['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 그룹 삭제" title="게시판 그룹 삭제" onclick="return confirm('이 게시판 그룹을 삭제할까요? 게시판 또는 외부 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 그룹 삭제" title="게시판 그룹 삭제" onclick="return confirm('이 게시판 그룹을 삭제할까요? 연결 게시판은 삭제하지 않고 그룹 연결만 해제합니다. 외부 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
                                 </form>
                             </div>
                         </td>
@@ -868,8 +868,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="hidden" name="intent" value="delete_group">
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($formBoardGroup['id'] ?? 0)); ?>">
                         <p class="admin-form-help">
-                            게시판 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
-                            연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건,
+                            게시판 그룹을 삭제하면 그룹 설정이 함께 삭제되고,
+                            연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건은 삭제하지 않고 그룹 연결만 해제됩니다.
                             외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardGroupDeleteCheck['external_references'] ?? null) ? $boardGroupDeleteCheck['external_references'] : []))); ?>건.
                             현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
                         </p>

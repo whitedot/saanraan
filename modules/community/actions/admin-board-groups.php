@@ -100,6 +100,7 @@ if (sr_request_method() === 'POST') {
                     'group_key' => (string) ($group['group_key'] ?? ''),
                     'title' => (string) ($group['title'] ?? ''),
                     'deleted_settings' => (int) ($deleteResult['deleted_settings'] ?? 0),
+                    'detached_boards' => (int) ($deleteResult['detached_boards'] ?? 0),
                 ],
             ]);
             $notice = '게시판 그룹을 삭제했습니다.';

@@ -2823,131 +2823,33 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
         return $check;
     }
 
-    $contentIds = sr_content_group_content_ids($pdo, $groupId);
-    $coverImageUrls = sr_content_group_cover_image_urls_for_delete($pdo, $contentIds);
-    $files = sr_content_group_file_rows_for_delete($pdo, $contentIds);
     $startedTransaction = !$pdo->inTransaction();
     if ($startedTransaction) {
         $pdo->beginTransaction();
     }
     try {
         $deletedSettings = sr_content_optional_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
-        $deletedContents = count($contentIds);
-        $deletedFiles = count($files);
-        $deletedComments = (int) ($check['references']['comments'] ?? 0);
-        $deletedRevisions = (int) ($check['references']['revision_references'] ?? 0);
-        if ($contentIds !== []) {
-            $placeholders = implode(',', array_fill(0, count($contentIds), '?'));
-
-            if (sr_content_optional_table_exists($pdo, 'sr_content_comments')) {
-                $pdo->prepare('DELETE FROM sr_content_comments WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if (sr_content_optional_table_exists($pdo, 'sr_content_link_refs')) {
-                $pdo->prepare('DELETE FROM sr_content_link_refs WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if (sr_content_optional_table_exists($pdo, 'sr_content_series_items')) {
-                $pdo->prepare('DELETE FROM sr_content_series_items WHERE content_id IN (' . $placeholders . ') OR active_content_id IN (' . $placeholders . ')')->execute(array_merge($contentIds, $contentIds));
-            }
-            if (sr_content_optional_table_exists($pdo, 'sr_content_access_entitlements')) {
-                $pdo->prepare('DELETE FROM sr_content_access_entitlements WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if (sr_content_optional_table_exists($pdo, 'sr_content_setting_sources')) {
-                $pdo->prepare('DELETE FROM sr_content_setting_sources WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if (sr_content_optional_table_exists($pdo, 'sr_content_revisions')) {
-                $pdo->prepare('DELETE FROM sr_content_revisions WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
-                $pdo->prepare('DELETE FROM sr_content_file_links WHERE content_id IN (' . $placeholders . ')')->execute($contentIds);
-            }
-            if ($files !== []) {
-                $fileIds = array_values(array_map(static fn (array $file): int => (int) ($file['id'] ?? 0), $files));
-                $fileIds = array_values(array_filter($fileIds, static fn (int $fileId): bool => $fileId > 0));
-                if ($fileIds !== []) {
-                    $filePlaceholders = implode(',', array_fill(0, count($fileIds), '?'));
-                    if (sr_content_optional_table_exists($pdo, 'sr_content_file_links')) {
-                        $pdo->prepare('DELETE FROM sr_content_file_links WHERE file_id IN (' . $filePlaceholders . ')')->execute($fileIds);
-                    }
-                    $pdo->prepare('DELETE FROM sr_content_files WHERE id IN (' . $filePlaceholders . ')')->execute($fileIds);
-                }
-            }
-            $pdo->prepare('DELETE FROM sr_content_items WHERE id IN (' . $placeholders . ')')->execute($contentIds);
-        }
+        $detachedContents = (int) ($check['references']['contents'] ?? 0);
+        $pdo->prepare('UPDATE sr_content_items SET content_group_id = NULL, updated_at = :updated_at WHERE content_group_id = :group_id')->execute([
+            'updated_at' => sr_now(),
+            'group_id' => $groupId,
+        ]);
         if (sr_content_optional_table_exists($pdo, 'sr_content_group_settings')) {
             $pdo->prepare('DELETE FROM sr_content_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
         }
         $pdo->prepare('DELETE FROM sr_content_groups WHERE id = :id')->execute(['id' => $groupId]);
-        $pdo->commit();
+        if ($startedTransaction) {
+            $pdo->commit();
+        }
     } catch (Throwable $exception) {
-        if ($pdo->inTransaction()) {
+        if ($startedTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
         throw $exception;
     }
 
-    $failedFiles = 0;
-    $failedFileRefs = [];
-    foreach ($files as $file) {
-        $driver = function_exists('sr_content_file_storage_driver') ? sr_content_file_storage_driver($file) : (string) ($file['storage_driver'] ?? 'local');
-        $key = function_exists('sr_content_file_storage_key') ? sr_content_file_storage_key($file) : (string) ($file['storage_key'] ?? '');
-        if ($key !== '' && !sr_storage_delete($driver, $key)) {
-            $failedFiles++;
-            $failedFileRefs[] = $driver . ':' . $key;
-            sr_content_record_storage_cleanup_failure($pdo, 'group_delete_file', $groupId, $driver, $key, '콘텐츠 그룹 삭제 후 파일 저장소 정리에 실패했습니다.');
-        }
-    }
-    $deletedBodyFiles = sr_content_cleanup_body_files_for_deleted_content($pdo, $contentIds);
-    $deletedCoverImages = 0;
-    $failedCoverImages = 0;
-    $failedCoverImageRefs = [];
-    foreach ($coverImageUrls as $coverImageUrl) {
-        try {
-            $coverImageCleanup = sr_content_delete_cover_image_storage($pdo, $coverImageUrl, $groupId, 'group_delete_cover_image');
-        } catch (Throwable $exception) {
-            if (function_exists('sr_log_exception')) {
-                sr_log_exception($exception, 'content_group_cover_image_cleanup_failed');
-            }
-            try {
-                $failedCoverStorage = sr_content_cover_image_storage_reference_from_url($coverImageUrl);
-                if (is_array($failedCoverStorage)) {
-                    sr_content_record_storage_cleanup_failure(
-                        $pdo,
-                        'group_delete_cover_image',
-                        $groupId,
-                        (string) ($failedCoverStorage['driver'] ?? 'local'),
-                        (string) ($failedCoverStorage['key'] ?? ''),
-                        '콘텐츠 그룹 삭제 후 커버 이미지 저장소 정리에 실패했습니다: ' . $exception->getMessage()
-                    );
-                }
-            } catch (Throwable $recordException) {
-                if (function_exists('sr_log_exception')) {
-                    sr_log_exception($recordException, 'content_group_cover_image_cleanup_failure_record_failed');
-                }
-            }
-            $failedCoverImages++;
-            $failedCoverImageRefs[] = sr_content_clean_text($coverImageUrl, 180);
-            continue;
-        }
-        if (!empty($coverImageCleanup['deleted'])) {
-            $deletedCoverImages++;
-        }
-        if (!empty($coverImageCleanup['failed'])) {
-            $failedCoverImages++;
-            $failedCoverImageRefs[] = (string) ($coverImageCleanup['reference'] ?? '');
-        }
-    }
-
     $check['deleted_settings'] = $deletedSettings;
-    $check['deleted_contents'] = $deletedContents;
-    $check['deleted_comments'] = $deletedComments;
-    $check['deleted_revisions'] = $deletedRevisions;
-    $check['deleted_files'] = $deletedFiles - $failedFiles;
-    $check['deleted_body_files'] = $deletedBodyFiles;
-    $check['deleted_cover_images'] = $deletedCoverImages;
-    $check['failed_cover_images'] = $failedCoverImages;
-    $check['failed_cover_image_refs'] = $failedCoverImageRefs;
-    $check['failed_files'] = $failedFiles;
-    $check['failed_file_refs'] = $failedFileRefs;
+    $check['detached_contents'] = $detachedContents;
     return $check;
 }
 

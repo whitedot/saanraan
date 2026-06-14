@@ -1875,9 +1875,6 @@ function sr_community_can_delete_board_group(PDO $pdo, int $groupId): array
     $references = sr_community_board_group_reference_counts($pdo, $groupId);
     $externalReferences = sr_community_board_group_external_reference_counts($pdo, $groupId);
     $errors = [];
-    if ((int) ($references['boards'] ?? 0) > 0) {
-        $errors[] = '게시판이 연결된 그룹은 삭제할 수 없습니다. 게시판을 이동하거나 그룹을 비활성/보관 상태로 전환해 주세요.';
-    }
     if (array_sum(array_map('intval', $externalReferences)) > 0) {
         $errors[] = '외부 운영 참조가 있어 게시판 그룹을 삭제할 수 없습니다.';
     }
@@ -1895,6 +1892,11 @@ function sr_community_delete_board_group(PDO $pdo, int $groupId): array
     $pdo->beginTransaction();
     try {
         $deletedSettings = sr_community_optional_count($pdo, 'sr_community_board_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
+        $detachedBoards = (int) ($check['references']['boards'] ?? 0);
+        $pdo->prepare('UPDATE sr_community_boards SET board_group_id = NULL, updated_at = :updated_at WHERE board_group_id = :group_id')->execute([
+            'updated_at' => sr_now(),
+            'group_id' => $groupId,
+        ]);
         if (sr_community_optional_table_exists($pdo, 'sr_community_board_group_settings')) {
             $pdo->prepare('DELETE FROM sr_community_board_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
         }
@@ -1908,5 +1910,6 @@ function sr_community_delete_board_group(PDO $pdo, int $groupId): array
     }
 
     $check['deleted_settings'] = $deletedSettings;
+    $check['detached_boards'] = $detachedBoards;
     return $check;
 }

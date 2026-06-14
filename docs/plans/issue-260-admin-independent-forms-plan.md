@@ -31,7 +31,7 @@
 | 1 | 콘텐츠 관리 | `modules/content/views/admin-contents.php` | 콘텐츠 복사 modal form | `/admin/content/copy` | 보조 저장 | 초안 복사본, 선택 시 시리즈 복사 | 수정 화면 sticky action과 목록에 노출 | CSRF, edit 권한 | 높음. 현재 수정 중인 값이 복사되지 않는다는 안내 필요 |
 | 1 | 콘텐츠 관리 | `modules/content/views/admin-contents.php` | 콘텐츠 삭제 form | `/admin/content/delete` | 삭제/상태 변경 | 콘텐츠 삭제 | 목록 영역 중심 | CSRF, delete action | 낮음. 목록형 삭제 작업이라 이번 안내 대상에서 제외 |
 | 1 | 콘텐츠 그룹 관리 | `modules/content/views/admin-content-groups.php` | 그룹 생성/수정 form | `create_group`, `update_group` | 기본 저장 | 콘텐츠 그룹 설정 | 예 | CSRF, edit 권한, intent 검증 | 기준 form |
-| 1 | 콘텐츠 그룹 관리 | `modules/content/views/admin-content-groups.php` | 그룹 삭제 form | `delete_group` | 삭제/상태 변경 | 그룹과 연결 콘텐츠/파일 삭제 | 수정 화면에서 별도 삭제 영역 노출 | CSRF, delete 권한, 확인문 존재 | 낮음. 이번 범위에서는 별도 저장 안내 대상에서 제외 |
+| 1 | 콘텐츠 그룹 관리 | `modules/content/views/admin-content-groups.php` | 그룹 삭제 form | `delete_group` | 삭제/상태 변경 | 그룹 row 삭제와 연결 콘텐츠 그룹 해제 | 수정 화면에서 별도 삭제 영역 노출 | CSRF, delete 권한, 확인문 존재 | 낮음. 이번 범위에서는 별도 저장 안내 대상에서 제외 |
 | 1 | 콘텐츠 그룹 관리 | `modules/content/views/admin-content-groups.php` | 저장소 정리 재시도 | `retry_storage_cleanup_failure` | 실행 작업 | 삭제 후 남은 파일 정리 | 목록 영역 중심 | CSRF, delete 권한 | 낮음. 목록형 독립 운영 작업이라 이번 안내 대상에서 제외 |
 | 2 | 사이트 메뉴 | `modules/site_menu/views/admin-site-menus.php` | 메뉴/항목 저장 modal form, 순서 저장 form | `save_menu`, `save_item`, `save_item_order` | 보조 저장 | 메뉴 정보, 항목 정보, 목록 정렬 | 같은 관리 화면 | CSRF, edit 권한, intent 검증 | 높음. 모달 저장과 순서 적용이 서로의 입력값을 함께 저장하지 않음을 안내 필요 |
 | 2 | 회원 그룹 관리 | `modules/member/views/admin-groups.php` | 그룹 저장 form | `save_group` | 기본 저장 | 회원 그룹 | 목록/모달 계열 | CSRF, edit 권한, intent 검증 | 기준 form |
