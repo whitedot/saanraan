@@ -88,6 +88,8 @@ $adminView = sr_antispam_check_read('modules/antispam/views/admin-settings.php')
 sr_antispam_check_assert(str_contains($adminView, 'type="password"'), 'Antispam admin view must mask provider secret fields.');
 sr_antispam_check_assert(str_contains($adminView, 'sr_antispam_secret_display'), 'Antispam admin view must display stored secrets as masked placeholders.');
 sr_antispam_check_assert(str_contains($adminView, 'provider_failure_policy'), 'Antispam admin view must expose provider failure policy.');
+sr_antispam_check_assert(str_contains($adminView, 'provider_action_check_enabled'), 'Antispam admin view must expose provider action check setting.');
+sr_antispam_check_assert(str_contains($adminView, 'provider_hostname_check_enabled'), 'Antispam admin view must expose provider hostname check setting.');
 sr_antispam_check_assert(str_contains($adminView, '$providerOptions'), 'Antispam admin view must render provider settings from provider contracts.');
 
 $helpers = sr_antispam_check_read('modules/antispam/helpers.php');
@@ -109,6 +111,7 @@ $communityWriteView = sr_antispam_check_read('modules/community/skins/basic/form
 $communityCommentAction = sr_antispam_check_read('modules/community/actions/comment.php');
 $communityCommentView = sr_antispam_check_read('modules/community/skins/basic/view.php');
 sr_antispam_check_assert(str_contains($communityWriteAction, "sr_antispam_verify(\$pdo, 'community.post.guest'"), 'Community guest post action must verify antispam challenge server-side.');
+sr_antispam_check_assert(str_contains($communityWriteAction, '$errors = array_merge($errors, sr_community_validate_post_input($values));'), 'Community guest post action must preserve antispam errors when post validation runs.');
 sr_antispam_check_assert(str_contains($communityWriteView, "sr_antispam_challenge_render(\$pdo, 'community.post.guest'"), 'Community guest post form must render antispam challenge.');
 sr_antispam_check_assert(str_contains($communityWriteView, '!isset($postIdField) && function_exists(\'sr_antispam_challenge_render\')'), 'Community guest post form must not render antispam challenge on post edit forms.');
 sr_antispam_check_assert(str_contains($communityCommentAction, "sr_antispam_verify(\$pdo, 'community.comment.guest'"), 'Community guest comment action must verify antispam challenge server-side.');
@@ -123,11 +126,15 @@ $settings = sr_antispam_normalize_settings([
     'provider_timeout_seconds' => '2',
     'provider_failure_policy' => 'fallback_math',
     'verify_remote_ip_enabled' => 'on',
+    'provider_action_check_enabled' => 'on',
+    'provider_hostname_check_enabled' => 'on',
     'recaptcha_min_score' => '0.7',
 ]);
 sr_antispam_check_assert($settings['enabled'] === true, 'Antispam settings must normalize enabled boolean.');
 sr_antispam_check_assert($settings['min_submit_seconds'] === 0, 'Antispam settings must allow zero minimum submit seconds for fixtures.');
 sr_antispam_check_assert($settings['recaptcha_min_score'] === 0.7, 'Antispam settings must normalize reCAPTCHA score.');
+sr_antispam_check_assert($settings['provider_action_check_enabled'] === true, 'Antispam settings must normalize provider action check boolean.');
+sr_antispam_check_assert($settings['provider_hostname_check_enabled'] === true, 'Antispam settings must normalize provider hostname check boolean.');
 sr_antispam_check_assert($settings['surface_member_register'] === 'always', 'Antispam surface settings must fall back to default mode.');
 sr_antispam_check_assert(str_contains($helpers, "if (\$errors !== []) {\n        return ['ok' => false"), 'Antispam verification must stop before provider calls when local request checks fail.');
 
@@ -161,6 +168,15 @@ $expiredErrors = sr_antispam_verify_math('member.register', 'fixture_expired', [
 ], $settings);
 sr_antispam_check_assert($expiredErrors !== [], 'Antispam math challenge must reject expired answers.');
 
+$timing = sr_antispam_challenge_create('member.register', 'fixture_timing', ['ttl_seconds' => 60]);
+$timingKey = sr_antispam_session_key((string) $timing['surface'], (string) $timing['form_key']);
+$_SESSION[$timingKey]['issued_at'] = time();
+$timingErrors = sr_antispam_verify_local_timing('member.register', 'fixture_timing', ['min_submit_seconds' => 5]);
+sr_antispam_check_assert($timingErrors !== [], 'Antispam provider path must enforce local minimum submit seconds.');
+$_SESSION[$timingKey]['issued_at'] = time() - 10;
+$timingErrors = sr_antispam_verify_local_timing('member.register', 'fixture_timing', ['min_submit_seconds' => 5]);
+sr_antispam_check_assert($timingErrors === [], 'Antispam provider path must allow submissions after local minimum submit seconds.');
+
 sr_antispam_check_assert(sr_antispam_secret_display('secret') === '********', 'Antispam secret display must mask stored values.');
 sr_antispam_check_assert(sr_antispam_secret_display('') === '', 'Antispam secret display must keep empty values empty.');
 
@@ -171,6 +187,14 @@ sr_antispam_check_assert(empty($providerFailure['ok']), 'Antispam provider fixtu
 sr_antispam_check_assert(($providerFailure['codes'] ?? []) === ['badinput'], 'Antispam provider fixture must sanitize error codes.');
 $recaptchaLow = sr_antispam_provider_response_result('recaptcha', ['success' => true, 'score' => 0.3], ['settings' => ['recaptcha_min_score' => 0.7]]);
 sr_antispam_check_assert(empty($recaptchaLow['ok']) && in_array('score_low', (array) ($recaptchaLow['codes'] ?? []), true), 'Antispam reCAPTCHA fixture must enforce minimum score.');
+$providerActionMismatch = sr_antispam_provider_response_result('recaptcha', ['success' => true, 'score' => 0.9, 'action' => 'wrong'], ['settings' => ['recaptcha_min_score' => 0.7, 'provider_action_check_enabled' => true], 'form_key' => 'member_register']);
+sr_antispam_check_assert(empty($providerActionMismatch['ok']) && in_array('action_mismatch', (array) ($providerActionMismatch['codes'] ?? []), true), 'Antispam provider fixture must reject action mismatch.');
+$providerActionIgnored = sr_antispam_provider_response_result('recaptcha', ['success' => true, 'score' => 0.9, 'action' => 'wrong'], ['settings' => ['recaptcha_min_score' => 0.7, 'provider_action_check_enabled' => false], 'form_key' => 'member_register']);
+sr_antispam_check_assert(!empty($providerActionIgnored['ok']), 'Antispam provider fixture must allow disabling action mismatch checks.');
+$providerHostnameMismatch = sr_antispam_provider_response_result('turnstile', ['success' => true, 'hostname' => 'bad.example'], ['settings' => ['provider_hostname_check_enabled' => true], 'expected_hostname' => 'good.example']);
+sr_antispam_check_assert(empty($providerHostnameMismatch['ok']) && in_array('hostname_mismatch', (array) ($providerHostnameMismatch['codes'] ?? []), true), 'Antispam provider fixture must reject hostname mismatch.');
+$providerHostnameIgnored = sr_antispam_provider_response_result('turnstile', ['success' => true, 'hostname' => 'bad.example'], ['settings' => ['provider_hostname_check_enabled' => false], 'expected_hostname' => 'good.example']);
+sr_antispam_check_assert(!empty($providerHostnameIgnored['ok']), 'Antispam provider fixture must allow disabling hostname mismatch checks.');
 
 if ($errors !== []) {
     fwrite(STDERR, "antispam checks failed:\n");

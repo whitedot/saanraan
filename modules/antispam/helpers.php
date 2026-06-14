@@ -13,6 +13,8 @@ function sr_antispam_default_settings(): array
         'provider_timeout_seconds' => 3,
         'provider_failure_policy' => 'fail_closed',
         'verify_remote_ip_enabled' => false,
+        'provider_action_check_enabled' => true,
+        'provider_hostname_check_enabled' => true,
         'surface_member_register' => 'always',
         'surface_community_post_guest' => 'guest',
         'surface_community_comment_guest' => 'guest',
@@ -39,6 +41,8 @@ function sr_antispam_normalize_settings(array $settings, ?array $providerOptions
         ? (string) $settings['provider_failure_policy']
         : 'fail_closed';
     $settings['verify_remote_ip_enabled'] = sr_antispam_bool($settings['verify_remote_ip_enabled'] ?? false);
+    $settings['provider_action_check_enabled'] = sr_antispam_bool($settings['provider_action_check_enabled'] ?? true);
+    $settings['provider_hostname_check_enabled'] = sr_antispam_bool($settings['provider_hostname_check_enabled'] ?? true);
     foreach (($providerOptions ?? sr_antispam_provider_options()) as $provider) {
         $siteKeySetting = (string) ($provider['site_key_setting'] ?? '');
         $secretKeySetting = (string) ($provider['secret_key_setting'] ?? '');
@@ -252,6 +256,7 @@ function sr_antispam_challenge_render(PDO $pdo, string $surface, string $formKey
         $html .= '<span class="sr-antispam-question">' . sr_e((string) $challenge['question']) . ' = ?</span>';
         $html .= '<input id="' . sr_e($inputId) . '" type="text" name="sr_antispam_answer" inputmode="numeric" autocomplete="off" required></label></p>';
     } else {
+        $challenge = sr_antispam_challenge_create($surface, $formKey, ['ttl_seconds' => (int) $settings['ttl_seconds']]);
         $providers = sr_antispam_provider_options($pdo);
         $provider = $providers[(string) $policy['type']] ?? null;
         $siteKey = is_array($provider) ? (string) ($settings[(string) $provider['site_key_setting']] ?? '') : '';
@@ -260,7 +265,6 @@ function sr_antispam_challenge_render(PDO $pdo, string $surface, string $formKey
             $html .= '<div class="' . sr_e((string) $provider['widget_class']) . '" data-sitekey="' . sr_e($siteKey) . '"></div>';
         }
         if ((string) ($settings['provider_failure_policy'] ?? '') === 'fallback_math') {
-            $challenge = sr_antispam_challenge_create($surface, $formKey, ['ttl_seconds' => (int) $settings['ttl_seconds']]);
             $inputId = 'sr_antispam_answer_' . substr(hash('sha256', $surface . $formKey), 0, 12);
             $html .= '<p><label for="' . sr_e($inputId) . '"><span>자동등록방지 예비 문제</span>';
             $html .= '<span class="sr-antispam-question">' . sr_e((string) $challenge['question']) . ' = ?</span>';
@@ -296,7 +300,15 @@ function sr_antispam_verify(PDO $pdo, string $surface, string $formKey, array $p
         return ['ok' => $errors === [], 'required' => true, 'errors' => $errors, 'provider' => 'math'];
     }
 
-    $providerResult = sr_antispam_provider_verify($pdo, (string) $policy['type'], $post, $context + ['settings' => $settings]);
+    $errors = array_merge($errors, sr_antispam_verify_local_timing($surface, $formKey, $settings));
+    if ($errors !== []) {
+        return ['ok' => false, 'required' => true, 'errors' => $errors, 'provider' => (string) $policy['type']];
+    }
+
+    $providerResult = sr_antispam_provider_verify($pdo, (string) $policy['type'], $post, $context + [
+        'settings' => $settings,
+        'form_key' => $formKey,
+    ]);
     if (empty($providerResult['ok']) && (string) $settings['provider_failure_policy'] === 'fallback_math') {
         $errors = array_merge($errors, sr_antispam_verify_math($surface, $formKey, $post, $settings));
         return ['ok' => $errors === [], 'required' => true, 'errors' => $errors, 'provider' => 'math'];
@@ -329,6 +341,22 @@ function sr_antispam_verify_math(string $surface, string $formKey, array $post, 
     $expected = (string) ($stored['answer_hash'] ?? '');
     if ($answer === '' || $token === '' || $expected === '' || !hash_equals($expected, hash_hmac('sha256', $answer, $token))) {
         return ['자동등록방지 정답을 확인해 주세요.'];
+    }
+
+    return [];
+}
+
+function sr_antispam_verify_local_timing(string $surface, string $formKey, array $settings): array
+{
+    $stored = $_SESSION[sr_antispam_session_key($surface, $formKey)] ?? null;
+    if (!is_array($stored)) {
+        return ['자동등록방지 문제가 만료되었습니다. 다시 제출해 주세요.'];
+    }
+    if ((int) ($stored['expires_at'] ?? 0) < time()) {
+        return ['자동등록방지 문제가 만료되었습니다. 다시 제출해 주세요.'];
+    }
+    if (time() - (int) ($stored['issued_at'] ?? 0) < (int) ($settings['min_submit_seconds'] ?? 0)) {
+        return ['자동등록방지 제출 시간이 너무 짧습니다. 잠시 후 다시 시도해 주세요.'];
     }
 
     return [];
@@ -373,8 +401,33 @@ function sr_antispam_provider_response_result(string $providerKey, array $respon
             $codes[] = 'score_low';
         }
     }
+    $settings = is_array($context['settings'] ?? null) ? $context['settings'] : [];
+    $actionCheckEnabled = sr_antispam_bool($settings['provider_action_check_enabled'] ?? true);
+    $hostnameCheckEnabled = sr_antispam_bool($settings['provider_hostname_check_enabled'] ?? true);
+    $expectedAction = trim((string) ($context['expected_action'] ?? $context['form_key'] ?? ''));
+    if ($ok && $actionCheckEnabled && isset($response['action']) && $expectedAction !== '' && !hash_equals($expectedAction, (string) $response['action'])) {
+        $ok = false;
+        $codes[] = 'action_mismatch';
+    }
+    $expectedHostname = trim((string) ($context['expected_hostname'] ?? sr_antispam_current_hostname()));
+    $responseHostname = strtolower(trim((string) ($response['hostname'] ?? '')));
+    if ($ok && $hostnameCheckEnabled && isset($response['hostname']) && $expectedHostname !== '' && !hash_equals(strtolower($expectedHostname), $responseHostname)) {
+        $ok = false;
+        $codes[] = 'hostname_mismatch';
+    }
 
     return ['ok' => $ok, 'codes' => array_values(array_unique($codes))];
+}
+
+function sr_antispam_current_hostname(): string
+{
+    $host = trim((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    if ($host === '') {
+        return '';
+    }
+    $host = preg_replace('/:\d+\z/', '', $host);
+
+    return is_string($host) ? strtolower($host) : '';
 }
 
 function sr_antispam_http_post(string $url, array $payload, int $timeoutSeconds): ?array

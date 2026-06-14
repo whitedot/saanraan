@@ -103,6 +103,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </label>
             </div>
         </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="antispam_admin_provider_action_check_enabled">provider action 확인</label>
+            <div class="admin-form-field">
+                <label class="admin-form-check form-label" for="antispam_admin_provider_action_check_enabled">
+                    <input id="antispam_admin_provider_action_check_enabled" type="checkbox" name="provider_action_check_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['provider_action_check_enabled']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('provider 응답 action과 제출 form key 비교'); ?>
+                </label>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <label class="form-label" for="antispam_admin_provider_hostname_check_enabled">provider hostname 확인</label>
+            <div class="admin-form-field">
+                <label class="admin-form-check form-label" for="antispam_admin_provider_hostname_check_enabled">
+                    <input id="antispam_admin_provider_hostname_check_enabled" type="checkbox" name="provider_hostname_check_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['provider_hostname_check_enabled']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('provider 응답 hostname과 현재 host 비교'); ?>
+                </label>
+            </div>
+        </div>
         <?php foreach ($providerOptions as $providerKey => $provider) { ?>
             <?php
             $siteKeySetting = (string) $provider['site_key_setting'];

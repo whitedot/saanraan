@@ -37,6 +37,8 @@ if (sr_request_method() === 'POST') {
         'provider_timeout_seconds' => sr_admin_post_int_in_range('provider_timeout_seconds', 1, 10),
         'provider_failure_policy' => sr_post_string('provider_failure_policy', 30),
         'verify_remote_ip_enabled' => ($_POST['verify_remote_ip_enabled'] ?? '') === '1',
+        'provider_action_check_enabled' => ($_POST['provider_action_check_enabled'] ?? '') === '1',
+        'provider_hostname_check_enabled' => ($_POST['provider_hostname_check_enabled'] ?? '') === '1',
         'surface_member_register' => sr_antispam_mode(sr_post_string('surface_member_register', 20)),
         'surface_community_post_guest' => sr_antispam_mode(sr_post_string('surface_community_post_guest', 20)),
         'surface_community_comment_guest' => sr_antispam_mode(sr_post_string('surface_community_comment_guest', 20)),
@@ -111,6 +113,8 @@ if (sr_request_method() === 'POST') {
                 'enabled' => (bool) $postedSettings['enabled'],
                 'challenge_type' => (string) $postedSettings['challenge_type'],
                 'provider_failure_policy' => (string) $postedSettings['provider_failure_policy'],
+                'provider_action_check_enabled' => (bool) $postedSettings['provider_action_check_enabled'],
+                'provider_hostname_check_enabled' => (bool) $postedSettings['provider_hostname_check_enabled'],
             ],
         ]);
         $notice = '자동등록방지 설정을 저장했습니다.';
