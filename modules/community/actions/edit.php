@@ -46,12 +46,13 @@ $settings = sr_community_settings($pdo);
 $board['image_uploads_enabled'] = 0;
 $board['file_uploads_enabled'] = 0;
 $secretPostsEnabled = sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings);
-$categories = sr_community_categories($pdo, (int) $board['id'], true);
+$categoryEnabled = sr_community_board_category_enabled($pdo, (int) $board['id']);
+$categories = $categoryEnabled ? sr_community_categories($pdo, (int) $board['id'], true) : [];
 $currentCategory = (int) ($post['category_id'] ?? 0) > 0 ? sr_community_category_by_id($pdo, (int) $post['category_id']) : null;
-if (is_array($currentCategory) && (string) $currentCategory['status'] !== 'enabled') {
+if ($categoryEnabled && is_array($currentCategory) && (string) $currentCategory['status'] !== 'enabled') {
     $categories[] = $currentCategory;
 }
-$categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
+$categoryRequired = $categoryEnabled && sr_community_board_category_required($pdo, (int) $board['id']);
 $extraFieldDefinitions = sr_community_board_extra_field_definitions($pdo, $board);
 $storedExtraFieldValues = sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''));
 $extraFieldValues = [];
@@ -113,6 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    if (!$categoryEnabled) {
+        $values['category_id'] = 0;
+    }
     $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
     $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
     $values['extra_field_definitions'] = $extraFieldDefinitions;

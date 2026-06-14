@@ -457,7 +457,11 @@ if (sr_request_method() === 'POST') {
         $readMinLevel = sr_admin_post_int_in_range('read_min_level', 0, $maxLevel);
         $writeMinLevel = sr_admin_post_int_in_range('write_min_level', 0, $maxLevel);
         $commentMinLevel = sr_admin_post_int_in_range('comment_min_level', 0, $maxLevel);
+        $categoryEnabled = ($_POST['category_enabled'] ?? '') === '1';
         $categoryRequired = ($_POST['category_required'] ?? '') === '1';
+        if ($categoryRequired) {
+            $categoryEnabled = true;
+        }
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
         $postEditLockCommentCount = sr_admin_post_int_in_range('post_edit_lock_comment_count', 0, 1000000);
@@ -852,6 +856,7 @@ if (sr_request_method() === 'POST') {
                 'read_min_level' => (string) $readMinLevel,
                 'write_min_level' => (string) $writeMinLevel,
                 'comment_min_level' => (string) $commentMinLevel,
+                'category_enabled' => $categoryEnabled ? '1' : '0',
                 'category_required' => $categoryRequired ? '1' : '0',
                 'secret_posts_enabled' => $secretPostsEnabled ? '1' : '0',
                 'secret_comments_enabled' => $secretCommentsEnabled ? '1' : '0',
@@ -934,6 +939,8 @@ if (sr_request_method() === 'POST') {
                     'read_min_level' => $readMinLevel,
                     'write_min_level' => $writeMinLevel,
                     'comment_min_level' => $commentMinLevel,
+                    'category_enabled' => $categoryEnabled,
+                    'category_required' => $categoryRequired,
                     'level_post_score' => $levelPostScore,
                     'level_comment_score' => $levelCommentScore,
                     'secret_posts_enabled' => $secretPostsEnabled,
@@ -961,6 +968,7 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
             sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
+            sr_community_set_board_setting($pdo, $boardId, 'category_enabled', $categoryEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
             sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
@@ -1006,6 +1014,7 @@ if (sr_request_method() === 'POST') {
                 $beforeReadMinLevel = sr_community_board_min_level($pdo, $boardId, 'read_min_level');
                 $beforeWriteMinLevel = sr_community_board_min_level($pdo, $boardId, 'write_min_level');
                 $beforeCommentMinLevel = sr_community_board_min_level($pdo, $boardId, 'comment_min_level');
+                $beforeCategoryEnabled = sr_community_board_category_enabled($pdo, $boardId);
                 $beforeCategoryRequired = sr_community_board_category_required($pdo, $boardId);
                 $beforeLevelPostScore = sr_community_board_level_score($pdo, $boardId, 'level_post_score', $settings);
                 $beforeLevelCommentScore = sr_community_board_level_score($pdo, $boardId, 'level_comment_score', $settings);
@@ -1046,6 +1055,7 @@ if (sr_request_method() === 'POST') {
                 sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
                 sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
+                sr_community_set_board_setting($pdo, $boardId, 'category_enabled', $categoryEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
                 sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
@@ -1128,6 +1138,8 @@ if (sr_request_method() === 'POST') {
                         'after_write_min_level' => $writeMinLevel,
                         'before_comment_min_level' => $beforeCommentMinLevel,
                         'after_comment_min_level' => $commentMinLevel,
+                        'before_category_enabled' => $beforeCategoryEnabled,
+                        'after_category_enabled' => $categoryEnabled,
                         'before_category_required' => $beforeCategoryRequired,
                         'after_category_required' => $categoryRequired,
                         'before_level_post_score' => $beforeLevelPostScore,
@@ -1200,6 +1212,7 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
     $board['read_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['write_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'write_min_level');
     $board['comment_min_level'] = sr_community_board_own_min_level($pdo, (int) $board['id'], 'comment_min_level');
+    $board['category_enabled'] = sr_community_board_category_enabled($pdo, (int) $board['id']) ? '1' : '0';
     $board['category_required'] = sr_community_board_category_required($pdo, (int) $board['id']) ? '1' : '0';
     $board['effective_read_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'read_min_level');
     $board['effective_write_min_level'] = sr_community_board_min_level($pdo, (int) $board['id'], 'write_min_level');

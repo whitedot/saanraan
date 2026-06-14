@@ -62,7 +62,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <?php echo sr_e(sr_t('community::ui.text.f99bc7dd')); ?> <?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?>
                 <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_community_time_html((string) $post['created_at']); ?>
                 <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
-                <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
+                <?php if (!empty($categoryEnabled) && (string) ($post['category_title'] ?? '') !== '') { ?>
                     / <?php echo sr_e('카테고리'); ?>
                     <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
                         <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>

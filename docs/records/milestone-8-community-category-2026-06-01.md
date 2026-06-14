@@ -4,7 +4,7 @@
 
 - #118 커뮤니티 게시판 카테고리 수직 슬라이스를 구현했다.
 - `sr_community_categories`와 `sr_community_posts.category_id`를 추가했다.
-- 게시판 편집 화면에서 카테고리 생성, 수정, 삭제와 `category_required` 설정을 다룬다.
+- 게시판 편집 화면에서 카테고리 생성, 수정, 삭제와 `category_enabled`, `category_required` 설정을 다룬다.
 - 공개 게시판 목록은 `?category={category_key}` 필터를 지원하고, 무효/비활성 key는 HTTP 200의 소프트 오류와 `noindex, follow`로 처리한다.
 - 게시글 작성/수정은 서버에서 게시판 소속, 활성 상태, 필수 선택을 검증한다.
 - 게시글 목록, 상세, 내 스크랩 목록, 관리자 게시글 목록에 카테고리 표시를 추가했다.

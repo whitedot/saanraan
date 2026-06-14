@@ -96,6 +96,7 @@ if (is_array($postBoard)) {
     }
 }
 $settings = sr_community_settings($pdo);
+$categoryEnabled = is_array($postBoard) && sr_community_board_category_enabled($pdo, (int) $postBoard['id']);
 $canViewPostBody = sr_community_account_can_view_post_body($pdo, $post, is_array($account) ? $account : null);
 $secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_secret_comments_enabled($pdo, $postBoard, $settings) : false;
 $assetReadNotices = [];

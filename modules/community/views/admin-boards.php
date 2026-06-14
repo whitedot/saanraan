@@ -641,14 +641,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="admin-form-row">
+                <label class="form-label" for="community_admin_boards_category_enabled">카테고리 사용</label>
+                <div class="admin-form-field">
+                    <label class="admin-form-check form-label" for="community_admin_boards_category_enabled">
+                        <input id="community_admin_boards_category_enabled" type="checkbox" name="category_enabled" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'category_enabled', '1') === '1' ? ' checked' : ''; ?> data-community-category-enabled>
+                        <?php echo sr_admin_choice_label_html('게시글 작성/목록에서 카테고리 선택과 필터 사용'); ?>
+                    </label>
+                    <?php echo $settingSourceRadioHtml('source_category_enabled', $boardSettingSource($formBoard, 'category_enabled')); ?>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <?php
+                $communityBoardCategoriesForPolicy = is_array($formBoard['categories'] ?? null) ? $formBoard['categories'] : [];
+                $communityBoardActiveCategoryCount = 0;
+                foreach ($communityBoardCategoriesForPolicy as $communityBoardCategoryForPolicy) {
+                    if ((string) ($communityBoardCategoryForPolicy['status'] ?? '') === 'enabled') {
+                        $communityBoardActiveCategoryCount++;
+                    }
+                }
+                $communityBoardCategoryRequiredSelectable = $communityBoardActiveCategoryCount > 0;
+                $communityBoardCategoryRequiredChecked = $communityBoardCategoryRequiredSelectable && $boardField($formBoard, 'category_required', '0') === '1';
+                ?>
                 <label class="form-label" for="community_admin_boards_category_required">카테고리 필수</label>
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="community_admin_boards_category_required">
-                        <input id="community_admin_boards_category_required" type="checkbox" name="category_required" value="1" class="form-switch form-choice-dark"<?php echo $boardField($formBoard, 'category_required', '0') === '1' ? ' checked' : ''; ?>>
+                        <input id="community_admin_boards_category_required" type="checkbox" name="category_required" value="1" class="form-switch form-choice-dark"<?php echo $communityBoardCategoryRequiredChecked ? ' checked' : ''; ?><?php echo $communityBoardCategoryRequiredSelectable ? '' : ' disabled'; ?> data-community-category-required>
                         <?php echo sr_admin_choice_label_html('게시글 작성/수정 시 카테고리를 반드시 선택'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_category_required', $boardSettingSource($formBoard, 'category_required')); ?>
-                    <p class="admin-form-help">활성 카테고리가 1개 이상 있을 때만 켤 수 있습니다.</p>
+                    <p class="admin-form-help">활성 카테고리가 1개 이상 있을 때만 켤 수 있습니다. 필수로 선택하면 카테고리 사용도 함께 켜집니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -2115,6 +2136,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
+    function syncCategoryPolicy() {
+        var categoryEnabled = document.querySelector('[data-community-category-enabled]');
+        var categoryRequired = document.querySelector('[data-community-category-required]');
+        if (!categoryEnabled || !categoryRequired) {
+            return;
+        }
+        if (categoryRequired.checked) {
+            categoryEnabled.checked = true;
+        } else if (!categoryEnabled.checked) {
+            categoryRequired.checked = false;
+        }
+    }
+
     ['read', 'write', 'comment'].forEach(function (kind) {
         var policy = document.querySelector('[data-community-policy="' + kind + '"]');
         var group = document.getElementById('community_admin_boards_' + kind + '_group_keys');
@@ -2158,8 +2192,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     });
     var form = document.querySelector('.admin-page-community-board-form form.admin-form');
     if (form) {
-        form.addEventListener('submit', syncWritableGroupsFromRead);
+        form.addEventListener('submit', function () {
+            syncWritableGroupsFromRead();
+            syncCategoryPolicy();
+        });
     }
+    var categoryEnabled = document.querySelector('[data-community-category-enabled]');
+    var categoryRequired = document.querySelector('[data-community-category-required]');
+    if (categoryEnabled) {
+        categoryEnabled.addEventListener('change', syncCategoryPolicy);
+    }
+    if (categoryRequired) {
+        categoryRequired.addEventListener('change', syncCategoryPolicy);
+    }
+    syncCategoryPolicy();
     syncWritableGroupsFromRead();
     syncPolicy('read');
     syncBoardGroupRequired();

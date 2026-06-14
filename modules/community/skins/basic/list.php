@@ -56,7 +56,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             </p>
         <?php } ?>
 
-        <?php if (isset($categories) && is_array($categories) && $categories !== []) { ?>
+        <?php $communityListCategoryEnabled = !empty($categoryEnabled); ?>
+        <?php if ($communityListCategoryEnabled && isset($categories) && is_array($categories) && $categories !== []) { ?>
             <nav aria-label="카테고리">
                 <p>
                     <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''))); ?>"><?php echo sr_e('전체'); ?></a>
@@ -94,7 +95,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?></th>
-                        <th><?php echo sr_e('카테고리'); ?></th>
+                        <?php if ($communityListCategoryEnabled) { ?>
+                            <th><?php echo sr_e('카테고리'); ?></th>
+                        <?php } ?>
                         <th><?php echo sr_e(sr_t('community::ui.text.f2ee20a7')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.26c8f2fa')); ?></th>
                         <th><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></th>
@@ -122,15 +125,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <?php } ?>
                                 <?php } ?>
                             </td>
-                            <td>
-                                <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
-                                    <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
-                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
-                                    <?php } else { ?>
-                                        <?php echo sr_e((string) $post['category_title']); ?>
+                            <?php if ($communityListCategoryEnabled) { ?>
+                                <td>
+                                    <?php if ((string) ($post['category_title'] ?? '') !== '') { ?>
+                                        <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
+                                            <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
+                                        <?php } else { ?>
+                                            <?php echo sr_e((string) $post['category_title']); ?>
+                                        <?php } ?>
                                     <?php } ?>
-                                <?php } ?>
-                            </td>
+                                </td>
+                            <?php } ?>
                             <td><?php echo sr_e(sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?></td>
                             <td><?php echo sr_community_time_html((string) $post['created_at']); ?></td>
                             <td><?php echo sr_e((string) ($post['published_comment_count'] ?? 0)); ?></td>

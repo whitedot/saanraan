@@ -192,7 +192,14 @@ function sr_community_delete_category(PDO $pdo, int $categoryId): bool
 function sr_community_board_category_required(PDO $pdo, int $boardId): bool
 {
     return sr_community_categories_supported($pdo)
+        && sr_community_board_category_enabled($pdo, $boardId)
         && (string) (sr_community_board_setting_value($pdo, $boardId, 'category_required') ?? '0') === '1';
+}
+
+function sr_community_board_category_enabled(PDO $pdo, int $boardId): bool
+{
+    return sr_community_categories_supported($pdo)
+        && (string) (sr_community_board_setting_value($pdo, $boardId, 'category_enabled') ?? '1') === '1';
 }
 
 function sr_community_effective_category_label(array $row): string
@@ -202,7 +209,7 @@ function sr_community_effective_category_label(array $row): string
 
 function sr_community_post_category_validation_errors(PDO $pdo, array $board, array $values, ?array $existingPost = null): array
 {
-    if (!sr_community_categories_supported($pdo)) {
+    if (!sr_community_categories_supported($pdo) || !sr_community_board_category_enabled($pdo, (int) ($board['id'] ?? 0))) {
         return [];
     }
 

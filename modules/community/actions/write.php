@@ -37,9 +37,10 @@ $board['file_uploads_enabled'] = sr_community_effective_board_file_uploads_enabl
 $secretPostsEnabled = sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings);
 $writeChargeConfig = sr_community_asset_event_config($pdo, $board, $settings, 'write_charge', 'every_action');
 $postRewardConfig = sr_community_asset_event_config($pdo, $board, $settings, 'post_reward', 'once');
-$categories = sr_community_categories($pdo, (int) $board['id'], true);
+$categoryEnabled = sr_community_board_category_enabled($pdo, (int) $board['id']);
+$categories = $categoryEnabled ? sr_community_categories($pdo, (int) $board['id'], true) : [];
 $currentCategory = null;
-$categoryRequired = sr_community_board_category_required($pdo, (int) $board['id']);
+$categoryRequired = $categoryEnabled && sr_community_board_category_required($pdo, (int) $board['id']);
 $extraFieldDefinitions = sr_community_board_extra_field_definitions($pdo, $board);
 $extraFieldValues = [];
 $seriesOptions = is_array($account) ? sr_community_account_series($pdo, (int) $account['id'], (int) $board['id']) : [];
@@ -69,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     sr_require_csrf();
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
+    if (!$categoryEnabled) {
+        $values['category_id'] = 0;
+    }
     $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
     $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
     $values['extra_field_definitions'] = $extraFieldDefinitions;

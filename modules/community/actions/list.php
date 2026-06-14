@@ -29,8 +29,9 @@ $listExcerptEnabled = sr_community_board_list_excerpt_enabled($pdo, $board);
 $listExcerptLength = sr_community_board_list_excerpt_length($pdo, $board);
 $keywordValue = sr_get_string_without_truncation('q', 100);
 $keyword = is_string($keywordValue) ? trim($keywordValue) : '';
-$categories = sr_community_categories($pdo, (int) $board['id'], true);
-$categoryKey = sr_get_string('category', 60);
+$categoryEnabled = sr_community_board_category_enabled($pdo, (int) $board['id']);
+$categories = $categoryEnabled ? sr_community_categories($pdo, (int) $board['id'], true) : [];
+$categoryKey = $categoryEnabled ? sr_get_string('category', 60) : '';
 $selectedCategory = null;
 $categoryInvalid = false;
 if ($categoryKey !== '') {
