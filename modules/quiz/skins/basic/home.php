@@ -28,6 +28,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     <?php foreach ($quizzes as $quiz): ?>
                         <li>
                             <a href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) $quiz['quiz_key']))); ?>">
+                                <?php echo sr_quiz_cover_image_html($quiz, 'sr-quiz-list-cover', (string) ($quiz['title'] ?? '')); ?>
                                 <span class="sr-quiz-list-title"><?php echo sr_e((string) $quiz['title']); ?></span>
                                 <?php if ((string) ($quiz['created_at'] ?? '') !== ''): ?>
                                     <span class="sr-quiz-list-date"><?php echo sr_quiz_time_html((string) $quiz['created_at']); ?></span>

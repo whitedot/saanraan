@@ -65,8 +65,8 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.06.011'",
-    'Survey module version must include reaction preset update'
+    "'version' => '2026.06.012'",
+    'Survey module version must include cover image update'
 );
 foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
     sr_survey_check_contains(
@@ -87,6 +87,13 @@ foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN reaction_preset_key VARCHAR
         'modules/survey/updates/2026.06.011.sql',
         $needle,
         'Survey reaction preset update must add preset columns'
+    );
+}
+foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN cover_image_url VARCHAR(255) NOT NULL DEFAULT \'\''] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/updates/2026.06.012.sql',
+        $needle,
+        'Survey cover image update must add cover image column'
     );
 }
 sr_survey_check_contains(

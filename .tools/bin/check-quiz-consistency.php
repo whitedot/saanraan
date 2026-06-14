@@ -105,7 +105,7 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.06.014'",
+        "'version' => '2026.06.015'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.012.sql', [
         'ALTER TABLE sr_quiz_sets',
@@ -120,6 +120,10 @@ function sr_quiz_check_schema(): void
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.014.sql', [
         'ADD COLUMN reaction_preset_key VARCHAR(80) NOT NULL DEFAULT \'\'',
         'ADD COLUMN reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT \'\'',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/updates/2026.06.015.sql', [
+        'ALTER TABLE sr_quiz_sets',
+        'ADD COLUMN cover_image_url VARCHAR(255) NOT NULL DEFAULT \'\'',
     ]);
 }
 

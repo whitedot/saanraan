@@ -25,8 +25,36 @@ if (sr_request_method() === 'POST') {
     if ($intent === 'save') {
         sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'edit');
         $values = sr_quiz_admin_values_from_post();
-        $postErrors = sr_quiz_admin_validation_errors($pdo, $values, $assetOptions);
+        $beforeCoverImageUrl = '';
+        if ((int) ($values['id'] ?? 0) > 0) {
+            $existingQuizForCover = sr_quiz_by_id($pdo, (int) $values['id']);
+            $beforeCoverImageUrl = is_array($existingQuizForCover) ? sr_quiz_clean_cover_image_url((string) ($existingQuizForCover['cover_image_url'] ?? '')) : '';
+        }
+        if (sr_post_string('cover_image_delete', 1) === '1') {
+            $values['cover_image_url'] = '';
+        }
+        $uploadedCoverImage = null;
+        $uploadErrors = [];
+        $coverImageUploadFile = $_FILES['cover_image_upload'] ?? null;
+        if (sr_quiz_cover_image_upload_was_provided($coverImageUploadFile)) {
+            if (!is_array($coverImageUploadFile)) {
+                $uploadErrors[] = '커버 이미지 업로드 값을 확인하세요.';
+            } else {
+                try {
+                    $uploadedCoverImage = sr_quiz_upload_cover_image($coverImageUploadFile);
+                    if (is_array($uploadedCoverImage)) {
+                        $values['cover_image_url'] = (string) $uploadedCoverImage['url'];
+                    }
+                } catch (Throwable $exception) {
+                    $uploadErrors[] = $exception instanceof RuntimeException ? (string) $exception->getMessage() : '커버 이미지 업로드 중 오류가 발생했습니다.';
+                }
+            }
+        }
+        $postErrors = array_merge($uploadErrors, sr_quiz_admin_validation_errors($pdo, $values, $assetOptions));
         if ($postErrors !== []) {
+            if (is_array($uploadedCoverImage)) {
+                sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
+            }
             $_SESSION['sr_quiz_form_errors'] = $postErrors;
             $_SESSION['sr_quiz_form_values'] = $values;
             $redirect = (int) ($values['id'] ?? 0) > 0
@@ -37,11 +65,23 @@ if (sr_request_method() === 'POST') {
 
         try {
             $savedId = sr_quiz_save_admin_quiz($pdo, $values, (int) ($account['id'] ?? 0));
+            $afterCoverImageUrl = sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''));
+            if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
+                sr_quiz_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $savedId);
+            }
         } catch (RuntimeException $exception) {
+            if (is_array($uploadedCoverImage)) {
+                sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
+            }
             if ((string) $exception->getMessage() !== 'Quiz to update was not found.') {
                 throw $exception;
             }
             sr_admin_redirect_with_result(sr_admin_action_result(['저장할 퀴즈를 찾을 수 없습니다.'], ''), '/admin/quiz');
+        } catch (Throwable $exception) {
+            if (is_array($uploadedCoverImage)) {
+                sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
+            }
+            throw $exception;
         }
         sr_audit_log($pdo, [
             'actor_account_id' => (int) ($account['id'] ?? 0),
@@ -56,6 +96,9 @@ if (sr_request_method() === 'POST') {
                 'status' => (string) ($values['status'] ?? ''),
                 'reward_enabled' => (int) ($values['reward_enabled'] ?? 0),
                 'reward_module' => (string) ($values['reward_module'] ?? ''),
+                'cover_image_changed' => $beforeCoverImageUrl !== sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')),
+                'cover_image_uploaded' => sr_quiz_cover_image_upload_was_provided($coverImageUploadFile),
+                'cover_image_deleted' => $beforeCoverImageUrl !== '' && sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')) === '',
                 'content_source_ids' => (string) ($values['content_source_ids'] ?? ''),
                 'question_count' => count((array) ($values['questions'] ?? [])),
             ],
@@ -599,7 +642,7 @@ $quizSectionNavItems = [
         <?php $quizSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-form ui-form-theme">
+<form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save">
     <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
@@ -625,6 +668,18 @@ $quizSectionNavItems = [
                 <label class="form-label" for="quiz_description">설명</label>
                 <div class="admin-form-field">
                     <textarea id="quiz_description" name="description" class="form-textarea" rows="3"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <label class="form-label" for="quiz_cover_image_url">커버 이미지 URL</label>
+                <div class="admin-form-field">
+                    <input id="quiz_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                    <p class="admin-form-help">공개 퀴즈 목록과 상세 화면 상단, 공유 이미지에 사용할 이미지 URL입니다.</p>
+                    <input id="quiz_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
+                    <p class="admin-form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_quiz_cover_image_upload_max_bytes())); ?>.</p>
+                    <?php if (sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')) !== '') { ?>
+                        <?php echo sr_admin_checkbox_toggle_html('quiz_cover_image_delete', 'cover_image_delete', '1', false, '현재 커버 이미지 삭제'); ?>
+                    <?php } ?>
                 </div>
             </div>
             <div class="admin-form-row">

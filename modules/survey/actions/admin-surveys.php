@@ -54,6 +54,7 @@ if (sr_request_method() === 'POST') {
     $surveyKey = sr_survey_clean_key(sr_post_string('survey_key', 64), 64);
     $title = sr_survey_clean_single_line(sr_post_string('title', 190), 190);
     $description = sr_survey_clean_text(sr_post_string('description', 2000), 2000);
+    $coverImageUrl = sr_survey_clean_cover_image_url(sr_post_string('cover_image_url', 255));
     $skinKey = sr_survey_optional_option_key_from_post(sr_post_string('skin_key', 40), sr_survey_skin_options());
     $researchPurpose = sr_survey_clean_text(sr_post_string('research_purpose', 4000), 4000);
     $targetPopulation = sr_survey_clean_text(sr_post_string('target_population', 2000), 2000);
@@ -121,6 +122,26 @@ if (sr_request_method() === 'POST') {
     $rewardAmount = (int) sr_post_string('reward_amount', 20);
     $rewardDedupeScope = sr_survey_clean_key(sr_post_string('reward_dedupe_scope', 20), 20);
     $existingSurveyForSave = $surveyId > 0 ? sr_survey_by_id($pdo, $surveyId) : null;
+    $beforeCoverImageUrl = is_array($existingSurveyForSave) ? sr_survey_clean_cover_image_url((string) ($existingSurveyForSave['cover_image_url'] ?? '')) : '';
+    if (sr_post_string('cover_image_delete', 1) === '1') {
+        $coverImageUrl = '';
+    }
+    $uploadedCoverImage = null;
+    $coverImageUploadFile = $_FILES['cover_image_upload'] ?? null;
+    if (sr_survey_cover_image_upload_was_provided($coverImageUploadFile)) {
+        if (!is_array($coverImageUploadFile)) {
+            $errors[] = '커버 이미지 업로드 값을 확인하세요.';
+        } else {
+            try {
+                $uploadedCoverImage = sr_survey_upload_cover_image($coverImageUploadFile);
+                if (is_array($uploadedCoverImage)) {
+                    $coverImageUrl = (string) $uploadedCoverImage['url'];
+                }
+            } catch (Throwable $exception) {
+                $errors[] = $exception instanceof RuntimeException ? (string) $exception->getMessage() : '커버 이미지 업로드 중 오류가 발생했습니다.';
+            }
+        }
+    }
 
     if (!sr_survey_key_is_valid($surveyKey)) {
         $errors[] = '설문 관리용 키는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
@@ -290,6 +311,7 @@ if (sr_request_method() === 'POST') {
                 $pdo->prepare(
                     'UPDATE sr_survey_forms
                      SET survey_key = :survey_key, title = :title, description = :description,
+                         cover_image_url = :cover_image_url,
                          skin_key = :skin_key,
                          research_purpose = :research_purpose, target_population = :target_population, recruitment_method = :recruitment_method,
                          project_brief = :project_brief, sponsor_name = :sponsor_name, research_region = :research_region, research_language = :research_language,
@@ -313,6 +335,7 @@ if (sr_request_method() === 'POST') {
                     'survey_key' => $surveyKey,
                     'title' => $title,
                     'description' => $description,
+                    'cover_image_url' => $coverImageUrl,
                     'skin_key' => $skinKey,
                     'research_purpose' => $researchPurpose,
                     'target_population' => $targetPopulation,
@@ -370,7 +393,7 @@ if (sr_request_method() === 'POST') {
             } else {
                 $pdo->prepare(
                     'INSERT INTO sr_survey_forms
-                        (survey_key, title, description, skin_key, research_purpose, target_population, recruitment_method, estimated_minutes,
+                        (survey_key, title, description, cover_image_url, skin_key, research_purpose, target_population, recruitment_method, estimated_minutes,
                          project_brief, sponsor_name, research_region, research_language, fieldwork_method, sample_frame, sample_method, target_sample_size,
                          quota_policy, response_rate_basis, analysis_plan, weighting_policy, margin_error_note, methodology_disclosure, ethics_note,
                          sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
@@ -379,7 +402,7 @@ if (sr_request_method() === 'POST') {
                          public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reaction_preset_key, reaction_comment_preset_key, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
-                        (:survey_key, :title, :description, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
+                        (:survey_key, :title, :description, :cover_image_url, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
                          :project_brief, :sponsor_name, :research_region, :research_language, :fieldwork_method, :sample_frame, :sample_method, :target_sample_size,
                          :quota_policy, :response_rate_basis, :analysis_plan, :weighting_policy, :margin_error_note, :methodology_disclosure, :ethics_note,
                          :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
@@ -391,6 +414,7 @@ if (sr_request_method() === 'POST') {
                     'survey_key' => $surveyKey,
                     'title' => $title,
                     'description' => $description,
+                    'cover_image_url' => $coverImageUrl,
                     'skin_key' => $skinKey,
                     'research_purpose' => $researchPurpose,
                     'target_population' => $targetPopulation,
@@ -449,6 +473,7 @@ if (sr_request_method() === 'POST') {
             }
             sr_survey_replace_questions($pdo, $surveyId, $questions, $now);
             sr_survey_replace_reward_policy($pdo, $surveyId, $rewardEnabled, $rewardProvider, $rewardModule, $rewardCouponDefinitionId, $rewardAmount, $rewardDedupeScope, $now);
+            $afterCoverImageUrl = sr_survey_clean_cover_image_url($coverImageUrl);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) ($account['id'] ?? 0),
                 'actor_type' => 'admin',
@@ -467,16 +492,27 @@ if (sr_request_method() === 'POST') {
                     'reaction_preset_key' => $reactionPresetKey,
                     'reaction_comment_preset_key' => $reactionCommentPresetKey,
                     'reward_enabled' => $rewardEnabled,
+                    'cover_image_changed' => $beforeCoverImageUrl !== $afterCoverImageUrl,
+                    'cover_image_uploaded' => sr_survey_cover_image_upload_was_provided($coverImageUploadFile),
+                    'cover_image_deleted' => $beforeCoverImageUrl !== '' && $afterCoverImageUrl === '',
                 ],
             ]);
             $pdo->commit();
+            if ($beforeCoverImageUrl !== '' && $beforeCoverImageUrl !== $afterCoverImageUrl) {
+                sr_survey_delete_cover_image_storage($pdo, $beforeCoverImageUrl, $surveyId);
+            }
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
+            if (is_array($uploadedCoverImage)) {
+                sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
+            }
             throw $exception;
         }
         sr_admin_redirect_with_result(sr_admin_action_result([], '설문을 저장했습니다.'), '/admin/surveys?mode=edit&id=' . (string) $surveyId);
+    } elseif (is_array($uploadedCoverImage)) {
+        sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
     }
 }
 
@@ -843,6 +879,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'survey_key' => '',
         'title' => '',
         'description' => '',
+        'cover_image_url' => '',
         'skin_key' => '',
         'research_purpose' => '',
         'target_population' => '',
@@ -1043,7 +1080,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $questionModalSlots = $questionSlots;
     $questionModalSlots[$newQuestionIndex] = $emptyQuestionSlot;
     ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme" enctype="multipart/form-data">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save">
             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
@@ -1060,6 +1097,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <label class="form-label" for="survey_description">설명</label>
                 <textarea id="survey_description" name="description" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
+            </div>
+            <div class="form-field">
+                <label class="form-label" for="survey_cover_image_url">커버 이미지 URL</label>
+                <input id="survey_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
+                <p class="admin-form-help">공개 설문 목록과 상세 화면 상단, 공유 이미지에 사용할 이미지 URL입니다.</p>
+                <input id="survey_cover_image_upload" type="file" name="cover_image_upload" class="form-input form-control-full" accept="image/jpeg,image/png,image/webp">
+                <p class="admin-form-help">JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 최대 <?php echo sr_e(sr_format_bytes(sr_survey_cover_image_upload_max_bytes())); ?>.</p>
+                <?php if (sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')) !== '') { ?>
+                    <?php echo sr_admin_checkbox_toggle_html('survey_cover_image_delete', 'cover_image_delete', '1', false, '현재 커버 이미지 삭제'); ?>
+                <?php } ?>
             </div>
             <div class="form-field">
                 <?php echo sr_admin_form_label_help_html('survey_skin_key', '스킨', $surveyHelp['display']['id'], $surveyHelpOpenLabel); ?>

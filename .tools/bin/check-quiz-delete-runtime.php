@@ -48,6 +48,7 @@ function sr_quiz_delete_runtime_schema(PDO $pdo): void
         id INTEGER PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
+        cover_image_url TEXT NOT NULL DEFAULT "",
         status TEXT NOT NULL,
         comments_enabled INTEGER NOT NULL DEFAULT 1,
         secret_comments_enabled INTEGER NOT NULL DEFAULT 1,

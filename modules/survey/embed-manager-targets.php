@@ -30,7 +30,7 @@ return [
                     ? 'deleted_at IS NULL'
                     : 'status = \'active\' AND deleted_at IS NULL AND public_listed = 1 AND (starts_at IS NULL OR starts_at <= NOW()) AND (ends_at IS NULL OR ends_at >= NOW()) AND (member_group_keys_json IS NULL OR member_group_keys_json = \'\' OR member_group_keys_json = \'[]\')';
                 $stmt = $pdo->prepare(
-                    'SELECT id, survey_key, title, description, status, starts_at, ends_at, public_listed, reward_enabled, member_group_keys_json, deleted_at
+                    'SELECT id, survey_key, title, description, cover_image_url, status, starts_at, ends_at, public_listed, reward_enabled, member_group_keys_json, deleted_at
                      FROM sr_survey_forms
                      WHERE ' . $visibilitySql . '
                        AND ' . $where . '
@@ -51,6 +51,7 @@ return [
                         'target_id' => $surveyId,
                         'label_snapshot' => (string) ($row['title'] ?? ''),
                         'summary' => (string) ($row['description'] ?? ''),
+                        'image_snapshot' => sr_survey_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')),
                         'public_url' => '/survey/' . (string) ($row['survey_key'] ?? ''),
                         'admin_url' => '/admin/surveys?mode=edit&id=' . rawurlencode($surveyId),
                         'status' => $status,
@@ -88,6 +89,7 @@ return [
                 return [
                     'label_snapshot' => (string) ($row['title'] ?? ''),
                     'summary' => (string) ($row['description'] ?? ''),
+                    'image_snapshot' => sr_survey_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')),
                     'public_url' => '/survey/' . (string) ($row['survey_key'] ?? ''),
                     'admin_url' => '/admin/surveys?mode=edit&id=' . rawurlencode((string) $surveyId),
                     'status' => $status,

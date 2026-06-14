@@ -60,6 +60,8 @@ function sr_survey_response_runtime_schema(PDO $pdo): void
         id INTEGER PRIMARY KEY,
         survey_key TEXT NOT NULL,
         title TEXT NOT NULL,
+        description TEXT,
+        cover_image_url TEXT NOT NULL DEFAULT "",
         research_purpose TEXT,
         target_population TEXT,
         recruitment_method TEXT,

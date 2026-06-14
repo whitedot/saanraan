@@ -126,6 +126,15 @@ $seo = [
     'description' => sr_survey_clean_single_line((string) ($survey['description'] ?? ''), 160),
     'canonical' => '/survey/' . (string) $survey['survey_key'],
 ];
+$surveyCoverImageUrl = sr_survey_clean_cover_image_url((string) ($survey['cover_image_url'] ?? ''));
+if ($surveyCoverImageUrl !== '') {
+    $seo['og'] = [
+        'title' => (string) $survey['title'],
+        'description' => sr_survey_clean_single_line((string) ($survey['description'] ?? ''), 160),
+        'type' => 'article',
+        'image' => $surveyCoverImageUrl,
+    ];
+}
 $memberGroupKeys = sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]');
 if ($canPreviewAsAdmin || $submittedScreen || (int) ($survey['login_required'] ?? 1) === 1 || $memberGroupKeys !== [] || (int) ($survey['public_listed'] ?? 1) !== 1 || (string) ($survey['robots_policy'] ?? 'auto') === 'noindex') {
     $seo['robots'] = 'noindex, nofollow';
@@ -149,6 +158,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     <section class="sr-public-section">
         <div class="sr-public-container">
             <h1><?php echo sr_e((string) $survey['title']); ?></h1>
+            <?php echo sr_survey_cover_image_html($survey, 'sr-survey-cover-image', (string) ($survey['title'] ?? '')); ?>
             <?php if ((string) ($survey['description'] ?? '') !== ''): ?>
                 <p><?php echo sr_e((string) $survey['description']); ?></p>
             <?php endif; ?>

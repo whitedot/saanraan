@@ -23,6 +23,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                 <?php foreach ($surveys as $survey): ?>
                     <li>
                         <a href="<?php echo sr_e(sr_url('/survey/' . rawurlencode((string) $survey['survey_key']))); ?>">
+                            <?php echo sr_survey_cover_image_html($survey, 'sr-survey-list-cover', (string) ($survey['title'] ?? '')); ?>
                             <span class="sr-survey-list-title"><?php echo sr_e((string) $survey['title']); ?></span>
                             <?php if ((string) ($survey['description'] ?? '') !== ''): ?>
                                 <span class="sr-survey-list-summary"><?php echo sr_e((string) $survey['description']); ?></span>

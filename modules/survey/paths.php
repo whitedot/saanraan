@@ -2,6 +2,7 @@
 
 return [
     'GET /survey' => 'actions/home.php',
+    'GET /survey/cover-image' => 'actions/cover-image.php',
     'GET /survey/ui-kit' => 'actions/ui-kit.php',
     'POST /survey/comment' => 'actions/comment.php',
     'POST /survey/comment/edit' => 'actions/comment-edit.php',

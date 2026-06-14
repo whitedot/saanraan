@@ -30,7 +30,7 @@ return [
                     ? 'deleted_at IS NULL'
                     : 'status = \'active\' AND deleted_at IS NULL AND (starts_at IS NULL OR starts_at <= NOW()) AND (ends_at IS NULL OR ends_at >= NOW()) AND (member_group_keys_json IS NULL OR member_group_keys_json = \'\' OR member_group_keys_json = \'[]\')';
                 $stmt = $pdo->prepare(
-                    'SELECT id, quiz_key, title, description, status, starts_at, ends_at, reward_enabled, member_group_keys_json, deleted_at
+                    'SELECT id, quiz_key, title, description, cover_image_url, status, starts_at, ends_at, reward_enabled, member_group_keys_json, deleted_at
                      FROM sr_quiz_sets
                      WHERE ' . $visibilitySql . '
                        AND ' . $where . '
@@ -51,6 +51,7 @@ return [
                         'target_id' => $quizId,
                         'label_snapshot' => (string) ($row['title'] ?? ''),
                         'summary' => (string) ($row['description'] ?? ''),
+                        'image_snapshot' => sr_quiz_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')),
                         'public_url' => '/quiz/' . (string) ($row['quiz_key'] ?? ''),
                         'admin_url' => '/admin/quiz?mode=edit&id=' . rawurlencode($quizId),
                         'status' => $status,
@@ -88,6 +89,7 @@ return [
                 return [
                     'label_snapshot' => (string) ($row['title'] ?? ''),
                     'summary' => (string) ($row['description'] ?? ''),
+                    'image_snapshot' => sr_quiz_clean_cover_image_url((string) ($row['cover_image_url'] ?? '')),
                     'public_url' => '/quiz/' . (string) ($row['quiz_key'] ?? ''),
                     'admin_url' => '/admin/quiz?mode=edit&id=' . rawurlencode((string) $quizId),
                     'status' => $status,

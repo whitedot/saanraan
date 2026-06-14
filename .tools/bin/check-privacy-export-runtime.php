@@ -261,7 +261,8 @@ function sr_privacy_export_runtime_check_survey(): void
         'CREATE TABLE sr_survey_forms (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             survey_key TEXT NOT NULL,
-            title TEXT NOT NULL
+            title TEXT NOT NULL,
+            cover_image_url TEXT NOT NULL DEFAULT ""
         )'
     );
     $pdo->exec(

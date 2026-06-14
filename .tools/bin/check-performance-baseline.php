@@ -384,6 +384,10 @@ $allowedCacheControlHeaders = [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
     ],
+    'modules/quiz/actions/cover-image.php' => [
+        "header('Cache-Control: private, max-age=300')",
+        "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
+    ],
     'modules/content/actions/download.php' => [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_download_headers(\$mimeType, (string) \$file['original_name'], 'attachment', \$recordedSize, 'private, no-store, no-cache, must-revalidate')",
@@ -408,6 +412,10 @@ $allowedCacheControlHeaders = [
         "sr_send_file_headers(\$mimeType, (int) (\$head['content_length'] ?? 0), 'private, max-age=300')",
     ],
     'modules/seo/actions/image.php' => [
+        "header('Cache-Control: private, max-age=300')",
+        "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
+    ],
+    'modules/survey/actions/cover-image.php' => [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
     ],

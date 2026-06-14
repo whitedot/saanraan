@@ -145,6 +145,10 @@ $seo = [
         'type' => 'article',
     ],
 ];
+$quizCoverImageUrl = sr_quiz_clean_cover_image_url((string) ($quiz['cover_image_url'] ?? ''));
+if ($quizCoverImageUrl !== '') {
+    $seo['og']['image'] = $quizCoverImageUrl;
+}
 if ($canPreviewAsAdmin) {
     $seo['robots'] = 'noindex, nofollow';
 }
@@ -158,6 +162,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
     <section class="sr-public-section">
         <div class="sr-public-container">
             <h1><?php echo sr_e((string) $quiz['title']); ?></h1>
+            <?php echo sr_quiz_cover_image_html($quiz, 'sr-quiz-cover-image', (string) ($quiz['title'] ?? '')); ?>
             <?php if ((string) ($quiz['description'] ?? '') !== ''): ?>
                 <p><?php echo sr_e((string) $quiz['description']); ?></p>
             <?php endif; ?>

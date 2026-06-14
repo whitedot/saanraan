@@ -36,6 +36,7 @@ function sr_survey_export_runtime_schema(PDO $pdo): void
         id INTEGER PRIMARY KEY,
         survey_key TEXT NOT NULL,
         title TEXT NOT NULL,
+        cover_image_url TEXT NOT NULL DEFAULT "",
         questionnaire_version INTEGER NOT NULL DEFAULT 1,
         deleted_at TEXT
     )');
