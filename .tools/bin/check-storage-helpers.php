@@ -9,6 +9,14 @@ define('SR_ROOT', $root);
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/common.php';
 require_once $root . '/core/helpers/upload.php';
+
+if (!function_exists('sr_url')) {
+    function sr_url(string $path): string
+    {
+        return (string) ($GLOBALS['sr_storage_helper_test_base_path'] ?? '') . $path;
+    }
+}
+
 require_once $root . '/core/helpers/storage.php';
 
 $errors = [];
@@ -80,6 +88,7 @@ if (is_string($storageHelperSource)) {
         'function sr_thumbnail_supported',
         'function sr_thumbnail_variant_key',
         'function sr_thumbnail_public_url',
+        'function sr_thumbnail_public_cache_url',
         'function sr_thumbnail_delete_variants',
         "storage/cache/thumbnails",
     ] as $marker) {
@@ -92,6 +101,8 @@ if (is_string($storageHelperSource)) {
 
 $htaccess = file_get_contents($root . '/.htaccess');
 $devRouter = file_get_contents($root . '/.tools/bin/dev-router.php');
+$coreHelpers = file_get_contents($root . '/core/helpers.php');
+$frontController = file_get_contents($root . '/index.php');
 $communityAttachments = file_get_contents($root . '/modules/community/helpers/attachments.php');
 $communityPosts = file_get_contents($root . '/modules/community/helpers/posts.php');
 $communityListSkin = file_get_contents($root . '/modules/community/skins/basic/list.php');
@@ -102,6 +113,19 @@ sr_storage_helper_assert(
 sr_storage_helper_assert(
     is_string($devRouter) && strpos($devRouter, '$thumbnailCacheRequest') !== false,
     'Dev router must allow only generated thumbnail cache images under storage/cache/thumbnails.'
+);
+sr_storage_helper_assert(
+    is_string($coreHelpers)
+        && strpos($coreHelpers, "/core/helpers/output.php") !== false
+        && strpos($coreHelpers, "/core/helpers/storage.php") !== false
+        && strpos($coreHelpers, "/core/helpers/output.php") < strpos($coreHelpers, "/core/helpers/storage.php"),
+    'Core helpers must load output helpers before storage helpers so thumbnail cache URLs can use sr_url when available.'
+);
+sr_storage_helper_assert(
+    is_string($frontController)
+        && strpos($frontController, "require SR_ROOT . '/core/helpers.php';") !== false
+        && strpos($frontController, "require SR_ROOT . '/core/helpers.php';") < strpos($frontController, 'sr_enabled_module_contract_files'),
+    'Front controller must load core helpers before module routes so modules can reference thumbnail helpers.'
 );
 sr_storage_helper_assert(
     is_string($communityAttachments)
@@ -136,6 +160,17 @@ sr_storage_helper_assert(
     ], ['width' => 160, 'height' => 90]) === '/fallback.png',
     'Thumbnail helper must reject unsafe source keys and fall back without traversal.'
 );
+$GLOBALS['sr_storage_helper_test_base_path'] = '/subdir';
+$thumbnailCacheFixture = 'cache/thumbnails/aa/' . str_repeat('a', 64) . '_w160_h90_cover_q82_source_1.jpg';
+sr_storage_helper_assert(
+    sr_thumbnail_public_cache_url($thumbnailCacheFixture) === '/subdir/storage/cache/thumbnails/aa/' . str_repeat('a', 64) . '_w160_h90_cover_q82_source_1.jpg',
+    'Thumbnail public cache URL must respect the configured base path when sr_url is available.'
+);
+sr_storage_helper_assert(
+    sr_thumbnail_public_cache_url('../bad.jpg') === '',
+    'Thumbnail public cache URL helper must reject paths outside the generated cache pattern.'
+);
+unset($GLOBALS['sr_storage_helper_test_base_path']);
 
 if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_exists('imagepng')) {
     $fixtureDir = $root . '/storage/cache/check-storage-helpers';

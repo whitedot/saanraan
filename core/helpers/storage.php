@@ -305,7 +305,7 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     $cacheRelative = 'cache/thumbnails/' . substr($sourceHash, 0, 2) . '/' . $sourceHash . '_' . $variantKey . '_' . $sourceMtime . '.' . $format;
     $cachePath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $cacheRelative);
     if (is_file($cachePath)) {
-        return '/storage/' . str_replace('%2F', '/', rawurlencode($cacheRelative));
+        return sr_thumbnail_public_cache_url($cacheRelative);
     }
 
     $cacheDir = dirname($cachePath);
@@ -318,7 +318,18 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
         return $publicUrl;
     }
 
-    return '/storage/' . str_replace('%2F', '/', rawurlencode($cacheRelative));
+    return sr_thumbnail_public_cache_url($cacheRelative);
+}
+
+function sr_thumbnail_public_cache_url(string $cacheRelative): string
+{
+    if (preg_match('#\Acache/thumbnails/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[0-9]+\.(?:jpe?g|png|gif|webp)\z#i', $cacheRelative) !== 1) {
+        return '';
+    }
+
+    $path = '/storage/' . str_replace('%2F', '/', rawurlencode($cacheRelative));
+
+    return function_exists('sr_url') ? sr_url($path) : $path;
 }
 
 function sr_thumbnail_delete_variants(array $source): void
