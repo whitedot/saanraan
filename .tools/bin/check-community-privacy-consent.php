@@ -29,6 +29,20 @@ $mustContain = static function (string $file, array $markers) use (&$errors): vo
     }
 };
 
+$mustNotContain = static function (string $file, array $markers) use (&$errors): void {
+    $contents = file_get_contents($file);
+    if (!is_string($contents)) {
+        $errors[] = 'cannot read ' . $file;
+        return;
+    }
+
+    foreach ($markers as $marker) {
+        if (str_contains($contents, (string) $marker)) {
+            $errors[] = $file . ' must not contain marker: ' . (string) $marker;
+        }
+    }
+};
+
 $mustContain('modules/community/helpers/privacy-consents.php', [
     'sr_community_privacy_consent_setting_keys',
     'privacy_consent_document_key',
@@ -52,13 +66,23 @@ $mustContain('modules/community/helpers/boards.php', [
 ]);
 $mustContain('modules/community/actions/admin-boards.php', [
     'privacy_consent_enabled',
+    'sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey)',
     '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.',
     'privacy_consent_require_attachment_upload',
 ]);
+$mustNotContain('modules/community/actions/admin-boards.php', [
+    '개인정보 수집 및 이용동의 본문을 입력해 주세요.',
+    '개인정보 수집 및 이용동의 버전을 입력해 주세요.',
+]);
 $mustContain('modules/community/actions/admin-settings.php', [
     'privacy_consent_enabled',
+    'sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey)',
     'privacy_consent_require_post',
     '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.',
+]);
+$mustNotContain('modules/community/actions/admin-settings.php', [
+    '개인정보 수집 및 이용동의 본문을 입력해 주세요.',
+    '개인정보 수집 및 이용동의 버전을 입력해 주세요.',
 ]);
 $mustContain('modules/community/views/admin-settings.php', [
     'community-settings-section-privacy-consent',
@@ -67,8 +91,13 @@ $mustContain('modules/community/views/admin-settings.php', [
 ]);
 $mustContain('modules/community/actions/admin-board-groups.php', [
     'group_privacy_consent_enabled',
+    'sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey)',
     'group_privacy_consent_require_post',
     '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.',
+]);
+$mustNotContain('modules/community/actions/admin-board-groups.php', [
+    '개인정보 수집 및 이용동의 본문을 입력해 주세요.',
+    '개인정보 수집 및 이용동의 버전을 입력해 주세요.',
 ]);
 $mustContain('modules/community/views/admin-board-groups.php', [
     'community-board-group-section-privacy-consent',

@@ -68,11 +68,7 @@ if (sr_request_method() === 'POST') {
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
-        $privacyConsentDocumentKey = sr_post_string('privacy_consent_document_key', 80);
-        $privacyConsentTitle = trim(sr_post_string('privacy_consent_title', 120));
-        $privacyConsentBodyInput = sr_post_string_without_truncation('privacy_consent_body', 5000);
-        $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
-        $privacyConsentVersion = trim(sr_post_string('privacy_consent_version', 60));
+        $privacyConsentDocumentKey = strtolower(trim(sr_post_string('privacy_consent_document_key', 80)));
         $privacyConsentRequirePost = ($_POST['privacy_consent_require_post'] ?? '') === '1';
         $privacyConsentRequireComment = ($_POST['privacy_consent_require_comment'] ?? '') === '1';
         $privacyConsentRequireAttachmentUpload = ($_POST['privacy_consent_require_attachment_upload'] ?? '') === '1';
@@ -163,22 +159,16 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시글 툴바 구성 값이 올바르지 않습니다.';
             $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic');
         }
-        if (!is_string($privacyConsentBodyInput)) {
-            $errors[] = '개인정보 수집 및 이용동의 본문이 너무 깁니다.';
-            $privacyConsentBody = '';
-        }
         if ($privacyConsentEnabled) {
             if (!sr_community_submission_consents_table_exists($pdo)) {
                 $errors[] = '개인정보 수집 및 이용동의 스키마 업데이트가 아직 적용되지 않았습니다.';
             }
-            if ($privacyConsentTitle === '') {
-                $errors[] = '개인정보 수집 및 이용동의 제목을 입력해 주세요.';
+            if ($privacyConsentDocumentKey === '') {
+                $privacyConsentDocumentKey = 'community_privacy_default';
             }
-            if ($privacyConsentBody === '') {
-                $errors[] = '개인정보 수집 및 이용동의 본문을 입력해 주세요.';
-            }
-            if ($privacyConsentVersion === '') {
-                $errors[] = '개인정보 수집 및 이용동의 버전을 입력해 주세요.';
+            if (preg_match('/\A[a-z][a-z0-9_]{2,79}\z/', $privacyConsentDocumentKey) !== 1
+                || !is_array(sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey))) {
+                $errors[] = '개인정보 수집 및 이용동의 정책 문서를 확인해 주세요.';
             }
             if (!$privacyConsentRequirePost && !$privacyConsentRequireComment && !$privacyConsentRequireAttachmentUpload) {
                 $errors[] = '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.';
@@ -280,9 +270,9 @@ if (sr_request_method() === 'POST') {
                 ['privacy_consent_enabled', $privacyConsentEnabled ? '1' : '0', 'bool'],
                 ['privacy_consent_document_key', $privacyConsentDocumentKey !== '' ? $privacyConsentDocumentKey : 'community_privacy_default', 'string'],
                 ['privacy_consent_document_inherit_policy', 'override', 'string'],
-                ['privacy_consent_title', $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의', 'string'],
-                ['privacy_consent_body', $privacyConsentBody, 'string'],
-                ['privacy_consent_version', $privacyConsentVersion !== '' ? $privacyConsentVersion : '1', 'string'],
+                ['privacy_consent_title', '', 'string'],
+                ['privacy_consent_body', '', 'string'],
+                ['privacy_consent_version', '', 'string'],
                 ['privacy_consent_require_post', $privacyConsentRequirePost ? '1' : '0', 'bool'],
                 ['privacy_consent_require_comment', $privacyConsentRequireComment ? '1' : '0', 'bool'],
                 ['privacy_consent_require_attachment_upload', $privacyConsentRequireAttachmentUpload ? '1' : '0', 'bool'],

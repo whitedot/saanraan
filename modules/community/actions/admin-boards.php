@@ -474,15 +474,11 @@ if (sr_request_method() === 'POST') {
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
-        $privacyConsentDocumentKey = sr_post_string('privacy_consent_document_key', 80);
+        $privacyConsentDocumentKey = strtolower(trim(sr_post_string('privacy_consent_document_key', 80)));
         $privacyConsentDocumentInheritPolicy = sr_post_string('privacy_consent_document_inherit_policy', 20);
         if (!in_array($privacyConsentDocumentInheritPolicy, ['inherit', 'override', 'disabled'], true)) {
             $privacyConsentDocumentInheritPolicy = 'override';
         }
-        $privacyConsentTitle = trim(sr_post_string('privacy_consent_title', 120));
-        $privacyConsentBodyInput = sr_post_string_without_truncation('privacy_consent_body', 5000);
-        $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
-        $privacyConsentVersion = trim(sr_post_string('privacy_consent_version', 60));
         $privacyConsentRequirePost = ($_POST['privacy_consent_require_post'] ?? '') === '1';
         $privacyConsentRequireComment = ($_POST['privacy_consent_require_comment'] ?? '') === '1';
         $privacyConsentRequireAttachmentUpload = ($_POST['privacy_consent_require_attachment_upload'] ?? '') === '1';
@@ -720,22 +716,17 @@ if (sr_request_method() === 'POST') {
             $errors[] = '목록 기본 정렬 값이 올바르지 않습니다.';
         }
 
-        if (!is_string($privacyConsentBodyInput)) {
-            $errors[] = '개인정보 수집 및 이용동의 본문이 너무 깁니다.';
-            $privacyConsentBody = '';
-        }
         if ($privacyConsentEnabled) {
             if (!sr_community_submission_consents_table_exists($pdo)) {
                 $errors[] = '개인정보 수집 및 이용동의 스키마 업데이트가 아직 적용되지 않았습니다.';
             }
-            if ($privacyConsentTitle === '') {
-                $errors[] = '개인정보 수집 및 이용동의 제목을 입력해 주세요.';
+            if ($privacyConsentDocumentKey === '') {
+                $privacyConsentDocumentKey = 'community_privacy_default';
             }
-            if ($privacyConsentBody === '') {
-                $errors[] = '개인정보 수집 및 이용동의 본문을 입력해 주세요.';
-            }
-            if ($privacyConsentVersion === '') {
-                $errors[] = '개인정보 수집 및 이용동의 버전을 입력해 주세요.';
+            if (($settingSources['privacy_consent_document_key'] ?? 'board') === 'board'
+                && (preg_match('/\A[a-z][a-z0-9_]{2,79}\z/', $privacyConsentDocumentKey) !== 1
+                    || !is_array(sr_community_privacy_consent_policy_snapshot($pdo, $privacyConsentDocumentKey)))) {
+                $errors[] = '개인정보 수집 및 이용동의 정책 문서를 확인해 주세요.';
             }
             if (!$privacyConsentRequirePost && !$privacyConsentRequireComment && !$privacyConsentRequireAttachmentUpload) {
                 $errors[] = '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.';
@@ -879,9 +870,9 @@ if (sr_request_method() === 'POST') {
                 'privacy_consent_enabled' => $privacyConsentEnabled ? '1' : '0',
                 'privacy_consent_document_key' => $privacyConsentDocumentKey !== '' ? $privacyConsentDocumentKey : 'community_privacy_default',
                 'privacy_consent_document_inherit_policy' => $privacyConsentDocumentInheritPolicy,
-                'privacy_consent_title' => $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의',
-                'privacy_consent_body' => $privacyConsentBody,
-                'privacy_consent_version' => $privacyConsentVersion !== '' ? $privacyConsentVersion : '1',
+                'privacy_consent_title' => '',
+                'privacy_consent_body' => '',
+                'privacy_consent_version' => '',
                 'privacy_consent_require_post' => $privacyConsentRequirePost ? '1' : '0',
                 'privacy_consent_require_comment' => $privacyConsentRequireComment ? '1' : '0',
                 'privacy_consent_require_attachment_upload' => $privacyConsentRequireAttachmentUpload ? '1' : '0',
