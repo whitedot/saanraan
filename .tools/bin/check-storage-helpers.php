@@ -88,9 +88,13 @@ if (is_string($storageHelperSource)) {
     foreach ([
         'function sr_thumbnail_supported',
         'function sr_thumbnail_variant_key',
+        'function sr_thumbnail_source_version',
         'function sr_thumbnail_public_url',
         'function sr_thumbnail_public_cache_url',
         'function sr_thumbnail_delete_variants',
+        'function sr_storage_copy_to_temp_file',
+        'function sr_storage_http_download_to_temp_file',
+        'max_source_pixels',
         "storage/cache/thumbnails",
     ] as $marker) {
         sr_storage_helper_assert(
@@ -112,7 +116,9 @@ $adminNavigation = file_get_contents($root . '/modules/admin/helpers/navigation.
 $adminStorageCacheAction = file_get_contents($root . '/modules/admin/actions/storage-cache.php');
 $adminStorageCacheView = file_get_contents($root . '/modules/admin/views/storage-cache.php');
 sr_storage_helper_assert(
-    is_string($htaccess) && strpos($htaccess, 'storage/cache/thumbnails/[a-f0-9]{2}') !== false,
+    is_string($htaccess)
+        && strpos($htaccess, 'storage/cache/thumbnails/[a-f0-9]{2}') !== false
+        && strpos($htaccess, 'storage/cache/thumbnails/[a-z][a-z0-9_]{1,39}') !== false,
     'Apache rules must allow only generated thumbnail cache images under storage/cache/thumbnails.'
 );
 sr_storage_helper_assert(
@@ -142,8 +148,9 @@ sr_storage_helper_assert(
 sr_storage_helper_assert(
     is_string($communityPosts)
         && strpos($communityPosts, 'list_image_attachment_id') !== false
-        && strpos($communityPosts, 'list_image_storage_key') !== false,
-    'Community board list query must include first image attachment fields for thumbnail generation.'
+        && strpos($communityPosts, 'list_image_storage_key') !== false
+        && strpos($communityPosts, 'list_image_checksum_sha256') !== false,
+    'Community board list query must include first image attachment fields and checksum metadata for thumbnail generation.'
 );
 sr_storage_helper_assert(
     is_string($communityListSkin)
@@ -180,6 +187,32 @@ $variantA = sr_thumbnail_variant_key(['height' => 90, 'width' => 160, 'quality' 
 $variantB = sr_thumbnail_variant_key(['width' => 160, 'height' => 90, 'mode' => 'cover']);
 sr_storage_helper_assert($variantA === $variantB, 'Thumbnail variant key must be stable for equivalent normalized options.');
 sr_storage_helper_assert(
+    sr_thumbnail_module_key(['module_key' => 'community']) === 'community' && sr_thumbnail_module_key(['module_key' => '../bad']) === 'common',
+    'Thumbnail module key helper must accept safe module keys and fall back for unsafe keys.'
+);
+sr_storage_helper_assert(
+    preg_match('/\A[a-f0-9]{16}\z/', sr_thumbnail_source_version(['checksum_sha256' => str_repeat('a', 64)])) === 1,
+    'Thumbnail source version helper must normalize checksum versions to a safe short token.'
+);
+sr_storage_helper_assert(
+    sr_thumbnail_source_version([], [
+        'content_length' => 123,
+        'metadata' => [
+            'version_id' => 's3-version-1',
+            'etag' => 'etag-1',
+            'last_modified' => 'Sun, 14 Jun 2026 00:00:00 GMT',
+        ],
+    ]) !== sr_thumbnail_source_version([], [
+        'content_length' => 123,
+        'metadata' => [
+            'version_id' => 's3-version-2',
+            'etag' => 'etag-1',
+            'last_modified' => 'Sun, 14 Jun 2026 00:00:00 GMT',
+        ],
+    ]),
+    'Thumbnail source version helper must prefer S3 version markers when available.'
+);
+sr_storage_helper_assert(
     sr_thumbnail_public_url(new PDO('sqlite::memory:'), [
         'public' => true,
         'storage_driver' => 'local',
@@ -193,7 +226,12 @@ $GLOBALS['sr_storage_helper_test_base_path'] = '/subdir';
 $thumbnailCacheFixture = 'cache/thumbnails/aa/' . str_repeat('a', 64) . '_w160_h90_cover_q82_source_1.jpg';
 sr_storage_helper_assert(
     sr_thumbnail_public_cache_url($thumbnailCacheFixture) === '/subdir/storage/cache/thumbnails/aa/' . str_repeat('a', 64) . '_w160_h90_cover_q82_source_1.jpg',
-    'Thumbnail public cache URL must respect the configured base path when sr_url is available.'
+    'Thumbnail public cache URL must keep legacy cache URL compatibility.'
+);
+$versionedThumbnailCacheFixture = 'cache/thumbnails/community/aa/' . str_repeat('a', 64) . '_w160_h90_cover_q82_source_' . str_repeat('c', 16) . '.jpg';
+sr_storage_helper_assert(
+    sr_thumbnail_public_cache_url($versionedThumbnailCacheFixture) === '/subdir/storage/cache/thumbnails/community/aa/' . str_repeat('a', 64) . '_w160_h90_cover_q82_source_' . str_repeat('c', 16) . '.jpg',
+    'Thumbnail public cache URL must respect the configured base path for module-key cache paths.'
 );
 sr_storage_helper_assert(
     sr_thumbnail_public_cache_url('../bad.jpg') === '',
@@ -219,9 +257,11 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
     $storageKey = 'cache/check-storage-helpers/thumbnail-source.png';
     $source = [
         'public' => true,
+        'module_key' => 'community',
         'storage_driver' => 'local',
         'storage_key' => $storageKey,
         'mime_type' => 'image/png',
+        'checksum_sha256' => hash_file('sha256', $fixturePath) ?: '',
         'public_url' => '/fallback.png',
     ];
     $thumbnailUrl = sr_thumbnail_public_url(new PDO('sqlite::memory:'), $source, [
@@ -231,8 +271,8 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
         'quality' => 82,
     ]);
     sr_storage_helper_assert(
-        str_starts_with($thumbnailUrl, '/storage/cache/thumbnails/'),
-        'Thumbnail helper must return a public cache URL when GD can generate the variant.'
+        preg_match('#\A/storage/cache/thumbnails/community/[a-f0-9]{2}/[a-f0-9]{64}_w160_h90_cover_q82_source_[a-f0-9]{16}\.png\z#', $thumbnailUrl) === 1,
+        'Thumbnail helper must return a module-key source-version public cache URL when GD can generate the variant.'
     );
     $thumbnailPath = $root . parse_url($thumbnailUrl, PHP_URL_PATH);
     sr_storage_helper_assert(is_file($thumbnailPath), 'Thumbnail helper must create the cache image file.');
@@ -246,21 +286,22 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
     @unlink($fixturePath);
 }
 
-$adminCacheFixtureDir = $root . '/storage/cache/thumbnails/ab';
+$adminCacheFixtureDir = $root . '/storage/cache/thumbnails/community/ab';
 if (!is_dir($adminCacheFixtureDir)) {
     @mkdir($adminCacheFixtureDir, 0755, true);
 }
-$adminCacheFixtureRelative = 'ab/' . str_repeat('b', 64) . '_w160_h90_cover_q82_source_1.jpg';
+$adminCacheFixtureRelative = 'community/ab/' . str_repeat('b', 64) . '_w160_h90_cover_q82_source_' . str_repeat('d', 16) . '.jpg';
 $adminCacheFixturePath = $adminCacheFixtureDir . '/' . basename($adminCacheFixtureRelative);
 file_put_contents($adminCacheFixturePath, 'thumbnail-cache-fixture');
 touch($adminCacheFixturePath, strtotime('2001-01-02 12:00:00'));
 $adminCacheScan = sr_admin_thumbnail_cache_scan([
     'date_from' => '2001-01-02',
     'date_to' => '2001-01-02',
+    'module_key' => 'community',
 ]);
 sr_storage_helper_assert(
     (int) (($adminCacheScan['summary']['total_count'] ?? 0)) >= 1,
-    'Admin thumbnail cache scan must find generated-cache-pattern files in the selected date range.'
+    'Admin thumbnail cache scan must find generated-cache-pattern files in the selected date range and module filter.'
 );
 sr_storage_helper_assert(
     sr_admin_thumbnail_cache_parse_relative_path('../bad.jpg') === null,
@@ -269,6 +310,7 @@ sr_storage_helper_assert(
 $adminCacheCleanup = sr_admin_thumbnail_cache_cleanup([
     'date_from' => '2001-01-02',
     'date_to' => '2001-01-02',
+    'module_key' => 'community',
 ]);
 sr_storage_helper_assert(
     (int) ($adminCacheCleanup['deleted_count'] ?? 0) >= 1 && !is_file($adminCacheFixturePath),

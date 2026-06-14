@@ -124,9 +124,12 @@ function sr_community_post_list_thumbnail_url(PDO $pdo, array $post, array $boar
 
     return sr_thumbnail_public_url($pdo, [
         'public' => true,
+        'module_key' => 'community',
         'storage_driver' => (string) ($post['list_image_storage_driver'] ?? 'local'),
         'storage_key' => (string) ($post['list_image_storage_key'] ?? ''),
         'mime_type' => (string) ($post['list_image_mime_type'] ?? ''),
+        'size_bytes' => (int) ($post['list_image_size_bytes'] ?? 0),
+        'checksum_sha256' => (string) ($post['list_image_checksum_sha256'] ?? ''),
         'width' => (int) ($post['list_image_width'] ?? 0),
         'height' => (int) ($post['list_image_height'] ?? 0),
         'public_url' => sr_url('/community/attachment?id=' . rawurlencode((string) (int) $post['list_image_attachment_id'])),
@@ -411,6 +414,7 @@ function sr_community_redact_deleted_post_attachments(PDO $pdo, int $postId): in
         $driver = sr_community_attachment_storage_driver($attachment);
         $key = sr_community_attachment_storage_key($attachment);
         sr_thumbnail_delete_variants([
+            'module_key' => 'community',
             'storage_driver' => $driver,
             'storage_key' => $key,
         ]);

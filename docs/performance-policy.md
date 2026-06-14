@@ -17,7 +17,7 @@
 | 요청 단위 메모리 캐시 | 설정, 모듈 계약, 테이블 존재 여부처럼 한 요청 안에서 반복 조회되는 값에 사용한다. 요청이 끝나면 폐기된다. |
 | 정적 asset 브라우저 캐시 | CSS, JavaScript, 이미지, 폰트처럼 공개 정적 파일에 사용한다. URL version 또는 파일 수정 시각으로 갱신 가능해야 한다. |
 | 라이브러리 정의 캐시 | HTML Purifier 정의 캐시처럼 외부 라이브러리 성능 보조에 사용한다. 경로는 `storage/cache/htmlpurifier`처럼 vendor 밖이어야 한다. |
-| 공개 이미지 썸네일 캐시 | 원본이 공개로 노출 가능한 이미지일 때만 `storage/cache/thumbnails` 아래에 생성한다. 배포 규칙은 생성 파일명 패턴의 JPEG/PNG/GIF/WebP만 직접 열 수 있게 제한해야 한다. |
+| 공개 이미지 썸네일 캐시 | 원본이 공개로 노출 가능한 이미지일 때만 `storage/cache/thumbnails` 아래에 생성한다. 새 캐시는 `{module_key}/{hash-prefix}/{hash}_{variant}_{source_version}.{ext}` 형식을 사용하며, 배포 규칙은 생성 파일명 패턴의 JPEG/PNG/GIF/WebP만 직접 열 수 있게 제한해야 한다. |
 | read-only 상태 점검 결과 기록 | `ops-status.php` 출력처럼 사람이 기록하는 운영 기록은 캐시가 아니라 점검 증거로 다룬다. |
 
 ## 금지하거나 보류하는 캐시
@@ -32,9 +32,11 @@
 
 ## 공개 썸네일 캐시 운영
 
-관리자는 `/admin/storage-cache`에서 `storage/cache/thumbnails` 아래의 공개 썸네일 캐시를 파일 스캔 방식으로 확인할 수 있다. 이 화면은 helper가 만든 파일명 패턴의 이미지 캐시만 대상으로 하며, 생성 내역은 파일 수정 시각 기준의 기간 필터로 집계한다.
+관리자는 `/admin/storage-cache`에서 `storage/cache/thumbnails` 아래의 공개 썸네일 캐시를 파일 스캔 방식으로 확인할 수 있다. 이 화면은 helper가 만든 파일명 패턴의 이미지 캐시만 대상으로 하며, 생성 내역은 파일 수정 시각 기준의 기간 필터와 module key 필터로 집계한다.
 
 기간별 정리는 현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제하고, 원본 파일이나 모듈 데이터는 변경하지 않는다. 삭제 작업은 관리자 `delete` 권한, CSRF, 확인 문구, 감사 로그를 요구한다.
+
+S3 원본 이미지는 임시 파일로 내려받아 local `storage/cache/thumbnails`에 썸네일 캐시를 생성한다. 썸네일 캐시 저장소 자체를 S3로 바꾸는 기능은 adapter 기반 list/delete 계약이 필요하므로 후속 범위로 둔다.
 
 ## 사이트 메뉴 캐시
 

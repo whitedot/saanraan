@@ -20,6 +20,7 @@ if (sr_request_method() === 'POST') {
     $postFilters = [
         'date_from' => sr_admin_thumbnail_cache_date_filter(sr_post_string('date_from', 20)),
         'date_to' => sr_admin_thumbnail_cache_date_filter(sr_post_string('date_to', 20)),
+        'module_key' => sr_admin_thumbnail_cache_module_filter(sr_post_string('module_key', 40)),
     ];
     $confirmText = trim(sr_post_string('confirm_text', 40));
     $postErrors = [];

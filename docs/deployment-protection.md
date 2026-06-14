@@ -32,7 +32,7 @@ LICENSE
 
 위 경로를 직접 열 수 있는 환경에서는 운영 설치를 진행하지 않는다.
 
-예외적으로 `storage/cache/thumbnails/` 아래의 생성된 이미지 썸네일은 공개 이미지 캐시로 직접 접근을 허용할 수 있다. 이 예외는 하위 디렉터리와 파일명 패턴이 helper가 만든 형식이고 확장자가 JPEG/PNG/GIF/WebP인 파일에만 적용해야 하며, `storage/`의 다른 파일이나 실행 가능한 파일은 계속 차단해야 한다. 사이트가 하위 경로에 설치된 경우 썸네일 helper가 반환하는 공개 캐시 URL도 사이트 base path를 포함해야 한다.
+예외적으로 `storage/cache/thumbnails/` 아래의 생성된 이미지 썸네일은 공개 이미지 캐시로 직접 접근을 허용할 수 있다. 이 예외는 하위 디렉터리와 파일명 패턴이 helper가 만든 형식이고 확장자가 JPEG/PNG/GIF/WebP인 파일에만 적용해야 하며, `storage/`의 다른 파일이나 실행 가능한 파일은 계속 차단해야 한다. 새 썸네일 캐시는 `storage/cache/thumbnails/{module_key}/{hash-prefix}/{hash}_{variant}_{source_version}.{ext}` 형식을 사용하고, 구 버전 캐시 정리를 위해 기존 `{hash-prefix}/{hash}_{variant}_{mtime}.{ext}` 형식도 직접 접근 예외로 남긴다. 사이트가 하위 경로에 설치된 경우 썸네일 helper가 반환하는 공개 캐시 URL도 사이트 base path를 포함해야 한다.
 
 ## 설치 전 확인
 
@@ -74,7 +74,7 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 ## 서버별 처리
 
-Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/tokens.css`, `/assets/public-foundation.css`, `/modules/admin/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다. 썸네일 캐시를 사용하는 환경에서는 `/storage/cache/thumbnails/{hash-prefix}/{hash}_{variant}_{mtime}.jpg` 같은 생성 파일만 열리고 `/storage/.gitignore`나 임의 storage 파일은 계속 막히는지도 확인한다.
+Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/tokens.css`, `/assets/public-foundation.css`, `/modules/admin/assets/tokens.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다. 썸네일 캐시를 사용하는 환경에서는 `/storage/cache/thumbnails/community/{hash-prefix}/{hash}_{variant}_{source_version}.jpg` 같은 생성 파일만 열리고 `/storage/.gitignore`나 임의 storage 파일은 계속 막히는지도 확인한다.
 
 nginx는 PHP-FPM과 front controller 구성을 사용한다. 저장소의 [nginx 샘플 설정](deployment/nginx-saanraan.conf)을 운영 서버 설정에 복사한 뒤 `server_name`, `root`, `fastcgi_pass`를 환경에 맞게 바꾼다. `location` 순서는 보안 규칙의 일부이므로 유지한다. 특히 `/modules/{module_key}/assets/`와 CKEditor 공개 파일은 허용하되, 그 밖의 `modules/` 내부 파일은 직접 열리지 않아야 한다.
 

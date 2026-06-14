@@ -169,6 +169,58 @@ function sr_storage_signed_url(string $driver, string $key, int $ttlSeconds = 30
     }
 }
 
+function sr_storage_copy_to_temp_file(string $driver, string $key, array $options = []): ?array
+{
+    if (!sr_storage_key_is_safe($key)) {
+        return null;
+    }
+
+    $driver = strtolower(trim($driver));
+    if ($driver === 'local') {
+        $path = sr_storage_local_path($key);
+        if (!is_string($path)) {
+            return null;
+        }
+
+        return [
+            'path' => $path,
+            'content_type' => sr_upload_detect_mime($path),
+            'content_length' => (int) filesize($path),
+            'version_marker' => 'local:' . (string) (@filemtime($path) ?: '0') . ':' . (string) (@filesize($path) ?: '0'),
+            'cleanup' => false,
+        ];
+    }
+
+    if ($driver !== 's3') {
+        return null;
+    }
+
+    $config = isset($options['config']) && is_array($options['config']) ? $options['config'] : sr_runtime_config();
+    $maxBytes = max(1, (int) ($options['max_bytes'] ?? 20971520));
+    $head = sr_storage_s3_head($config, $key);
+    if ($head === null || (int) ($head['content_length'] ?? 0) < 1 || (int) ($head['content_length'] ?? 0) > $maxBytes) {
+        return null;
+    }
+
+    try {
+        $downloadUrl = sr_storage_s3_presigned_url($config, $key, 300);
+    } catch (Throwable $exception) {
+        return null;
+    }
+    $download = sr_storage_http_download_to_temp_file($downloadUrl, $maxBytes);
+    if ($download === null) {
+        return null;
+    }
+    $metadata = isset($head['metadata']) && is_array($head['metadata']) ? $head['metadata'] : [];
+    return [
+        'path' => (string) $download['path'],
+        'content_type' => (string) ($download['headers']['content-type'] ?? $head['content_type'] ?? ''),
+        'content_length' => (int) ($download['content_length'] ?? 0),
+        'version_marker' => sr_storage_s3_version_marker($metadata, $head),
+        'cleanup' => true,
+    ];
+}
+
 function sr_storage_local_put_file(string $sourcePath, string $key, array $options = []): array
 {
     $targetPath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $key);
@@ -265,6 +317,48 @@ function sr_thumbnail_variant_key(array $options): string
         . '_' . $format;
 }
 
+function sr_thumbnail_module_key(array $source): string
+{
+    $moduleKey = strtolower(trim((string) ($source['module_key'] ?? $source['module'] ?? 'common')));
+    return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $moduleKey) === 1 ? $moduleKey : 'common';
+}
+
+function sr_thumbnail_source_version(array $source, ?array $head = null, ?string $sourcePath = null): string
+{
+    foreach (['source_version', 'checksum_sha256', 'checksum'] as $key) {
+        $value = strtolower(trim((string) ($source[$key] ?? '')));
+        if ($value !== '') {
+            return substr(hash('sha256', $key . ':' . $value), 0, 16);
+        }
+    }
+
+    $head = is_array($head) ? $head : [];
+    $metadata = isset($head['metadata']) && is_array($head['metadata']) ? $head['metadata'] : [];
+    $versionMarker = trim((string) ($head['version_marker'] ?? ''));
+    if ($versionMarker === '') {
+        $versionMarker = trim((string) ($metadata['version_id'] ?? ''));
+    }
+    if ($versionMarker === '') {
+        $versionMarker = trim((string) ($metadata['etag'] ?? ''));
+    }
+    if ($versionMarker === '') {
+        $lastModified = trim((string) ($metadata['last_modified'] ?? ''));
+        $contentLength = (string) ($head['content_length'] ?? '');
+        if ($lastModified !== '' || $contentLength !== '') {
+            $versionMarker = $lastModified . ':' . $contentLength;
+        }
+    }
+    if ($versionMarker !== '') {
+        return substr(hash('sha256', 'head:' . $versionMarker), 0, 16);
+    }
+
+    if (is_string($sourcePath) && is_file($sourcePath)) {
+        return substr(hash('sha256', 'local:' . (string) (@filemtime($sourcePath) ?: '0') . ':' . (string) (@filesize($sourcePath) ?: '0')), 0, 16);
+    }
+
+    return substr(hash('sha256', 'fallback:' . (string) time()), 0, 16);
+}
+
 function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): string
 {
     unset($pdo);
@@ -273,22 +367,38 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     $publicSource = !empty($source['public']) || $publicUrl !== '';
     $driver = strtolower(trim((string) ($source['storage_driver'] ?? $source['driver'] ?? 'local')));
     $key = (string) ($source['storage_key'] ?? $source['key'] ?? '');
-    if (!$publicSource || $driver !== 'local' || !sr_storage_key_is_safe($key)) {
+    if (!$publicSource || !in_array($driver, ['local', 's3'], true) || !sr_storage_key_is_safe($key)) {
         return $publicUrl;
     }
 
-    $sourcePath = sr_storage_local_path($key);
-    if (!is_string($sourcePath)) {
+    $sourceFile = sr_storage_copy_to_temp_file($driver, $key, [
+        'max_bytes' => (int) ($options['max_source_bytes'] ?? 20971520),
+    ]);
+    if (!is_array($sourceFile) || !is_string($sourceFile['path'] ?? null)) {
         return $publicUrl;
     }
+    $sourcePath = (string) $sourceFile['path'];
 
-    $mimeType = strtolower(trim((string) ($source['mime_type'] ?? sr_upload_detect_mime($sourcePath))));
+    $mimeType = strtolower(trim((string) ($source['mime_type'] ?? $sourceFile['content_type'] ?? sr_upload_detect_mime($sourcePath))));
     if (!in_array($mimeType, sr_thumbnail_supported()['mime_types'], true)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
         return $publicUrl;
     }
 
     $imageInfo = @getimagesize($sourcePath);
     if (!is_array($imageInfo) || (int) ($imageInfo[0] ?? 0) < 1 || (int) ($imageInfo[1] ?? 0) < 1) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
+        return $publicUrl;
+    }
+    $sourcePixels = (int) ($imageInfo[0] ?? 0) * (int) ($imageInfo[1] ?? 0);
+    if ($sourcePixels > max(1, (int) ($options['max_source_pixels'] ?? 40000000))) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
         return $publicUrl;
     }
 
@@ -296,34 +406,56 @@ function sr_thumbnail_public_url(PDO $pdo, array $source, array $options): strin
     $format = $normalized['format'] === 'source' ? sr_thumbnail_format_for_mime($mimeType) : $normalized['format'];
     $format = $format === 'jpeg' ? 'jpg' : $format;
     if (!in_array($format, ['jpg', 'png', 'gif', 'webp'], true)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
         return $publicUrl;
     }
 
-    $sourceMtime = (string) (@filemtime($sourcePath) ?: '0');
+    $moduleKey = sr_thumbnail_module_key($source);
     $sourceHash = hash('sha256', $driver . ':' . $key);
+    $sourceVersion = sr_thumbnail_source_version($source, $sourceFile, $sourcePath);
     $variantKey = sr_thumbnail_variant_key($normalized);
-    $cacheRelative = 'cache/thumbnails/' . substr($sourceHash, 0, 2) . '/' . $sourceHash . '_' . $variantKey . '_' . $sourceMtime . '.' . $format;
+    $cacheRelative = 'cache/thumbnails/' . $moduleKey . '/' . substr($sourceHash, 0, 2) . '/' . $sourceHash . '_' . $variantKey . '_' . $sourceVersion . '.' . $format;
     $cachePath = SR_ROOT . '/storage/' . str_replace('/', DIRECTORY_SEPARATOR, $cacheRelative);
     if (is_file($cachePath)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
         return sr_thumbnail_public_cache_url($cacheRelative);
     }
 
     $cacheDir = dirname($cachePath);
     if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0755, true) && !is_dir($cacheDir)) {
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
         return $publicUrl;
     }
 
-    if (!sr_thumbnail_create_gd($sourcePath, $cachePath, $mimeType, $format, $normalized)) {
-        @unlink($cachePath);
+    $temporaryPath = $cachePath . '.tmp.' . bin2hex(random_bytes(8));
+    if (!sr_thumbnail_create_gd($sourcePath, $temporaryPath, $mimeType, $format, $normalized)
+        || @getimagesize($temporaryPath) === false
+        || !@rename($temporaryPath, $cachePath)
+    ) {
+        @unlink($temporaryPath);
+        if (!empty($sourceFile['cleanup'])) {
+            @unlink($sourcePath);
+        }
         return $publicUrl;
     }
 
+    if (!empty($sourceFile['cleanup'])) {
+        @unlink($sourcePath);
+    }
     return sr_thumbnail_public_cache_url($cacheRelative);
 }
 
 function sr_thumbnail_public_cache_url(string $cacheRelative): string
 {
-    if (preg_match('#\Acache/thumbnails/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[0-9]+\.(?:jpe?g|png|gif|webp)\z#i', $cacheRelative) !== 1) {
+    $legacyPattern = '#\Acache/thumbnails/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[0-9]+\.(?:jpe?g|png|gif|webp)\z#i';
+    $versionedPattern = '#\Acache/thumbnails/[a-z][a-z0-9_]{1,39}/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[a-f0-9]{16,64}\.(?:jpe?g|png|gif|webp)\z#i';
+    if (preg_match($legacyPattern, $cacheRelative) !== 1 && preg_match($versionedPattern, $cacheRelative) !== 1) {
         return '';
     }
 
@@ -341,14 +473,19 @@ function sr_thumbnail_delete_variants(array $source): void
     }
 
     $sourceHash = hash('sha256', $driver . ':' . $key);
-    $dir = SR_ROOT . '/storage/cache/thumbnails/' . substr($sourceHash, 0, 2);
-    if (!is_dir($dir)) {
-        return;
-    }
-
-    foreach (glob($dir . '/' . $sourceHash . '_*') ?: [] as $file) {
+    $prefix = substr($sourceHash, 0, 2);
+    $legacyDir = SR_ROOT . '/storage/cache/thumbnails/' . $prefix;
+    foreach (glob($legacyDir . '/' . $sourceHash . '_*') ?: [] as $file) {
         if (is_file($file)) {
             @unlink($file);
+        }
+    }
+
+    foreach (glob(SR_ROOT . '/storage/cache/thumbnails/*/' . $prefix, GLOB_ONLYDIR) ?: [] as $dir) {
+        foreach (glob($dir . '/' . $sourceHash . '_*') ?: [] as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
         }
     }
 }
@@ -562,8 +699,25 @@ function sr_storage_s3_head(array $config, string $key): ?array
         'content_type' => (string) ($headers['content-type'] ?? ''),
         'metadata' => [
             'sha256' => (string) ($headers['x-amz-meta-sha256'] ?? ''),
+            'version_id' => (string) ($headers['x-amz-version-id'] ?? ''),
+            'etag' => trim((string) ($headers['etag'] ?? ''), '"'),
+            'last_modified' => (string) ($headers['last-modified'] ?? ''),
         ],
     ];
+}
+
+function sr_storage_s3_version_marker(array $metadata, array $head = []): string
+{
+    foreach (['version_id', 'etag'] as $key) {
+        $value = trim((string) ($metadata[$key] ?? ''));
+        if ($value !== '') {
+            return $key . ':' . $value;
+        }
+    }
+
+    $lastModified = trim((string) ($metadata['last_modified'] ?? ''));
+    $contentLength = trim((string) ($head['content_length'] ?? ''));
+    return 'last_modified_length:' . $lastModified . ':' . $contentLength;
 }
 
 function sr_storage_s3_delete(array $config, string $key): bool
@@ -751,6 +905,148 @@ function sr_storage_http_request(string $method, string $url, array $headers, st
     }
 
     return sr_storage_http_request_with_stream($method, $url, $headerLines, $body);
+}
+
+function sr_storage_http_download_to_temp_file(string $url, int $maxBytes): ?array
+{
+    $maxBytes = max(1, $maxBytes);
+    $temporary = tempnam(sys_get_temp_dir(), 'sr-storage-');
+    if (!is_string($temporary)) {
+        return null;
+    }
+
+    try {
+        $result = function_exists('curl_init')
+            ? sr_storage_http_download_to_temp_file_with_curl($url, $temporary, $maxBytes)
+            : sr_storage_http_download_to_temp_file_with_stream($url, $temporary, $maxBytes);
+        if ($result === null) {
+            @unlink($temporary);
+        }
+
+        return $result;
+    } catch (Throwable $exception) {
+        @unlink($temporary);
+        return null;
+    }
+}
+
+function sr_storage_http_download_to_temp_file_with_curl(string $url, string $temporary, int $maxBytes): ?array
+{
+    $file = fopen($temporary, 'wb');
+    if (!is_resource($file)) {
+        return null;
+    }
+
+    $headers = '';
+    $bytes = 0;
+    $tooLarge = false;
+    $handle = curl_init($url);
+    if ($handle === false) {
+        fclose($file);
+        return null;
+    }
+
+    curl_setopt($handle, CURLOPT_CUSTOMREQUEST, 'GET');
+    curl_setopt($handle, CURLOPT_FOLLOWLOCATION, false);
+    curl_setopt($handle, CURLOPT_TIMEOUT, 30);
+    curl_setopt($handle, CURLOPT_HEADERFUNCTION, static function ($curl, string $headerLine) use (&$headers): int {
+        unset($curl);
+        $headers .= $headerLine;
+        return strlen($headerLine);
+    });
+    curl_setopt($handle, CURLOPT_WRITEFUNCTION, static function ($curl, string $chunk) use ($file, &$bytes, &$tooLarge, $maxBytes): int {
+        unset($curl);
+        $length = strlen($chunk);
+        $bytes += $length;
+        if ($bytes > $maxBytes) {
+            $tooLarge = true;
+            return 0;
+        }
+
+        $written = fwrite($file, $chunk);
+        return is_int($written) ? $written : 0;
+    });
+
+    $ok = curl_exec($handle);
+    $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
+    curl_close($handle);
+    fclose($file);
+
+    if ($ok !== true || $tooLarge || $status < 200 || $status >= 300 || !is_file($temporary)) {
+        @unlink($temporary);
+        return null;
+    }
+
+    return [
+        'path' => $temporary,
+        'headers' => sr_storage_parse_headers($headers),
+        'content_length' => (int) filesize($temporary),
+    ];
+}
+
+function sr_storage_http_download_to_temp_file_with_stream(string $url, string $temporary, int $maxBytes): ?array
+{
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 30,
+            'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
+        ],
+    ]);
+
+    set_error_handler(static function (): bool {
+        return true;
+    });
+    $stream = fopen($url, 'rb', false, $context);
+    restore_error_handler();
+    if (!is_resource($stream)) {
+        return null;
+    }
+
+    $file = fopen($temporary, 'wb');
+    if (!is_resource($file)) {
+        fclose($stream);
+        return null;
+    }
+
+    $bytes = 0;
+    while (!feof($stream)) {
+        $chunk = fread($stream, 8192);
+        if (!is_string($chunk) || $chunk === '') {
+            continue;
+        }
+        $bytes += strlen($chunk);
+        if ($bytes > $maxBytes || fwrite($file, $chunk) === false) {
+            fclose($file);
+            fclose($stream);
+            @unlink($temporary);
+            return null;
+        }
+    }
+
+    $metadata = stream_get_meta_data($stream);
+    fclose($file);
+    fclose($stream);
+    $responseHeaders = is_array($metadata['wrapper_data'] ?? null) ? $metadata['wrapper_data'] : [];
+    $status = 0;
+    foreach ($responseHeaders as $header) {
+        if (preg_match('/\AHTTP\/\S+\s+(\d{3})\b/', (string) $header, $matches) === 1) {
+            $status = (int) $matches[1];
+        }
+    }
+
+    if ($status < 200 || $status >= 300 || !is_file($temporary)) {
+        @unlink($temporary);
+        return null;
+    }
+
+    return [
+        'path' => $temporary,
+        'headers' => sr_storage_parse_headers(implode("\r\n", $responseHeaders)),
+        'content_length' => (int) filesize($temporary),
+    ];
 }
 
 function sr_storage_http_request_with_curl(string $method, string $url, array $headerLines, string $body): array

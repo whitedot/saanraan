@@ -22,6 +22,10 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             <span class="filtering-label">종료일</span>
             <input id="admin_storage_cache_date_to" type="date" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>" class="form-input filtering-input">
         </label>
+        <label class="filtering-field" for="admin_storage_cache_module_key">
+            <span class="filtering-label">모듈</span>
+            <input id="admin_storage_cache_module_key" type="text" name="module_key" value="<?php echo sr_e((string) ($filters['module_key'] ?? '')); ?>" class="form-input filtering-input" placeholder="community">
+        </label>
         <button type="submit" class="btn btn-solid-primary filtering-submit">조회</button>
         <a class="btn btn-outline-light" href="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>">
             <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화
@@ -68,6 +72,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>">
             <input type="hidden" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>">
+            <input type="hidden" name="module_key" value="<?php echo sr_e((string) ($filters['module_key'] ?? '')); ?>">
             <p class="admin-form-help">현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.</p>
             <label class="form-field">
                 <span class="form-label">확인 문구 <span class="sr-required-label">(필수)</span></span>
@@ -152,6 +157,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             <thead class="ui-table-head">
                 <tr>
                     <th>수정 시각</th>
+                    <th>모듈</th>
                     <th>경로</th>
                     <th>Variant</th>
                     <th>용량</th>
@@ -160,11 +166,12 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             </thead>
             <tbody>
                 <?php if ($cacheRows === []) { ?>
-                    <tr><td colspan="5" class="admin-empty-state">조회된 썸네일 캐시 파일이 없습니다.</td></tr>
+                    <tr><td colspan="6" class="admin-empty-state">조회된 썸네일 캐시 파일이 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($cacheRows as $row) { ?>
                     <tr>
                         <td><?php echo sr_admin_time_html((string) ($row['modified_at'] ?? '')); ?></td>
+                        <td><code><?php echo sr_e((string) ($row['module_key'] ?? '')); ?></code></td>
                         <td>
                             <?php if ((string) ($row['public_path'] ?? '') !== '') { ?>
                                 <a href="<?php echo sr_e((string) $row['public_path']); ?>" target="_blank" rel="noopener">

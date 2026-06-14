@@ -5,7 +5,10 @@ declare(strict_types=1);
 $root = dirname(__DIR__, 2);
 $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
 $thumbnailCacheRequest = is_string($requestPath)
-    && preg_match('#\A/storage/cache/thumbnails/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[0-9]+\.(?:jpe?g|png|gif|webp)\z#i', $requestPath) === 1;
+    && (
+        preg_match('#\A/storage/cache/thumbnails/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[0-9]+\.(?:jpe?g|png|gif|webp)\z#i', $requestPath) === 1
+        || preg_match('#\A/storage/cache/thumbnails/[a-z][a-z0-9_]{1,39}/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[a-f0-9]{16,64}\.(?:jpe?g|png|gif|webp)\z#i', $requestPath) === 1
+    );
 
 if (
     is_string($requestPath)

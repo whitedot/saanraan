@@ -1666,6 +1666,7 @@ function sr_community_delete_board(PDO $pdo, int $boardId): array
         $driver = (string) $attachmentFile['driver'];
         $key = (string) $attachmentFile['key'];
         sr_thumbnail_delete_variants([
+            'module_key' => 'community',
             'storage_driver' => $driver,
             'storage_key' => $key,
         ]);

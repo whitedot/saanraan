@@ -12,6 +12,7 @@ function sr_admin_thumbnail_cache_filters_from_request(): array
     return [
         'date_from' => sr_admin_thumbnail_cache_date_filter(sr_get_string('date_from', 20)),
         'date_to' => sr_admin_thumbnail_cache_date_filter(sr_get_string('date_to', 20)),
+        'module_key' => sr_admin_thumbnail_cache_module_filter(sr_get_string('module_key', 40)),
     ];
 }
 
@@ -23,6 +24,16 @@ function sr_admin_thumbnail_cache_date_filter(string $value): string
     }
 
     return preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_admin_thumbnail_cache_module_filter(string $value): string
+{
+    $value = strtolower(trim($value));
+    if ($value === '') {
+        return '';
+    }
+
+    return preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $value) === 1 ? $value : '';
 }
 
 function sr_admin_thumbnail_cache_scan(array $filters = []): array
@@ -50,6 +61,7 @@ function sr_admin_thumbnail_cache_scan(array $filters = []): array
 
     $fromTimestamp = sr_admin_thumbnail_cache_filter_start_timestamp((string) ($filters['date_from'] ?? ''));
     $toTimestamp = sr_admin_thumbnail_cache_filter_end_timestamp((string) ($filters['date_to'] ?? ''));
+    $moduleFilter = sr_admin_thumbnail_cache_module_filter((string) ($filters['module_key'] ?? ''));
     $rootRealPath = realpath($root);
     if (!is_string($rootRealPath)) {
         return sr_admin_thumbnail_cache_scan_result($rows, [
@@ -77,6 +89,9 @@ function sr_admin_thumbnail_cache_scan(array $filters = []): array
         if ($parsed === null) {
             continue;
         }
+        if ($moduleFilter !== '' && (string) ($parsed['module_key'] ?? '') !== $moduleFilter) {
+            continue;
+        }
 
         $mtime = (int) $fileInfo->getMTime();
         if (($fromTimestamp > 0 && $mtime < $fromTimestamp) || ($toTimestamp > 0 && $mtime > $toTimestamp)) {
@@ -91,10 +106,11 @@ function sr_admin_thumbnail_cache_scan(array $filters = []): array
         $rows[] = [
             'relative_path' => $relative,
             'public_path' => sr_thumbnail_public_cache_url('cache/thumbnails/' . $relative),
+            'module_key' => (string) $parsed['module_key'],
             'hash_prefix' => (string) $parsed['hash_prefix'],
             'source_hash' => (string) $parsed['source_hash'],
             'variant_key' => $variantKey,
-            'source_mtime' => (string) $parsed['source_mtime'],
+            'source_version' => (string) $parsed['source_version'],
             'extension' => (string) $parsed['extension'],
             'size_bytes' => $sizeBytes,
             'modified_at' => $modifiedAt,
@@ -155,17 +171,29 @@ function sr_admin_thumbnail_cache_relative_path(string $rootRealPath, string $pa
 
 function sr_admin_thumbnail_cache_parse_relative_path(string $relative): ?array
 {
-    if (preg_match('#\A([a-f0-9]{2})/([a-f0-9]{64})_([A-Za-z0-9_]+)_([0-9]+)\.(jpe?g|png|gif|webp)\z#i', $relative, $matches) !== 1) {
-        return null;
+    if (preg_match('#\A([a-z][a-z0-9_]{1,39})/([a-f0-9]{2})/([a-f0-9]{64})_([A-Za-z0-9_]+)_([a-f0-9]{16,64})\.(jpe?g|png|gif|webp)\z#i', $relative, $matches) === 1) {
+        return [
+            'module_key' => strtolower($matches[1]),
+            'hash_prefix' => strtolower($matches[2]),
+            'source_hash' => strtolower($matches[3]),
+            'variant_key' => $matches[4],
+            'source_version' => strtolower($matches[5]),
+            'extension' => strtolower($matches[6]),
+        ];
     }
 
-    return [
-        'hash_prefix' => strtolower($matches[1]),
-        'source_hash' => strtolower($matches[2]),
-        'variant_key' => $matches[3],
-        'source_mtime' => $matches[4],
-        'extension' => strtolower($matches[5]),
-    ];
+    if (preg_match('#\A([a-f0-9]{2})/([a-f0-9]{64})_([A-Za-z0-9_]+)_([0-9]+)\.(jpe?g|png|gif|webp)\z#i', $relative, $matches) === 1) {
+        return [
+            'module_key' => 'legacy',
+            'hash_prefix' => strtolower($matches[1]),
+            'source_hash' => strtolower($matches[2]),
+            'variant_key' => $matches[3],
+            'source_version' => $matches[4],
+            'extension' => strtolower($matches[5]),
+        ];
+    }
+
+    return null;
 }
 
 function sr_admin_thumbnail_cache_filter_start_timestamp(string $date): int
@@ -244,9 +272,16 @@ function sr_admin_thumbnail_cache_prune_empty_dirs(string $rootRealPath): void
         return;
     }
 
-    foreach (glob($rootRealPath . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) ?: [] as $dir) {
-        if (is_dir($dir) && (glob($dir . DIRECTORY_SEPARATOR . '*') ?: []) === []) {
-            @rmdir($dir);
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($rootRealPath, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($iterator as $fileInfo) {
+        if ($fileInfo instanceof SplFileInfo && $fileInfo->isDir()) {
+            $path = $fileInfo->getPathname();
+            if (is_dir($path) && (glob($path . DIRECTORY_SEPARATOR . '*') ?: []) === []) {
+                @rmdir($path);
+            }
         }
     }
 }

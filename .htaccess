@@ -17,6 +17,7 @@ Options -Indexes
     RewriteRule ^modules/[a-z][a-z0-9_]{1,39}/assets/ - [L]
     RewriteRule ^modules/ckeditor/vendor/ckeditor5/ckeditor5\.(?:umd\.js|css)$ - [L]
     RewriteRule ^storage/cache/thumbnails/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[0-9]+\.(?:jpe?g|png|gif|webp)$ - [L,NC]
+    RewriteRule ^storage/cache/thumbnails/[a-z][a-z0-9_]{1,39}/[a-f0-9]{2}/[a-f0-9]{64}_[A-Za-z0-9_]+_[a-f0-9]{16,64}\.(?:jpe?g|png|gif|webp)$ - [L,NC]
 
     # Block internal project directories.
     RewriteRule ^(?:config|core|database|docs|examples|storage|modules|\.git|\.tools|\.claude)(?:/|$) - [F,L]

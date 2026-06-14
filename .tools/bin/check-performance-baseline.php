@@ -335,6 +335,7 @@ $allowedStorageCacheFiles = [
     'docs/admin-ui-guide.md' => true,
     'docs/performance-policy.md' => true,
     'docs/performance-baseline-evidence.md' => true,
+    'docs/plans/thumbnail-cache-s3-plan.md' => true,
     'docs/rich-text-sanitizer-policy.md' => true,
     'docs/release-process.md' => true,
     'docs/verification-status.md' => true,
