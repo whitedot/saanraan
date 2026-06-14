@@ -44,7 +44,7 @@
 | `php .tools/bin/check-positioning.php` | TODO | README/특장점/포지셔닝 문서의 사용 판단 기준과 과장 금지 문구 확인 |
 | `php .tools/bin/check-installed-gate-status.php` | TODO | 설치 DB 게이트 상태표 도구와 문서 marker 확인 |
 | `php .tools/bin/check-privacy-export-runtime.php` | TODO | quiz/survey/content/community 개인정보 export 계약과 asset_exchange/coupon/deposit/notification/point/reward 보존형 export 계약의 fixture 기반 상세 답변, snapshot, 운영 증빙 필드 포함과 타 계정 제외 확인 |
-| `php .tools/bin/check-privacy-cleanup-runtime.php` | TODO | quiz/survey/content/community 개인정보 cleanup 계약의 fixture 기반 익명화와 결과 count 확인 |
+| `php .tools/bin/check-privacy-cleanup-runtime.php` | TODO | quiz/survey/content/community 개인정보 cleanup 계약의 fixture 기반 익명화와 결과 count, notification push endpoint 비밀 제거, policy_documents 안내메일 delivery 계정 연결 제거 확인 |
 | `php .tools/bin/check-admin-pagination-runtime.php` | TODO | 관리자 페이지네이션 helper의 clamp, offset, URL, HTML 상태 확인 |
 | `php .tools/bin/check-community-board-copy-limits.php` | TODO | 커뮤니티 게시판 전체 복사의 동기 상한, 배치 전환, hard block, 저장소 경고 fixture 확인 |
 | `php .tools/bin/check-community-board-copy-job-lock.php` | TODO | 커뮤니티 게시판 복사 batch job lock token fixture와 stage/map token 전달 marker 확인 |

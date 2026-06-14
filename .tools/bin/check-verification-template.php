@@ -144,7 +144,7 @@ foreach ([
     '1.0 전 보강 기준 확인',
     '리스크 등록부 상태, 증거, 후속 기준 확인',
     'quiz/survey/content/community 개인정보 export 계약과 asset_exchange/coupon/deposit/notification/point/reward 보존형 export 계약의 fixture 기반 상세 답변, snapshot, 운영 증빙 필드 포함과 타 계정 제외 확인',
-    'quiz/survey/content/community 개인정보 cleanup 계약의 fixture 기반 익명화와 결과 count 확인',
+    'quiz/survey/content/community 개인정보 cleanup 계약의 fixture 기반 익명화와 결과 count, notification push endpoint 비밀 제거, policy_documents 안내메일 delivery 계정 연결 제거 확인',
     '관리자 페이지네이션 helper의 clamp, offset, URL, HTML 상태 확인',
     'HTML Purifier vendor 버전, source reference, 라이선스, 런타임 클래스 버전 대조',
     'Playwright 하니스, CKEditor 브라우저 asset/fallback smoke spec, JS 문법 확인',
