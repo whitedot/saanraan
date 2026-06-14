@@ -235,6 +235,9 @@ function sr_antispam_verify(PDO $pdo, string $surface, string $formKey, array $p
     if ((string) ($post['sr_antispam_form_key'] ?? '') !== $formKey) {
         $errors[] = '자동등록방지 요청 값이 올바르지 않습니다.';
     }
+    if ($errors !== []) {
+        return ['ok' => false, 'required' => true, 'errors' => $errors, 'provider' => (string) $policy['type']];
+    }
 
     if ((string) $policy['type'] === 'math') {
         $errors = array_merge($errors, sr_antispam_verify_math($surface, $formKey, $post, $settings));

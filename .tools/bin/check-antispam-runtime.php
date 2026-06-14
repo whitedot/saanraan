@@ -113,6 +113,7 @@ sr_antispam_check_assert($settings['enabled'] === true, 'Antispam settings must 
 sr_antispam_check_assert($settings['min_submit_seconds'] === 0, 'Antispam settings must allow zero minimum submit seconds for fixtures.');
 sr_antispam_check_assert($settings['recaptcha_min_score'] === 0.7, 'Antispam settings must normalize reCAPTCHA score.');
 sr_antispam_check_assert($settings['surface_member_register'] === 'always', 'Antispam surface settings must fall back to default mode.');
+sr_antispam_check_assert(str_contains($helpers, "if (\$errors !== []) {\n        return ['ok' => false"), 'Antispam verification must stop before provider calls when local request checks fail.');
 
 $challenge = sr_antispam_challenge_create('member.register', 'fixture', ['ttl_seconds' => 60]);
 $answer = sr_antispam_check_answer((string) $challenge['question']);
