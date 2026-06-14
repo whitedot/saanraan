@@ -32,6 +32,12 @@ $requiredModules = [
         'label' => '잔액 처리 기반',
         'description' => '포인트, 적립금, 예치금의 공통 잔액 처리와 원장 정합성 점검 기반을 제공합니다.',
     ],
+    'policy_documents' => [
+        'name' => '정책 문서',
+        'version' => '2026.06.001',
+        'label' => '정책 문서',
+        'description' => '회원가입과 공개 제출에 필요한 약관, 방침, 동의 문서를 version 단위로 관리합니다.',
+    ],
     'privacy' => [
         'name' => '개인정보',
         'version' => '2026.05.001',

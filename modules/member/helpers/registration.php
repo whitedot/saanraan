@@ -2,6 +2,76 @@
 
 declare(strict_types=1);
 
+function sr_member_registration_policy_document_specs(): array
+{
+    return [
+        'terms' => [
+            'document_key' => 'member_terms',
+            'required' => true,
+            'post_key' => 'terms_consent',
+        ],
+        'privacy' => [
+            'document_key' => 'member_privacy_collection',
+            'required' => true,
+            'post_key' => 'privacy_consent',
+        ],
+        'marketing' => [
+            'document_key' => 'member_marketing',
+            'required' => false,
+            'post_key' => 'marketing_consent',
+        ],
+    ];
+}
+
+function sr_member_registration_policy_documents(PDO $pdo): array
+{
+    $errors = [];
+    $documents = [];
+
+    if (!sr_module_enabled($pdo, 'policy_documents') || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+        return [
+            'documents' => [],
+            'errors' => [sr_t('member::action.register.policy_documents_unavailable')],
+        ];
+    }
+
+    require_once SR_ROOT . '/modules/policy_documents/helpers.php';
+    if (!sr_policy_document_module_ready($pdo)) {
+        return [
+            'documents' => [],
+            'errors' => [sr_t('member::action.register.policy_documents_unavailable')],
+        ];
+    }
+
+    foreach (sr_member_registration_policy_document_specs() as $consentKey => $spec) {
+        $documentKey = (string) $spec['document_key'];
+        $renderData = sr_policy_document_public_render_data($pdo, $documentKey);
+        if (!is_array($renderData)) {
+            $errors[] = sr_t('member::action.register.policy_document_missing', ['key' => $documentKey]);
+            continue;
+        }
+
+        $documents[$consentKey] = [
+            'consent_key' => $consentKey,
+            'document_key' => $documentKey,
+            'required' => (bool) $spec['required'],
+            'post_key' => (string) $spec['post_key'],
+            'version_key' => (string) $renderData['version_key'],
+            'version_id' => (int) ($renderData['version_id'] ?? 0),
+            'title' => (string) $renderData['title'],
+            'body_html' => (string) $renderData['body_html'],
+            'body_hash' => (string) $renderData['body_hash'],
+            'published_at' => (string) ($renderData['published_at'] ?? ''),
+            'effective_from' => (string) ($renderData['effective_from'] ?? ''),
+        ];
+    }
+
+    return [
+        'documents' => $documents,
+        'errors' => $errors,
+    ];
+}
+
 function sr_member_registration_extension_helper_path(string $moduleKey, array $contract): string
 {
     $helpers = (string) ($contract['helpers'] ?? '');

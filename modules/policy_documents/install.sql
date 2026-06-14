@@ -75,3 +75,29 @@ FROM (
 ) seed
 LEFT JOIN sr_policy_documents existing_document ON existing_document.document_key = seed.document_key
 WHERE existing_document.id IS NULL;
+
+INSERT INTO sr_policy_document_versions
+    (document_id, version_key, title_snapshot, body_html, summary_text, body_hash, status, effective_from, published_at, created_at, updated_at)
+SELECT d.id,
+       '2026.06.001',
+       d.title,
+       seed.body_html,
+       seed.summary_text,
+       SHA2(seed.body_html, 256),
+       'published',
+       NOW(),
+       NOW(),
+       NOW(),
+       NOW()
+FROM sr_policy_documents d
+INNER JOIN (
+    SELECT 'member_terms' AS document_key, '<p>서비스 이용 조건과 회원의 기본 의무에 동의합니다.</p>' AS body_html, '회원가입 필수 이용약관입니다.' AS summary_text
+    UNION ALL SELECT 'member_privacy_collection', '<p>회원가입과 서비스 제공에 필요한 개인정보 수집 및 이용에 동의합니다.</p>', '회원가입 필수 개인정보 수집 및 이용 동의입니다.'
+    UNION ALL SELECT 'member_privacy_policy', '<p>개인정보 처리 목적, 보관 기간, 권리 행사 방법을 안내합니다.</p>', '공개 개인정보처리방침입니다.'
+    UNION ALL SELECT 'member_marketing', '<p>서비스 소식과 혜택 안내 수신에 동의합니다.</p>', '선택 마케팅 수신 동의입니다.'
+    UNION ALL SELECT 'community_privacy_default', '<p>게시판 제출과 첨부 처리에 필요한 개인정보 수집 및 이용에 동의합니다.</p>', '게시판 제출 개인정보 수집 및 이용 동의입니다.'
+) seed ON seed.document_key = d.document_key
+LEFT JOIN sr_policy_document_versions existing_version
+    ON existing_version.document_id = d.id
+   AND existing_version.version_key = '2026.06.001'
+WHERE existing_version.id IS NULL;

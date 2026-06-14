@@ -728,8 +728,13 @@ if ($registerAction !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($registerAction, "\$marketingConsent = (\$_POST['marketing_consent'] ?? '') === '1';") !== false
-            && strpos($registerAction, "sr_member_record_consent(\$pdo, \$accountId, 'marketing', '2026.04.001', \$marketingConsent)") !== false,
+            && strpos($registerAction, "sr_member_record_consent(\$pdo, \$accountId, 'marketing', (string) \$transactionPolicyDocuments['marketing']['version_key'], \$marketingConsent, \$transactionPolicyDocuments['marketing'])") !== false,
         'Register action should record optional marketing consent history.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($registerAction, 'sr_member_registration_policy_documents($pdo)') !== false
+            && strpos($registerAction, '$transactionPolicyDocumentState = sr_member_registration_policy_documents($pdo);') !== false,
+        'Register action should load current policy documents from the server for display and again inside the account transaction.'
     );
     sr_member_auth_policy_assert(
         strpos($registerAction, "'login_id' => sr_member_normalize_login_id(\$loginId)") !== false

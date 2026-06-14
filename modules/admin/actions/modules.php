@@ -10,7 +10,7 @@ sr_admin_require_owner($pdo, (int) $account['id']);
 $canManageModuleSources = sr_admin_is_owner($pdo, (int) $account['id']);
 $moduleSourcesEnabled = sr_module_sources_enabled($pdo, $config);
 
-$requiredModules = ['member', 'admin', 'privacy'];
+$requiredModules = ['member', 'admin', 'policy_documents', 'privacy'];
 $allowedStatuses = ['enabled', 'disabled'];
 $allowedInstallStatuses = ['enabled', 'disabled'];
 $moduleUploadLimitBytes = sr_module_source_upload_limit_bytes();

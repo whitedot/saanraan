@@ -94,7 +94,7 @@ sr_asset_reconciliation_check_file_contains('core/actions/install.php', [
 ]);
 
 sr_asset_reconciliation_check_file_contains('core/views/install.php', [
-    'member → admin → asset_ledger → privacy',
+    'member → admin → asset_ledger → policy_documents → privacy',
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/asset_ledger/actions/admin-assets-reconciliation.php', [

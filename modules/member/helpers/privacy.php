@@ -2,16 +2,28 @@
 
 declare(strict_types=1);
 
-function sr_member_record_consent(PDO $pdo, int $accountId, string $consentKey, string $version, bool $consented): void
+function sr_member_record_consent(PDO $pdo, int $accountId, string $consentKey, string $version, bool $consented, array $snapshot = []): void
 {
     $stmt = $pdo->prepare(
-        'INSERT INTO sr_member_consents (account_id, consent_key, consent_version, consented, ip_address, user_agent, created_at)
-         VALUES (:account_id, :consent_key, :consent_version, :consented, :ip_address, :user_agent, :created_at)'
+        'INSERT INTO sr_member_consents
+            (account_id, consent_key, consent_version, policy_document_key_snapshot, policy_version_key_snapshot,
+             policy_document_version_id, consent_title_snapshot, consent_body_hash, consent_required,
+             consented, ip_address, user_agent, created_at)
+         VALUES
+            (:account_id, :consent_key, :consent_version, :policy_document_key_snapshot, :policy_version_key_snapshot,
+             :policy_document_version_id, :consent_title_snapshot, :consent_body_hash, :consent_required,
+             :consented, :ip_address, :user_agent, :created_at)'
     );
     $stmt->execute([
         'account_id' => $accountId,
         'consent_key' => $consentKey,
         'consent_version' => $version,
+        'policy_document_key_snapshot' => (string) ($snapshot['document_key'] ?? ''),
+        'policy_version_key_snapshot' => (string) ($snapshot['version_key'] ?? $version),
+        'policy_document_version_id' => isset($snapshot['version_id']) ? (int) $snapshot['version_id'] : null,
+        'consent_title_snapshot' => (string) ($snapshot['title'] ?? ''),
+        'consent_body_hash' => (string) ($snapshot['body_hash'] ?? ''),
+        'consent_required' => !empty($snapshot['required']) ? 1 : 0,
         'consented' => $consented ? 1 : 0,
         'ip_address' => sr_client_ip(),
         'user_agent' => sr_client_user_agent(),
@@ -22,7 +34,9 @@ function sr_member_record_consent(PDO $pdo, int $accountId, string $consentKey, 
 function sr_member_latest_consents(PDO $pdo, int $accountId): array
 {
     $stmt = $pdo->prepare(
-        'SELECT c.id, c.account_id, c.consent_key, c.consent_version, c.consented, c.ip_address, c.user_agent, c.created_at
+        'SELECT c.id, c.account_id, c.consent_key, c.consent_version, c.policy_document_key_snapshot,
+                c.policy_version_key_snapshot, c.policy_document_version_id, c.consent_title_snapshot,
+                c.consent_body_hash, c.consent_required, c.consented, c.ip_address, c.user_agent, c.created_at
          FROM sr_member_consents c
          INNER JOIN (
             SELECT consent_key, MAX(id) AS max_id
@@ -50,7 +64,15 @@ function sr_member_record_consent_withdrawals(PDO $pdo, int $accountId): int
             $accountId,
             (string) $consent['consent_key'],
             (string) $consent['consent_version'],
-            false
+            false,
+            [
+                'document_key' => (string) ($consent['policy_document_key_snapshot'] ?? ''),
+                'version_key' => (string) ($consent['policy_version_key_snapshot'] ?? $consent['consent_version'] ?? ''),
+                'version_id' => (int) ($consent['policy_document_version_id'] ?? 0),
+                'title' => (string) ($consent['consent_title_snapshot'] ?? ''),
+                'body_hash' => (string) ($consent['consent_body_hash'] ?? ''),
+                'required' => !empty($consent['consent_required']),
+            ]
         );
         $count++;
     }
@@ -131,7 +153,9 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT consent_key, consent_version, consented, created_at
+        'SELECT consent_key, consent_version, policy_document_key_snapshot, policy_version_key_snapshot,
+                policy_document_version_id, consent_title_snapshot, consent_body_hash, consent_required,
+                consented, created_at
          FROM sr_member_consents
          WHERE account_id = :account_id
          ORDER BY id ASC'

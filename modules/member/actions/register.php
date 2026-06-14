@@ -22,6 +22,10 @@ $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies);
+$registrationPolicyDocumentState = $registrationAllowed ? sr_member_registration_policy_documents($pdo) : ['documents' => [], 'errors' => []];
+$registrationPolicyDocuments = $registrationPolicyDocumentState['documents'];
+$registrationPolicyErrors = $registrationPolicyDocumentState['errors'];
+$registrationReady = $registrationAllowed && $registrationPolicyErrors === [];
 $errors = [];
 $marketingConsent = false;
 $values = [
@@ -39,6 +43,9 @@ if (sr_request_method() === 'POST') {
 
     if (!$registrationAllowed) {
         $errors[] = sr_t('member::action.register.disabled');
+    }
+    if ($registrationPolicyErrors !== []) {
+        $errors = array_merge($errors, $registrationPolicyErrors);
     }
     if (function_exists('sr_antispam_verify')) {
         $antispamResult = sr_antispam_verify($pdo, 'member.register', 'member_register', $_POST, $antispamRegisterContext);
@@ -193,9 +200,14 @@ if (sr_request_method() === 'POST') {
                 $verificationToken = sr_member_create_email_verification($pdo, $config, $accountId, $values['email']);
                 $verificationUrl = sr_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
             }
-            sr_member_record_consent($pdo, $accountId, 'terms', '2026.04.001', true);
-            sr_member_record_consent($pdo, $accountId, 'privacy', '2026.04.001', true);
-            sr_member_record_consent($pdo, $accountId, 'marketing', '2026.04.001', $marketingConsent);
+            $transactionPolicyDocumentState = sr_member_registration_policy_documents($pdo);
+            if ($transactionPolicyDocumentState['errors'] !== []) {
+                throw new RuntimeException(implode(' ', $transactionPolicyDocumentState['errors']));
+            }
+            $transactionPolicyDocuments = $transactionPolicyDocumentState['documents'];
+            sr_member_record_consent($pdo, $accountId, 'terms', (string) $transactionPolicyDocuments['terms']['version_key'], true, $transactionPolicyDocuments['terms']);
+            sr_member_record_consent($pdo, $accountId, 'privacy', (string) $transactionPolicyDocuments['privacy']['version_key'], true, $transactionPolicyDocuments['privacy']);
+            sr_member_record_consent($pdo, $accountId, 'marketing', (string) $transactionPolicyDocuments['marketing']['version_key'], $marketingConsent, $transactionPolicyDocuments['marketing']);
             if ($profileFieldsEnabled) {
                 sr_member_save_profile($pdo, $accountId, $profileValues);
             }

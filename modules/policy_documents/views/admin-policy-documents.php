@@ -83,7 +83,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </p>
                     <p>
                         <label class="form-label" for="policy_document_effective_from"><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></label>
-                        <input id="policy_document_effective_from" class="form-control" type="text" name="effective_from" placeholder="2026-06-14 09:00:00">
+                        <input id="policy_document_effective_from" class="form-control" type="datetime-local" name="effective_from">
                     </p>
                     <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('policy_documents::ui.save')); ?></button>
                 </form>

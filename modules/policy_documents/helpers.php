@@ -101,6 +101,7 @@ function sr_policy_document_public_render_data(PDO $pdo, string $documentKey): ?
 
     return [
         'document_key' => (string) $version['document_key'],
+        'version_id' => (int) $version['id'],
         'version_key' => (string) $version['version_key'],
         'title' => (string) $version['title_snapshot'],
         'body_html' => (string) $version['body_html'],
