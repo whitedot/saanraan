@@ -354,12 +354,30 @@
 @media (max-width: 767px) {
     .public-layout-header {
         grid-template-columns: 1fr auto;
+        height: auto;
         min-height: 58px;
-        padding: 0 20px;
+        padding: 10px 20px 12px;
+        row-gap: 8px;
     }
 
     .public-layout-nav {
-        display: none;
+        display: flex;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: stretch;
+        overflow: visible;
+        white-space: normal;
+        width: 100%;
+    }
+
+    .public-layout-brand-link {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .public-layout-actions {
+        grid-column: 2;
+        grid-row: 1;
     }
 
     .public-layout-brand-logo-mobile {
@@ -368,10 +386,6 @@
 
     .public-layout-brand-logo-mobile + .public-layout-brand-logo-desktop {
         display: none;
-    }
-
-    .public-layout-actions {
-        gap: 10px;
     }
 
     .public-layout-notification-dropdown {

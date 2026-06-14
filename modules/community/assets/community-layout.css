@@ -354,12 +354,30 @@
 @media (max-width: 767px) {
     .community-layout-header {
         grid-template-columns: 1fr auto;
+        height: auto;
         min-height: 58px;
-        padding: 0 20px;
+        padding: 10px 20px 12px;
+        row-gap: 8px;
     }
 
     .community-layout-nav {
-        display: none;
+        display: flex;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: stretch;
+        overflow: visible;
+        white-space: normal;
+        width: 100%;
+    }
+
+    .community-layout-brand-link {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .community-layout-actions {
+        grid-column: 2;
+        grid-row: 1;
     }
 
     .community-layout-brand-logo-mobile {
@@ -368,10 +386,6 @@
 
     .community-layout-brand-logo-mobile + .community-layout-brand-logo-desktop {
         display: none;
-    }
-
-    .community-layout-actions {
-        gap: 10px;
     }
 
     .community-layout-notification-dropdown {

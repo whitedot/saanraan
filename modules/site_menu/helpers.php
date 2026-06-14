@@ -581,6 +581,9 @@ function sr_site_menu_render_item_list(PDO $pdo, array $itemsByParent, int $pare
         } elseif ($hasCurrentChild) {
             $itemClass .= ' is-current-ancestor';
         }
+        if ($childrenHtml !== '') {
+            $itemClass .= ' sr-site-menu-item-has-children';
+        }
         $currentAttribute = $isCurrent ? ' aria-current="page"' : '';
         $html .= '<li class="' . sr_e($itemClass) . '">';
         $labelHtml = '';
@@ -589,7 +592,17 @@ function sr_site_menu_render_item_list(PDO $pdo, array $itemsByParent, int $pare
             $labelHtml .= sr_icon(sr_admin_icon_material_name($pdo, $iconName), 'sr-site-menu-link-icon');
         }
         $labelHtml .= '<span class="sr-site-menu-link-label">' . sr_e((string) $item['label']) . '</span>';
-        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . $currentAttribute . '>' . $labelHtml . '</a>';
+        $submenuId = $childrenHtml !== '' && $itemId > 0 ? 'sr-site-menu-submenu-' . (string) $itemId : '';
+        $submenuAttributes = $submenuId !== '' ? ' aria-haspopup="true" aria-expanded="false" aria-controls="' . sr_e($submenuId) . '"' : '';
+        if ($submenuId !== '') {
+            $childrenHtml = preg_replace(
+                '/<ul class="sr-site-menu-list sr-site-menu-list-depth-([0-9]+)">/',
+                '<ul id="' . sr_e($submenuId) . '" class="sr-site-menu-list sr-site-menu-list-depth-$1">',
+                $childrenHtml,
+                1
+            ) ?? $childrenHtml;
+        }
+        $html .= '<a href="' . sr_e(sr_site_menu_item_href((string) $item['url'])) . '"' . $targetAttribute . $currentAttribute . $submenuAttributes . '>' . $labelHtml . '</a>';
         $html .= $childrenHtml;
         $html .= '</li>';
     }

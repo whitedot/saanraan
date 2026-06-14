@@ -354,12 +354,30 @@
 @media (max-width: 767px) {
     .content-layout-header {
         grid-template-columns: 1fr auto;
+        height: auto;
         min-height: 58px;
-        padding: 0 20px;
+        padding: 10px 20px 12px;
+        row-gap: 8px;
     }
 
     .content-layout-nav {
-        display: none;
+        display: flex;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: stretch;
+        overflow: visible;
+        white-space: normal;
+        width: 100%;
+    }
+
+    .content-layout-brand-link {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .content-layout-actions {
+        grid-column: 2;
+        grid-row: 1;
     }
 
     .content-layout-brand-logo-mobile {
@@ -368,10 +386,6 @@
 
     .content-layout-brand-logo-mobile + .content-layout-brand-logo-desktop {
         display: none;
-    }
-
-    .content-layout-actions {
-        gap: 10px;
     }
 
     .content-layout-notification-dropdown {

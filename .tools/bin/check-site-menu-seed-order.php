@@ -114,6 +114,11 @@ sr_site_menu_check_assert(str_contains($html, 'class="sr-site-menu sr-site-menu-
 sr_site_menu_check_assert(str_contains($cachedHtml, 'class="sr-site-menu sr-site-menu-header sr-site-menu-slot-primary-navigation"'), 'Site menu render runtime fixture must render cached tree with request-specific slot class.');
 sr_site_menu_check_assert(str_contains($html, 'href="/"'), 'Site menu render runtime fixture must render root link.');
 sr_site_menu_check_assert(str_contains($html, 'href="/community/board?key=free"'), 'Site menu render runtime fixture must render relative links.');
+sr_site_menu_check_assert(str_contains($html, 'sr-site-menu-item-has-children'), 'Site menu render runtime fixture must mark items with children.');
+sr_site_menu_check_assert(str_contains($html, 'aria-haspopup="true"'), 'Site menu render runtime fixture must expose child menu popup semantics.');
+sr_site_menu_check_assert(str_contains($html, 'aria-expanded="false"'), 'Site menu render runtime fixture must expose collapsed child menu state.');
+sr_site_menu_check_assert(str_contains($html, 'aria-controls="sr-site-menu-submenu-2"'), 'Site menu render runtime fixture must connect child menu controls.');
+sr_site_menu_check_assert(str_contains($html, 'id="sr-site-menu-submenu-2"'), 'Site menu render runtime fixture must render stable child menu id.');
 sr_site_menu_check_assert(substr_count($html, 'aria-current="page"') >= 2, 'Site menu render runtime fixture must mark current post and matching community board.');
 sr_site_menu_check_assert(str_contains($html, 'target="_blank" rel="noopener noreferrer"'), 'Site menu render runtime fixture must protect blank external links.');
 sr_site_menu_check_assert(!str_contains($html, '너무 깊은 항목'), 'Site menu render runtime fixture must stop at depth 3.');
@@ -133,6 +138,16 @@ $_SERVER['REQUEST_URI'] = '/login';
 sr_site_menu_check_assert(sr_site_menu_item_href('/login') === '/login', 'Site menu login link must not include next on login page.');
 sr_site_menu_check_assert(sr_site_menu_clean_url('javascript:alert(1)') === '', 'Site menu URL cleaner must reject unsafe pseudo URLs.');
 sr_site_menu_check_assert(sr_site_menu_item_href('javascript:alert(1)') === '#', 'Site menu href helper must fail closed for unsafe URLs.');
+
+$publicCss = (string) file_get_contents(SR_ROOT . '/modules/site_menu/assets/public.css');
+sr_site_menu_check_assert(str_contains($publicCss, '.public-layout-nav .sr-site-menu-item.is-site-menu-open > .sr-site-menu-list'), 'Site menu public CSS must support header dropdown open state.');
+sr_site_menu_check_assert(str_contains($publicCss, '.community-layout-nav .sr-site-menu-list-depth-3'), 'Site menu public CSS must cover community header depth 3 menus.');
+sr_site_menu_check_assert(str_contains($publicCss, '@media (max-width: 767px)'), 'Site menu public CSS must include mobile accordion rules.');
+
+$commonUiJs = (string) file_get_contents(SR_ROOT . '/assets/common-ui.js');
+sr_site_menu_check_assert(str_contains($commonUiJs, 'is-site-menu-open'), 'Common UI script must manage site menu open state.');
+sr_site_menu_check_assert(str_contains($commonUiJs, '(pointer: coarse)'), 'Common UI script must support touch pointer first-tap expansion.');
+sr_site_menu_check_assert(str_contains($commonUiJs, "event.key === 'Escape'"), 'Common UI script must close site menus on Escape.');
 
 if ($errors !== []) {
     fwrite(STDERR, "site menu checks failed:\n");
