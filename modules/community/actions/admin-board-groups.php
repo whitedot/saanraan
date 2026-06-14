@@ -154,6 +154,7 @@ if (sr_request_method() === 'POST') {
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('group_reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['group_privacy_consent_enabled'] ?? '') === '1';
+        $privacyConsentDocumentKey = sr_post_string('group_privacy_consent_document_key', 80);
         $privacyConsentTitle = trim(sr_post_string('group_privacy_consent_title', 120));
         $privacyConsentBodyInput = sr_post_string_without_truncation('group_privacy_consent_body', 5000);
         $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
@@ -527,6 +528,8 @@ if (sr_request_method() === 'POST') {
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_enabled', $privacyConsentEnabled ? '1' : '0', 'bool');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_document_key', $privacyConsentDocumentKey !== '' ? $privacyConsentDocumentKey : 'community_privacy_default', 'string');
+            sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_document_inherit_policy', 'override', 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_title', $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의', 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_body', $privacyConsentBody, 'string');
             sr_community_set_board_group_setting($pdo, $groupId, 'privacy_consent_version', $privacyConsentVersion !== '' ? $privacyConsentVersion : '1', 'string');

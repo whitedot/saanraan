@@ -49,6 +49,8 @@ function sr_community_default_settings(): array
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
         'secret_comments_enabled' => (bool) ($settings['secret_comments_enabled'] ?? false),
         'privacy_consent_enabled' => (bool) ($settings['privacy_consent_enabled'] ?? false),
+        'privacy_consent_document_key' => is_string($settings['privacy_consent_document_key'] ?? null) ? (string) $settings['privacy_consent_document_key'] : 'community_privacy_default',
+        'privacy_consent_document_inherit_policy' => is_string($settings['privacy_consent_document_inherit_policy'] ?? null) ? (string) $settings['privacy_consent_document_inherit_policy'] : 'override',
         'privacy_consent_title' => is_string($settings['privacy_consent_title'] ?? null) ? (string) $settings['privacy_consent_title'] : '개인정보 수집 및 이용동의',
         'privacy_consent_body' => is_string($settings['privacy_consent_body'] ?? null) ? (string) $settings['privacy_consent_body'] : '',
         'privacy_consent_version' => is_string($settings['privacy_consent_version'] ?? null) ? (string) $settings['privacy_consent_version'] : '1',
@@ -173,6 +175,12 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['secret_posts_enabled'] = sr_community_bool_setting($settings['secret_posts_enabled'] ?? false);
     $settings['secret_comments_enabled'] = sr_community_bool_setting($settings['secret_comments_enabled'] ?? false);
     $settings['privacy_consent_enabled'] = sr_community_bool_setting($settings['privacy_consent_enabled'] ?? false);
+    $settings['privacy_consent_document_key'] = preg_match('/\A[a-z][a-z0-9_]{2,79}\z/', (string) ($settings['privacy_consent_document_key'] ?? 'community_privacy_default')) === 1
+        ? (string) $settings['privacy_consent_document_key']
+        : 'community_privacy_default';
+    $settings['privacy_consent_document_inherit_policy'] = in_array((string) ($settings['privacy_consent_document_inherit_policy'] ?? 'override'), ['inherit', 'override', 'disabled'], true)
+        ? (string) $settings['privacy_consent_document_inherit_policy']
+        : 'override';
     $settings['privacy_consent_title'] = trim((string) ($settings['privacy_consent_title'] ?? '개인정보 수집 및 이용동의'));
     if ($settings['privacy_consent_title'] === '') {
         $settings['privacy_consent_title'] = '개인정보 수집 및 이용동의';

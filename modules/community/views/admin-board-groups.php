@@ -649,21 +649,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_title">동의 제목</label>
+                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_document_key">정책 문서 키</label>
                     <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_privacy_consent_title" type="text" name="group_privacy_consent_title" maxlength="120" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_title', '개인정보 수집 및 이용동의')); ?>" class="form-input form-control-full">
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_version">동의 버전</label>
-                    <div class="admin-form-field">
-                        <input id="community_admin_board_groups_group_privacy_consent_version" type="text" name="group_privacy_consent_version" maxlength="60" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_version', '1')); ?>" class="form-input">
-                    </div>
-                </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_privacy_consent_body">동의 본문</label>
-                    <div class="admin-form-field">
-                        <textarea id="community_admin_board_groups_group_privacy_consent_body" name="group_privacy_consent_body" rows="6" class="form-input form-control-full"><?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_body', '')); ?></textarea>
+                        <input id="community_admin_board_groups_group_privacy_consent_document_key" type="text" name="group_privacy_consent_document_key" maxlength="80" pattern="[a-z][a-z0-9_]{2,79}" value="<?php echo sr_e($groupSettingValue($formGroupSettings, 'privacy_consent_document_key', 'community_privacy_default')); ?>" class="form-input form-control-full" data-admin-key-input>
+                        <input type="hidden" name="group_privacy_consent_title" value="">
+                        <input type="hidden" name="group_privacy_consent_version" value="">
+                        <input type="hidden" name="group_privacy_consent_body" value="">
                     </div>
                 </div>
                 <div class="admin-form-row">

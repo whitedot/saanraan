@@ -300,9 +300,7 @@ return static function (PDO $pdo, int $accountId): array {
 
         if (function_exists('sr_community_submission_consents_table_exists') && sr_community_submission_consents_table_exists($pdo)) {
             $stmt = $pdo->prepare(
-                'SELECT id, board_id, subject_type, subject_id, action_key, account_id,
-                        consent_title_snapshot, consent_body_snapshot, consent_version_snapshot,
-                        consent_required, consent_accepted, ip_hash, user_agent_hash, created_at
+                'SELECT *
                  FROM sr_community_submission_consents
                  WHERE account_id = :account_id
                  ORDER BY id ASC

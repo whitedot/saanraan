@@ -68,6 +68,7 @@ if (sr_request_method() === 'POST') {
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
+        $privacyConsentDocumentKey = sr_post_string('privacy_consent_document_key', 80);
         $privacyConsentTitle = trim(sr_post_string('privacy_consent_title', 120));
         $privacyConsentBodyInput = sr_post_string_without_truncation('privacy_consent_body', 5000);
         $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
@@ -277,6 +278,8 @@ if (sr_request_method() === 'POST') {
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
                 ['privacy_consent_enabled', $privacyConsentEnabled ? '1' : '0', 'bool'],
+                ['privacy_consent_document_key', $privacyConsentDocumentKey !== '' ? $privacyConsentDocumentKey : 'community_privacy_default', 'string'],
+                ['privacy_consent_document_inherit_policy', 'override', 'string'],
                 ['privacy_consent_title', $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의', 'string'],
                 ['privacy_consent_body', $privacyConsentBody, 'string'],
                 ['privacy_consent_version', $privacyConsentVersion !== '' ? $privacyConsentVersion : '1', 'string'],

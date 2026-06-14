@@ -474,6 +474,11 @@ if (sr_request_method() === 'POST') {
         $reactionPostPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_post_preset_key', 80)) : '';
         $reactionCommentPresetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
         $privacyConsentEnabled = ($_POST['privacy_consent_enabled'] ?? '') === '1';
+        $privacyConsentDocumentKey = sr_post_string('privacy_consent_document_key', 80);
+        $privacyConsentDocumentInheritPolicy = sr_post_string('privacy_consent_document_inherit_policy', 20);
+        if (!in_array($privacyConsentDocumentInheritPolicy, ['inherit', 'override', 'disabled'], true)) {
+            $privacyConsentDocumentInheritPolicy = 'override';
+        }
         $privacyConsentTitle = trim(sr_post_string('privacy_consent_title', 120));
         $privacyConsentBodyInput = sr_post_string_without_truncation('privacy_consent_body', 5000);
         $privacyConsentBody = is_string($privacyConsentBodyInput) ? trim($privacyConsentBodyInput) : '';
@@ -872,6 +877,8 @@ if (sr_request_method() === 'POST') {
                 'reaction_post_preset_key' => $reactionPostPresetKey,
                 'reaction_comment_preset_key' => $reactionCommentPresetKey,
                 'privacy_consent_enabled' => $privacyConsentEnabled ? '1' : '0',
+                'privacy_consent_document_key' => $privacyConsentDocumentKey !== '' ? $privacyConsentDocumentKey : 'community_privacy_default',
+                'privacy_consent_document_inherit_policy' => $privacyConsentDocumentInheritPolicy,
                 'privacy_consent_title' => $privacyConsentTitle !== '' ? $privacyConsentTitle : '개인정보 수집 및 이용동의',
                 'privacy_consent_body' => $privacyConsentBody,
                 'privacy_consent_version' => $privacyConsentVersion !== '' ? $privacyConsentVersion : '1',
@@ -1217,9 +1224,13 @@ $communityAdminPrepareBoard = static function (array $board) use ($pdo, $setting
     $board['reaction_post_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_post_preset_key') ?? '');
     $board['reaction_comment_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_comment_preset_key') ?? '');
     foreach (sr_community_privacy_consent_setting_keys() as $privacyConsentSettingKey) {
-        $defaultValue = in_array($privacyConsentSettingKey, ['privacy_consent_title', 'privacy_consent_version'], true)
-            ? ($privacyConsentSettingKey === 'privacy_consent_title' ? '개인정보 수집 및 이용동의' : '1')
-            : '0';
+        $defaultValue = match ($privacyConsentSettingKey) {
+            'privacy_consent_title' => '개인정보 수집 및 이용동의',
+            'privacy_consent_version' => '1',
+            'privacy_consent_document_key' => 'community_privacy_default',
+            'privacy_consent_document_inherit_policy' => 'inherit',
+            default => '0',
+        };
         $board[$privacyConsentSettingKey] = sr_community_effective_board_setting($pdo, $board, (string) $privacyConsentSettingKey, $defaultValue);
     }
     $storedExtraFieldDefinitions = sr_community_board_setting_source($pdo, (int) $board['id'], 'extra_fields_json') === 'board'

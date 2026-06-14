@@ -6,6 +6,8 @@ function sr_community_privacy_consent_setting_keys(): array
 {
     return [
         'privacy_consent_enabled',
+        'privacy_consent_document_key',
+        'privacy_consent_document_inherit_policy',
         'privacy_consent_title',
         'privacy_consent_body',
         'privacy_consent_version',
@@ -36,11 +38,38 @@ function sr_community_bool_from_setting(string $value): bool
     return in_array($value, ['1', 'true', 'yes', 'on'], true);
 }
 
+function sr_community_privacy_consent_policy_document_key(PDO $pdo, array $board): string
+{
+    $documentKey = trim(sr_community_effective_board_setting($pdo, $board, 'privacy_consent_document_key', 'community_privacy_default'));
+    if ($documentKey === '') {
+        return '';
+    }
+
+    return preg_match('/\A[a-z][a-z0-9_]{2,79}\z/', $documentKey) === 1 ? $documentKey : '';
+}
+
+function sr_community_privacy_consent_policy_snapshot(PDO $pdo, string $documentKey): ?array
+{
+    if ($documentKey === '' || !is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+        return null;
+    }
+
+    require_once SR_ROOT . '/modules/policy_documents/helpers.php';
+    try {
+        if (!sr_module_enabled($pdo, 'policy_documents') || !sr_policy_document_module_ready($pdo)) {
+            return null;
+        }
+
+        return sr_policy_document_snapshot($pdo, $documentKey);
+    } catch (Throwable) {
+        return null;
+    }
+}
+
 function sr_community_effective_privacy_consent_config(PDO $pdo, array $board): array
 {
-    $title = trim(sr_community_effective_board_setting($pdo, $board, 'privacy_consent_title', '개인정보 수집 및 이용동의'));
-    $body = trim(sr_community_effective_board_setting($pdo, $board, 'privacy_consent_body', ''));
-    $version = trim(sr_community_effective_board_setting($pdo, $board, 'privacy_consent_version', '1'));
+    $documentKey = sr_community_privacy_consent_policy_document_key($pdo, $board);
+    $snapshot = sr_community_privacy_consent_policy_snapshot($pdo, $documentKey);
     $targets = [];
     foreach (sr_community_privacy_consent_target_keys() as $targetKey) {
         $settingKey = 'privacy_consent_require_' . $targetKey;
@@ -49,11 +78,16 @@ function sr_community_effective_privacy_consent_config(PDO $pdo, array $board): 
         }
     }
 
+    $enabled = sr_community_bool_from_setting(sr_community_effective_board_setting($pdo, $board, 'privacy_consent_enabled', '0'));
+
     return [
-        'enabled' => sr_community_bool_from_setting(sr_community_effective_board_setting($pdo, $board, 'privacy_consent_enabled', '0')),
-        'title' => $title !== '' ? $title : '개인정보 수집 및 이용동의',
-        'body' => $body,
-        'version' => $version !== '' ? $version : '1',
+        'enabled' => $enabled,
+        'document_key' => $documentKey,
+        'policy_ready' => !$enabled || is_array($snapshot),
+        'title' => is_array($snapshot) ? (string) $snapshot['title'] : '',
+        'body' => '',
+        'version' => is_array($snapshot) ? (string) $snapshot['version_key'] : '',
+        'snapshot' => is_array($snapshot) ? $snapshot : [],
         'targets' => $targets,
     ];
 }
@@ -141,6 +175,10 @@ function sr_community_privacy_consent_validation_errors(PDO $pdo, array $board, 
     if ($actions !== [] && !sr_community_submission_consents_table_exists($pdo)) {
         return ['개인정보 수집 및 이용동의 스키마 업데이트가 아직 적용되지 않았습니다.'];
     }
+    $config = sr_community_effective_privacy_consent_config($pdo, $board);
+    if ($actions !== [] && empty($config['policy_ready'])) {
+        return ['개인정보 수집 및 이용동의 정책 문서가 준비되지 않았습니다.'];
+    }
     if ($actions === [] || sr_community_privacy_consent_accepted_from_post()) {
         return [];
     }
@@ -156,13 +194,21 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
     }
 
     $config = sr_community_effective_privacy_consent_config($pdo, $board);
+    if (empty($config['policy_ready'])) {
+        return '<p class="community-privacy-consent is-error">' . sr_e('개인정보 수집 및 이용동의 정책 문서가 준비되지 않았습니다.') . '</p>';
+    }
     $labels = array_map('sr_community_privacy_consent_label', $actions);
     $suffix = preg_replace('/[^a-zA-Z0-9_]+/', '_', $idSuffix) ?? '';
     $id = 'modules_community_privacy_consent_' . substr(hash('sha256', implode('|', $actions)), 0, 12) . ($suffix !== '' ? '_' . $suffix : '');
     $html = '<fieldset class="community-privacy-consent">';
     $html .= '<legend>' . sr_e((string) $config['title']) . ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span></legend>';
-    if ((string) $config['body'] !== '') {
-        $html .= '<div class="community-privacy-consent-body">' . nl2br(sr_e((string) $config['body'])) . '</div>';
+    $renderData = null;
+    if (is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
+        require_once SR_ROOT . '/modules/policy_documents/helpers.php';
+        $renderData = sr_policy_document_public_render_data($pdo, (string) $config['document_key']);
+    }
+    if (is_array($renderData) && (string) ($renderData['body_html'] ?? '') !== '') {
+        $html .= '<div class="community-privacy-consent-body">' . (string) $renderData['body_html'] . '</div>';
     }
     $html .= '<p><small>' . sr_e('적용 대상: ' . implode(', ', $labels) . ' / 버전: ' . (string) $config['version']) . '</small></p>';
     $html .= '<label for="' . sr_e($id) . '">';
@@ -200,6 +246,9 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
     if (empty($config['enabled'])) {
         return 0;
     }
+    if (empty($config['policy_ready']) || !is_array($config['snapshot'])) {
+        throw new RuntimeException('Community privacy consent policy document is missing.');
+    }
     $requiredActionKeys = sr_community_privacy_consent_required_actions($pdo, $board, $actionKeys);
     if ($requiredActionKeys === []) {
         return 0;
@@ -209,10 +258,15 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_submission_consents
-            (board_id, subject_type, subject_id, action_key, account_id, consent_title_snapshot, consent_body_snapshot, consent_version_snapshot, consent_required, consent_accepted, ip_hash, user_agent_hash, created_at)
+            (board_id, subject_type, subject_id, action_key, account_id, policy_document_key_snapshot,
+             policy_version_key_snapshot, policy_document_version_id, consent_title_snapshot, consent_body_snapshot,
+             consent_body_hash, consent_version_snapshot, consent_required, consent_accepted, ip_hash, user_agent_hash, created_at)
          VALUES
-            (:board_id, :subject_type, :subject_id, :action_key, :account_id, :consent_title_snapshot, :consent_body_snapshot, :consent_version_snapshot, :consent_required, :consent_accepted, :ip_hash, :user_agent_hash, :created_at)'
+            (:board_id, :subject_type, :subject_id, :action_key, :account_id, :policy_document_key_snapshot,
+             :policy_version_key_snapshot, :policy_document_version_id, :consent_title_snapshot, :consent_body_snapshot,
+             :consent_body_hash, :consent_version_snapshot, :consent_required, :consent_accepted, :ip_hash, :user_agent_hash, :created_at)'
     );
+    $snapshot = (array) $config['snapshot'];
     foreach ($requiredActionKeys as $actionKey) {
         if (!in_array($actionKey, sr_community_privacy_consent_target_keys(), true)) {
             continue;
@@ -223,9 +277,13 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
             'subject_id' => $subjectId,
             'action_key' => $actionKey,
             'account_id' => $accountId > 0 ? $accountId : null,
-            'consent_title_snapshot' => (string) $config['title'],
-            'consent_body_snapshot' => (string) $config['body'],
-            'consent_version_snapshot' => (string) $config['version'],
+            'policy_document_key_snapshot' => (string) $snapshot['document_key'],
+            'policy_version_key_snapshot' => (string) $snapshot['version_key'],
+            'policy_document_version_id' => (int) $snapshot['version_id'],
+            'consent_title_snapshot' => (string) $snapshot['title'],
+            'consent_body_snapshot' => '',
+            'consent_body_hash' => (string) $snapshot['body_hash'],
+            'consent_version_snapshot' => (string) $snapshot['version_key'],
             'consent_required' => 1,
             'consent_accepted' => 1,
             'ip_hash' => hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? '')),

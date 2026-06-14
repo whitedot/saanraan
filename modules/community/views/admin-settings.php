@@ -264,22 +264,13 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="admin-form-row">
-                <label class="form-label" for="community_admin_settings_privacy_consent_title">동의 제목</label>
+                <label class="form-label" for="community_admin_settings_privacy_consent_document_key">정책 문서 키</label>
                 <div class="admin-form-field">
-                    <input id="community_admin_settings_privacy_consent_title" type="text" name="privacy_consent_title" maxlength="120" value="<?php echo sr_e((string) ($settings['privacy_consent_title'] ?? '개인정보 수집 및 이용동의')); ?>" class="form-input form-control-full">
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="community_admin_settings_privacy_consent_version">동의 버전</label>
-                <div class="admin-form-field">
-                    <input id="community_admin_settings_privacy_consent_version" type="text" name="privacy_consent_version" maxlength="60" value="<?php echo sr_e((string) ($settings['privacy_consent_version'] ?? '1')); ?>" class="form-input">
-                    <p class="admin-form-help">문구가 바뀌면 버전을 올려 제출 당시 snapshot을 구분합니다.</p>
-                </div>
-            </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="community_admin_settings_privacy_consent_body">동의 본문</label>
-                <div class="admin-form-field">
-                    <textarea id="community_admin_settings_privacy_consent_body" name="privacy_consent_body" rows="6" class="form-input form-control-full"><?php echo sr_e((string) ($settings['privacy_consent_body'] ?? '')); ?></textarea>
+                    <input id="community_admin_settings_privacy_consent_document_key" type="text" name="privacy_consent_document_key" maxlength="80" pattern="[a-z][a-z0-9_]{2,79}" value="<?php echo sr_e((string) ($settings['privacy_consent_document_key'] ?? 'community_privacy_default')); ?>" class="form-input form-control-full" data-admin-key-input>
+                    <p class="admin-form-help">정책 문서 모듈의 published version을 제출 시점에 다시 조회합니다.</p>
+                    <input type="hidden" name="privacy_consent_title" value="">
+                    <input type="hidden" name="privacy_consent_version" value="">
+                    <input type="hidden" name="privacy_consent_body" value="">
                 </div>
             </div>
             <div class="admin-form-row">

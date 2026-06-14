@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.024',
+    'version' => '2026.06.025',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -90,6 +90,8 @@ return [
         'post_toolbar_preset' => 'community_post_basic',
         'plain_text_auto_link_urls' => false,
         'privacy_consent_enabled' => false,
+        'privacy_consent_document_key' => 'community_privacy_default',
+        'privacy_consent_document_inherit_policy' => 'override',
         'privacy_consent_title' => '개인정보 수집 및 이용동의',
         'privacy_consent_body' => '',
         'privacy_consent_version' => '1',
