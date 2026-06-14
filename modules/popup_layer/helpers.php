@@ -438,7 +438,9 @@ function sr_popup_layer_render_stack(array $popups, string $skinKey = 'basic'): 
 
 function sr_popup_layer_render_basic_stack(array $popups): string
 {
-    $html = ['<div class="sr-popup-layer-stack" data-sr-popup-layer-stack>'];
+    $cookiePath = sr_base_path();
+    $cookiePath = $cookiePath === '' ? '/' : $cookiePath;
+    $html = ['<div class="sr-popup-layer-stack" data-sr-popup-layer-stack data-cookie-path="' . sr_e($cookiePath) . '">'];
     foreach ($popups as $popup) {
         $cookieDays = max(0, min(365, (int) $popup['dismiss_cookie_days']));
         $html[] = '<section class="sr-popup-layer" data-sr-popup-layer data-popup-id="' . sr_e((string) $popup['id']) . '" data-cookie-days="' . sr_e((string) $cookieDays) . '">';

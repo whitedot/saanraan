@@ -405,6 +405,9 @@ function sr_popup_layer_check_runtime_fixture(): array
     if (!str_contains($html, 'data-cookie-days="7"')) {
         $errors[] = 'popup layer runtime fixture should preserve dismiss cookie day metadata.';
     }
+    if (!str_contains($html, 'data-cookie-path=')) {
+        $errors[] = 'popup layer runtime fixture should expose dismiss cookie path metadata.';
+    }
 
     $_COOKIE[sr_popup_layer_cookie_name(4)] = '1';
     try {
@@ -434,6 +437,11 @@ function sr_popup_layer_check_runtime_fixture(): array
 }
 
 $errors = array_merge($errors, sr_popup_layer_check_runtime_fixture());
+
+$popupLayerScript = file_get_contents('modules/popup_layer/assets/saanraan-popup-layer.js');
+if (!is_string($popupLayerScript) || !str_contains($popupLayerScript, "path=' + cookiePathForPopup(popup) + '; SameSite=Lax")) {
+    $errors[] = 'popup layer script must use rendered cookie path metadata for dismiss cookies.';
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "popup layer target checks failed:\n");

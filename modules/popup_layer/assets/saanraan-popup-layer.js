@@ -14,6 +14,16 @@
         });
     }
 
+    function cookiePathForPopup(popup) {
+        var stack = popup.closest('[data-sr-popup-layer-stack]');
+        var path = stack ? stack.getAttribute('data-cookie-path') : '/';
+        if (!path || path.charAt(0) !== '/') {
+            return '/';
+        }
+
+        return path;
+    }
+
     document.addEventListener('click', function (event) {
         var target = event.target;
         if (!target || typeof target.closest !== 'function') {
@@ -36,7 +46,7 @@
             if (popupId && days > 0) {
                 var expires = new Date();
                 expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-                document.cookie = 'sr_popup_layer_' + popupId + '_dismissed=1; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+                document.cookie = 'sr_popup_layer_' + popupId + '_dismissed=1; expires=' + expires.toUTCString() + '; path=' + cookiePathForPopup(popup) + '; SameSite=Lax';
             }
         }
 
