@@ -273,6 +273,235 @@ function sr_notification_telegram_chat_id_is_allowed(string $chatId): bool
         && (preg_match('/\A-?[0-9]{1,20}\z/', $chatId) === 1 || preg_match('/\A@[A-Za-z][A-Za-z0-9_]{4,31}\z/', $chatId) === 1);
 }
 
+function sr_notification_secret_key(string $purpose): string
+{
+    $config = function_exists('sr_runtime_config') ? sr_runtime_config() : [];
+    $appKey = function_exists('sr_app_key') ? sr_app_key($config) : (string) ($config['app_key'] ?? '');
+    if ($appKey === '') {
+        return '';
+    }
+
+    return hash('sha256', 'notification-secret|' . $purpose, true);
+}
+
+function sr_notification_secret_crypto_available(): bool
+{
+    return sr_notification_secret_key('probe') !== ''
+        && (function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_encrypt') || function_exists('openssl_encrypt'));
+}
+
+function sr_notification_secret_encrypt(string $plaintext, string $purpose): string
+{
+    $plaintext = (string) $plaintext;
+    $key = sr_notification_secret_key($purpose);
+    if ($plaintext === '' || $key === '') {
+        return '';
+    }
+
+    if (function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_encrypt')) {
+        $nonce = random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $ciphertext = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt($plaintext, $purpose, $nonce, $key);
+        return 'sr1:sodium:' . base64_encode($nonce . $ciphertext);
+    }
+
+    if (function_exists('openssl_encrypt')) {
+        $iv = random_bytes(12);
+        $tag = '';
+        $ciphertext = openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, $purpose, 16);
+        return is_string($ciphertext) && $tag !== '' ? 'sr1:openssl:' . base64_encode($iv . $tag . $ciphertext) : '';
+    }
+
+    return '';
+}
+
+function sr_notification_secret_decrypt(string $ciphertext, string $purpose): ?string
+{
+    $key = sr_notification_secret_key($purpose);
+    if ($ciphertext === '' || $key === '') {
+        return null;
+    }
+
+    if (str_starts_with($ciphertext, 'sr1:sodium:') && function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_decrypt')) {
+        $raw = base64_decode(substr($ciphertext, strlen('sr1:sodium:')), true);
+        if (!is_string($raw) || strlen($raw) <= SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES) {
+            return null;
+        }
+        $nonce = substr($raw, 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $encrypted = substr($raw, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $plain = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($encrypted, $purpose, $nonce, $key);
+        return is_string($plain) ? $plain : null;
+    }
+
+    if (str_starts_with($ciphertext, 'sr1:openssl:') && function_exists('openssl_decrypt')) {
+        $raw = base64_decode(substr($ciphertext, strlen('sr1:openssl:')), true);
+        if (!is_string($raw) || strlen($raw) <= 28) {
+            return null;
+        }
+        $iv = substr($raw, 0, 12);
+        $tag = substr($raw, 12, 16);
+        $encrypted = substr($raw, 28);
+        $plain = openssl_decrypt($encrypted, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, $purpose);
+        return is_string($plain) ? $plain : null;
+    }
+
+    return null;
+}
+
+function sr_notification_secret_fingerprint(string $plaintext, string $purpose): string
+{
+    $key = sr_notification_secret_key('fingerprint|' . $purpose);
+    return hash_hmac('sha256', $plaintext, $key !== '' ? $key : 'notification-fingerprint-fallback');
+}
+
+function sr_notification_delivery_endpoint_id(string $recipient): int
+{
+    return preg_match('/\Aendpoint:([1-9][0-9]*)\z/', trim($recipient), $matches) === 1 ? (int) $matches[1] : 0;
+}
+
+function sr_notification_member_external_channel_keys(): array
+{
+    return ['telegram_bot'];
+}
+
+function sr_notification_admin_external_delivery_sql_condition(string $alias = 'd'): string
+{
+    return $alias . '.channel IN (' . sr_notification_admin_external_channel_sql_list() . ") AND " . $alias . ".recipient NOT LIKE 'endpoint:%'";
+}
+
+function sr_notification_member_external_provider_is_ready(string $channel, array $settings): bool
+{
+    if ($channel !== 'telegram_bot' || empty($settings['external_push_enabled']) || empty($settings['telegram_bot_enabled'])) {
+        return false;
+    }
+
+    return sr_notification_telegram_bot_token_is_allowed((string) ($settings['telegram_bot_token'] ?? ''))
+        && sr_notification_secret_crypto_available();
+}
+
+function sr_notification_push_endpoint_mask(string $providerKey, string $endpoint): string
+{
+    if ($providerKey === 'telegram_bot') {
+        return sr_notification_mask_recipient($endpoint);
+    }
+
+    return sr_notification_mask_recipient($endpoint);
+}
+
+function sr_notification_save_member_push_endpoint(PDO $pdo, array $data): int
+{
+    $accountId = (int) ($data['account_id'] ?? 0);
+    $providerKey = (string) ($data['provider_key'] ?? 'telegram_bot');
+    $endpoint = sr_notification_clean_single_line((string) ($data['endpoint'] ?? ''), 255);
+    if ($accountId <= 0 || !in_array($providerKey, sr_notification_member_external_channel_keys(), true)) {
+        throw new InvalidArgumentException('Member push endpoint is invalid.');
+    }
+    if ($providerKey === 'telegram_bot' && !sr_notification_telegram_chat_id_is_allowed($endpoint)) {
+        throw new InvalidArgumentException('Telegram chat ID is invalid.');
+    }
+    if (!sr_notification_member_external_provider_is_ready($providerKey, sr_notification_settings($pdo))) {
+        throw new RuntimeException('Member push provider is not ready.');
+    }
+
+    $stmt = $pdo->prepare("SELECT id FROM sr_member_accounts WHERE id = :id AND status = 'active' LIMIT 1");
+    $stmt->execute(['id' => $accountId]);
+    if ((int) $stmt->fetchColumn() <= 0) {
+        throw new InvalidArgumentException('Member account is not active.');
+    }
+
+    $purpose = 'notification-push-endpoint|' . $providerKey;
+    $ciphertext = sr_notification_secret_encrypt($endpoint, $purpose);
+    if ($ciphertext === '') {
+        throw new RuntimeException('Member push endpoint encryption failed.');
+    }
+
+    $fingerprint = sr_notification_secret_fingerprint($endpoint, $purpose);
+    $label = sr_notification_clean_single_line((string) ($data['recipient_label'] ?? ''), 120);
+    $masked = sr_notification_push_endpoint_mask($providerKey, $endpoint);
+    $now = sr_now();
+
+    $stmt = $pdo->prepare('SELECT id FROM sr_notification_push_endpoints WHERE provider_key = :provider_key AND endpoint_fingerprint = :endpoint_fingerprint LIMIT 1');
+    $stmt->execute([
+        'provider_key' => $providerKey,
+        'endpoint_fingerprint' => $fingerprint,
+    ]);
+    $existingId = (int) $stmt->fetchColumn();
+    if ($existingId > 0) {
+        $stmt = $pdo->prepare(
+            "UPDATE sr_notification_push_endpoints
+             SET account_id = :account_id,
+                 recipient_type = 'personal',
+                 endpoint_ciphertext = :endpoint_ciphertext,
+                 recipient_label = :recipient_label,
+                 recipient_masked = :recipient_masked,
+                 status = 'active',
+                 disabled_at = NULL,
+                 verified_at = COALESCE(verified_at, :verified_at),
+                 updated_at = :updated_at
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'endpoint_ciphertext' => $ciphertext,
+            'recipient_label' => $label,
+            'recipient_masked' => $masked,
+            'verified_at' => $now,
+            'updated_at' => $now,
+            'id' => $existingId,
+        ]);
+        return $existingId;
+    }
+
+    $stmt = $pdo->prepare(
+        "INSERT INTO sr_notification_push_endpoints
+            (account_id, provider_key, recipient_type, endpoint_ciphertext, endpoint_fingerprint,
+             recipient_label, recipient_masked, status, key_version, verified_at, disabled_at, last_used_at, created_at, updated_at)
+         VALUES
+            (:account_id, :provider_key, 'personal', :endpoint_ciphertext, :endpoint_fingerprint,
+             :recipient_label, :recipient_masked, 'active', 'v1', :verified_at, NULL, NULL, :created_at, :updated_at)"
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'provider_key' => $providerKey,
+        'endpoint_ciphertext' => $ciphertext,
+        'endpoint_fingerprint' => $fingerprint,
+        'recipient_label' => $label,
+        'recipient_masked' => $masked,
+        'verified_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_notification_member_push_endpoints(PDO $pdo, int $accountId, string $providerKey): array
+{
+    if ($accountId <= 0 || !in_array($providerKey, sr_notification_member_external_channel_keys(), true)) {
+        return [];
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT id, account_id, provider_key, recipient_type, endpoint_ciphertext, recipient_masked, status
+             FROM sr_notification_push_endpoints
+             WHERE account_id = :account_id
+               AND provider_key = :provider_key
+               AND recipient_type = 'personal'
+               AND status = 'active'
+             ORDER BY id ASC
+             LIMIT 5"
+        );
+        $stmt->execute([
+            'account_id' => $accountId,
+            'provider_key' => $providerKey,
+        ]);
+    } catch (Throwable) {
+        return [];
+    }
+
+    return $stmt->fetchAll();
+}
+
 function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, int $lockTimeoutSeconds, array $channels = []): ?array
 {
     $allowedChannels = array_values(array_filter(
@@ -342,15 +571,16 @@ function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, i
         return null;
     }
 
+    $adminExternalCondition = sr_notification_admin_external_delivery_sql_condition('d');
     $stmt = $pdo->prepare(
         "SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.attempt_count,
-                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN an.title ELSE n.title END AS title,
-                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN an.body_text ELSE n.body_text END AS body_text,
-                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN 'plain' ELSE n.body_format END AS body_format,
-                CASE WHEN d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ") THEN an.action_url ELSE n.link_url END AS link_url
+                CASE WHEN " . $adminExternalCondition . " THEN an.title ELSE n.title END AS title,
+                CASE WHEN " . $adminExternalCondition . " THEN an.body_text ELSE n.body_text END AS body_text,
+                CASE WHEN " . $adminExternalCondition . " THEN 'plain' ELSE n.body_format END AS body_format,
+                CASE WHEN " . $adminExternalCondition . " THEN an.action_url ELSE n.link_url END AS link_url
          FROM sr_notification_deliveries d
-         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel NOT IN (" . sr_notification_admin_external_channel_sql_list() . ")
-         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel IN (" . sr_notification_admin_external_channel_sql_list() . ")
+         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND NOT (" . $adminExternalCondition . ")
+         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND " . $adminExternalCondition . "
          WHERE d.id = :id
          LIMIT 1"
     );
@@ -423,6 +653,28 @@ function sr_notification_mark_delivery_failed(PDO $pdo, int $deliveryId, string 
     return $status;
 }
 
+function sr_notification_mark_delivery_canceled(PDO $pdo, int $deliveryId, string $now, string $errorMessage): void
+{
+    $stmt = $pdo->prepare(
+        "UPDATE sr_notification_deliveries
+         SET status = 'canceled',
+             error_message = :error_message,
+             attempted_at = :attempted_at,
+             locked_at = NULL,
+             locked_by = '',
+             next_attempt_at = NULL,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = 'processing'"
+    );
+    $stmt->execute([
+        'error_message' => sr_notification_delivery_error_message($errorMessage),
+        'attempted_at' => $now,
+        'updated_at' => $now,
+        'id' => $deliveryId,
+    ]);
+}
+
 function sr_notification_process_email_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
 {
     $deliveryId = (int) ($delivery['id'] ?? 0);
@@ -464,6 +716,120 @@ function sr_notification_process_email_delivery(PDO $pdo, array $site, array $de
     }
 
     $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, 'email provider send failed', $attemptCount, $maxAttempts);
+    return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
+}
+
+function sr_notification_member_external_push_payload(string $channel, array $delivery, array $site, string $endpoint): array
+{
+    $siteName = sr_notification_clean_single_line((string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'), 80);
+    $title = sr_notification_clean_single_line((string) ($delivery['title'] ?? '알림'), 160);
+    $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
+    $lines = ['[' . $siteName . '] ' . $title, '사이트에서 내용을 확인해 주세요.'];
+    if ($linkUrl !== '') {
+        $lines[] = sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl);
+    }
+
+    if ($channel === 'telegram_bot') {
+        return [
+            'chat_id' => $endpoint,
+            'text' => implode("\n\n", $lines),
+            'disable_web_page_preview' => true,
+        ];
+    }
+
+    return ['text' => implode("\n\n", $lines)];
+}
+
+function sr_notification_member_push_delivery_context(PDO $pdo, array $delivery): ?array
+{
+    $deliveryId = (int) ($delivery['id'] ?? 0);
+    $endpointId = sr_notification_delivery_endpoint_id((string) ($delivery['recipient'] ?? ''));
+    $channel = (string) ($delivery['channel'] ?? '');
+    if ($deliveryId <= 0 || $endpointId <= 0 || !in_array($channel, sr_notification_member_external_channel_keys(), true)) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT d.id AS delivery_id, d.notification_id, d.channel, d.attempt_count,
+                n.account_id, n.audience, n.status AS notification_status, n.title, n.body_text, n.body_format, n.link_url,
+                e.id AS endpoint_id, e.account_id AS endpoint_account_id, e.provider_key, e.recipient_type,
+                e.endpoint_ciphertext, e.recipient_masked, e.status AS endpoint_status
+         FROM sr_notification_deliveries d
+         INNER JOIN sr_notifications n ON n.id = d.notification_id
+         INNER JOIN sr_notification_push_endpoints e ON e.id = :endpoint_id
+         WHERE d.id = :delivery_id
+         LIMIT 1"
+    );
+    $stmt->execute([
+        'endpoint_id' => $endpointId,
+        'delivery_id' => $deliveryId,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_notification_process_member_external_push_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
+{
+    $deliveryId = (int) ($delivery['id'] ?? 0);
+    $channel = (string) ($delivery['channel'] ?? '');
+    $attemptCount = (int) ($delivery['attempt_count'] ?? 1);
+    $context = sr_notification_member_push_delivery_context($pdo, $delivery);
+    if ($deliveryId <= 0 || $context === null) {
+        return ['status' => 'skipped', 'sent' => 0, 'failed' => 0, 'dead' => 0];
+    }
+
+    $cancelReason = '';
+    if ((string) ($context['audience'] ?? '') !== 'account' || (int) ($context['account_id'] ?? 0) <= 0) {
+        $cancelReason = 'member push supports account audience only';
+    } elseif ((int) ($context['account_id'] ?? 0) !== (int) ($context['endpoint_account_id'] ?? 0)) {
+        $cancelReason = 'member push endpoint ownership changed';
+    } elseif ((string) ($context['notification_status'] ?? '') !== 'active') {
+        $cancelReason = 'member push notification is not active';
+    } elseif ((string) ($context['endpoint_status'] ?? '') !== 'active' || (string) ($context['recipient_type'] ?? '') !== 'personal') {
+        $cancelReason = 'member push endpoint is not active';
+    } elseif (!sr_notification_member_external_provider_is_ready($channel, $settings)) {
+        $cancelReason = 'member push provider is not ready';
+    }
+
+    if ($cancelReason !== '') {
+        sr_notification_mark_delivery_canceled($pdo, $deliveryId, $now, $cancelReason);
+        return ['status' => 'canceled', 'sent' => 0, 'failed' => 0, 'dead' => 0, 'skipped' => 1];
+    }
+
+    $endpoint = sr_notification_secret_decrypt(
+        (string) ($context['endpoint_ciphertext'] ?? ''),
+        'notification-push-endpoint|' . $channel
+    );
+    if (!is_string($endpoint) || $endpoint === '' || ($channel === 'telegram_bot' && !sr_notification_telegram_chat_id_is_allowed($endpoint))) {
+        sr_notification_mark_delivery_canceled($pdo, $deliveryId, $now, 'member push endpoint decrypt failed');
+        return ['status' => 'canceled', 'sent' => 0, 'failed' => 0, 'dead' => 0, 'skipped' => 1];
+    }
+
+    $deliveryForPayload = array_merge($delivery, [
+        'title' => (string) ($context['title'] ?? ''),
+        'body_text' => (string) ($context['body_text'] ?? ''),
+        'body_format' => (string) ($context['body_format'] ?? 'plain'),
+        'link_url' => (string) ($context['link_url'] ?? ''),
+    ]);
+    $response = sr_notification_http_json_post(
+        sr_notification_external_push_endpoint($channel, $settings),
+        sr_notification_member_external_push_payload($channel, $deliveryForPayload, $site, $endpoint),
+        (int) ($settings['email_timeout_seconds'] ?? 10)
+    );
+    $providerResult = sr_notification_external_push_response_result($channel, $response);
+    if (!empty($providerResult['ok'])) {
+        sr_notification_mark_delivery_sent($pdo, $deliveryId, $now, (string) ($providerResult['provider_message_id'] ?? $channel));
+        $stmt = $pdo->prepare('UPDATE sr_notification_push_endpoints SET last_used_at = :last_used_at, updated_at = :updated_at WHERE id = :id');
+        $stmt->execute([
+            'last_used_at' => $now,
+            'updated_at' => $now,
+            'id' => (int) ($context['endpoint_id'] ?? 0),
+        ]);
+        return ['status' => 'sent', 'sent' => 1, 'failed' => 0, 'dead' => 0];
+    }
+
+    $status = sr_notification_mark_delivery_failed($pdo, $deliveryId, $now, (string) ($providerResult['error'] ?? $channel . ' failed'), $attemptCount, $maxAttempts);
     return ['status' => $status, 'sent' => 0, 'failed' => $status === 'dead' ? 0 : 1, 'dead' => $status === 'dead' ? 1 : 0];
 }
 
@@ -643,6 +1009,11 @@ function sr_notification_process_delivery(PDO $pdo, array $site, array $delivery
     if ($channel === 'email') {
         return sr_notification_process_email_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
     }
+    if (sr_notification_delivery_endpoint_id((string) ($delivery['recipient'] ?? '')) > 0
+        && in_array($channel, sr_notification_member_external_channel_keys(), true)
+    ) {
+        return sr_notification_process_member_external_push_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
+    }
     if (in_array($channel, sr_notification_admin_external_channel_keys(), true)) {
         return sr_notification_process_external_push_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
     }
@@ -687,6 +1058,7 @@ function sr_notification_run_delivery_batch(PDO $pdo, array $site, int $batchSiz
             $result['sent'] += (int) ($deliveryResult['sent'] ?? 0);
             $result['failed'] += (int) ($deliveryResult['failed'] ?? 0);
             $result['dead'] += (int) ($deliveryResult['dead'] ?? 0);
+            $result['skipped'] += (int) ($deliveryResult['skipped'] ?? 0);
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'notification_delivery_runner');
             $status = sr_notification_mark_delivery_failed(
@@ -1797,6 +2169,57 @@ function sr_notification_create_channels(PDO $pdo): array
     return $channels;
 }
 
+function sr_notification_member_external_channels(PDO $pdo, int $accountId): array
+{
+    if ($accountId <= 0) {
+        return [];
+    }
+
+    $settings = sr_notification_settings($pdo);
+    $channels = [];
+    foreach (sr_notification_member_external_channel_keys() as $channel) {
+        if (sr_notification_member_external_provider_is_ready($channel, $settings)
+            && sr_notification_member_push_endpoints($pdo, $accountId, $channel) !== []
+        ) {
+            $channels[] = $channel;
+        }
+    }
+
+    return $channels;
+}
+
+function sr_notification_account_event_channels(PDO $pdo, int $accountId, array $channels): array
+{
+    $channels = sr_notification_normalize_channels($channels);
+    if ($channels === []) {
+        return ['site'];
+    }
+
+    $needsMemberExternalLookup = false;
+    foreach ($channels as $channel) {
+        if (in_array($channel, sr_notification_member_external_channel_keys(), true)) {
+            $needsMemberExternalLookup = true;
+            break;
+        }
+    }
+    $memberExternalChannels = $needsMemberExternalLookup ? sr_notification_member_external_channels($pdo, $accountId) : [];
+    $filtered = [];
+    foreach ($channels as $channel) {
+        if (in_array($channel, sr_notification_member_external_channel_keys(), true)) {
+            if (in_array($channel, $memberExternalChannels, true)) {
+                $filtered[] = $channel;
+            }
+            continue;
+        }
+        if (in_array($channel, sr_notification_admin_external_channel_keys(), true)) {
+            continue;
+        }
+        $filtered[] = $channel;
+    }
+
+    return $filtered === [] ? ['site'] : array_values(array_unique($filtered));
+}
+
 function sr_notification_admin_external_channels(PDO $pdo): array
 {
     $settings = sr_notification_settings($pdo);
@@ -1960,8 +2383,9 @@ function sr_notification_create_account_event(PDO $pdo, array $data): ?int
     $bodyText = sr_notification_render_template((string) ($template['body_template'] ?? ''), $metadata);
     $linkUrl = sr_notification_render_template((string) ($template['link_template'] ?? ''), $metadata);
     $channels = isset($data['channels']) && is_array($data['channels'])
-        ? sr_notification_normalize_channels($data['channels'])
+        ? sr_notification_account_event_channels($pdo, $accountId, $data['channels'])
         : sr_notification_template_channels(is_string($template['channels_json'] ?? null) ? (string) $template['channels_json'] : null);
+    $channels = sr_notification_account_event_channels($pdo, $accountId, $channels);
     if ($channels === []) {
         $channels = ['site'];
     }
@@ -2200,7 +2624,14 @@ function sr_notification_create(PDO $pdo, array $data): int
     }
     foreach ($externalChannels as $externalChannel) {
         if (in_array($externalChannel, sr_notification_admin_external_channel_keys(), true)) {
-            throw new InvalidArgumentException('External push delivery is only available for admin operational notifications.');
+            if (!in_array($externalChannel, sr_notification_member_external_channel_keys(), true)
+                || $audience !== 'account'
+                || $accountId === null
+                || sr_notification_member_push_endpoints($pdo, $accountId, $externalChannel) === []
+            ) {
+                throw new InvalidArgumentException('Member external push delivery requires an active member endpoint.');
+            }
+            continue;
         }
         if ($externalChannel !== 'email' && $recipient === '') {
             throw new InvalidArgumentException('External notification delivery requires recipient.');
@@ -2269,7 +2700,14 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
     }
     foreach (sr_notification_external_channels($channels) as $externalChannel) {
         if (in_array($externalChannel, sr_notification_admin_external_channel_keys(), true)) {
-            throw new InvalidArgumentException('External push delivery is only available for admin operational notifications.');
+            if (!in_array($externalChannel, sr_notification_member_external_channel_keys(), true)
+                || $audience !== 'account'
+                || $accountId === null
+                || sr_notification_member_push_endpoints($pdo, $accountId, $externalChannel) === []
+            ) {
+                throw new InvalidArgumentException('Member external push delivery requires an active member endpoint.');
+            }
+            continue;
         }
         if ($externalChannel !== 'email' && $recipient === '') {
             throw new InvalidArgumentException('External notification delivery requires recipient.');
@@ -2288,7 +2726,19 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
         if ($channel === 'site') {
             continue;
         }
-        $recipients = $channel === 'email' ? $emailRecipients : [$recipient];
+        if ($channel === 'email') {
+            $recipients = $emailRecipients;
+        } elseif (in_array($channel, sr_notification_member_external_channel_keys(), true)) {
+            $recipients = [];
+            foreach (sr_notification_member_push_endpoints($pdo, (int) $accountId, $channel) as $endpoint) {
+                $endpointId = (int) ($endpoint['id'] ?? 0);
+                if ($endpointId > 0) {
+                    $recipients[] = 'endpoint:' . (string) $endpointId;
+                }
+            }
+        } else {
+            $recipients = [$recipient];
+        }
         foreach ($recipients as $deliveryRecipient) {
             $stmt->execute([
                 'notification_id' => $notificationId,

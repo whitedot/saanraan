@@ -53,6 +53,21 @@ return static function (PDO $pdo, int $accountId): array {
         $reads = $stmt->fetchAll();
     }
 
+    $pushEndpoints = [];
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT provider_key, recipient_type, recipient_label, recipient_masked, status, verified_at, disabled_at, last_used_at, created_at, updated_at
+             FROM sr_notification_push_endpoints
+             WHERE account_id = :account_id
+             ORDER BY id DESC
+             LIMIT 100'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $pushEndpoints = $stmt->fetchAll();
+    } catch (Throwable) {
+        $pushEndpoints = [];
+    }
+
     $deliveries = [];
     if ($notificationIds !== []) {
         $allPlaceholders = implode(',', array_fill(0, count($notificationIds), '?'));
@@ -69,6 +84,9 @@ return static function (PDO $pdo, int $accountId): array {
             $deliveryWhere = '(' . $deliveryWhere . ') OR (notification_id IN (' . $accountPlaceholders . ') AND channel NOT IN (' . $adminExternalPlaceholders . '))';
             $deliveryParams = array_merge($deliveryParams, $accountNotificationIds);
             $deliveryParams = array_merge($deliveryParams, $adminExternalChannels);
+            $deliveryWhere = '(' . $deliveryWhere . ') OR (notification_id IN (' . $accountPlaceholders . ') AND channel IN (' . $adminExternalPlaceholders . ') AND recipient LIKE ?)';
+            $deliveryParams = array_merge($deliveryParams, $accountNotificationIds);
+            $deliveryParams = array_merge($deliveryParams, $adminExternalChannels, ['endpoint:%']);
         }
 
         $stmt = $pdo->prepare(
@@ -84,6 +102,7 @@ return static function (PDO $pdo, int $accountId): array {
     return [
         'notifications' => $notifications,
         'reads' => $reads,
+        'push_endpoints' => $pushEndpoints,
         'deliveries' => $deliveries,
     ];
 };

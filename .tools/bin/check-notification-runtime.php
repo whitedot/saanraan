@@ -35,6 +35,27 @@ if (!function_exists('sr_sanitize_rich_text_html')) {
     }
 }
 
+if (!function_exists('sr_set_runtime_config')) {
+    function sr_set_runtime_config(array $config): void
+    {
+        $GLOBALS['sr_runtime_config'] = $config;
+    }
+}
+
+if (!function_exists('sr_runtime_config')) {
+    function sr_runtime_config(): array
+    {
+        return is_array($GLOBALS['sr_runtime_config'] ?? null) ? $GLOBALS['sr_runtime_config'] : [];
+    }
+}
+
+if (!function_exists('sr_app_key')) {
+    function sr_app_key(array $config): string
+    {
+        return (string) ($config['app_key'] ?? '');
+    }
+}
+
 if (!function_exists('sr_is_safe_relative_url')) {
     function sr_is_safe_relative_url(string $url): bool
     {
@@ -113,6 +134,7 @@ if (!function_exists('sr_admin_normalize_permission_path')) {
 }
 
 require_once $root . '/modules/notification/helpers.php';
+sr_set_runtime_config(['app_key' => str_repeat('n', 32)]);
 
 $errors = [];
 
@@ -173,6 +195,26 @@ function sr_notification_runtime_pdo(): PDO
             next_attempt_at TEXT NULL,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_notification_push_endpoints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            provider_key TEXT NOT NULL,
+            recipient_type TEXT NOT NULL DEFAULT \'personal\',
+            endpoint_ciphertext TEXT NOT NULL,
+            endpoint_fingerprint TEXT NOT NULL,
+            recipient_label TEXT NOT NULL DEFAULT \'\',
+            recipient_masked TEXT NOT NULL DEFAULT \'\',
+            status TEXT NOT NULL DEFAULT \'active\',
+            key_version TEXT NOT NULL DEFAULT \'v1\',
+            verified_at TEXT NULL,
+            disabled_at TEXT NULL,
+            last_used_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(provider_key, endpoint_fingerprint)
         )'
     );
     $pdo->exec(
@@ -403,6 +445,55 @@ sr_notification_runtime_assert(sr_notification_telegram_chat_id_is_allowed('@saa
 sr_notification_runtime_assert(sr_notification_telegram_chat_id_is_allowed('-1001234567890'), 'notification runtime fixture must allow numeric Telegram group chat IDs.');
 sr_notification_runtime_assert(!sr_notification_telegram_chat_id_is_allowed('-'), 'notification runtime fixture must reject malformed Telegram chat IDs.');
 sr_notification_runtime_assert(sr_notification_secret_display('https://hooks.slack.com/services/T000/B000/fixture') === '********', 'notification runtime fixture must mask stored webhook URLs.');
+sr_notification_runtime_assert(sr_notification_secret_crypto_available(), 'notification runtime fixture must allow member push endpoint encryption when app_key is configured.');
+
+$memberTelegramEndpointId = sr_notification_save_member_push_endpoint($pdo, [
+    'account_id' => 7,
+    'provider_key' => 'telegram_bot',
+    'endpoint' => '123456789',
+    'recipient_label' => '개인 Telegram',
+]);
+sr_notification_runtime_assert($memberTelegramEndpointId > 0, 'notification runtime fixture must save member Telegram push endpoint.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT endpoint_ciphertext FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberTelegramEndpointId]) !== '123456789', 'notification runtime fixture must not store member push endpoint plaintext.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT recipient_masked FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberTelegramEndpointId]) === '1234***', 'notification runtime fixture must store only masked member push endpoint label.');
+sr_notification_runtime_assert(in_array('telegram_bot', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Telegram push channel when endpoint exists.');
+
+$memberPushNotificationId = sr_notification_create($pdo, [
+    'account_id' => 7,
+    'audience' => 'account',
+    'title' => '회원 푸시 알림',
+    'body_text' => '민감 본문은 외부 푸시에 그대로 보내지 않습니다.',
+    'link_url' => '/account/notifications',
+    'channels' => ['site', 'telegram_bot'],
+]);
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = :recipient', ['id' => $memberPushNotificationId, 'recipient' => 'endpoint:' . (string) $memberTelegramEndpointId]) === 1, 'notification runtime fixture must queue member push delivery by endpoint reference.');
+$memberPushPayload = sr_notification_member_external_push_payload('telegram_bot', [
+    'title' => '회원 푸시 알림',
+    'body_text' => '민감 본문',
+    'link_url' => '/account/notifications',
+], ['site_name' => '산란'], '123456789');
+sr_notification_runtime_assert(!str_contains((string) ($memberPushPayload['text'] ?? ''), '민감 본문'), 'notification runtime fixture must not copy member notification body into external push payload.');
+
+$claimedMemberPush = sr_notification_claim_delivery($pdo, 'fixture-member-lock', '2026-06-11 12:05:00', 300, ['telegram_bot']);
+sr_notification_runtime_assert(is_array($claimedMemberPush) && (string) ($claimedMemberPush['title'] ?? '') === '회원 푸시 알림', 'notification runtime fixture must claim member push delivery with account notification title.');
+$pdo->prepare("UPDATE sr_notification_push_endpoints SET status = 'disabled', disabled_at = '2026-06-11 12:06:00' WHERE id = :id")->execute(['id' => $memberTelegramEndpointId]);
+$memberPushResult = sr_notification_process_delivery($pdo, ['site_name' => '산란'], $claimedMemberPush, sr_notification_settings($pdo), '2026-06-11 12:07:00', 5);
+sr_notification_runtime_assert(($memberPushResult['skipped'] ?? 0) === 1, 'notification runtime fixture must skip queued member push after endpoint is disabled.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT status FROM sr_notification_deliveries WHERE id = :id', ['id' => (int) ($claimedMemberPush['id'] ?? 0)]) === 'canceled', 'notification runtime fixture must cancel queued member push after endpoint is disabled.');
+
+$pdo->exec(
+    "INSERT INTO sr_notification_event_templates
+        (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
+     VALUES
+        ('community', 'push.optional', '선택 푸시', '본문', '/community', '[\"site\",\"telegram_bot\"]', 'active', '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
+);
+$optionalPushNotificationId = sr_notification_create_account_event($pdo, [
+    'account_id' => 8,
+    'module_key' => 'community',
+    'event_key' => 'push.optional',
+]);
+sr_notification_runtime_assert(is_int($optionalPushNotificationId) && $optionalPushNotificationId > 0, 'notification runtime fixture must create event notification even when optional member push endpoint is missing.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\'', ['id' => $optionalPushNotificationId]) === 0, 'notification runtime fixture must skip optional member push channel when account has no endpoint.');
 
 $pdo->exec(
     "INSERT INTO sr_admin_notifications
