@@ -18,6 +18,7 @@ if (!function_exists('sr_url')) {
 }
 
 require_once $root . '/core/helpers/storage.php';
+require_once $root . '/modules/admin/helpers/storage-cache.php';
 
 $errors = [];
 
@@ -106,6 +107,10 @@ $frontController = file_get_contents($root . '/index.php');
 $communityAttachments = file_get_contents($root . '/modules/community/helpers/attachments.php');
 $communityPosts = file_get_contents($root . '/modules/community/helpers/posts.php');
 $communityListSkin = file_get_contents($root . '/modules/community/skins/basic/list.php');
+$adminPaths = file_get_contents($root . '/modules/admin/paths.php');
+$adminNavigation = file_get_contents($root . '/modules/admin/helpers/navigation.php');
+$adminStorageCacheAction = file_get_contents($root . '/modules/admin/actions/storage-cache.php');
+$adminStorageCacheView = file_get_contents($root . '/modules/admin/views/storage-cache.php');
 sr_storage_helper_assert(
     is_string($htaccess) && strpos($htaccess, 'storage/cache/thumbnails/[a-f0-9]{2}') !== false,
     'Apache rules must allow only generated thumbnail cache images under storage/cache/thumbnails.'
@@ -145,6 +150,30 @@ sr_storage_helper_assert(
         && strpos($communityListSkin, 'sr_community_post_list_thumbnail_url') !== false
         && strpos($communityListSkin, 'loading="lazy"') !== false,
     'Community basic list skin must consume the list thumbnail helper.'
+);
+sr_storage_helper_assert(
+    is_string($adminPaths)
+        && strpos($adminPaths, "GET /admin/storage-cache") !== false
+        && strpos($adminPaths, "POST /admin/storage-cache") !== false,
+    'Admin paths must expose storage cache GET and POST routes.'
+);
+sr_storage_helper_assert(
+    is_string($adminNavigation) && strpos($adminNavigation, "/admin/storage-cache") !== false,
+    'Admin navigation must expose the storage cache screen.'
+);
+sr_storage_helper_assert(
+    is_string($adminStorageCacheAction)
+        && strpos($adminStorageCacheAction, "storage-cache', 'delete'") !== false
+        && strpos($adminStorageCacheAction, 'sr_require_csrf()') !== false
+        && strpos($adminStorageCacheAction, 'sr_audit_log($pdo') !== false,
+    'Admin storage cache cleanup must require delete permission, CSRF, and audit logging.'
+);
+sr_storage_helper_assert(
+    is_string($adminStorageCacheView)
+        && strpos($adminStorageCacheView, 'type="date"') !== false
+        && strpos($adminStorageCacheView, 'sr_csrf_field()') !== false
+        && strpos($adminStorageCacheView, 'confirm_text') !== false,
+    'Admin storage cache view must expose date filters and guarded cleanup form.'
 );
 
 $variantA = sr_thumbnail_variant_key(['height' => 90, 'width' => 160, 'quality' => 82, 'mode' => 'cover', 'format' => 'source']);
@@ -216,6 +245,35 @@ if (extension_loaded('gd') && function_exists('imagecreatefrompng') && function_
     @unlink($root . '/storage/' . $storageKey);
     @unlink($fixturePath);
 }
+
+$adminCacheFixtureDir = $root . '/storage/cache/thumbnails/ab';
+if (!is_dir($adminCacheFixtureDir)) {
+    @mkdir($adminCacheFixtureDir, 0755, true);
+}
+$adminCacheFixtureRelative = 'ab/' . str_repeat('b', 64) . '_w160_h90_cover_q82_source_1.jpg';
+$adminCacheFixturePath = $adminCacheFixtureDir . '/' . basename($adminCacheFixtureRelative);
+file_put_contents($adminCacheFixturePath, 'thumbnail-cache-fixture');
+touch($adminCacheFixturePath, strtotime('2001-01-02 12:00:00'));
+$adminCacheScan = sr_admin_thumbnail_cache_scan([
+    'date_from' => '2001-01-02',
+    'date_to' => '2001-01-02',
+]);
+sr_storage_helper_assert(
+    (int) (($adminCacheScan['summary']['total_count'] ?? 0)) >= 1,
+    'Admin thumbnail cache scan must find generated-cache-pattern files in the selected date range.'
+);
+sr_storage_helper_assert(
+    sr_admin_thumbnail_cache_parse_relative_path('../bad.jpg') === null,
+    'Admin thumbnail cache parser must reject paths outside the generated cache pattern.'
+);
+$adminCacheCleanup = sr_admin_thumbnail_cache_cleanup([
+    'date_from' => '2001-01-02',
+    'date_to' => '2001-01-02',
+]);
+sr_storage_helper_assert(
+    (int) ($adminCacheCleanup['deleted_count'] ?? 0) >= 1 && !is_file($adminCacheFixturePath),
+    'Admin thumbnail cache cleanup must delete matching generated cache files.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "storage helper checks failed:\n");

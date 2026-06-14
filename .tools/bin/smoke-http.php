@@ -85,6 +85,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin storage cache entry',
+        'path' => '/admin/storage-cache',
+        'allowed_statuses' => [200, 302, 403],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'content missing slug entry',
         'path' => '/content/example',
         'allowed_statuses' => [200, 302, 404],

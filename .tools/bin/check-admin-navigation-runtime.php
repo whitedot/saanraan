@@ -70,7 +70,8 @@ function sr_admin_navigation_runtime_pdo(): PDO
          VALUES
             (2, '/admin/seo', 'view', '2026-06-11 00:00:00'),
             (2, '/admin/seo', 'edit', '2026-06-11 00:00:00'),
-            (3, '/admin/operations', 'view', '2026-06-11 00:00:00')"
+            (3, '/admin/operations', 'view', '2026-06-11 00:00:00'),
+            (3, '/admin/storage-cache', 'view', '2026-06-11 00:00:00')"
     );
 
     return $pdo;
@@ -89,6 +90,7 @@ foreach ($groups as $group) {
 
 sr_admin_navigation_runtime_assert(isset($allItems['/admin']), 'Admin navigation runtime fixture must include built-in dashboard.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/seo']), 'Admin navigation runtime fixture must include SEO menu item with GET route.');
+sr_admin_navigation_runtime_assert(isset($allItems['/admin/storage-cache']), 'Admin navigation runtime fixture must include storage cache menu item with GET route.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/notifications']), 'Admin navigation runtime fixture must include notification menu item with GET route.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/notification-deliveries']), 'Admin navigation runtime fixture must include notification deliveries menu item with GET route.');
 sr_admin_navigation_runtime_assert(!isset($allItems['/admin/notifications/new']), 'Admin navigation runtime fixture must not expose non-menu GET routes.');
@@ -124,6 +126,8 @@ sr_admin_navigation_runtime_assert(sr_admin_first_permitted_menu_path($pdo, 4) =
 sr_admin_navigation_runtime_assert(sr_admin_has_permission($pdo, 1, '/admin/settings', 'delete'), 'Admin navigation runtime fixture must allow owner permission across admin menus.');
 sr_admin_navigation_runtime_assert(sr_admin_has_permission($pdo, 2, '/admin/seo', 'edit'), 'Admin navigation runtime fixture must allow explicitly granted edit permission.');
 sr_admin_navigation_runtime_assert(!sr_admin_has_permission($pdo, 2, '/admin/seo', 'delete'), 'Admin navigation runtime fixture must not infer ungranted delete permission.');
+sr_admin_navigation_runtime_assert(sr_admin_has_permission($pdo, 3, '/admin/storage-cache', 'view'), 'Admin navigation runtime fixture must allow storage cache view permission.');
+sr_admin_navigation_runtime_assert(!sr_admin_has_permission($pdo, 3, '/admin/storage-cache', 'delete'), 'Admin navigation runtime fixture must not infer storage cache delete permission.');
 sr_admin_navigation_runtime_assert(!sr_admin_has_permission($pdo, 2, '/admin/../unsafe', 'view'), 'Admin navigation runtime fixture must reject unsafe permission paths.');
 
 if ($errors !== []) {
