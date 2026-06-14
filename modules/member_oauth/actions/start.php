@@ -5,4 +5,18 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/member_oauth/helpers.php';
 
-sr_render_error(501, 'OAuth start flow is not enabled yet.');
+$providerKey = sr_member_oauth_provider_key(sr_get_string('provider', 60));
+$providers = sr_member_oauth_providers($pdo);
+if ($providerKey === '' || !isset($providers[$providerKey])) {
+    sr_render_error(404, 'OAuth provider not found.');
+}
+
+$next = sr_member_safe_next_path(sr_get_string_without_truncation('next', 1024) ?? '');
+$settings = sr_member_oauth_settings($pdo);
+$state = sr_member_oauth_create_state($pdo, $providerKey, 'login', null, $next, (int) $settings['state_ttl_seconds']);
+
+if (!empty($providers[$providerKey]['mock'])) {
+    sr_redirect('/oauth/callback?provider=' . rawurlencode($providerKey) . '&state=' . rawurlencode((string) $state['state']) . '&code=mock');
+}
+
+sr_render_error(501, 'OAuth provider adapter is not implemented.');

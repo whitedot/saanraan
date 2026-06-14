@@ -153,7 +153,98 @@ function sr_member_oauth_consume_state(PDO $pdo, string $state, string $provider
     return $row;
 }
 
+function sr_member_oauth_state_by_token(PDO $pdo, string $state, string $flowType): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_member_oauth_states
+         WHERE state_hash = :state_hash
+           AND flow_type = :flow_type
+           AND used_at IS NULL
+           AND expires_at >= :now
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'state_hash' => sr_member_oauth_hash($state),
+        'flow_type' => $flowType,
+        'now' => sr_now(),
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
 function sr_member_oauth_subject_hash(array $config, string $providerKey, string $subject): string
 {
     return sr_hmac_hash($providerKey . ':' . $subject, $config);
+}
+
+function sr_member_oauth_account_by_subject(PDO $pdo, string $providerKey, string $subjectHash): ?array
+{
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_member_oauth_accounts
+         WHERE provider_key = :provider_key
+           AND provider_subject_hash = :provider_subject_hash
+           AND revoked_at IS NULL
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'provider_key' => $providerKey,
+        'provider_subject_hash' => $subjectHash,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) ? $row : null;
+}
+
+function sr_member_oauth_link_account(PDO $pdo, int $accountId, string $providerKey, string $subjectHash, array $profile): int
+{
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_member_oauth_accounts
+            (account_id, provider_key, provider_subject_hash, provider_subject_display, email_snapshot,
+             email_verified_snapshot, display_name_snapshot, linked_at, created_at, updated_at)
+         VALUES
+            (:account_id, :provider_key, :provider_subject_hash, :provider_subject_display, :email_snapshot,
+             :email_verified_snapshot, :display_name_snapshot, :linked_at, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'provider_key' => $providerKey,
+        'provider_subject_hash' => $subjectHash,
+        'provider_subject_display' => (string) ($profile['subject_display'] ?? ''),
+        'email_snapshot' => (string) ($profile['email'] ?? ''),
+        'email_verified_snapshot' => !empty($profile['email_verified']) ? 1 : 0,
+        'display_name_snapshot' => (string) ($profile['display_name'] ?? ''),
+        'linked_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function sr_member_oauth_create_completion_state(PDO $pdo, string $providerKey, string $subjectHash, array $profile, string $nextPath, int $ttlSeconds): string
+{
+    $state = sr_member_oauth_create_state($pdo, $providerKey, 'completion', null, $nextPath, $ttlSeconds);
+    $stmt = $pdo->prepare(
+        'UPDATE sr_member_oauth_states
+         SET provider_subject_hash = :provider_subject_hash,
+             provider_subject_display = :provider_subject_display,
+             email_snapshot = :email_snapshot,
+             email_verified_snapshot = :email_verified_snapshot,
+             display_name_snapshot = :display_name_snapshot
+         WHERE state_hash = :state_hash'
+    );
+    $stmt->execute([
+        'provider_subject_hash' => $subjectHash,
+        'provider_subject_display' => (string) ($profile['subject_display'] ?? ''),
+        'email_snapshot' => (string) ($profile['email'] ?? ''),
+        'email_verified_snapshot' => !empty($profile['email_verified']) ? 1 : 0,
+        'display_name_snapshot' => (string) ($profile['display_name'] ?? ''),
+        'state_hash' => sr_member_oauth_hash((string) $state['state']),
+    ]);
+
+    return (string) $state['state'];
 }

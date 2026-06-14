@@ -42,6 +42,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 </label>
                 <button type="submit" class="public-ui-button"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></button>
             </form>
+            <?php
+            $oauthProviders = [];
+            if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'member_oauth') && is_file(SR_ROOT . '/modules/member_oauth/helpers.php')) {
+                require_once SR_ROOT . '/modules/member_oauth/helpers.php';
+                $oauthProviders = sr_member_oauth_public_providers($pdo);
+            }
+            ?>
+            <?php if ($oauthProviders !== []) { ?>
+                <div class="public-ui-content-list">
+                    <?php foreach ($oauthProviders as $oauthProvider) { ?>
+                        <a class="public-ui-button public-ui-button-secondary" href="<?php echo sr_e(sr_url('/oauth/start?provider=' . rawurlencode((string) $oauthProvider['provider_key']) . '&next=' . rawurlencode($next))); ?>">
+                            <?php echo sr_e((string) $oauthProvider['label']); ?>
+                        </a>
+                    <?php } ?>
+                </div>
+            <?php } ?>
             <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'after_form']); ?>
 
             <div class="public-ui-link-row">
