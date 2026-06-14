@@ -666,6 +666,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-asset-exchange-logs.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-asset-exchange-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-coupon-admin-validation.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-form-validation.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-coupon-redemption-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-asset-limits.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-dependency-policy.php'));

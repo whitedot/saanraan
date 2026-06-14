@@ -168,7 +168,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($modalId); ?>_title" class="modal-title"><?php echo sr_e($title); ?></h3>
                     <?php $siteMenuModalCloseButton($modalId); ?>
@@ -180,19 +180,19 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key"><?php echo sr_e(sr_t('site_menu::ui.menu.key.20cd5d6a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <input id="<?php echo sr_e($modalId); ?>_menu_key" type="text" name="menu_key" value="<?php echo sr_e($menuKey); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-overlay-focus>
+                            <input id="<?php echo sr_e($modalId); ?>_menu_key" type="text" name="menu_key" value="<?php echo sr_e($menuKey); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-validation-message="영문 소문자로 시작하고 소문자, 숫자, 밑줄만 입력해 주세요." data-admin-key-input data-overlay-focus>
                         </div>
                     </div>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_label"><?php echo sr_e(sr_t('site_menu::ui.menu.name.0615c5f4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required>
+                            <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required data-validation-message="메뉴 이름을 입력해 주세요.">
                         </div>
                     </div>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required>
+                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required data-validation-message="상태를 선택해 주세요.">
                                 <?php foreach ($allowedStatuses as $status) { ?>
                                     <option value="<?php echo sr_e($status); ?>"<?php echo $statusValue === $status ? ' selected' : ''; ?>>
                                         <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>
@@ -230,7 +230,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($modalId); ?>_title" class="modal-title"><?php echo sr_e($title); ?></h3>
                     <?php $siteMenuModalCloseButton($modalId); ?>
@@ -275,13 +275,13 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_label"><?php echo sr_e(sr_t('site_menu::ui.name.661e423c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required data-site-menu-label-input>
+                            <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required data-validation-message="메뉴 항목 이름을 입력해 주세요." data-site-menu-label-input>
                         </div>
                     </div>
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" required data-site-menu-url-input>
+                            <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" required data-validation-message="URL을 입력해 주세요." data-site-menu-url-input>
                         </div>
                     </div>
                     <div class="admin-form-row">
@@ -298,7 +298,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_target"><?php echo sr_e(sr_t('site_menu::ui.text.5235ffd9')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e($modalId); ?>_target" name="target" class="form-select" required>
+                            <select id="<?php echo sr_e($modalId); ?>_target" name="target" class="form-select" required data-validation-message="링크 열기 방식을 선택해 주세요.">
                                 <?php foreach ($allowedTargets as $target) { ?>
                                     <option value="<?php echo sr_e($target); ?>"<?php echo $targetValue === $target ? ' selected' : ''; ?>>
                                         <?php echo sr_e(sr_admin_code_label($target, 'menu_target')); ?>
@@ -310,7 +310,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <div class="admin-form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="admin-form-field">
-                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required>
+                            <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required data-validation-message="상태를 선택해 주세요.">
                                 <?php foreach ($allowedStatuses as $status) { ?>
                                     <option value="<?php echo sr_e($status); ?>"<?php echo $statusValue === $status ? ' selected' : ''; ?>>
                                         <?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?>

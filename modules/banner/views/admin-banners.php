@@ -75,7 +75,7 @@ $bannerCopyModalHtml = static function (array $banner, string $returnTo): string
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
         <div class="modal-dialog">
             <div class="modal-content ui-form-theme">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/copy')); ?>">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/copy')); ?>" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title"><?php echo sr_e('배너 복사'); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
@@ -88,7 +88,7 @@ $bannerCopyModalHtml = static function (array $banner, string $returnTo): string
                         <div class="admin-form-row">
                             <label class="form-label" for="<?php echo sr_e($modalId); ?>-title"><?php echo sr_e('새 제목'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
                             <div class="admin-form-field">
-                                <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e($title); ?>" class="form-input form-control-full" maxlength="120" required data-overlay-focus>
+                                <input id="<?php echo sr_e($modalId); ?>-title" type="text" name="title" value="<?php echo sr_e($title); ?>" class="form-input form-control-full" maxlength="120" required data-validation-message="새 제목을 입력해 주세요." data-overlay-focus>
                                 <p class="admin-form-help"><?php echo sr_e('복사본은 draft로 저장됩니다.'); ?></p>
                             </div>
                         </div>
@@ -169,7 +169,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($bannerAdminPage === 'form') { ?>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme" data-admin-subject-form data-public-target-value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>">
+    <form method="post" action="<?php echo sr_e(sr_url('/admin/banners/save')); ?>" enctype="multipart/form-data" class="admin-form ui-form-theme" data-admin-subject-form data-sr-validate-form data-public-target-value="<?php echo sr_e(sr_banner_public_target_option_value()); ?>">
         <section class="admin-card card">
             <h2><?php echo sr_e(sr_t('banner::ui.section.basic')); ?></h2>
             <p><?php echo sr_e(sr_t('banner::ui.banner.banner.select.banner.active.40c015cc')); ?></p>
@@ -178,7 +178,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="banner_admin_banners_title"><?php echo sr_e(sr_t('banner::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <input id="banner_admin_banners_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" class="form-input form-control-full" maxlength="120" required>
+                    <input id="banner_admin_banners_title" type="text" name="title" value="<?php echo $editing ? sr_e((string) $editBanner['title']) : ''; ?>" class="form-input form-control-full" maxlength="120" required data-validation-message="배너 제목을 입력해 주세요.">
                 </div>
             </div>
             <div class="admin-form-row">
@@ -218,7 +218,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="banner_admin_banners_body_text"><span data-admin-banner-text-label><?php echo sr_e($bannerUseImage ? sr_t('banner::ui.alt_text') : sr_t('banner::ui.display_text')); ?></span> <span class="sr-required-label"><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <textarea id="banner_admin_banners_body_text" name="body_text" maxlength="3000" class="form-textarea" required data-admin-banner-text-input><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
+                    <textarea id="banner_admin_banners_body_text" name="body_text" maxlength="3000" class="form-textarea" required data-validation-message="배너 문구를 입력해 주세요." data-admin-banner-text-input><?php echo $editing ? sr_e((string) $editBanner['body_text']) : ''; ?></textarea>
                     <p class="admin-form-help" data-admin-banner-text-help><?php echo sr_e($bannerUseImage ? sr_t('banner::ui.alt_text.help') : sr_t('banner::ui.display_text.help')); ?></p>
                 </div>
             </div>
@@ -229,7 +229,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('banner_admin_banners_target_service_key', '서비스', $bannerHelp['target_option']['id'], $bannerHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
-                    <select id="banner_admin_banners_target_service_key" name="target_service_key" class="form-select" required data-admin-target-service>
+                    <select id="banner_admin_banners_target_service_key" name="target_service_key" class="form-select" required data-validation-message="서비스를 선택해 주세요." data-admin-target-service>
                         <?php foreach ($bannerTargetServiceOptions as $serviceKey => $serviceLabel) { ?>
                             <option value="<?php echo sr_e((string) $serviceKey); ?>"<?php echo $selectedTargetServiceKey === (string) $serviceKey ? ' selected' : ''; ?>><?php echo sr_e((string) $serviceLabel); ?></option>
                         <?php } ?>
@@ -240,7 +240,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row" data-admin-target-detail-row<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>>
                 <label class="form-label" for="banner_admin_banners_target_detail_option"><?php echo sr_e('상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label>
                 <div class="admin-form-field">
-                    <select id="banner_admin_banners_target_detail_option" name="target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? ' disabled' : ' required'; ?>>
+                    <select id="banner_admin_banners_target_detail_option" name="target_detail_option" class="form-select" data-admin-target-detail data-validation-message="상세 노출 위치를 선택해 주세요."<?php echo sr_banner_is_public_target_option($selectedTargetOption) ? ' disabled' : ' required'; ?>>
                         <?php foreach ($availableTargets as $target) { ?>
                             <?php $optionValue = sr_banner_target_option_value($target); ?>
                             <option value="<?php echo sr_e($optionValue); ?>" data-service="<?php echo sr_e(sr_banner_target_service_key($target)); ?>"<?php echo $selectedTargetOption === $optionValue ? ' selected' : ''; ?>>
@@ -269,7 +269,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-label admin-form-label-help"><label for="banner_admin_banners_subject_id"><?php echo sr_e(sr_t('banner::ui.subject.id.14852174')); ?> <span class="sr-required-label" data-admin-subject-required<?php echo $subjectRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('banner::ui.required.1f227c67')); ?></span></label></div>
                 <div class="admin-form-field">
                     <div class="admin-lookup-control">
-                        <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id<?php echo $subjectRequired ? ' required' : ' disabled'; ?>>
+                        <input id="banner_admin_banners_subject_id" type="text" name="subject_id" value="<?php echo $editing ? sr_e((string) ($editBanner['subject_id'] ?? '')) : ''; ?>" class="form-input" maxlength="80" data-admin-subject-id data-validation-message="대상 ID를 입력해 주세요."<?php echo $subjectRequired ? ' required' : ' disabled'; ?>>
                         <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay="#<?php echo sr_e($bannerSubjectLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-banner-subject-search-button data-type-target="#banner_admin_banners_subject_reference_type" data-id-target="#banner_admin_banners_subject_id"<?php echo $bannerSubjectSearchEnabled ? '' : ' disabled hidden'; ?>><?php echo sr_e(sr_t('banner::ui.subject_target.search')); ?></button>
                     </div>
                     <input id="banner_admin_banners_subject_reference_type" type="hidden" name="subject_reference_type" value="<?php echo sr_e($currentSubjectTargetType); ?>" data-admin-subject-reference-type>
@@ -737,7 +737,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (exact) {
                 exact.disabled = !scopeVisible;
             }
-            var needed = !!(target && exact && scopeVisible && exact.checked);
+            var needed = !!(subject && exact && scopeVisible && exact.checked);
             if (label) {
                 label.hidden = !needed;
             }

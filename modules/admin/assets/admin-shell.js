@@ -262,6 +262,134 @@ window.AdminShell = {
             return window.confirm(message);
         };
 
+        const validationControls = form => Array.prototype.slice.call(form.querySelectorAll('input, select, textarea')).filter(control => {
+            const type = String(control.type || '').toLowerCase();
+            return !control.disabled && !['hidden', 'button', 'submit', 'reset'].includes(type);
+        });
+
+        const validationInvalidClass = control => {
+            if (control.tagName === 'SELECT') {
+                return 'form-select-invalid';
+            }
+            if (control.tagName === 'TEXTAREA') {
+                return 'form-textarea-invalid';
+            }
+            if (control.type === 'checkbox' || control.type === 'radio') {
+                return 'form-choice-invalid';
+            }
+            return 'form-input-invalid';
+        };
+
+        const validationFieldRoot = control => control.closest('.admin-form-field') || control.closest('.form-field') || control.parentElement;
+
+        const validationNoteId = control => {
+            const existing = control.getAttribute('data-validation-error-id');
+            if (existing) {
+                return existing;
+            }
+
+            const base = control.id || control.name || 'field';
+            const id = 'sr_validation_error_' + base.replace(/[^A-Za-z0-9_-]/g, '_');
+            control.setAttribute('data-validation-error-id', id);
+            return id;
+        };
+
+        const updateValidationDescription = (control, noteId, add) => {
+            const ids = (control.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+            const hasNote = ids.includes(noteId);
+            if (add && !hasNote) {
+                ids.push(noteId);
+            }
+            if (!add && hasNote) {
+                ids.splice(ids.indexOf(noteId), 1);
+            }
+            if (ids.length > 0) {
+                control.setAttribute('aria-describedby', ids.join(' '));
+            } else {
+                control.removeAttribute('aria-describedby');
+            }
+        };
+
+        const validationMessage = control => {
+            const custom = control.getAttribute('data-validation-message') || '';
+            if (custom !== '') {
+                return custom;
+            }
+            if (control.validity && control.validity.valueMissing) {
+                return '필수 항목입니다.';
+            }
+            if (control.validity && control.validity.patternMismatch) {
+                return '입력 형식을 확인해 주세요.';
+            }
+            if (control.validity && (control.validity.rangeUnderflow || control.validity.rangeOverflow)) {
+                return '허용 범위를 확인해 주세요.';
+            }
+            return control.validationMessage || '입력값을 확인해 주세요.';
+        };
+
+        const clearValidationState = control => {
+            const noteId = control.getAttribute('data-validation-error-id');
+            ['form-input-invalid', 'form-select-invalid', 'form-textarea-invalid', 'form-choice-invalid'].forEach(className => {
+                control.classList.remove(className);
+            });
+            control.removeAttribute('aria-invalid');
+            if (noteId) {
+                updateValidationDescription(control, noteId, false);
+                const note = document.getElementById(noteId);
+                if (note) {
+                    note.remove();
+                }
+            }
+        };
+
+        const markValidationState = control => {
+            const noteId = validationNoteId(control);
+            const field = validationFieldRoot(control);
+            control.classList.add(validationInvalidClass(control));
+            control.setAttribute('aria-invalid', 'true');
+            updateValidationDescription(control, noteId, true);
+
+            if (!field) {
+                return;
+            }
+
+            let note = document.getElementById(noteId);
+            if (!note) {
+                note = document.createElement('p');
+                note.id = noteId;
+                note.className = 'validation-error-note';
+                note.setAttribute('role', 'alert');
+                field.appendChild(note);
+            }
+            note.textContent = validationMessage(control);
+        };
+
+        const refreshValidationControl = control => {
+            if (!control.closest('[data-sr-validate-form]')) {
+                return;
+            }
+            if (control.validity && control.validity.valid) {
+                clearValidationState(control);
+            } else if (control.getAttribute('aria-invalid') === 'true') {
+                markValidationState(control);
+            }
+        };
+
+        const validateSrForm = (form, focusFirstInvalid) => {
+            const invalidControls = validationControls(form).filter(control => !(control.validity && control.validity.valid));
+            validationControls(form).forEach(control => {
+                if (invalidControls.includes(control)) {
+                    markValidationState(control);
+                } else {
+                    clearValidationState(control);
+                }
+            });
+            if (focusFirstInvalid && invalidControls.length > 0 && typeof invalidControls[0].focus === 'function') {
+                invalidControls[0].focus({ preventScroll: false });
+            }
+            return invalidControls.length === 0;
+        };
+
         const cssNumberValue = value => {
             const number = parseFloat(String(value || '0'));
             return Number.isFinite(number) ? number : 0;
@@ -1011,6 +1139,21 @@ window.AdminShell = {
             }
         });
 
+        document.addEventListener('invalid', event => {
+            const validationControl = event.target && event.target.closest
+                ? event.target.closest('[data-sr-validate-form] input, [data-sr-validate-form] select, [data-sr-validate-form] textarea')
+                : null;
+            if (!validationControl) {
+                return;
+            }
+
+            event.preventDefault();
+            const validationForm = validationControl.closest('[data-sr-validate-form]');
+            if (validationForm) {
+                validateSrForm(validationForm, true);
+            }
+        }, true);
+
         if (desktopToggle) {
             desktopToggle.addEventListener('click', () => {
                 const nextCollapsed = !(gnb && gnb.classList.contains('gnb_small'));
@@ -1276,6 +1419,13 @@ window.AdminShell = {
         }
 
         document.addEventListener('input', event => {
+            const validationControl = event.target && event.target.closest
+                ? event.target.closest('[data-sr-validate-form] input, [data-sr-validate-form] textarea')
+                : null;
+            if (validationControl) {
+                refreshValidationControl(validationControl);
+            }
+
             const assetAmountInput = event.target && event.target.closest
                 ? event.target.closest('[data-admin-asset-amount-input]')
                 : null;
@@ -1332,6 +1482,13 @@ window.AdminShell = {
         });
 
         document.addEventListener('change', event => {
+            const validationControl = event.target && event.target.closest
+                ? event.target.closest('[data-sr-validate-form] input, [data-sr-validate-form] select, [data-sr-validate-form] textarea')
+                : null;
+            if (validationControl) {
+                refreshValidationControl(validationControl);
+            }
+
             const filteringToggleControl = event.target && event.target.closest
                 ? event.target.closest('[data-filtering-toggle-all], [data-filtering-toggle-choice]')
                 : null;
@@ -1387,6 +1544,15 @@ window.AdminShell = {
         document.querySelectorAll('[data-admin-visible-when-select]').forEach(syncConditionalSelectSection);
 
         document.addEventListener('submit', event => {
+            const validationForm = event.target && event.target.closest
+                ? event.target.closest('[data-sr-validate-form]')
+                : null;
+            if (validationForm && (!validationForm.checkValidity() || !validateSrForm(validationForm, true))) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
             if (!confirmAssetEnableSubmit(event.target)) {
                 event.preventDefault();
                 return;

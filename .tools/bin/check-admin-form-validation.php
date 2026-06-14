@@ -1,0 +1,62 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__, 2);
+$errors = [];
+
+$files = [
+    'modules/admin/assets/admin-shell.js' => [
+        'data-sr-validate-form' => 'Admin shell must bind opt-in validation forms.',
+        'checkValidity()' => 'Admin shell must use browser constraint validation as the client-side baseline.',
+        'form-input-invalid' => 'Admin shell must apply the shared input invalid style.',
+        'form-select-invalid' => 'Admin shell must apply the shared select invalid style.',
+        'form-textarea-invalid' => 'Admin shell must apply the shared textarea invalid style.',
+        'form-choice-invalid' => 'Admin shell must apply the shared choice invalid style.',
+        'aria-invalid' => 'Admin shell must expose invalid state to assistive technology.',
+        'aria-describedby' => 'Admin shell must connect controls with validation notes.',
+        'validation-error-note' => 'Admin shell must render validation notes with the shared class.',
+    ],
+    'modules/site_menu/views/admin-site-menus.php' => [
+        'data-sr-validate-form' => 'Site menu modals must opt in to admin form validation.',
+        'data-validation-message' => 'Site menu required fields must provide field-specific validation messages.',
+        'data-admin-key-input' => 'Site menu admin keys must keep normalized admin key input handling.',
+    ],
+    'modules/coupon/views/admin-coupons.php' => [
+        'data-sr-validate-form' => 'Coupon modals must opt in to admin form validation.',
+        'data-validation-message' => 'Coupon required fields must provide field-specific validation messages.',
+        'data-coupon-issue-mode' => 'Coupon issue modal must keep conditional required target handling.',
+    ],
+    'modules/banner/views/admin-banners.php' => [
+        'data-sr-validate-form' => 'Banner forms must opt in to admin form validation.',
+        'data-validation-message' => 'Banner required fields must provide field-specific validation messages.',
+        'data-admin-subject-form' => 'Banner form must keep conditional subject validation handling.',
+        'subject && exact && scopeVisible && exact.checked' => 'Banner subject required state must be based on the subject control.',
+        'data-admin-target-detail-required' => 'Banner target detail required label must stay conditional.',
+    ],
+];
+
+foreach ($files as $relativePath => $markers) {
+    $body = file_get_contents($root . '/' . $relativePath);
+    if (!is_string($body)) {
+        $errors[] = 'Cannot read ' . $relativePath . '.';
+        continue;
+    }
+
+    foreach ($markers as $marker => $message) {
+        if (strpos($body, $marker) === false) {
+            $errors[] = $message;
+        }
+    }
+}
+
+if ($errors !== []) {
+    fwrite(STDERR, "admin form validation checks failed:\n");
+    foreach ($errors as $error) {
+        fwrite(STDERR, '- ' . $error . "\n");
+    }
+    exit(1);
+}
+
+echo "admin form validation checks completed.\n";

@@ -304,7 +304,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($issueModalId); ?>" class="<?php echo sr_e($issueModalClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($issueModalId); ?>_title" aria-hidden="<?php echo $issueModalOpen ? 'false' : 'true'; ?>"<?php echo $issueModalOpen ? '' : ' inert'; ?>>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="issue_coupon">
                 <input type="hidden" name="coupon_definition_id" value="<?php echo sr_e((string) $definitionId); ?>">
@@ -318,7 +318,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="coupon_admin_issue_mode_<?php echo sr_e((string) $definitionId); ?>">지급 대상 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
-                            <select id="coupon_admin_issue_mode_<?php echo sr_e((string) $definitionId); ?>" name="issue_target_mode" class="form-select" data-coupon-issue-mode required>
+                            <select id="coupon_admin_issue_mode_<?php echo sr_e((string) $definitionId); ?>" name="issue_target_mode" class="form-select" data-coupon-issue-mode required data-validation-message="지급 대상을 선택해 주세요.">
                                 <option value="member">회원</option>
                                 <option value="all">전체</option>
                                 <option value="group"<?php echo $memberGroups === [] ? ' disabled' : ''; ?>>그룹</option>
@@ -329,7 +329,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="form-label" for="coupon_admin_issue_account_<?php echo sr_e((string) $definitionId); ?>">회원 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field" data-coupon-issue-member-field>
                             <div class="admin-lookup-control">
-                                <input id="coupon_admin_issue_account_<?php echo sr_e((string) $definitionId); ?>" type="text" name="account_identifier" class="form-control form-input" maxlength="80" data-overlay-focus required>
+                                <input id="coupon_admin_issue_account_<?php echo sr_e((string) $definitionId); ?>" type="text" name="account_identifier" class="form-control form-input" maxlength="80" data-overlay-focus required data-validation-message="지급할 회원을 입력해 주세요.">
                                 <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($couponMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($couponMemberLookupModalId); ?>" data-overlay-stack="true" data-admin-member-lookup-open data-target="#coupon_admin_issue_account_<?php echo sr_e((string) $definitionId); ?>">회원 검색</button>
                             </div>
                             <p class="admin-form-help">회원 관리 화면의 공개 해시 또는 회원 ID를 입력합니다.</p>
@@ -338,7 +338,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row" data-coupon-issue-group-row hidden>
                         <label class="form-label" for="coupon_admin_issue_group_<?php echo sr_e((string) $definitionId); ?>">그룹 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
-                            <select id="coupon_admin_issue_group_<?php echo sr_e((string) $definitionId); ?>" name="group_key" class="form-select" data-coupon-issue-group disabled>
+                            <select id="coupon_admin_issue_group_<?php echo sr_e((string) $definitionId); ?>" name="group_key" class="form-select" data-coupon-issue-group disabled data-validation-message="지급할 그룹을 선택해 주세요.">
                                 <option value="">그룹 선택</option>
                                 <?php foreach ($memberGroups as $memberGroup) { ?>
                                     <option value="<?php echo sr_e((string) ($memberGroup['group_key'] ?? '')); ?>"><?php echo sr_e((string) ($memberGroup['title'] ?? '')); ?> (<?php echo sr_e((string) ($memberGroup['active_member_count'] ?? '0')); ?>명)</option>
@@ -396,7 +396,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div id="<?php echo sr_e($couponCreateModalId); ?>" class="<?php echo sr_e($couponCreateModalClass); ?>" role="dialog" tabindex="-1" aria-labelledby="coupon_create_modal_title" aria-hidden="<?php echo $couponCreateModalOpen ? 'false' : 'true'; ?>"<?php echo $couponCreateModalOpen ? '' : ' inert'; ?>>
     <div class="modal-dialog modal-dialog-lg">
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="modal-content ui-form-theme">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="create_definition">
             <div class="modal-header">
@@ -409,14 +409,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="coupon_admin_coupon_key">관리용 키 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
-                        <input id="coupon_admin_coupon_key" type="text" name="coupon_key" class="form-control" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" data-admin-key-input data-admin-key-suggest-source="#coupon_admin_title" data-admin-key-suggest-fallback="coupon" data-overlay-focus required>
+                        <input id="coupon_admin_coupon_key" type="text" name="coupon_key" class="form-control" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" data-admin-key-input data-admin-key-suggest-source="#coupon_admin_title" data-admin-key-suggest-fallback="coupon" data-overlay-focus required data-validation-message="영문 소문자로 시작하고 소문자, 숫자, 밑줄만 입력해 주세요.">
                         <p class="admin-form-help">관리자가 구분하기 위한 고유값입니다. 영문 소문자로 시작하고 소문자, 숫자, 밑줄만 사용합니다.</p>
                     </div>
                 </div>
                 <div class="admin-form-row">
                     <label class="form-label" for="coupon_admin_title">쿠폰 이름 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
-                        <input id="coupon_admin_title" type="text" name="title" class="form-control" maxlength="120" required>
+                        <input id="coupon_admin_title" type="text" name="title" class="form-control" maxlength="120" required data-validation-message="쿠폰 이름을 입력해 주세요.">
                     </div>
                 </div>
                 <div class="admin-form-row">
@@ -428,7 +428,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="coupon_admin_target_type">사용처 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
-                        <select id="coupon_admin_target_type" name="target_type" class="form-select" required>
+                        <select id="coupon_admin_target_type" name="target_type" class="form-select" required data-validation-message="사용처를 선택해 주세요.">
                             <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
                                 <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></option>
                             <?php } ?>
@@ -448,7 +448,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="coupon_admin_refundable_policy">환급 정책 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
-                        <select id="coupon_admin_refundable_policy" name="refundable_policy" class="form-select" required>
+                        <select id="coupon_admin_refundable_policy" name="refundable_policy" class="form-select" required data-validation-message="환급 정책을 선택해 주세요.">
                             <?php foreach ($refundablePolicies as $policy => $policyLabel) { ?>
                                 <option value="<?php echo sr_e((string) $policy); ?>"><?php echo sr_e((string) $policyLabel); ?></option>
                             <?php } ?>
@@ -458,7 +458,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <label class="form-label" for="coupon_admin_max_uses">사용 횟수 <span class="sr-required-label">(필수)</span></label>
                     <div class="admin-form-field">
-                        <input id="coupon_admin_max_uses" type="number" name="max_uses_per_issue" class="form-control" min="1" max="1000" value="1" required>
+                        <input id="coupon_admin_max_uses" type="number" name="max_uses_per_issue" class="form-control" min="1" max="1000" value="1" required data-validation-message="사용 횟수는 1부터 1000 사이로 입력해 주세요.">
                         <p class="admin-form-help">발급된 쿠폰 1장이 몇 번까지 사용할 수 있는지 정합니다.</p>
                     </div>
                 </div>
@@ -820,7 +820,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ?>
     <div id="<?php echo sr_e($refundModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($refundModalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="modal-content ui-form-theme">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/coupons/redemptions')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="refund_redemption">
                 <input type="hidden" name="redemption_id" value="<?php echo sr_e((string) $redemptionId); ?>">
@@ -840,7 +840,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-form-row">
                         <label class="form-label" for="coupon_refund_note_<?php echo sr_e((string) $redemptionId); ?>">환불 사유 <span class="sr-required-label">(필수)</span></label>
                         <div class="admin-form-field">
-                            <input id="coupon_refund_note_<?php echo sr_e((string) $redemptionId); ?>" type="text" name="refund_note" class="form-input form-control-full" maxlength="255" required data-overlay-focus>
+                            <input id="coupon_refund_note_<?php echo sr_e((string) $redemptionId); ?>" type="text" name="refund_note" class="form-input form-control-full" maxlength="255" required data-validation-message="환불 사유를 입력해 주세요." data-overlay-focus>
                             <p class="admin-form-help">수동 환불 이력과 관리자 감사 로그에 남길 사유를 입력합니다.</p>
                         </div>
                     </div>

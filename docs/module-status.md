@@ -17,7 +17,7 @@
 
 | 분류 | 모듈 | 상태 | 현재 증거 | 1.0 전 보강 기준 |
 | --- | --- | --- | --- | --- |
-| 시스템 | `admin` | `stable-candidate` | `check-admin-action-security.php`, `check-admin-navigation-runtime.php`, 관리자 action 보안 정적 점검, 관리자 메뉴/route runtime fixture, HTTP smoke 기준 | 브라우저 수동 점검 기록 |
+| 시스템 | `admin` | `stable-candidate` | `check-admin-action-security.php`, `check-admin-navigation-runtime.php`, `check-admin-form-validation.php`, 관리자 action 보안 정적 점검, 관리자 메뉴/route runtime fixture, 관리자 폼 opt-in validation marker 점검, HTTP smoke 기준 | 브라우저 수동 점검 기록 |
 | 시스템 | `asset_ledger` | `stable-candidate` | 숨김 기반 모듈 정책 문서, 자산 모듈 lifecycle 점검, `check-asset-reconciliation.php`와 read-only 관리자 reconciliation 화면 | `release-installed-gate-status.php --run-readonly` 설치 DB reconciliation 실행 기록과 함께 확인 |
 | 회원 | `member` | `stable-candidate` | 인증 런타임 점검, 회원 auth policy 점검, 기본 HTTP smoke 기준 | 인증 smoke와 관리자 회원 화면 수동 기록 |
 | 회원 | `point` | `beta` | `check-asset-reconciliation.php`, `check-asset-settlement-contract.php`, reward abuse 기준, read-only reconciliation CLI, 포인트 만료 dry-run fixture | `release-installed-gate-status.php --run-readonly` 원장 reconciliation 실행 기록, 설치 DB 만료 dry-run, 환불/동시성 smoke |
