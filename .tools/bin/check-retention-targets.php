@@ -26,6 +26,7 @@ $expectedKeys = [
     'content_asset_access_pending_logs',
     'content_asset_action_pending_logs',
     'community_asset_pending_logs',
+    'banner_clicks',
     'notifications',
     'notification_deliveries',
     'notification_reads',
@@ -82,7 +83,7 @@ foreach ($targets as $key => $target) {
 }
 
 $disabledTargets = sr_admin_retention_target_definitions(false, false, false, false, false, false, false);
-foreach (['sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'notifications', 'notification_deliveries', 'notification_reads', 'admin_notification_reads', 'admin_notifications'] as $key) {
+foreach (['sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'banner_clicks', 'notifications', 'notification_deliveries', 'notification_reads', 'admin_notification_reads', 'admin_notifications'] as $key) {
     if ($disabledTargets[$key]['enabled'] !== false) {
         sr_retention_check_error($errors, 'Retention optional target should be disabled: ' . $key);
     }
@@ -94,6 +95,10 @@ $sortedExpectedKeys = $expectedKeys;
 sort($sortedExpectedKeys);
 if ($cleanupKeys !== $sortedExpectedKeys) {
     sr_retention_check_error($errors, 'Retention cleanup keys do not match target keys.');
+}
+
+if (($targets['banner_clicks']['cutoff_key'] ?? '') !== 'banner_clicks' || !str_contains((string) ($targets['banner_clicks']['delete_sql'] ?? ''), 'sr_banner_clicks')) {
+    sr_retention_check_error($errors, 'Banner click hash retention target is missing.');
 }
 
 $cleanupOrder = sr_admin_retention_cleanup_target_keys();

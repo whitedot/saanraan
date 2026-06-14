@@ -14,6 +14,7 @@ function sr_admin_retention_default_values(): array
         'audit_logs_days' => 365,
         'used_tokens_days' => 30,
         'sessions_days' => 30,
+        'banner_clicks_days' => 180,
         'notifications_days' => 365,
         'module_backups_days' => 180,
         'auto_cleanup_enabled' => 1,
@@ -29,6 +30,7 @@ function sr_admin_retention_day_value_keys(): array
         'audit_logs_days',
         'used_tokens_days',
         'sessions_days',
+        'banner_clicks_days',
         'notifications_days',
         'module_backups_days',
     ];
@@ -41,6 +43,7 @@ function sr_admin_retention_setting_keys(): array
         'audit_logs_days' => 'admin.retention.audit_logs_days',
         'used_tokens_days' => 'admin.retention.used_tokens_days',
         'sessions_days' => 'admin.retention.sessions_days',
+        'banner_clicks_days' => 'admin.retention.banner_clicks_days',
         'notifications_days' => 'admin.retention.notifications_days',
         'module_backups_days' => 'admin.retention.module_backups_days',
         'auto_cleanup_enabled' => 'admin.retention.auto_cleanup_enabled',
@@ -222,7 +225,17 @@ function sr_admin_retention_community_asset_tables_exist(PDO $pdo): bool
     }
 }
 
-function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable, bool $hasRuntimeSessionsTable = false, bool $hasRateLimitsTable = false, bool $hasContentAssetTables = false, bool $hasCommunityAssetTables = false, bool $hasAdminNotificationTables = false): array
+function sr_admin_retention_banner_click_tables_exist(PDO $pdo): bool
+{
+    try {
+        $pdo->query('SELECT 1 FROM sr_banner_clicks LIMIT 1');
+        return true;
+    } catch (PDOException $exception) {
+        return false;
+    }
+}
+
+function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool $hasSessionsTable, bool $hasRuntimeSessionsTable = false, bool $hasRateLimitsTable = false, bool $hasContentAssetTables = false, bool $hasCommunityAssetTables = false, bool $hasAdminNotificationTables = false, bool $hasBannerClickTables = false): array
 {
     return [
         'auth_logs' => [
@@ -415,6 +428,20 @@ function sr_admin_retention_target_definitions(bool $hasNotificationTables, bool
                 'cutoff' => 'sessions',
             ],
         ],
+        'banner_clicks' => [
+            'enabled' => $hasBannerClickTables,
+            'auto_scope' => 'public',
+            'cutoff_key' => 'banner_clicks',
+            'count_sql' => 'SELECT COUNT(*) AS count_value FROM sr_banner_clicks WHERE clicked_at < :cutoff',
+            'count_params' => [
+                'cutoff' => 'banner_clicks',
+            ],
+            'delete_sql' => 'DELETE FROM sr_banner_clicks WHERE clicked_at < :cutoff',
+            'delete_limited_sql' => 'DELETE FROM sr_banner_clicks WHERE clicked_at < :cutoff ORDER BY id ASC LIMIT {limit}',
+            'delete_params' => [
+                'cutoff' => 'banner_clicks',
+            ],
+        ],
         'notifications' => [
             'enabled' => $hasNotificationTables,
             'auto_scope' => 'public',
@@ -563,6 +590,7 @@ function sr_admin_retention_cleanup_target_keys(?string $autoScope = null): arra
         'content_asset_access_pending_logs',
         'content_asset_action_pending_logs',
         'community_asset_pending_logs',
+        'banner_clicks',
         'notification_deliveries',
         'notification_reads',
         'notifications',
@@ -690,6 +718,7 @@ function sr_admin_retention_preview_cutoffs(array $values): array
         'audit_logs' => sr_admin_retention_cutoff($values['audit_logs_days']),
         'used_tokens' => sr_admin_retention_cutoff($values['used_tokens_days']),
         'sessions' => sr_admin_retention_cutoff($values['sessions_days']),
+        'banner_clicks' => sr_admin_retention_cutoff($values['banner_clicks_days']),
         'notifications' => sr_admin_retention_cutoff($values['notifications_days']),
         'module_backups' => sr_admin_retention_cutoff($values['module_backups_days']),
     ];
@@ -705,7 +734,8 @@ function sr_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs, bool
         sr_admin_retention_rate_limits_table_exists($pdo),
         sr_admin_retention_content_asset_tables_exist($pdo),
         sr_admin_retention_community_asset_tables_exist($pdo),
-        sr_admin_retention_admin_notification_tables_exist($pdo)
+        sr_admin_retention_admin_notification_tables_exist($pdo),
+        sr_admin_retention_banner_click_tables_exist($pdo)
     );
 
     foreach ($targets as $key => $target) {
@@ -740,7 +770,8 @@ function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, bool $hasNo
         sr_admin_retention_rate_limits_table_exists($pdo),
         sr_admin_retention_content_asset_tables_exist($pdo),
         sr_admin_retention_community_asset_tables_exist($pdo),
-        sr_admin_retention_admin_notification_tables_exist($pdo)
+        sr_admin_retention_admin_notification_tables_exist($pdo),
+        sr_admin_retention_banner_click_tables_exist($pdo)
     );
     $deletedCounts = [];
     foreach (sr_admin_retention_cleanup_target_keys($autoScope) as $key) {

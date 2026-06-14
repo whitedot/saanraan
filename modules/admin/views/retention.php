@@ -47,6 +47,15 @@ $retentionHelp = [
             'retention.help.sessions.body.3',
         ]),
     ],
+    'banner_clicks_days' => [
+        'id' => 'admin-retention-banner-clicks-help-modal',
+        'title' => sr_t('admin::retention.help.banner_clicks.title'),
+        'body_html' => $retentionHelpBodyHtml([
+            'retention.help.banner_clicks.body.1',
+            'retention.help.banner_clicks.body.2',
+            'retention.help.banner_clicks.body.3',
+        ]),
+    ],
     'notifications_days' => [
         'id' => 'admin-retention-notifications-help-modal',
         'title' => sr_t('admin::retention.help.notifications.title'),
@@ -131,6 +140,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('admin_retention_sessions_days', sr_t('admin::ui.text.48581a76'), $retentionHelp['sessions_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="admin-form-field">
                 <input id="admin_retention_sessions_days" type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" class="form-input" min="1" max="3650" required>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <?php echo sr_admin_form_label_help_html('admin_retention_banner_clicks_days', sr_t('admin::ui.banner_clicks.retention'), $retentionHelp['banner_clicks_days']['id'], $retentionHelpOpenLabel, true); ?>
+            <div class="admin-form-field">
+                <input id="admin_retention_banner_clicks_days" type="number" name="banner_clicks_days" value="<?php echo sr_e((string) $values['banner_clicks_days']); ?>" class="form-input" min="1" max="3650" required>
             </div>
         </div>
         <?php if ($hasNotificationTables) { ?>
@@ -262,6 +277,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
                                 <td><?php echo sr_e((string) $previewCounts['community_asset_pending_logs']); ?></td>
                             </tr>
+                            <?php if (array_key_exists('banner_clicks', $previewCounts)) { ?>
+                                <tr>
+                                    <td><?php echo sr_e(sr_t('admin::ui.banner_clicks.retention_target')); ?></td>
+                                    <td><?php echo sr_e($previewCutoffs['banner_clicks']); ?></td>
+                                    <td><?php echo sr_e((string) $previewCounts['banner_clicks']); ?></td>
+                                </tr>
+                            <?php } ?>
                             <?php if ($hasNotificationTables) { ?>
                                 <tr>
                                     <td><?php echo sr_e(sr_t('admin::ui.notification.12ddd6ca')); ?></td>
