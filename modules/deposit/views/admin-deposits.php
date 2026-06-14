@@ -306,14 +306,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $depositAdjustModalId = 'deposit-adjust-modal-' . (int) $depositAdjustModalAccount['id'];
         $depositAdjustFieldPrefix = 'deposit_adjust_' . (int) $depositAdjustModalAccount['id'];
         $depositAdjustAccountInputId = $depositAdjustFieldPrefix . '_account_identifier';
-        $depositAdjustReferenceTypeInputId = $depositAdjustFieldPrefix . '_reference_type';
-        $depositAdjustReferenceIdInputId = $depositAdjustFieldPrefix . '_reference_id';
         $depositAdjustMemberLookupModalId = $depositAdjustFieldPrefix . '_member_lookup_modal';
-        $depositAdjustReferenceLookupModalId = $depositAdjustFieldPrefix . '_reference_lookup_modal';
         ?>
         <div id="<?php echo sr_e($depositAdjustModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($depositAdjustFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/balances' . ((string) $depositAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $depositAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme" data-admin-reference-pair>
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/deposits/balances' . ((string) $depositAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $depositAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e(sr_t('deposit::ui.deposit.87b00814')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('deposit::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($depositAdjustModalId); ?>">
@@ -363,38 +360,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                             </div>
                         </div>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_approval_account_identifier">대액 승인자</label>
-                            <div class="admin-form-field">
-                                <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_approval_account_identifier" type="text" name="approval_account_identifier" maxlength="80" class="form-input">
-                                <p class="admin-form-help">1,000,000 초과 조정에는 처리자와 다른 편집 권한 보유 승인자의 회원 식별자가 필요합니다.</p>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($depositAdjustFieldPrefix); ?>_approval_note">승인 사유</label>
-                            <div class="admin-form-field">
-                                <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_approval_note" type="text" name="approval_note" maxlength="255" class="form-input form-control-full">
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-label admin-form-label-help"><?php echo $depositHelpButtonHtml(sr_t('deposit::ui.text.200e7df1'), $depositHelp['reference_type']['id']); ?><label for="<?php echo sr_e($depositAdjustReferenceTypeInputId); ?>"><?php echo sr_e(sr_t('deposit::ui.text.200e7df1')); ?> <span class="sr-required-label" data-admin-reference-type-required hidden><?php echo sr_e(sr_t('deposit::ui.required.1f227c67')); ?></span></label></div>
-                            <div class="admin-form-field">
-                                <select id="<?php echo sr_e($depositAdjustReferenceTypeInputId); ?>" name="reference_type" class="form-select" data-admin-reference-type>
-                                    <?php foreach ($depositReferenceTypeOptions as $referenceTypeValue => $referenceTypeLabel) { ?>
-                                        <option value="<?php echo sr_e($referenceTypeValue); ?>"><?php echo sr_e($referenceTypeLabel); ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-label admin-form-label-help"><?php echo $depositHelpButtonHtml(sr_t('deposit::ui.id.e89e337e'), $depositHelp['reference_id']['id']); ?><label for="<?php echo sr_e($depositAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('deposit::ui.id.e89e337e')); ?> <span class="sr-required-label" data-admin-reference-id-required hidden><?php echo sr_e(sr_t('deposit::ui.required.1f227c67')); ?></span></label></div>
-                            <div class="admin-form-field">
-                                <div class="admin-lookup-control">
-                                    <input id="<?php echo sr_e($depositAdjustReferenceIdInputId); ?>" type="text" name="reference_id" maxlength="120" class="form-input" data-admin-reference-id>
-                                    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositAdjustReferenceLookupModalId); ?>" data-overlay="#<?php echo sr_e($depositAdjustReferenceLookupModalId); ?>" data-admin-reference-lookup-open data-type-target="#<?php echo sr_e($depositAdjustReferenceTypeInputId); ?>" data-id-target="#<?php echo sr_e($depositAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('deposit::ui.search.3acacadd')); ?></button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($depositAdjustModalId); ?>"><?php echo sr_e(sr_t('deposit::ui.close.1e8c1020')); ?></button>
@@ -407,12 +372,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $assetAdjustLookup = [
             'field_prefix' => $depositAdjustFieldPrefix,
             'member_input_id' => (string) $depositAdjustModalAccount['account_public_hash'] === '' ? $depositAdjustAccountInputId : '',
-            'reference_type_id' => $depositAdjustReferenceTypeInputId,
-            'reference_id_id' => $depositAdjustReferenceIdInputId,
             'return_overlay_id' => $depositAdjustModalId,
             'member_search_url' => sr_url('/admin/members/search'),
-            'reference_search_url' => sr_url('/admin/deposits/reference-search'),
-            'reference_options' => $depositReferenceTypeOptions,
         ];
         include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
         ?>

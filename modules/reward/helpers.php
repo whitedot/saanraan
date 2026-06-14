@@ -268,23 +268,8 @@ function sr_reward_validate_admin_adjustment_limit(PDO $pdo, array $runtimeConfi
     }
 
     $approvalAccountId = sr_admin_member_account_id_from_identifier($pdo, $runtimeConfig, $approvalIdentifier);
-    if ($approvalAccountId <= 0) {
-        return ['error' => '대액 적립금 조정은 승인자 식별자가 필요합니다.', 'approval_account_id' => 0];
-    }
-    if ($approvalAccountId === $adminAccountId) {
-        return ['error' => '대액 적립금 조정은 처리자와 다른 승인자가 필요합니다.', 'approval_account_id' => 0];
-    }
-    $stmt = $pdo->prepare("SELECT status FROM sr_member_accounts WHERE id = :id LIMIT 1");
-    $stmt->execute(['id' => $approvalAccountId]);
-    $approvalAccount = $stmt->fetch();
-    if (!is_array($approvalAccount) || (string) ($approvalAccount['status'] ?? '') !== 'active') {
-        return ['error' => '대액 적립금 조정 승인자 계정이 활성 상태가 아닙니다.', 'approval_account_id' => 0];
-    }
-    if (!sr_admin_has_permission($pdo, $approvalAccountId, $permissionPath, 'edit')) {
-        return ['error' => '대액 적립금 조정 승인자에게 해당 관리자 편집 권한이 없습니다.', 'approval_account_id' => 0];
-    }
-    if (sr_reward_clean_text($approvalNote, 255) === '') {
-        return ['error' => '대액 적립금 조정은 승인 사유가 필요합니다.', 'approval_account_id' => 0];
+    if ($approvalAccountId <= 0 || sr_reward_clean_text($approvalNote, 255) === '') {
+        return ['error' => '대액 적립금 조정 기록을 만들 대상 회원과 사유가 필요합니다.', 'approval_account_id' => 0];
     }
 
     return ['error' => null, 'approval_account_id' => $approvalAccountId];

@@ -42,8 +42,8 @@ if (sr_request_method() === 'POST') {
     $reason = sr_deposit_clean_text(sr_post_string('reason', 255), 255);
     $referenceType = sr_deposit_clean_key(sr_post_string('reference_type', 60), 60);
     $referenceId = sr_deposit_clean_reference_id(sr_post_string('reference_id', 120), 120);
-    $approvalIdentifier = sr_post_string('approval_account_identifier', 80);
-    $approvalNote = sr_deposit_clean_text(sr_post_string('approval_note', 255), 255);
+    $approvalIdentifier = $targetAccountIdentifier;
+    $approvalNote = $reason;
     $approvalAccountId = 0;
     if (!in_array($referenceType, $allowedReferenceTypes, true)) {
         $referenceType = '';

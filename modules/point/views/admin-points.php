@@ -324,14 +324,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $pointAdjustModalId = 'point-adjust-modal-' . (int) $pointAdjustModalAccount['id'];
         $pointAdjustFieldPrefix = 'point_adjust_' . (int) $pointAdjustModalAccount['id'];
         $pointAdjustAccountInputId = $pointAdjustFieldPrefix . '_account_identifier';
-        $pointAdjustReferenceTypeInputId = $pointAdjustFieldPrefix . '_reference_type';
-        $pointAdjustReferenceIdInputId = $pointAdjustFieldPrefix . '_reference_id';
         $pointAdjustMemberLookupModalId = $pointAdjustFieldPrefix . '_member_lookup_modal';
-        $pointAdjustReferenceLookupModalId = $pointAdjustFieldPrefix . '_reference_lookup_modal';
         ?>
         <div id="<?php echo sr_e($pointAdjustModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($pointAdjustFieldPrefix); ?>_title" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/points/balances' . ((string) $pointAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $pointAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme" data-admin-reference-pair>
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/points/balances' . ((string) $pointAdjustModalAccount['account_public_hash'] !== '' ? '?account_identifier=' . rawurlencode((string) $pointAdjustModalAccount['account_public_hash']) : ''))); ?>" class="modal-content ui-form-theme">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_title" class="modal-title"><?php echo sr_e($pointDisplayName . ' 조정'); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($pointAdjustModalId); ?>">
@@ -381,38 +378,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                             </div>
                         </div>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_account_identifier">대액 승인자</label>
-                            <div class="admin-form-field">
-                                <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_account_identifier" type="text" name="approval_account_identifier" maxlength="80" class="form-input">
-                                <p class="admin-form-help">1,000,000 <?php echo sr_e($pointUnitLabel); ?> 초과 조정에는 처리자와 다른 편집 권한 보유 승인자의 회원 식별자가 필요합니다.</p>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <label class="form-label" for="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_note">승인 사유</label>
-                            <div class="admin-form-field">
-                                <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_approval_note" type="text" name="approval_note" maxlength="255" class="form-input form-control-full">
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-label admin-form-label-help"><?php echo $pointHelpButtonHtml(sr_t('point::ui.text.200e7df1'), $pointHelp['reference_type']['id']); ?><label for="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>"><?php echo sr_e(sr_t('point::ui.text.200e7df1')); ?> <span class="sr-required-label" data-admin-reference-type-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label></div>
-                            <div class="admin-form-field">
-                                <select id="<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" name="reference_type" class="form-select" data-admin-reference-type>
-                                    <?php foreach ($pointReferenceTypeOptions as $referenceTypeValue => $referenceTypeLabel) { ?>
-                                        <option value="<?php echo sr_e($referenceTypeValue); ?>"><?php echo sr_e($referenceTypeLabel); ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-label admin-form-label-help"><?php echo $pointHelpButtonHtml(sr_t('point::ui.id.e89e337e'), $pointHelp['reference_id']['id']); ?><label for="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('point::ui.id.e89e337e')); ?> <span class="sr-required-label" data-admin-reference-id-required hidden><?php echo sr_e(sr_t('point::ui.required.1f227c67')); ?></span></label></div>
-                            <div class="admin-form-field">
-                                <div class="admin-lookup-control">
-                                    <input id="<?php echo sr_e($pointAdjustReferenceIdInputId); ?>" type="text" name="reference_id" maxlength="120" class="form-input" data-admin-reference-id>
-                                    <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-overlay="#<?php echo sr_e($pointAdjustReferenceLookupModalId); ?>" data-admin-reference-lookup-open data-type-target="#<?php echo sr_e($pointAdjustReferenceTypeInputId); ?>" data-id-target="#<?php echo sr_e($pointAdjustReferenceIdInputId); ?>"><?php echo sr_e(sr_t('point::ui.search.3acacadd')); ?></button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($pointAdjustModalId); ?>"><?php echo sr_e(sr_t('point::ui.close.1e8c1020')); ?></button>
@@ -425,12 +390,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $assetAdjustLookup = [
             'field_prefix' => $pointAdjustFieldPrefix,
             'member_input_id' => (string) $pointAdjustModalAccount['account_public_hash'] === '' ? $pointAdjustAccountInputId : '',
-            'reference_type_id' => $pointAdjustReferenceTypeInputId,
-            'reference_id_id' => $pointAdjustReferenceIdInputId,
             'return_overlay_id' => $pointAdjustModalId,
             'member_search_url' => sr_url('/admin/members/search'),
-            'reference_search_url' => sr_url('/admin/points/reference-search'),
-            'reference_options' => $pointReferenceTypeOptions,
         ];
         include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
         ?>

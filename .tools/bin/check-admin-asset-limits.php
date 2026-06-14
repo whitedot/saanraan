@@ -43,25 +43,31 @@ foreach ($assets as $moduleKey => $asset) {
         || strpos($helper, 'created_by_account_id = :admin_account_id') === false
         || strpos($helper, "created_at >= :started_at") === false
         || strpos($helper, 'approval_threshold') === false
-        || strpos($helper, "SELECT status FROM sr_member_accounts WHERE id = :id LIMIT 1") === false
-        || strpos($helper, 'sr_admin_has_permission($pdo, $approvalAccountId, $permissionPath, \'edit\')') === false
+        || strpos($helper, '조정 기록을 만들 대상 회원과 사유가 필요합니다.') === false
     ) {
-        $errors[] = $moduleKey . ' helper must enforce one-time, daily, and dual-approval admin adjustment policy.';
+        $errors[] = $moduleKey . ' helper must enforce one-time, daily, and large-adjustment admin adjustment policy.';
     }
 
     if (
         !is_string($action)
         || strpos($action, $asset['function'] . '($pdo, $runtimeConfig, (int) $account[\'id\']') === false
-        || strpos($action, "sr_post_string('approval_account_identifier', 80)") === false
+        || strpos($action, '$approvalIdentifier = $targetAccountIdentifier;') === false
+        || strpos($action, '$approvalNote = $reason;') === false
         || strpos($action, "'approval_account_id' => \$approvalAccountId") === false
     ) {
-        $errors[] = $moduleKey . ' admin action must call the server-side adjustment approval validator before saving.';
+        $errors[] = $moduleKey . ' admin action must call the server-side adjustment limit validator before saving and derive large-adjustment metadata from the target member and reason.';
     }
 
     $viewPath = $root . '/modules/' . $moduleKey . '/views/admin-' . ($moduleKey === 'point' ? 'points' : $moduleKey . 's') . '.php';
     $view = file_get_contents($viewPath);
-    if (!is_string($view) || strpos($view, 'name="approval_account_identifier"') === false || strpos($view, 'name="approval_note"') === false) {
-        $errors[] = $moduleKey . ' admin view must expose dual-approval fields for large adjustments.';
+    if (
+        !is_string($view)
+        || strpos($view, 'name="approval_account_identifier"') !== false
+        || strpos($view, 'name="approval_note"') !== false
+        || strpos($view, 'data-admin-reference-pair') !== false
+        || strpos($view, "'reference_search_url'") !== false
+    ) {
+        $errors[] = $moduleKey . ' admin balance adjustment view must not expose separate approval or connection-record fields.';
     }
 
     if (
