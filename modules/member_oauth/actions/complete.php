@@ -53,6 +53,9 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === []) {
+        $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
+        $verificationMailSent = null;
+        $verificationUrl = '';
         try {
             $pdo->beginTransaction();
             $usedState = sr_member_oauth_consume_state($pdo, $stateToken, (string) $completionState['provider_key'], 'completion');
@@ -64,7 +67,6 @@ if (sr_request_method() === 'POST') {
                 throw new RuntimeException(implode(' ', $policyState['errors']));
             }
             $policyDocuments = $policyState['documents'];
-            $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
             $accountId = sr_member_create_account($pdo, $config, [
                 'email' => $values['email'],
                 'login_id' => '',
@@ -74,6 +76,10 @@ if (sr_request_method() === 'POST') {
                 'status' => 'active',
                 'email_verified_at' => $emailVerificationEnabled ? null : sr_now(),
             ]);
+            if ($emailVerificationEnabled) {
+                $verificationToken = sr_member_create_email_verification($pdo, $config, $accountId, $values['email']);
+                $verificationUrl = sr_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
+            }
             sr_member_record_consent($pdo, $accountId, 'terms', (string) $policyDocuments['terms']['version_key'], true, $policyDocuments['terms']);
             sr_member_record_consent($pdo, $accountId, 'privacy', (string) $policyDocuments['privacy']['version_key'], true, $policyDocuments['privacy']);
             sr_member_record_consent($pdo, $accountId, 'marketing', (string) $policyDocuments['marketing']['version_key'], $marketingConsent, $policyDocuments['marketing']);
@@ -84,9 +90,52 @@ if (sr_request_method() === 'POST') {
                 'display_name' => (string) $usedState['display_name_snapshot'],
             ]);
             $pdo->commit();
+
+            if ($emailVerificationEnabled) {
+                $verificationMailSent = sr_send_mail(
+                    $site,
+                    $values['email'],
+                    sr_t('member::action.email_verification.subject'),
+                    sr_t('member::action.email_verification.body', ['url' => $verificationUrl])
+                );
+                $showVerificationUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
+                if ($showVerificationUrl) {
+                    $_SESSION['sr_debug_email_verification_url'] = $verificationUrl;
+                } else {
+                    unset($_SESSION['sr_debug_email_verification_url']);
+                }
+                if (!$verificationMailSent) {
+                    sr_member_log_auth($pdo, $accountId, 'email_verification_mail_failed', 'failure');
+                }
+                sr_member_log_auth($pdo, $accountId, 'oauth_register', 'success');
+                sr_audit_log($pdo, [
+                    'actor_account_id' => $accountId,
+                    'actor_type' => 'member',
+                    'event_type' => 'member.oauth.registered',
+                    'target_type' => 'member_account',
+                    'target_id' => (string) $accountId,
+                    'result' => 'success',
+                    'message' => 'OAuth member registered and email verification was requested.',
+                    'metadata' => [
+                        'email_verification_mail_sent' => $verificationMailSent,
+                    ],
+                ]);
+                $_SESSION['sr_member_login_notice'] = sr_t('member::action.register.email_verification_notice');
+                sr_redirect('/login');
+            }
+
             $account = sr_member_find_by_id($pdo, $accountId);
             if (is_array($account) && sr_member_login($pdo, $account)) {
                 sr_member_log_auth($pdo, $accountId, 'oauth_register', 'success');
+                sr_audit_log($pdo, [
+                    'actor_account_id' => $accountId,
+                    'actor_type' => 'member',
+                    'event_type' => 'member.oauth.registered',
+                    'target_type' => 'member_account',
+                    'target_id' => (string) $accountId,
+                    'result' => 'success',
+                    'message' => 'OAuth member registered and logged in.',
+                ]);
                 sr_redirect((string) $usedState['next_path']);
             }
             sr_redirect('/login');

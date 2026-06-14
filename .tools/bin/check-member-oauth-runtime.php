@@ -214,7 +214,11 @@ sr_member_oauth_check_contains('modules/member_oauth/actions/complete.php', [
     'sr_member_create_account',
     'sr_member_record_consent',
     'sr_member_oauth_link_account',
+    'sr_member_create_email_verification',
+    '$emailVerificationEnabled',
+    'sr_t(\'member::action.register.email_verification_notice\')',
     'sr_member_login($pdo, $account)',
+    'member.oauth.registered',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/unlink.php', [
     'sr_member_require_login($pdo)',
