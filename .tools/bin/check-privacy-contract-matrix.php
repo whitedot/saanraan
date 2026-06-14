@@ -395,6 +395,9 @@ foreach ([
     'PHP session cookie',
     '`sr_popup_layer_{id}_dismissed`',
     'CAPTCHA provider script',
+    '`sr_cookie_consent`',
+    '`sr_cookie_consent=functional`',
+    "sr_privacy_cookie_consent_allows('functional')",
     '`verify_remote_ip_enabled = false`',
     '`community_privacy_consent_accepted`',
     'localStorage',
@@ -467,8 +470,37 @@ foreach ([
         'session_set_cookie_params',
     ],
     'modules/popup_layer/assets/saanraan-popup-layer.js' => [
+        'function functionalCookieAllowed()',
+        "sr_cookie_consent=functional",
         "document.cookie = 'sr_popup_layer_' + popupId + '_dismissed=1;",
         'SameSite=Lax',
+    ],
+    'modules/privacy/helpers.php' => [
+        'function sr_privacy_cookie_consent_cookie_name(): string',
+        "'sr_cookie_consent'",
+        'function sr_privacy_cookie_consent_allows(string $category): bool',
+        'function sr_privacy_cookie_consent_public_html(?PDO $pdo = null): string',
+        "sr_url('/privacy/cookie-consent')",
+    ],
+    'modules/privacy/actions/cookie-consent.php' => [
+        'sr_require_csrf();',
+        'sr_privacy_cookie_consent_set($consent);',
+        'sr_member_safe_next_path',
+    ],
+    'modules/privacy/paths.php' => [
+        "'POST /privacy/cookie-consent' => 'actions/cookie-consent.php'",
+    ],
+    'layouts/public/basic/layout.php' => [
+        '/modules/privacy/assets/cookie-consent.css',
+        'sr_privacy_cookie_consent_public_html($layoutPdo)',
+    ],
+    'modules/quiz/layouts/basic/layout.php' => [
+        '/modules/privacy/assets/cookie-consent.css',
+        'sr_privacy_cookie_consent_public_html($layoutPdo)',
+    ],
+    'modules/content/layouts/basic/layout.php' => [
+        '/modules/privacy/assets/cookie-consent.css',
+        'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
     'modules/popup_layer/helpers.php' => [
         'function sr_popup_layer_cookie_name(int $popupId): string',

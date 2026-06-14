@@ -1,4 +1,10 @@
 (function () {
+    function functionalCookieAllowed() {
+        return document.cookie.split(';').some(function (part) {
+            return part.trim() === 'sr_cookie_consent=functional';
+        });
+    }
+
     document.addEventListener('click', function (event) {
         var target = event.target;
         if (!target || typeof target.closest !== 'function') {
@@ -15,7 +21,7 @@
             return;
         }
 
-        if (button.hasAttribute('data-sr-popup-layer-dismiss')) {
+        if (button.hasAttribute('data-sr-popup-layer-dismiss') && functionalCookieAllowed()) {
             var popupId = popup.getAttribute('data-popup-id');
             var days = parseInt(popup.getAttribute('data-cookie-days') || '0', 10);
             if (popupId && days > 0) {

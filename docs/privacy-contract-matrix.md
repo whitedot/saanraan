@@ -64,7 +64,7 @@
 
 | 이슈 | 현재 기준에서 반드시 포함할 추가 모듈/표면 | 선행 판단 |
 | --- | --- | --- |
-| #151 쿠키 동의 관리 | `antispam`, `antispam_captcha_providers`, `popup_layer`, `admin`, `banner`, `member`, `community` | 로그인 세션 쿠키와 CSRF/session state는 필수 보안 저장소로 두고, 팝업 닫기 쿠키는 기능성 선택 저장소로 inventory에 기록한다. CAPTCHA provider script와 remote IP 전달은 보안 목적 외부 처리자 표면으로 기록하고, 마케팅/분석 script를 추가하려면 사전 동의 gate를 먼저 구현한다. |
+| #151 쿠키 동의 관리 | `antispam`, `antispam_captcha_providers`, `popup_layer`, `admin`, `banner`, `member`, `community`, `privacy` | 로그인 세션 쿠키와 CSRF/session state는 필수 보안 저장소로 두고, `privacy`의 공개 쿠키 설정 배너가 `sr_cookie_consent`로 기능성 저장소 허용 여부를 기록한다. 팝업 닫기 쿠키는 기능성 동의가 있을 때만 저장한다. CAPTCHA provider script와 remote IP 전달은 보안 목적 외부 처리자 표면으로 기록하고, 마케팅/분석 script를 추가하려면 사전 동의 gate를 먼저 구현한다. |
 | #152 배너 클릭 hash | `banner`, `member` | `click_key_hash`가 account, session hash, IP/UA hash에서 파생될 수 있으므로 가명성 dedupe 데이터로 분류한다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 조정하고, 배너별 총 클릭 수는 유지하되 오래된 dedupe hash는 정리한다. |
 | #153 전역 감사 로그 | `admin`, `privacy`, `embed_manager`, `logo_manager`, 전체 관리자 action | 감사 로그는 본인 export 기본 범위에서 제외하고 운영 보존 데이터로 둔다. actor account, IP/UA, metadata는 저장 전 sanitize와 표시 전 redaction을 적용하며, `/admin/retention`의 관리자 작업 로그 보관일로 정리한다. |
 | #154 알림 delivery recipient | `notification`, `policy_documents`, `member_oauth`, `reaction`, `community`, `content`, `quiz`, `survey` | site delivery와 대상 회원 email delivery는 export에 포함하고 다른 회원 email recipient는 제외한다. push endpoint delivery는 masked recipient로만 제공한다. 탈퇴/익명화 시 push endpoint ciphertext는 제거하고, 정책문서 안내메일 delivery는 account 연결을 제거한다. 일반 delivery retention은 알림 보관일을 따른다. |
