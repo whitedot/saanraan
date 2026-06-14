@@ -35,6 +35,7 @@
 | `member` | `export_owner` | 제공 | 소비 | 계정, 인증, 프로필, 동의, 그룹 멤버십을 소유하고 탈퇴/익명화 시 설치 모듈의 cleanup 계약을 실행한다. |
 | `notification` | `export_retained` | 제공 | 제공 | 회원 알림과 읽음 상태는 사본 제공 대상이다. 운영 알림과 발송 이력은 보존 정책으로 다루되, 회원 push endpoint secret은 탈퇴/익명화 cleanup에서 disabled tombstone으로 전환하고 ciphertext를 제거한다. |
 | `point` | `export_retained` | 제공 | 없음 | 포인트 잔액, 원장, 만료 소비 매핑은 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |
+| `policy_documents` | `export_cleanup` | 제공 | 제공 | 약관/방침 변경 안내메일 delivery가 회원 계정과 연결되며, 탈퇴/익명화 시 계정 연결을 제거한다. |
 | `popup_layer` | `no_member_personal_data` | 없음 | 없음 | 팝업 설정과 노출 정책은 현재 회원 귀속 데이터가 아니다. |
 | `privacy` | `coordinator_direct` | 소비 | 없음 | 관리자 전용 개인정보 대응 기록과 사본 제공을 보조한다. `sr_privacy_export_data()`가 대응 기록을 직접 포함하고 다른 모듈 export 계약을 수집한다. |
 | `quiz` | `export_cleanup` | 제공 | 제공 | 응시, 답안 snapshot, 결과, 댓글, 보상 grant, IP/UA hash를 가진다. |

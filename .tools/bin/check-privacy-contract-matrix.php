@@ -174,6 +174,7 @@ $expected = [
     'member' => ['status' => 'export_owner', 'export' => true, 'cleanup' => false, 'consumes_cleanup' => true],
     'notification' => ['status' => 'export_retained', 'export' => true, 'cleanup' => true],
     'point' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
+    'policy_documents' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'popup_layer' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'privacy' => ['status' => 'coordinator_direct', 'export' => false, 'cleanup' => false, 'consumes_export' => true],
     'quiz' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
