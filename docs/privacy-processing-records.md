@@ -13,13 +13,15 @@
 | `surface` | 계정, 인증, 제출, 알림, 금액성 원장, 운영 로그처럼 운영자가 이해할 수 있는 표면 |
 | `data_subjects` | 회원, 비회원 제출자, 관리자, 수신자, 제3자 등 정보주체 범위 |
 | `data_categories` | 계정 식별자, 연락처, 접속/기기 hash, 동의 증적, 응답/답안 snapshot, 금액성 기록 등 |
-| `purpose` | 서비스 제공, 보안, 정산/권리 증빙, 알림 발송, 법적 요청 대응 등 처리 목적 |
+| `processing_purpose` | 서비스 제공, 보안, 정산/권리 증빙, 알림 발송, 법적 요청 대응 등 처리 목적 |
 | `lawful_basis` | 계약 이행, 동의, 정당한 이익, 법적 의무, 운영 증빙 등 프로젝트 정책상 근거 |
 | `special_category_policy` | 특별범주, 연령, 고유식별자성 데이터가 없으면 `not_collected`, 가능성이 있으면 저장 금지 또는 별도 플러그인 기준 |
+| `retention_basis` | 계약 이행, 법적 의무, 권리·정산 증빙, 보안 조사, 운영 감사처럼 보존이 필요한 근거 |
+| `retention_period` | 관리자 보관 정책 key, 모듈 정책, 법정 보존 기간, 마스킹 시점처럼 실제 보존 기간 또는 검토 기준 |
 | `retention_policy` | 삭제/익명화/운영 보존/보존기간 검토 기준 |
 | `export_policy` | 사본 제공 포함, 보존형 export, 제외와 근거 |
 | `cleanup_policy` | 탈퇴/익명화 때 삭제, account 연결 제거, tombstone, 운영 보존 등 |
-| `processors` | 이메일, CAPTCHA, OAuth/OIDC, 결제, 본인확인, storage 같은 외부 처리자 후보 |
+| `processors` | 이메일, CAPTCHA, OAuth/OIDC, 결제, 본인확인, storage 같은 외부 수탁사와 재수탁사 후보 |
 | `international_transfer` | 외부 처리자의 국외 처리 가능성. 확정 전에는 `review_required` |
 | `storage_location` | 로컬 DB, local storage, S3, 외부 provider, 브라우저 저장소 등 |
 | `access_scope` | 공개 화면, 회원 본인, 권한 있는 관리자, 배치/CLI 등 접근 범위 |
@@ -198,6 +200,7 @@
 ## 운영 기준
 
 - 새 모듈이 `account_id`, `author_account_id`, `created_by_account_id`, `processed_by_account_id`, `handled_by_account_id`, `recipient`, `email`, `ip_hash`, `user_agent_hash`, `provider_subject_hash`, `consent_snapshot_json`, `answer_snapshot_json`, `metadata_snapshot_json` 같은 개인정보성 필드를 추가하면 이 문서와 [개인정보 계약 매트릭스](privacy-contract-matrix.md)를 함께 갱신한다.
+- 처리활동 row는 `processing_purpose`, `lawful_basis`, `retention_basis`, `retention_period`를 함께 적어 목적과 보존 근거가 분리되도록 한다.
 - 외부 provider script를 공개 화면에 추가하면 쿠키/브라우저 저장소 inventory와 processor/국외이전 후보에 포함한다.
 - 특별범주, 연령, 고유식별자성 데이터는 기본 번들 모듈에서 원문 저장하지 않는다. 필요하면 본인확인 같은 선택 플러그인이 원문 저장 금지와 결과 최소 snapshot 기준을 문서화해야 한다.
 - `export_retained`와 `operational_retained`는 삭제하지 않는다는 뜻이 아니다. 보존 사유, 접근 범위, 보존기간 또는 마스킹 시점을 기록해야 한다.
