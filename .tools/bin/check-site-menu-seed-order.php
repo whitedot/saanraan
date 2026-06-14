@@ -149,6 +149,13 @@ sr_site_menu_check_assert(str_contains($commonUiJs, 'is-site-menu-open'), 'Commo
 sr_site_menu_check_assert(str_contains($commonUiJs, '(pointer: coarse)'), 'Common UI script must support touch pointer first-tap expansion.');
 sr_site_menu_check_assert(str_contains($commonUiJs, "event.key === 'Escape'"), 'Common UI script must close site menus on Escape.');
 
+$siteMenuAction = (string) file_get_contents(SR_ROOT . '/modules/site_menu/actions/admin-site-menus.php');
+$siteMenuInstallSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/install.sql');
+$siteMenuDuplicatePathUpdateSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/updates/2026.06.002.sql');
+sr_site_menu_check_assert(!str_contains($siteMenuAction, 'item_url_duplicate'), 'Site menu admin action must allow multiple items with the same URL.');
+sr_site_menu_check_assert(!str_contains($siteMenuInstallSql, 'uq_sr_site_menu_items_menu_url'), 'Site menu install schema must not enforce unique URLs within a menu.');
+sr_site_menu_check_assert(str_contains($siteMenuDuplicatePathUpdateSql, 'DROP INDEX uq_sr_site_menu_items_menu_url'), 'Site menu update must drop the legacy unique URL index.');
+
 if ($errors !== []) {
     fwrite(STDERR, "site menu checks failed:\n");
     foreach ($errors as $error) {

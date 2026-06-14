@@ -95,7 +95,7 @@ SR_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
 
 PWA 1차 지원을 확인할 때는 설치된 로컬 또는 staging에서 `/manifest.webmanifest`가 `application/manifest+json`으로 응답하고, `/service-worker.js`가 `application/javascript`와 `Service-Worker-Allowed` 헤더를 반환하는지 확인한다. 서비스 워커는 공개 정적 asset만 cache 대상으로 삼고 관리자, 계정 개인정보, 저장소 경로, navigation fallback은 cache하지 않아야 한다.
 
-사이트 메뉴를 2·3단계로 구성한 환경에서는 기본 공개, 콘텐츠, 커뮤니티, 퀴즈 헤더에서 2단계 dropdown과 3단계 flyout이 표시되는지 확인한다. 데스크톱에서는 hover와 Tab focus로 열리고 Escape와 바깥 클릭으로 닫혀야 하며, 모바일 폭에서는 하위 메뉴가 있는 링크가 첫 탭에서 펼쳐지고 열린 상태의 재탭은 링크 이동으로 이어져야 한다. footer 메뉴와 관리자 메뉴는 헤더 dropdown 스타일의 영향을 받지 않아야 한다.
+사이트 메뉴를 2·3단계로 구성한 환경에서는 기본 공개, 콘텐츠, 커뮤니티, 퀴즈 헤더에서 2단계 dropdown과 3단계 flyout이 표시되는지 확인한다. 데스크톱에서는 hover와 Tab focus로 열리고 Escape와 바깥 클릭으로 닫혀야 하며, 모바일 폭에서는 하위 메뉴가 있는 링크가 첫 탭에서 펼쳐지고 열린 상태의 재탭은 링크 이동으로 이어져야 한다. 같은 메뉴 안에 동일 URL 항목을 다른 라벨이나 상위 항목으로 여러 개 저장할 수 있어야 한다. footer 메뉴와 관리자 메뉴는 헤더 dropdown 스타일의 영향을 받지 않아야 한다.
 
 알림 delivery runner는 로컬 또는 staging에서 `/admin/notification-deliveries`의 수동 실행 버튼 또는 다음 CLI로 확인한다. 운영 DB에서 테스트 발송을 만들거나 provider 설정을 바꾸지 않는다.
 

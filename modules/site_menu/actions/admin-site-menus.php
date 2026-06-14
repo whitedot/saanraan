@@ -97,6 +97,17 @@ function sr_site_menu_admin_subtree_max_relative_depth(PDO $pdo, int $itemId): i
     return $maxDepth;
 }
 
+function sr_site_menu_admin_is_legacy_url_unique_violation(Throwable $exception): bool
+{
+    if (!$exception instanceof PDOException) {
+        return false;
+    }
+
+    $message = $exception->getMessage();
+    return str_contains($message, 'uq_sr_site_menu_items_menu_url')
+        || (str_contains($message, 'Duplicate entry') && str_contains($message, 'site_menu_items_menu_url'));
+}
+
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
@@ -235,22 +246,6 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
-            $stmt = $pdo->prepare(
-                'SELECT id FROM sr_site_menu_items
-                 WHERE menu_id = :menu_id AND url = :url AND id <> :id
-                 LIMIT 1'
-            );
-            $stmt->execute([
-                'menu_id' => $menuId,
-                'url' => $url,
-                'id' => $itemId > 0 ? $itemId : 0,
-            ]);
-            if (is_array($stmt->fetch())) {
-                $errors[] = sr_t('site_menu::action.admin.item_url_duplicate');
-            }
-        }
-
-        if ($errors === []) {
             $now = sr_now();
             if ($itemId > 0) {
                 $itemSaveParams = [
@@ -273,7 +268,15 @@ if (sr_request_method() === 'POST') {
                      SET parent_id = :parent_id, label = :label, url = :url, ' . $iconNameSetSql . 'target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
                      WHERE id = :id AND menu_id = :menu_id'
                 );
-                $stmt->execute($itemSaveParams);
+                try {
+                    $stmt->execute($itemSaveParams);
+                } catch (PDOException $exception) {
+                    if (!sr_site_menu_admin_is_legacy_url_unique_violation($exception)) {
+                        throw $exception;
+                    }
+
+                    $errors[] = sr_t('site_menu::action.admin.item_url_schema_update_required');
+                }
             } else {
                 $itemIconColumnSql = $siteMenuIconNameColumnExists ? 'icon_name, ' : '';
                 $itemIconValueSql = $siteMenuIconNameColumnExists ? ':icon_name, ' : '';
@@ -297,22 +300,32 @@ if (sr_request_method() === 'POST') {
                 if ($siteMenuIconNameColumnExists) {
                     $itemSaveParams['icon_name'] = $iconName;
                 }
-                $stmt->execute($itemSaveParams);
-                $itemId = (int) $pdo->lastInsertId();
+                try {
+                    $stmt->execute($itemSaveParams);
+                    $itemId = (int) $pdo->lastInsertId();
+                } catch (PDOException $exception) {
+                    if (!sr_site_menu_admin_is_legacy_url_unique_violation($exception)) {
+                        throw $exception;
+                    }
+
+                    $errors[] = sr_t('site_menu::action.admin.item_url_schema_update_required');
+                }
             }
 
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'site_menu.item.saved',
-                'target_type' => 'site_menu_item',
-                'target_id' => (string) $itemId,
-                'result' => 'success',
-                'message' => 'Site menu item saved.',
-                'metadata' => ['menu_id' => $menuId, 'parent_id' => $parentId > 0 ? $parentId : null],
-            ]);
+            if ($errors === []) {
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'site_menu.item.saved',
+                    'target_type' => 'site_menu_item',
+                    'target_id' => (string) $itemId,
+                    'result' => 'success',
+                    'message' => 'Site menu item saved.',
+                    'metadata' => ['menu_id' => $menuId, 'parent_id' => $parentId > 0 ? $parentId : null],
+                ]);
 
-            $notice = sr_t('site_menu::action.admin.item_saved');
+                $notice = sr_t('site_menu::action.admin.item_saved');
+            }
         }
     } elseif ($intent === 'save_item_order') {
         $sortOrders = $_POST['item_sort_order'] ?? [];

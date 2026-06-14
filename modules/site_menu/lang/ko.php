@@ -11,6 +11,7 @@ return [
     'action.admin.item_order_saved' => '메뉴 항목 순서를 저장했습니다.',
     'action.admin.item_saved' => '메뉴 항목을 저장했습니다.',
     'action.admin.item_status_invalid' => '항목 상태가 올바르지 않습니다.',
+    'action.admin.item_url_schema_update_required' => '같은 경로 항목을 저장하려면 사이트 메뉴 DB 업데이트를 먼저 적용하세요.',
     'action.admin.item_url_duplicate' => '같은 메뉴에 동일한 URL 항목이 이미 있습니다.',
     'action.admin.item_url_invalid' => '항목 URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다.',
     'action.admin.link_target_invalid' => '링크 target 값이 올바르지 않습니다.',

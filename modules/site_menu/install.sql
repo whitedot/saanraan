@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS sr_site_menu_items (
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_sr_site_menu_items_menu_url (menu_id, url),
     KEY idx_sr_site_menu_items_menu (menu_id, status, sort_order, id),
     KEY idx_sr_site_menu_items_parent (parent_id)
 );
