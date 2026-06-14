@@ -7,6 +7,8 @@
 .sr-cookie-consent-items{display:grid;gap:.375rem;min-width:min(20rem,100%)}
 .sr-cookie-consent-item{display:flex;gap:.5rem;align-items:flex-start;font-size:.875rem;line-height:1.4}
 .sr-cookie-consent-item input{margin-top:.2rem}
+.sr-cookie-consent-item-required{color:#374151}
+.sr-cookie-consent-item-required input{cursor:not-allowed}
 .sr-cookie-consent-item span{display:grid;gap:.125rem}
 .sr-cookie-consent-item small{color:#4b5563;font-size:.8rem}
 .sr-cookie-consent-button{min-height:2.25rem;padding:.5rem .75rem;border:1px solid transparent;border-radius:.375rem;font:inherit;font-size:.875rem;font-weight:700;cursor:pointer}

@@ -14,7 +14,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <h1 class="public-ui-title type-section-title"><?php echo sr_e($pageTitle); ?></h1>
             <div class="public-ui-content-list">
                 <p class="public-ui-copy type-body"><?php echo sr_e(sr_t('privacy::cookie.manage.body')); ?></p>
+                <section class="public-ui-content-list" aria-label="<?php echo sr_e(sr_t('privacy::cookie.essential.group')); ?>">
+                    <h2 class="public-ui-title type-card-title"><?php echo sr_e(sr_t('privacy::cookie.essential.group')); ?></h2>
+                    <?php echo sr_privacy_cookie_consent_essential_fields_html(); ?>
+                </section>
                 <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>" class="public-ui-content-list">
+                    <h2 class="public-ui-title type-card-title"><?php echo sr_e(sr_t('privacy::cookie.optional.group')); ?></h2>
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">
                     <input type="hidden" name="consent" value="selected">

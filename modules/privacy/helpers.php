@@ -26,6 +26,16 @@ function sr_privacy_cookie_consent_optional_items(): array
     ];
 }
 
+function sr_privacy_cookie_consent_essential_items(): array
+{
+    return [
+        'session_security' => [
+            'label' => sr_t('privacy::cookie.item.session_security.label'),
+            'description' => sr_t('privacy::cookie.item.session_security.description'),
+        ],
+    ];
+}
+
 function sr_privacy_cookie_consent_optional_item_keys(): array
 {
     return array_keys(sr_privacy_cookie_consent_optional_items());
@@ -133,6 +143,28 @@ function sr_privacy_cookie_consent_items_fields_html(array $selectedItems): stri
         <?php foreach ($optionalItems as $itemKey => $item) { ?>
             <label class="sr-cookie-consent-item">
                 <input type="checkbox" name="optional_items[]" value="<?php echo sr_e((string) $itemKey); ?>"<?php echo in_array((string) $itemKey, $selectedItems, true) ? ' checked' : ''; ?>>
+                <span>
+                    <strong><?php echo sr_e((string) $item['label']); ?></strong>
+                    <small><?php echo sr_e((string) $item['description']); ?></small>
+                </span>
+            </label>
+        <?php } ?>
+    </div>
+    <?php
+    $html = ob_get_clean();
+
+    return is_string($html) ? $html : '';
+}
+
+function sr_privacy_cookie_consent_essential_fields_html(): string
+{
+    $essentialItems = sr_privacy_cookie_consent_essential_items();
+    ob_start();
+    ?>
+    <div class="sr-cookie-consent-items">
+        <?php foreach ($essentialItems as $itemKey => $item) { ?>
+            <label class="sr-cookie-consent-item sr-cookie-consent-item-required">
+                <input type="checkbox" value="<?php echo sr_e((string) $itemKey); ?>" checked disabled>
                 <span>
                     <strong><?php echo sr_e((string) $item['label']); ?></strong>
                     <small><?php echo sr_e((string) $item['description']); ?></small>
