@@ -34,7 +34,7 @@
 
 관리자는 `/admin/storage-cache`에서 `storage/cache/thumbnails` 아래의 공개 썸네일 캐시를 파일 스캔 방식으로 확인할 수 있다. 이 화면은 helper가 만든 파일명 패턴의 이미지 캐시만 대상으로 하며, 생성 내역은 파일 수정 시각 기준의 기간 필터와 module key 필터로 집계한다. DB 기록을 별도로 만들지 않기 때문에 기존 캐시 파일을 이관하거나 수동 배포한 뒤에도 실제 파일 트리를 기준으로 현황을 볼 수 있다.
 
-기간별 정리는 현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제하고, 원본 파일이나 모듈 데이터는 변경하지 않는다. 삭제 작업은 관리자 `delete` 권한, CSRF, 확인 문구, 감사 로그를 요구한다. 캐시 정책의 핵심은 원본 변경 시 정확한 시점에 새 캐시 URL이 나오고, 더 이상 필요하지 않은 파생 파일을 운영자가 확인해 지울 수 있는 것이다. 따라서 모듈은 가능한 한 `source_version` 또는 checksum을 제공하고, 원본 교체/삭제 작업 뒤에는 `sr_thumbnail_delete_variants()`를 호출해 같은 원본 key의 기존 variant를 정리한다.
+기간별 정리는 현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제하고, 원본 파일이나 모듈 데이터는 변경하지 않는다. 삭제 작업은 하단 sticky 액션에서 확인 모달을 열고, 관리자 `delete` 권한, CSRF, 확인 문구, 감사 로그를 요구한다. 캐시 정책의 핵심은 원본 변경 시 정확한 시점에 새 캐시 URL이 나오고, 더 이상 필요하지 않은 파생 파일을 운영자가 확인해 지울 수 있는 것이다. 따라서 모듈은 가능한 한 `source_version` 또는 checksum을 제공하고, 원본 교체/삭제 작업 뒤에는 `sr_thumbnail_delete_variants()`를 호출해 같은 원본 key의 기존 variant를 정리한다.
 
 S3 원본 이미지는 `HeadObject`로 크기와 version marker를 확인한 뒤 임시 파일로 내려받아 local `storage/cache/thumbnails`에 썸네일 캐시를 생성한다. S3 `VersionId`가 있으면 presigned `GetObject`에도 같은 version을 지정해 HEAD와 GET 사이의 원본 변경 경합을 줄인다. 썸네일 캐시 저장소 자체를 S3로 바꾸는 기능은 adapter 기반 list/delete 계약이 필요하므로 후속 범위로 둔다.
 

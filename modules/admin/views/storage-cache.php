@@ -156,26 +156,41 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
         <div class="card-header">
             <h2 class="card-title">기간별 정리</h2>
         </div>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>" class="ui-form-theme">
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>">
-            <input type="hidden" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>">
-            <input type="hidden" name="module_key" value="<?php echo sr_e((string) ($filters['module_key'] ?? '')); ?>">
-            <div class="admin-list-summary">
-                현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.
-            </div>
-            <div class="admin-list-summary">
-                <label class="form-field">
-                    <span class="form-label">확인 문구 <span class="sr-required-label">(필수)</span></span>
-                    <input type="text" name="confirm_text" value="" maxlength="40" class="form-input" autocomplete="off" required>
-                    <span class="admin-form-help">정리를 실행하려면 정리를 입력하세요.</span>
-                </label>
-            </div>
-            <div class="admin-list-actions">
-                <button type="submit" class="btn btn-outline-danger">현재 조건 캐시 정리</button>
-            </div>
-        </form>
+        <div class="admin-list-summary">
+            현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.
+        </div>
+        <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
+            <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-storage-cache-cleanup-modal" data-overlay="#admin-storage-cache-cleanup-modal">정리</button>
+        </div>
     </section>
+    <div id="admin-storage-cache-cleanup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-storage-cache-cleanup-modal-label" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/storage-cache')); ?>" class="modal-content admin-form ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="admin-storage-cache-cleanup-modal-label" class="modal-title">썸네일 캐시 정리</h3>
+                    <button type="button" class="modal-close" aria-label="닫기" data-overlay="#admin-storage-cache-cleanup-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                </div>
+                <div class="modal-body">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="date_from" value="<?php echo sr_e((string) ($filters['date_from'] ?? '')); ?>">
+                    <input type="hidden" name="date_to" value="<?php echo sr_e((string) ($filters['date_to'] ?? '')); ?>">
+                    <input type="hidden" name="module_key" value="<?php echo sr_e((string) ($filters['module_key'] ?? '')); ?>">
+                    <p class="admin-form-help">현재 조회 조건에 맞는 썸네일 캐시 파일만 삭제합니다. 원본 파일과 게시글 첨부는 삭제하지 않습니다.</p>
+                    <div class="admin-form-row">
+                        <label class="form-label" for="admin_storage_cache_cleanup_confirm_text">확인 문구 <span class="sr-required-label">(필수)</span></label>
+                        <div class="admin-form-field">
+                            <input id="admin_storage_cache_cleanup_confirm_text" type="text" name="confirm_text" value="" maxlength="40" class="form-input" autocomplete="off" required>
+                            <p class="admin-form-help">정리를 실행하려면 정리를 입력하세요.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-storage-cache-cleanup-modal">닫기</button>
+                    <button type="submit" class="btn btn-outline-danger modal-action">정리</button>
+                </div>
+            </form>
+        </div>
+    </div>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

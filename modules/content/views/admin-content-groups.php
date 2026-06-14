@@ -256,9 +256,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'content-group-section-file-asset' => '파일',
         'content-group-section-submission' => '회원 제출',
     ];
-    if ($editing) {
-        $contentGroupSectionNavItems['content-group-section-danger'] = '위험 작업';
-    }
     ?>
     <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="콘텐츠 그룹 설정 섹션">
         <?php $contentGroupSectionNavIndex = 0; ?>
@@ -596,30 +593,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
+        <?php if ($editing) { ?>
+            <?php $contentGroupDeleteModalId = 'content-group-delete-modal'; ?>
+        <?php } ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
+            <?php if ($editing) { ?>
+                <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentGroupDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentGroupDeleteModalId); ?>">삭제</button>
+            <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
         </div>
     </form>
     <?php if ($editing) { ?>
         <?php $contentGroupDeleteCheck = sr_content_can_delete_group($pdo, (int) ($editPageGroup['id'] ?? 0)); ?>
-        <section id="content-group-section-danger" class="admin-card card" data-admin-section-anchor>
-            <h2>위험 작업</h2>
-            <p class="admin-form-help">
-                콘텐츠 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
-                연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건,
-                댓글 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['comments'] ?? 0)); ?>건,
-                파일 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['files'] ?? 0)); ?>건,
-                revision snapshot 참조 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['revision_references'] ?? 0)); ?>건,
-                외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($contentGroupDeleteCheck['external_references'] ?? null) ? $contentGroupDeleteCheck['external_references'] : []))); ?>건.
-            </p>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="admin-form-actions">
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="intent" value="delete_group">
-                <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($editPageGroup['id'] ?? 0)); ?>">
-                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('이 콘텐츠 그룹을 삭제할까요? 연결 콘텐츠, 댓글, 파일도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');">콘텐츠 그룹 삭제</button>
-            </form>
-        </section>
+        <div id="<?php echo sr_e($contentGroupDeleteModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($contentGroupDeleteModalId); ?>-label" aria-hidden="true" inert>
+            <div class="modal-dialog">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="modal-content admin-form ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($contentGroupDeleteModalId); ?>-label" class="modal-title">콘텐츠 그룹 삭제</h3>
+                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($contentGroupDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="delete_group">
+                        <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($editPageGroup['id'] ?? 0)); ?>">
+                        <p class="admin-form-help">
+                            콘텐츠 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
+                            연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건,
+                            댓글 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['comments'] ?? 0)); ?>건,
+                            파일 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['files'] ?? 0)); ?>건,
+                            revision snapshot 참조 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['revision_references'] ?? 0)); ?>건,
+                            외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($contentGroupDeleteCheck['external_references'] ?? null) ? $contentGroupDeleteCheck['external_references'] : []))); ?>건.
+                            현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($contentGroupDeleteModalId); ?>">닫기</button>
+                        <button type="submit" class="btn btn-outline-danger modal-action">삭제</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     <?php } ?>
 <?php } ?>
 

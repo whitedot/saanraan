@@ -211,7 +211,6 @@ $communityBoardSectionNavItems = [
 ];
 if ($communityBoardsPage === 'edit') {
     $communityBoardSectionNavItems += [
-        'community-board-section-danger' => '위험 작업',
         'community-board-section-managers' => '관리권한',
         'community-board-section-categories' => '카테고리',
     ];
@@ -1111,10 +1110,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
+        <?php if ($communityBoardsPage === 'edit') { ?>
+            <?php $boardDeleteModalId = 'community-board-delete-modal'; ?>
+        <?php } ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $formBoard['id']))); ?>" class="btn btn-solid-light"><?php echo sr_e('복사'); ?></a>
+                <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>">삭제</button>
             <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.text.16f64fe4') : sr_t('community::ui.text.167eff27')); ?></button>
         </div>
@@ -1239,41 +1242,49 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'rollback_limited' => true,
         ]); ?>
         <?php $boardDeleteConfirmText = '삭제 ' . (string) ($formBoard['board_key'] ?? ''); ?>
-        <section id="community-board-section-danger" class="admin-card card" data-admin-section-anchor>
-            <h2>위험 작업</h2>
-            <p class="admin-form-help">
-                게시판을 삭제하면 게시판 설정, 설정 소스, 카테고리가 함께 삭제됩니다.
-                게시글 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['posts'] ?? 0)); ?>건,
-                댓글 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['comments'] ?? 0)); ?>건,
-                첨부 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['attachments'] ?? 0)); ?>건,
-                시리즈 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['series'] ?? 0)); ?>건,
-                외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardDeleteCheck['external_references'] ?? null) ? $boardDeleteCheck['external_references'] : []))); ?>건.
-                위 게시판 저장 버튼으로 작성 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
-            </p>
-            <dl class="admin-meta-list">
-                <dt><?php echo sr_e('부하 등급'); ?></dt>
-                <dd><?php echo sr_e((string) $boardDeleteLoad['label']); ?></dd>
-                <dt><?php echo sr_e('중단/실패 시 상태'); ?></dt>
-                <dd><?php echo sr_e((string) $boardDeleteLoad['failure_state']); ?></dd>
-                <dt><?php echo sr_e('권장 실행 시점'); ?></dt>
-                <dd><?php echo sr_e((string) $boardDeleteLoad['recommended_time']); ?></dd>
-            </dl>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-form ui-form-theme">
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="intent" value="delete_board">
-                <input type="hidden" name="board_id" value="<?php echo sr_e((string) ($formBoard['id'] ?? 0)); ?>">
-                <div class="admin-form-row">
-                    <label class="form-label" for="community_board_delete_confirm_text">삭제 확인 문구 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                    <div class="admin-form-field">
-                        <input id="community_board_delete_confirm_text" type="text" name="delete_confirm_text" maxlength="80" class="form-input" required>
-                        <p class="admin-form-help"><?php echo sr_e('삭제하려면 "' . $boardDeleteConfirmText . '"를 입력하세요.'); ?></p>
+        <div id="<?php echo sr_e($boardDeleteModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($boardDeleteModalId); ?>-label" aria-hidden="true" inert>
+            <div class="modal-dialog">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="modal-content admin-form ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($boardDeleteModalId); ?>-label" class="modal-title">게시판 삭제</h3>
+                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
-                </div>
-                <div class="admin-form-actions">
-                    <button type="submit" class="btn btn-outline-danger">게시판 삭제</button>
-                </div>
-            </form>
-        </section>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="delete_board">
+                        <input type="hidden" name="board_id" value="<?php echo sr_e((string) ($formBoard['id'] ?? 0)); ?>">
+                        <p class="admin-form-help">
+                            게시판을 삭제하면 게시판 설정, 설정 소스, 카테고리가 함께 삭제됩니다.
+                            게시글 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['posts'] ?? 0)); ?>건,
+                            댓글 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['comments'] ?? 0)); ?>건,
+                            첨부 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['attachments'] ?? 0)); ?>건,
+                            시리즈 <?php echo sr_e((string) (int) ($boardDeleteCheck['references']['series'] ?? 0)); ?>건,
+                            외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardDeleteCheck['external_references'] ?? null) ? $boardDeleteCheck['external_references'] : []))); ?>건.
+                            현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
+                        </p>
+                        <dl class="admin-meta-list">
+                            <dt><?php echo sr_e('부하 등급'); ?></dt>
+                            <dd><?php echo sr_e((string) $boardDeleteLoad['label']); ?></dd>
+                            <dt><?php echo sr_e('중단/실패 시 상태'); ?></dt>
+                            <dd><?php echo sr_e((string) $boardDeleteLoad['failure_state']); ?></dd>
+                            <dt><?php echo sr_e('권장 실행 시점'); ?></dt>
+                            <dd><?php echo sr_e((string) $boardDeleteLoad['recommended_time']); ?></dd>
+                        </dl>
+                        <div class="admin-form-row">
+                            <label class="form-label" for="community_board_delete_confirm_text">삭제 확인 문구 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                            <div class="admin-form-field">
+                                <input id="community_board_delete_confirm_text" type="text" name="delete_confirm_text" maxlength="80" class="form-input" required>
+                                <p class="admin-form-help"><?php echo sr_e('삭제하려면 "' . $boardDeleteConfirmText . '"를 입력하세요.'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>">닫기</button>
+                        <button type="submit" class="btn btn-outline-danger modal-action">삭제</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <section id="community-board-section-managers" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor>
             <div class="card-header">

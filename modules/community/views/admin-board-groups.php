@@ -341,9 +341,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'community-board-group-section-popup' => '팝업',
         'community-board-group-section-assets' => '포인트/금액',
     ];
-    if ($communityBoardGroupsPage === 'edit') {
-        $communityBoardGroupSectionNavItems['community-board-group-section-danger'] = '위험 작업';
-    }
     ?>
     <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="게시판 그룹 설정 섹션">
         <?php $communityBoardGroupSectionNavIndex = 0; ?>
@@ -845,28 +842,45 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php } ?>
             </div>
         </section>
+        <?php if ($communityBoardGroupsPage === 'edit') { ?>
+            <?php $boardGroupDeleteModalId = 'community-board-group-delete-modal'; ?>
+        <?php } ?>
         <div class="admin-form-sticky-actions admin-form-actions admin-form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
+            <?php if ($communityBoardGroupsPage === 'edit') { ?>
+                <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardGroupDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardGroupDeleteModalId); ?>">삭제</button>
+            <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardGroupsPage === 'edit' ? sr_t('community::ui.text.086f3a3e') : sr_t('community::ui.text.22129319')); ?></button>
         </div>
     </form>
 
     <?php if ($communityBoardGroupsPage === 'edit') { ?>
         <?php $boardGroupDeleteCheck = sr_community_can_delete_board_group($pdo, (int) ($formBoardGroup['id'] ?? 0)); ?>
-        <section id="community-board-group-section-danger" class="admin-card card" data-admin-section-anchor>
-            <h2>위험 작업</h2>
-            <p class="admin-form-help">
-                게시판 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
-                연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건,
-                외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardGroupDeleteCheck['external_references'] ?? null) ? $boardGroupDeleteCheck['external_references'] : []))); ?>건.
-            </p>
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="admin-form-actions">
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="intent" value="delete_group">
-                <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($formBoardGroup['id'] ?? 0)); ?>">
-                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('이 게시판 그룹을 삭제할까요? 게시판 또는 외부 참조가 있으면 삭제되지 않습니다.');">게시판 그룹 삭제</button>
-            </form>
-        </section>
+        <div id="<?php echo sr_e($boardGroupDeleteModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($boardGroupDeleteModalId); ?>-label" aria-hidden="true" inert>
+            <div class="modal-dialog">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="modal-content admin-form ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($boardGroupDeleteModalId); ?>-label" class="modal-title">게시판 그룹 삭제</h3>
+                        <button type="button" class="modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($boardGroupDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="delete_group">
+                        <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($formBoardGroup['id'] ?? 0)); ?>">
+                        <p class="admin-form-help">
+                            게시판 그룹을 삭제하면 그룹 설정이 함께 삭제됩니다.
+                            연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건,
+                            외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardGroupDeleteCheck['external_references'] ?? null) ? $boardGroupDeleteCheck['external_references'] : []))); ?>건.
+                            현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($boardGroupDeleteModalId); ?>">닫기</button>
+                        <button type="submit" class="btn btn-outline-danger modal-action">삭제</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     <?php } ?>
 
     <?php echo sr_admin_help_modal_html($memberGroupAccessHelpModalId, sr_t('community::ui.member_group_access_help_title'), $memberGroupAccessHelpBodyHtml); ?>
