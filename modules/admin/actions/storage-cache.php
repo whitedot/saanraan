@@ -63,6 +63,21 @@ if (sr_request_method() === 'POST') {
     sr_redirect('/admin/storage-cache' . ($query !== '' ? '?' . $query : ''));
 }
 
+$moduleOptionFilters = $filters;
+$moduleOptionFilters['module_key'] = '';
+$moduleOptionScan = sr_admin_thumbnail_cache_scan($moduleOptionFilters);
+$moduleOptions = [];
+foreach ((array) ($moduleOptionScan['rows'] ?? []) as $moduleOptionRow) {
+    $moduleOptionKey = (string) ($moduleOptionRow['module_key'] ?? '');
+    if ($moduleOptionKey !== '') {
+        $moduleOptions[$moduleOptionKey] = sr_admin_code_label($moduleOptionKey, 'module_key');
+    }
+}
+if ((string) ($filters['module_key'] ?? '') !== '') {
+    $moduleOptions[(string) $filters['module_key']] = sr_admin_code_label((string) $filters['module_key'], 'module_key');
+}
+asort($moduleOptions, SORT_NATURAL);
+
 $cacheScan = sr_admin_thumbnail_cache_scan($filters);
 $cacheRows = isset($cacheScan['rows']) && is_array($cacheScan['rows']) ? $cacheScan['rows'] : [];
 $cacheRowTotal = count($cacheRows);
