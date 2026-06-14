@@ -597,6 +597,16 @@ function sr_privacy_export_runtime_check_community(): void
         sr_privacy_export_runtime_assert(count($result[$key] ?? []) === 1, 'community export must include one target row for: ' . $key);
     }
     sr_privacy_export_runtime_assert(count($result['messages'] ?? []) === 2, 'community export must include sent and received messages for target account.');
+    $messageDirections = [];
+    $messageCounterpartyRoles = [];
+    foreach ($result['messages'] as $message) {
+        sr_privacy_export_runtime_assert(!array_key_exists('sender_account_id', $message), 'community message export must not expose raw sender account id.');
+        sr_privacy_export_runtime_assert(!array_key_exists('recipient_account_id', $message), 'community message export must not expose raw recipient account id.');
+        $messageDirections[(string) ($message['message_direction'] ?? '')] = true;
+        $messageCounterpartyRoles[(string) ($message['counterparty_role'] ?? '')] = true;
+    }
+    sr_privacy_export_runtime_assert(isset($messageDirections['sent'], $messageDirections['received']), 'community message export must expose sent and received directions.');
+    sr_privacy_export_runtime_assert(isset($messageCounterpartyRoles['masked_recipient'], $messageCounterpartyRoles['masked_sender']), 'community message export must expose masked counterparty roles.');
     sr_privacy_export_runtime_assert(count($result['publisher_reward_logs'] ?? []) === 2, 'community export must include downloader and publisher reward rows for target account.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['author_public_name_snapshot'] ?? '') === 'post-name7', 'community export must include post author public name snapshot.');
     sr_privacy_export_runtime_assert(($result['posts'][0]['category_key'] ?? '') === 'cat', 'community export must include post category metadata.');

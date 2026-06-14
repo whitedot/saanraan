@@ -200,6 +200,9 @@ function sr_privacy_cleanup_runtime_check_content(): void
             anonymized_at TEXT NULL
         )'
     );
+    $pdo->exec('CREATE TABLE sr_content_asset_access_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_content_asset_action_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_content_author_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NOT NULL, created_by_account_id INTEGER NULL)');
     $pdo->exec(
         'CREATE TABLE sr_content_series (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -234,6 +237,9 @@ function sr_privacy_cleanup_runtime_check_content(): void
     $pdo->exec("INSERT INTO sr_content_file_download_logs (account_id) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_content_author_applications (account_id, application_note, review_note, updated_at) VALUES (7, 'apply7', 'review7', ''), (8, 'apply8', 'review8', '')");
     $pdo->exec("INSERT INTO sr_content_access_entitlements (account_id, source_reference, anonymized_at) VALUES (7, 'ref7', NULL), (8, 'ref8', NULL)");
+    $pdo->exec("INSERT INTO sr_content_asset_access_logs (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_content_asset_action_logs (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_content_author_reward_logs (author_account_id, created_by_account_id) VALUES (7, 1), (8, 1)");
     $pdo->exec("INSERT INTO sr_content_series (series_key, title, description, status, visibility, sort_order, created_by, updated_by, created_at, updated_at) VALUES ('s7', 'S7', '', 'active', 'public', 0, 7, 7, '', ''), ('s8', 'S8', '', 'active', 'public', 0, 8, 8, '', '')");
     $pdo->exec("INSERT INTO sr_content_series_items (series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_by, created_at, updated_at) VALUES (1, 1, 1, '', 'active', 0, 7, '', ''), (2, 2, 2, '', 'active', 0, 8, '', '')");
 
@@ -252,6 +258,9 @@ function sr_privacy_cleanup_runtime_check_content(): void
 
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_content_comments WHERE id = 1') === '', 'content cleanup must clear target comment public name snapshot.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_file_download_logs WHERE account_id IS NULL') === 1, 'content cleanup must anonymize target file download logs.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_content_asset_access_logs WHERE id = 1') === 7, 'content cleanup must retain account id on asset access logs.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_content_asset_action_logs WHERE id = 1') === 7, 'content cleanup must retain account id on asset action logs.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_account_id FROM sr_content_author_reward_logs WHERE id = 1') === 7, 'content cleanup must retain author account id on reward logs.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT application_note FROM sr_content_author_applications WHERE id = 1') === '', 'content cleanup must clear target author application note.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT source_reference FROM sr_content_access_entitlements WHERE id = 1') === '', 'content cleanup must clear target entitlement source reference.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_series WHERE id = 1 AND created_by IS NULL AND updated_by IS NULL') === 1, 'content cleanup must clear target series metadata.');
@@ -289,6 +298,8 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec('CREATE TABLE sr_community_series (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL, updated_by INTEGER NULL, moderated_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, downloader_account_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL)');
     $pdo->exec(
         'CREATE TABLE sr_community_submission_consents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -308,6 +319,8 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_series (created_by, updated_by, moderated_by) VALUES (7, 7, 7), (8, 8, 8)");
     $pdo->exec("INSERT INTO sr_community_series_items (created_by) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_community_series_scraps (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_community_asset_logs (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_community_publisher_reward_logs (downloader_account_id, publisher_account_id) VALUES (7, 8), (8, 7)");
     $pdo->exec("INSERT INTO sr_community_submission_consents (account_id, ip_hash, user_agent_hash) VALUES (7, 'ip7', 'ua7'), (8, 'ip8', 'ua8')");
 
     $invalidResult = $cleanup($pdo, 0);
@@ -343,6 +356,9 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_community_comments WHERE id = 1') === '', 'community cleanup must clear target comment public name snapshot.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_series WHERE id = 1 AND created_by IS NULL AND updated_by IS NULL AND moderated_by IS NULL') === 1, 'community cleanup must clear target series metadata.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_series_items WHERE id = 1 AND created_by IS NULL') === 1, 'community cleanup must clear target series item metadata.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_community_asset_logs WHERE id = 1') === 7, 'community cleanup must retain account id on asset logs.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT downloader_account_id FROM sr_community_publisher_reward_logs WHERE id = 1') === 7, 'community cleanup must retain downloader account id on publisher reward logs.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT publisher_account_id FROM sr_community_publisher_reward_logs WHERE id = 2') === 7, 'community cleanup must retain publisher account id on publisher reward logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_submission_consents WHERE id = 1 AND account_id IS NULL AND ip_hash IS NULL AND user_agent_hash IS NULL') === 1, 'community cleanup must anonymize target submission consent.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT nickname FROM sr_member_nicknames WHERE account_id = 8') === 'nick8', 'community cleanup must not alter other account nickname.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT source_reference FROM sr_community_access_entitlements WHERE id = 2') === 'ref8', 'community cleanup must not alter other account entitlement.');
