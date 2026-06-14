@@ -30,7 +30,7 @@ class SrSiteMenuCheckPdo extends PDO
 
     public function prepare(string $query, array $options = []): PDOStatement|false
     {
-        if (str_contains($query, 'FROM sr_site_menus m') && str_contains($query, 'INNER JOIN sr_site_menu_items i')) {
+        if (str_contains($query, 'FROM sr_site_menus m') && str_contains($query, 'JOIN sr_site_menu_items i')) {
             $this->siteMenuTreePrepareCount++;
         }
 
@@ -87,7 +87,8 @@ $pdo->exec(
 $pdo->exec(
     "INSERT INTO sr_site_menus (id, menu_key, label, status, created_at, updated_at) VALUES
         (1, 'header', '상단 메뉴', 'enabled', '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
-        (2, 'footer', '하단 메뉴', 'disabled', '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
+        (2, 'footer', '하단 메뉴', 'disabled', '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (3, 'empty_menu', '빈 메뉴', 'enabled', '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
 );
 $pdo->exec(
     "INSERT INTO sr_site_menu_items (id, menu_id, parent_id, label, url, target, status, sort_order, created_at, updated_at) VALUES
@@ -122,6 +123,9 @@ sr_site_menu_clear_runtime_cache('header');
 sr_site_menu_render($pdo, 'header', 'navigation');
 sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu runtime cache clear must force the next tree lookup.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'footer', 'secondary_navigation') === '', 'Site menu render runtime fixture must skip disabled menus.');
+$emptyTree = sr_site_menu_tree($pdo, 'empty_menu');
+sr_site_menu_check_assert(($emptyTree['enabled'] ?? false) === true, 'Site menu tree helper must keep enabled menu state when a menu has no enabled items.');
+sr_site_menu_check_assert(sr_site_menu_render($pdo, 'empty_menu', 'navigation') === '', 'Site menu render runtime fixture must render empty enabled menus as empty output.');
 
 $_SERVER['REQUEST_URI'] = '/content/example';
 sr_site_menu_check_assert(sr_site_menu_item_href('/login') === '/login?next=%2Fcontent%2Fexample', 'Site menu login link must include safe current next path.');

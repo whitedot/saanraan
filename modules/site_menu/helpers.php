@@ -504,19 +504,23 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
 
     $iconNameSelect = sr_site_menu_items_icon_name_column_exists($pdo) ? 'i.icon_name' : "'' AS icon_name";
     $stmt = $pdo->prepare(
-        "SELECT i.id, i.parent_id, i.label, i.url, " . $iconNameSelect . ", i.target
+        "SELECT m.id AS menu_id, i.id, i.parent_id, i.label, i.url, " . $iconNameSelect . ", i.target
          FROM sr_site_menus m
-         INNER JOIN sr_site_menu_items i ON i.menu_id = m.id
+         LEFT JOIN sr_site_menu_items i ON i.menu_id = m.id AND i.status = 'enabled'
          WHERE m.menu_key = :menu_key
            AND m.status = 'enabled'
-           AND i.status = 'enabled'
          ORDER BY i.sort_order ASC, i.id ASC"
     );
     $stmt->execute(['menu_key' => $menuKey]);
 
     $items = [];
     $itemsByParent = [];
+    $menuEnabled = false;
     foreach ($stmt->fetchAll() as $row) {
+        $menuEnabled = (int) ($row['menu_id'] ?? 0) > 0;
+        if ((int) ($row['id'] ?? 0) <= 0) {
+            continue;
+        }
         $items[] = $row;
         $parentId = (int) ($row['parent_id'] ?? 0);
         $itemsByParent[$parentId][] = $row;
@@ -524,7 +528,7 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
 
     $cache[$pdoCacheKey][$menuKey] = [
         'menu_key' => $menuKey,
-        'enabled' => $items !== [],
+        'enabled' => $menuEnabled,
         'items' => $items,
         'items_by_parent' => $itemsByParent,
     ];
