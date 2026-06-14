@@ -1372,6 +1372,8 @@ return [
 
 번들 모듈의 현재 책임 분류는 [개인정보 계약 매트릭스](privacy-contract-matrix.md)를 기준으로 한다. 새 모듈이나 새 테이블이 `account_id`, `created_by_account_id`, `author_account_id`, `processed_by_account_id` 같은 계정 연결 컬럼을 추가하면 `privacy-export.php`, `privacy-cleanup.php`, 운영 보존 중 어느 상태인지 먼저 표에 추가하고 `.tools/bin/check-privacy-contract-matrix.php`를 통과시킨다. `export_retained` 또는 `operational_retained`로 둔 데이터도 사본 제공 제외가 자동 확정되는 것은 아니며, 보존 기간과 운영자 접근 범위를 별도 정책으로 설명해야 한다.
 
+처리 목적, 수탁사/processor, 국외이전 가능성, 처리 위치, 보존 기간은 [개인정보 처리활동 기록 기준](privacy-processing-records.md)에 함께 남긴다. 외부 provider script, OAuth/OIDC profile, CAPTCHA remote IP 전달, email/push recipient, 응답/답안 snapshot처럼 DB 계약만으로 설명이 부족한 표면은 ROPA 씨앗에 먼저 추가한 뒤 구현한다.
+
 ```php
 <?php
 

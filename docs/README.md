@@ -46,6 +46,7 @@
 | [보안 제보와 처리 기준](security-response-policy.md) | 취약점 제보, triage, 수정 증거 기준 |
 | [보안 베이스라인 증거표](security-baseline-evidence.md) | 자작 보안 컴포넌트 구현 위치와 자동 점검 연결 |
 | [개인정보 계약 매트릭스](privacy-contract-matrix.md) | 번들 모듈별 개인정보 export/cleanup 책임과 보존 판단 |
+| [개인정보 처리활동 기록 기준](privacy-processing-records.md) | ROPA 씨앗, 처리 목적, 외부 처리자, 국외이전 후보, 보존 기준 |
 | [Rich Text Sanitizer 정책](rich-text-sanitizer-policy.md) | HTML 본문 허용 태그와 속성 기준 |
 | [배포 보호 기준](deployment-protection.md) | 운영 서버 직접 접근 차단 기준 |
 | [nginx 샘플 설정](deployment/nginx-saanraan.conf) | PHP-FPM 기반 nginx 배포 예시 |

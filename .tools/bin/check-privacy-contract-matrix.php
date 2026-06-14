@@ -157,6 +157,14 @@ if (!is_file($matrixFile)) {
     $matrix = (string) file_get_contents($matrixFile);
 }
 
+$processingRecordsFile = 'docs/privacy-processing-records.md';
+if (!is_file($processingRecordsFile)) {
+    sr_privacy_matrix_error('privacy processing records document is missing.');
+    $processingRecords = '';
+} else {
+    $processingRecords = (string) file_get_contents($processingRecordsFile);
+}
+
 $expected = [
     'admin' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
     'antispam' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
@@ -271,6 +279,11 @@ foreach ([
     ['needle' => 'PRAGMA table_info(', 'file' => 'modules/community/privacy-cleanup.php'],
     ['needle' => 'sr_privacy_cleanup_runtime_check_content', 'file' => '.tools/bin/check-privacy-cleanup-runtime.php'],
     ['needle' => 'sr_privacy_cleanup_runtime_check_community', 'file' => '.tools/bin/check-privacy-cleanup-runtime.php'],
+    ['needle' => '.tools/bin/check-retention-targets.php', 'file' => '.tools/bin/check.php'],
+    ['needle' => '.tools/bin/check-privacy-contract-matrix.php', 'file' => '.tools/bin/check.php'],
+    ['needle' => '.tools/bin/check-privacy-export-runtime.php', 'file' => '.tools/bin/check.php'],
+    ['needle' => '.tools/bin/check-privacy-cleanup-runtime.php', 'file' => '.tools/bin/check.php'],
+    ['needle' => '.tools/bin/check-doc-links.php', 'file' => '.tools/bin/check.php'],
 ] as $runtimeMarker) {
     $needle = (string) $runtimeMarker['needle'];
     $file = (string) $runtimeMarker['file'];
@@ -292,6 +305,202 @@ foreach ([
 ] as $needle) {
     if ($matrix !== '' && strpos($matrix, $needle) === false) {
         sr_privacy_matrix_error('privacy matrix document is missing marker: ' . $needle);
+    }
+}
+
+foreach ([
+    '## 마일스톤 12 재기준화 기준',
+    '현재 번들 모듈은 26개',
+    'antispam_captcha_providers',
+    'member_oauth',
+    'policy_documents',
+    'quiz',
+    'reaction',
+    'survey',
+    '쿠키와 브라우저 저장소',
+    '계정 원천과 인증',
+    '정책 문서와 동의',
+    '사용자 제출과 활동',
+    '금액성 원장과 권리',
+    '알림과 외부 발송',
+    '운영 보존과 감사',
+    '### 이슈별 추가 모듈 영향',
+    '#151 쿠키 동의 관리',
+    '마케팅/분석 script를 추가하려면 사전 동의 gate',
+    '#152 배너 클릭 hash',
+    '기본 보관일은 180일',
+    '#153 전역 감사 로그',
+    '본인 export 기본 범위에서 제외',
+    '#154 알림 delivery recipient',
+    'push endpoint ciphertext',
+    '#155 커뮤니티 쪽지 상대방 식별자',
+    'raw `sender_account_id`/`recipient_account_id`',
+    '#156 자산 로그 account_id 보존',
+    '환불·정산·분쟁 대응',
+    '#157 관리자 메모 redaction',
+    '`admin_note`는 입력 가이드',
+    '#158 권리 요청 전파',
+    '#159 특별범주/연령/고유식별자성',
+    '#160 ROPA 확장',
+    '#161 conformance 자동화',
+    'smoke readiness를 한 경로에서 실패',
+] as $needle) {
+    if ($matrix !== '' && strpos($matrix, $needle) === false) {
+        sr_privacy_matrix_error('privacy matrix document is missing milestone 12 recut marker: ' . $needle);
+    }
+}
+
+foreach ([
+    '# 개인정보 처리활동 기록 기준',
+    'ROPA',
+    'activity_key',
+    'module_key',
+    'data_subjects',
+    'data_categories',
+    'lawful_basis',
+    'special_category_policy',
+    'processors',
+    'international_transfer',
+    'storage_location',
+    'access_scope',
+    'verification',
+    '## 현재 번들 모듈 처리활동 씨앗',
+    '## 외부 처리자와 국외이전 후보',
+    '이메일 발송 provider',
+    'CAPTCHA provider',
+    'OAuth/OIDC provider',
+    '결제/본인확인 provider',
+    'S3 호환 storage',
+    '외부 알림 채널',
+    '## 특별범주·연령·고유식별자성 데이터 기준',
+    '기본 번들 모듈은 특별범주 개인정보',
+    'provider 원문 응답',
+    '## 마일스톤 12 conformance 자동화 기준',
+    '`php .tools/bin/check.php`',
+    'check-retention-targets.php',
+    'check-privacy-contract-matrix.php',
+    'check-privacy-export-runtime.php',
+    'check-privacy-cleanup-runtime.php',
+    'check-doc-links.php',
+    '설치 DB smoke',
+    '주민등록번호',
+    'CI/DI 원문',
+    'HMAC hash 또는 최소 결과 snapshot',
+    'OAuth/OIDC profile',
+    '퀴즈/설문 답변',
+    '관리자 메모/감사 metadata',
+    'special_category_policy',
+    '관리자 원문 노출 금지',
+    '## 쿠키와 브라우저 저장소 inventory',
+    'PHP session cookie',
+    '`sr_popup_layer_{id}_dismissed`',
+    'CAPTCHA provider script',
+    '`verify_remote_ip_enabled = false`',
+    '`community_privacy_consent_accepted`',
+    'localStorage',
+    '동의 상태를 확인',
+    '## 권리 요청 전파 기준',
+    '`access`, `rectification`, `erasure`, `restriction`, `portability`, `objection`, `withdrawal`',
+    '요청자 확인, 처리 자료 또는 처리 결과 확인, 처리 내용 메모',
+    '`rectification` 정정',
+    '`restriction` 처리 제한',
+    '`withdrawal` 동의 철회',
+    '회원 마케팅 수신 동의와 쿠키/추적 동의',
+    '커뮤니티/설문 제출 동의',
+    '자동 일괄 변경보다 모듈 소유 정책',
+    '배너 클릭 hash 보관일',
+    '## 감사 로그 개인정보 기준',
+    'operational_retained',
+    'sr_audit_metadata_sanitize()',
+    'sr_admin_audit_log_display_message()',
+    'sr_admin_audit_log_display_metadata()',
+    'privacy-export.php` 기본 수집 대상에서 제외',
+    'audit_logs_days',
+    'metadata 입력 기준',
+    '## 알림 delivery recipient 기준',
+    'site delivery export',
+    'email delivery export',
+    'push endpoint export',
+    'recipient_masked',
+    'external admin channel',
+    'policy_documents` cleanup은 안내메일 delivery의 `account_id` 연결을 제거',
+    'notifications_days',
+    '/admin/notification-deliveries',
+    '## 커뮤니티 쪽지 상대방 식별자 기준',
+    '대상 회원이 보낸 쪽지와 받은 쪽지',
+    '`message_direction`',
+    '`counterparty_role`',
+    '`masked_sender` 또는 `masked_recipient`',
+    '`sender_account_id`와 `recipient_account_id`',
+    'raw account id 제외',
+    '## 자산 로그 account_id 보존 기준',
+    '`export_retained` 데이터',
+    '`sr_content_asset_access_logs`',
+    '`sr_content_asset_action_logs`',
+    '`sr_content_author_reward_logs`',
+    '`sr_content_access_entitlements`와 `sr_content_file_download_logs`',
+    '`sr_community_asset_logs`',
+    '`sr_community_publisher_reward_logs`',
+    'downloader/publisher account id',
+    'cleanup runtime은 콘텐츠/커뮤니티 자산 로그 account id',
+    '## 관리자 메모 redaction 기준',
+    'sr_admin_privacy_request_admin_note_sanitize()',
+    'privacy_requests.admin_note',
+    'secret류 문자열, 이메일, 휴대폰 번호, 주민등록번호',
+    'provider 원문 응답',
+] as $needle) {
+    if ($processingRecords !== '' && strpos($processingRecords, $needle) === false) {
+        sr_privacy_matrix_error('privacy processing records document is missing marker: ' . $needle);
+    }
+}
+
+foreach (array_keys($expected) as $moduleKey) {
+    if ($processingRecords !== '' && strpos($processingRecords, '| `' . $moduleKey . '` |') === false) {
+        sr_privacy_matrix_error('privacy processing records module row is missing: ' . $moduleKey);
+    }
+}
+
+foreach ([
+    'core/helpers/runtime.php' => [
+        "ini_set('session.cookie_httponly', '1')",
+        "ini_set('session.cookie_samesite', 'Lax')",
+        'session_set_cookie_params',
+    ],
+    'modules/popup_layer/assets/saanraan-popup-layer.js' => [
+        "document.cookie = 'sr_popup_layer_' + popupId + '_dismissed=1;",
+        'SameSite=Lax',
+    ],
+    'modules/popup_layer/helpers.php' => [
+        'function sr_popup_layer_cookie_name(int $popupId): string',
+        'dismiss_cookie_days',
+    ],
+    'modules/antispam/module.php' => [
+        "'verify_remote_ip_enabled' => false",
+    ],
+    'modules/antispam/helpers.php' => [
+        "\$payload['remoteip'] = sr_client_ip();",
+        "'<script src=\"' . sr_e((string) \$provider['script_url'])",
+    ],
+    'modules/antispam_captcha_providers/antispam-providers.php' => [
+        'https://js.hcaptcha.com/1/api.js',
+        'https://www.google.com/recaptcha/api.js',
+        'https://challenges.cloudflare.com/turnstile/v0/api.js',
+    ],
+    'modules/community/helpers/privacy-consents.php' => [
+        "function sr_community_privacy_consent_accepted_from_post(): bool",
+        "community_privacy_consent_accepted",
+    ],
+] as $file => $markers) {
+    $contents = is_file($file) ? file_get_contents($file) : false;
+    if (!is_string($contents)) {
+        sr_privacy_matrix_error('browser storage inventory source cannot be read: ' . $file);
+        continue;
+    }
+
+    foreach ($markers as $marker) {
+        if (strpos($contents, $marker) === false) {
+            sr_privacy_matrix_error('browser storage inventory source marker is missing in ' . $file . ': ' . $marker);
+        }
     }
 }
 
