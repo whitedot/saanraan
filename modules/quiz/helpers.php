@@ -450,6 +450,8 @@ function sr_quiz_skin_view_file(array $settings, string $view): string
 
 function sr_quiz_render_skin(PDO $pdo, array $settings, string $view): void
 {
+    $site = is_array($GLOBALS['sr_runtime_site'] ?? null) ? $GLOBALS['sr_runtime_site'] : null;
+
     include sr_quiz_skin_view_file($settings, $view);
 }
 

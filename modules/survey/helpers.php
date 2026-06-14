@@ -315,6 +315,8 @@ function sr_survey_skin_view_file(array $settings, string $view): string
 
 function sr_survey_render_skin(PDO $pdo, array $settings, string $view): void
 {
+    $site = is_array($GLOBALS['sr_runtime_site'] ?? null) ? $GLOBALS['sr_runtime_site'] : null;
+
     include sr_survey_skin_view_file($settings, $view);
 }
 
