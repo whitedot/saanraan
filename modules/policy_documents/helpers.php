@@ -9,8 +9,7 @@ function sr_policy_document_valid_key(string $key): bool
 
 function sr_policy_document_valid_version_key(string $key): bool
 {
-    return preg_match('/\A[0-9]{4}\.[0-9]{2}\.[0-9]{3}\z/', $key) === 1
-        || preg_match('/\Av[0-9][a-z0-9_]{0,38}\z/', $key) === 1;
+    return preg_match('/\A[a-zA-Z0-9._-]{1,40}\z/', $key) === 1;
 }
 
 function sr_policy_document_body_hash(string $bodyHtml): string
@@ -189,6 +188,27 @@ function sr_policy_document_versions(PDO $pdo, int $documentId): array
     return $stmt->fetchAll();
 }
 
+function sr_policy_document_version_by_id(PDO $pdo, int $versionId): ?array
+{
+    if ($versionId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT v.id, v.document_id, v.version_key, v.title_snapshot, v.body_html, v.summary_text,
+                v.body_hash, v.status, v.effective_from, v.published_at, v.created_at, v.updated_at,
+                d.document_key, d.document_type, d.title AS document_title, d.status AS document_status
+         FROM sr_policy_document_versions v
+         INNER JOIN sr_policy_documents d ON d.id = v.document_id
+         WHERE v.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $versionId]);
+    $version = $stmt->fetch();
+
+    return is_array($version) ? $version : null;
+}
+
 function sr_policy_document_create_version(PDO $pdo, int $documentId, array $data): int
 {
     if (!is_array(sr_policy_document_by_id($pdo, $documentId))) {
@@ -271,6 +291,117 @@ function sr_policy_document_create_version(PDO $pdo, int $documentId, array $dat
         }
         throw $exception;
     }
+}
+
+function sr_policy_document_update_draft_version(PDO $pdo, int $versionId, array $data): void
+{
+    $version = sr_policy_document_version_by_id($pdo, $versionId);
+    if (!is_array($version)) {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.version_required'));
+    }
+    if ((string) ($version['status'] ?? '') !== 'draft') {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.version_edit_draft_only'));
+    }
+
+    $title = sr_clean_single_line((string) ($data['title'] ?? ''), 190);
+    $bodyHtml = sr_policy_document_sanitize_body((string) ($data['body_html'] ?? ''));
+    $summaryText = sr_clean_text((string) ($data['summary_text'] ?? ''), 1000);
+    $effectiveFrom = sr_clean_admin_datetime((string) ($data['effective_from'] ?? ''));
+
+    if ($title === '') {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.title_required'));
+    }
+    if (trim(strip_tags($bodyHtml)) === '') {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.body_required'));
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_policy_document_versions
+         SET title_snapshot = :title_snapshot,
+             body_html = :body_html,
+             summary_text = :summary_text,
+             body_hash = :body_hash,
+             effective_from = :effective_from,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = "draft"'
+    );
+    $stmt->execute([
+        'title_snapshot' => $title,
+        'body_html' => $bodyHtml,
+        'summary_text' => $summaryText,
+        'body_hash' => sr_policy_document_body_hash($bodyHtml),
+        'effective_from' => $effectiveFrom,
+        'updated_at' => sr_now(),
+        'id' => $versionId,
+    ]);
+}
+
+function sr_policy_document_publish_draft_version(PDO $pdo, int $versionId): array
+{
+    $version = sr_policy_document_version_by_id($pdo, $versionId);
+    if (!is_array($version)) {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.version_required'));
+    }
+    if ((string) ($version['status'] ?? '') !== 'draft') {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.version_publish_draft_only'));
+    }
+
+    $documentId = (int) $version['document_id'];
+    $effectiveFrom = sr_clean_admin_datetime((string) ($version['effective_from'] ?? ''));
+    $now = sr_now();
+    $ownsTransaction = !$pdo->inTransaction();
+    if ($ownsTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        if ($effectiveFrom === '' || $effectiveFrom <= $now) {
+            $archiveStmt = $pdo->prepare(
+                'UPDATE sr_policy_document_versions
+                 SET status = "archived",
+                     updated_at = :updated_at
+                 WHERE document_id = :document_id
+                   AND id <> :version_id
+                   AND status = "published"
+                   AND (effective_from IS NULL OR effective_from <= :effective_at)'
+            );
+            $archiveStmt->execute([
+                'document_id' => $documentId,
+                'version_id' => $versionId,
+                'effective_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        $stmt = $pdo->prepare(
+            'UPDATE sr_policy_document_versions
+             SET status = "published",
+                 published_at = :published_at,
+                 updated_at = :updated_at
+             WHERE id = :id
+               AND status = "draft"'
+        );
+        $stmt->execute([
+            'published_at' => $now,
+            'updated_at' => $now,
+            'id' => $versionId,
+        ]);
+
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
+    } catch (Throwable $exception) {
+        if ($ownsTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $exception;
+    }
+
+    return [
+        'document_id' => $documentId,
+        'version_id' => $versionId,
+    ];
 }
 
 function sr_policy_document_create_notice_job(PDO $pdo, int $documentId, int $versionId, string $subject, string $body, bool $dryRun = false): int

@@ -42,7 +42,9 @@ window.AdminShell = {
         let themeSaving = false;
 
         const restrictedKeyInputSelector = '[data-admin-key-input], [data-admin-login-id-input]';
+        const restrictedVersionKeyInputSelector = '[data-admin-version-key-input]';
         const normalizeKeyInputValue = value => value.toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[^a-z]+/, '');
+        const normalizeVersionKeyInputValue = value => String(value || '').replace(/[^A-Za-z0-9._-]/g, '');
         const normalizeSlugInputValue = value => value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+/, '');
         const assetAmountDigits = value => value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '').slice(0, 9);
         const formatAssetAmountValue = value => {
@@ -853,6 +855,12 @@ window.AdminShell = {
             normalizeKeyInputValue,
             !!reportBlockedInput && restrictedKeyInputHasBlockedData(input ? input.value : '')
         );
+        const restrictedVersionKeyInputHasBlockedData = value => /[^A-Za-z0-9._-]/.test(String(value || ''));
+        const syncVersionKeyInputValue = (input, reportBlockedInput) => syncRestrictedInputValue(
+            input,
+            normalizeVersionKeyInputValue,
+            !!reportBlockedInput && restrictedVersionKeyInputHasBlockedData(input ? input.value : '')
+        );
         const syncSlugInputValue = input => syncRestrictedInputValue(input, normalizeSlugInputValue);
 
         const syncFilteringToggleGroup = group => {
@@ -1514,6 +1522,14 @@ window.AdminShell = {
                 return;
             }
 
+            const versionKeyInput = event.target && event.target.closest
+                ? event.target.closest(restrictedVersionKeyInputSelector)
+                : null;
+            if (versionKeyInput) {
+                syncVersionKeyInputValue(versionKeyInput, true);
+                return;
+            }
+
             const slugInput = event.target && event.target.closest
                 ? event.target.closest('[data-admin-slug-input]')
                 : null;
@@ -1523,6 +1539,7 @@ window.AdminShell = {
         });
         document.querySelectorAll('[data-admin-key-input]').forEach(syncKeyInputValue);
         document.querySelectorAll('[data-admin-login-id-input]').forEach(syncKeyInputValue);
+        document.querySelectorAll('[data-admin-version-key-input]').forEach(syncVersionKeyInputValue);
         document.querySelectorAll('[data-admin-slug-input]').forEach(syncSlugInputValue);
         document.querySelectorAll('[data-admin-asset-amount-input]').forEach(syncAssetAmountInputValue);
         document.querySelectorAll('[data-admin-key-input][data-admin-key-suggest-source]').forEach(input => {
