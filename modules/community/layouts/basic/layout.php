@@ -302,23 +302,21 @@ if (
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body class="community-layout-body">
-    <header class="community-layout-header" data-community-scroll-header>
-        <a class="community-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
-            <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
-                <?php echo $layoutMobileBrandLogoHtml; ?>
-                <?php echo $layoutBrandLogoHtml; ?>
-                <?php if ($layoutBrandUsesPublicSymbol) { ?>
+    <header class="community-layout-header">
+        <div class="community-layout-topbar">
+            <a class="community-layout-brand-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
+                <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
+                    <?php echo $layoutMobileBrandLogoHtml; ?>
+                    <?php echo $layoutBrandLogoHtml; ?>
+                    <?php if ($layoutBrandUsesPublicSymbol) { ?>
+                        <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
+                    <?php } ?>
+                <?php } else { ?>
                     <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
-            <?php } else { ?>
-                <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
-            <?php } ?>
-            <span class="community-layout-module-name"><?php echo sr_e('커뮤니티'); ?></span>
-        </a>
-        <nav class="community-layout-nav" aria-label="<?php echo sr_e('커뮤니티 메뉴'); ?>">
-            <?php echo $layoutPrimaryNavigationHtml; ?>
-        </nav>
-        <div class="community-layout-actions">
+                <span class="community-layout-module-name"><?php echo sr_e('커뮤니티'); ?></span>
+            </a>
+            <div class="community-layout-actions">
             <?php if ($layoutNotificationEnabled) { ?>
                 <details class="community-layout-notification-menu">
                     <summary class="community-layout-icon-button community-layout-notification-button" aria-label="<?php echo sr_e('알림'); ?>">
@@ -419,8 +417,12 @@ if (
                     </a>
                 <?php } ?>
             <?php } ?>
+            </div>
         </div>
     </header>
+    <nav class="community-layout-nav" aria-label="<?php echo sr_e('커뮤니티 메뉴'); ?>" data-community-scroll-nav>
+        <?php echo $layoutPrimaryNavigationHtml; ?>
+    </nav>
     <div class="community-layout-main">
         <?php echo $layoutContent; ?>
     </div>

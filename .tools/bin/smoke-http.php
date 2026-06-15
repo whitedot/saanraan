@@ -432,8 +432,8 @@ $checks = [
         'path' => '/modules/community/assets/layout.js',
         'allowed_statuses' => [200],
         'must_contain' => [
-            '[data-community-scroll-header]',
-            'is-community-layout-header-hidden',
+            '[data-community-scroll-nav]',
+            'is-community-layout-nav-hidden',
         ],
     ],
     [

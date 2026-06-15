@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  var HEADER_SELECTOR = '[data-community-scroll-header]';
-  var HIDDEN_CLASS = 'is-community-layout-header-hidden';
+  var SCROLL_NAV_SELECTOR = '[data-community-scroll-nav]';
+  var HIDDEN_CLASS = 'is-community-layout-nav-hidden';
   var MIN_DELTA = 4;
   var TOP_OFFSET = 8;
 
@@ -10,22 +10,22 @@
     return Math.max(0, window.pageYOffset || document.documentElement.scrollTop || 0);
   }
 
-  function bindHeader(header) {
+  function bindScrollNav(nav) {
     var lastY = getScrollY();
     var ticking = false;
 
     function update() {
       var currentY = getScrollY();
       var delta = currentY - lastY;
-      var hideAfter = Math.max(header.offsetHeight + 16, 76);
+      var hideAfter = Math.max(nav.offsetHeight + 16, 76);
 
       if (currentY <= TOP_OFFSET) {
-        header.classList.remove(HIDDEN_CLASS);
+        nav.classList.remove(HIDDEN_CLASS);
       } else if (Math.abs(delta) >= MIN_DELTA) {
         if (delta > 0 && currentY > hideAfter) {
-          header.classList.add(HIDDEN_CLASS);
+          nav.classList.add(HIDDEN_CLASS);
         } else if (delta < 0) {
-          header.classList.remove(HIDDEN_CLASS);
+          nav.classList.remove(HIDDEN_CLASS);
         }
       }
 
@@ -75,7 +75,7 @@
   }
 
   function init() {
-    Array.prototype.slice.call(document.querySelectorAll(HEADER_SELECTOR)).forEach(bindHeader);
+    Array.prototype.slice.call(document.querySelectorAll(SCROLL_NAV_SELECTOR)).forEach(bindScrollNav);
     bindHeaderMenus();
   }
 

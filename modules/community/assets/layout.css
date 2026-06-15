@@ -3,29 +3,27 @@
  * Owns this module public layout shell only.
  */
 .community-layout-body {
+    --community-layout-page-gutter: max(calc((100vw - 1360px) / 2), clamp(16px, 2.5vw, 48px));
     background: #ffffff;
     min-height: 100vh;
 }
 
 .community-layout-header {
-    align-items: center;
-    background: rgba(255, 255, 255, .94);
-    backdrop-filter: blur(12px);
-    display: grid;
-    grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr);
-    height: 60px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
     margin: 0;
-    padding: 0 max(calc((100vw - 1360px) / 2), clamp(16px, 2.5vw, 48px));
-    position: sticky;
-    top: 0;
-    transform: translateY(0);
-    transition: transform .22s ease;
+    padding: 0 var(--community-layout-page-gutter);
     width: 100%;
-    z-index: 30;
 }
 
-.community-layout-header.is-community-layout-header-hidden {
-    transform: translateY(-100%);
+.community-layout-topbar {
+    align-items: center;
+    display: flex;
+    gap: 24px;
+    justify-content: space-between;
+    min-height: 60px;
+    width: 100%;
 }
 
 .community-layout-brand-link {
@@ -33,7 +31,6 @@
     color: #0a0a0a;
     display: inline-flex;
     gap: 8px;
-    justify-self: start;
     max-width: 100%;
     min-width: 0;
     text-decoration: none;
@@ -95,12 +92,31 @@
 
 .community-layout-nav {
     align-items: center;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, .94);
     display: flex;
     gap: 42px;
     justify-content: center;
-    justify-self: center;
     min-width: 0;
+    min-height: 42px;
+    overflow-x: auto;
+    padding: 0 var(--community-layout-page-gutter);
+    position: sticky;
+    scrollbar-width: none;
+    top: 0;
+    transform: translateY(0);
+    transition: transform .22s ease;
     white-space: nowrap;
+    width: 100%;
+    z-index: 30;
+}
+
+.community-layout-nav.is-community-layout-nav-hidden {
+    transform: translateY(-100%);
+}
+
+.community-layout-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .community-layout-nav:empty {
@@ -176,7 +192,7 @@
     align-items: center;
     display: flex;
     gap: 18px;
-    justify-self: end;
+    flex: 0 0 auto;
 }
 
 .community-layout-icon-button {
@@ -258,7 +274,7 @@
     right: 0;
     top: calc(100% + 12px);
     width: min(260px, calc(100vw - 32px));
-    z-index: 30;
+    z-index: 50;
 }
 
 .community-layout-member-dropdown-header {
@@ -398,7 +414,7 @@
     right: 0;
     top: calc(100% + 12px);
     width: min(330px, calc(100vw - 32px));
-    z-index: 30;
+    z-index: 50;
 }
 
 .community-layout-notification-header {
@@ -515,34 +531,31 @@
 }
 
 @media (max-width: 767px) {
+    .community-layout-body {
+        --community-layout-page-gutter: 20px;
+    }
+
     .community-layout-header {
-        grid-template-columns: 1fr auto;
-        height: auto;
+        padding: 0 var(--community-layout-page-gutter);
+    }
+
+    .community-layout-topbar {
+        gap: 14px;
         min-height: 58px;
-        padding: 10px 20px 12px;
-        row-gap: 8px;
     }
 
     .community-layout-nav {
-        display: flex;
-        grid-column: 1 / -1;
-        grid-row: 2;
-        justify-self: stretch;
-        overflow: visible;
-        white-space: normal;
-        width: 100%;
+        justify-content: flex-start;
+        min-height: 38px;
+        overflow-x: auto;
     }
 
     .community-layout-brand-link {
-        grid-column: 1;
-        grid-row: 1;
+        flex: 1 1 auto;
     }
 
     .community-layout-actions {
-        flex-wrap: wrap;
         gap: 8px 12px;
-        grid-column: 2;
-        grid-row: 1;
         justify-content: flex-end;
     }
 
