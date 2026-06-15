@@ -808,6 +808,58 @@ function sr_survey_by_key(PDO $pdo, string $surveyKey): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_survey_should_count_view(int $surveyId): bool
+{
+    if ($surveyId < 1) {
+        return false;
+    }
+
+    $sessionKey = 'sr_survey_viewed_forms';
+    $viewed = isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : [];
+    $surveyKey = (string) $surveyId;
+    if (isset($viewed[$surveyKey])) {
+        return false;
+    }
+
+    $viewed[$surveyKey] = time();
+    if (count($viewed) > 500) {
+        asort($viewed);
+        $viewed = array_slice($viewed, -500, null, true);
+    }
+    $_SESSION[$sessionKey] = $viewed;
+
+    return true;
+}
+
+function sr_survey_increment_view_count(PDO $pdo, int $surveyId): void
+{
+    if ($surveyId < 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare('UPDATE sr_survey_forms SET view_count = view_count + 1 WHERE id = :id');
+    $stmt->execute(['id' => $surveyId]);
+}
+
+function sr_survey_admin_survey_sort_options(): array
+{
+    return [
+        'survey_key' => ['columns' => ['s.survey_key', 's.id']],
+        'title' => ['columns' => ['s.title', 's.id']],
+        'status' => ['columns' => ['s.status', 's.id']],
+        'qa_status' => ['columns' => ['s.qa_status', 's.id']],
+        'response_count' => ['columns' => ['response_count', 's.id']],
+        'view_count' => ['columns' => ['s.view_count', 's.id']],
+        'reward_enabled' => ['columns' => ['s.reward_enabled', 's.id']],
+        'updated_at' => ['columns' => ['s.updated_at', 's.id']],
+    ];
+}
+
+function sr_survey_admin_survey_default_sort(): array
+{
+    return sr_admin_sort_default('updated_at', 'desc');
+}
+
 function sr_survey_by_id(PDO $pdo, int $surveyId): ?array
 {
     if ($surveyId < 1) {

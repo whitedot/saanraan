@@ -1,0 +1,36 @@
+SET @schema_has_content_items_view_count = (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = '{{SR_TABLE_PREFIX}}content_items'
+      AND COLUMN_NAME = 'view_count'
+);
+SET @schema_sql = IF(
+    @schema_has_content_items_view_count = 0,
+    'ALTER TABLE {{SR_TABLE_PREFIX}}content_items ADD COLUMN view_count BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER seo_description',
+    'DO 0'
+);
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
+
+SET @schema_has_content_items_view_count_index = (
+    SELECT COUNT(*)
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = '{{SR_TABLE_PREFIX}}content_items'
+      AND INDEX_NAME = 'idx_sr_content_items_view_count'
+);
+SET @schema_sql = IF(
+    @schema_has_content_items_view_count_index = 0,
+    'ALTER TABLE {{SR_TABLE_PREFIX}}content_items ADD KEY idx_sr_content_items_view_count (view_count, id)',
+    'DO 0'
+);
+PREPARE schema_stmt FROM @schema_sql;
+EXECUTE schema_stmt;
+DEALLOCATE PREPARE schema_stmt;
+
+UPDATE sr_modules
+SET version = '2026.06.022',
+    updated_at = NOW()
+WHERE module_key = 'content';

@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     secret_comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
+    view_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reward_scope VARCHAR(20) NOT NULL DEFAULT 'per_quiz',
     created_by_account_id BIGINT UNSIGNED NULL,
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     KEY idx_sr_quiz_sets_status (status),
     KEY idx_sr_quiz_sets_status_dates (status, starts_at, ends_at),
     KEY idx_sr_quiz_sets_mode_model (quiz_mode, scoring_model),
+    KEY idx_sr_quiz_sets_view_count (view_count, id),
     KEY idx_sr_quiz_sets_reward (reward_enabled)
 );
 

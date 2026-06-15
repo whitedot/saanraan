@@ -141,6 +141,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th>추가 입력</th>
                 <th>개인정보 동의</th>
                 <th<?php echo sr_admin_sort_aria('status', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
+                <th<?php echo sr_admin_sort_aria('view_count', $postSort); ?>><?php echo sr_admin_sort_header_html('조회수', 'view_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('published_comment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.c9fff683'), 'published_comment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('active_attachment_count', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.353b76cf'), 'active_attachment_count', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
                 <th<?php echo sr_admin_sort_aria('created_at', $postSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.26c8f2fa'), 'created_at', $postSort, sr_community_admin_post_sort_options(), sr_community_admin_post_default_sort()); ?></th>
@@ -150,7 +151,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <tbody>
             <?php if ($posts === []) { ?>
                 <tr>
-                    <td colspan="12" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
+                    <td colspan="13" class="admin-empty-state"><?php echo sr_e(sr_t('community::ui.text.6a3d84bd')); ?></td>
                 </tr>
             <?php } else { ?>
                 <?php foreach ($posts as $post) { ?>
@@ -185,6 +186,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_community_privacy_consent_admin_summary_html($post); ?></td>
                         <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($postStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($post['view_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $post['published_comment_count']); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
                         <td class="admin-table-nowrap admin-community-post-date-cell"><?php echo sr_community_time_html((string) $post['created_at']); ?></td>

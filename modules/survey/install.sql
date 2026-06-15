@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS sr_survey_forms (
     secret_comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
+    view_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,
     created_by_account_id BIGINT UNSIGNED NULL,
     updated_by_account_id BIGINT UNSIGNED NULL,
@@ -62,6 +63,7 @@ CREATE TABLE IF NOT EXISTS sr_survey_forms (
     PRIMARY KEY (id),
     UNIQUE KEY uq_sr_survey_forms_key (survey_key),
     KEY idx_sr_survey_forms_status_dates (status, starts_at, ends_at),
+    KEY idx_sr_survey_forms_view_count (view_count, id),
     KEY idx_sr_survey_forms_reward (reward_enabled),
     KEY idx_sr_survey_forms_qa (qa_status, revision_locked)
 );

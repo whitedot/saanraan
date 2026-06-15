@@ -65,8 +65,8 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.06.012'",
-    'Survey module version must include cover image update'
+    "'version' => '2026.06.013'",
+    'Survey module version must include view count update'
 );
 foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
     sr_survey_check_contains(
@@ -94,6 +94,13 @@ foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN cover_image_url VARCHAR(255
         'modules/survey/updates/2026.06.012.sql',
         $needle,
         'Survey cover image update must add cover image column'
+    );
+}
+foreach (['ADD COLUMN view_count BIGINT UNSIGNED NOT NULL DEFAULT 0', 'ADD KEY idx_sr_survey_forms_view_count (view_count, id)'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/updates/2026.06.013.sql',
+        $needle,
+        'Survey view count update must add view count column and index'
     );
 }
 sr_survey_check_contains(

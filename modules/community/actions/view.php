@@ -179,7 +179,7 @@ if ($canViewPostBody && is_array($postBoard)) {
         }
     }
 }
-if (!$paidReadConfirmationRequired && $canViewPostBody) {
+if (!$paidReadConfirmationRequired && $canViewPostBody && sr_community_should_count_post_view((int) $post['id'])) {
     sr_community_increment_post_view_count($pdo, (int) $post['id']);
     $post['view_count'] = (int) $post['view_count'] + 1;
 }

@@ -50,6 +50,10 @@ if (!$contentAdminPreview && sr_content_asset_access_required($page)) {
         sr_redirect(sr_content_path((string) $page['slug']));
     }
 }
+if (!$contentAdminPreview && !empty($pageAccess['allowed']) && sr_content_should_count_view((int) $page['id'])) {
+    sr_content_increment_view_count($pdo, (int) $page['id']);
+    $page['view_count'] = (int) ($page['view_count'] ?? 0) + 1;
+}
 
 $contentFiles = sr_content_files_for_content($pdo, (int) $page['id']);
 $contentSettings = sr_content_settings($pdo);

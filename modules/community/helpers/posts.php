@@ -1443,6 +1443,29 @@ function sr_community_increment_post_view_count(PDO $pdo, int $postId): void
     $stmt->execute(['id' => $postId]);
 }
 
+function sr_community_should_count_post_view(int $postId): bool
+{
+    if ($postId < 1) {
+        return false;
+    }
+
+    $sessionKey = 'sr_community_viewed_posts';
+    $viewed = isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : [];
+    $postKey = (string) $postId;
+    if (isset($viewed[$postKey])) {
+        return false;
+    }
+
+    $viewed[$postKey] = time();
+    if (count($viewed) > 500) {
+        asort($viewed);
+        $viewed = array_slice($viewed, -500, null, true);
+    }
+    $_SESSION[$sessionKey] = $viewed;
+
+    return true;
+}
+
 function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
 {
     $limit = max(1, min(100, $limit));
@@ -1766,6 +1789,7 @@ function sr_community_admin_post_sort_options(): array
         'title' => ['columns' => ['p.title', 'p.id']],
         'author' => ['columns' => ["COALESCE(author_nickname.nickname, a.display_name, '')", 'p.id']],
         'status' => ['columns' => ['p.status', 'p.id']],
+        'view_count' => ['columns' => ['p.view_count', 'p.id']],
         'published_comment_count' => ['columns' => ['published_comment_count', 'p.id']],
         'active_attachment_count' => ['columns' => ['active_attachment_count', 'p.id']],
         'created_at' => ['columns' => ['p.created_at', 'p.id']],

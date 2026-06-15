@@ -758,13 +758,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     foreach (sr_survey_statuses() as $statusKey) {
         $surveyStatusOptions[$statusKey] = sr_survey_status_label($statusKey);
     }
+    $surveySortOptions = sr_survey_admin_survey_sort_options();
+    $surveyDefaultSort = sr_survey_admin_survey_default_sort();
+    $surveySort = sr_admin_sort_from_request($surveySortOptions, $surveyDefaultSort);
+    $surveyOrderSql = sr_admin_sort_order_sql($surveySortOptions, $surveySort, $surveyDefaultSort);
+    if ($surveyOrderSql === '') {
+        $surveyOrderSql = ' ORDER BY s.updated_at DESC, s.id DESC';
+    } else {
+        $surveyOrderSql .= ', s.id DESC';
+    }
     $stmt = $pdo->prepare(
-        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
+        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, COUNT(r.id) AS response_count
          FROM sr_survey_forms s
          LEFT JOIN sr_survey_responses r ON r.survey_id = s.id
          WHERE ' . implode(' AND ', $listWhere) . '
-         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.reward_enabled, s.updated_at
-         ORDER BY s.updated_at DESC, s.id DESC
+         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at
+         ' . $surveyOrderSql . '
          LIMIT 200'
     );
     $stmt->execute($listParams);
@@ -803,25 +812,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/admin/surveys?mode=new')); ?>">새 설문</a>
             </div>
         </div>
+        <?php if (empty($surveySort['is_default'])) { ?>
+            <div class="admin-list-summary-row">
+                <a href="<?php echo sr_e(sr_admin_sort_url($surveySortOptions, $surveyDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="설문 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            </div>
+        <?php } ?>
         <div class="table-wrapper">
             <table class="table admin-survey-table">
                 <thead class="ui-table-head">
                     <tr>
-                        <th>관리용 키</th>
-                        <th>제목</th>
-                        <th>상태</th>
+                        <th<?php echo sr_admin_sort_aria('survey_key', $surveySort); ?>><?php echo sr_admin_sort_header_html('관리용 키', 'survey_key', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('title', $surveySort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('status', $surveySort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
                         <th>기간</th>
                         <th>대상</th>
-                        <th>QA</th>
-                        <th>응답</th>
-                        <th>보상</th>
-                        <th>수정일</th>
+                        <th<?php echo sr_admin_sort_aria('qa_status', $surveySort); ?>><?php echo sr_admin_sort_header_html('QA', 'qa_status', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('response_count', $surveySort); ?>><?php echo sr_admin_sort_header_html('응답', 'response_count', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('view_count', $surveySort); ?>><?php echo sr_admin_sort_header_html('조회수', 'view_count', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('reward_enabled', $surveySort); ?>><?php echo sr_admin_sort_header_html('보상', 'reward_enabled', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('updated_at', $surveySort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
                         <th class="text-end">관리</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($surveys === []): ?>
-                        <tr><td colspan="10" class="admin-empty-state">등록된 설문이 없습니다.</td></tr>
+                        <tr><td colspan="11" class="admin-empty-state">등록된 설문이 없습니다.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($surveys as $survey): ?>
                         <?php
@@ -843,6 +858,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-break"><?php echo $listGroupKeys === [] ? '전체' : sr_e(implode(', ', $listGroupKeys)); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class($surveyQaStatus)); ?>"><?php echo sr_e(sr_survey_qa_status_label($surveyQaStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) $survey['response_count'])); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($survey['view_count'] ?? 0))); ?></td>
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '미사용'; ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_survey_time_html((string) $survey['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">

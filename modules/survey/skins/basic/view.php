@@ -28,6 +28,10 @@ $previewMode = $canPreviewAsAdmin;
 if (!is_array($survey) || (!$isPubliclyOpen && !$canPreviewAsAdmin)) {
     sr_render_error(404, '설문을 찾을 수 없습니다.');
 }
+if (!$canPreviewAsAdmin && sr_survey_should_count_view((int) ($survey['id'] ?? 0))) {
+    sr_survey_increment_view_count($pdo, (int) ($survey['id'] ?? 0));
+    $survey['view_count'] = (int) ($survey['view_count'] ?? 0) + 1;
+}
 $settings = sr_survey_display_settings_for_survey($settings, $survey);
 
 $questions = sr_survey_questions_with_choices($pdo, (int) $survey['id']);

@@ -922,6 +922,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <th<?php echo sr_content_admin_sort_aria('slug', $contentSort); ?>><?php echo sr_content_admin_sort_header_html('주소 이름', 'slug', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('status', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.status.e10195a1'), 'status', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('asset_access', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.c9b3e6f0'), 'asset_access', $contentSort); ?></th>
+                        <th<?php echo sr_content_admin_sort_aria('view_count', $contentSort); ?>><?php echo sr_content_admin_sort_header_html('조회수', 'view_count', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('created_by', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.f2ee20a7'), 'created_by', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('updated_at', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.edit.d3a98476'), 'updated_at', $contentSort); ?></th>
                         <th<?php echo sr_content_admin_sort_aria('published_at', $contentSort); ?>><?php echo sr_content_admin_sort_header_html(sr_t('content::ui.text.84b7c221'), 'published_at', $contentSort); ?></th>
@@ -931,7 +932,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tbody>
                     <?php if ($pages === []) { ?>
                         <tr>
-                            <td colspan="11" class="admin-empty-state"><?php echo sr_e(sr_t('content::ui.create.content.8994ccd1')); ?></td>
+                            <td colspan="12" class="admin-empty-state"><?php echo sr_e(sr_t('content::ui.create.content.8994ccd1')); ?></td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($pages as $page) { ?>
@@ -975,6 +976,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_e(sr_t('content::ui.text.b8fb5347')); ?>
                                     <?php } ?>
                                 </td>
+                                <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($page['view_count'] ?? 0))); ?></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['created_by_name'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_content_time_html((string) $page['updated_at']); ?></td>
                                 <td class="admin-table-nowrap admin-content-date-cell"><?php echo sr_content_time_html((string) ($page['published_at'] ?? '')); ?></td>

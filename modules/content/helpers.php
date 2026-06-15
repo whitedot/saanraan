@@ -1000,6 +1000,39 @@ function sr_content_published_by_slug(PDO $pdo, string $slug): ?array
     return is_array($page) && (string) ($page['status'] ?? '') === 'published' ? $page : null;
 }
 
+function sr_content_should_count_view(int $contentId): bool
+{
+    if ($contentId < 1) {
+        return false;
+    }
+
+    $sessionKey = 'sr_content_viewed_items';
+    $viewed = isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : [];
+    $contentKey = (string) $contentId;
+    if (isset($viewed[$contentKey])) {
+        return false;
+    }
+
+    $viewed[$contentKey] = time();
+    if (count($viewed) > 500) {
+        asort($viewed);
+        $viewed = array_slice($viewed, -500, null, true);
+    }
+    $_SESSION[$sessionKey] = $viewed;
+
+    return true;
+}
+
+function sr_content_increment_view_count(PDO $pdo, int $contentId): void
+{
+    if ($contentId < 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare('UPDATE sr_content_items SET view_count = view_count + 1 WHERE id = :id');
+    $stmt->execute(['id' => $contentId]);
+}
+
 function sr_content_slug_exists(PDO $pdo, string $slug, int $exceptPageId = 0): bool
 {
     $stmt = $pdo->prepare(
@@ -1472,6 +1505,10 @@ function sr_content_admin_sort_options(): array
         'asset_access' => [
             'label' => '유료 열람',
             'columns' => ['p.asset_access_enabled', 'p.asset_module', 'p.asset_access_amount', 'p.id'],
+        ],
+        'view_count' => [
+            'label' => '조회수',
+            'columns' => ['p.view_count', 'p.id'],
         ],
         'created_by' => [
             'label' => '작성자',

@@ -960,6 +960,39 @@ function sr_quiz_by_key(PDO $pdo, string $quizKey): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_quiz_should_count_view(int $quizId): bool
+{
+    if ($quizId < 1) {
+        return false;
+    }
+
+    $sessionKey = 'sr_quiz_viewed_sets';
+    $viewed = isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : [];
+    $quizKey = (string) $quizId;
+    if (isset($viewed[$quizKey])) {
+        return false;
+    }
+
+    $viewed[$quizKey] = time();
+    if (count($viewed) > 500) {
+        asort($viewed);
+        $viewed = array_slice($viewed, -500, null, true);
+    }
+    $_SESSION[$sessionKey] = $viewed;
+
+    return true;
+}
+
+function sr_quiz_increment_view_count(PDO $pdo, int $quizId): void
+{
+    if ($quizId < 1) {
+        return;
+    }
+
+    $stmt = $pdo->prepare('UPDATE sr_quiz_sets SET view_count = view_count + 1 WHERE id = :id');
+    $stmt->execute(['id' => $quizId]);
+}
+
 function sr_quiz_by_id(PDO $pdo, int $quizId): ?array
 {
     if ($quizId < 1) {
@@ -2576,6 +2609,7 @@ function sr_quiz_admin_quiz_sort_options(): array
         'source_count' => ['columns' => ['source_count', 'q.id']],
         'attempt_count' => ['columns' => ['attempt_count', 'q.id']],
         'passed_count' => ['columns' => ['passed_count', 'q.id']],
+        'view_count' => ['columns' => ['q.view_count', 'q.id']],
         'reward_enabled' => ['columns' => ['q.reward_enabled', 'q.id']],
         'updated_at' => ['columns' => ['q.updated_at', 'q.id']],
     ];
@@ -2661,7 +2695,7 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
     $stmt = $pdo->prepare(
         'SELECT q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                 q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
-                q.member_group_keys_json, q.reward_enabled, q.updated_at,
+                q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at,
                 COUNT(DISTINCT qs.id) AS question_count,
                 COUNT(DISTINCT rr.id) AS result_rule_count,
                 COUNT(DISTINCT rp.id) AS reward_policy_count,
@@ -2684,7 +2718,7 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
          ' . $whereSql . '
          GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
                   q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
-                  q.member_group_keys_json, q.reward_enabled, q.updated_at, qa.attempt_count, qa.passed_count
+                  q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, qa.attempt_count, qa.passed_count
          ' . $orderSql . '
          LIMIT ' . (string) $limit . ' OFFSET ' . (string) $offset
     );
