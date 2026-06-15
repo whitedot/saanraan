@@ -88,66 +88,64 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <span class="sr-only"><?php echo sr_e($providerLabel . ' 사용'); ?></span>
                 </label>
             </div>
-            <div data-oauth-provider-fields="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <div class="admin-form-row">
-                    <span class="form-label"><?php echo sr_e('노출 진단'); ?></span>
-                    <div class="admin-form-field">
-                        <ul class="admin-form-help">
-                            <?php foreach ($providerStatus['items'] as $statusItem) { ?>
-                                <li>
-                                    <?php echo sr_e((string) $statusItem['label']); ?>:
-                                    <?php echo sr_e(!empty($statusItem['ok']) ? '정상' : '필요'); ?>
-                                    - <?php echo sr_e((string) $statusItem['message']); ?>
-                                </li>
-                            <?php } ?>
-                        </ul>
-                    </div>
+            <div class="admin-form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
+                <span class="form-label"><?php echo sr_e('노출 진단'); ?></span>
+                <div class="admin-form-field">
+                    <ul class="admin-form-help">
+                        <?php foreach ($providerStatus['items'] as $statusItem) { ?>
+                            <li>
+                                <?php echo sr_e((string) $statusItem['label']); ?>:
+                                <?php echo sr_e(!empty($statusItem['ok']) ? '정상' : '필요'); ?>
+                                - <?php echo sr_e((string) $statusItem['message']); ?>
+                            </li>
+                        <?php } ?>
+                    </ul>
                 </div>
-                <div class="admin-form-row">
-                    <span class="form-label"><?php echo sr_e('Callback URL'); ?></span>
-                    <div class="admin-form-field">
-                        <div class="admin-form-actions">
-                            <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-oauth-copy-value="<?php echo sr_e($callbackUrl); ?>" title="<?php echo sr_e('Callback URL 복사'); ?>" aria-label="<?php echo sr_e('Callback URL 복사'); ?>">
-                                <?php echo sr_material_icon_html('content_copy'); ?>
-                                <span><?php echo sr_e('복사'); ?></span>
-                            </button>
-                        </div>
-                        <p class="admin-form-help">외부 OAuth/OIDC 제공자 콘솔의 redirect URI 또는 callback URL 항목에 같은 값을 등록합니다. Client ID와 secret은 같은 콘솔의 앱 자격 증명 화면에서 발급받습니다.</p>
+            </div>
+            <div class="admin-form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
+                <span class="form-label"><?php echo sr_e('Callback URL'); ?></span>
+                <div class="admin-form-field">
+                    <div class="admin-form-actions">
+                        <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-oauth-copy-value="<?php echo sr_e($callbackUrl); ?>" title="<?php echo sr_e('Callback URL 복사'); ?>" aria-label="<?php echo sr_e('Callback URL 복사'); ?>">
+                            <?php echo sr_material_icon_html('content_copy'); ?>
+                            <span><?php echo sr_e('복사'); ?></span>
+                        </button>
                     </div>
+                    <p class="admin-form-help">외부 OAuth/OIDC 제공자 콘솔의 redirect URI 또는 callback URL 항목에 같은 값을 등록합니다. Client ID와 secret은 같은 콘솔의 앱 자격 증명 화면에서 발급받습니다.</p>
                 </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_label'); ?>"><?php echo sr_e('라벨'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
-                    <div class="admin-form-field">
-                        <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_label'); ?>" type="text" name="<?php echo sr_e($labelKey); ?>" maxlength="80" value="<?php echo sr_e((string) ($provider['label'] ?? $providerKey)); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input form-control-full" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
-                    </div>
+            </div>
+            <div class="admin-form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
+                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_label'); ?>"><?php echo sr_e('라벨'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
+                <div class="admin-form-field">
+                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_label'); ?>" type="text" name="<?php echo sr_e($labelKey); ?>" maxlength="80" value="<?php echo sr_e((string) ($provider['label'] ?? $providerKey)); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input form-control-full" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
                 </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>"><?php echo sr_e('Client ID'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
-                    <div class="admin-form-field">
-                        <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>" type="text" name="<?php echo sr_e($clientIdKey); ?>" maxlength="255" value="<?php echo sr_e((string) ($provider['client_id'] ?? '')); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input form-control-full" autocomplete="off" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
-                        <p class="admin-form-help">사용을 켠 제공자는 Client ID가 있어야 로그인 화면에 노출할 수 있습니다.</p>
-                    </div>
+            </div>
+            <div class="admin-form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
+                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>"><?php echo sr_e('Client ID'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
+                <div class="admin-form-field">
+                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>" type="text" name="<?php echo sr_e($clientIdKey); ?>" maxlength="255" value="<?php echo sr_e((string) ($provider['client_id'] ?? '')); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input form-control-full" autocomplete="off" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
+                    <p class="admin-form-help">사용을 켠 제공자는 Client ID가 있어야 로그인 화면에 노출할 수 있습니다.</p>
                 </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('Client secret'); ?></label>
-                    <div class="admin-form-field">
-                        <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password">
-                        <p class="admin-form-help">비워 두면 기존 secret을 유지합니다. 저장 후 화면에는 원문을 표시하지 않습니다.</p>
-                    </div>
+            </div>
+            <div class="admin-form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
+                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('Client secret'); ?></label>
+                <div class="admin-form-field">
+                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>" class="form-input form-control-full" autocomplete="new-password">
+                    <p class="admin-form-help">비워 두면 기존 secret을 유지합니다. 저장 후 화면에는 원문을 표시하지 않습니다.</p>
                 </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_scope'); ?>"><?php echo sr_e('Scope'); ?></label>
-                    <div class="admin-form-field">
-                        <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_scope'); ?>" type="text" name="<?php echo sr_e($scopeKey); ?>" maxlength="255" value="<?php echo sr_e(sr_member_oauth_provider_scopes($provider)); ?>" class="form-input form-control-full">
-                        <p class="admin-form-help">비워 두면 제공자 계약의 기본 scope를 사용합니다. 일반 OIDC 제공자는 보통 openid, email, profile 범위가 필요합니다.</p>
-                    </div>
+            </div>
+            <div class="admin-form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
+                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_scope'); ?>"><?php echo sr_e('Scope'); ?></label>
+                <div class="admin-form-field">
+                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_scope'); ?>" type="text" name="<?php echo sr_e($scopeKey); ?>" maxlength="255" value="<?php echo sr_e(sr_member_oauth_provider_scopes($provider)); ?>" class="form-input form-control-full">
+                    <p class="admin-form-help">비워 두면 제공자 계약의 기본 scope를 사용합니다. 일반 OIDC 제공자는 보통 openid, email, profile 범위가 필요합니다.</p>
                 </div>
-                <div class="admin-form-row">
-                    <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>"><?php echo sr_e('정렬 순서'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
-                    <div class="admin-form-field">
-                        <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>" type="number" name="<?php echo sr_e($sortOrderKey); ?>" min="-9999" max="9999" value="<?php echo sr_e((string) ((int) ($provider['sort_order'] ?? 0))); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
-                    </div>
+            </div>
+            <div class="admin-form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
+                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>"><?php echo sr_e('정렬 순서'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
+                <div class="admin-form-field">
+                    <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>" type="number" name="<?php echo sr_e($sortOrderKey); ?>" min="-9999" max="9999" value="<?php echo sr_e((string) ((int) ($provider['sort_order'] ?? 0))); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
                 </div>
             </div>
         </section>
@@ -201,8 +199,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 document.querySelectorAll('[data-oauth-provider-toggle]').forEach(function (toggle) {
     var providerKey = toggle.getAttribute('data-oauth-provider-toggle') || '';
     function syncRequired() {
-        document.querySelectorAll('[data-oauth-provider-fields="' + providerKey + '"]').forEach(function (fields) {
-            fields.hidden = !toggle.checked;
+        document.querySelectorAll('[data-oauth-provider-field-row="' + providerKey + '"]').forEach(function (row) {
+            row.hidden = !toggle.checked;
         });
         document.querySelectorAll('[data-oauth-required-provider="' + providerKey + '"]').forEach(function (input) {
             input.required = toggle.checked;
