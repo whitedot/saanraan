@@ -46,7 +46,7 @@
 | `logo_manager` | 로고 배치와 변경 작성자 | 설정 변경 책임 추적은 운영 보존으로 두되 감사 로그 대체 가능성을 검토한다. |
 | `member` | 계정, 인증, 프로필, 닉네임, 동의, 그룹, 세션/token | 계정 원천 소유자이며 다른 모듈 cleanup 조정자다. 동의 철회와 정정권 전파의 시작점으로 기록한다. |
 | `member_oauth` | OAuth/OIDC state, provider subject hash, email snapshot, 계정 연결 | 외부 provider processor, 국외 처리 가능성, profile snapshot 최소화, 연결 해제 cleanup을 기록한다. |
-| `member_oauth_providers` | Google, Kakao, Naver OAuth provider 계약 | 자기 DB 데이터는 없지만 provider endpoint, scope, 중첩 profile claim 계약을 `member_oauth` 처리활동의 외부 processor 후보와 함께 기록한다. |
+| `member_oauth_providers` | Google, Kakao, Naver, GitHub, Apple ID OAuth provider 계약 | 자기 DB 데이터는 없지만 provider endpoint, scope, 중첩 profile claim 계약을 `member_oauth` 처리활동의 외부 processor 후보와 함께 기록한다. |
 | `notification` | 사이트 알림, read, delivery, push endpoint, 운영 알림 | site/email/push/external recipient와 ciphertext, 재발송 가능 기간, 탈퇴 후 tombstone 기준을 기록한다. |
 | `point` | 포인트 잔액, 원장, 만료 소비 매핑 | 금액성 증빙으로 보존하고 만료 source/consume 연결과 탈퇴 후 식별자 노출 최소화를 기록한다. |
 | `policy_documents` | 약관/방침 버전, 동의 문서, 변경 안내메일 delivery | 정책 문서 version snapshot과 안내메일 delivery의 export/cleanup, 수신자 보존 기준을 기록한다. |

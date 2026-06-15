@@ -640,15 +640,92 @@ function sr_member_oauth_http_json(string $url, array $contextOptions): array
     return $decoded;
 }
 
+function sr_member_oauth_base64url_decode(string $value): string
+{
+    $remainder = strlen($value) % 4;
+    if ($remainder > 0) {
+        $value .= str_repeat('=', 4 - $remainder);
+    }
+
+    $decoded = base64_decode(strtr($value, '-_', '+/'), true);
+
+    return is_string($decoded) ? $decoded : '';
+}
+
+function sr_member_oauth_jwt_payload(string $jwt): array
+{
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3 || trim($parts[1]) === '') {
+        throw new RuntimeException('OAuth provider ID token is invalid.');
+    }
+
+    $decoded = json_decode(sr_member_oauth_base64url_decode($parts[1]), true);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('OAuth provider ID token payload is invalid.');
+    }
+
+    return $decoded;
+}
+
+function sr_member_oauth_truthy(mixed $value): bool
+{
+    if (is_bool($value)) {
+        return $value;
+    }
+    if (is_int($value) || is_float($value)) {
+        return $value > 0;
+    }
+    if (is_string($value)) {
+        return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'y'], true);
+    }
+
+    return !empty($value);
+}
+
+function sr_member_oauth_primary_email_from_list(array $emails): array
+{
+    $fallback = null;
+    foreach ($emails as $emailRow) {
+        if (!is_array($emailRow)) {
+            continue;
+        }
+        $email = trim((string) ($emailRow['email'] ?? ''));
+        if ($email === '') {
+            continue;
+        }
+        if ($fallback === null || !empty($emailRow['verified'])) {
+            $fallback = $emailRow;
+        }
+        if (!empty($emailRow['primary'])) {
+            return [
+                'email' => $email,
+                'verified' => sr_member_oauth_truthy($emailRow['verified'] ?? false),
+            ];
+        }
+    }
+    if (is_array($fallback)) {
+        return [
+            'email' => trim((string) ($fallback['email'] ?? '')),
+            'verified' => sr_member_oauth_truthy($fallback['verified'] ?? false),
+        ];
+    }
+
+    return ['email' => '', 'verified' => false];
+}
+
 function sr_member_oauth_provider_profile(array $provider, array $site, string $code, array $transientSecrets): array
 {
     $tokenUrl = sr_member_oauth_provider_value($provider, 'token_url');
     $userinfoUrl = sr_member_oauth_provider_value($provider, 'userinfo_url');
+    $profileSource = sr_member_oauth_provider_value($provider, 'profile_source') ?: 'userinfo';
     $clientId = sr_member_oauth_provider_value($provider, 'client_id');
     $clientSecret = sr_member_oauth_provider_value($provider, 'client_secret');
     $codeVerifier = (string) ($transientSecrets['code_verifier'] ?? '');
     $callbackUrl = sr_absolute_url($site, '/oauth/callback');
-    if ($tokenUrl === '' || $userinfoUrl === '' || !sr_is_http_url($callbackUrl) || $clientId === '' || $code === '' || $codeVerifier === '') {
+    if ($tokenUrl === '' || !sr_is_http_url($callbackUrl) || $clientId === '' || $code === '' || $codeVerifier === '') {
+        throw new RuntimeException('OAuth provider callback settings are incomplete.');
+    }
+    if ($profileSource !== 'id_token' && $userinfoUrl === '') {
         throw new RuntimeException('OAuth provider callback settings are incomplete.');
     }
 
@@ -673,18 +750,35 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
         ],
     ]);
     $bearer = trim((string) ($tokenResponse['access' . '_token'] ?? ''));
-    if ($bearer === '') {
+    $idToken = trim((string) ($tokenResponse['id' . '_token'] ?? ''));
+    if ($bearer === '' && $idToken === '') {
         throw new RuntimeException('OAuth provider token response is missing an access credential.');
     }
 
-    $userinfo = sr_member_oauth_http_json($userinfoUrl, [
-        'http' => [
-            'method' => 'GET',
-            'header' => "Authorization: Bearer " . $bearer . "\r\nAccept: application/json\r\n",
-            'timeout' => 10,
-            'ignore_errors' => true,
-        ],
-    ]);
+    if ($profileSource === 'id_token') {
+        if ($idToken === '') {
+            throw new RuntimeException('OAuth provider token response is missing an ID token.');
+        }
+        $userinfo = sr_member_oauth_jwt_payload($idToken);
+        $expectedNonce = (string) ($transientSecrets['nonce'] ?? '');
+        $profileNonce = trim((string) ($userinfo['nonce'] ?? ''));
+        if ($expectedNonce !== '' && $profileNonce !== '' && !hash_equals($expectedNonce, $profileNonce)) {
+            throw new RuntimeException('OAuth provider ID token nonce does not match.');
+        }
+    } else {
+        if ($bearer === '') {
+            throw new RuntimeException('OAuth provider token response is missing an access token.');
+        }
+        $userinfo = sr_member_oauth_http_json($userinfoUrl, [
+            'http' => [
+                'method' => 'GET',
+                'header' => "Authorization: Bearer " . $bearer . "\r\nAccept: application/json\r\nUser-Agent: Saanraan OAuth\r\n",
+                'timeout' => 10,
+                'ignore_errors' => true,
+            ],
+        ]);
+    }
+
     $subjectClaim = sr_member_oauth_provider_value($provider, 'subject_claim') ?: 'sub';
     $emailClaim = sr_member_oauth_provider_value($provider, 'email_claim') ?: 'email';
     $emailVerifiedClaim = sr_member_oauth_provider_value($provider, 'email_verified_claim') ?: 'email_verified';
@@ -696,13 +790,29 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
     }
 
     $email = trim((string) (sr_member_oauth_claim_value($userinfo, $emailClaim) ?? ''));
+    $emailVerified = $emailVerifiedClaim === '' ? false : sr_member_oauth_truthy(sr_member_oauth_claim_value($userinfo, $emailVerifiedClaim));
+    $emailUrl = sr_member_oauth_provider_value($provider, 'email_url');
+    if ($email === '' && $emailUrl !== '' && $bearer !== '') {
+        $emailList = sr_member_oauth_http_json($emailUrl, [
+            'http' => [
+                'method' => 'GET',
+                'header' => "Authorization: Bearer " . $bearer . "\r\nAccept: application/json\r\nUser-Agent: Saanraan OAuth\r\n",
+                'timeout' => 10,
+                'ignore_errors' => true,
+            ],
+        ]);
+        $primaryEmail = sr_member_oauth_primary_email_from_list($emailList);
+        $email = (string) ($primaryEmail['email'] ?? '');
+        $emailVerified = !empty($primaryEmail['verified']);
+    }
+
     $displayName = trim((string) (sr_member_oauth_claim_value($userinfo, $displayNameClaim) ?? sr_member_oauth_claim_value($userinfo, $fallbackNameClaim) ?? ''));
 
     return [
         'subject' => $subject,
         'subject_display' => $subject,
         'email' => $email,
-        'email_verified' => !empty(sr_member_oauth_claim_value($userinfo, $emailVerifiedClaim)),
+        'email_verified' => $emailVerified,
         'display_name' => $displayName,
     ];
 }

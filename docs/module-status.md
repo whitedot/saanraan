@@ -43,7 +43,7 @@
 | 운영 | `privacy` | `stable-candidate` | `check-privacy-contract-matrix.php`, `check-privacy-export-runtime.php`의 활동 데이터/보존형 export fixture, `check-privacy-cleanup-runtime.php`, `smoke-privacy-export-cleanup.php`, smoke 기준 | `release-installed-gate-status.php --run-privacy-smoke` 개인정보 export/cleanup 설치 DB smoke 기록, 운영 보존 데이터의 실제 마스킹/보존기간 수동 검토 |
 | 플러그인 | `ckeditor` | `beta` | `check-rich-text-sanitizer.php`, `check-htmlpurifier-runtime.php`, `check-ckeditor-assets.php`, `check-browser-qa.php`, `ckeditor-browser-smoke.spec.js`, `smoke-ckeditor-upload-save.php`, HTML Purifier 배치/캐시 경로, rich text sanitizer fixture, 브라우저 asset 로딩/fallback smoke, upload adapter request contract smoke, 공개/draft 본문 이미지 접근 smoke 하니스 | `release-installed-gate-status.php --run-ckeditor-upload-save-smoke` CKEditor upload/save browser smoke 실행 기록, 유료 본문 이미지 접근 smoke |
 | 플러그인 | `antispam_captcha_providers` | `beta` | `check-antispam-runtime.php`, `antispam-providers.php` 계약 반환 fixture, Turnstile/hCaptcha/reCAPTCHA provider mock fixture, widget class/endpoint/script 설정, provider action/hostname 검증 토글 점검 | 실제 provider staging key 또는 provider mock endpoint 기반 브라우저 수동 smoke와 timeout/fallback 정책 smoke |
-| 플러그인 | `member_oauth_providers` | `beta` | `check-member-oauth-runtime.php`, `oauth-providers.php` 계약 반환 fixture, Google/Kakao/Naver authorization/token/userinfo endpoint와 중첩 claim path fixture | 실제 provider staging 계정 기반 로그인/가입/연결 브라우저 smoke |
+| 플러그인 | `member_oauth_providers` | `beta` | `check-member-oauth-runtime.php`, `oauth-providers.php` 계약 반환 fixture, Google/Kakao/Naver/GitHub/Apple ID authorization/token/userinfo/id_token endpoint와 중첩 claim path fixture | 실제 provider staging 계정 기반 로그인/가입/연결 브라우저 smoke |
 
 ## 1.0 제외 계획
 

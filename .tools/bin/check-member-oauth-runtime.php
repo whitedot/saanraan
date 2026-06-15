@@ -58,6 +58,11 @@ function sr_member_oauth_check_forbids(string $path, array $markers): void
     }
 }
 
+function sr_member_oauth_check_base64url(string $value): string
+{
+    return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+}
+
 function sr_member_oauth_check_pdo(): PDO
 {
     $pdo = new PDO('sqlite::memory:');
@@ -139,6 +144,16 @@ function sr_member_oauth_check_runtime_helpers(): void
     parse_str((string) (parse_url($emptyScopeAuthUrl, PHP_URL_QUERY) ?: ''), $emptyScopeAuthQuery);
     sr_member_oauth_check_assert(!array_key_exists('scope', $emptyScopeAuthQuery), 'OAuth authorization URL should omit empty scope parameters.');
     sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scopes' => ['account_email', 'profile_nickname'], 'scope_delimiter' => ',']) === 'account_email,profile_nickname', 'OAuth provider scopes should support provider-specific delimiters.');
+    sr_member_oauth_check_assert(sr_member_oauth_truthy('true') === true, 'OAuth truthy helper should accept true strings.');
+    sr_member_oauth_check_assert(sr_member_oauth_truthy('false') === false, 'OAuth truthy helper should reject false strings.');
+    $jwt = sr_member_oauth_check_base64url('{"alg":"none"}') . '.' . sr_member_oauth_check_base64url('{"sub":"apple-subject","email":"apple@example.test","email_verified":"true","nonce":"nonce-fixture"}') . '.';
+    $jwtPayload = sr_member_oauth_jwt_payload($jwt);
+    sr_member_oauth_check_assert((string) ($jwtPayload['sub'] ?? '') === 'apple-subject', 'OAuth JWT helper should read ID token payload claims.');
+    $primaryEmail = sr_member_oauth_primary_email_from_list([
+        ['email' => 'secondary@example.test', 'verified' => true, 'primary' => false],
+        ['email' => 'primary@example.test', 'verified' => true, 'primary' => true],
+    ]);
+    sr_member_oauth_check_assert((string) ($primaryEmail['email'] ?? '') === 'primary@example.test', 'OAuth email helper should prefer primary provider email.');
 
     sr_member_oauth_store_transient_secrets((string) $state['state'], $state, 120);
     $transient = sr_member_oauth_take_transient_secrets((string) $state['state']);
@@ -240,6 +255,9 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_provider_admin_status',
     'sr_member_oauth_claim_value',
     'sr_member_oauth_secret_display',
+    'sr_member_oauth_jwt_payload',
+    'sr_member_oauth_primary_email_from_list',
+    'sr_member_oauth_truthy',
     'sr_member_oauth_authorization_url',
     'sr_member_oauth_store_transient_secrets',
     'sr_member_oauth_take_transient_secrets',
@@ -259,7 +277,11 @@ sr_member_oauth_check_contains('modules/member_oauth_providers/oauth-providers.p
     "'google'",
     "'kakao'",
     "'naver'",
+    "'github'",
+    "'apple'",
     "'scope_delimiter'",
+    "'email_url'",
+    "'profile_source' => 'id_token'",
     "'response.id'",
     "'kakao_account.profile.nickname'",
 ]);
