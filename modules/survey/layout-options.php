@@ -8,7 +8,7 @@ return [
         'supports' => ['site', 'survey.home', 'survey.view'],
         'style_profile' => 'minimal',
         'views' => [
-            'layout' => SR_ROOT . '/layouts/public/basic/layout.php',
+            'layout' => SR_ROOT . '/modules/survey/layouts/basic/layout.php',
         ],
     ],
 ];

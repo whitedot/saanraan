@@ -168,11 +168,6 @@
     justify-self: end;
 }
 
-.community-layout-member-logout-form {
-    display: inline-flex;
-    margin: 0;
-}
-
 .community-layout-icon-button {
     align-items: center;
     background: transparent;
@@ -206,6 +201,32 @@
     text-overflow: ellipsis;
 }
 
+.community-layout-member-menu {
+    align-items: center;
+    display: inline-flex;
+    height: 32px;
+    justify-content: center;
+    position: relative;
+}
+
+.community-layout-member-menu summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.community-layout-member-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.community-layout-member-menu-arrow {
+    font-size: 1rem !important;
+    transition: transform .16s ease;
+}
+
+.community-layout-member-menu[open] .community-layout-member-menu-arrow {
+    transform: rotate(180deg);
+}
+
 .community-layout-admin-link {
     flex: 0 0 32px;
 }
@@ -214,6 +235,99 @@
 .community-layout-member-link-logout {
     flex: 0 0 32px;
     gap: 0;
+}
+
+.community-layout-member-dropdown {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: 8px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, .14);
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 12px);
+    width: min(260px, calc(100vw - 32px));
+    z-index: 30;
+}
+
+.community-layout-member-dropdown-header {
+    border-bottom: 1px solid rgba(0, 0, 0, .09);
+    padding: 13px 14px;
+}
+
+.community-layout-member-dropdown-header strong {
+    color: #111;
+    display: block;
+    font-size: .92rem;
+    line-height: 1.35;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.community-layout-member-dropdown-link,
+.community-layout-member-asset-row,
+.community-layout-member-logout-button {
+    align-items: center;
+    background: #fff;
+    border: 0;
+    color: #151515;
+    display: flex;
+    font: inherit;
+    gap: 10px;
+    justify-content: space-between;
+    line-height: 1.35;
+    padding: 12px 14px;
+    text-align: left;
+    text-decoration: none;
+    width: 100%;
+}
+
+.community-layout-member-dropdown-link:hover,
+.community-layout-member-asset-row:hover,
+.community-layout-member-logout-button:hover {
+    background: rgba(0, 0, 0, .04);
+}
+
+.community-layout-member-dropdown-link span:first-child,
+.community-layout-member-asset-row span {
+    color: rgba(0, 0, 0, .62);
+    font-size: .82rem;
+    font-weight: 700;
+    min-width: 0;
+}
+
+.community-layout-member-dropdown-link .material-symbols-outlined,
+.community-layout-member-logout-button .material-symbols-outlined {
+    color: rgba(0, 0, 0, .48);
+    font-size: 1.05rem;
+}
+
+.community-layout-member-asset-row + .community-layout-member-asset-row,
+.community-layout-member-dropdown-link + .community-layout-member-asset-row,
+.community-layout-member-logout-form {
+    border-top: 1px solid rgba(0, 0, 0, .07);
+}
+
+.community-layout-member-asset-row strong {
+    color: #111;
+    font-size: .88rem;
+    font-weight: 800;
+    max-width: 9.5rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.community-layout-member-logout-form {
+    display: block;
+    margin: 0;
+}
+
+.community-layout-member-logout-button {
+    cursor: pointer;
 }
 
 .community-layout-notification-menu {
@@ -428,6 +542,10 @@
         right: -42px;
     }
 
+    .community-layout-member-dropdown {
+        right: -6px;
+    }
+
     .community-layout-footer {
         padding: 24px 0 34px;
         width: calc(100% - 40px);
@@ -437,4 +555,3 @@
         gap: 8px 14px;
     }
 }
-

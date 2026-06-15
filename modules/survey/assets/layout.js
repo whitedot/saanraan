@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  var HEADER_SELECTOR = '[data-community-scroll-header]';
-  var HIDDEN_CLASS = 'is-community-layout-header-hidden';
+  var HEADER_SELECTOR = '[data-survey-scroll-header]';
+  var HIDDEN_CLASS = 'is-survey-layout-header-hidden';
   var MIN_DELTA = 4;
   var TOP_OFFSET = 8;
 
@@ -48,7 +48,7 @@
   }
 
   function closeHeaderMenus(exceptMenu) {
-    Array.prototype.slice.call(document.querySelectorAll('.community-layout-notification-menu[open], .community-layout-member-menu[open]')).forEach(function (menu) {
+    Array.prototype.slice.call(document.querySelectorAll('.survey-layout-notification-menu[open], .survey-layout-member-menu[open]')).forEach(function (menu) {
       if (menu !== exceptMenu) {
         menu.removeAttribute('open');
       }
@@ -63,7 +63,7 @@
         return;
       }
 
-      var currentMenu = target.closest('.community-layout-notification-menu, .community-layout-member-menu');
+      var currentMenu = target.closest('.survey-layout-notification-menu, .survey-layout-member-menu');
       closeHeaderMenus(currentMenu);
     });
 

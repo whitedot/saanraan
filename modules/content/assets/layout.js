@@ -47,36 +47,36 @@
     update();
   }
 
-  function closeNotificationMenus(exceptMenu) {
-    Array.prototype.slice.call(document.querySelectorAll('.content-layout-notification-menu[open]')).forEach(function (menu) {
+  function closeHeaderMenus(exceptMenu) {
+    Array.prototype.slice.call(document.querySelectorAll('.content-layout-notification-menu[open], .content-layout-member-menu[open]')).forEach(function (menu) {
       if (menu !== exceptMenu) {
         menu.removeAttribute('open');
       }
     });
   }
 
-  function bindNotificationMenus() {
+  function bindHeaderMenus() {
     document.addEventListener('click', function (event) {
       var target = event.target;
       if (!(target instanceof Element)) {
-        closeNotificationMenus(null);
+        closeHeaderMenus(null);
         return;
       }
 
-      var currentMenu = target.closest('.content-layout-notification-menu');
-      closeNotificationMenus(currentMenu);
+      var currentMenu = target.closest('.content-layout-notification-menu, .content-layout-member-menu');
+      closeHeaderMenus(currentMenu);
     });
 
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') {
-        closeNotificationMenus(null);
+        closeHeaderMenus(null);
       }
     });
   }
 
   function init() {
     Array.prototype.slice.call(document.querySelectorAll(HEADER_SELECTOR)).forEach(bindHeader);
-    bindNotificationMenus();
+    bindHeaderMenus();
   }
 
   if (document.readyState === 'loading') {

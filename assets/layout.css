@@ -168,11 +168,6 @@
     justify-self: end;
 }
 
-.public-layout-member-logout-form {
-    display: inline-flex;
-    margin: 0;
-}
-
 .public-layout-icon-button {
     align-items: center;
     background: transparent;
@@ -206,6 +201,32 @@
     text-overflow: ellipsis;
 }
 
+.public-layout-member-menu {
+    align-items: center;
+    display: inline-flex;
+    height: 32px;
+    justify-content: center;
+    position: relative;
+}
+
+.public-layout-member-menu summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.public-layout-member-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.public-layout-member-menu-arrow {
+    font-size: 1rem !important;
+    transition: transform .16s ease;
+}
+
+.public-layout-member-menu[open] .public-layout-member-menu-arrow {
+    transform: rotate(180deg);
+}
+
 .public-layout-admin-link {
     flex: 0 0 32px;
 }
@@ -214,6 +235,99 @@
 .public-layout-member-link-logout {
     flex: 0 0 32px;
     gap: 0;
+}
+
+.public-layout-member-dropdown {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: 8px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, .14);
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 12px);
+    width: min(260px, calc(100vw - 32px));
+    z-index: 30;
+}
+
+.public-layout-member-dropdown-header {
+    border-bottom: 1px solid rgba(0, 0, 0, .09);
+    padding: 13px 14px;
+}
+
+.public-layout-member-dropdown-header strong {
+    color: #111;
+    display: block;
+    font-size: .92rem;
+    line-height: 1.35;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.public-layout-member-dropdown-link,
+.public-layout-member-asset-row,
+.public-layout-member-logout-button {
+    align-items: center;
+    background: #fff;
+    border: 0;
+    color: #151515;
+    display: flex;
+    font: inherit;
+    gap: 10px;
+    justify-content: space-between;
+    line-height: 1.35;
+    padding: 12px 14px;
+    text-align: left;
+    text-decoration: none;
+    width: 100%;
+}
+
+.public-layout-member-dropdown-link:hover,
+.public-layout-member-asset-row:hover,
+.public-layout-member-logout-button:hover {
+    background: rgba(0, 0, 0, .04);
+}
+
+.public-layout-member-dropdown-link span:first-child,
+.public-layout-member-asset-row span {
+    color: rgba(0, 0, 0, .62);
+    font-size: .82rem;
+    font-weight: 700;
+    min-width: 0;
+}
+
+.public-layout-member-dropdown-link .material-symbols-outlined,
+.public-layout-member-logout-button .material-symbols-outlined {
+    color: rgba(0, 0, 0, .48);
+    font-size: 1.05rem;
+}
+
+.public-layout-member-asset-row + .public-layout-member-asset-row,
+.public-layout-member-dropdown-link + .public-layout-member-asset-row,
+.public-layout-member-logout-form {
+    border-top: 1px solid rgba(0, 0, 0, .07);
+}
+
+.public-layout-member-asset-row strong {
+    color: #111;
+    font-size: .88rem;
+    font-weight: 800;
+    max-width: 9.5rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.public-layout-member-logout-form {
+    display: block;
+    margin: 0;
+}
+
+.public-layout-member-logout-button {
+    cursor: pointer;
 }
 
 .public-layout-notification-menu {
@@ -430,6 +544,10 @@
 
     .public-layout-notification-dropdown {
         right: -42px;
+    }
+
+    .public-layout-member-dropdown {
+        right: -6px;
     }
 
     .public-layout-footer {

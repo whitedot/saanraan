@@ -101,6 +101,7 @@ $layoutMemberEnabled = false;
 $layoutCurrentAccount = null;
 $layoutMemberDisplayName = '내 계정';
 $layoutMemberDisplayLabel = '내 계정';
+$layoutMemberAssetRows = [];
 $layoutAdminEnabled = false;
 $layoutAdminUrl = sr_url('/admin');
 if (
@@ -112,8 +113,45 @@ if (
     require_once SR_ROOT . '/modules/member/helpers.php';
     $layoutCurrentAccount = sr_member_current_account($layoutPdo);
     if (is_array($layoutCurrentAccount)) {
+        $layoutCurrentAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
         $layoutMemberDisplayName = sr_member_public_name_for_account_id($layoutPdo, (int) ($layoutCurrentAccount['id'] ?? 0), '내 계정');
         $layoutMemberDisplayLabel = $layoutMemberDisplayName . ' 님';
+        if (sr_module_enabled($layoutPdo, 'point') && is_file(SR_ROOT . '/modules/point/helpers.php')) {
+            require_once SR_ROOT . '/modules/point/helpers.php';
+            try {
+                $layoutMemberAssetRows[] = [
+                    'label' => function_exists('sr_point_display_name') ? sr_point_display_name($layoutPdo) : '포인트',
+                    'value' => number_format(function_exists('sr_point_balance') ? sr_point_balance($layoutPdo, $layoutCurrentAccountId) : 0) . (function_exists('sr_point_unit_label') ? sr_point_unit_label($layoutPdo) : 'P'),
+                    'url' => sr_url('/account/points'),
+                ];
+            } catch (Throwable) {
+                $layoutMemberAssetRows[] = ['label' => '포인트', 'value' => '0P', 'url' => sr_url('/account/points')];
+            }
+        }
+        if (sr_module_enabled($layoutPdo, 'reward') && is_file(SR_ROOT . '/modules/reward/helpers.php')) {
+            require_once SR_ROOT . '/modules/reward/helpers.php';
+            try {
+                $layoutMemberAssetRows[] = [
+                    'label' => '적립금',
+                    'value' => number_format(function_exists('sr_reward_balance') ? sr_reward_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
+                    'url' => sr_url('/account/rewards'),
+                ];
+            } catch (Throwable) {
+                $layoutMemberAssetRows[] = ['label' => '적립금', 'value' => '0원', 'url' => sr_url('/account/rewards')];
+            }
+        }
+        if (sr_module_enabled($layoutPdo, 'deposit') && is_file(SR_ROOT . '/modules/deposit/helpers.php')) {
+            require_once SR_ROOT . '/modules/deposit/helpers.php';
+            try {
+                $layoutMemberAssetRows[] = [
+                    'label' => '예치금',
+                    'value' => number_format(function_exists('sr_deposit_balance') ? sr_deposit_balance($layoutPdo, $layoutCurrentAccountId) : 0) . '원',
+                    'url' => sr_url('/account/deposits'),
+                ];
+            } catch (Throwable) {
+                $layoutMemberAssetRows[] = ['label' => '예치금', 'value' => '0원', 'url' => sr_url('/account/deposits')];
+            }
+        }
     }
 }
 if (
@@ -231,16 +269,35 @@ if (
                             <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>settings</span>
                         </a>
                     <?php } ?>
-                    <a class="public-layout-icon-button public-layout-member-link public-layout-member-link-account" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 계정'); ?>">
-                        <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
-                        <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
-                    </a>
-                    <form class="public-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
-                        <?php echo sr_csrf_field(); ?>
-                        <button class="public-layout-icon-button public-layout-member-link public-layout-member-link-logout" type="submit" aria-label="<?php echo sr_e('로그아웃'); ?>">
-                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>logout</span>
-                        </button>
-                    </form>
+                    <details class="public-layout-member-menu">
+                        <summary class="public-layout-icon-button public-layout-member-link public-layout-member-link-account" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 회원 메뉴'); ?>">
+                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
+                            <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
+                            <span class="material-symbols-outlined public-layout-member-menu-arrow" aria-hidden="true" data-sr-material-icon>expand_more</span>
+                        </summary>
+                        <div class="public-layout-member-dropdown">
+                            <div class="public-layout-member-dropdown-header">
+                                <strong><?php echo sr_e($layoutMemberDisplayLabel); ?></strong>
+                            </div>
+                            <a class="public-layout-member-dropdown-link" href="<?php echo sr_e(sr_url('/account')); ?>">
+                                <span><?php echo sr_e('정보수정'); ?></span>
+                                <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>chevron_right</span>
+                            </a>
+                            <?php foreach ($layoutMemberAssetRows as $layoutMemberAssetRow) { ?>
+                                <a class="public-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>">
+                                    <span><?php echo sr_e((string) ($layoutMemberAssetRow['label'] ?? '')); ?></span>
+                                    <strong><?php echo sr_e((string) ($layoutMemberAssetRow['value'] ?? '0')); ?></strong>
+                                </a>
+                            <?php } ?>
+                            <form class="public-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
+                                <?php echo sr_csrf_field(); ?>
+                                <button class="public-layout-member-logout-button" type="submit">
+                                    <span><?php echo sr_e('로그아웃'); ?></span>
+                                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </details>
                 <?php } else { ?>
                     <a class="public-layout-icon-button public-layout-member-link public-layout-member-link-login" href="<?php echo sr_e(sr_url('/login')); ?>" aria-label="<?php echo sr_e('로그인'); ?>">
                         <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>login</span>
