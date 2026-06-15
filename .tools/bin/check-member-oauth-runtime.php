@@ -130,6 +130,15 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert((string) ($authQuery['state'] ?? '') === (string) $state['state'], 'OAuth authorization URL should include the state token.');
     sr_member_oauth_check_assert((string) ($authQuery['code_challenge'] ?? '') === (string) $state['code_challenge'], 'OAuth authorization URL should include the PKCE challenge.');
     sr_member_oauth_check_assert((string) ($authQuery['redirect_uri'] ?? '') === 'https://site.example/oauth/callback', 'OAuth authorization URL should include the callback URL.');
+    sr_member_oauth_check_assert((string) ($authQuery['scope'] ?? '') === 'openid email', 'OAuth authorization URL should include space-delimited scopes by default.');
+    $emptyScopeAuthUrl = sr_member_oauth_authorization_url([
+        'authorization_url' => 'https://example.com/authorize',
+        'client_id' => 'client-fixture',
+        'scopes' => [],
+    ], ['base_url' => 'https://site.example'], $state);
+    parse_str((string) (parse_url($emptyScopeAuthUrl, PHP_URL_QUERY) ?: ''), $emptyScopeAuthQuery);
+    sr_member_oauth_check_assert(!array_key_exists('scope', $emptyScopeAuthQuery), 'OAuth authorization URL should omit empty scope parameters.');
+    sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scopes' => ['account_email', 'profile_nickname'], 'scope_delimiter' => ',']) === 'account_email,profile_nickname', 'OAuth provider scopes should support provider-specific delimiters.');
 
     sr_member_oauth_store_transient_secrets((string) $state['state'], $state, 120);
     $transient = sr_member_oauth_take_transient_secrets((string) $state['state']);
@@ -148,6 +157,21 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert($subjectHash !== hash('sha256', 'mock:provider-subject'), 'Provider subject hash should use keyed HMAC.');
     $subjectDisplay = sr_member_oauth_subject_display_from_hash($subjectHash);
     sr_member_oauth_check_assert($subjectDisplay === 'subject:' . substr($subjectHash, 0, 12), 'Provider subject display should use a non-raw hash prefix.');
+    $nestedUserinfo = [
+        'response' => [
+            'id' => 'naver-subject',
+            'email' => 'naver-user@example.test',
+            'name' => 'Naver User',
+        ],
+        'kakao_account' => [
+            'is_email_verified' => true,
+            'profile' => [
+                'nickname' => 'Kakao User',
+            ],
+        ],
+    ];
+    sr_member_oauth_check_assert(sr_member_oauth_claim_value($nestedUserinfo, 'response.id') === 'naver-subject', 'OAuth provider claim helper should read nested subject paths.');
+    sr_member_oauth_check_assert(sr_member_oauth_claim_value($nestedUserinfo, 'kakao_account.profile.nickname') === 'Kakao User', 'OAuth provider claim helper should read nested profile paths.');
     $completionStateToken = sr_member_oauth_create_completion_state($pdo, 'mock', $subjectHash, [
         'subject_display' => 'provider-subject',
         'email' => 'mock-user@example.test',
@@ -213,6 +237,8 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_save_settings',
     'sr_member_oauth_provider_setting_key',
     'sr_member_oauth_apply_provider_settings',
+    'sr_member_oauth_provider_admin_status',
+    'sr_member_oauth_claim_value',
     'sr_member_oauth_secret_display',
     'sr_member_oauth_authorization_url',
     'sr_member_oauth_store_transient_secrets',
@@ -223,6 +249,19 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_account_by_subject_any',
     'sr_member_oauth_can_unlink',
     'sr_member_oauth_revoke_account',
+]);
+sr_member_oauth_check_contains('modules/member_oauth_providers/module.php', [
+    "'type' => 'plugin'",
+    "'member_oauth'",
+    "'oauth-providers.php'",
+]);
+sr_member_oauth_check_contains('modules/member_oauth_providers/oauth-providers.php', [
+    "'google'",
+    "'kakao'",
+    "'naver'",
+    "'scope_delimiter'",
+    "'response.id'",
+    "'kakao_account.profile.nickname'",
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/start.php', [
     "sr_get_string('flow', 20) === 'link'",
@@ -246,6 +285,8 @@ sr_member_oauth_check_contains('modules/member_oauth/views/admin-settings.php', 
     'sr_member_oauth_secret_display',
     'autocomplete="new-password"',
     'data-oauth-required-provider',
+    'data-oauth-copy-value',
+    'sr_member_oauth_provider_admin_status',
     '비워 두면 기존 secret을 유지합니다',
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/callback.php', [

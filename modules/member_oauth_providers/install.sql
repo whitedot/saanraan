@@ -1,0 +1,2 @@
+-- This plugin provides OAuth provider contracts only.
+-- Provider settings and account links are stored by the member_oauth module.

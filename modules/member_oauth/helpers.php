@@ -151,6 +151,44 @@ function sr_member_oauth_public_providers(PDO $pdo): array
     return $providers;
 }
 
+function sr_member_oauth_provider_admin_status(array $provider, string $callbackUrl): array
+{
+    $isMock = !empty($provider['mock']);
+    $enabled = !empty($provider['enabled']) || $isMock;
+    $clientId = sr_member_oauth_provider_value($provider, 'client_id');
+    $callbackValid = sr_is_http_url($callbackUrl);
+    $visible = $isMock ? $enabled : ($enabled && $clientId !== '' && $callbackValid);
+    $items = [
+        [
+            'label' => '모듈 활성',
+            'ok' => true,
+            'message' => '제공자 계약이 로드되었습니다.',
+        ],
+        [
+            'label' => '사용 설정',
+            'ok' => $enabled,
+            'message' => $enabled ? '사용 중입니다.' : '사용을 켜야 로그인 버튼 후보가 됩니다.',
+        ],
+        [
+            'label' => 'Client ID',
+            'ok' => $isMock || $clientId !== '',
+            'message' => $isMock ? 'Mock 제공자는 Client ID를 쓰지 않습니다.' : ($clientId !== '' ? '입력되었습니다.' : 'Client ID를 입력해야 합니다.'),
+        ],
+        [
+            'label' => 'Callback URL',
+            'ok' => $callbackValid,
+            'message' => $callbackValid ? '제공자 콘솔에 등록할 수 있는 URL 형식입니다.' : '공개 기준 URL을 먼저 확인해 주세요.',
+        ],
+    ];
+
+    return [
+        'visible' => $visible,
+        'label' => $visible ? '로그인 버튼 노출 가능' : '로그인 버튼 노출 대기',
+        'class' => $visible ? 'is-normal' : 'is-warning',
+        'items' => $items,
+    ];
+}
+
 function sr_member_oauth_provider_value(array $provider, string $key): string
 {
     $value = $provider[$key] ?? '';
@@ -161,13 +199,40 @@ function sr_member_oauth_provider_value(array $provider, string $key): string
     return trim((string) $value);
 }
 
+function sr_member_oauth_claim_value(array $data, string $claim): mixed
+{
+    $claim = trim($claim);
+    if ($claim === '') {
+        return null;
+    }
+
+    $current = $data;
+    foreach (explode('.', $claim) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '' || !is_array($current) || !array_key_exists($segment, $current)) {
+            return null;
+        }
+
+        $current = $current[$segment];
+    }
+
+    return is_array($current) ? null : $current;
+}
+
 function sr_member_oauth_provider_scopes(array $provider): string
 {
     $scopes = $provider['scopes'] ?? ($provider['scope'] ?? 'openid email profile');
     if (is_array($scopes)) {
+        $delimiter = sr_member_oauth_provider_value($provider, 'scope_delimiter');
+        if ($delimiter === '') {
+            $delimiter = ' ';
+        }
         $scopes = implode(' ', array_filter(array_map(static function ($scope): string {
             return trim((string) $scope);
         }, $scopes)));
+        if ($delimiter !== ' ') {
+            $scopes = str_replace(' ', $delimiter, $scopes);
+        }
     }
 
     return trim((string) $scopes);
@@ -182,15 +247,18 @@ function sr_member_oauth_authorization_url(array $provider, array $site, array $
         throw new InvalidArgumentException('OAuth provider authorization settings are incomplete.');
     }
 
+    $scope = sr_member_oauth_provider_scopes($provider);
     $params = [
         'response_type' => 'code',
         'client_id' => $clientId,
         'redirect_uri' => $callbackUrl,
-        'scope' => sr_member_oauth_provider_scopes($provider),
         'state' => (string) $state['state'],
         'code_challenge' => (string) $state['code_challenge'],
         'code_challenge_method' => 'S256',
     ];
+    if ($scope !== '') {
+        $params['scope'] = $scope;
+    }
     if (!empty($state['nonce'])) {
         $params['nonce'] = (string) $state['nonce'];
     }
@@ -622,19 +690,19 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
     $emailVerifiedClaim = sr_member_oauth_provider_value($provider, 'email_verified_claim') ?: 'email_verified';
     $displayNameClaim = sr_member_oauth_provider_value($provider, 'display_name_claim') ?: 'name';
     $fallbackNameClaim = sr_member_oauth_provider_value($provider, 'fallback_display_name_claim') ?: 'nickname';
-    $subject = trim((string) ($userinfo[$subjectClaim] ?? ($userinfo['id'] ?? '')));
+    $subject = trim((string) (sr_member_oauth_claim_value($userinfo, $subjectClaim) ?? ($userinfo['id'] ?? '')));
     if ($subject === '') {
         throw new RuntimeException('OAuth provider profile is missing a subject.');
     }
 
-    $email = trim((string) ($userinfo[$emailClaim] ?? ''));
-    $displayName = trim((string) ($userinfo[$displayNameClaim] ?? ($userinfo[$fallbackNameClaim] ?? '')));
+    $email = trim((string) (sr_member_oauth_claim_value($userinfo, $emailClaim) ?? ''));
+    $displayName = trim((string) (sr_member_oauth_claim_value($userinfo, $displayNameClaim) ?? sr_member_oauth_claim_value($userinfo, $fallbackNameClaim) ?? ''));
 
     return [
         'subject' => $subject,
         'subject_display' => $subject,
         'email' => $email,
-        'email_verified' => !empty($userinfo[$emailVerifiedClaim]),
+        'email_verified' => !empty(sr_member_oauth_claim_value($userinfo, $emailVerifiedClaim)),
         'display_name' => $displayName,
     ];
 }

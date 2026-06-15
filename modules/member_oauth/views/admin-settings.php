@@ -2,6 +2,7 @@
 
 $adminPageTitle = '회원 OAuth 설정';
 $adminPageSubtitle = 'OAuth/OIDC 로그인 제공자와 계정 연결 정책을 관리합니다.';
+$callbackUrl = sr_absolute_url($site ?? [], '/oauth/callback');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
@@ -15,8 +16,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <span class="form-label">Callback URL</span>
             <div class="admin-form-field">
-                <p class="admin-form-static"><?php echo sr_e(sr_absolute_url($site ?? [], '/oauth/callback')); ?></p>
-                <p class="admin-form-help">외부 OAuth/OIDC 제공자 콘솔에 등록할 redirect URI입니다.</p>
+                <div class="admin-form-actions">
+                    <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
+                    <button type="button" class="btn btn-sm btn-solid-light" data-oauth-copy-value="<?php echo sr_e($callbackUrl); ?>" title="<?php echo sr_e('Callback URL 복사'); ?>" aria-label="<?php echo sr_e('Callback URL 복사'); ?>">
+                        <?php echo sr_material_icon_html('content_copy'); ?>
+                        <span><?php echo sr_e('복사'); ?></span>
+                    </button>
+                </div>
+                <p class="admin-form-help">외부 OAuth/OIDC 제공자 콘솔에 등록할 redirect URI입니다. 공개 기준 URL이 바뀌면 이 값도 함께 바뀝니다.</p>
             </div>
         </div>
         <div class="admin-form-row">
@@ -57,6 +64,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
+    <section class="admin-card card">
+        <div class="card-header">
+            <h2 class="card-title"><?php echo sr_e('외부 제공자 활성화'); ?></h2>
+            <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e(sr_url('/admin/modules')); ?>"><?php echo sr_e('모듈 화면'); ?></a>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label"><?php echo sr_e('진행 순서'); ?></span>
+            <div class="admin-form-field">
+                <ol class="admin-form-help">
+                    <li><?php echo sr_e('Google, Kakao, Naver 같은 제공자 플러그인을 설치하고 활성화합니다.'); ?></li>
+                    <li><?php echo sr_e('이 화면에 생긴 제공자 카드에서 사용을 켜고 Client ID를 저장합니다.'); ?></li>
+                    <li><?php echo sr_e('제공자 콘솔에 Callback URL을 등록하고 로그인 화면 버튼 상태를 확인합니다.'); ?></li>
+                </ol>
+            </div>
+        </div>
+        <div class="admin-form-row">
+            <span class="form-label"><?php echo sr_e('권장 후보'); ?></span>
+            <div class="admin-form-field">
+                <p class="admin-form-static"><?php echo sr_e('Google, Kakao, Naver'); ?></p>
+                <p class="admin-form-help">제공자 플러그인은 `oauth-providers.php` 계약을 제공해야 이 화면에 표시됩니다. 기본 제공 플러그인은 Google, Kakao, Naver 계약을 포함합니다.</p>
+            </div>
+        </div>
+    </section>
+
     <?php $externalProviderCount = 0; ?>
     <?php foreach ($providers as $provider) { ?>
         <?php if (!empty($provider['mock'])) { continue; } ?>
@@ -70,11 +101,42 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $secretKey = sr_member_oauth_provider_setting_key($providerKey, 'client_secret');
         $scopeKey = sr_member_oauth_provider_setting_key($providerKey, 'scope');
         $sortOrderKey = sr_member_oauth_provider_setting_key($providerKey, 'sort_order');
+        $providerStatus = sr_member_oauth_provider_admin_status($provider, $callbackUrl);
         ?>
         <section class="admin-card card">
             <div class="card-header">
                 <h2 class="card-title"><?php echo sr_e($providerLabel); ?></h2>
-                <span class="badge badge-light"><?php echo sr_e($providerKey); ?></span>
+                <div class="admin-form-actions">
+                    <span class="admin-status <?php echo sr_e((string) $providerStatus['class']); ?>"><?php echo sr_e((string) $providerStatus['label']); ?></span>
+                    <span class="badge badge-light"><?php echo sr_e($providerKey); ?></span>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label"><?php echo sr_e('노출 진단'); ?></span>
+                <div class="admin-form-field">
+                    <ul class="admin-form-help">
+                        <?php foreach ($providerStatus['items'] as $statusItem) { ?>
+                            <li>
+                                <?php echo sr_e((string) $statusItem['label']); ?>:
+                                <?php echo sr_e(!empty($statusItem['ok']) ? '정상' : '필요'); ?>
+                                - <?php echo sr_e((string) $statusItem['message']); ?>
+                            </li>
+                        <?php } ?>
+                    </ul>
+                </div>
+            </div>
+            <div class="admin-form-row">
+                <span class="form-label"><?php echo sr_e('제공자 콘솔'); ?></span>
+                <div class="admin-form-field">
+                    <div class="admin-form-actions">
+                        <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
+                        <button type="button" class="btn btn-sm btn-solid-light" data-oauth-copy-value="<?php echo sr_e($callbackUrl); ?>" title="<?php echo sr_e('Callback URL 복사'); ?>" aria-label="<?php echo sr_e('Callback URL 복사'); ?>">
+                            <?php echo sr_material_icon_html('content_copy'); ?>
+                            <span><?php echo sr_e('복사'); ?></span>
+                        </button>
+                    </div>
+                    <p class="admin-form-help">제공자 콘솔의 redirect URI 또는 callback URL 항목에 같은 값을 등록합니다. Client ID와 secret은 같은 콘솔의 앱 자격 증명 화면에서 발급받습니다.</p>
+                </div>
             </div>
             <div class="admin-form-row">
                 <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_enabled'); ?>"><?php echo sr_e('사용'); ?></label>
@@ -83,6 +145,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_enabled'); ?>" type="checkbox" name="<?php echo sr_e($enabledKey); ?>" value="1" class="form-switch form-choice-dark"<?php echo !empty($provider['enabled']) ? ' checked' : ''; ?>>
                         <?php echo sr_admin_choice_label_html('로그인 화면에 제공자 표시'); ?>
                     </label>
+                    <p class="admin-form-help">로그인 버튼은 제공자 계약이 로드되고, 사용이 켜져 있고, Client ID가 저장되어 있을 때 노출 가능합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -95,6 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>"><?php echo sr_e('Client ID'); ?> <span class="sr-required-label"<?php echo empty($provider['enabled']) ? ' hidden' : ''; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
                 <div class="admin-form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>" type="text" name="<?php echo sr_e($clientIdKey); ?>" maxlength="255" value="<?php echo sr_e((string) ($provider['client_id'] ?? '')); ?>"<?php echo !empty($provider['enabled']) ? ' required' : ''; ?> class="form-input form-control-full" autocomplete="off" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
+                    <p class="admin-form-help">사용을 켠 제공자는 Client ID가 있어야 로그인 화면에 노출할 수 있습니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -108,7 +172,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_scope'); ?>"><?php echo sr_e('Scope'); ?></label>
                 <div class="admin-form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_scope'); ?>" type="text" name="<?php echo sr_e($scopeKey); ?>" maxlength="255" value="<?php echo sr_e(sr_member_oauth_provider_scopes($provider)); ?>" class="form-input form-control-full">
-                    <p class="admin-form-help">비워 두면 제공자 계약의 기본 scope를 사용합니다.</p>
+                    <p class="admin-form-help">비워 두면 제공자 계약의 기본 scope를 사용합니다. 일반 OIDC 제공자는 보통 openid, email, profile 범위가 필요합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -124,7 +188,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="card-header">
                 <h2 class="card-title"><?php echo sr_e('외부 제공자'); ?></h2>
             </div>
-            <p class="admin-empty-state"><?php echo sr_e('설치된 외부 OAuth 제공자 계약이 없습니다. 제공자 모듈의 oauth-providers.php 계약을 활성화하면 이 화면에서 자격 증명을 저장할 수 있습니다.'); ?></p>
+            <p class="admin-empty-state"><?php echo sr_e('설치된 외부 OAuth 제공자 계약이 없습니다. 회원 OAuth 제공자 플러그인을 설치/활성화하면 Google, Kakao, Naver 설정 카드가 표시됩니다.'); ?></p>
+            <div class="admin-form-actions">
+                <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/modules')); ?>"><?php echo sr_e('모듈 화면으로 이동'); ?></a>
+            </div>
         </section>
     <?php } ?>
 
@@ -145,6 +212,30 @@ document.querySelectorAll('[name$="_enabled"][id^="member_oauth_"]').forEach(fun
     }
     toggle.addEventListener('change', syncRequired);
     syncRequired();
+});
+document.querySelectorAll('[data-oauth-copy-value]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var value = button.getAttribute('data-oauth-copy-value') || '';
+        if (!value) {
+            return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(value).then(function () {
+                button.setAttribute('data-oauth-copy-done', '1');
+            });
+            return;
+        }
+        var input = document.createElement('input');
+        input.value = value;
+        input.setAttribute('readonly', 'readonly');
+        input.style.position = 'fixed';
+        input.style.left = '-9999px';
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        button.setAttribute('data-oauth-copy-done', '1');
+    });
 });
 </script>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
