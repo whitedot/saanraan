@@ -109,6 +109,7 @@ function sr_admin_action_security_has_unsafe_header_call(string $content): bool
 {
     $allowedHeaderPrefixes = [
         'cache-control:',
+        'clear-site-data:',
         'content-disposition:',
         'content-length:',
         'content-security-policy:',
@@ -166,6 +167,7 @@ function sr_admin_action_security_self_test(): void
         'lowercase location header detected' => [sr_admin_action_security_has_location_header('<?php header("location: /admin");'), true],
         'content type header allowed' => [sr_admin_action_security_has_unsafe_header_call('<?php header("Content-Type: " . $mimeType);'), false],
         'cache control header allowed' => [sr_admin_action_security_has_unsafe_header_call('<?php header("Cache-Control: no-store");'), false],
+        'clear site data header allowed' => [sr_admin_action_security_has_unsafe_header_call('<?php header(\'Clear-Site-Data: "cache"\');'), false],
         'direct location header unsafe' => [sr_admin_action_security_has_unsafe_header_call('<?php header("Location: /admin");'), true],
         'dynamic header unsafe' => [sr_admin_action_security_has_unsafe_header_call('<?php header($headerValue);'), true],
         'direct json response unsafe' => [sr_admin_action_security_has_direct_json_response('<?php header("Content-Type: application/json; charset=utf-8"); echo json_encode([]);'), true],

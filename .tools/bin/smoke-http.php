@@ -67,6 +67,15 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'favicon fallback endpoint',
+        'path' => '/favicon.ico',
+        'allowed_statuses' => [302, 404],
+        'required_headers' => [
+            'cache-control' => 'no-store',
+        ],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'admin entry',
         'path' => '/admin',
         'allowed_statuses' => [200, 302, 403],

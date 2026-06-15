@@ -16,6 +16,16 @@ sr_request_bootstrap_error_handlers();
 
 $method = sr_request_method();
 $path = sr_request_path();
+$isFaviconRequest = in_array($method, ['GET', 'HEAD'], true) && $path === '/favicon.ico';
+
+if ($isFaviconRequest && !sr_is_installed()) {
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    http_response_code(404);
+    header('Content-Type: image/x-icon');
+    header('Content-Length: 0');
+    exit;
+}
 
 if (!sr_is_installed()) {
     sr_start_session();
@@ -33,6 +43,46 @@ try {
 
 sr_request_bootstrap_retention_cleanup($pdo, $method, $path);
 sr_request_bootstrap_notification_runner($pdo, $site, $method, $path);
+
+if ($isFaviconRequest) {
+    $faviconUrl = '';
+    if (sr_module_enabled($pdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
+        require_once SR_ROOT . '/modules/logo_manager/helpers.php';
+        $faviconLogo = sr_logo_manager_active_logo($pdo, 'public.favicon');
+        if (is_array($faviconLogo)) {
+            $faviconVariants = sr_logo_manager_icon_variants_by_logo($pdo, (int) ($faviconLogo['id'] ?? 0));
+            foreach ($faviconVariants as $faviconVariant) {
+                if ((string) ($faviconVariant['purpose'] ?? '') !== 'favicon') {
+                    continue;
+                }
+
+                $faviconUrl = sr_logo_manager_icon_variant_url($faviconVariant);
+                if ($faviconUrl !== '') {
+                    break;
+                }
+            }
+            if ($faviconUrl === '') {
+                $faviconUrl = sr_logo_manager_logo_url($faviconLogo);
+            }
+            if ($faviconUrl !== '' && sr_is_safe_relative_url($faviconUrl)) {
+                $faviconUrl = sr_logo_manager_url_with_cache_version($faviconUrl, sr_logo_manager_favicon_cache_version($pdo));
+            } else {
+                $faviconUrl = '';
+            }
+        }
+    }
+
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    if ($faviconUrl !== '') {
+        header('Location: ' . sr_url($faviconUrl), true, 302);
+    } else {
+        http_response_code(404);
+        header('Content-Type: image/x-icon');
+        header('Content-Length: 0');
+    }
+    exit;
+}
 
 if ($method === 'GET' && $path === '/manifest.webmanifest') {
     header('Content-Type: application/manifest+json; charset=utf-8');

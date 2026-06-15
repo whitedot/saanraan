@@ -53,6 +53,7 @@ return [
     'ui.current_candidate' => '적용 후보',
     'ui.favicon.purge' => '파비콘/앱 아이콘 완전 삭제',
     'ui.favicon.status_help' => '파비콘/앱 아이콘은 현재 선택된 활성 후보만 head link로 출력됩니다. 로고를 중지하면 해당 로고와 아이콘 세트는 제외되고, 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.',
+    'ui.favicon.no_link_active' => '완전 삭제 후 활성 파비콘/앱 아이콘 후보가 없어 icon/apple-touch-icon link를 출력하지 않습니다. 새 파비콘/앱 아이콘을 등록하면 이 안내는 사라집니다.',
     'ui.public_symbol.help' => '앱아이콘 이미지를 사용자 화면의 브랜드 심볼 후보로도 사용합니다. 파비콘 head link 출력 조건과는 별도이며, 실제 출력 여부는 레이아웃/테마가 이 값을 호출할 때만 반영됩니다.',
     'ui.public_symbol.label' => '사용자 화면 심볼로 사용',
     'ui.public_symbol.list_label' => '심볼',

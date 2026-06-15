@@ -1371,24 +1371,12 @@ function sr_logo_manager_url_with_cache_version(string $url, string $version): s
     return $url . $separator . 'v=' . rawurlencode($version) . $fragment;
 }
 
-function sr_logo_manager_disabled_favicon_link_tag(string $version = '0'): string
-{
-    $version = preg_replace('/[^A-Za-z0-9._-]/', '', trim($version)) ?? '';
-    $svg = '<svg xmlns="http://www.w3.org/2000/svg" data-sr-logo-manager-version="' . ($version !== '' ? $version : '0') . '"/>';
-    $href = 'data:image/svg+xml,' . rawurlencode($svg);
-
-    return '<link rel="icon" href="' . $href . '">' . PHP_EOL
-        . '<link rel="apple-touch-icon" href="' . $href . '">';
-}
-
 function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 {
     $cacheVersion = sr_logo_manager_favicon_cache_version($pdo);
     $logo = sr_logo_manager_active_logo($pdo, 'public.favicon');
     if (!is_array($logo)) {
-        return (sr_logo_manager_favicon_has_configured_logo($pdo) || sr_logo_manager_favicon_reset_marker($pdo) !== '')
-            ? sr_logo_manager_disabled_favicon_link_tag($cacheVersion)
-            : '';
+        return '';
     }
 
     $variants = sr_logo_manager_icon_variants_by_logo($pdo, (int) ($logo['id'] ?? 0));
@@ -1416,7 +1404,7 @@ function sr_logo_manager_favicon_link_tag(PDO $pdo): string
 
     $url = sr_logo_manager_logo_url($logo);
     if ($url === '') {
-        return sr_logo_manager_disabled_favicon_link_tag($cacheVersion);
+        return '';
     }
 
     $url = sr_logo_manager_url_with_cache_version($url, $cacheVersion);

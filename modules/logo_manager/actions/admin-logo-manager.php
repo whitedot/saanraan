@@ -447,10 +447,11 @@ if (sr_request_method() === 'POST') {
                     ],
                 ]);
 
-                $notice = '파비콘/앱 아이콘을 완전 삭제했습니다. 이후 화면은 빈 아이콘 link로 이전 캐시를 덮어씁니다.';
+                $notice = '파비콘/앱 아이콘을 완전 삭제했습니다. 활성 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.';
                 if (($storageDeleteResult['failed'] ?? []) !== []) {
                     $notice .= ' 일부 저장소 파일은 정리하지 못했습니다.';
                 }
+                header('Clear-Site-Data: "cache"');
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -706,6 +707,7 @@ foreach ($activeLogos as $positionKey => $activeLogo) {
         $activeLogoIdsByPosition[(string) $positionKey] = (int) $activeLogo['id'];
     }
 }
+$logoManagerFaviconResetMarker = sr_logo_manager_favicon_reset_marker($pdo);
 $logoManagerNow = sr_now();
 
 $logoSortOptions = sr_admin_logo_sort_options();

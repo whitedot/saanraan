@@ -99,9 +99,11 @@ function sr_logo_manager_favicon_check_assert(bool $condition, string $message):
     }
 }
 
-function sr_logo_manager_favicon_check_assert_disabled_tag(string $html, string $message): void
+function sr_logo_manager_favicon_check_assert_no_icon_tag(string $html, string $message): void
 {
-    sr_logo_manager_favicon_check_assert(str_contains($html, 'data:image/svg+xml'), $message . ' disabled data icon must render');
+    sr_logo_manager_favicon_check_assert($html === '', $message . ' must not render icon links');
+    sr_logo_manager_favicon_check_assert(!str_contains($html, 'rel="icon"'), $message . ' must not render favicon link');
+    sr_logo_manager_favicon_check_assert(!str_contains($html, 'rel="apple-touch-icon"'), $message . ' must not render app icon link');
     sr_logo_manager_favicon_check_assert(!str_contains($html, '/uploads/'), $message . ' stale uploaded URL must not render');
 }
 
@@ -267,8 +269,7 @@ sr_logo_manager_favicon_check_insert_logo($pdo, [
     'public_url' => '/uploads/favicon-disabled.png',
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert_disabled_tag($html, 'disabled public.favicon logo');
-sr_logo_manager_favicon_check_assert(str_contains($html, 'data-sr-logo-manager-version'), 'disabled favicon data icon must include cache-busting version marker');
+sr_logo_manager_favicon_check_assert_no_icon_tag($html, 'disabled public.favicon logo');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
@@ -282,7 +283,7 @@ sr_logo_manager_favicon_check_insert_logo($pdo, [
     'public_url' => '/uploads/favicon-future.png',
 ]);
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert_disabled_tag($html, 'past or future public.favicon logos');
+sr_logo_manager_favicon_check_assert_no_icon_tag($html, 'past or future public.favicon logos');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 sr_logo_manager_favicon_check_insert_logo($pdo, [
@@ -395,12 +396,12 @@ sr_logo_manager_favicon_check_assert(str_contains($html, '/uploads/favicon-trans
 $activeHtml = $html;
 $pdo->exec("UPDATE sr_logo_manager_logos SET status = 'disabled', updated_at = '2026-06-10 12:05:00' WHERE id = 9");
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert_disabled_tag($html, 'favicon disabled after active state transition');
+sr_logo_manager_favicon_check_assert_no_icon_tag($html, 'favicon disabled after active state transition');
 sr_logo_manager_favicon_check_assert($html !== $activeHtml, 'favicon disabled state transition must change rendered head links');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert($html === '', 'empty favicon configuration should not render disabled data icon');
+sr_logo_manager_favicon_check_assert($html === '', 'empty favicon configuration should not render icon links');
 
 $pdo = sr_logo_manager_favicon_check_pdo();
 $pdo->exec(
@@ -410,8 +411,7 @@ $pdo->exec(
         (1, 'favicon_reset_at', '2026-06-10 12:00:00', 'string', '2026-06-10 12:00:00', '2026-06-10 12:00:00')"
 );
 $html = sr_logo_manager_favicon_link_tag($pdo);
-sr_logo_manager_favicon_check_assert_disabled_tag($html, 'favicon reset marker without configured logos');
-sr_logo_manager_favicon_check_assert(str_contains($html, 'data-sr-logo-manager-version'), 'favicon reset marker disabled data icon must include version marker');
+sr_logo_manager_favicon_check_assert_no_icon_tag($html, 'favicon reset marker without configured logos');
 
 $moduleStatus = is_file('docs/module-status.md') ? file_get_contents('docs/module-status.md') : false;
 sr_logo_manager_favicon_check_assert(is_string($moduleStatus), 'docs/module-status.md must be readable');
@@ -428,6 +428,30 @@ if (is_string($moduleStatus)) {
             'module status must cite logo manager favicon evidence marker: ' . $marker
         );
     }
+}
+
+$frontController = is_file('index.php') ? file_get_contents('index.php') : false;
+sr_logo_manager_favicon_check_assert(is_string($frontController), 'index.php must be readable');
+if (is_string($frontController)) {
+    foreach ([
+        "\$path === '/favicon.ico'",
+        "header('Cache-Control: no-store, no-cache, must-revalidate')",
+        "header('Content-Length: 0')",
+    ] as $marker) {
+        sr_logo_manager_favicon_check_assert(
+            str_contains($frontController, $marker),
+            'front controller must keep favicon fallback no-store removal marker: ' . $marker
+        );
+    }
+}
+
+$adminAction = is_file('modules/logo_manager/actions/admin-logo-manager.php') ? file_get_contents('modules/logo_manager/actions/admin-logo-manager.php') : false;
+sr_logo_manager_favicon_check_assert(is_string($adminAction), 'logo manager admin action must be readable');
+if (is_string($adminAction)) {
+    sr_logo_manager_favicon_check_assert(
+        str_contains($adminAction, 'Clear-Site-Data: "cache"'),
+        'favicon purge action must ask the browser to clear origin cache'
+    );
 }
 
 if ($errors !== []) {

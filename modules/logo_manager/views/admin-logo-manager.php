@@ -11,6 +11,7 @@ $logoManagerActionSuffix = $logoManagerCurrentQuery !== '' ? '?' . $logoManagerC
 $logoManagerIconSizeOptions = sr_logo_manager_icon_size_options();
 $logoManagerDefaultIconKeys = sr_logo_manager_default_icon_variant_keys();
 $logoManagerNow = is_string($logoManagerNow ?? null) ? $logoManagerNow : sr_now();
+$logoManagerFaviconResetMarker = is_string($logoManagerFaviconResetMarker ?? null) ? $logoManagerFaviconResetMarker : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -38,17 +39,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small><?php echo sr_e((string) ($active['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?> - <?php echo sr_e((string) ($active['ends_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></small>
                 <?php } else { ?>
                     <span class="logo-manager-empty"><?php echo sr_e(sr_t('logo_manager::ui.text.8789bbce')); ?></span>
-                    <small><?php echo sr_e((string) ($positionOption['hint'] ?? sr_t('logo_manager::ui.position.empty_help'))); ?></small>
+                    <?php if ((string) $positionKey === sr_logo_manager_public_symbol_position_key() && $logoManagerFaviconResetMarker !== '') { ?>
+                        <small><?php echo sr_e(sr_t('logo_manager::ui.favicon.no_link_active')); ?></small>
+                    <?php } else { ?>
+                        <small><?php echo sr_e((string) ($positionOption['hint'] ?? sr_t('logo_manager::ui.position.empty_help'))); ?></small>
+                    <?php } ?>
                 <?php } ?>
                 <?php if ((string) $positionKey === sr_logo_manager_public_symbol_position_key() && $logoTableExists) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form logo-manager-current-action">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="purge_favicon_icons">
-                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" title="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" onclick="return confirm('<?php echo sr_e('파비콘/앱 아이콘 로고와 생성된 아이콘 파일을 완전 삭제할까요? 삭제 후에는 빈 아이콘 link로 이전 브라우저 캐시를 덮어씁니다.'); ?>');"><?php echo sr_material_icon_html('delete_forever'); ?></button>
+                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" title="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" onclick="return confirm('<?php echo sr_e('파비콘/앱 아이콘 로고와 생성된 아이콘 파일을 완전 삭제할까요? 삭제 후에는 활성 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.'); ?>');"><?php echo sr_material_icon_html('delete_forever'); ?></button>
                     </form>
                 <?php } ?>
             </article>
         <?php } ?>
+    </div>
+    <div class="admin-icon-button-legend" aria-label="현재 적용 로고 아이콘 버튼 설명">
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete_forever'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.favicon_purge')); ?></span>
     </div>
 </section>
 
