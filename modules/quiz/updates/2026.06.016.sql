@@ -7,7 +7,7 @@ SET @schema_has_quiz_sets_view_count = (
 );
 SET @schema_sql = IF(
     @schema_has_quiz_sets_view_count = 0,
-    'ALTER TABLE {{SR_TABLE_PREFIX}}quiz_sets ADD COLUMN view_count BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER reaction_comment_preset_key',
+    'ALTER TABLE {{SR_TABLE_PREFIX}}quiz_sets ADD COLUMN view_count BIGINT UNSIGNED NOT NULL DEFAULT 0',
     'DO 0'
 );
 PREPARE schema_stmt FROM @schema_sql;
