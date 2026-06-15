@@ -238,59 +238,63 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-dialog modal-dialog-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 id="<?php echo sr_e($policyDocumentVersionModalId); ?>-label" class="modal-title"><?php echo sr_e((string) $document['title']); ?> <?php echo sr_e(sr_t('policy_documents::ui.version.list')); ?></h3>
+                        <h3 id="<?php echo sr_e($policyDocumentVersionModalId); ?>-label" class="modal-title"><?php echo sr_e(sr_t('policy_documents::ui.version.list')); ?></h3>
                         <button type="button" class="modal-close" aria-label="<?php echo sr_e('닫기'); ?>" data-overlay="#<?php echo sr_e($policyDocumentVersionModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                     </div>
                     <div class="modal-body">
-                        <p class="admin-form-help"><?php echo sr_e((string) $document['document_key']); ?></p>
-                        <div class="table-wrapper">
-                            <table class="table admin-policy-document-version-table">
-                                <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.version.list')); ?></caption>
-                                <thead class="ui-table-head">
-                                    <tr>
-                                        <th><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></th>
-                                        <th><?php echo sr_e(sr_t('policy_documents::ui.title')); ?></th>
-                                        <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
-                                        <th><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></th>
-                                        <th><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></th>
-                                        <th class="text-end"><?php echo sr_e(sr_t('policy_documents::ui.action')); ?></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if ($policyDocumentRows === []) { ?>
+                        <section class="admin-card admin-list-card card admin-list-form">
+                            <div class="card-header">
+                                <h4 class="card-title"><?php echo sr_e((string) $document['title']); ?></h4>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="table admin-policy-document-version-table">
+                                    <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.version.list')); ?></caption>
+                                    <thead class="ui-table-head">
                                         <tr>
-                                            <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.version.empty')); ?></td>
+                                            <th><?php echo sr_e(sr_t('policy_documents::ui.version_key')); ?></th>
+                                            <th><?php echo sr_e(sr_t('policy_documents::ui.title')); ?></th>
+                                            <th><?php echo sr_e(sr_t('policy_documents::ui.status')); ?></th>
+                                            <th><?php echo sr_e(sr_t('policy_documents::ui.body_hash')); ?></th>
+                                            <th><?php echo sr_e(sr_t('policy_documents::ui.published_at')); ?></th>
+                                            <th class="text-end"><?php echo sr_e(sr_t('policy_documents::ui.action')); ?></th>
                                         </tr>
-                                    <?php } ?>
-                                    <?php foreach ($policyDocumentRows as $version) { ?>
-                                        <?php $versionStatus = (string) $version['status']; ?>
-                                        <tr>
-                                            <td class="admin-table-nowrap"><?php echo sr_e((string) $version['version_key']); ?></td>
-                                            <td class="admin-table-break"><?php echo sr_e((string) $version['title_snapshot']); ?></td>
-                                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass($versionStatus)); ?>"><?php echo sr_e(sr_admin_code_label($versionStatus, 'content_status')); ?></span></td>
-                                            <td class="admin-table-nowrap"><?php echo sr_e(substr((string) $version['body_hash'], 0, 16)); ?></td>
-                                            <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></td>
-                                            <td class="admin-table-actions-cell">
-                                                <?php if ($versionStatus === 'draft') { ?>
-                                                    <div class="admin-row-actions">
-                                                        <a href="<?php echo sr_e(sr_url('/admin/policy-documents/edit?id=' . (string) (int) $version['id'])); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.edit')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.edit')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
-                                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" class="admin-inline-form">
-                                                            <?php echo sr_csrf_field(); ?>
-                                                            <input type="hidden" name="action" value="publish_version">
-                                                            <input type="hidden" name="version_id" value="<?php echo sr_e((string) (int) $version['id']); ?>">
-                                                            <input type="hidden" name="document_id" value="<?php echo sr_e((string) (int) $version['document_id']); ?>">
-                                                            <button type="submit" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" onclick="return confirm('<?php echo sr_e(sr_t('policy_documents::ui.publish.confirm')); ?>');"><?php echo sr_material_icon_html('publish'); ?></button>
-                                                        </form>
-                                                    </div>
-                                                <?php } else { ?>
-                                                    -
-                                                <?php } ?>
-                                            </td>
-                                        </tr>
-                                    <?php } ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        <?php if ($policyDocumentRows === []) { ?>
+                                            <tr>
+                                                <td colspan="6" class="admin-empty-state"><?php echo sr_e(sr_t('policy_documents::ui.version.empty')); ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                        <?php foreach ($policyDocumentRows as $version) { ?>
+                                            <?php $versionStatus = (string) $version['status']; ?>
+                                            <tr>
+                                                <td class="admin-table-nowrap"><?php echo sr_e((string) $version['version_key']); ?></td>
+                                                <td class="admin-table-break"><?php echo sr_e((string) $version['title_snapshot']); ?></td>
+                                                <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($policyDocumentStatusClass($versionStatus)); ?>"><?php echo sr_e(sr_admin_code_label($versionStatus, 'content_status')); ?></span></td>
+                                                <td class="admin-table-nowrap"><?php echo sr_e(substr((string) $version['body_hash'], 0, 16)); ?></td>
+                                                <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($version['published_at'] ?? ''), '-'); ?></td>
+                                                <td class="admin-table-actions-cell">
+                                                    <?php if ($versionStatus === 'draft') { ?>
+                                                        <div class="admin-row-actions">
+                                                            <a href="<?php echo sr_e(sr_url('/admin/policy-documents/edit?id=' . (string) (int) $version['id'])); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.edit')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.edit')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
+                                                            <form method="post" action="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" class="admin-inline-form">
+                                                                <?php echo sr_csrf_field(); ?>
+                                                                <input type="hidden" name="action" value="publish_version">
+                                                                <input type="hidden" name="version_id" value="<?php echo sr_e((string) (int) $version['id']); ?>">
+                                                                <input type="hidden" name="document_id" value="<?php echo sr_e((string) (int) $version['document_id']); ?>">
+                                                                <button type="submit" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" onclick="return confirm('<?php echo sr_e(sr_t('policy_documents::ui.publish.confirm')); ?>');"><?php echo sr_material_icon_html('publish'); ?></button>
+                                                            </form>
+                                                        </div>
+                                                    <?php } else { ?>
+                                                        -
+                                                    <?php } ?>
+                                                </td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
                     </div>
                     <div class="modal-footer">
                         <a href="<?php echo sr_e(sr_url('/admin/policy-documents/new?document_id=' . (string) $policyDocumentId)); ?>" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('policy_documents::ui.version.new')); ?></a>
