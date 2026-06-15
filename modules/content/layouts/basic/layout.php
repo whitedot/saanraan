@@ -257,6 +257,11 @@ if (
             <?php } ?>
             <?php if ($layoutMemberEnabled) { ?>
                 <?php if (is_array($layoutCurrentAccount)) { ?>
+                    <?php if ($layoutAdminEnabled) { ?>
+                        <a class="content-layout-icon-button content-layout-admin-link" href="<?php echo sr_e($layoutAdminUrl); ?>" aria-label="<?php echo sr_e('관리자 모드'); ?>" title="<?php echo sr_e('관리자 모드'); ?>">
+                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>settings</span>
+                        </a>
+                    <?php } ?>
                     <a class="content-layout-icon-button content-layout-member-link content-layout-member-link-account" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e($layoutMemberDisplayLabel . ' 계정'); ?>">
                         <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
                         <span><?php echo sr_e($layoutMemberDisplayLabel); ?></span>
@@ -267,11 +272,6 @@ if (
                             <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>logout</span>
                         </button>
                     </form>
-                    <?php if ($layoutAdminEnabled) { ?>
-                        <a class="content-layout-icon-button content-layout-admin-link" href="<?php echo sr_e($layoutAdminUrl); ?>" aria-label="<?php echo sr_e('관리자 모드'); ?>" title="<?php echo sr_e('관리자 모드'); ?>">
-                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>settings</span>
-                        </a>
-                    <?php } ?>
                 <?php } else { ?>
                     <a class="content-layout-icon-button content-layout-member-link content-layout-member-link-login" href="<?php echo sr_e(sr_url('/login')); ?>" aria-label="<?php echo sr_e('로그인'); ?>">
                         <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>login</span>
