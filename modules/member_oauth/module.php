@@ -14,6 +14,7 @@ return [
         'category_order' => 10,
         'menu_order' => 11,
         'icon' => ['type' => 'symbol', 'name' => 'link'],
+        'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',
