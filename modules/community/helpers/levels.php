@@ -36,7 +36,6 @@ function sr_community_default_settings(): array
         'message_write_min_level' => (int) ($settings['message_write_min_level'] ?? 0),
         'nickname_enabled' => (bool) ($settings['nickname_enabled'] ?? true),
         'nickname_required' => (bool) ($settings['nickname_enabled'] ?? true),
-        'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
         'layout_primary_menu_key' => is_string($settings['layout_primary_menu_key'] ?? null) ? (string) $settings['layout_primary_menu_key'] : 'header',
         'layout_secondary_menu_key' => is_string($settings['layout_secondary_menu_key'] ?? null) ? (string) $settings['layout_secondary_menu_key'] : '',
@@ -164,7 +163,6 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['once_history_policy'] = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['nickname_enabled'] = sr_community_bool_setting($settings['nickname_enabled'] ?? true);
     $settings['nickname_required'] = $settings['nickname_enabled'];
-    $settings['theme_key'] = sr_community_theme_key($settings);
     $settings['layout_key'] = sr_community_layout_key($settings, $site, $pdo);
     foreach (sr_community_layout_menu_slots() as $settingKey) {
         $settings[$settingKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));

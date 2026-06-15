@@ -267,6 +267,7 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /modules/community/assets/ui-kit.css 정적 파일 응답과 커뮤니티 UI kit primitive 확인
 /modules/community/assets/ui-kit-layout.css 정적 파일 응답과 커뮤니티 UI kit 미리보기 helper 확인
 /modules/community/assets/layout.js 정적 파일 응답과 커뮤니티 layout 스크롤 header 동작 기준 확인
+/modules/community/skins/compact/skin.css 정적 파일 응답과 커뮤니티 skin CSS 공개 경로 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/community/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인

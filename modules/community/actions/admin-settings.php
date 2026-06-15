@@ -255,7 +255,6 @@ if (sr_request_method() === 'POST') {
                 ['message_write_policy', $messageWritePolicy, 'string'],
                 ['message_write_group_keys', sr_community_board_group_keys_setting_value($messageWriteGroupKeys), 'json'],
                 ['message_write_min_level', (string) $messageWriteMinLevel, 'int'],
-                ['theme_key', 'basic', 'string'],
                 ['layout_key', $layoutKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
                 ['layout_secondary_menu_key', $layoutSecondaryMenuKey, 'string'],

@@ -72,7 +72,7 @@ sr_mention_check_assert(is_string($mentionJs) && str_contains($mentionJs, "scrol
 
 foreach ([
     '/layouts/public/basic/layout.php',
-    '/modules/community/themes/basic/layout.php',
+    '/modules/community/layouts/basic/layout.php',
     '/modules/content/layouts/basic/layout.php',
 ] as $layoutPath) {
     $layout = file_get_contents($root . $layoutPath);

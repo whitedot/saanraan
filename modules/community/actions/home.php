@@ -36,6 +36,6 @@ foreach ($boards as $board) {
     }
 }
 $communityLayoutKey = sr_community_layout_key($settings, $site ?? null, $pdo);
-$themeView = sr_community_layout_home_view($communityLayoutKey, $pdo);
+$layoutHomeView = sr_community_layout_home_view($communityLayoutKey, $pdo);
 
-include $themeView;
+include $layoutHomeView;

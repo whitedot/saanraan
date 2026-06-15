@@ -437,6 +437,14 @@ $checks = [
         ],
     ],
     [
+        'label' => 'community compact skin stylesheet',
+        'path' => '/modules/community/skins/compact/skin.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.community-screen',
+        ],
+    ],
+    [
         'label' => 'ckeditor plugin script',
         'path' => '/modules/ckeditor/assets/saanraan-ckeditor.js',
         'allowed_statuses' => [200],

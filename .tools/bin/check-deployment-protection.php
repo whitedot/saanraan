@@ -127,6 +127,7 @@ foreach ([
     'config|core|database|docs|examples|storage',
     '\.git|\.tools|\.claude',
     'modules/[a-z][a-z0-9_]{1,39}/assets/',
+    'modules/[a-z][a-z0-9_]{1,39}/skins/[a-z][a-z0-9_]{0,39}/',
     'modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
     'AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env',
 ] as $marker) {
@@ -152,6 +153,7 @@ foreach ([
     '/modules/community/assets/layout.css',
     '/modules/community/assets/module.css',
     '/modules/community/assets/layout.js',
+    '/modules/community/skins/compact/skin.css',
     '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
 ] as $path) {
     if ($doc !== '' && !str_contains($doc, $path)) {
@@ -162,6 +164,7 @@ foreach ([
 foreach ([
     'location /assets/',
     'location ~ ^/modules/[a-z][a-z0-9_]{1,39}/assets/',
+    'location ~ ^/modules/[a-z][a-z0-9_]{1,39}/skins/[a-z][a-z0-9_]{0,39}/',
     'location = /modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
     'location = /assets/fonts/material-symbols-outlined.ttf',
 ] as $marker) {

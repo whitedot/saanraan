@@ -424,7 +424,7 @@ $layoutPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $layoutPdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)");
 $layoutPdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('community', 'enabled'), ('site_menu', 'enabled'), ('content', 'enabled')");
 sr_output_helper_assert(
-    sr_public_layout_optional_view_file('community.basic', 'community_home', $layoutPdo) === $root . '/modules/community/themes/basic/home.php',
+    sr_public_layout_optional_view_file('community.basic', 'community_home', $layoutPdo) === $root . '/modules/community/layouts/basic/home.php',
     'Optional public layout view lookup should include enabled module layout contracts when PDO is provided.'
 );
 $GLOBALS['sr_public_layout_options_runtime_cache'] = [];

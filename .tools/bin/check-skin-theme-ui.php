@@ -11,13 +11,13 @@ function sr_skin_theme_check_read(string $path): string
     global $root, $errors;
     $fullPath = $root . '/' . $path;
     if (!is_file($fullPath)) {
-        $errors[] = 'Required skin/theme UI file is missing: ' . $path;
+        $errors[] = 'Required skin/layout UI file is missing: ' . $path;
         return '';
     }
 
     $content = file_get_contents($fullPath);
     if (!is_string($content)) {
-        $errors[] = 'Required skin/theme UI file cannot be read: ' . $path;
+        $errors[] = 'Required skin/layout UI file cannot be read: ' . $path;
         return '';
     }
 
@@ -291,19 +291,16 @@ $targets = [
     ],
     [
         'label' => 'Community layout',
-        'helper' => 'modules/community/helpers/themes.php',
+        'helper' => 'modules/community/helpers/presentation.php',
         'action' => 'modules/community/actions/admin-settings.php',
         'view' => 'modules/community/views/admin-settings.php',
         'render_views' => ['modules/community/actions/home.php'],
-        'files' => ['modules/community/themes/basic/home.php', 'modules/community/layout-options.php'],
+        'files' => ['modules/community/layouts/basic/home.php', 'modules/community/layout-options.php'],
         'helper_needles' => [
             'function sr_community_layout_key(array $settings',
             'function sr_community_layout_home_view(string $layoutKey',
-            'function sr_community_theme_options(): array',
-            'sr_filter_view_options([',
-            "'home' => SR_ROOT . '/modules/community/themes/basic/home.php'",
-            "], ['home'], 'community theme')",
-            "sr_t('community::runtime.theme_view_missing')",
+            "SR_ROOT . '/modules/community/layouts/basic/home.php'",
+            "sr_t('community::runtime.layout_home_view_missing')",
         ],
         'action_needles' => [
             '$communityLayoutOptions = sr_public_layout_options($pdo)',
@@ -323,7 +320,7 @@ $targets = [
     ],
     [
         'label' => 'Community board skin',
-        'helper' => 'modules/community/helpers/themes.php',
+        'helper' => 'modules/community/helpers/presentation.php',
         'action' => 'modules/community/actions/admin-boards.php',
         'view' => 'modules/community/views/admin-boards.php',
         'render_views' => ['modules/community/actions/list.php', 'modules/community/actions/view.php', 'modules/community/actions/write.php', 'modules/community/actions/edit.php'],
@@ -332,12 +329,15 @@ $targets = [
             'modules/community/skins/basic/list.php',
             'modules/community/skins/basic/view.php',
             'modules/community/skins/basic/form.php',
+            'modules/community/skins/compact/skin.php',
+            'modules/community/skins/compact/skin.css',
             'modules/community/actions/skin-action.php',
         ],
         'helper_needles' => [
             'function sr_community_skin_files(): array',
             'function sr_community_skin_options(): array',
             "'basic' => SR_ROOT . '/modules/community/skins/basic/skin.php'",
+            "'compact' => SR_ROOT . '/modules/community/skins/compact/skin.php'",
             'function sr_community_skin_definition_is_valid(string $skinKey, array $definition): bool',
             'function sr_community_required_skin_view_keys(): array',
             "return ['list', 'post', 'form'];",
@@ -468,11 +468,11 @@ sr_skin_theme_check_contains(['assets/ui-kit.css', 'modules/admin/assets/common.
 ], 'Checkbox checked indicator');
 
 if ($errors !== []) {
-    fwrite(STDERR, "skin/theme UI checks failed:\n");
+    fwrite(STDERR, "skin/layout UI checks failed:\n");
     foreach ($errors as $error) {
         fwrite(STDERR, '- ' . $error . "\n");
     }
     exit(1);
 }
 
-echo "skin/theme UI checks completed.\n";
+echo "skin/layout UI checks completed.\n";

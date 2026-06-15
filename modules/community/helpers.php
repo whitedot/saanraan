@@ -12,7 +12,7 @@ require_once SR_ROOT . '/modules/community/helpers/assets.php';
 require_once SR_ROOT . '/modules/community/helpers/reports.php';
 require_once SR_ROOT . '/modules/community/helpers/scraps.php';
 require_once SR_ROOT . '/modules/community/helpers/series.php';
-require_once SR_ROOT . '/modules/community/helpers/themes.php';
+require_once SR_ROOT . '/modules/community/helpers/presentation.php';
 require_once SR_ROOT . '/modules/community/helpers/levels.php';
 require_once SR_ROOT . '/modules/community/helpers/member-groups.php';
 require_once SR_ROOT . '/modules/community/helpers/notifications.php';

@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.06.025',
+    'version' => '2026.06.026',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -79,7 +79,6 @@ return [
         'message_write_min_level' => 0,
         'nickname_enabled' => true,
         'nickname_required' => true,
-        'theme_key' => 'basic',
         'layout_key' => 'community.basic',
         'layout_primary_menu_key' => 'header',
         'layout_secondary_menu_key' => '',

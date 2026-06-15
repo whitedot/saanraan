@@ -617,7 +617,7 @@ foreach ([
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
-    'modules/community/themes/basic/layout.php' => [
+    'modules/community/layouts/basic/layout.php' => [
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],

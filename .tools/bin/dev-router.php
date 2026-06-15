@@ -17,6 +17,7 @@ if (
         preg_match('#\A/(?:config|core|database|docs|examples|storage|\.git|\.tools|\.claude)(?:/|\z)#', $requestPath) === 1
         || (preg_match('#\A/modules/#', $requestPath) === 1
             && preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/assets/#', $requestPath) !== 1
+            && preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/skins/[a-z][a-z0-9_]{0,39}/#', $requestPath) !== 1
             && !in_array($requestPath, ['/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js', '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'], true))
         || preg_match('#\A/(?:AGENTS\.md|README\.md|LICENSE|\.gitignore|\.htaccess|\.env(?:\..*)?)\z#', $requestPath) === 1
     )
@@ -33,6 +34,7 @@ if (
         str_starts_with($requestPath, '/assets/')
         || $thumbnailCacheRequest
         || preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/assets/#', $requestPath) === 1
+        || preg_match('#\A/modules/[a-z][a-z0-9_]{1,39}/skins/[a-z][a-z0-9_]{0,39}/#', $requestPath) === 1
         || in_array($requestPath, ['/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js', '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'], true)
     )
 ) {

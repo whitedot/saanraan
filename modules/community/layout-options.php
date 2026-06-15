@@ -8,8 +8,8 @@ return [
         'supports' => ['site', 'community.home', 'content.view'],
         'style_profile' => 'minimal',
         'views' => [
-            'layout' => SR_ROOT . '/modules/community/themes/basic/layout.php',
-            'community_home' => SR_ROOT . '/modules/community/themes/basic/home.php',
+            'layout' => SR_ROOT . '/modules/community/layouts/basic/layout.php',
+            'community_home' => SR_ROOT . '/modules/community/layouts/basic/home.php',
         ],
     ],
 ];

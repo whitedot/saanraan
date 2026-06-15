@@ -311,7 +311,7 @@ $requiredPackageEntries = [
     'reaction-targets.php',
     'sitemap.php',
     'skins',
-    'themes',
+    'layouts',
     'views',
     'coupon-targets.php',
     'member-group-references.php',

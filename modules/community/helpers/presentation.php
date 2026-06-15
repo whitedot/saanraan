@@ -2,12 +2,6 @@
 
 declare(strict_types=1);
 
-function sr_community_theme_key(array $settings): string
-{
-    $themeKey = (string) ($settings['theme_key'] ?? 'basic');
-    return isset(sr_community_theme_options()[$themeKey]) ? $themeKey : 'basic';
-}
-
 function sr_community_layout_default_key(): string
 {
     return 'community.basic';
@@ -17,8 +11,7 @@ function sr_community_layout_key(array $settings, ?array $site = null, ?PDO $pdo
 {
     $layoutKey = (string) ($settings['layout_key'] ?? '');
     if ($layoutKey === '') {
-        $themeKey = sr_community_theme_key($settings);
-        $layoutKey = $themeKey === 'basic' ? sr_community_layout_default_key() : 'community.' . $themeKey;
+        $layoutKey = sr_community_layout_default_key();
     }
 
     $layoutKey = sr_public_layout_normalize_key($layoutKey);
@@ -50,36 +43,12 @@ function sr_community_layout_home_view(string $layoutKey, ?PDO $pdo = null): str
         return $view;
     }
 
-    return sr_community_theme_view('basic', 'home');
-}
-
-function sr_community_theme_options(): array
-{
-    return sr_filter_view_options([
-        'basic' => [
-            'label' => sr_t('community::theme.basic'),
-            'views' => [
-                'home' => SR_ROOT . '/modules/community/themes/basic/home.php',
-            ],
-        ],
-    ], ['home'], 'community theme');
-}
-
-function sr_community_theme_view(string $themeKey, string $viewKey): string
-{
-    $options = sr_community_theme_options();
-    $view = (string) ($options[$themeKey]['views'][$viewKey] ?? $options['basic']['views'][$viewKey] ?? '');
-
-    if (is_file($view)) {
-        return $view;
-    }
-
-    $fallback = (string) ($options['basic']['views'][$viewKey] ?? '');
+    $fallback = SR_ROOT . '/modules/community/layouts/basic/home.php';
     if (is_file($fallback)) {
         return $fallback;
     }
 
-    throw new RuntimeException(sr_t('community::runtime.theme_view_missing'));
+    throw new RuntimeException(sr_t('community::runtime.layout_home_view_missing'));
 }
 
 function sr_community_skin_key(array $boardSettings = []): string
@@ -92,6 +61,7 @@ function sr_community_skin_files(): array
 {
     return [
         'basic' => SR_ROOT . '/modules/community/skins/basic/skin.php',
+        'compact' => SR_ROOT . '/modules/community/skins/compact/skin.php',
     ];
 }
 
