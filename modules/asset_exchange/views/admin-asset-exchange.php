@@ -35,6 +35,7 @@ $toAssetOptions = $assets;
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
 $roundingModeLabels = ['floor' => '버림', 'round' => '반올림', 'ceil' => '올림'];
 $feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'reexchange' => '환금성 항목 재환전만 적용'];
+$feeTriggerModeLabels = ['always' => '항상 적용', 'reexchange' => '환금성 항목 재환전만 적용'];
 $feeBasisLabels = ['from_amount' => '출금액 기준', 'to_amount' => '입금액 기준'];
 $feeTypeLabels = ['rate' => '정률', 'fixed' => '정액'];
 $policyPagination = ['total' => count($policies), 'start' => count($policies) > 0 ? 1 : 0, 'end' => count($policies)];
@@ -321,9 +322,25 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_trigger', '수수료 적용', $assetExchangeHelp['fee_trigger']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_enabled', '수수료 사용', $assetExchangeHelp['fee_trigger']['id'], $assetExchangeHelpOpenLabel, true); ?>
                     <div class="admin-form-field">
-                        <?php echo sr_admin_radio_toggle_group_html('asset_exchange_fee_trigger', 'fee_trigger', $feeTriggerLabels, (string) $policyForm['fee_trigger'], true); ?>
+                        <?php $feeTriggerValue = (string) ($policyForm['fee_trigger'] ?? 'none'); ?>
+                        <?php $feeTriggerModeValue = $feeTriggerValue === 'reexchange' ? 'reexchange' : 'always'; ?>
+                        <label class="admin-form-check form-label" for="asset_exchange_fee_enabled">
+                            <input id="asset_exchange_fee_enabled" type="checkbox" value="1" class="form-switch form-choice-dark"<?php echo $feeTriggerValue !== 'none' ? ' checked' : ''; ?> data-asset-exchange-fee-enabled>
+                            <span class="sr-only">수수료 사용</span>
+                        </label>
+                        <input id="asset_exchange_fee_trigger" type="hidden" name="fee_trigger" value="<?php echo sr_e($feeTriggerValue); ?>" data-asset-exchange-fee-trigger-value>
+                    </div>
+                </div>
+                <div class="admin-form-row" data-asset-exchange-fee-setting<?php echo $feeTriggerValue === 'none' ? ' hidden' : ''; ?>>
+                    <?php echo sr_admin_form_label_help_html('asset_exchange_fee_trigger_mode', '적용 대상', $assetExchangeHelp['fee_trigger']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <div class="admin-form-field">
+                        <select id="asset_exchange_fee_trigger_mode" class="form-select" data-asset-exchange-fee-trigger-mode<?php echo $feeTriggerValue === 'none' ? ' disabled' : ''; ?>>
+                            <?php foreach ($feeTriggerModeLabels as $value => $label) { ?>
+                                <option value="<?php echo sr_e($value); ?>"<?php echo $feeTriggerModeValue === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
+                            <?php } ?>
+                        </select>
                     </div>
                 </div>
                 <div class="admin-form-row" data-asset-exchange-fee-setting data-asset-exchange-fee-type="rate">
@@ -393,13 +410,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return;
     }
 
-    var triggerControls = form.querySelectorAll('input[name="fee_trigger"]');
+    var feeEnabled = form.querySelector('[data-asset-exchange-fee-enabled]');
+    var feeTriggerInput = form.querySelector('[data-asset-exchange-fee-trigger-value]');
+    var feeTriggerMode = form.querySelector('[data-asset-exchange-fee-trigger-mode]');
     var typeControls = form.querySelectorAll('input[name="fee_type"]');
     var settings = form.querySelectorAll('[data-asset-exchange-fee-setting]');
 
     function checkedValue(name, fallback) {
         var checked = form.querySelector('input[name="' + name + '"]:checked, select[name="' + name + '"]');
         return checked ? checked.value : fallback;
+    }
+
+    function feeTriggerValue() {
+        if (!feeEnabled || !feeTriggerInput) {
+            return checkedValue('fee_trigger', 'none');
+        }
+
+        if (!feeEnabled.checked) {
+            return 'none';
+        }
+
+        return feeTriggerMode ? feeTriggerMode.value : 'always';
+    }
+
+    function syncFeeTriggerValue() {
+        if (feeTriggerInput) {
+            feeTriggerInput.value = feeTriggerValue();
+        }
+        if (feeTriggerMode) {
+            feeTriggerMode.disabled = feeTriggerValue() === 'none';
+        }
     }
 
     function setControls(row, enabled) {
@@ -412,7 +452,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     }
 
     function syncFeeFields() {
-        var usesFee = checkedValue('fee_trigger', 'none') !== 'none';
+        syncFeeTriggerValue();
+        var usesFee = feeTriggerValue() !== 'none';
         var feeType = checkedValue('fee_type', 'rate');
 
         settings.forEach(function (row) {
@@ -423,9 +464,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         });
     }
 
-    triggerControls.forEach(function (control) {
-        control.addEventListener('change', syncFeeFields);
-    });
+    if (feeEnabled) {
+        feeEnabled.addEventListener('change', syncFeeFields);
+    }
+    if (feeTriggerMode) {
+        feeTriggerMode.addEventListener('change', syncFeeFields);
+    }
     typeControls.forEach(function (control) {
         control.addEventListener('change', syncFeeFields);
     });
