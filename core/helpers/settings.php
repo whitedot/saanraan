@@ -24,6 +24,16 @@ function sr_load_site(PDO $pdo): ?array
     ];
 }
 
+function sr_site_display_name(?array $site = null, ?PDO $pdo = null): string
+{
+    $siteName = is_array($site) ? trim((string) ($site['name'] ?? $site['site_name'] ?? '')) : '';
+    if ($siteName === '' && $pdo instanceof PDO) {
+        $siteName = trim((string) sr_site_setting($pdo, 'site.name', ''));
+    }
+
+    return $siteName !== '' ? $siteName : 'Saanraan';
+}
+
 function sr_known_currency_min_units(): array
 {
     return [

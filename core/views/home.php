@@ -7,7 +7,7 @@ if ($homeViewFile !== null && realpath($homeViewFile) !== realpath(__FILE__)) {
     return;
 }
 
-$pageTitle = isset($site['name']) ? (string) $site['name'] : 'Saanraan';
+$pageTitle = sr_site_display_name(is_array($site ?? null) ? $site : null, $layoutPdo);
 $seo = [
     'title' => $pageTitle,
     'canonical' => sr_canonical_url($site, '/'),
@@ -24,7 +24,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     <main class="public-ui-scope public-home">
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
         <h1><?php echo sr_e($pageTitle); ?></h1>
-        <p><?php echo sr_e(sr_t('ui.saanraan.d60361f1')); ?></p>
+        <p><?php echo sr_e($pageTitle . ' 사이트가 설치되었습니다.'); ?></p>
         <p><a href="<?php echo sr_e(sr_url('/admin')); ?>"><?php echo sr_e(sr_t('ui.admin.c68cbc05')); ?></a></p>
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
     </main>

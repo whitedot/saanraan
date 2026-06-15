@@ -20,8 +20,7 @@ if ($pageLayoutKey === '' || !isset(sr_public_layout_options($pdo ?? null)[$page
     $pageLayoutKey = sr_public_layout_key($site ?? null, $pdo ?? null);
 }
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
-$contentPublisherName = trim((string) (($site ?? [])['name'] ?? ($site ?? [])['site_name'] ?? 'Saanraan'));
-$contentPublisherName = $contentPublisherName !== '' ? $contentPublisherName : 'Saanraan';
+$contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) ($page['updated_at'] ?? '');
 $contentStylesheets = [

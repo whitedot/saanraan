@@ -4,8 +4,7 @@ require_once __DIR__ . '/../../helpers.php';
 
 $quizSettings = sr_quiz_settings($pdo);
 $quizzes = sr_quiz_public_quizzes($pdo);
-$quizPublisherName = trim((string) (($site ?? [])['name'] ?? ($site ?? [])['site_name'] ?? 'Saanraan'));
-$quizPublisherName = $quizPublisherName !== '' ? $quizPublisherName : 'Saanraan';
+$quizPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
     'title' => '퀴즈',
     'canonical' => '/quiz',

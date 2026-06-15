@@ -6,6 +6,7 @@ $seo = [
     'robots' => 'noindex, nofollow',
 ];
 $identifierLabel = sr_t('member::ui.email.95b727cb');
+$loginSiteName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'style_profile' => 'kit',
 ]);
@@ -13,7 +14,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     <main class="public-ui-scope member-login-public">
         <section class="public-ui-form-panel">
             <h1 class="public-ui-title type-section-title"><?php echo sr_e($pageTitle); ?></h1>
-            <p class="public-ui-copy type-body"><?php echo sr_e(sr_t('member::ui.saanraan.cad4cd41')); ?></p>
+            <p class="public-ui-copy type-body"><?php echo sr_e($loginSiteName . ' 계정으로 계속 진행합니다.'); ?></p>
 
             <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.login', 'slot_key' => 'before_form']); ?>
 

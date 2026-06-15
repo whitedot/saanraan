@@ -2,7 +2,7 @@
 
 $homeSite = is_array($site ?? null) ? $site : [];
 $homePdo = $pdo instanceof PDO ? $pdo : null;
-$homeSiteName = (string) ($homeSite['name'] ?? 'Saanraan');
+$homeSiteName = sr_site_display_name($homeSite, $homePdo);
 $homeDescription = sr_t('ui.page.2a0a8b79');
 $seo = [
     'title' => $homeSiteName,

@@ -11,8 +11,7 @@ $seo = [
     ],
 ];
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
-$contentPublisherName = trim((string) (($site ?? [])['name'] ?? ($site ?? [])['site_name'] ?? 'Saanraan'));
-$contentPublisherName = $contentPublisherName !== '' ? $contentPublisherName : 'Saanraan';
+$contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentGroupLayoutContext = [];
 if (isset($pageGroupLayoutKey) && is_string($pageGroupLayoutKey) && $pageGroupLayoutKey !== '') {
     $contentGroupLayoutContext['layout_key'] = $pageGroupLayoutKey;

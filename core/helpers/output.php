@@ -1253,10 +1253,7 @@ function sr_pwa_theme_color(?PDO $pdo, ?array $site): string
 
 function sr_pwa_manifest_payload(?PDO $pdo, ?array $site): array
 {
-    $siteName = trim((string) ($site['name'] ?? 'Saanraan'));
-    if ($siteName === '') {
-        $siteName = 'Saanraan';
-    }
+    $siteName = sr_site_display_name($site, $pdo);
 
     return [
         'name' => $siteName,
@@ -1435,7 +1432,7 @@ function sr_is_safe_relative_url(string $url): bool
 
 function sr_seo_tags(array $seo = [], ?array $site = null): string
 {
-    $title = (string) ($seo['title'] ?? ($site['name'] ?? 'Saanraan'));
+    $title = (string) ($seo['title'] ?? sr_site_display_name($site));
     $description = (string) ($seo['description'] ?? '');
     $canonical = (string) ($seo['canonical'] ?? sr_canonical_url($site));
     if (sr_is_safe_relative_url($canonical)) {

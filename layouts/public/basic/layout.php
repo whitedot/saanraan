@@ -21,7 +21,7 @@ $layoutFooterMenuSlots = [
     'quaternary' => ['slot_key' => 'quaternary_navigation', 'label' => '추가 메뉴 2'],
     'quinary' => ['slot_key' => 'quinary_navigation', 'label' => '추가 메뉴 3'],
 ];
-$layoutSiteName = trim((string) ($layoutSite['name'] ?? $layoutSite['site_name'] ?? 'Saanraan'));
+$layoutSiteName = sr_site_display_name($layoutSite, $layoutPdo);
 $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
@@ -129,10 +129,10 @@ $layoutCopyrightYear = date('Y');
                 <?php echo $layoutMobileBrandLogoHtml; ?>
                 <?php echo $layoutBrandLogoHtml; ?>
                 <?php if ($layoutBrandUsesPublicSymbol) { ?>
-                    <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
+                    <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
             <?php } else { ?>
-                <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?></span>
+                <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
             <?php } ?>
         </a>
         <nav class="public-layout-nav" aria-label="<?php echo sr_e('공개 메뉴'); ?>">
@@ -205,7 +205,7 @@ $layoutCopyrightYear = date('Y');
                 <?php echo (string) ($layoutFooterNavigation['html'] ?? ''); ?>
             </nav>
         <?php } ?>
-        <p>Copyright <?php echo sr_e($layoutCopyrightYear); ?> <?php echo sr_e($layoutSiteName !== '' ? $layoutSiteName : 'Saanraan'); ?>.</p>
+        <p>Copyright <?php echo sr_e($layoutCopyrightYear); ?> <?php echo sr_e($layoutSiteName); ?>.</p>
     </footer>
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/assets/mention-input.js')); ?>" defer></script>
