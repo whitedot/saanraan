@@ -35,6 +35,26 @@ $policyDocumentVersionValue = static function (string $key, string $default = ''
 
     return $default;
 };
+$policyDocumentBodyHtmlValue = $policyDocumentVersionValue('body_html');
+$policyDocumentBodyTextValue = static function (string $bodyHtml): string {
+    $bodyHtml = preg_replace('/<\s*br\s*\/?>/i', "\n", $bodyHtml) ?? $bodyHtml;
+    $bodyHtml = preg_replace('/<\s*\/\s*(p|div|li|h[1-6])\s*>/i', "\n\n", $bodyHtml) ?? $bodyHtml;
+    $bodyHtml = trim(strip_tags($bodyHtml));
+
+    return html_entity_decode($bodyHtml, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+};
+$policyDocumentCkeditorAvailable = isset($pdo) && $pdo instanceof PDO && sr_editor_available($pdo, 'ckeditor');
+$policyDocumentBodyEditorMode = $policyDocumentCkeditorAvailable ? 'ckeditor' : 'html';
+$policyDocumentBodyEditorOptions = [
+    'plain' => sr_t('policy_documents::ui.body_mode.plain'),
+    'html' => sr_t('policy_documents::ui.body_mode.html'),
+];
+if ($policyDocumentCkeditorAvailable) {
+    $policyDocumentBodyEditorOptions['ckeditor'] = sr_t('policy_documents::ui.body_mode.ckeditor');
+}
+$policyDocumentCkeditorAttributes = $policyDocumentCkeditorAvailable && isset($pdo) && $pdo instanceof PDO
+    ? sr_editor_textarea_attributes($pdo, 'ckeditor', 'admin_basic', 'body_editor_format')
+    : '';
 $policyDocumentVersionsByDocumentId = [];
 foreach ($versions as $policyDocumentVersionRow) {
     $policyDocumentVersionsByDocumentId[(int) $policyDocumentVersionRow['document_id']][] = $policyDocumentVersionRow;
@@ -110,8 +130,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="admin-form-row">
                     <span class="form-label"><?php echo sr_e(sr_t('policy_documents::ui.document.selected')); ?></span>
                     <div class="admin-form-field">
-                        <?php echo sr_e((string) $selectedDocument['document_key']); ?>
-                        <p class="admin-form-help"><?php echo sr_e((string) $selectedDocument['title']); ?></p>
+                        <?php echo sr_e((string) $selectedDocument['title']); ?>
+                        <p class="admin-form-help"><?php echo sr_e((string) $selectedDocument['document_key']); ?></p>
                     </div>
                 </div>
             <?php } ?>
@@ -143,8 +163,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
             <div class="admin-form-row">
                 <label class="form-label" for="policy_document_body_html"><?php echo sr_e(sr_t('policy_documents::ui.body')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
-                <div class="admin-form-field">
-                    <textarea id="policy_document_body_html" class="form-textarea form-control-full" name="body_html" rows="14" required><?php echo sr_e($policyDocumentVersionValue('body_html')); ?></textarea>
+                <div class="admin-form-field" data-admin-body-editor-mode-group>
+                    <div>
+                        <?php echo sr_admin_radio_toggle_group_html('policy_document_body_editor_mode', 'body_editor_mode', $policyDocumentBodyEditorOptions, $policyDocumentBodyEditorMode, true, ' data-admin-body-editor-mode'); ?>
+                    </div>
+                    <div class="btn-space-before" data-admin-body-editor-panel="plain"<?php echo $policyDocumentBodyEditorMode === 'plain' ? '' : ' hidden'; ?>>
+                        <textarea id="policy_document_body_plain" class="form-textarea form-control-full" name="body_plain" rows="14"><?php echo sr_e($policyDocumentBodyTextValue($policyDocumentBodyHtmlValue)); ?></textarea>
+                    </div>
+                    <div class="btn-space-before" data-admin-body-editor-panel="html"<?php echo $policyDocumentBodyEditorMode === 'html' ? '' : ' hidden'; ?>>
+                        <textarea id="policy_document_body_html" class="form-textarea form-control-full" name="body_html" rows="14"><?php echo sr_e($policyDocumentBodyHtmlValue); ?></textarea>
+                    </div>
+                    <?php if ($policyDocumentCkeditorAvailable) { ?>
+                        <div class="btn-space-before" data-admin-body-editor-panel="ckeditor"<?php echo $policyDocumentBodyEditorMode === 'ckeditor' ? '' : ' hidden'; ?>>
+                            <textarea id="policy_document_body_ckeditor_html" class="form-textarea form-control-full" name="body_ckeditor_html" rows="14"<?php echo $policyDocumentCkeditorAttributes; ?>><?php echo sr_e($policyDocumentBodyHtmlValue); ?></textarea>
+                        </div>
+                    <?php } ?>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('policy_documents::ui.body.help')); ?></p>
                 </div>
             </div>
@@ -353,4 +386,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </section>
 <?php } ?>
 
+<?php if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentCkeditorAvailable && isset($pdo) && $pdo instanceof PDO) { ?>
+    <?php echo sr_editor_assets_html($pdo, 'ckeditor', 'admin_basic'); ?>
+<?php } ?>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -863,6 +863,53 @@ window.AdminShell = {
         );
         const syncSlugInputValue = input => syncRestrictedInputValue(input, normalizeSlugInputValue);
 
+        const syncBodyEditorGroup = group => {
+            if (!group || !group.querySelectorAll) {
+                return;
+            }
+
+            const checkedMode = group.querySelector('[data-admin-body-editor-mode]:checked');
+            const activeMode = checkedMode ? checkedMode.value : '';
+            Array.prototype.slice.call(group.querySelectorAll('[data-admin-body-editor-panel]')).forEach(panel => {
+                const active = panel.getAttribute('data-admin-body-editor-panel') === activeMode;
+                panel.hidden = !active;
+                Array.prototype.slice.call(panel.querySelectorAll('textarea')).forEach(textarea => {
+                    textarea.required = active;
+                });
+            });
+        };
+
+        const syncBodyEditorGroups = root => {
+            if (!root || !root.querySelectorAll) {
+                return;
+            }
+
+            Array.prototype.slice.call(root.querySelectorAll('[data-admin-body-editor-mode-group]')).forEach(syncBodyEditorGroup);
+        };
+
+        const syncBodyEditorValuesBeforeSubmit = form => {
+            if (!form || !form.querySelectorAll) {
+                return;
+            }
+
+            Array.prototype.slice.call(form.querySelectorAll('[data-admin-body-editor-mode-group]')).forEach(group => {
+                const checkedMode = group.querySelector('[data-admin-body-editor-mode]:checked');
+                if (!checkedMode || checkedMode.value !== 'ckeditor') {
+                    return;
+                }
+
+                const textarea = group.querySelector('[data-admin-body-editor-panel="ckeditor"] textarea');
+                if (!textarea || !textarea.id || !window.srCkeditorInstances || !window.srCkeditorInstances[textarea.id]) {
+                    return;
+                }
+
+                const editor = window.srCkeditorInstances[textarea.id];
+                if (editor && typeof editor.getData === 'function') {
+                    textarea.value = editor.getData();
+                }
+            });
+        };
+
         const syncFilteringToggleGroup = group => {
             if (!group || !group.querySelectorAll) {
                 return;
@@ -1625,6 +1672,13 @@ window.AdminShell = {
                 }
             }
 
+            const bodyEditorMode = event.target && event.target.closest
+                ? event.target.closest('[data-admin-body-editor-mode]')
+                : null;
+            if (bodyEditorMode) {
+                syncBodyEditorGroup(bodyEditorMode.closest('[data-admin-body-editor-mode-group]'));
+            }
+
             const control = assetEnableControl(event.target);
             if (control) {
                 confirmAssetEnableSelection(control);
@@ -1654,6 +1708,7 @@ window.AdminShell = {
         });
 
         document.querySelectorAll('[data-filtering-toggle-group]').forEach(syncFilteringToggleGroup);
+        syncBodyEditorGroups(document);
         document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(root => syncAssetAmountGroup(root));
         document.querySelectorAll('[data-admin-asset-unit-group]').forEach(syncAssetUnitGroup);
         document.querySelectorAll('[data-admin-setting-source-group]').forEach(syncSettingSourceGroup);
@@ -1663,6 +1718,8 @@ window.AdminShell = {
             const validationForm = event.target && event.target.closest
                 ? event.target.closest('[data-sr-validate-form]')
                 : null;
+            syncBodyEditorValuesBeforeSubmit(event.target);
+            syncBodyEditorGroups(event.target);
             if (validationForm && (!validationForm.checkValidity() || !validateSrForm(validationForm, true))) {
                 event.preventDefault();
                 event.stopPropagation();

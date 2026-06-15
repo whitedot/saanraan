@@ -22,6 +22,44 @@ function sr_policy_document_sanitize_body(string $bodyHtml): string
     return sr_sanitize_rich_text_html($bodyHtml);
 }
 
+function sr_policy_document_plain_text_to_html(string $bodyText): string
+{
+    $bodyText = trim(str_replace(["\r\n", "\r"], "\n", $bodyText));
+    if ($bodyText === '') {
+        return '';
+    }
+
+    $paragraphs = preg_split("/\n{2,}/", $bodyText) ?: [];
+    $html = [];
+    foreach ($paragraphs as $paragraph) {
+        $paragraph = trim($paragraph);
+        if ($paragraph === '') {
+            continue;
+        }
+        $html[] = '<p>' . nl2br(sr_e($paragraph), false) . '</p>';
+    }
+
+    return implode("\n", $html);
+}
+
+function sr_policy_document_body_html_from_editor_data(array $data): string
+{
+    $mode = (string) ($data['body_editor_mode'] ?? 'html');
+    if (!in_array($mode, ['plain', 'html', 'ckeditor'], true)) {
+        $mode = 'html';
+    }
+
+    if ($mode === 'plain') {
+        return sr_policy_document_sanitize_body(sr_policy_document_plain_text_to_html((string) ($data['body_plain'] ?? '')));
+    }
+
+    if ($mode === 'ckeditor') {
+        return sr_policy_document_sanitize_body((string) ($data['body_ckeditor_html'] ?? ''));
+    }
+
+    return sr_policy_document_sanitize_body((string) ($data['body_html'] ?? ''));
+}
+
 function sr_policy_document_by_key(PDO $pdo, string $documentKey): ?array
 {
     if (!sr_policy_document_valid_key($documentKey)) {
@@ -271,7 +309,7 @@ function sr_policy_document_create_version(PDO $pdo, int $documentId, array $dat
 
     $versionKey = trim((string) ($data['version_key'] ?? ''));
     $title = sr_clean_single_line((string) ($data['title'] ?? ''), 190);
-    $bodyHtml = sr_policy_document_sanitize_body((string) ($data['body_html'] ?? ''));
+    $bodyHtml = sr_policy_document_body_html_from_editor_data($data);
     $summaryText = sr_clean_text((string) ($data['summary_text'] ?? ''), 1000);
     $status = (string) ($data['status'] ?? 'draft');
     $effectiveFrom = sr_clean_admin_datetime((string) ($data['effective_from'] ?? ''));
@@ -358,7 +396,7 @@ function sr_policy_document_update_draft_version(PDO $pdo, int $versionId, array
     }
 
     $title = sr_clean_single_line((string) ($data['title'] ?? ''), 190);
-    $bodyHtml = sr_policy_document_sanitize_body((string) ($data['body_html'] ?? ''));
+    $bodyHtml = sr_policy_document_body_html_from_editor_data($data);
     $summaryText = sr_clean_text((string) ($data['summary_text'] ?? ''), 1000);
     $effectiveFrom = sr_clean_admin_datetime((string) ($data['effective_from'] ?? ''));
 

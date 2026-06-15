@@ -167,6 +167,19 @@ sr_policy_documents_check_assert(
     (string) ($enabledChoices[0]['published_version_key'] ?? '') === '2026.06.002',
     'policy document choices should ignore future effective versions until their effective time.'
 );
+$plainVersionId = sr_policy_document_create_version($pdo, 1, [
+    'version_key' => '2026.06.004',
+    'title' => '일반 텍스트 약관',
+    'body_editor_mode' => 'plain',
+    'body_plain' => "첫 줄\n둘째 줄",
+    'summary_text' => '',
+    'status' => 'draft',
+]);
+$plainVersion = sr_policy_document_version_by_id($pdo, $plainVersionId);
+sr_policy_documents_check_assert(
+    is_array($plainVersion) && str_contains((string) ($plainVersion['body_html'] ?? ''), '<p>첫 줄<br>'),
+    'plain policy document bodies should be converted to sanitized HTML.'
+);
 
 $jobId = sr_policy_document_create_notice_job($pdo, 1, $secondVersionId, 'subject', 'body', true);
 try {
