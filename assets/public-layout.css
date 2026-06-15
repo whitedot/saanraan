@@ -190,13 +190,26 @@
 .public-layout-member-link {
     gap: 6px;
     font-size: .78rem;
-    font-weight: 700;
+    font-weight: 400;
     width: auto;
     white-space: nowrap;
 }
 
+.public-layout-member-link span:not(.material-symbols-outlined) {
+    max-width: 8rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .public-layout-admin-link {
     flex: 0 0 32px;
+}
+
+.public-layout-member-link-login,
+.public-layout-member-link-logout {
+    flex: 0 0 32px;
+    gap: 0;
 }
 
 .public-layout-notification-menu {
