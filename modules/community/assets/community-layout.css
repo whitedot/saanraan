@@ -164,6 +164,11 @@
     justify-self: end;
 }
 
+.community-layout-member-logout-form {
+    display: inline-flex;
+    margin: 0;
+}
+
 .community-layout-icon-button {
     align-items: center;
     background: transparent;
@@ -180,6 +185,18 @@
 .community-layout-icon-button .material-symbols-outlined {
     font-size: 1.28rem;
     font-variation-settings: "FILL" 0, "wght" 350, "GRAD" 0, "opsz" 24;
+}
+
+.community-layout-member-link {
+    gap: 6px;
+    font-size: .78rem;
+    font-weight: 700;
+    width: auto;
+    white-space: nowrap;
+}
+
+.community-layout-admin-link {
+    flex: 0 0 32px;
 }
 
 .community-layout-notification-menu {
@@ -375,8 +392,11 @@
     }
 
     .community-layout-actions {
+        flex-wrap: wrap;
+        gap: 8px 12px;
         grid-column: 2;
         grid-row: 1;
+        justify-content: flex-end;
     }
 
     .community-layout-brand-logo-mobile {

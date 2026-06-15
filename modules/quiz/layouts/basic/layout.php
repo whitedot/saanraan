@@ -94,16 +94,41 @@ if ($layoutPrimaryNavigationHtml !== '' || $layoutFooterNavigationHtml !== []) {
 $layoutNotificationEnabled = false;
 $layoutNotificationHasAccount = false;
 $layoutNotificationSummary = ['unread' => 0, 'items' => []];
+$layoutMemberEnabled = false;
+$layoutCurrentAccount = null;
+$layoutAdminEnabled = false;
+$layoutAdminUrl = sr_url('/admin');
+if (
+    $layoutPdo instanceof PDO
+    && sr_module_enabled($layoutPdo, 'member')
+    && is_file(SR_ROOT . '/modules/member/helpers.php')
+) {
+    $layoutMemberEnabled = true;
+    require_once SR_ROOT . '/modules/member/helpers.php';
+    $layoutCurrentAccount = sr_member_current_account($layoutPdo);
+}
+if (
+    $layoutPdo instanceof PDO
+    && is_array($layoutCurrentAccount)
+    && sr_module_enabled($layoutPdo, 'admin')
+    && is_file(SR_ROOT . '/modules/admin/helpers.php')
+) {
+    require_once SR_ROOT . '/modules/admin/helpers.php';
+    $layoutAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
+    $layoutAdminEnabled = sr_admin_has_admin_access($layoutPdo, $layoutAccountId);
+    if ($layoutAdminEnabled && !sr_admin_is_owner($layoutPdo, $layoutAccountId)) {
+        $layoutFirstAdminPath = sr_admin_first_permitted_menu_path($layoutPdo, $layoutAccountId);
+        $layoutAdminUrl = sr_url($layoutFirstAdminPath !== '' ? $layoutFirstAdminPath : '/admin');
+    }
+}
 if (
     $layoutPdo instanceof PDO
     && sr_module_enabled($layoutPdo, 'notification')
-    && is_file(SR_ROOT . '/modules/member/helpers.php')
+    && $layoutMemberEnabled
     && is_file(SR_ROOT . '/modules/notification/helpers.php')
 ) {
     $layoutNotificationEnabled = true;
-    require_once SR_ROOT . '/modules/member/helpers.php';
     require_once SR_ROOT . '/modules/notification/helpers.php';
-    $layoutCurrentAccount = sr_member_current_account($layoutPdo);
     if (is_array($layoutCurrentAccount)) {
         $layoutNotificationSummary = sr_notification_public_header_summary($layoutPdo, (int) $layoutCurrentAccount['id'], 5);
         $layoutNotificationHasAccount = true;
@@ -190,9 +215,31 @@ if (
                     </div>
                 </details>
             <?php } ?>
-            <a class="public-layout-icon-button" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e('회원'); ?>">
-                <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
-            </a>
+            <?php if ($layoutMemberEnabled) { ?>
+                <?php if (is_array($layoutCurrentAccount)) { ?>
+                    <a class="public-layout-icon-button public-layout-member-link public-layout-member-link-account" href="<?php echo sr_e(sr_url('/account')); ?>" aria-label="<?php echo sr_e('내 계정'); ?>">
+                        <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>person</span>
+                        <span><?php echo sr_e('내 계정'); ?></span>
+                    </a>
+                    <form class="public-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <button class="public-layout-icon-button public-layout-member-link public-layout-member-link-logout" type="submit" aria-label="<?php echo sr_e('로그아웃'); ?>">
+                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>logout</span>
+                            <span><?php echo sr_e('로그아웃'); ?></span>
+                        </button>
+                    </form>
+                    <?php if ($layoutAdminEnabled) { ?>
+                        <a class="public-layout-icon-button public-layout-admin-link" href="<?php echo sr_e($layoutAdminUrl); ?>" aria-label="<?php echo sr_e('관리자 모드'); ?>" title="<?php echo sr_e('관리자 모드'); ?>">
+                            <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>settings</span>
+                        </a>
+                    <?php } ?>
+                <?php } else { ?>
+                    <a class="public-layout-icon-button public-layout-member-link public-layout-member-link-login" href="<?php echo sr_e(sr_url('/login')); ?>" aria-label="<?php echo sr_e('로그인'); ?>">
+                        <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>login</span>
+                        <span><?php echo sr_e('로그인'); ?></span>
+                    </a>
+                <?php } ?>
+            <?php } ?>
         </div>
     </header>
     <div class="public-layout-main">
