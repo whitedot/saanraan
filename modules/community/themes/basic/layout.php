@@ -203,7 +203,6 @@ if (
         $layoutNotificationHasAccount = true;
     }
 }
-$layoutCopyrightYear = date('Y');
 ?>
 <!doctype html>
 <html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="light">
@@ -299,7 +298,7 @@ $layoutCopyrightYear = date('Y');
                 <?php echo (string) ($layoutFooterNavigation['html'] ?? ''); ?>
             </nav>
         <?php } ?>
-        <p>Copyright <?php echo sr_e($layoutCopyrightYear); ?> <?php echo sr_e($layoutSiteName); ?>.</p>
+        <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
     </footer>
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/assets/mention-input.js')); ?>" defer></script>

@@ -325,7 +325,7 @@
 }
 
 .content-layout-footer {
-    color: rgba(0, 0, 0, .48);
+    color: var(--color-body-color);
     margin: 0 auto;
     padding: 28px 0 42px;
     width: calc(100% - clamp(32px, 5vw, 96px));
@@ -342,7 +342,6 @@
 }
 
 .content-layout-footer p {
-    border-top: 1px solid rgba(0, 0, 0, .11);
     font-size: .75rem;
     font-weight: 500;
     line-height: 1.4;
