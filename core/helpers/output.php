@@ -917,7 +917,7 @@ function sr_material_icon_bootstrap_script(): string
 
 function sr_icon_bootstrap_script(): string
 {
-    return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"","check").then(y,function(){r.classList.add("sr-material-icons-unavailable")})}else{y()}})();</script>';
+    return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}function n(){r.classList.add("sr-material-icons-unavailable");y()}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"").then(y,function(){if(document.fonts.ready){document.fonts.ready.then(y,n)}else{n()}})}else{y()}})();</script>';
 }
 
 function sr_public_style_profile_paths(string $profile): array

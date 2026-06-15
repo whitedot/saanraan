@@ -573,6 +573,10 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             $moduleStylesheetPath = 'modules/' . $moduleKey . '/assets/' . $moduleStylesheet;
             $source = is_file($sourceStylesheet) ? file_get_contents($sourceStylesheet) : false;
             $copy = is_file($moduleStylesheetPath) ? file_get_contents($moduleStylesheetPath) : false;
+            if ($moduleStylesheet === 'reset.css' && is_string($source) && is_string($copy)) {
+                $source = str_replace('url("fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $source);
+                $copy = str_replace('url("../../../assets/fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $copy);
+            }
             if (!is_string($source) || !is_string($copy) || $source !== $copy) {
                 sr_check_add_error('Module UI kit stylesheet copy must match source: ' . $moduleStylesheetPath . ' -> ' . $sourceStylesheet);
             }
