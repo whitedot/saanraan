@@ -20,16 +20,28 @@ $slug = sr_content_slug_from_request_path();
 $page = $slug !== '' ? sr_content_by_slug($pdo, $slug) : null;
 $account = sr_member_current_account($pdo);
 $contentAdminPreview = false;
+$contentAdminPreviewRequested = sr_get_string('preview', 20) === 'admin';
 if (is_array($page) && (string) ($page['status'] ?? '') !== 'published') {
+    $contentAdminCanPreview = is_array($account)
+        && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'view');
     if (
         in_array((string) ($page['status'] ?? ''), ['draft', 'scheduled'], true)
-        && is_array($account)
-        && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'view')
+        && $contentAdminCanPreview
     ) {
         $contentAdminPreview = true;
     } else {
         $page = null;
     }
+}
+if (
+    is_array($page)
+    && !$contentAdminPreview
+    && $contentAdminPreviewRequested
+    && (string) ($page['status'] ?? '') === 'published'
+    && is_array($account)
+    && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/content', 'view')
+) {
+    $contentAdminPreview = true;
 }
 if (!is_array($page)) {
     sr_render_error(404, sr_t('content::action.error.content_not_found'));
