@@ -98,7 +98,9 @@ $pdo->exec(
         (4, 1, 3, '외부 문서', 'https://example.test/docs', 'blank', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (5, 1, 4, '너무 깊은 항목', '/too-deep', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (6, 1, NULL, '비활성', '/disabled', 'self', 'disabled', 30, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
-        (7, 2, NULL, '숨김 메뉴', '/hidden', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
+        (7, 2, NULL, '숨김 메뉴', '/hidden', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (8, 1, NULL, '퀴즈', '/quiz', 'self', 'enabled', 40, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (9, 1, NULL, '퀴즈 확장', '/quiz-extra', 'self', 'enabled', 50, '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
 );
 $pdo->exec("CREATE TABLE sr_community_boards (id INTEGER PRIMARY KEY, board_key TEXT NOT NULL)");
 $pdo->exec("CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY, board_id INTEGER NOT NULL)");
@@ -131,6 +133,11 @@ sr_site_menu_check_assert(sr_site_menu_render($pdo, 'footer', 'secondary_navigat
 $emptyTree = sr_site_menu_tree($pdo, 'empty_menu');
 sr_site_menu_check_assert(($emptyTree['enabled'] ?? false) === true, 'Site menu tree helper must keep enabled menu state when a menu has no enabled items.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'empty_menu', 'navigation') === '', 'Site menu render runtime fixture must render empty enabled menus as empty output.');
+
+$_SERVER['REQUEST_URI'] = '/quiz/qa260611p1530_category';
+$quizSectionHtml = sr_site_menu_render($pdo, 'header', 'navigation');
+sr_site_menu_check_assert(str_contains($quizSectionHtml, '<li class="sr-site-menu-item sr-site-menu-item-depth-1 is-current"><a href="/quiz" aria-current="page"'), 'Site menu section root item must be current for a child path.');
+sr_site_menu_check_assert(!str_contains($quizSectionHtml, '<li class="sr-site-menu-item sr-site-menu-item-depth-1 is-current"><a href="/quiz-extra" aria-current="page"'), 'Site menu section current matching must not cross path segment boundaries.');
 
 $_SERVER['REQUEST_URI'] = '/content/example';
 sr_site_menu_check_assert(sr_site_menu_item_href('/login') === '/login?next=%2Fcontent%2Fexample', 'Site menu login link must include safe current next path.');

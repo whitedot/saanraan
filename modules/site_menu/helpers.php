@@ -359,15 +359,20 @@ function sr_site_menu_relative_url_parts(string $url): ?array
 function sr_site_menu_current_url_parts(): array
 {
     static $parts = null;
-    if (is_array($parts)) {
+    static $partsCacheKey = '';
+    $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+    $requestPath = sr_request_path();
+    $cacheKey = $requestPath . "\n" . $requestUri;
+    if (is_array($parts) && $partsCacheKey === $cacheKey) {
         return $parts;
     }
 
-    $query = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+    $query = parse_url($requestUri, PHP_URL_QUERY);
     $parts = [
-        'path' => sr_site_menu_normalize_path(sr_request_path()),
+        'path' => sr_site_menu_normalize_path($requestPath),
         'query' => is_string($query) ? $query : '',
     ];
+    $partsCacheKey = $cacheKey;
 
     return $parts;
 }
@@ -446,6 +451,16 @@ function sr_site_menu_item_matches_current_community_board(?PDO $pdo, array $tar
     return $targetBoardKey === sr_site_menu_current_community_board_key($pdo);
 }
 
+function sr_site_menu_item_matches_current_section(array $target, array $current): bool
+{
+    $targetPath = (string) ($target['path'] ?? '');
+    if ($targetPath === '/' || (string) ($target['query'] ?? '') !== '') {
+        return false;
+    }
+
+    return str_starts_with((string) ($current['path'] ?? ''), $targetPath . '/');
+}
+
 function sr_site_menu_item_is_current(string $url, ?PDO $pdo = null): bool
 {
     $target = sr_site_menu_relative_url_parts($url);
@@ -455,7 +470,8 @@ function sr_site_menu_item_is_current(string $url, ?PDO $pdo = null): bool
 
     $current = sr_site_menu_current_url_parts();
     if ((string) $target['path'] !== (string) $current['path']) {
-        return sr_site_menu_item_matches_current_community_board($pdo, $target);
+        return sr_site_menu_item_matches_current_section($target, $current)
+            || sr_site_menu_item_matches_current_community_board($pdo, $target);
     }
 
     return sr_site_menu_query_contains((string) $current['query'], (string) $target['query']);
