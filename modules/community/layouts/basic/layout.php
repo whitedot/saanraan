@@ -299,6 +299,7 @@ if (
             <?php } else { ?>
                 <span class="community-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
             <?php } ?>
+            <span class="community-layout-module-name"><?php echo sr_e('커뮤니티'); ?></span>
         </a>
         <nav class="community-layout-nav" aria-label="<?php echo sr_e('커뮤니티 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>

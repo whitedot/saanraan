@@ -239,6 +239,7 @@ if (
             <?php } else { ?>
                 <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
             <?php } ?>
+            <span class="content-layout-module-name"><?php echo sr_e('콘텐츠'); ?></span>
         </a>
         <nav class="content-layout-nav" aria-label="<?php echo sr_e('콘텐츠 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>

@@ -205,6 +205,7 @@ if (
             <?php } else { ?>
                 <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
             <?php } ?>
+            <span class="public-layout-module-name"><?php echo sr_e('퀴즈'); ?></span>
         </a>
         <nav class="public-layout-nav" aria-label="<?php echo sr_e('퀴즈 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>

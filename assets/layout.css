@@ -82,6 +82,17 @@
     white-space: nowrap;
 }
 
+.public-layout-module-name {
+    border-left: 1px solid rgba(0, 0, 0, .16);
+    color: rgba(0, 0, 0, .62);
+    flex: 0 0 auto;
+    font-size: .82rem;
+    font-weight: 800;
+    line-height: 1;
+    padding-left: 8px;
+    white-space: nowrap;
+}
+
 .public-layout-nav {
     align-items: center;
     display: flex;

@@ -205,6 +205,7 @@ if (
             <?php } else { ?>
                 <span class="survey-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
             <?php } ?>
+            <span class="survey-layout-module-name"><?php echo sr_e('설문'); ?></span>
         </a>
         <nav class="survey-layout-nav" aria-label="<?php echo sr_e('설문 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
