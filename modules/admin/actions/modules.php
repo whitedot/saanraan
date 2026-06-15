@@ -44,11 +44,29 @@ $viewData = sr_admin_load_module_management_view_data($pdo);
 $modules = $viewData['modules'];
 $installableModules = $viewData['installable_modules'];
 $showFoundationModules = $viewData['show_foundation_modules'];
-$installableModulePagination = sr_admin_paginate_array($pdo, $installableModules, 'installable_page');
+
+$installableModulePagination = sr_admin_paginate_array($pdo, array_values(array_filter($installableModules, static function (array $module): bool {
+    return (string) ($module['type'] ?? 'module') === 'module';
+})), 'installable_module_page');
 $installableModules = $installableModulePagination['rows'];
 $installableModulePagination = $installableModulePagination['pagination'];
-$modulePagination = sr_admin_paginate_array($pdo, $modules, 'module_page');
+
+$installablePluginPagination = sr_admin_paginate_array($pdo, array_values(array_filter($viewData['installable_modules'], static function (array $module): bool {
+    return (string) ($module['type'] ?? 'module') === 'plugin';
+})), 'installable_plugin_page');
+$installablePlugins = $installablePluginPagination['rows'];
+$installablePluginPagination = $installablePluginPagination['pagination'];
+
+$modulePagination = sr_admin_paginate_array($pdo, array_values(array_filter($modules, static function (array $module): bool {
+    return (string) ($module['code_type'] ?? 'module') === 'module';
+})), 'module_page');
 $modules = $modulePagination['rows'];
 $modulePagination = $modulePagination['pagination'];
+
+$pluginPagination = sr_admin_paginate_array($pdo, array_values(array_filter($viewData['modules'], static function (array $module): bool {
+    return (string) ($module['code_type'] ?? 'module') === 'plugin';
+})), 'plugin_page');
+$plugins = $pluginPagination['rows'];
+$pluginPagination = $pluginPagination['pagination'];
 
 include SR_ROOT . '/modules/admin/views/modules.php';

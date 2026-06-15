@@ -7,8 +7,44 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$installableSections = [
+    [
+        'title' => '설치 가능 모듈',
+        'rows' => $installableModules,
+        'pagination' => $installableModulePagination,
+        'empty' => '설치 가능한 모듈이 없습니다.',
+        'pagination_label' => '설치 가능 모듈 목록 페이지',
+    ],
+    [
+        'title' => '설치 가능 플러그인',
+        'rows' => $installablePlugins,
+        'pagination' => $installablePluginPagination,
+        'empty' => '설치 가능한 플러그인이 없습니다.',
+        'pagination_label' => '설치 가능 플러그인 목록 페이지',
+    ],
+];
+$installedSections = [
+    [
+        'title' => '설치된 모듈',
+        'rows' => $modules,
+        'pagination' => $modulePagination,
+        'pagination_label' => '설치된 모듈 목록 페이지',
+    ],
+    [
+        'title' => '설치된 플러그인',
+        'rows' => $plugins,
+        'pagination' => $pluginPagination,
+        'pagination_label' => '설치된 플러그인 목록 페이지',
+    ],
+];
+?>
+
+<?php foreach ($installableSections as $installableSection) { ?>
+    <?php $installableRows = $installableSection['rows']; ?>
+    <?php $installablePagination = $installableSection['pagination']; ?>
 <div class="admin-section-heading">
-    <h2><?php echo sr_e(sr_t('admin::ui.text.2d01e6b6')); ?></h2>
+    <h2><?php echo sr_e((string) $installableSection['title']); ?></h2>
     <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url($showFoundationModules ? '/admin/modules' : '/admin/modules?show_foundations=1')); ?>">
         <?php echo sr_e($showFoundationModules ? '기반 모듈 숨기기' : '기반 모듈 보기'); ?>
     </a>
@@ -17,14 +53,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
     </button>
 </div>
-<?php echo sr_admin_pagination_summary_html($installableModulePagination); ?>
-<?php if ($installableModules === []) { ?>
+<?php echo sr_admin_pagination_summary_html($installablePagination); ?>
+<?php if ($installableRows === []) { ?>
     <section class="admin-card admin-list-card card">
-        <p><?php echo sr_e(sr_t('admin::ui.text.228a1836')); ?></p>
+        <p><?php echo sr_e((string) $installableSection['empty']); ?></p>
     </section>
 <?php } else { ?>
     <div class="admin-module-card-grid admin-module-installable-grid">
-        <?php foreach ($installableModules as $module) { ?>
+        <?php foreach ($installableRows as $module) { ?>
             <?php $moduleKey = (string) $module['module_key']; ?>
             <?php $moduleModalId = 'installable-module-detail-' . $moduleKey; ?>
             <?php $moduleInstallModalId = 'installable-module-install-' . $moduleKey; ?>
@@ -175,15 +211,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         <?php } ?>
     </div>
-    <?php echo sr_admin_pagination_html($installableModulePagination, '설치 가능 모듈 목록 페이지'); ?>
+    <?php echo sr_admin_pagination_html($installablePagination, (string) $installableSection['pagination_label']); ?>
+<?php } ?>
 <?php } ?>
 
+<?php foreach ($installedSections as $installedSection) { ?>
+    <?php $installedRows = $installedSection['rows']; ?>
+    <?php $installedPagination = $installedSection['pagination']; ?>
 <div class="admin-section-heading">
-    <h2><?php echo sr_e(sr_t('admin::ui.text.9c3c31da')); ?></h2>
+    <h2><?php echo sr_e((string) $installedSection['title']); ?></h2>
 </div>
-<?php echo sr_admin_pagination_summary_html($modulePagination); ?>
+<?php echo sr_admin_pagination_summary_html($installedPagination); ?>
+<?php if ($installedRows === []) { ?>
+    <section class="admin-card admin-list-card card">
+        <p><?php echo sr_e((string) $installedSection['title']); ?><?php echo sr_e('이 없습니다.'); ?></p>
+    </section>
+<?php } else { ?>
 <div class="admin-module-card-grid">
-    <?php foreach ($modules as $module) { ?>
+    <?php foreach ($installedRows as $module) { ?>
         <?php $moduleKey = (string) $module['module_key']; ?>
         <?php $moduleModalId = 'module-detail-' . $moduleKey; ?>
         <?php $moduleStatusModalId = 'module-status-' . $moduleKey; ?>
@@ -428,7 +473,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     <?php } ?>
 </div>
-<?php echo sr_admin_pagination_html($modulePagination, '설치된 모듈 목록 페이지'); ?>
+<?php echo sr_admin_pagination_html($installedPagination, (string) $installedSection['pagination_label']); ?>
+<?php } ?>
+<?php } ?>
 
 <?php $moduleUploadModalLabelId = (!$canManageModuleSources || !$moduleUploadAvailable) ? 'module-upload-modal-label-unavailable' : 'module-upload-modal-label'; ?>
 <div id="module-upload-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleUploadModalLabelId); ?>">
