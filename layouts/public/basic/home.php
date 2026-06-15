@@ -12,8 +12,8 @@ $seo = [
 sr_public_layout_begin($homePdo, $homeSite, $seo, [
     'style_profile' => 'kit',
     'stylesheets' => [
-        '/assets/saanraan.css',
-        '/modules/banner/assets/public.css',
+        '/assets/module.css',
+        '/modules/banner/assets/module.css',
     ],
 ]);
 ?>

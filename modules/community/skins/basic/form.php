@@ -42,8 +42,8 @@ if (is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), [
-        '/modules/banner/assets/public.css',
-        '/modules/popup_layer/assets/public.css',
+        '/modules/banner/assets/module.css',
+        '/modules/popup_layer/assets/module.css',
     ]),
 ]));
 ?>

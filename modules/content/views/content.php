@@ -24,9 +24,9 @@ $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : n
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) ($page['updated_at'] ?? '');
 $contentStylesheets = [
-    '/modules/banner/assets/public.css',
-    '/modules/popup_layer/assets/public.css',
-    '/modules/reaction/assets/public.css',
+    '/modules/banner/assets/module.css',
+    '/modules/popup_layer/assets/module.css',
+    '/modules/reaction/assets/module.css',
 ];
 if (is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';

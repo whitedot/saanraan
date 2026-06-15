@@ -146,7 +146,7 @@ sr_site_menu_check_assert(sr_site_menu_item_href('/login') === '/login', 'Site m
 sr_site_menu_check_assert(sr_site_menu_clean_url('javascript:alert(1)') === '', 'Site menu URL cleaner must reject unsafe pseudo URLs.');
 sr_site_menu_check_assert(sr_site_menu_item_href('javascript:alert(1)') === '#', 'Site menu href helper must fail closed for unsafe URLs.');
 
-$publicCss = (string) file_get_contents(SR_ROOT . '/modules/site_menu/assets/public.css');
+$publicCss = (string) file_get_contents(SR_ROOT . '/modules/site_menu/assets/module.css');
 sr_site_menu_check_assert(str_contains($publicCss, '.public-layout-nav .sr-site-menu-item.is-site-menu-open > .sr-site-menu-list'), 'Site menu public CSS must support header dropdown open state.');
 sr_site_menu_check_assert(str_contains($publicCss, '.community-layout-nav .sr-site-menu-list-depth-3'), 'Site menu public CSS must cover community header depth 3 menus.');
 sr_site_menu_check_assert(str_contains($publicCss, '@media (max-width: 767px)'), 'Site menu public CSS must include mobile accordion rules.');

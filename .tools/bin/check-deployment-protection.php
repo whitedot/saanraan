@@ -136,14 +136,17 @@ foreach ([
 }
 
 foreach ([
-    '/assets/tokens.css',
-    '/assets/public-foundation.css',
-    '/assets/public-layout.css',
+    '/assets/reset.css',
+    '/assets/module.css',
+    '/assets/ui-kit.css',
+    '/assets/ui-kit-layout.css',
     '/assets/public-layout.js',
     '/assets/fonts/material-symbols-outlined.ttf',
     '/modules/admin/assets/tokens.css',
-    '/modules/content/assets/public.css',
-    '/modules/community/assets/public.css',
+    '/modules/content/assets/reset.css',
+    '/modules/content/assets/module.css',
+    '/modules/community/assets/reset.css',
+    '/modules/community/assets/module.css',
     '/modules/community/assets/layout.js',
     '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
 ] as $path) {

@@ -80,7 +80,7 @@ php .tools/bin/check-milestone-15-route-qa.php http://127.0.0.1:34653 admin 1234
 - `/`, `/login`, `/ui-kit` 공개 진입
 - `/admin`, `/admin/updates`, 콘텐츠/커뮤니티 관리자 진입의 로그인 흐름
 - 커뮤니티 공개 목록과 비로그인 작성/수정/삭제/댓글/쪽지/스크랩 보호 흐름
-- `/sitemap.xml`, `/assets/saanraan.css`
+- `/sitemap.xml`, `/assets/module.css`
 - SQL, PHP, 설정, 저장소, 문서, 도구, Git 메타데이터 직접 접근 보호
 
 ## 판정

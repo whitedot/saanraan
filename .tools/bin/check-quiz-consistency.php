@@ -350,7 +350,7 @@ function sr_quiz_check_paths_and_admin(): void
         'source_type',
         'source_id',
     ]);
-    sr_quiz_check_file_contains('modules/content/assets/public.css', [
+    sr_quiz_check_file_contains('modules/content/assets/module.css', [
         '.content-quiz-dialog',
     ]);
     sr_quiz_check_file_contains('.tools/bin/smoke-quiz-e2e.php', [

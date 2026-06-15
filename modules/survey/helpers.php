@@ -477,12 +477,12 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
+    $context['style_profile'] = 'module';
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/survey/assets/common.css';
-    $stylesheets[] = '/modules/survey/assets/public-ui.css';
+    $stylesheets[] = '/modules/survey/assets/reset.css';
     $stylesheets[] = '/modules/survey/assets/ui-kit.css';
-    $stylesheets[] = '/modules/survey/assets/public.css';
+    $stylesheets[] = '/modules/survey/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
@@ -495,9 +495,8 @@ function sr_survey_ui_kit_layout_context(array $settings, array $context = []): 
 {
     $context = sr_survey_public_layout_context($settings, $context);
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/survey/assets/common.css';
-    $stylesheets[] = '/modules/survey/assets/public-ui.css';
     $stylesheets[] = '/modules/survey/assets/ui-kit.css';
+    $stylesheets[] = '/modules/survey/assets/ui-kit-layout.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;

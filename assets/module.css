@@ -1,3 +1,115 @@
+/*
+ * Saanraan public module layer.
+ * Owns the default public layout and initial public screen styles.
+ */
+/*
+ * Saanraan default public home skin tokens.
+ * This file is loaded explicitly by the initial home views only.
+ * Keep it limited to --sr-* page skin values consumed by public layout, public UI, and public modules.
+ */
+
+:root,
+:root[data-color-scheme="light"] {
+    color-scheme: light;
+    --sr-bg: #f6f7f9;
+    --sr-text: #20242a;
+    --sr-muted: #47505c;
+    --sr-muted-soft: #5d6b7c;
+    --sr-muted-strong: #303741;
+    --sr-link: #2458a6;
+    --sr-surface: #ffffff;
+    --sr-surface-soft: #fbfcfe;
+    --sr-surface-muted: #eceff4;
+    --sr-border: #d8dde6;
+    --sr-border-soft: #e8edf3;
+    --sr-control-border: #b9c2d0;
+    --sr-primary: #243b5a;
+    --sr-on-primary: #ffffff;
+    --sr-shadow-soft: rgba(32, 36, 42, 0.06);
+    --sr-shadow-floating: rgba(32, 36, 42, 0.12);
+    --sr-danger-border: #d7a3a3;
+    --sr-danger-bg: #fff0f0;
+    --sr-danger-bg-soft: #fff7f7;
+    --sr-danger-text: #8a2a2a;
+    --sr-warning-border: #d9c48d;
+    --sr-warning-bg: #fff9e6;
+    --sr-warning-bg-soft: #fffaf0;
+    --sr-warning-text: #725600;
+    --sr-success-border: #99c7aa;
+    --sr-success-bg: #effaf3;
+    --sr-success-text: #24603a;
+    --sr-popup-border: #9fb3ce;
+}
+
+:root[data-color-scheme="dark"] {
+    color-scheme: dark;
+    --sr-bg: #101418;
+    --sr-text: #e7ecf2;
+    --sr-muted: #aeb8c5;
+    --sr-muted-soft: #99a6b6;
+    --sr-muted-strong: #d4dbe5;
+    --sr-link: #8bb7ff;
+    --sr-surface: #171d24;
+    --sr-surface-soft: #1d2530;
+    --sr-surface-muted: #26303c;
+    --sr-border: #334050;
+    --sr-border-soft: #2a3442;
+    --sr-control-border: #526174;
+    --sr-primary: #7da2d8;
+    --sr-on-primary: #0b1118;
+    --sr-shadow-soft: rgba(0, 0, 0, 0.24);
+    --sr-shadow-floating: rgba(0, 0, 0, 0.34);
+    --sr-danger-border: #9f5d63;
+    --sr-danger-bg: #391d22;
+    --sr-danger-bg-soft: #2a171b;
+    --sr-danger-text: #f2b8bd;
+    --sr-warning-border: #9e8242;
+    --sr-warning-bg: #342912;
+    --sr-warning-bg-soft: #27200f;
+    --sr-warning-text: #f0d48a;
+    --sr-success-border: #4e8064;
+    --sr-success-bg: #142b20;
+    --sr-success-text: #9dd7b6;
+    --sr-popup-border: #58708f;
+}
+
+:root[data-color-scheme="system"] {
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-color-scheme="system"] {
+        --sr-bg: #101418;
+        --sr-text: #e7ecf2;
+        --sr-muted: #aeb8c5;
+        --sr-muted-soft: #99a6b6;
+        --sr-muted-strong: #d4dbe5;
+        --sr-link: #8bb7ff;
+        --sr-surface: #171d24;
+        --sr-surface-soft: #1d2530;
+        --sr-surface-muted: #26303c;
+        --sr-border: #334050;
+        --sr-border-soft: #2a3442;
+        --sr-control-border: #526174;
+        --sr-primary: #7da2d8;
+        --sr-on-primary: #0b1118;
+        --sr-shadow-soft: rgba(0, 0, 0, 0.24);
+        --sr-shadow-floating: rgba(0, 0, 0, 0.34);
+        --sr-danger-border: #9f5d63;
+        --sr-danger-bg: #391d22;
+        --sr-danger-bg-soft: #2a171b;
+        --sr-danger-text: #f2b8bd;
+        --sr-warning-border: #9e8242;
+        --sr-warning-bg: #342912;
+        --sr-warning-bg-soft: #27200f;
+        --sr-warning-text: #f0d48a;
+        --sr-success-border: #4e8064;
+        --sr-success-bg: #142b20;
+        --sr-success-text: #9dd7b6;
+        --sr-popup-border: #58708f;
+    }
+}
+
 .public-layout-body {
     background: #ffffff;
     min-height: 100vh;
@@ -432,4 +544,30 @@
     .public-layout-footer-nav .sr-site-menu-list {
         gap: 8px 14px;
     }
+}
+
+/* Initial public home layout. */
+.public-home {
+    background: var(--sr-bg, var(--color-body-bg));
+    color: var(--sr-text, var(--color-body-color));
+    min-height: min(42rem, 100vh);
+    display: grid;
+    align-items: center;
+    padding: clamp(3rem, 8vw, 7rem) clamp(1.25rem, 5vw, 4rem);
+}
+
+.public-home-hero {
+    width: min(48rem, 100%);
+    display: grid;
+    gap: 1rem;
+}
+
+.public-home-hero > p {
+    color: var(--public-ui-muted);
+    font-weight: var(--font-weight-normal);
+    max-width: 42rem;
+}
+
+.public-home-actions {
+    margin-top: .5rem;
 }

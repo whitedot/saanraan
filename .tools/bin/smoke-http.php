@@ -333,19 +333,15 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'home skin stylesheet',
-        'path' => '/assets/saanraan.css',
-        'allowed_statuses' => [200],
-        'must_contain' => ['--sr-bg'],
-    ],
-    [
-        'label' => 'public layout stylesheet',
-        'path' => '/assets/public-layout.css',
+        'label' => 'public module stylesheet',
+        'path' => '/assets/module.css',
         'allowed_statuses' => [200],
         'must_contain' => [
+            '--sr-bg',
             '.public-layout-header',
             '.public-layout-main',
             '.public-layout-footer',
+            '.public-home',
             'grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr)',
         ],
     ],
@@ -360,19 +356,51 @@ $checks = [
     ],
     [
         'label' => 'public UI stylesheet',
-        'path' => '/assets/public-ui.css',
+        'path' => '/assets/ui-kit.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.public-ui-scope',
-            '.public-home',
+            '.public-ui-card',
+        ],
+    ],
+    [
+        'label' => 'public UI kit layout stylesheet',
+        'path' => '/assets/ui-kit-layout.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.public-ui-kit',
+        ],
+    ],
+    [
+        'label' => 'community reset stylesheet',
+        'path' => '/modules/community/assets/reset.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '--color-body-bg',
+        ],
+    ],
+    [
+        'label' => 'community UI stylesheet',
+        'path' => '/modules/community/assets/ui-kit.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.public-ui-scope',
         ],
     ],
     [
         'label' => 'community public stylesheet',
-        'path' => '/modules/community/assets/public.css',
+        'path' => '/modules/community/assets/module.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-screen',
+        ],
+    ],
+    [
+        'label' => 'community UI kit layout stylesheet',
+        'path' => '/modules/community/assets/ui-kit-layout.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.public-ui-kit',
         ],
     ],
     [

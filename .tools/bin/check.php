@@ -565,9 +565,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
 {
     foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
         $copiedStylesheets = [
-            'common.css' => 'assets/common.css',
-            'public-ui.css' => 'assets/public-ui.css',
-            'ui-kit.css' => 'assets/public-ui-kit.css',
+            'reset.css' => 'assets/reset.css',
+            'ui-kit.css' => 'assets/ui-kit.css',
+            'ui-kit-layout.css' => 'assets/ui-kit-layout.css',
         ];
         foreach ($copiedStylesheets as $moduleStylesheet => $sourceStylesheet) {
             $moduleStylesheetPath = 'modules/' . $moduleKey . '/assets/' . $moduleStylesheet;
@@ -576,6 +576,17 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             if (!is_string($source) || !is_string($copy) || $source !== $copy) {
                 sr_check_add_error('Module UI kit stylesheet copy must match source: ' . $moduleStylesheetPath . ' -> ' . $sourceStylesheet);
             }
+        }
+
+        foreach (['common.css', 'layout.css', 'public-ui.css', 'public.css'] as $oldStylesheet) {
+            $oldPath = 'modules/' . $moduleKey . '/assets/' . $oldStylesheet;
+            if (file_exists($oldPath)) {
+                sr_check_add_error('Module public stylesheet legacy file must be removed: ' . $oldPath);
+            }
+        }
+
+        if (!is_file('modules/' . $moduleKey . '/assets/module.css')) {
+            sr_check_add_error('Module public stylesheet is missing: modules/' . $moduleKey . '/assets/module.css');
         }
 
         $helperFile = $moduleKey === 'community'
@@ -596,10 +607,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
 
         $body = (string) ($matches['body'] ?? '');
         $expectedOrder = [
-            "'/modules/" . $moduleKey . "/assets/common.css'",
-            "'/modules/" . $moduleKey . "/assets/public-ui.css'",
+            "'/modules/" . $moduleKey . "/assets/reset.css'",
             "'/modules/" . $moduleKey . "/assets/ui-kit.css'",
-            "'/modules/" . $moduleKey . "/assets/public.css'",
+            "'/modules/" . $moduleKey . "/assets/module.css'",
         ];
         $lastIndex = -1;
         foreach ($expectedOrder as $marker) {
@@ -609,6 +619,11 @@ function sr_check_module_public_ui_kit_stylesheets(): void
                 break;
             }
             $lastIndex = $index;
+        }
+
+        $uiKitLayoutMarker = "'/modules/" . $moduleKey . "/assets/ui-kit-layout.css'";
+        if (!str_contains($source, $uiKitLayoutMarker)) {
+            sr_check_add_error('Module UI kit layout stylesheet is missing from helper: ' . $helperFile . ' ' . $uiKitLayoutMarker);
         }
     }
 }

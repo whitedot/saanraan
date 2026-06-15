@@ -8,7 +8,7 @@ $seo = [
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'style_profile' => 'kit',
-    'stylesheets' => ['/modules/asset_exchange/assets/public.css'],
+    'stylesheets' => ['/modules/asset_exchange/assets/module.css'],
 ]);
 ?>
     <main class="public-ui-scope sr-asset-exchange-page">

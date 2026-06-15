@@ -1,4 +1,8 @@
 /*
+ * Saanraan public UI kit preview layout layer.
+ * Owns /ui-kit preview containers, sample layout helpers, and preview-only states.
+ */
+/*
  * Public runtime UI-KIT preview layer.
  * Uses the public kit profile loaded by sr_stylesheet_tag().
  * Keeps only sample layout helpers local to this preview stylesheet.

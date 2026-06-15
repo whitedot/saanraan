@@ -925,15 +925,16 @@ function sr_public_style_profile_paths(string $profile): array
     $profile = strtolower(trim($profile));
     $profile = sr_public_style_profile_key($profile);
 
+    if ($profile === 'module') {
+        return [];
+    }
+
     $paths = [
-        '/assets/tokens.css',
-        '/assets/icons.css',
-        '/assets/public-foundation.css',
+        '/assets/reset.css',
     ];
 
     if ($profile === 'kit') {
-        $paths[] = '/assets/common.css';
-        $paths[] = '/assets/public-ui.css';
+        $paths[] = '/assets/ui-kit.css';
     }
 
     return $paths;
@@ -943,7 +944,7 @@ function sr_public_style_profile_key(string $profile): string
 {
     $profile = strtolower(trim($profile));
 
-    return in_array($profile, ['minimal', 'kit', 'install'], true) ? $profile : 'kit';
+    return in_array($profile, ['minimal', 'kit', 'install', 'module'], true) ? $profile : 'kit';
 }
 
 function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null, array $options = []): string

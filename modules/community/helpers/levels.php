@@ -247,11 +247,11 @@ function sr_community_public_layout_context(array $settings, array $context = []
     if ($layoutKey !== '') {
         $context['layout_key'] = $layoutKey;
     }
+    $context['style_profile'] = 'module';
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/community/assets/common.css';
-    $stylesheets[] = '/modules/community/assets/public-ui.css';
+    $stylesheets[] = '/modules/community/assets/reset.css';
     $stylesheets[] = '/modules/community/assets/ui-kit.css';
-    $stylesheets[] = '/modules/community/assets/public.css';
+    $stylesheets[] = '/modules/community/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     $siteMenus = [];
@@ -268,9 +268,8 @@ function sr_community_ui_kit_layout_context(array $settings, array $context = []
 {
     $context = sr_community_public_layout_context($settings, $context);
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/community/assets/common.css';
-    $stylesheets[] = '/modules/community/assets/public-ui.css';
     $stylesheets[] = '/modules/community/assets/ui-kit.css';
+    $stylesheets[] = '/modules/community/assets/ui-kit-layout.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;

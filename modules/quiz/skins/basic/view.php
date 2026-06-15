@@ -161,7 +161,7 @@ $quizShareUrl = sr_absolute_url($site ?? null, '/quiz/' . rawurlencode((string) 
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
     'body_class' => 'sr-quiz-page',
-    'stylesheets' => ['/modules/reaction/assets/public.css'],
+    'stylesheets' => ['/modules/reaction/assets/module.css'],
 ]));
 ?>
 <main class="sr-public-main">

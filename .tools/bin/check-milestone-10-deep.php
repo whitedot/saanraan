@@ -466,7 +466,7 @@ try {
         $pdo,
         'INSERT INTO sr_banners (title, body_text, link_url, image_url, status, skin_key, starts_at, ends_at, sort_order, click_count, created_at, updated_at)
          VALUES (:title, :body_text, :link_url, :image_url, :status, :skin_key, NULL, NULL, 10, 0, :created_at, :updated_at)',
-        ['title' => 'M10 배너', 'body_text' => 'M10 banner', 'link_url' => '/', 'image_url' => '/assets/saanraan.css', 'status' => 'active', 'skin_key' => 'basic', 'created_at' => $now, 'updated_at' => $now]
+        ['title' => 'M10 배너', 'body_text' => 'M10 banner', 'link_url' => '/', 'image_url' => '/assets/module.css', 'status' => 'active', 'skin_key' => 'basic', 'created_at' => $now, 'updated_at' => $now]
     );
     $bannerId = (int) $pdo->lastInsertId();
     m10_exec(

@@ -462,7 +462,7 @@ sr_skin_theme_check_not_contains('modules/admin/skins/basic/layout-header.php', 
 sr_skin_theme_check_admin_skin_material_icons();
 sr_skin_theme_check_admin_icon_contract_docs();
 
-sr_skin_theme_check_contains(['assets/common.css', 'modules/admin/assets/common.css'], [
+sr_skin_theme_check_contains(['assets/ui-kit.css', 'modules/admin/assets/common.css'], [
     '.form-checkbox:checked',
     'background-image:url("data:image/svg+xml',
 ], 'Checkbox checked indicator');

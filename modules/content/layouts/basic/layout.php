@@ -6,7 +6,7 @@ $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutContextStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
-$layoutStylesheets = ['/modules/content/assets/layout.css'];
+$layoutStylesheets = ['/modules/content/assets/module.css'];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
 foreach ($layoutContextStylesheets as $layoutContextStylesheet) {
     $layoutStylesheets[] = $layoutContextStylesheet;
@@ -126,7 +126,7 @@ if ($layoutPdo instanceof PDO) {
     }
 }
 if ($layoutPrimaryNavigationHtml !== '' || $layoutFooterNavigationHtml !== []) {
-    $layoutStylesheets[] = '/modules/site_menu/assets/public.css';
+    $layoutStylesheets[] = '/modules/site_menu/assets/module.css';
 }
 $layoutNotificationEnabled = false;
 $layoutNotificationHasAccount = false;

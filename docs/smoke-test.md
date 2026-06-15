@@ -255,11 +255,14 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /admin/community/reports에서 신고 상태 저장 시 대상 조치 없음/게시글 숨김/댓글 숨김/게시자 정지/삭제+게시자 정지/숨김+게시자 정지 등 대상 유형별 허용 조치만 서버에서 처리되는지 확인
 /admin/community/posts 응답이 500 없이 열리거나 로그인/권한 흐름으로 막히는지 확인
 /sitemap.xml 응답이 200이면 sitemap XML 루트가 있고 404여도 PHP 오류가 노출되지 않는지 확인
-/assets/saanraan.css 정적 파일 응답과 `--sr-bg` 홈 스킨 토큰 확인
-/assets/public-layout.css 정적 파일 응답과 공통 공개 layout header/main/footer 확인
+/assets/module.css 정적 파일 응답과 `--sr-bg` 홈 스킨 토큰, 공통 공개 layout header/main/footer 확인
 /assets/public-layout.js 정적 파일 응답과 공통 공개 layout 스크롤 header 동작 기준 확인
-/assets/public-ui.css 정적 파일 응답과 공개 UI kit scope 및 홈 화면 primitive 확인
-/modules/community/assets/public.css 정적 파일 응답과 커뮤니티 화면 wrapper 확인
+/assets/ui-kit.css 정적 파일 응답과 공개 UI kit scope 및 홈 화면 primitive 확인
+/assets/ui-kit-layout.css 정적 파일 응답과 `/ui-kit` 미리보기 helper 확인
+/modules/community/assets/reset.css 정적 파일 응답과 커뮤니티 공개 foundation 확인
+/modules/community/assets/module.css 정적 파일 응답과 커뮤니티 화면 wrapper 확인
+/modules/community/assets/ui-kit.css 정적 파일 응답과 커뮤니티 UI kit primitive 확인
+/modules/community/assets/ui-kit-layout.css 정적 파일 응답과 커뮤니티 UI kit 미리보기 helper 확인
 /modules/community/assets/layout.js 정적 파일 응답과 커뮤니티 layout 스크롤 header 동작 기준 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
