@@ -22,7 +22,17 @@ if (sr_request_method() === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
 
     try {
-        if ($action === 'save_version') {
+        if ($action === 'save_document') {
+            $documentId = sr_policy_document_create_document($pdo, [
+                'document_key' => sr_post_string('document_key', 80),
+                'title' => sr_post_string('title', 190),
+                'description' => sr_post_string('description', 2000),
+                'status' => sr_post_string('status', 30),
+                'sort_order' => (int) ($_POST['sort_order'] ?? 100),
+            ]);
+            sr_admin_flash_result(sr_admin_action_result([], sr_t('policy_documents::notice.document_created')));
+            sr_redirect('/admin/policy-documents?document_id=' . (string) $documentId);
+        } elseif ($action === 'save_version') {
             if ($policyDocumentFormMode === 'edit') {
                 if ($selectedVersionId < 1) {
                     throw new InvalidArgumentException(sr_t('policy_documents::error.version_required'));
@@ -88,9 +98,13 @@ if (sr_request_method() === 'POST') {
     } catch (Throwable $exception) {
         sr_admin_flash_result(sr_admin_action_result([$exception->getMessage()], ''));
         if ($policyDocumentAdminPage === 'form') {
-            $fallback = $policyDocumentFormMode === 'edit' && $selectedVersionId > 0
-                ? '/admin/policy-documents/edit?id=' . (string) $selectedVersionId
-                : '/admin/policy-documents/new?document_id=' . (string) $selectedDocumentId;
+            if ($policyDocumentFormMode === 'document_new') {
+                $fallback = '/admin/policy-documents/document-new';
+            } elseif ($policyDocumentFormMode === 'edit' && $selectedVersionId > 0) {
+                $fallback = '/admin/policy-documents/edit?id=' . (string) $selectedVersionId;
+            } else {
+                $fallback = '/admin/policy-documents/new?document_id=' . (string) $selectedDocumentId;
+            }
             sr_redirect($fallback);
         }
         sr_redirect('/admin/policy-documents');
@@ -110,7 +124,7 @@ foreach ($documents as $document) {
     }
 }
 
-$versions = $selectedDocumentId > 0 ? sr_policy_document_versions($pdo, $selectedDocumentId) : [];
+$versions = sr_policy_document_all_versions($pdo);
 $mailJobs = sr_policy_document_mail_jobs($pdo);
 $formVersion = null;
 if ($policyDocumentAdminPage === 'form' && $policyDocumentFormMode === 'edit') {
@@ -125,7 +139,6 @@ if ($policyDocumentAdminPage === 'form' && $policyDocumentFormMode === 'edit') {
     }
     $selectedDocumentId = (int) $formVersion['document_id'];
     $selectedDocument = sr_policy_document_by_id($pdo, $selectedDocumentId);
-    $versions = sr_policy_document_versions($pdo, $selectedDocumentId);
 }
 
 include SR_ROOT . '/modules/policy_documents/views/admin-policy-documents.php';

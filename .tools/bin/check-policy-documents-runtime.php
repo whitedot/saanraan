@@ -31,7 +31,6 @@ function sr_policy_documents_check_pdo(): PDO
         'CREATE TABLE sr_policy_documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_key TEXT NOT NULL,
-            document_type TEXT NOT NULL DEFAULT "custom",
             title TEXT NOT NULL,
             description TEXT NULL,
             status TEXT NOT NULL DEFAULT "enabled",
@@ -92,8 +91,8 @@ function sr_policy_documents_check_pdo(): PDO
         )'
     );
     $pdo->exec(
-        "INSERT INTO sr_policy_documents (id, document_key, document_type, title, description, status, sort_order, created_at, updated_at)
-         VALUES (1, 'member_terms', 'terms', '이용약관', '', 'enabled', 10, '', '')"
+        "INSERT INTO sr_policy_documents (id, document_key, title, description, status, sort_order, created_at, updated_at)
+         VALUES (1, 'member_terms', '이용약관', '', 'enabled', 10, '', '')"
     );
     $pdo->exec(
         "INSERT INTO sr_member_accounts (id, email, status)

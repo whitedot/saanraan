@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS sr_policy_documents (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     document_key VARCHAR(80) NOT NULL,
-    document_type VARCHAR(40) NOT NULL DEFAULT 'custom',
     title VARCHAR(190) NOT NULL,
     description TEXT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'enabled',
@@ -64,14 +63,14 @@ CREATE TABLE IF NOT EXISTS sr_policy_document_mail_deliveries (
     KEY idx_sr_policy_document_mail_deliveries_status (job_id, status, id)
 );
 
-INSERT INTO sr_policy_documents (document_key, document_type, title, description, status, sort_order, created_at, updated_at)
-SELECT seed.document_key, seed.document_type, seed.title, seed.description, 'enabled', seed.sort_order, NOW(), NOW()
+INSERT INTO sr_policy_documents (document_key, title, description, status, sort_order, created_at, updated_at)
+SELECT seed.document_key, seed.title, seed.description, 'enabled', seed.sort_order, NOW(), NOW()
 FROM (
-    SELECT 'member_terms' AS document_key, 'terms' AS document_type, '이용약관' AS title, '회원가입 필수 이용약관 문서입니다.' AS description, 10 AS sort_order
-    UNION ALL SELECT 'member_privacy_collection', 'privacy_collection', '개인정보 수집 및 이용 동의', '회원가입 필수 개인정보 수집 및 이용 동의 문서입니다.', 20
-    UNION ALL SELECT 'member_privacy_policy', 'privacy_policy', '개인정보처리방침', '공개 개인정보처리방침 문서입니다.', 30
-    UNION ALL SELECT 'member_marketing', 'marketing_consent', '마케팅 수신 동의', '선택 마케팅 수신 동의 문서입니다.', 40
-    UNION ALL SELECT 'community_privacy_default', 'privacy_collection', '게시판 개인정보 수집 및 이용 동의', '커뮤니티 제출 개인정보 수집 및 이용 동의 기본 문서입니다.', 50
+    SELECT 'member_terms' AS document_key, '이용약관' AS title, '회원가입 필수 이용약관 문서입니다.' AS description, 10 AS sort_order
+    UNION ALL SELECT 'member_privacy_collection', '개인정보 수집 및 이용 동의', '회원가입 필수 개인정보 수집 및 이용 동의 문서입니다.', 20
+    UNION ALL SELECT 'member_privacy_policy', '개인정보처리방침', '공개 개인정보처리방침 문서입니다.', 30
+    UNION ALL SELECT 'member_marketing', '마케팅 수신 동의', '선택 마케팅 수신 동의 문서입니다.', 40
+    UNION ALL SELECT 'community_privacy_default', '게시판 개인정보 수집 및 이용 동의', '커뮤니티 제출 개인정보 수집 및 이용 동의 기본 문서입니다.', 50
 ) seed
 LEFT JOIN sr_policy_documents existing_document ON existing_document.document_key = seed.document_key
 WHERE existing_document.id IS NULL;

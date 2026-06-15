@@ -29,7 +29,7 @@ function sr_policy_document_by_key(PDO $pdo, string $documentKey): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, document_key, document_type, title, description, status, sort_order, created_at, updated_at
+        'SELECT id, document_key, title, description, status, sort_order, created_at, updated_at
          FROM sr_policy_documents
          WHERE document_key = :document_key
          LIMIT 1'
@@ -47,7 +47,7 @@ function sr_policy_document_by_id(PDO $pdo, int $documentId): ?array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, document_key, document_type, title, description, status, sort_order, created_at, updated_at
+        'SELECT id, document_key, title, description, status, sort_order, created_at, updated_at
          FROM sr_policy_documents
          WHERE id = :id
          LIMIT 1'
@@ -69,7 +69,7 @@ function sr_policy_document_published_version(PDO $pdo, string $documentKey, ?st
     $stmt = $pdo->prepare(
         'SELECT v.id, v.document_id, v.version_key, v.title_snapshot, v.body_html, v.summary_text,
                 v.body_hash, v.status, v.effective_from, v.published_at, v.created_at, v.updated_at,
-                d.document_key, d.document_type, d.title AS document_title
+                d.document_key, d.title AS document_title
          FROM sr_policy_document_versions v
          INNER JOIN sr_policy_documents d ON d.id = v.document_id
          WHERE d.id = :document_id
@@ -98,7 +98,6 @@ function sr_policy_document_snapshot(PDO $pdo, string $documentKey): array
     return [
         'document_id' => (int) $version['document_id'],
         'document_key' => (string) $version['document_key'],
-        'document_type' => (string) $version['document_type'],
         'version_id' => (int) $version['id'],
         'version_key' => (string) $version['version_key'],
         'title' => (string) $version['title_snapshot'],
@@ -131,7 +130,7 @@ function sr_policy_document_public_render_data(PDO $pdo, string $documentKey): ?
 function sr_policy_document_enabled_choices(PDO $pdo): array
 {
     $stmt = $pdo->prepare(
-        'SELECT d.id, d.document_key, d.document_type, d.title, d.status,
+        'SELECT d.id, d.document_key, d.title, d.status,
                 v.id AS published_version_id, v.version_key AS published_version_key, v.published_at
          FROM sr_policy_documents d
          LEFT JOIN sr_policy_document_versions v ON v.id = (
@@ -154,7 +153,7 @@ function sr_policy_document_enabled_choices(PDO $pdo): array
 function sr_policy_documents_with_current_versions(PDO $pdo): array
 {
     $stmt = $pdo->prepare(
-        'SELECT d.id, d.document_key, d.document_type, d.title, d.description, d.status, d.sort_order,
+        'SELECT d.id, d.document_key, d.title, d.description, d.status, d.sort_order,
                 d.created_at, d.updated_at,
                 v.id AS published_version_id, v.version_key AS published_version_key, v.published_at
          FROM sr_policy_documents d
@@ -188,6 +187,20 @@ function sr_policy_document_versions(PDO $pdo, int $documentId): array
     return $stmt->fetchAll();
 }
 
+function sr_policy_document_all_versions(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        'SELECT v.id, v.document_id, v.version_key, v.title_snapshot, v.summary_text, v.body_hash,
+                v.status, v.effective_from, v.published_at, v.created_at, v.updated_at,
+                d.document_key, d.title AS document_title, d.sort_order AS document_sort_order
+         FROM sr_policy_document_versions v
+         INNER JOIN sr_policy_documents d ON d.id = v.document_id
+         ORDER BY d.sort_order ASC, d.id ASC, v.id DESC'
+    );
+
+    return $stmt->fetchAll();
+}
+
 function sr_policy_document_version_by_id(PDO $pdo, int $versionId): ?array
 {
     if ($versionId < 1) {
@@ -197,7 +210,7 @@ function sr_policy_document_version_by_id(PDO $pdo, int $versionId): ?array
     $stmt = $pdo->prepare(
         'SELECT v.id, v.document_id, v.version_key, v.title_snapshot, v.body_html, v.summary_text,
                 v.body_hash, v.status, v.effective_from, v.published_at, v.created_at, v.updated_at,
-                d.document_key, d.document_type, d.title AS document_title, d.status AS document_status
+                d.document_key, d.title AS document_title, d.status AS document_status
          FROM sr_policy_document_versions v
          INNER JOIN sr_policy_documents d ON d.id = v.document_id
          WHERE v.id = :id
@@ -207,6 +220,47 @@ function sr_policy_document_version_by_id(PDO $pdo, int $versionId): ?array
     $version = $stmt->fetch();
 
     return is_array($version) ? $version : null;
+}
+
+function sr_policy_document_create_document(PDO $pdo, array $data): int
+{
+    $documentKey = strtolower(trim((string) ($data['document_key'] ?? '')));
+    $title = sr_clean_single_line((string) ($data['title'] ?? ''), 190);
+    $description = sr_clean_text((string) ($data['description'] ?? ''), 2000);
+    $status = (string) ($data['status'] ?? 'enabled');
+    $sortOrder = (int) ($data['sort_order'] ?? 100);
+
+    if (!sr_policy_document_valid_key($documentKey)) {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.document_key_invalid'));
+    }
+    if ($title === '') {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.title_required'));
+    }
+    if (!in_array($status, ['enabled', 'disabled'], true)) {
+        $status = 'enabled';
+    }
+    if (is_array(sr_policy_document_by_key($pdo, $documentKey))) {
+        throw new InvalidArgumentException(sr_t('policy_documents::error.document_key_duplicate'));
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_policy_documents
+            (document_key, title, description, status, sort_order, created_at, updated_at)
+         VALUES
+            (:document_key, :title, :description, :status, :sort_order, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'document_key' => $documentKey,
+        'title' => $title,
+        'description' => $description,
+        'status' => $status,
+        'sort_order' => $sortOrder,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    return (int) $pdo->lastInsertId();
 }
 
 function sr_policy_document_create_version(PDO $pdo, int $documentId, array $data): int

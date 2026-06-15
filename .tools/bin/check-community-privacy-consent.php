@@ -315,7 +315,6 @@ function sr_community_privacy_consent_check_schema(PDO $pdo): void
         'CREATE TABLE sr_policy_documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_key TEXT NOT NULL,
-            document_type TEXT NOT NULL,
             title TEXT NOT NULL,
             description TEXT NULL,
             status TEXT NOT NULL,
@@ -340,8 +339,8 @@ function sr_community_privacy_consent_check_schema(PDO $pdo): void
             updated_at TEXT NOT NULL
         )'
     );
-    $pdo->exec("INSERT INTO sr_modules (id, module_key, status, version) VALUES (1, 'policy_documents', 'enabled', '2026.06.001')");
-    $pdo->exec("INSERT INTO sr_policy_documents (id, document_key, document_type, title, description, status, sort_order, created_at, updated_at) VALUES (1, 'community_privacy_default', 'privacy_collection', '기본 커뮤니티 동의', '', 'enabled', 1, '', ''), (2, 'community_privacy_board', 'privacy_collection', '게시판 커뮤니티 동의', '', 'enabled', 2, '', '')");
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, status, version) VALUES (1, 'policy_documents', 'enabled', '2026.06.002')");
+    $pdo->exec("INSERT INTO sr_policy_documents (id, document_key, title, description, status, sort_order, created_at, updated_at) VALUES (1, 'community_privacy_default', '기본 커뮤니티 동의', '', 'enabled', 1, '', ''), (2, 'community_privacy_board', '게시판 커뮤니티 동의', '', 'enabled', 2, '', '')");
     $pdo->exec("INSERT INTO sr_policy_document_versions (id, document_id, version_key, title_snapshot, body_html, summary_text, body_hash, status, effective_from, published_at, created_at, updated_at) VALUES (1, 1, '2026.06.001', '기본 커뮤니티 동의', '<p>기본 본문</p>', '', '" . hash('sha256', '<p>기본 본문</p>') . "', 'published', NULL, '', '', ''), (2, 2, '2026.06.002', '게시판 커뮤니티 동의', '<p>게시판 본문</p>', '', '" . hash('sha256', '<p>게시판 본문</p>') . "', 'published', NULL, '', '', '')");
     $pdo->exec("INSERT INTO sr_community_boards (id, board_group_id, board_key, title) VALUES (1, 1, 'free', 'Free')");
     $pdo->exec("INSERT INTO sr_member_accounts (id, display_name, status) VALUES (7, 'Tester', 'active')");
