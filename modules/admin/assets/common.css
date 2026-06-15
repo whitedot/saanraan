@@ -67,13 +67,13 @@ code{color:var(--color-rose-400)}
 .btn-solid-secondary-contrast{background-color:var(--color-secondary);color:var(--color-white)}
 .btn-solid-success-contrast{background-color:var(--color-success);color:var(--color-white)}
 @media (hover:hover){.btn-solid-primary-muted:hover{background-color:var(--color-primary-hover)}.btn-solid-secondary-muted:hover,.btn-solid-secondary-contrast:hover{background-color:var(--color-secondary-hover)}.btn-solid-info-muted:hover{background-color:var(--color-info-hover)}.btn-solid-success-contrast:hover{background-color:var(--color-success-hover)}}
-.btn-outline-primary{border-color:var(--color-primary);color:var(--color-primary)}
-.btn-outline-secondary{border-color:var(--color-secondary);color:var(--color-secondary)}
-.btn-outline-success{border-color:var(--color-success);color:var(--color-success)}
-.btn-outline-danger{border-color:var(--color-danger);color:var(--color-danger)}
-.btn-outline-warning{border-color:var(--color-warning);color:var(--color-warning)}
-.btn-outline-info{border-color:var(--color-info);color:var(--color-info)}
-.btn-outline-dark{border-color:var(--color-dark);color:var(--color-dark)}
+.btn-outline-primary{border-color:var(--color-primary);background-color:var(--color-white);color:var(--color-primary)}
+.btn-outline-secondary{border-color:var(--color-secondary);background-color:var(--color-white);color:var(--color-secondary)}
+.btn-outline-success{border-color:var(--color-success);background-color:var(--color-white);color:var(--color-success)}
+.btn-outline-danger{border-color:var(--color-danger);background-color:var(--color-white);color:var(--color-danger)}
+.btn-outline-warning{border-color:var(--color-warning);background-color:var(--color-white);color:var(--color-warning)}
+.btn-outline-info{border-color:var(--color-info);background-color:var(--color-white);color:var(--color-info)}
+.btn-outline-dark{border-color:var(--color-dark);background-color:var(--color-white);color:var(--color-dark)}
 @media (hover:hover){.btn-outline-primary:hover{background-color:var(--color-primary);color:var(--color-white)}.btn-outline-secondary:hover{background-color:var(--color-secondary);color:var(--color-white)}.btn-outline-success:hover{background-color:var(--color-success);color:var(--color-white)}.btn-outline-danger:hover{background-color:var(--color-danger);color:var(--color-white)}.btn-outline-warning:hover{background-color:var(--color-warning);color:var(--color-white)}.btn-outline-info:hover{background-color:var(--color-info);color:var(--color-white)}.btn-outline-dark:hover{background-color:var(--color-dark);color:var(--color-white)}}
 .btn-soft-default,.btn-soft-light,.btn-ghost-default,.btn-ghost-light{color:var(--color-default-700)}
 .btn-soft-primary,.btn-ghost-primary{color:var(--color-primary)}
@@ -390,7 +390,7 @@ input[type=file].form-input:disabled::file-selector-button{cursor:not-allowed}
 .btn-solid-dark{border-color:var(--color-dark);--btn-focus-color:var(--color-dark)}
 .btn-solid-light{border-color:var(--color-light);background-color:var(--color-light);color:var(--color-default-900);--btn-focus-color:var(--color-default-500)}
 @media (hover:hover){.btn-solid-secondary:hover{background-color:var(--color-secondary-hover);border-color:var(--color-secondary-hover)}.btn-solid-success:hover,.btn-solid-success-strong:hover{background-color:var(--color-success-hover);border-color:var(--color-success-hover)}.btn-solid-danger:hover{background-color:var(--color-danger-hover);border-color:var(--color-danger-hover)}.btn-solid-warning:hover{background-color:var(--color-warning-hover);border-color:var(--color-warning-hover)}.btn-solid-info:hover,.btn-solid-info-strong:hover{background-color:var(--color-info-hover);border-color:var(--color-info-hover)}.btn-solid-light:hover{background-color:color-mix(in oklab,var(--color-default-500) 24%,var(--color-card));border-color:color-mix(in oklab,var(--color-default-500) 24%,var(--color-card));color:var(--color-default-950)}}
-.btn-outline-default,.btn-outline-light{border-color:var(--color-default-300);color:var(--color-default-700);--btn-focus-color:var(--color-default-500)}
+.btn-outline-default,.btn-outline-light{border-color:var(--color-default-300);background-color:var(--color-white);color:var(--color-default-700);--btn-focus-color:var(--color-default-500)}
 @media (hover:hover){.btn-outline-default:hover,.btn-outline-light:hover{background-color:color-mix(in oklab,var(--color-default-500) 18%,var(--color-card));border-color:var(--color-default-300);color:var(--color-default-950)}}
 .btn-soft-default,.btn-soft-light{border-color:transparent;--btn-focus-color:var(--color-default-500)}
 .btn-soft-light:is(.active,[aria-pressed=true]),.btn-soft-light:active{background-color:color-mix(in oklab,var(--color-default-500) 24%,var(--color-card));color:var(--color-default-950)}
