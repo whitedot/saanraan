@@ -5,14 +5,15 @@ $downloadLogSortOptions = sr_content_admin_file_download_log_sort_options();
 $downloadLogDefaultSort = sr_content_admin_file_download_log_default_sort();
 $downloadLogSort = isset($downloadLogSort) && is_array($downloadLogSort) ? $downloadLogSort : $downloadLogDefaultSort;
 $canEditFileDownloads = !empty($canEditFileDownloads);
+$selectedDownloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
+$selectedRefundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/file-downloads');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php
-$selectedDownloadTypes = is_array($filters['download_type'] ?? null) ? $filters['download_type'] : [];
-$selectedRefundStatuses = is_array($filters['refund_status'] ?? null) ? $filters['refund_status'] : [];
 $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
     || (int) ($filters['file_id'] ?? 0) > 0
     || (int) ($filters['account_id'] ?? 0) > 0

@@ -14,6 +14,7 @@ $formValues = $values !== [] ? $values : ($editing ? $editingFile : [
 ]);
 $selectedAssetModules = sr_content_asset_module_keys_from_value($formValues['asset_module'] ?? '');
 $adminContainerClass = 'admin-content-download-files admin-ui-scope';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(!$showForm, '/admin/content/files');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -105,9 +106,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/content/files')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta">총파일 <strong><?php echo sr_e((string) (int) ($downloadFileStatusCounts['total'] ?? 0)); ?>개</strong></span>
             <a href="<?php echo sr_e(sr_url('/admin/content/files?status=active')); ?>" class="admin-summary-meta">사용 <?php echo sr_e((string) (int) ($downloadFileStatusCounts['active'] ?? 0)); ?>개</a>

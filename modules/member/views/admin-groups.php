@@ -3,6 +3,8 @@
 $memberGroupsPage = isset($memberGroupsPage) ? (string) $memberGroupsPage : 'groups';
 $groupSort = isset($groupSort) && is_array($groupSort) ? $groupSort : sr_admin_member_group_default_sort();
 $groupRuleSort = isset($groupRuleSort) && is_array($groupRuleSort) ? $groupRuleSort : sr_member_group_rule_default_sort();
+$groupListFilter = isset($groupListFilter) && is_array($groupListFilter) ? $groupListFilter : ['status' => '', 'field' => 'all', 'keyword' => ''];
+$groupRuleFilter = isset($groupRuleFilter) && is_array($groupRuleFilter) ? $groupRuleFilter : ['status' => [], 'evaluation_policy' => [], 'group_id' => [], 'source_module_key' => [], 'field' => 'all', 'keyword' => ''];
 $adminContainerClass = 'admin-page-member-groups admin-ui-scope';
 $adminPageTitle = sr_t('member::ui.member.7482bebf');
 if ($memberGroupsPage === 'group_form') {
@@ -12,6 +14,14 @@ if ($memberGroupsPage === 'group_form') {
 } elseif ($memberGroupsPage === 'rule_form') {
     $adminPageTitle = is_array($editRule) ? sr_t('member::ui.member.edit.8fa5d9e5') : sr_t('member::ui.member.ac78ee3c');
 }
+$groupListHasSearch = (is_array($groupListFilter['status'] ?? null) && $groupListFilter['status'] !== []) || trim((string) ($groupListFilter['keyword'] ?? '')) !== '';
+$groupRuleHasSearch = (is_array($groupRuleFilter['status'] ?? null) && $groupRuleFilter['status'] !== [])
+    || (is_array($groupRuleFilter['evaluation_policy'] ?? null) && $groupRuleFilter['evaluation_policy'] !== [])
+    || (is_array($groupRuleFilter['group_id'] ?? null) && $groupRuleFilter['group_id'] !== [])
+    || (is_array($groupRuleFilter['source_module_key'] ?? null) && $groupRuleFilter['source_module_key'] !== [])
+    || trim((string) ($groupRuleFilter['keyword'] ?? '')) !== '';
+$adminPageTitleUrl = sr_admin_page_title_reset_url($memberGroupsPage === 'groups', '/admin/member-groups')
+    . sr_admin_page_title_reset_url($memberGroupsPage === 'rules', '/admin/member-group-rules');
 
 $memberGroupHelpOpenLabel = sr_t('member::help.open');
 $memberGroupHelp = [
@@ -99,8 +109,6 @@ $memberGroupHelp = [
     ],
 ];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
-$groupListFilter = isset($groupListFilter) && is_array($groupListFilter) ? $groupListFilter : ['status' => '', 'field' => 'all', 'keyword' => ''];
-$groupRuleFilter = isset($groupRuleFilter) && is_array($groupRuleFilter) ? $groupRuleFilter : ['status' => [], 'evaluation_policy' => [], 'group_id' => [], 'source_module_key' => [], 'field' => 'all', 'keyword' => ''];
 $groupStatusCounts = isset($groupStatusCounts) && is_array($groupStatusCounts) ? $groupStatusCounts : [];
 $membershipsByGroupId = isset($membershipsByGroupId) && is_array($membershipsByGroupId) ? $membershipsByGroupId : [];
 $membershipLogsByGroupId = isset($membershipLogsByGroupId) && is_array($membershipLogsByGroupId) ? $membershipLogsByGroupId : [];
@@ -302,9 +310,6 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
     </form>
 <?php } elseif ($memberGroupsPage === 'groups') { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/member-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.text.ca286213')); ?> <strong><?php echo sr_e((string) $totalGroups); ?><?php echo sr_e(sr_t('member::ui.text.a57ab057')); ?></strong></span>
             <a href="<?php echo sr_e(sr_url('/admin/member-groups?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($groupStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('member::ui.text.a57ab057')); ?></a>

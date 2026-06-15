@@ -85,6 +85,7 @@ $grantStatusOptions = [
 ];
 
 $adminPageTitle = '퀴즈 시도/보상 내역';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/quiz/attempts');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

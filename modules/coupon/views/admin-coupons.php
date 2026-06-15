@@ -86,6 +86,19 @@ $couponInitialTargetType = (string) array_key_first($targetTypes);
 $couponTargetSearchEnabled = $couponInitialTargetType !== 'all' && array_key_exists($couponInitialTargetType, $couponSearchableTargetTypes);
 $couponMemberLookupModalId = 'coupon-member-lookup-modal';
 $couponMemberLookupResultsId = 'coupon-member-lookup-results';
+$couponDefinitionHasSearch = $selectedDefinitionStatuses !== [] || $selectedDefinitionTargetTypes !== [] || trim((string) ($definitionFilters['q'] ?? '')) !== '';
+$couponIssueHasSearch = $selectedIssueStatuses !== []
+    || $selectedIssueTargetTypes !== []
+    || trim((string) ($issueFilters['coupon_q'] ?? '')) !== ''
+    || trim((string) ($issueAccountFilter['keyword'] ?? '')) !== '';
+$couponRedemptionHasSearch = $selectedRedemptionStatuses !== []
+    || $selectedRedemptionPolicies !== []
+    || $selectedRedemptionTargetTypes !== []
+    || trim((string) ($redemptionFilters['coupon_q'] ?? '')) !== ''
+    || trim((string) ($redemptionAccountFilter['keyword'] ?? '')) !== '';
+$adminPageTitleUrl = sr_admin_page_title_reset_url($couponAdminPage === 'definitions', '/admin/coupons')
+    . sr_admin_page_title_reset_url($couponAdminPage === 'issues', '/admin/coupons/issues')
+    . sr_admin_page_title_reset_url($couponAdminPage === 'redemptions', '/admin/coupons/redemptions');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

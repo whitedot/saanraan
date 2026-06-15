@@ -20,15 +20,14 @@ $adminNotificationSeverityLabels = [
     'warning' => '주의',
     'danger' => '긴급',
 ];
+$adminNotificationHasSearch = $selectedAdminNotificationStatuses !== ['open'] || $selectedAdminNotificationSeverities !== [] || trim((string) ($adminNotificationFilters['q'] ?? '')) !== '';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/admin-notifications');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/admin-notifications')); ?>" class="btn btn-solid-light">전체</a>
-    </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta">전체 <strong><?php echo sr_e((string) ($adminNotificationStatusCounts['total'] ?? 0)); ?>건</strong></span>
         <?php foreach ($allowedAdminNotificationStatuses as $status) { ?>

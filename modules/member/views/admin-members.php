@@ -17,6 +17,8 @@ if ($memberAdminPage === 'create_form') {
 $statusCounts = isset($statusCounts) && is_array($statusCounts) ? $statusCounts : [];
 $totalMembers = (int) ($statusCounts['total'] ?? count($members));
 $searchFilter = isset($searchFilter) && is_array($searchFilter) ? $searchFilter : ['field' => 'all', 'keyword' => ''];
+$statusFilter = isset($statusFilter) && is_array($statusFilter) ? $statusFilter : [];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($memberAdminPage === 'members', '/admin/members');
 $memberSort = isset($memberSort) && is_array($memberSort) ? $memberSort : sr_admin_member_default_sort();
 $memberCreateValues = isset($memberCreateValues) && is_array($memberCreateValues) ? $memberCreateValues : sr_admin_member_create_default_values($site ?? []);
 $memberEditValues = isset($memberEditValues) && is_array($memberEditValues) ? $memberEditValues : [];
@@ -242,9 +244,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 <?php } else { ?>
 <div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.all.e078b14a')); ?></a>
-    </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.member.964f82c2')); ?> <strong><?php echo sr_e((string) $totalMembers); ?><?php echo sr_e(sr_t('member::ui.text.9f96b8e2')); ?></strong></span>
         <a href="<?php echo sr_e(sr_url('/admin/members?status=suspended')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('member::ui.text.c7d4f680')); ?> <?php echo sr_e((string) ($statusCounts['suspended'] ?? 0)); ?><?php echo sr_e(sr_t('member::ui.text.9f96b8e2')); ?></a>

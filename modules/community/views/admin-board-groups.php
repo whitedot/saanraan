@@ -18,6 +18,7 @@ $boardGroupSort = isset($boardGroupSort) && is_array($boardGroupSort) ? $boardGr
 $boardGroupStatusCounts = isset($boardGroupStatusCounts) && is_array($boardGroupStatusCounts) ? $boardGroupStatusCounts : [];
 $totalBoardGroups = (int) ($boardGroupStatusCounts['total'] ?? count($boardGroups ?? []));
 $selectedBoardGroupStatuses = is_array($boardGroupListFilters['status'] ?? null) ? $boardGroupListFilters['status'] : [];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($communityBoardGroupsPage === 'list', '/admin/community/board-groups');
 
 $settingLabels = [
     'post_editor' => '게시글 에디터',
@@ -213,9 +214,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($communityBoardGroupsPage === 'list') { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/community/board-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.ca286213')); ?> <strong><?php echo sr_e((string) $totalBoardGroups); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></strong></span>
             <a href="<?php echo sr_e(sr_url('/admin/community/board-groups?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($boardGroupStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>

@@ -716,6 +716,7 @@ if ($mode === 'copy' && is_array($editSurvey)) {
 }
 
 $adminPageTitle = $mode === 'list' ? '설문 관리' : ($mode === 'edit' ? '설문 수정' : ($mode === 'copy' ? '설문 복사' : '설문 생성'));
+$adminPageTitleUrl = sr_admin_page_title_reset_url($mode === 'list', '/admin/surveys');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>

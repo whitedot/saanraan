@@ -7,6 +7,7 @@ $canEditContentAuthors = !empty($canEditContentAuthors);
 $authorReturnTo = sr_admin_current_get_url('/admin/content/authors');
 $authorAddMemberInputId = 'content_author_add_account_identifier';
 $authorAddMemberLookupModalId = 'content_author_add_member_lookup_modal';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/authors');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>

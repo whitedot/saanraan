@@ -51,6 +51,15 @@ function sr_admin_time_html(?string $value, string $emptyText = ''): string
     return sr_relative_time_html($value, $emptyText);
 }
 
+function sr_admin_page_title_reset_url(bool $visible, string $url): string
+{
+    if (!$visible) {
+        return '';
+    }
+
+    return $url;
+}
+
 function sr_admin_read_reference_count(array $referenceResult): int
 {
     $rows = $referenceResult['rows'] ?? [];

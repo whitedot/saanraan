@@ -8,6 +8,7 @@ $pageGroupFilters = isset($pageGroupFilters) && is_array($pageGroupFilters) ? $p
 $pageGroupSort = isset($pageGroupSort) && is_array($pageGroupSort) ? $pageGroupSort : sr_content_admin_group_default_sort();
 $pageGroupStatusCounts = isset($pageGroupStatusCounts) && is_array($pageGroupStatusCounts) ? $pageGroupStatusCounts : [];
 $allowedGroupStatuses = isset($allowedGroupStatuses) && is_array($allowedGroupStatuses) ? $allowedGroupStatuses : sr_content_group_statuses();
+$adminPageTitleUrl = sr_admin_page_title_reset_url($pageGroupsPage === 'list', '/admin/content-groups');
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $editing = is_array($editPageGroup ?? null);
@@ -51,9 +52,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($pageGroupsPage === 'list') { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/content-groups')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.ca286213')); ?> <strong><?php echo sr_e((string) $totalPageGroups); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></strong></span>
             <a href="<?php echo sr_e(sr_url('/admin/content-groups?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($pageGroupStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>

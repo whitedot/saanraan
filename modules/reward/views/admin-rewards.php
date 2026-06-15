@@ -6,6 +6,7 @@ if ($rewardAdminPage === 'transactions') {
     $adminPageTitle = sr_t('reward::ui.text.abaae118');
 }
 $accountLookupFilter = isset($accountLookupFilter) && is_array($accountLookupFilter) ? $accountLookupFilter : ['field' => 'all', 'keyword' => (string) ($accountIdentifierFilter ?? '')];
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, $rewardAdminPage === 'transactions' ? '/admin/rewards/transactions' : '/admin/rewards/balances');
 $balanceSort = isset($balanceSort) && is_array($balanceSort) ? $balanceSort : sr_admin_asset_balance_default_sort();
 $transactionSort = isset($transactionSort) && is_array($transactionSort) ? $transactionSort : sr_admin_asset_transaction_default_sort();
 $rewardReclaimRemainingAmounts = isset($rewardReclaimRemainingAmounts) && is_array($rewardReclaimRemainingAmounts) ? $rewardReclaimRemainingAmounts : [];

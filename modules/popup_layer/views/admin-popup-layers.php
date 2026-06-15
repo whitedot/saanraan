@@ -6,6 +6,7 @@ $adminPageTitle = $popupLayerAdminPage === 'form' ? ($editing ? sr_t('popup_laye
 $adminPageSubtitle = $popupLayerAdminPage === 'form' ? sr_t('popup_layer::ui.close.130bd932') : sr_t('popup_layer::ui.status.search.2a2d14e6');
 $adminContainerClass = $popupLayerAdminPage === 'form' ? 'admin-page-popup-layer-form admin-ui-scope' : 'admin-page-popup-layer-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($popupLayerAdminPage !== 'form', '/admin/popup-layers');
 $popupSortOptions = isset($popupSortOptions) && is_array($popupSortOptions) ? $popupSortOptions : [
     'title' => ['columns' => ['p.title', 'p.id']],
     'status' => ['columns' => ['p.status', 'p.id']],
@@ -275,9 +276,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo $editing ? $popupLayerCopyModalHtml($editPopup, '/admin/popup-layers/edit?id=' . rawurlencode((string) $editPopup['id'])) : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/popup-layers')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('popup_layer::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('popup_layer::ui.text.afecea43')); ?> <strong><?php echo sr_e((string) $totalPopups); ?><?php echo sr_e(sr_t('popup_layer::ui.text.a57ab057')); ?></strong></span>
             <a href="<?php echo sr_e(sr_url('/admin/popup-layers?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('popup_layer::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($popupStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('popup_layer::ui.text.a57ab057')); ?></a>

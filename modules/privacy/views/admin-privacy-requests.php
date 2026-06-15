@@ -18,15 +18,14 @@ $selectedPrivacyRequestTypes = is_array($privacyRequestListFilters['request_type
 $totalPrivacyRequests = (int) ($privacyRequestStatusCounts['total'] ?? count($requests ?? []));
 $privacyRequestCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $privacyRequestActionSuffix = $privacyRequestCurrentQuery !== '' ? '?' . $privacyRequestCurrentQuery : '';
+$privacyRequestHasSearch = $selectedPrivacyRequestStatuses !== [] || $selectedPrivacyRequestTypes !== [] || trim((string) ($privacyRequestListFilters['q'] ?? '')) !== '';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/privacy-requests');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/privacy-requests')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('privacy::ui.all.e078b14a')); ?></a>
-    </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta"><?php echo sr_e(sr_t('privacy::ui.text.e65a8646')); ?> <strong><?php echo sr_e((string) $totalPrivacyRequests); ?><?php echo sr_e(sr_t('privacy::ui.text.f5fd44f2')); ?></strong></span>
         <?php foreach ($allowedStatuses as $status) { ?>

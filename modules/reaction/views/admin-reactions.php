@@ -53,6 +53,7 @@ $reactionCreatePresetModalOpen = $errors !== [] && $reactionPostedIntent === 'sa
 $reactionRecordFilterOpen = array_filter($reactionRecordFilters, static function (mixed $value): bool {
     return (string) $value !== '' && (string) $value !== '0';
 }) !== [];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($reactionAdminPage === 'records', '/admin/reactions/records');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

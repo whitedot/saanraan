@@ -46,6 +46,10 @@ $selectedNotificationAudiences = is_array($notificationListFilters['audience'] ?
 $selectedNotificationStatuses = is_array($notificationListFilters['status'] ?? null) ? $notificationListFilters['status'] : [];
 $selectedDeliveryChannels = is_array($deliveryListFilters['delivery_channel'] ?? null) ? $deliveryListFilters['delivery_channel'] : [];
 $selectedDeliveryStatuses = is_array($deliveryListFilters['delivery_status'] ?? null) ? $deliveryListFilters['delivery_status'] : [];
+$notificationHasSearch = $selectedNotificationAudiences !== [] || $selectedNotificationStatuses !== [] || trim((string) ($notificationListFilters['q'] ?? '')) !== '';
+$deliveryHasSearch = $selectedDeliveryChannels !== [] || $selectedDeliveryStatuses !== [] || trim((string) ($deliveryListFilters['q'] ?? '')) !== '';
+$adminPageTitleUrl = sr_admin_page_title_reset_url($notificationAdminPage === 'deliveries', '/admin/notification-deliveries')
+    . sr_admin_page_title_reset_url($notificationAdminPage !== 'deliveries', '/admin/notifications');
 $notificationAdminEditorKey = 'textarea';
 $notificationEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $notificationAdminEditorKey, 'admin_basic') : '';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -56,7 +60,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php if ($notificationAdminPage === 'deliveries') { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('notification::ui.all.e078b14a')); ?></a>
             <form method="post" action="<?php echo sr_e(sr_url('/admin/notification-deliveries')); ?>" class="admin-inline-form">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="run_deliveries">
@@ -199,9 +202,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_pagination_html($deliveryPagination, '이메일 발송 작업 목록 페이지'); ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/notifications')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('notification::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('notification::ui.notification.bf2c2182')); ?> <strong><?php echo sr_e((string) $totalNotifications); ?><?php echo sr_e(sr_t('notification::ui.text.a57ab057')); ?></strong></span>
             <?php foreach ($allowedNotificationStatuses as $status) { ?>

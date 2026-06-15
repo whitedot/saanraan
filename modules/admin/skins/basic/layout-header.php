@@ -329,15 +329,22 @@ $adminBrandMarkClass .= $adminBrandIconUrl !== '' ? ' has-brand-icon' : ' has-br
         </div>
 
         <div id="container" class="admin-content <?php echo sr_e((string) $adminShell['container_class']); ?>">
+            <?php
+            $adminPageTitleUrl = isset($adminPageTitleUrl) && is_string($adminPageTitleUrl) ? trim($adminPageTitleUrl) : '';
+            $adminPageTitleHtml = sr_e((string) $adminShell['page_title']);
+            if ($adminPageTitleUrl !== '') {
+                $adminPageTitleHtml = '<a href="' . sr_e(sr_url($adminPageTitleUrl)) . '">' . $adminPageTitleHtml . '</a>';
+            }
+            ?>
             <?php if (isset($adminPageTitleActionsHtml) && is_string($adminPageTitleActionsHtml) && $adminPageTitleActionsHtml !== '') { ?>
                 <div class="admin-page-titlebar">
-                    <h1 id="container_title" class="type-page-title"><?php echo sr_e((string) $adminShell['page_title']); ?></h1>
+                    <h1 id="container_title" class="type-page-title"><?php echo $adminPageTitleHtml; ?></h1>
                     <div class="admin-page-title-actions">
                         <?php echo $adminPageTitleActionsHtml; ?>
                     </div>
                 </div>
             <?php } else { ?>
-                <h1 id="container_title" class="type-page-title"><?php echo sr_e((string) $adminShell['page_title']); ?></h1>
+                <h1 id="container_title" class="type-page-title"><?php echo $adminPageTitleHtml; ?></h1>
             <?php } ?>
             <?php if ($adminPageSubtitleLines !== []) { ?>
                 <p id="container_subtitle" class="type-small">

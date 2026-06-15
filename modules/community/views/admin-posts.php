@@ -19,6 +19,15 @@ $postStatusDisplayOrder = array_values(array_intersect(sr_community_admin_post_s
 $commentStatusDisplayOrder = array_values(array_intersect(sr_community_admin_comment_status_display_order(), $allowedCommentStatuses));
 $communityPostsCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $communityPostsActionSuffix = $communityPostsCurrentQuery !== '' ? '?' . $communityPostsCurrentQuery : '';
+$communityPostHasSearch = $selectedPostStatuses !== []
+    || (int) ($postListFilters['board_id'] ?? 0) !== 0
+    || (int) ($postListFilters['category_id'] ?? 0) !== 0
+    || trim((string) ($postListFilters['q'] ?? '')) !== '';
+$communityCommentHasSearch = $selectedCommentStatuses !== []
+    || (int) ($commentListFilters['board_id'] ?? 0) !== 0
+    || trim((string) ($commentListFilters['q'] ?? '')) !== '';
+$adminPageTitleUrl = sr_admin_page_title_reset_url($communityPostsPage !== 'comments', '/admin/community/posts')
+    . sr_admin_page_title_reset_url($communityPostsPage === 'comments', '/admin/community/comments');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -26,9 +35,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($communityPostsPage !== 'comments') { ?>
 <div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/community/posts')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.all.e078b14a')); ?></a>
-    </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.97309089')); ?> <strong><?php echo sr_e((string) $totalPosts); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></strong></span>
         <a href="<?php echo sr_e(sr_url('/admin/community/posts?status=pending')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.2a73ed53')); ?> <?php echo sr_e((string) ($postStatusCounts['pending'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>
@@ -216,9 +222,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($communityPostsPage === 'comments') { ?>
 <div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/community/comments')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.all.e078b14a')); ?></a>
-    </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.39ea7be6')); ?> <strong><?php echo sr_e((string) $totalComments); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></strong></span>
         <a href="<?php echo sr_e(sr_url('/admin/community/comments?status=published')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.9d1ba9f4')); ?> <?php echo sr_e((string) ($commentStatusCounts['published'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>

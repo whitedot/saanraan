@@ -6,6 +6,7 @@ if ($depositAdminPage === 'transactions') {
     $adminPageTitle = sr_t('deposit::ui.deposit.93f727b8');
 }
 $accountLookupFilter = isset($accountLookupFilter) && is_array($accountLookupFilter) ? $accountLookupFilter : ['field' => 'all', 'keyword' => (string) ($accountIdentifierFilter ?? '')];
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, $depositAdminPage === 'transactions' ? '/admin/deposits/transactions' : '/admin/deposits/balances');
 $balanceSort = isset($balanceSort) && is_array($balanceSort) ? $balanceSort : sr_admin_asset_balance_default_sort();
 $transactionSort = isset($transactionSort) && is_array($transactionSort) ? $transactionSort : sr_admin_asset_transaction_default_sort();
 $depositReferenceTypeOptions = [

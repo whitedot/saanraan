@@ -21,6 +21,7 @@ $searchFieldOptions = [
     'request' => '신청/거래 번호',
 ];
 $requestListActionUrl = sr_url((string) ($_SERVER['REQUEST_URI'] ?? '/admin/rewards/withdrawal-requests'));
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/rewards/withdrawal-requests');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

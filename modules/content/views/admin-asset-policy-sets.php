@@ -8,6 +8,7 @@ $policySetSort = isset($policySetSort) && is_array($policySetSort) ? $policySetS
 $policySetFilters = isset($policySetFilters) && is_array($policySetFilters) ? $policySetFilters : ['status' => [], 'field' => 'all', 'q' => ''];
 $policySetCount = count($policySets ?? []);
 $policySetPagination = ['total' => $policySetCount, 'start' => $policySetCount > 0 ? 1 : 0, 'end' => $policySetCount];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($policySetPage === 'list', '/admin/content/asset-policy-sets');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

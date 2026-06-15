@@ -34,6 +34,7 @@ $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.cont
 $adminPageSubtitle = $pageAdminPage === 'form' ? sr_t('content::ui.content.status.85bf8a35') : sr_t('content::ui.content.status.search.29f7335b');
 $adminContainerClass = $pageAdminPage === 'form' ? 'admin-content-form admin-ui-scope' : 'admin-content-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'content_group_id' => 0, 'field' => 'all', 'q' => ''];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($pageAdminPage !== 'form', '/admin/content');
 $contentSort = isset($contentSort) && is_array($contentSort) ? $contentSort : sr_content_admin_default_sort();
 $pageStatusCounts = isset($pageStatusCounts) && is_array($pageStatusCounts) ? $pageStatusCounts : [];
 $pageGroups = isset($pageGroups) && is_array($pageGroups) ? $pageGroups : [];
@@ -818,9 +819,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $contentEditorKey, $contentEditorToolbarPreset) : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/content')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.content.fc61037b')); ?> <strong><?php echo sr_e((string) $totalPages); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></strong></span>
 	            <a href="<?php echo sr_e(sr_url('/admin/content?status=published')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('content::ui.text.9d1ba9f4')); ?> <?php echo sr_e((string) ($pageStatusCounts['published'] ?? 0)); ?><?php echo sr_e(sr_t('content::ui.text.a57ab057')); ?></a>

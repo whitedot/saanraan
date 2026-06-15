@@ -115,6 +115,7 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $adminPageTitle = '설문 응답 관리';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/surveys/responses');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>

@@ -5,6 +5,7 @@ $adminPageSubtitle = [
     '공개 이미지 썸네일 캐시를 조회하고 정리합니다.',
     '이 화면은 storage/cache/thumbnails 아래에서 helper가 만든 파일명 패턴의 이미지 캐시만 조회합니다. 생성일은 파일 수정 시각 기준으로 표시합니다.',
 ];
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/storage-cache');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 $dateCounts = isset($cacheSummary['date_counts']) && is_array($cacheSummary['date_counts']) ? $cacheSummary['date_counts'] : [];

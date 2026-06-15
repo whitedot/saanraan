@@ -3,6 +3,7 @@
 $adminPageTitle = '콘텐츠 등록자 신청';
 $adminPageSubtitle = '회원의 콘텐츠 등록자 신청을 검토합니다.';
 $adminContainerClass = 'admin-page-content-author-applications admin-ui-scope';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/author-applications');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>

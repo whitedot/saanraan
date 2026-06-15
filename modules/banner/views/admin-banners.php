@@ -6,6 +6,7 @@ $adminPageTitle = $bannerAdminPage === 'form' ? ($editing ? sr_t('banner::ui.ban
 $adminPageSubtitle = $bannerAdminPage === 'form' ? sr_t('banner::ui.banner.71184934') : sr_t('banner::ui.banner.status.search.ae378c83');
 $adminContainerClass = $bannerAdminPage === 'form' ? 'admin-page-banner-form admin-ui-scope' : 'admin-page-banner-list admin-ui-scope';
 $filters = isset($filters) && is_array($filters) ? $filters : ['status' => '', 'target' => '', 'field' => 'all', 'q' => ''];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($bannerAdminPage !== 'form', '/admin/banners');
 $bannerSortOptions = isset($bannerSortOptions) && is_array($bannerSortOptions) ? $bannerSortOptions : [
     'title' => ['columns' => ['b.title', 'b.id']],
     'status' => ['columns' => ['b.status', 'b.id']],
@@ -338,9 +339,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo $editing ? $bannerCopyModalHtml($editBanner, '/admin/banners/edit?id=' . rawurlencode((string) $editBanner['id'])) : ''; ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/banners')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('banner::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('banner::ui.banner.58c664bd')); ?> <strong><?php echo sr_e((string) $totalBanners); ?><?php echo sr_e(sr_t('banner::ui.text.a57ab057')); ?></strong></span>
             <a href="<?php echo sr_e(sr_url('/admin/banners?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('banner::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($bannerStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('banner::ui.text.a57ab057')); ?></a>

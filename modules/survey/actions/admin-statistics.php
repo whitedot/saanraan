@@ -40,6 +40,7 @@ if (is_array($survey)) {
 
 $adminPageTitle = '설문 통계';
 $adminPageSubtitle = '선택한 설문의 응답 집계와 문항별 통계를 확인합니다. 제외 응답과 테스트 응답은 문항별 통계에서 제외됩니다.';
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/surveys/statistics');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <form method="get" action="<?php echo sr_e(sr_url('/admin/surveys/statistics')); ?>" class="filtering-form filtering filtering-plain admin-survey-statistics-filter ui-form-theme">

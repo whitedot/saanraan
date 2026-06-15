@@ -5,6 +5,7 @@ $adminPageSubtitle = '본문 임베드 참조 상태를 점검합니다.';
 $adminContainerClass = 'admin-page-embed-manager-list admin-ui-scope';
 $selectedStatuses = isset($filters['status']) && is_array($filters['status']) ? $filters['status'] : [];
 $detailFilterOpen = $selectedStatuses !== [];
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/embed-manager');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 

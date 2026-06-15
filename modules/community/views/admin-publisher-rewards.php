@@ -14,6 +14,7 @@ $publisherRewardStatusClass = static function (string $status): string {
         default => 'is-blocked',
     };
 };
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/publisher-rewards');
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

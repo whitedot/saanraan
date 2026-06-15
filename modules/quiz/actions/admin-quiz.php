@@ -198,6 +198,7 @@ $values = is_array($sessionValues) && $sessionValues !== []
     : (is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values(sr_quiz_settings($pdo)));
 
 $adminPageTitle = $mode === 'list' ? '퀴즈 관리' : ($mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성');
+$adminPageTitleUrl = sr_admin_page_title_reset_url($mode === 'list', '/admin/quiz');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 if ($mode === 'list') {

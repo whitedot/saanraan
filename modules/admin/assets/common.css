@@ -31,6 +31,8 @@ code{color:var(--color-rose-400)}
 .type-display{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:var(--type-display-size);line-height:var(--type-display-line-height);font-weight:var(--font-weight-bold)}
 .type-display-fluid{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:clamp(var(--type-display-size),6vw,var(--type-display-max-size));line-height:var(--type-display-line-height);font-weight:var(--font-weight-bold)}
 .type-page-title{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:var(--type-page-title-size);line-height:var(--type-page-title-line-height);font-weight:var(--font-weight-bold)}
+.type-page-title a{color:inherit;text-decoration:none}
+.type-page-title a:hover,.type-page-title a:focus{text-decoration:none}
 .type-page-title-fluid{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:clamp(var(--type-page-title-size),4vw,var(--type-page-title-fluid-max-size));line-height:var(--type-page-title-line-height);font-weight:var(--font-weight-bold)}
 .type-section-title{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:var(--type-section-title-size);line-height:var(--type-section-title-line-height);font-weight:var(--font-weight-semibold)}
 .type-card-title{margin:0;color:var(--text-strong);font-family:var(--font-secondary);font-size:var(--type-card-title-size);line-height:var(--type-card-title-line-height);font-weight:var(--font-weight-semibold)}

@@ -19,6 +19,7 @@ $boardStatusCounts = isset($boardStatusCounts) && is_array($boardStatusCounts) ?
 $totalBoards = (int) ($boardStatusCounts['total'] ?? count($boards ?? []));
 $boardGroupSettings = isset($boardGroupSettings) && is_array($boardGroupSettings) ? $boardGroupSettings : [];
 $selectedBoardStatuses = is_array($boardListFilters['status'] ?? null) ? $boardListFilters['status'] : [];
+$adminPageTitleUrl = sr_admin_page_title_reset_url($communityBoardsPage === 'list', '/admin/community/boards');
 
 $settingSourceLabels = [
     'board' => ['visible' => sr_t('community::ui.scope.current_only'), 'sr' => '적용', 'toast' => ''],
@@ -223,9 +224,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($communityBoardsPage === 'list') { ?>
     <div class="admin-local-nav-wrap">
-        <div class="admin-local-nav">
-            <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.all.e078b14a')); ?></a>
-        </div>
         <div class="admin-summary-stats">
             <span class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.text.97d9bd67')); ?> <strong><?php echo sr_e((string) $totalBoards); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></strong></span>
             <a href="<?php echo sr_e(sr_url('/admin/community/boards?status=enabled')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_t('community::ui.active.93c558d7')); ?> <?php echo sr_e((string) ($boardStatusCounts['enabled'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.a57ab057')); ?></a>

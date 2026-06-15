@@ -21,15 +21,13 @@ $seriesStatusClass = static function (string $status): string {
         default => 'is-blocked',
     };
 };
+$adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/series');
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <div class="admin-local-nav-wrap">
-    <div class="admin-local-nav">
-        <a href="<?php echo sr_e(sr_url('/admin/community/series')); ?>" class="btn btn-solid-light">전체</a>
-    </div>
     <div class="admin-summary-stats">
         <span class="admin-summary-meta">시리즈 <strong><?php echo sr_e((string) $totalSeries); ?>건</strong></span>
         <a href="<?php echo sr_e(sr_url('/admin/community/series?status=active')); ?>" class="admin-summary-meta"><?php echo sr_e(sr_community_series_status_label('active')); ?> <?php echo sr_e((string) ($seriesStatusCounts['active'] ?? 0)); ?>건</a>
