@@ -1251,3 +1251,42 @@ function sr_asset_exchange_available_policies(array $policies, array $assets): a
 
     return $available;
 }
+
+function sr_asset_exchange_member_has_available_policy(PDO $pdo, int $accountId): bool
+{
+    if ($accountId <= 0) {
+        return false;
+    }
+
+    $assets = sr_asset_exchange_assets($pdo);
+    if ($assets === []) {
+        return false;
+    }
+
+    foreach (sr_asset_exchange_available_policies(sr_asset_exchange_policies($pdo, true), $assets) as $policy) {
+        $fromModuleKey = (string) ($policy['from_module_key'] ?? '');
+        if (!isset($assets[$fromModuleKey])) {
+            continue;
+        }
+
+        $balanceFunction = (string) ($assets[$fromModuleKey]['balance_function'] ?? '');
+        if (!function_exists($balanceFunction)) {
+            continue;
+        }
+
+        $balance = (int) $balanceFunction($pdo, $accountId);
+        $minAmount = max(1, (int) ($policy['min_amount'] ?? 1));
+        if ($balance < $minAmount) {
+            continue;
+        }
+
+        try {
+            sr_asset_exchange_quote($pdo, $policy, $accountId, $minAmount);
+            return true;
+        } catch (Throwable) {
+            continue;
+        }
+    }
+
+    return false;
+}

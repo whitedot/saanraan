@@ -279,6 +279,7 @@
 
 .content-layout-member-dropdown-link,
 .content-layout-member-asset-row,
+.content-layout-member-action-row,
 .content-layout-member-logout-button {
     align-items: center;
     background: #fff;
@@ -297,12 +298,14 @@
 
 .content-layout-member-dropdown-link:hover,
 .content-layout-member-asset-row:hover,
+.content-layout-member-action-row:hover,
 .content-layout-member-logout-button:hover {
     background: rgba(0, 0, 0, .04);
 }
 
 .content-layout-member-dropdown-link span:first-child,
-.content-layout-member-asset-row span {
+.content-layout-member-asset-row span,
+.content-layout-member-action-row span {
     color: rgba(0, 0, 0, .62);
     font-size: .82rem;
     font-weight: 700;
@@ -316,12 +319,14 @@
 }
 
 .content-layout-member-asset-row + .content-layout-member-asset-row,
+.content-layout-member-action-row,
 .content-layout-member-dropdown-link + .content-layout-member-asset-row,
 .content-layout-member-logout-form {
     border-top: 1px solid rgba(0, 0, 0, .07);
 }
 
-.content-layout-member-asset-row strong {
+.content-layout-member-asset-row strong,
+.content-layout-member-action-row strong {
     color: #111;
     font-size: .88rem;
     font-weight: 800;

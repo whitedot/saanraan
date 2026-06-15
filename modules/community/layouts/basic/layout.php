@@ -196,6 +196,7 @@ $layoutCurrentAccount = null;
 $layoutMemberDisplayName = '내 계정';
 $layoutMemberDisplayLabel = '내 계정';
 $layoutMemberAssetRows = [];
+$layoutMemberActionRows = [];
 $layoutAdminEnabled = false;
 $layoutAdminUrl = sr_url('/admin');
 if (
@@ -246,6 +247,7 @@ if (
                 $layoutMemberAssetRows[] = ['label' => '예치금', 'value' => '0원', 'url' => sr_url('/account/deposits')];
             }
         }
+        $layoutMemberActionRows = sr_public_layout_member_action_rows($layoutPdo, $layoutCurrentAccountId);
     }
 }
 if (
@@ -382,6 +384,12 @@ if (
                                 <a class="community-layout-member-asset-row" href="<?php echo sr_e((string) ($layoutMemberAssetRow['url'] ?? '#')); ?>">
                                     <span><?php echo sr_e((string) ($layoutMemberAssetRow['label'] ?? '')); ?></span>
                                     <strong><?php echo sr_e((string) ($layoutMemberAssetRow['value'] ?? '0')); ?></strong>
+                                </a>
+                            <?php } ?>
+                            <?php foreach ($layoutMemberActionRows as $layoutMemberActionRow) { ?>
+                                <a class="community-layout-member-action-row" href="<?php echo sr_e((string) ($layoutMemberActionRow['url'] ?? '#')); ?>">
+                                    <span><?php echo sr_e((string) ($layoutMemberActionRow['label'] ?? '')); ?></span>
+                                    <strong><?php echo sr_e((string) ($layoutMemberActionRow['value'] ?? '')); ?></strong>
                                 </a>
                             <?php } ?>
                             <form class="community-layout-member-logout-form" method="post" action="<?php echo sr_e(sr_url('/logout')); ?>">

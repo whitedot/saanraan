@@ -49,7 +49,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 <?php } ?>
             </section>
 
-            <section class="public-ui-card sr-asset-exchange-request-card">
+            <section id="asset-exchange-request" class="public-ui-card sr-asset-exchange-request-card">
                 <div class="sr-asset-exchange-section-head">
                     <h2 class="public-ui-title type-section-title">환전 신청</h2>
                 </div>

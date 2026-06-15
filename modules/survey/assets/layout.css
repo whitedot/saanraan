@@ -279,6 +279,7 @@
 
 .survey-layout-member-dropdown-link,
 .survey-layout-member-asset-row,
+.survey-layout-member-action-row,
 .survey-layout-member-logout-button {
     align-items: center;
     background: #fff;
@@ -297,12 +298,14 @@
 
 .survey-layout-member-dropdown-link:hover,
 .survey-layout-member-asset-row:hover,
+.survey-layout-member-action-row:hover,
 .survey-layout-member-logout-button:hover {
     background: rgba(0, 0, 0, .04);
 }
 
 .survey-layout-member-dropdown-link span:first-child,
-.survey-layout-member-asset-row span {
+.survey-layout-member-asset-row span,
+.survey-layout-member-action-row span {
     color: rgba(0, 0, 0, .62);
     font-size: .82rem;
     font-weight: 700;
@@ -316,12 +319,14 @@
 }
 
 .survey-layout-member-asset-row + .survey-layout-member-asset-row,
+.survey-layout-member-action-row,
 .survey-layout-member-dropdown-link + .survey-layout-member-asset-row,
 .survey-layout-member-logout-form {
     border-top: 1px solid rgba(0, 0, 0, .07);
 }
 
-.survey-layout-member-asset-row strong {
+.survey-layout-member-asset-row strong,
+.survey-layout-member-action-row strong {
     color: #111;
     font-size: .88rem;
     font-weight: 800;

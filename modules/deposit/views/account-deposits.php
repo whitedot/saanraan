@@ -29,7 +29,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <p>대기 중 환불 신청액: <?php echo sr_e(number_format((int) $pendingRefundAmount)); ?>원</p>
             <p>환불 신청 가능액: <?php echo sr_e(number_format((int) $availableRefundAmount)); ?>원</p>
         </section>
-        <section>
+        <section id="deposit-refund-request">
             <h2>환불 신청</h2>
             <?php if (empty($refundRequestsEnabled)) { ?>
                 <p>현재 예치금 환불 신청을 받지 않습니다.</p>

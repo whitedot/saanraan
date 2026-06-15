@@ -29,7 +29,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <p>대기 중 출금 신청액: <?php echo sr_e(number_format((int) $pendingWithdrawalAmount)); ?>원</p>
             <p>출금 신청 가능액: <?php echo sr_e(number_format((int) $availableWithdrawalAmount)); ?>원</p>
         </section>
-        <section>
+        <section id="reward-withdrawal-request">
             <h2>출금 신청</h2>
             <?php if (empty($withdrawalRequestsEnabled)) { ?>
                 <p>현재 적립금 출금 신청을 받지 않습니다.</p>
