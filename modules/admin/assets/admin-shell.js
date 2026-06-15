@@ -987,6 +987,37 @@ window.AdminShell = {
             scrollThumb.style.transform = `translateY(${thumbTop}px)`;
         };
 
+        const scrollCurrentMenuIntoView = () => {
+            if (!menuScroll) {
+                return;
+            }
+
+            const currentMenu = menuScroll.querySelector('.admin-nav-sub-item.is-current, .admin-nav-item.is-current, .admin-sidebar-auxiliary-link.is-current, [aria-current="page"]');
+            if (!currentMenu) {
+                return;
+            }
+
+            const target = currentMenu.closest('.admin-nav-sub-item, .admin-nav-item, li') || currentMenu;
+            const menuRect = menuScroll.getBoundingClientRect();
+            const targetRect = target.getBoundingClientRect();
+            const targetTop = targetRect.top - menuRect.top + menuScroll.scrollTop;
+            const targetBottom = targetTop + targetRect.height;
+            const viewportTop = menuScroll.scrollTop;
+            const viewportBottom = viewportTop + menuScroll.clientHeight;
+            const edgePadding = 24;
+
+            if (targetTop >= viewportTop + edgePadding && targetBottom <= viewportBottom - edgePadding) {
+                return;
+            }
+
+            const nextTop = Math.max(0, Math.round(targetTop - (menuScroll.clientHeight - targetRect.height) / 2));
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            menuScroll.scrollTo({
+                top: nextTop,
+                behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            });
+        };
+
         const syncDesktopSidebarState = () => {
             if (!gnb || !container || !desktopToggle) {
                 return;
@@ -2958,7 +2989,11 @@ window.AdminShell = {
             }
         });
         updateMenuScrollbar();
-        window.requestAnimationFrame(updateMenuScrollbar);
+        window.requestAnimationFrame(() => {
+            updateMenuScrollbar();
+            scrollCurrentMenuIntoView();
+            window.setTimeout(updateMenuScrollbar, 280);
+        });
     }
 };
 
