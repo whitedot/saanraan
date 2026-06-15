@@ -199,6 +199,7 @@ $communityBoardManagerPermissions = sr_community_board_manager_permission_option
 $communityBoardManagers = $communityBoardsPage === 'edit' ? sr_community_board_managers($pdo, (int) ($formBoard['id'] ?? 0)) : [];
 $communityBoardSectionNavItems = [
     'community-board-section-basic' => '기본 정보',
+    'community-board-section-extra-fields' => '추가 입력 항목',
     'community-board-section-seo' => 'SEO/OG',
     'community-board-section-policy' => '접근/작성',
     'community-board-section-reaction' => '리액션',
@@ -490,34 +491,38 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="admin-form-help">저장한 뒤에는 커뮤니티 환경설정이나 게시판 그룹 설정 변경의 영향을 받지 않습니다.</p>
                 </div>
             </div>
-            <div class="admin-form-row">
-                <label class="form-label" for="community_admin_boards_extra_fields_json">추가 입력 항목</label>
-                <div class="admin-form-field" data-community-extra-fields-builder>
-                    <div class="admin-form-actions">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-extra-field-modal" data-overlay="#community-extra-field-modal" data-community-extra-field-add>항목 추가</button>
-                    </div>
-                    <div class="table-responsive admin-table-responsive">
-                        <table class="admin-table" data-community-extra-field-table>
-                            <thead>
-                                <tr>
-                                    <th scope="col">관리용 키</th>
-                                    <th scope="col">라벨</th>
-                                    <th scope="col">유형</th>
-                                    <th scope="col">표시</th>
-                                    <th scope="col">개인정보</th>
-                                    <th scope="col">작업</th>
-                                </tr>
-                            </thead>
-                            <tbody data-community-extra-field-list></tbody>
-                        </table>
-                    </div>
-                    <p class="admin-empty-state" data-community-extra-field-empty hidden>추가 입력 항목이 없습니다.</p>
-                    <textarea id="community_admin_boards_extra_fields_json" name="extra_fields_json" rows="5" class="form-textarea form-control-full" data-community-extra-fields-json><?php echo sr_e($boardField($formBoard, 'extra_fields_json', '[]')); ?></textarea>
-                    <?php echo $settingSourceRadioHtml('source_extra_fields_json', $boardSettingSource($formBoard, 'extra_fields_json')); ?>
-                    <p class="admin-form-help">항목 목록과 모달에서 편집한 내용이 저장용 JSON으로 반영됩니다. JavaScript를 사용할 수 없는 환경에서는 JSON을 직접 수정할 수 있습니다.</p>
+        </section>
+
+        <section id="community-board-section-extra-fields" class="admin-card admin-list-card card admin-list-form" data-admin-section-anchor data-community-extra-fields-builder>
+            <div class="card-header">
+                <h2 class="card-title">추가 입력 항목</h2>
+                <div class="admin-row-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-extra-field-modal" data-overlay="#community-extra-field-modal" data-community-extra-field-add>항목 추가</button>
                 </div>
             </div>
-
+            <p class="admin-form-help">게시글 작성/수정 폼에서 받을 추가 항목을 관리합니다. 항목 추가, 수정, 정렬, 제거 후 게시판 저장을 눌러야 최종 반영됩니다.</p>
+            <div class="table-wrapper" data-community-extra-field-table-wrap hidden>
+                <table class="table" data-community-extra-field-table>
+                    <caption class="sr-only">추가 입력 항목 목록</caption>
+                    <thead class="ui-table-head">
+                        <tr>
+                            <th>순서</th>
+                            <th>라벨</th>
+                            <th>유형</th>
+                            <th>표시</th>
+                            <th>개인정보</th>
+                            <th class="text-end">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody data-community-extra-field-list></tbody>
+                </table>
+            </div>
+            <p class="admin-empty-state" data-community-extra-field-empty hidden>추가 입력 항목이 없습니다.</p>
+            <textarea id="community_admin_boards_extra_fields_json" name="extra_fields_json" hidden data-community-extra-fields-json><?php echo sr_e($boardField($formBoard, 'extra_fields_json', '[]')); ?></textarea>
+            <div class="admin-setting-source-line admin-setting-source-line-end">
+                <span class="sr-only">저장 범위</span>
+                <?php echo $settingSourceRadioHtml('source_extra_fields_json', $boardSettingSource($formBoard, 'extra_fields_json')); ?>
+            </div>
         </section>
 
         <section id="community-board-section-seo" class="admin-card card" data-admin-section-anchor>
@@ -533,7 +538,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_seo_description">SEO 설명</label>
                 <div class="admin-form-field">
-                    <textarea id="community_admin_boards_seo_description" name="seo_description" rows="3" cols="60" maxlength="255" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'seo_description')); ?></textarea>
+                    <textarea id="community_admin_boards_seo_description" name="seo_description" rows="3" cols="60" maxlength="255" class="form-textarea form-control-full"><?php echo sr_e($boardField($formBoard, 'seo_description')); ?></textarea>
                     <?php echo $settingSourceRadioHtml('source_seo_description', $boardSettingSource($formBoard, 'seo_description')); ?>
                     <p class="admin-form-help">비워 두면 게시판 설명을 사용합니다.</p>
                 </div>
@@ -548,7 +553,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="admin-form-row">
                 <label class="form-label" for="community_admin_boards_og_description">OG 설명</label>
                 <div class="admin-form-field">
-                    <textarea id="community_admin_boards_og_description" name="og_description" rows="3" cols="60" maxlength="255" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'og_description')); ?></textarea>
+                    <textarea id="community_admin_boards_og_description" name="og_description" rows="3" cols="60" maxlength="255" class="form-textarea form-control-full"><?php echo sr_e($boardField($formBoard, 'og_description')); ?></textarea>
                     <?php echo $settingSourceRadioHtml('source_og_description', $boardSettingSource($formBoard, 'og_description')); ?>
                 </div>
             </div>
@@ -1689,6 +1694,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return exportLabel + ' / ' + cleanupLabel;
     }
 
+    function communityExtraFieldRandomKey(definitions) {
+        var existing = {};
+        communityExtraFieldNormalize(definitions).forEach(function (field) {
+            existing[field.key] = true;
+        });
+        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        var randomPart = function () {
+            var value = '';
+            var bytes = null;
+            if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+                bytes = new Uint8Array(10);
+                window.crypto.getRandomValues(bytes);
+            }
+            for (var i = 0; i < 10; i++) {
+                var index = bytes ? bytes[i] % chars.length : Math.floor(Math.random() * chars.length);
+                value += chars.charAt(index);
+            }
+            return value;
+        };
+        for (var attempt = 0; attempt < 20; attempt++) {
+            var key = 'field_' + randomPart();
+            if (!existing[key]) {
+                return key;
+            }
+        }
+
+        return 'field_' + String(Date.now()).slice(-10);
+    }
+
     function communityExtraFieldWrite(root, definitions) {
         var textarea = root ? root.querySelector('[data-community-extra-fields-json]') : null;
         if (!textarea) {
@@ -1702,6 +1736,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var textarea = root ? root.querySelector('[data-community-extra-fields-json]') : null;
         var list = root ? root.querySelector('[data-community-extra-field-list]') : null;
         var empty = root ? root.querySelector('[data-community-extra-field-empty]') : null;
+        var tableWrap = root ? root.querySelector('[data-community-extra-field-table-wrap]') : null;
         if (!textarea || !list) {
             return;
         }
@@ -1710,14 +1745,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (empty) {
             empty.hidden = definitions.length > 0;
         }
+        if (tableWrap) {
+            tableWrap.hidden = definitions.length === 0;
+        }
         definitions.forEach(function (field, index) {
             var row = document.createElement('tr');
 
-            var keyCell = document.createElement('td');
-            var keyCode = document.createElement('code');
-            keyCode.textContent = field.key;
-            keyCell.appendChild(keyCode);
-            row.appendChild(keyCell);
+            var orderCell = document.createElement('td');
+            orderCell.className = 'admin-table-actions-cell';
+            var orderGroup = document.createElement('div');
+            orderGroup.className = 'admin-row-actions';
+            [
+                ['up', '위로', 'arrow_upward'],
+                ['down', '아래로', 'arrow_downward']
+            ].forEach(function (action) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-sm btn-icon btn-solid-light';
+                button.setAttribute('aria-label', action[1]);
+                button.setAttribute('title', action[1]);
+                button.setAttribute('data-community-extra-field-action', action[0]);
+                button.setAttribute('data-community-extra-field-index-value', String(index));
+                button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + action[2] + '</span>';
+                orderGroup.appendChild(button);
+            });
+            orderCell.appendChild(orderGroup);
+            row.appendChild(orderCell);
 
             var labelCell = document.createElement('td');
             labelCell.textContent = field.label + (field.required ? ' (필수)' : '');
@@ -1744,23 +1797,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             row.appendChild(privacyCell);
 
             var actionCell = document.createElement('td');
-            actionCell.className = 'admin-table-actions';
+            actionCell.className = 'admin-table-actions-cell';
+            var actionGroup = document.createElement('div');
+            actionGroup.className = 'admin-row-actions';
             [
                 ['edit', '수정', 'edit'],
-                ['up', '위로', 'arrow_upward'],
-                ['down', '아래로', 'arrow_downward'],
                 ['remove', '제거', 'delete']
             ].forEach(function (action) {
                 var button = document.createElement('button');
                 button.type = 'button';
-                button.className = 'btn btn-sm btn-icon btn-outline-secondary';
+                button.className = action[0] === 'remove' ? 'btn btn-sm btn-icon btn-outline-danger' : 'btn btn-sm btn-icon btn-solid-light';
                 button.setAttribute('aria-label', action[1]);
                 button.setAttribute('title', action[1]);
                 button.setAttribute('data-community-extra-field-action', action[0]);
                 button.setAttribute('data-community-extra-field-index-value', String(index));
                 button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + action[2] + '</span>';
-                actionCell.appendChild(button);
+                actionGroup.appendChild(button);
             });
+            actionCell.appendChild(actionGroup);
             row.appendChild(actionCell);
 
             list.appendChild(row);
@@ -2252,7 +2306,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var extraFieldAdd = event.target.closest && event.target.closest('[data-community-extra-field-add]');
         if (extraFieldAdd) {
             var extraFieldModal = document.querySelector('[data-community-extra-field-modal]');
-            communityExtraFieldSetModal(extraFieldModal, null, -1);
+            var extraFieldRootForAdd = document.querySelector('[data-community-extra-fields-builder]');
+            var extraFieldTextareaForAdd = extraFieldRootForAdd ? extraFieldRootForAdd.querySelector('[data-community-extra-fields-json]') : null;
+            var extraFieldDefinitionsForAdd = communityExtraFieldParse(extraFieldTextareaForAdd);
+            communityExtraFieldSetModal(extraFieldModal, {
+                key: communityExtraFieldRandomKey(extraFieldDefinitionsForAdd),
+                label: '',
+                type: 'text',
+                required: false,
+                options: [],
+                visibility: 'public',
+                show_on_view: true,
+                show_in_admin: false,
+                privacy_purpose: '',
+                export_policy: 'include',
+                cleanup_policy: 'anonymize'
+            }, -1);
             return;
         }
 

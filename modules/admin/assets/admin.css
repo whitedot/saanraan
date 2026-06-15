@@ -274,6 +274,8 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 }
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.admin-form-help{flex-basis:100%;margin-top:0}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-setting-source-options)>.form-control-full{flex:1 1 18rem;width:auto}
+.admin-form .admin-form-row>.admin-form-field:has(>textarea.form-control-full + .admin-setting-source-options){align-items:flex-start}
+.admin-form .admin-form-row>.admin-form-field:has(>textarea.form-control-full + .admin-setting-source-options)>.admin-setting-source-options{align-self:flex-start}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline){align-items:flex-start;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-asset-setting-scope-inline{align-self:flex-start;margin-left:auto;order:2}
 .admin-form .admin-form-row>.admin-form-field:has(>.admin-asset-setting-scope-inline)>.admin-form-help{flex-basis:100%;margin-top:0;order:3}
