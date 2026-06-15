@@ -35,6 +35,7 @@ if (!function_exists('sr_quiz_reaction_quiz_result')) {
             $status = 'private';
         }
         $canView = $status === 'active' && sr_quiz_reaction_can_view($pdo, $quiz, $viewerAccountId);
+        $canWrite = $canView && sr_quiz_account_has_result($pdo, $quizId, $viewerAccountId);
         $settings = sr_quiz_settings($pdo);
         $presetKey = (string) ($quiz['reaction_preset_key'] ?? '');
         if ($presetKey === '') {
@@ -44,11 +45,11 @@ if (!function_exists('sr_quiz_reaction_quiz_result')) {
         return [
             'target_id' => (string) $quizId,
             'label' => (string) ($quiz['title'] ?? ''),
-            'public_url' => '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')),
+            'public_url' => '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1',
             'admin_url' => '/admin/quiz?mode=edit&id=' . rawurlencode((string) $quizId),
             'status' => $status,
             'can_view' => $canView,
-            'can_write' => $canView,
+            'can_write' => $canWrite,
             'owner_account_id' => (int) ($quiz['created_by_account_id'] ?? 0),
             'recipient_account_id' => (int) ($quiz['created_by_account_id'] ?? 0),
             'preset_key' => $presetKey,
@@ -96,11 +97,11 @@ if (!function_exists('sr_quiz_reaction_comment_result')) {
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),
             'label' => '퀴즈 댓글 #' . (string) (int) ($row['id'] ?? 0),
-            'public_url' => '/quiz/' . rawurlencode((string) ($row['quiz_key'] ?? '')) . '#quiz-comments',
+            'public_url' => '/quiz/' . rawurlencode((string) ($row['quiz_key'] ?? '')) . '?result=1#quiz-comments',
             'admin_url' => '/admin/quiz/comments?q=' . rawurlencode((string) (int) ($row['id'] ?? 0)),
             'status' => $status,
             'can_view' => $canView,
-            'can_write' => $canView,
+            'can_write' => $canView && sr_quiz_account_has_result($pdo, (int) ($row['quiz_id'] ?? 0), $viewerAccountId),
             'owner_account_id' => $ownerAccountId,
             'recipient_account_id' => $ownerAccountId,
             'preset_key' => $presetKey,

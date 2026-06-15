@@ -31,7 +31,7 @@ if ((int) ($survey['secret_comments_enabled'] ?? 0) !== 1) {
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
 }
 $errors = sr_survey_validate_comment_input($values);
-$redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '#survey-comments';
+$redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1#survey-comments';
 if ($errors !== []) {
     $_SESSION['sr_survey_comment_errors'] = $errors;
     sr_redirect($redirectUrl);

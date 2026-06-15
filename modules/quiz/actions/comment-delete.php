@@ -42,4 +42,4 @@ sr_audit_log($pdo, [
 ]);
 
 $_SESSION['sr_quiz_comment_notice'] = '댓글을 삭제했습니다.';
-sr_redirect('/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '#quiz-comments');
+sr_redirect('/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1#quiz-comments');

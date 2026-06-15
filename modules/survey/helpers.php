@@ -1012,6 +1012,27 @@ function sr_survey_account_can_edit_comment(array $comment, array $account): boo
         && (int) ($comment['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
 }
 
+function sr_survey_account_has_submitted_response(PDO $pdo, int $surveyId, int $accountId): bool
+{
+    if ($surveyId < 1 || $accountId < 1) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_survey_responses
+         WHERE survey_id = :survey_id
+           AND account_id = :account_id
+           AND submitted_at IS NOT NULL'
+    );
+    $stmt->execute([
+        'survey_id' => $surveyId,
+        'account_id' => $accountId,
+    ]);
+
+    return (int) $stmt->fetchColumn() > 0;
+}
+
 function sr_survey_account_can_manage_comments(PDO $pdo, int $accountId): bool
 {
     return $accountId > 0
@@ -1353,7 +1374,7 @@ function sr_survey_create_comment_mention_notifications(
         'survey_id' => $surveyId,
         'comment_id' => $commentId,
         'member_name' => sr_member_public_name_for_account_id($pdo, $createdByAccountId, '회원'),
-        'link_url' => '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '#survey-comments',
+        'link_url' => '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1#survey-comments',
         'created_at' => sr_now(),
     ];
     foreach ($mentionedAccountIds as $accountId) {

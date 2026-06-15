@@ -17,6 +17,9 @@ if (!is_array($survey) || (string) ($survey['status'] ?? '') !== 'active' || !sr
 if ((int) ($survey['comments_enabled'] ?? 0) !== 1 || !sr_survey_comments_table_exists($pdo)) {
     sr_render_error(403, '이 설문에는 댓글을 작성할 수 없습니다.');
 }
+if (!sr_survey_account_has_submitted_response($pdo, $surveyId, (int) ($account['id'] ?? 0))) {
+    sr_render_error(403, '설문 참여 완료 후 댓글을 작성할 수 있습니다.');
+}
 
 $values = sr_survey_comment_input_values();
 if ((int) ($survey['secret_comments_enabled'] ?? 0) !== 1) {
@@ -26,7 +29,7 @@ $errors = sr_survey_validate_comment_input($values);
 $parentValidation = sr_survey_validate_comment_parent($pdo, $surveyId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
 $errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
-$redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '#survey-comments';
+$redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1#survey-comments';
 if ($errors !== []) {
     $_SESSION['sr_survey_comment_errors'] = $errors;
     $_SESSION['sr_survey_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';

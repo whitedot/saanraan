@@ -38,6 +38,7 @@ if (!function_exists('sr_survey_reaction_survey_result')) {
             $status = 'private';
         }
         $canView = $status === 'active' && sr_survey_reaction_can_view($pdo, $survey, $viewerAccountId);
+        $canWrite = $canView && sr_survey_account_has_submitted_response($pdo, $surveyId, $viewerAccountId);
         $settings = sr_survey_settings($pdo);
         $presetKey = (string) ($survey['reaction_preset_key'] ?? '');
         if ($presetKey === '') {
@@ -47,11 +48,11 @@ if (!function_exists('sr_survey_reaction_survey_result')) {
         return [
             'target_id' => (string) $surveyId,
             'label' => (string) ($survey['title'] ?? ''),
-            'public_url' => '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')),
+            'public_url' => '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1',
             'admin_url' => '/admin/surveys?mode=edit&id=' . rawurlencode((string) $surveyId),
             'status' => $status,
             'can_view' => $canView,
-            'can_write' => $canView,
+            'can_write' => $canWrite,
             'owner_account_id' => (int) ($survey['created_by_account_id'] ?? 0),
             'recipient_account_id' => (int) ($survey['created_by_account_id'] ?? 0),
             'preset_key' => $presetKey,
@@ -100,11 +101,11 @@ if (!function_exists('sr_survey_reaction_comment_result')) {
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),
             'label' => '설문 댓글 #' . (string) (int) ($row['id'] ?? 0),
-            'public_url' => '/survey/' . rawurlencode((string) ($row['survey_key'] ?? '')) . '#survey-comments',
+            'public_url' => '/survey/' . rawurlencode((string) ($row['survey_key'] ?? '')) . '?submitted=1#survey-comments',
             'admin_url' => '/admin/surveys/comments?q=' . rawurlencode((string) (int) ($row['id'] ?? 0)),
             'status' => $status,
             'can_view' => $canView,
-            'can_write' => $canView,
+            'can_write' => $canView && sr_survey_account_has_submitted_response($pdo, (int) ($row['survey_id'] ?? 0), $viewerAccountId),
             'owner_account_id' => $ownerAccountId,
             'recipient_account_id' => $ownerAccountId,
             'preset_key' => $presetKey,

@@ -57,7 +57,7 @@ $surveyCommentBody = (string) ($_SESSION['sr_survey_comment_body'] ?? '');
 $surveyCommentIsSecret = !empty($_SESSION['sr_survey_comment_is_secret']);
 $surveyCommentParentId = isset($_SESSION['sr_survey_comment_parent_id']) ? (int) $_SESSION['sr_survey_comment_parent_id'] : 0;
 unset($_SESSION['sr_survey_comment_notice'], $_SESSION['sr_survey_comment_errors'], $_SESSION['sr_survey_comment_body'], $_SESSION['sr_survey_comment_is_secret'], $_SESSION['sr_survey_comment_parent_id']);
-$surveyCommentLoginUrl = '/login?next=' . rawurlencode('/survey/' . (string) ($survey['survey_key'] ?? '') . '#survey-comments');
+$surveyCommentLoginUrl = '/login?next=' . rawurlencode('/survey/' . (string) ($survey['survey_key'] ?? '') . '?submitted=1#survey-comments');
 
 if (sr_request_method() === 'POST') {
     $isPreviewTestSubmit = $canPreviewAsAdmin && ($_POST['test_submit'] ?? '') === '1';
@@ -97,6 +97,9 @@ if (sr_request_method() === 'POST') {
         $errors[] = '설문 제출 중 오류가 발생했습니다.';
     }
 }
+
+$surveyCanWriteComment = is_array($currentAccount)
+    && sr_survey_account_has_submitted_response($pdo, (int) ($survey['id'] ?? 0), (int) ($currentAccount['id'] ?? 0));
 
 $surveyReactionCommentTargets = [];
 if (
@@ -167,7 +170,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 설문도 확인할 수 있으며 제출은 테스트 응답으로 저장되고 보상은 지급되지 않습니다.</p>
                 </div>
             <?php endif; ?>
-            <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+            <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && ($submittedScreen || $submitResult !== null)): ?>
                 <?php echo sr_reaction_render_widget($pdo, 'survey', 'survey_form', (string) (int) ($survey['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
             <?php endif; ?>
             <?php if ($hasSurveyInfo): ?>
@@ -289,7 +292,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     </form>
                 <?php endif; ?>
             <?php endif; ?>
-            <?php if ($surveyCommentsEnabled): ?>
+            <?php if ($surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)): ?>
                 <section id="survey-comments" class="sr-survey-comments">
                     <div class="sr-survey-comments-panel-header">
                         <h2>댓글</h2>
@@ -318,7 +321,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                 $surveyCommentCanEdit = is_array($currentAccount) && sr_survey_account_can_edit_comment($surveyComment, $currentAccount);
                                 $surveyCommentCanDelete = is_array($currentAccount) && sr_survey_account_can_delete_comment($surveyComment, $currentAccount, $pdo);
                                 $surveyCommentDepth = min(3, max(1, (int) ($surveyComment['depth'] ?? 1)));
-                                $surveyCommentCanReply = is_array($currentAccount) && !$canPreviewAsAdmin && $surveyCommentCanViewBody && $surveyCommentDepth < 3;
+                                $surveyCommentCanReply = $surveyCanWriteComment && !$canPreviewAsAdmin && $surveyCommentCanViewBody && $surveyCommentDepth < 3;
                                 $surveyCommentReplyId = 'survey_comment_reply_' . (string) $surveyCommentId;
                                 ?>
                                 <li class="sr-survey-comment-depth-<?php echo sr_e((string) $surveyCommentDepth); ?>">
@@ -400,7 +403,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     <?php endif; ?>
                     <?php if ($canPreviewAsAdmin): ?>
                         <p>관리자 미리보기에서는 댓글을 작성할 수 없습니다.</p>
-                    <?php elseif (is_array($currentAccount)): ?>
+                    <?php elseif ($surveyCanWriteComment): ?>
                         <form method="post" action="<?php echo sr_e(sr_url('/survey/comment')); ?>" class="sr-survey-comment-form">
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($survey['id'] ?? 0)); ?>">
@@ -415,6 +418,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                             <?php endif; ?>
                             <button type="submit" class="btn btn-solid-primary">댓글 작성</button>
                         </form>
+                    <?php elseif (is_array($currentAccount)): ?>
+                        <p>설문 참여 완료 후 댓글을 작성할 수 있습니다.</p>
                     <?php else: ?>
                         <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url($surveyCommentLoginUrl)); ?>" target="_top">로그인 후 댓글 작성</a></p>
                     <?php endif; ?>

@@ -41,6 +41,7 @@ $attemptAccess = $canPreviewAsAdmin
     : ['allowed' => false, 'message' => '로그인 후 퀴즈를 풀 수 있습니다.']);
 $submitResult = null;
 $submitErrors = [];
+$quizResultScreenRequested = sr_get_string('result', 5) === '1';
 $returnTo = sr_quiz_internal_return_path(sr_get_string('return_to', 255));
 $sourceModule = sr_quiz_clean_key(sr_get_string('source_module', 40), 40);
 $sourceType = sr_quiz_clean_key(sr_get_string('source_type', 40), 40);
@@ -68,7 +69,7 @@ $quizCommentBody = (string) ($_SESSION['sr_quiz_comment_body'] ?? '');
 $quizCommentIsSecret = !empty($_SESSION['sr_quiz_comment_is_secret']);
 $quizCommentParentId = isset($_SESSION['sr_quiz_comment_parent_id']) ? (int) $_SESSION['sr_quiz_comment_parent_id'] : 0;
 unset($_SESSION['sr_quiz_comment_notice'], $_SESSION['sr_quiz_comment_errors'], $_SESSION['sr_quiz_comment_body'], $_SESSION['sr_quiz_comment_is_secret'], $_SESSION['sr_quiz_comment_parent_id']);
-$quizCommentLoginUrl = '/login?next=' . rawurlencode($quizNextUrl . '#quiz-comments');
+$quizCommentLoginUrl = '/login?next=' . rawurlencode($quizFormUrl . '?result=1#quiz-comments');
 
 if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
     $account = sr_member_require_login($pdo);
@@ -110,6 +111,10 @@ if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
             $submitErrors[] = '퀴즈 제출 중 오류가 발생했습니다.';
         }
     }
+}
+
+if ($submitResult === null && $quizResultScreenRequested && is_array($currentAccount) && !$canPreviewAsAdmin) {
+    $submitResult = sr_quiz_latest_attempt_result($pdo, (int) ($quiz['id'] ?? 0), (int) ($currentAccount['id'] ?? 0));
 }
 
 $quizReactionCommentTargets = [];
@@ -171,7 +176,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 퀴즈도 확인할 수 있으며 제출은 저장되지 않습니다.</p>
                 </div>
             <?php endif; ?>
-            <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+            <?php if (function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && $submitResult !== null): ?>
                 <?php echo sr_reaction_render_widget($pdo, 'quiz', 'quiz_set', (string) (int) ($quiz['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
             <?php endif; ?>
             <?php if ($submitResult !== null): ?>
@@ -237,7 +242,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     </form>
                 <?php endif; ?>
             <?php endif; ?>
-            <?php if ($quizCommentsEnabled): ?>
+            <?php if ($quizCommentsEnabled && $submitResult !== null): ?>
                 <section id="quiz-comments" class="sr-quiz-comments">
                     <div class="sr-quiz-comments-panel-header">
                         <h2>댓글</h2>

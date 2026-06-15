@@ -17,6 +17,9 @@ if (!is_array($quiz) || (string) ($quiz['status'] ?? '') !== 'active' || !sr_qui
 if ((int) ($quiz['comments_enabled'] ?? 0) !== 1 || !sr_quiz_comments_table_exists($pdo)) {
     sr_render_error(403, '이 퀴즈에는 댓글을 작성할 수 없습니다.');
 }
+if (!sr_quiz_account_has_result($pdo, $quizId, (int) ($account['id'] ?? 0))) {
+    sr_render_error(403, '퀴즈 결과 확인 후 댓글을 작성할 수 있습니다.');
+}
 
 $values = sr_quiz_comment_input_values();
 if ((int) ($quiz['secret_comments_enabled'] ?? 0) !== 1) {
@@ -26,7 +29,7 @@ $errors = sr_quiz_validate_comment_input($values);
 $parentValidation = sr_quiz_validate_comment_parent($pdo, $quizId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
 $errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
-$redirectUrl = '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '#quiz-comments';
+$redirectUrl = '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1#quiz-comments';
 if ($errors !== []) {
     $_SESSION['sr_quiz_comment_errors'] = $errors;
     $_SESSION['sr_quiz_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';

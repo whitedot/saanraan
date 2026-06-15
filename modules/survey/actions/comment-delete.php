@@ -42,4 +42,4 @@ sr_audit_log($pdo, [
 ]);
 
 $_SESSION['sr_survey_comment_notice'] = '댓글을 삭제했습니다.';
-sr_redirect('/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '#survey-comments');
+sr_redirect('/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1#survey-comments');

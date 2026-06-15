@@ -190,6 +190,11 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_member_mention_plain_text_html',
         'data-sr-mention-input',
         'sr_quiz_display_settings_for_quiz',
+        'sr_quiz_latest_attempt_result',
+        '$quizCommentsEnabled && $submitResult !== null',
+        'sr_reaction_render_widget($pdo, \'quiz\', \'quiz_set\'',
+        '$submitResult !== null',
+        '?result=1#quiz-comments',
         "sr_quiz_skin_view_file(\$quizSettings, 'result')",
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [
@@ -217,6 +222,7 @@ function sr_quiz_check_paths_and_admin(): void
         "'focus' => '집중형'",
         'sr_quiz_create_comment',
         'sr_quiz_create_comment_mention_notifications',
+        'sr_quiz_account_has_result',
         'attempt_limit_policy',
         '$lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === \'sqlite\' ? \'\' : \' FOR UPDATE\';',
         'Quiz to update was not found.',
@@ -247,6 +253,11 @@ function sr_quiz_check_paths_and_admin(): void
         'member-assets.php',
         'notification-events.php',
     ]);
+    sr_quiz_check_file_contains('modules/quiz/reaction-targets.php', [
+        'sr_quiz_account_has_result',
+        '?result=1',
+        'can_write',
+    ]);
     sr_quiz_check_file_contains('modules/quiz/actions/admin-quiz.php', [
         'sr_require_csrf()',
         'sr_quiz_admin_quizzes',
@@ -272,6 +283,8 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_create_comment',
         'sr_quiz_create_comment_mention_notifications',
         'sr_quiz_public_window_is_open',
+        'sr_quiz_account_has_result',
+        '?result=1#quiz-comments',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/comment-edit.php', [
         'sr_quiz_update_comment_content',

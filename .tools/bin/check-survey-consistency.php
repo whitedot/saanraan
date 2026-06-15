@@ -247,6 +247,34 @@ foreach (['survey-comments', 'sr_survey_comments', 'sr_member_mention_plain_text
         'Survey public page must render comment mentions and mention input'
     );
 }
+foreach (['$surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)', 'sr_survey_account_has_submitted_response', '?submitted=1#survey-comments'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/skins/basic/view.php',
+        $needle,
+        'Survey comments must stay on the completion screen'
+    );
+}
+foreach (['sr_reaction_render_widget($pdo, \'survey\', \'survey_form\'', '$submittedScreen || $submitResult !== null'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/skins/basic/view.php',
+        $needle,
+        'Survey reactions must stay on the completion screen'
+    );
+}
+foreach (['sr_survey_account_has_submitted_response', '?submitted=1#survey-comments'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/actions/comment.php',
+        $needle,
+        'Survey comment creation must require a submitted response and return to completion comments'
+    );
+}
+foreach (['sr_survey_account_has_submitted_response', '?submitted=1', 'can_write'] as $needle) {
+    sr_survey_check_contains(
+        'modules/survey/reaction-targets.php',
+        $needle,
+        'Survey reaction target writes must require a submitted response'
+    );
+}
 
 foreach ([
     'sr_survey_admin_question_signature',

@@ -1184,6 +1184,11 @@ function sr_quiz_account_can_edit_comment(array $comment, array $account): bool
         && (string) ($comment['status'] ?? '') === 'published';
 }
 
+function sr_quiz_account_has_result(PDO $pdo, int $quizId, int $accountId): bool
+{
+    return sr_quiz_latest_attempt_result($pdo, $quizId, $accountId) !== null;
+}
+
 function sr_quiz_account_can_manage_comments(PDO $pdo, ?array $account): bool
 {
     return is_array($account)
@@ -1361,7 +1366,7 @@ function sr_quiz_create_comment_mention_notifications(
         'quiz_id' => $quizId,
         'comment_id' => $commentId,
         'member_name' => sr_member_public_name_for_account_id($pdo, $createdByAccountId, '회원'),
-        'link_url' => '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '#quiz-comments',
+        'link_url' => '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1#quiz-comments',
         'created_at' => sr_now(),
     ];
     foreach ($mentionedAccountIds as $accountId) {
@@ -1765,6 +1770,55 @@ function sr_quiz_submit_attempt(PDO $pdo, array $quiz, array $questions, int $ac
         }
         throw $exception;
     }
+}
+
+function sr_quiz_latest_attempt_result(PDO $pdo, int $quizId, int $accountId): ?array
+{
+    if ($quizId < 1 || $accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT id, total_score, passed, scoring_snapshot_json, result_snapshot_json
+         FROM sr_quiz_attempts
+         WHERE quiz_id = :quiz_id
+           AND account_id = :account_id
+           AND submitted_at IS NOT NULL
+         ORDER BY submitted_at DESC, id DESC
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'quiz_id' => $quizId,
+        'account_id' => $accountId,
+    ]);
+    $attempt = $stmt->fetch();
+    if (!is_array($attempt)) {
+        return null;
+    }
+
+    $scoringSnapshot = json_decode((string) ($attempt['scoring_snapshot_json'] ?? ''), true);
+    $resultSnapshot = json_decode((string) ($attempt['result_snapshot_json'] ?? ''), true);
+    $categoryScores = is_array($scoringSnapshot) && is_array($scoringSnapshot['category_scores'] ?? null)
+        ? (array) $scoringSnapshot['category_scores']
+        : [];
+
+    $selectedResult = is_array($resultSnapshot) ? $resultSnapshot : [];
+    $totalScore = (int) ($attempt['total_score'] ?? 0);
+    $scoringModel = is_array($scoringSnapshot) ? (string) ($scoringSnapshot['scoring_model'] ?? 'correct_answer') : 'correct_answer';
+    if (!in_array($scoringModel, sr_quiz_scoring_models(), true)) {
+        $scoringModel = 'correct_answer';
+    }
+
+    return [
+        'attempt_id' => (int) ($attempt['id'] ?? 0),
+        'total_score' => $totalScore,
+        'display_score' => sr_quiz_attempt_display_score($scoringModel, $totalScore, $categoryScores, $selectedResult),
+        'category_scores' => $categoryScores,
+        'passed' => (int) ($attempt['passed'] ?? 0) === 1,
+        'selected_result' => $selectedResult,
+        'reward_grant' => null,
+        'reward_error' => '',
+    ];
 }
 
 function sr_quiz_attempt_display_score(string $scoringModel, int $totalScore, array $categoryScores, array $selectedResult): int
