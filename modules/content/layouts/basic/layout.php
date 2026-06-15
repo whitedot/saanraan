@@ -187,6 +187,18 @@ if (
                 $layoutMemberAssetRows[] = ['label' => '예치금', 'value' => '0원', 'url' => sr_url('/account/deposits')];
             }
         }
+        if (sr_module_enabled($layoutPdo, 'coupon') && is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
+            require_once SR_ROOT . '/modules/coupon/helpers.php';
+            try {
+                $layoutMemberAssetRows[] = [
+                    'label' => '쿠폰·이용권',
+                    'value' => number_format(function_exists('sr_coupon_active_account_issue_count') ? sr_coupon_active_account_issue_count($layoutPdo, $layoutCurrentAccountId) : 0) . '개',
+                    'url' => sr_url('/account/coupons'),
+                ];
+            } catch (Throwable) {
+                $layoutMemberAssetRows[] = ['label' => '쿠폰·이용권', 'value' => '0개', 'url' => sr_url('/account/coupons')];
+            }
+        }
         $layoutMemberActionRows = sr_public_layout_member_action_rows($layoutPdo, $layoutCurrentAccountId);
     }
 }
