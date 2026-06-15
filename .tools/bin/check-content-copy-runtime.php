@@ -67,6 +67,7 @@ function sr_content_copy_runtime_schema(PDO $pdo): void
         body_text TEXT NOT NULL DEFAULT "",
         body_format TEXT NOT NULL DEFAULT "plain",
         status TEXT NOT NULL,
+        view_count INTEGER NOT NULL DEFAULT 0,
         layout_key TEXT NOT NULL DEFAULT "",
         asset_access_enabled INTEGER NOT NULL DEFAULT 0,
         asset_module TEXT NOT NULL DEFAULT "",
@@ -203,7 +204,7 @@ $sourceRefKey = 'em_content_copy_source';
 $sourceMarker = sr_content_copy_runtime_marker($sourceRefKey, $sourceContentId);
 $sourceBody = '<p>원본 본문</p>' . $sourceMarker;
 
-$pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text, body_format, status, created_by, updated_by, published_at, created_at, updated_at) VALUES (:id, :slug, :title, :summary, :body_text, "html", "published", 1, 1, :published_at, :created_at, :updated_at)')->execute([
+$pdo->prepare('INSERT INTO sr_content_items (id, slug, title, summary, body_text, body_format, status, view_count, created_by, updated_by, published_at, created_at, updated_at) VALUES (:id, :slug, :title, :summary, :body_text, "html", "published", 987, 1, 1, :published_at, :created_at, :updated_at)')->execute([
     'id' => $sourceContentId,
     'slug' => 'runtime-copy-source',
     'title' => 'Runtime copy source',
@@ -247,9 +248,10 @@ $newContentId = sr_content_copy($pdo, $sourceContentId, [
     'series_titles' => ['1' => 'Copied runtime series'],
 ], 2);
 
-$newContent = sr_content_copy_runtime_row($pdo, 'SELECT slug, title, body_text, body_format, status, created_by, updated_by FROM sr_content_items WHERE id = :id', ['id' => $newContentId]);
+$newContent = sr_content_copy_runtime_row($pdo, 'SELECT slug, title, body_text, body_format, status, view_count, created_by, updated_by FROM sr_content_items WHERE id = :id', ['id' => $newContentId]);
 sr_content_copy_runtime_assert((string) ($newContent['slug'] ?? '') === 'runtime-copy-target', 'content copy fixture should create the copied content slug.');
 sr_content_copy_runtime_assert((string) ($newContent['status'] ?? '') === 'draft', 'content copy fixture should keep copied content as draft.');
+sr_content_copy_runtime_assert((int) ($newContent['view_count'] ?? -1) === 0, 'content copy fixture should not copy source view count.');
 sr_content_copy_runtime_assert((string) ($newContent['body_format'] ?? '') === 'html', 'content copy fixture should preserve html body format.');
 sr_content_copy_runtime_assert(!str_contains((string) ($newContent['body_text'] ?? ''), $sourceRefKey), 'content copy fixture should rewrite embedded ref keys.');
 
