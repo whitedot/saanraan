@@ -3,20 +3,28 @@
  * Owns the initial public screen styles only.
  */
 
-/* Initial public home screen. */
 .public-home {
-    background: var(--sr-bg, var(--color-body-bg));
+    background: transparent;
     color: var(--sr-text, var(--color-body-color));
-    min-height: min(42rem, 100vh);
+    min-height: inherit;
     display: grid;
-    align-items: center;
+    place-items: center;
     padding: clamp(3rem, 8vw, 7rem) clamp(1.25rem, 5vw, 4rem);
 }
 
 .public-home-hero {
     width: min(48rem, 100%);
     display: grid;
-    gap: 1rem;
+    gap: 1.25rem;
+    justify-items: center;
+    text-align: center;
+}
+
+.public-home-module-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    justify-content: center;
 }
 
 .public-home-hero > p {

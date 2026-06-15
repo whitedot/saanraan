@@ -358,6 +358,10 @@
     min-width: 0;
 }
 
+.public-layout-body.public-layout-home .public-layout-main {
+    min-height: calc(100vh - 166px);
+}
+
 .public-layout-footer {
     color: var(--color-body-color);
     margin: 0 auto;
@@ -437,4 +441,3 @@
         gap: 8px 14px;
     }
 }
-
