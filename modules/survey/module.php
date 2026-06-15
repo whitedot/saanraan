@@ -55,7 +55,7 @@ return [
     ],
     'service_domain' => [
         'main_page' => [
-            'label' => '설문 메인',
+            'label' => '설문',
             'path' => '/survey',
         ],
     ],

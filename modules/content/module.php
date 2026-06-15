@@ -66,7 +66,7 @@ return [
     ],
     'service_domain' => [
         'main_page' => [
-            'label' => '콘텐츠 메인',
+            'label' => '콘텐츠',
             'path' => '/content',
         ],
     ],

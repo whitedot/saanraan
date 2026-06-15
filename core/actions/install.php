@@ -142,6 +142,12 @@ $optionalModules = [
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
+    'community' => [
+        'name' => '커뮤니티',
+        'version' => '2026.06.027',
+        'label' => sr_t('install.module.community.label'),
+        'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
+    ],
     'quiz' => [
         'name' => '퀴즈',
         'version' => '2026.06.016',
@@ -153,12 +159,6 @@ $optionalModules = [
         'version' => '2026.06.013',
         'label' => '설문',
         'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
-    ],
-    'community' => [
-        'name' => '커뮤니티',
-        'version' => '2026.06.027',
-        'label' => sr_t('install.module.community.label'),
-        'description' => '게시판, 댓글, 신고, 쪽지, 스크랩 기능을 설치합니다.',
     ],
 ];
 

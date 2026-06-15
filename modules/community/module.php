@@ -48,7 +48,7 @@ return [
     ],
     'service_domain' => [
         'main_page' => [
-            'label' => '커뮤니티 홈',
+            'label' => '커뮤니티',
             'path' => '/community',
         ],
     ],

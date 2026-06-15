@@ -46,7 +46,7 @@ return [
     ],
     'service_domain' => [
         'main_page' => [
-            'label' => '퀴즈 메인',
+            'label' => '퀴즈',
             'path' => '/quiz',
         ],
     ],

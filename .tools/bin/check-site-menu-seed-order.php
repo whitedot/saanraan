@@ -39,7 +39,7 @@ class SrSiteMenuCheckPdo extends PDO
 }
 
 $options = [];
-foreach (['content', 'quiz', 'survey', 'community'] as $moduleKey) {
+foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     $metadata = sr_module_metadata($moduleKey);
     $serviceDomain = is_array($metadata['service_domain'] ?? null) ? $metadata['service_domain'] : [];
     $mainPage = is_array($serviceDomain['main_page'] ?? null) ? $serviceDomain['main_page'] : [];
@@ -51,9 +51,9 @@ foreach (['content', 'quiz', 'survey', 'community'] as $moduleKey) {
 
 $items = sr_site_menu_seed_default_header_menu_items($options, ['survey', 'quiz', 'community', 'content']);
 $labels = array_map('strval', array_column($items, 'label'));
-$expected = ['홈', '콘텐츠 메인', '커뮤니티 홈', '퀴즈 메인', '설문 메인'];
+$expected = ['홈', '콘텐츠', '커뮤니티', '퀴즈', '설문'];
 if ($labels !== $expected) {
-    sr_site_menu_check_error('Site menu seed order must follow admin service menu order: ' . implode(' > ', $labels));
+    sr_site_menu_check_error('Site menu seed order must follow service main order: ' . implode(' > ', $labels));
 }
 
 $pdo = new SrSiteMenuCheckPdo('sqlite::memory:');
