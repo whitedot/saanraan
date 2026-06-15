@@ -563,6 +563,13 @@ function sr_check_module_ui_kit_routes(): void
 
 function sr_check_module_public_ui_kit_stylesheets(): void
 {
+    $adminCommonCss = is_file('modules/admin/assets/common.css') ? file_get_contents('modules/admin/assets/common.css') : false;
+    if (!is_string($adminCommonCss)) {
+        sr_check_add_error('Admin common stylesheet is missing: modules/admin/assets/common.css');
+    } elseif (!str_contains($adminCommonCss, 'url("../../../assets/fonts/material-symbols-outlined.ttf")')) {
+        sr_check_add_error('Admin common stylesheet must use bundled Material Symbols fallback font path: modules/admin/assets/common.css');
+    }
+
     $publicModuleCss = is_file('assets/module.css') ? file_get_contents('assets/module.css') : false;
     if (!is_string($publicModuleCss)) {
         sr_check_add_error('Public module stylesheet is missing: assets/module.css');
