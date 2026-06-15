@@ -16,6 +16,12 @@ if (sr_request_method() === 'POST') {
 $postIdValue = sr_request_method() === 'POST' ? sr_post_string('id', 20) : sr_get_string('id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
 $account = sr_member_current_account($pdo);
+$communityAdminPreviewRequested = sr_get_string('preview', 20) === 'admin';
+$communityAdminPreview = $communityAdminPreviewRequested
+    && is_array($account)
+    && (sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'view')
+        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit')
+        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete'));
 $post = sr_community_post_for_read($pdo, $postId, is_array($account) ? $account : null);
 if (!is_array($post)) {
     $rawPost = sr_community_admin_post_by_id($pdo, $postId);
@@ -102,7 +108,7 @@ $secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_sec
 $assetReadNotices = [];
 $paidReadConfirmationRequired = false;
 $paidReadConfirmationRequestToken = '';
-if ($canViewPostBody && is_array($postBoard)) {
+if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
     $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
     $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
     if (!$isAuthor && sr_community_asset_event_required($paidReadConfig)) {
@@ -179,7 +185,7 @@ if ($canViewPostBody && is_array($postBoard)) {
         }
     }
 }
-if (!$paidReadConfirmationRequired && $canViewPostBody && sr_community_should_count_post_view((int) $post['id'])) {
+if (!$communityAdminPreview && !$paidReadConfirmationRequired && $canViewPostBody && sr_community_should_count_post_view((int) $post['id'])) {
     sr_community_increment_post_view_count($pdo, (int) $post['id']);
     $post['view_count'] = (int) $post['view_count'] + 1;
 }

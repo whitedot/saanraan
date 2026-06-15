@@ -19,6 +19,9 @@ $postStatusDisplayOrder = array_values(array_intersect(sr_community_admin_post_s
 $commentStatusDisplayOrder = array_values(array_intersect(sr_community_admin_comment_status_display_order(), $allowedCommentStatuses));
 $communityPostsCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $communityPostsActionSuffix = $communityPostsCurrentQuery !== '' ? '?' . $communityPostsCurrentQuery : '';
+$communityAdminPostPreviewUrl = static function (int $postId): string {
+    return sr_url('/community/post?id=' . rawurlencode((string) $postId) . '&preview=admin');
+};
 $communityPostHasSearch = $selectedPostStatuses !== []
     || (int) ($postListFilters['board_id'] ?? 0) !== 0
     || (int) ($postListFilters['category_id'] ?? 0) !== 0
@@ -172,7 +175,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-break admin-community-post-board-cell"><?php echo sr_e((string) $post['board_title']); ?></td>
                         <td class="admin-table-break"><?php echo sr_e((string) ($post['category_title'] ?? '')); ?></td>
                         <td class="admin-table-break admin-community-post-title-cell">
-                            <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $post['id'])); ?>" target="_blank" rel="noopener noreferrer">
+                            <a href="<?php echo sr_e($communityAdminPostPreviewUrl((int) $post['id'])); ?>" target="_blank" rel="noopener noreferrer">
                                 <?php echo sr_e((string) $post['title']); ?>
                             </a>
                         </td>
@@ -335,7 +338,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="community_comment_bulk_select_<?php echo sr_e((string) (int) $comment['id']); ?>" type="checkbox" name="selected_comment_ids[]" value="<?php echo sr_e((string) (int) $comment['id']); ?>" class="form-checkbox" form="community-comment-bulk-status-form" data-community-comment-row-select>
                         </td>
                         <td class="admin-table-break admin-community-comment-post-cell">
-                            <a href="<?php echo sr_e(sr_url('/community/post?id=' . (string) $comment['post_id'])); ?>" target="_blank" rel="noopener noreferrer">
+                            <a href="<?php echo sr_e($communityAdminPostPreviewUrl((int) $comment['post_id'])); ?>" target="_blank" rel="noopener noreferrer">
                                 <?php echo sr_e((string) $comment['post_title']); ?>
                             </a>
                         </td>
