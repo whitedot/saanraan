@@ -242,6 +242,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     </form>
                 <?php endif; ?>
             <?php endif; ?>
+            <?php if ($submitResult !== null): ?>
+                <p><a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/quiz')); ?>" target="_top">퀴즈 메인으로 돌아가기</a></p>
+            <?php endif; ?>
             <?php if ($quizCommentsEnabled && $submitResult !== null): ?>
                 <section id="quiz-comments" class="sr-quiz-comments">
                     <div class="sr-quiz-comments-panel-header">

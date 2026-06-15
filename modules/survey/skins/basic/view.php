@@ -292,6 +292,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     </form>
                 <?php endif; ?>
             <?php endif; ?>
+            <?php if ($submittedScreen || $submitResult !== null): ?>
+                <p><a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/survey')); ?>">설문 메인으로 돌아가기</a></p>
+            <?php endif; ?>
             <?php if ($surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)): ?>
                 <section id="survey-comments" class="sr-survey-comments">
                     <div class="sr-survey-comments-panel-header">
