@@ -6,7 +6,7 @@ $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutContextStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
-$layoutStylesheets = ['/assets/module.css'];
+$layoutStylesheets = ['/assets/layout.css'];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
 $layoutBodyClass = sr_ui_icon_class_attr((string) ($layoutContext['body_class'] ?? ''));
 foreach ($layoutContextStylesheets as $layoutContextStylesheet) {

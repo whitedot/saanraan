@@ -6,7 +6,7 @@ $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutContextStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
-$layoutStylesheets = ['/modules/content/assets/module.css'];
+$layoutStylesheets = [];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
 foreach ($layoutContextStylesheets as $layoutContextStylesheet) {
     $layoutStylesheets[] = $layoutContextStylesheet;

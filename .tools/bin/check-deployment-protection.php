@@ -137,6 +137,8 @@ foreach ([
 
 foreach ([
     '/assets/reset.css',
+    '/assets/theme.css',
+    '/assets/layout.css',
     '/assets/module.css',
     '/assets/ui-kit.css',
     '/assets/ui-kit-layout.css',
@@ -144,8 +146,10 @@ foreach ([
     '/assets/fonts/material-symbols-outlined.ttf',
     '/modules/admin/assets/tokens.css',
     '/modules/content/assets/reset.css',
+    '/modules/content/assets/layout.css',
     '/modules/content/assets/module.css',
     '/modules/community/assets/reset.css',
+    '/modules/community/assets/layout.css',
     '/modules/community/assets/module.css',
     '/modules/community/assets/layout.js',
     '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',

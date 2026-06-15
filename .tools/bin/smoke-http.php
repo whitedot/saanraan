@@ -333,16 +333,30 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'public theme stylesheet',
+        'path' => '/assets/theme.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '--sr-bg',
+        ],
+    ],
+    [
+        'label' => 'public layout stylesheet',
+        'path' => '/assets/layout.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.public-layout-header',
+            '.public-layout-main',
+            '.public-layout-footer',
+            'grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr)',
+        ],
+    ],
+    [
         'label' => 'public module stylesheet',
         'path' => '/assets/module.css',
         'allowed_statuses' => [200],
         'must_contain' => [
-            '--sr-bg',
-            '.public-layout-header',
-            '.public-layout-main',
-            '.public-layout-footer',
             '.public-home',
-            'grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr)',
         ],
     ],
     [
@@ -385,6 +399,16 @@ $checks = [
         'allowed_statuses' => [200],
         'must_contain' => [
             '.public-ui-scope',
+        ],
+    ],
+    [
+        'label' => 'community layout stylesheet',
+        'path' => '/modules/community/assets/layout.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.community-layout-header',
+            '.community-layout-main',
+            '.community-layout-footer',
         ],
     ],
     [

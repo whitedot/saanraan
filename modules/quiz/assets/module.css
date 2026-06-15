@@ -1,6 +1,6 @@
 /*
  * Saanraan quiz public module layer.
- * Owns this module public layout, skin, and service screen styles.
+ * Owns this module public service screen styles.
  */
 
 .sr-quiz-dialog {
@@ -396,69 +396,6 @@
     color: var(--text-strong, var(--color-default-900));
 }
 
-.sr-quiz-skin-card .sr-public-main .sr-public-container {
-    padding: clamp(22px, 4vw, 42px);
-    border: 1px solid var(--color-default-300);
-    border-radius: var(--radius);
-    background: var(--color-card);
-    box-shadow: var(--shadow-lg);
-}
-
-.sr-quiz-skin-card .sr-quiz-question,
-.sr-quiz-skin-card .sr-quiz-result,
-.sr-quiz-skin-card .sr-quiz-comments {
-    background: var(--color-default-100);
-}
-
-.sr-quiz-skin-card .sr-quiz-card {
-    background: #ffffff;
-}
-
-.sr-quiz-skin-focus {
-    background:
-        linear-gradient(180deg, rgba(12, 17, 29, 0.92), rgba(12, 17, 29, 0.86)),
-        #0c111d;
-}
-
-.sr-quiz-skin-focus .public-layout-main {
-    background: transparent;
-}
-
-.sr-quiz-skin-focus.sr-quiz-page .sr-public-main h1,
-.sr-quiz-skin-focus.sr-quiz-page .sr-public-main h2 {
-    color: #fff;
-}
-
-.sr-quiz-skin-focus.sr-quiz-page .sr-public-main p {
-    color: #d6deef;
-}
-
-.sr-quiz-skin-focus .sr-quiz-result h2 {
-    color: #172033;
-}
-
-.sr-quiz-skin-focus .sr-quiz-result p,
-.sr-quiz-skin-focus .sr-quiz-question p,
-.sr-quiz-skin-focus .sr-quiz-comments p {
-    color: #4d5b73;
-}
-
-.sr-quiz-skin-focus .sr-quiz-question,
-.sr-quiz-skin-focus .sr-quiz-result,
-.sr-quiz-skin-focus .sr-quiz-comments {
-    border-color: rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.94);
-}
-
-.sr-quiz-skin-focus .sr-quiz-choice {
-    background: #fff;
-}
-
-.sr-quiz-skin-focus .sr-quiz-preview-notice {
-    border-color: rgba(125, 211, 252, 0.38);
-    background: rgba(14, 165, 233, 0.18);
-}
-
 @media (max-width: 640px) {
     .sr-quiz-page .sr-public-main {
         padding: 22px 12px 42px;
@@ -466,10 +403,6 @@
 
     .sr-quiz-page .sr-public-main h1 {
         font-size: 2rem;
-    }
-
-    .sr-quiz-skin-card .sr-public-main .sr-public-container {
-        padding: 18px;
     }
 }
 

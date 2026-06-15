@@ -251,6 +251,7 @@ function sr_community_public_layout_context(array $settings, array $context = []
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/community/assets/reset.css';
     $stylesheets[] = '/modules/community/assets/ui-kit.css';
+    $stylesheets[] = '/modules/community/assets/layout.css';
     $stylesheets[] = '/modules/community/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 

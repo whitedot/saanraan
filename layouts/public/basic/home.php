@@ -12,6 +12,7 @@ $seo = [
 sr_public_layout_begin($homePdo, $homeSite, $seo, [
     'style_profile' => 'kit',
     'stylesheets' => [
+        '/assets/theme.css',
         '/assets/module.css',
         '/modules/banner/assets/module.css',
     ],

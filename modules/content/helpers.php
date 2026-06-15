@@ -225,6 +225,7 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = '/modules/content/assets/reset.css';
     $stylesheets[] = '/modules/content/assets/ui-kit.css';
+    $stylesheets[] = '/modules/content/assets/layout.css';
     $stylesheets[] = '/modules/content/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
 

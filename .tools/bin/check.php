@@ -563,6 +563,28 @@ function sr_check_module_ui_kit_routes(): void
 
 function sr_check_module_public_ui_kit_stylesheets(): void
 {
+    $publicModuleCss = is_file('assets/module.css') ? file_get_contents('assets/module.css') : false;
+    if (!is_string($publicModuleCss)) {
+        sr_check_add_error('Public module stylesheet is missing: assets/module.css');
+    } else {
+        foreach (['.public-layout-', '--sr-bg:', ':root[data-color-scheme'] as $forbiddenMarker) {
+            if (str_contains($publicModuleCss, $forbiddenMarker)) {
+                sr_check_add_error('Public module stylesheet must not own layout or theme markers: assets/module.css ' . $forbiddenMarker);
+                break;
+            }
+        }
+    }
+
+    $publicLayoutCss = is_file('assets/layout.css') ? file_get_contents('assets/layout.css') : false;
+    if (!is_string($publicLayoutCss) || !str_contains($publicLayoutCss, '.public-layout-header')) {
+        sr_check_add_error('Public layout stylesheet is missing or invalid: assets/layout.css');
+    }
+
+    $publicThemeCss = is_file('assets/theme.css') ? file_get_contents('assets/theme.css') : false;
+    if (!is_string($publicThemeCss) || !str_contains($publicThemeCss, '--sr-bg')) {
+        sr_check_add_error('Public theme stylesheet is missing or invalid: assets/theme.css');
+    }
+
     foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
         $copiedStylesheets = [
             'reset.css' => 'assets/reset.css',
@@ -582,7 +604,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             }
         }
 
-        foreach (['common.css', 'layout.css', 'public-ui.css', 'public.css'] as $oldStylesheet) {
+        foreach (['common.css', 'public-ui.css', 'public.css'] as $oldStylesheet) {
             $oldPath = 'modules/' . $moduleKey . '/assets/' . $oldStylesheet;
             if (file_exists($oldPath)) {
                 sr_check_add_error('Module public stylesheet legacy file must be removed: ' . $oldPath);
@@ -591,6 +613,23 @@ function sr_check_module_public_ui_kit_stylesheets(): void
 
         if (!is_file('modules/' . $moduleKey . '/assets/module.css')) {
             sr_check_add_error('Module public stylesheet is missing: modules/' . $moduleKey . '/assets/module.css');
+        }
+
+        $moduleCssPath = 'modules/' . $moduleKey . '/assets/module.css';
+        $moduleCss = is_file($moduleCssPath) ? file_get_contents($moduleCssPath) : false;
+        if (is_string($moduleCss) && str_contains($moduleCss, '.' . $moduleKey . '-layout-')) {
+            sr_check_add_error('Module public stylesheet must not own layout selectors: ' . $moduleCssPath);
+        }
+        if (is_string($moduleCss) && preg_match('/\.' . preg_quote($moduleKey, '/') . '-skin-[a-z0-9_-]+/', $moduleCss) === 1) {
+            sr_check_add_error('Module public stylesheet must not own skin selectors: ' . $moduleCssPath);
+        }
+
+        if (in_array($moduleKey, ['content', 'community'], true) && !is_file('modules/' . $moduleKey . '/assets/layout.css')) {
+            sr_check_add_error('Module public layout stylesheet is missing: modules/' . $moduleKey . '/assets/layout.css');
+        }
+
+        if ($moduleKey === 'quiz' && !is_file('modules/quiz/assets/skin.css')) {
+            sr_check_add_error('Module public skin stylesheet is missing: modules/quiz/assets/skin.css');
         }
 
         $helperFile = $moduleKey === 'community'
@@ -610,9 +649,13 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         }
 
         $body = (string) ($matches['body'] ?? '');
+        $layoutMarker = in_array($moduleKey, ['content', 'community'], true)
+            ? "'/modules/" . $moduleKey . "/assets/layout.css'"
+            : "'/assets/layout.css'";
         $expectedOrder = [
             "'/modules/" . $moduleKey . "/assets/reset.css'",
             "'/modules/" . $moduleKey . "/assets/ui-kit.css'",
+            $layoutMarker,
             "'/modules/" . $moduleKey . "/assets/module.css'",
         ];
         $lastIndex = -1;
@@ -623,6 +666,14 @@ function sr_check_module_public_ui_kit_stylesheets(): void
                 break;
             }
             $lastIndex = $index;
+        }
+
+        if ($moduleKey === 'quiz') {
+            $skinMarker = "'/modules/quiz/assets/skin.css'";
+            $skinIndex = strpos($body, $skinMarker);
+            if ($skinIndex === false || $skinIndex < $lastIndex) {
+                sr_check_add_error('Module public skin stylesheet order is invalid: ' . $helperFile . ' ' . $skinMarker);
+            }
         }
 
         $uiKitLayoutMarker = "'/modules/" . $moduleKey . "/assets/ui-kit-layout.css'";
