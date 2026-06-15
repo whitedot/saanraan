@@ -3,6 +3,7 @@
 return [
     'GET /quiz' => 'actions/home.php',
     'GET /quiz/cover-image' => 'actions/cover-image.php',
+    'GET /quiz/ui-kit' => 'actions/ui-kit.php',
     'POST /quiz/comment' => 'actions/comment.php',
     'POST /quiz/comment/edit' => 'actions/comment-edit.php',
     'POST /quiz/comment/delete' => 'actions/comment-delete.php',

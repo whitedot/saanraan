@@ -80,7 +80,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <textarea id="modules_community_message_view_memo_text" name="memo_text" rows="3" cols="60"></textarea>
                 </label>
             </p>
-            <button type="submit"><?php echo sr_e(sr_t('community::ui.text.2a07d26b')); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.text.2a07d26b')); ?></button>
         </form>
 
         <?php if ($replyAccountHash !== '') { ?>
@@ -89,7 +89,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <form method="post" action="<?php echo sr_e(sr_url('/community/message/delete')); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="message_id" value="<?php echo sr_e((string) $message['id']); ?>">
-            <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
+            <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
         </form>
     </main>
 <?php sr_public_layout_end(); ?>

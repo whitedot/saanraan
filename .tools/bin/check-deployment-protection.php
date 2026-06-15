@@ -143,8 +143,8 @@ foreach ([
     '/assets/fonts/material-symbols-outlined.ttf',
     '/modules/admin/assets/tokens.css',
     '/modules/content/assets/public.css',
-    '/modules/community/assets/community-public.css',
-    '/modules/community/assets/community-layout.js',
+    '/modules/community/assets/public.css',
+    '/modules/community/assets/layout.js',
     '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
 ] as $path) {
     if ($doc !== '' && !str_contains($doc, $path)) {

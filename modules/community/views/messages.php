@@ -58,7 +58,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <form method="post" action="<?php echo sr_e(sr_url('/community/message/delete')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="message_id" value="<?php echo sr_e((string) $message['id']); ?>">
-                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                 </form>
                             </td>
                         </tr>

@@ -353,24 +353,6 @@
     background: color-mix(in oklab, var(--color-danger) 10%, transparent);
 }
 
-.sr-survey-page .sr-public-main .btn,
-.sr-survey-page .sr-public-main button[type="submit"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    width: fit-content;
-    padding: 0 18px;
-    border: 1px solid transparent;
-    border-radius: var(--radius);
-    background: var(--color-primary);
-    color: var(--color-white);
-    font: inherit;
-    font-weight: 800;
-    text-decoration: none;
-    cursor: pointer;
-}
-
 .sr-survey-comment-depth-2,
 .sr-survey-comment-depth-3 {
     border-left: 3px solid var(--color-default-300);

@@ -57,12 +57,6 @@
     margin: 0;
 }
 
-.community-comments-panel-header .btn {
-    flex: 0 0 auto;
-    min-height: 34px;
-    padding: 7px 12px;
-}
-
 .community-screen article,
 .community-screen section,
 .community-screen nav,
@@ -137,7 +131,7 @@
     gap: 6px;
 }
 
-.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea, .form-input) {
+.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
     border: 1px solid #d8d8d8;
     border-radius: 8px;
     color: var(--text-strong, #242424);
@@ -146,35 +140,7 @@
     width: 100%;
 }
 
-.community-screen :is(button, .btn) {
-    align-items: center;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    cursor: pointer;
-    display: inline-flex;
-    font-size: var(--type-small-size);
-    font-weight: var(--font-weight-bold);
-    gap: 8px;
-    justify-content: center;
-    line-height: 1.2;
-    min-height: 40px;
-    padding: 10px 18px;
-    text-align: center;
-    text-decoration: none;
-    width: fit-content;
-}
-
-.community-screen :is(button[type="submit"], .btn-solid-primary) {
-    background: var(--text-strong, #242424);
-    color: #ffffff;
-}
-
-.community-screen .btn-solid-light {
-    background: #f2f2f2;
-    color: var(--text-strong, #242424);
-}
-
-.community-screen :is(button, .btn, input, select, textarea):focus-visible {
+.community-screen :is(input, select, textarea):focus-visible {
     outline: 2px solid var(--text-strong, #242424);
     outline-offset: 2px;
 }
@@ -265,10 +231,6 @@
         position: static;
     }
 
-    .community-screen :is(button, .btn) {
-        width: 100%;
-    }
-
     .community-screen .sr-link-card-picker-controls {
         align-items: stretch;
     }
@@ -336,28 +298,14 @@
     color: var(--community-muted);
 }
 
-.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea, .form-input) {
+.community-screen :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
     background: var(--community-surface);
     border-color: var(--community-border);
     border-radius: var(--community-radius);
     color: var(--community-text);
 }
 
-.community-screen :is(button, .btn) {
-    border-radius: var(--community-radius);
-}
-
-.community-screen :is(button[type="submit"], .btn-solid-primary) {
-    background: var(--color-primary);
-    color: var(--color-white);
-}
-
-.community-screen .btn-solid-light {
-    background: var(--color-light);
-    color: var(--community-text);
-}
-
-.community-screen :is(button, .btn, input, select, textarea):focus-visible {
+.community-screen :is(input, select, textarea):focus-visible {
     outline-color: var(--color-primary);
 }
 

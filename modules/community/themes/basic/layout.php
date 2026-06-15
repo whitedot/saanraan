@@ -5,9 +5,12 @@ $layoutSeo = is_array($seo ?? null) ? $seo : [];
 $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
-$layoutStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
+$layoutContextStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
+$layoutStylesheets = ['/modules/community/assets/layout.css'];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
-$layoutStylesheets[] = '/modules/community/assets/community-layout.css';
+foreach ($layoutContextStylesheets as $layoutContextStylesheet) {
+    $layoutStylesheets[] = $layoutContextStylesheet;
+}
 $layoutSiteMenus = is_array($layoutContext['site_menus'] ?? null) ? $layoutContext['site_menus'] : [];
 $layoutCleanMenuKey = static function (string $value): string {
     $value = strtolower(trim($value));
@@ -353,7 +356,7 @@ if (
     </footer>
     <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
     <script src="<?php echo sr_e(sr_asset_url('/assets/mention-input.js')); ?>" defer></script>
-    <script src="<?php echo sr_e(sr_asset_url('/modules/community/assets/community-layout.js')); ?>" defer></script>
+    <script src="<?php echo sr_e(sr_asset_url('/modules/community/assets/layout.js')); ?>" defer></script>
     <?php echo $layoutPrivacyCookieConsentHtml; ?>
     <?php echo sr_pwa_registration_script(); ?>
 </body>

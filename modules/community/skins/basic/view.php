@@ -79,7 +79,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
                     </form>
                 <?php } ?>
                 <?php if (sr_community_account_can_remove_post_og_image($pdo, $post, $account)) { ?>
@@ -87,14 +87,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
                         <input type="hidden" name="intent" value="remove_og_image">
-                        <button type="submit"><?php echo sr_e('OG 이미지 제거'); ?></button>
+                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e('OG 이미지 제거'); ?></button>
                     </form>
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <input type="hidden" name="intent" value="<?php echo $isScrapped ? 'remove' : 'add'; ?>">
-                    <button type="submit"><?php echo sr_e($isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a')); ?></button>
+                    <button type="submit" class="btn btn-solid-light"><?php echo sr_e($isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a')); ?></button>
                 </form>
                 <?php if ($canReportPost) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>">
@@ -117,7 +117,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <textarea id="modules_community_view_memo_text" name="memo_text" rows="3" cols="60"></textarea>
                             </label>
                         </p>
-                        <button type="submit"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
+                        <button type="submit" class="btn btn-outline-warning"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
                     </form>
                 <?php } ?>
             <?php } elseif ((int) ($post['author_account_id'] ?? 0) < 1 && (string) ($post['guest_password_hash'] ?? '') !== '') { ?>
@@ -132,7 +132,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <input id="modules_community_view_guest_post_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
                             </label>
                         </p>
-                        <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></button>
+                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.7dfeed85')); ?></button>
                     </form>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
@@ -143,7 +143,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                 <input id="modules_community_view_guest_post_delete_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
                             </label>
                         </p>
-                        <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
+                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.3ee40597')); ?></button>
                     </form>
                 </details>
             <?php } elseif ($postActionUnavailableMessage !== '') { ?>
@@ -186,7 +186,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <input type="hidden" name="asset_request_token" value="<?php echo sr_e((string) ($paidReadConfirmationRequestToken ?? '')); ?>">
-                    <button type="submit"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
                 </form>
             </article>
             <?php } else { ?>
@@ -257,7 +257,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <input type="hidden" name="target_type" value="series">
                             <input type="hidden" name="series_id" value="<?php echo sr_e((string) (int) $communitySeriesContext['id']); ?>">
                             <input type="hidden" name="intent" value="<?php echo !empty($isSeriesScrapped) ? 'remove' : 'add'; ?>">
-                            <button type="submit"><?php echo sr_e(!empty($isSeriesScrapped) ? '시리즈 스크랩 해제' : '시리즈 스크랩'); ?></button>
+                            <button type="submit" class="btn btn-solid-light"><?php echo sr_e(!empty($isSeriesScrapped) ? '시리즈 스크랩 해제' : '시리즈 스크랩'); ?></button>
                         </form>
                     <?php } ?>
                     <?php
@@ -419,7 +419,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                     <?php if (function_exists('sr_antispam_challenge_render')) { ?>
                                                         <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_' . (string) (int) $comment['id'], ['account' => is_array($account ?? null) ? $account : null]); ?>
                                                     <?php } ?>
-                                                    <button type="submit"><?php echo sr_e('답글 작성'); ?></button>
+                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('답글 작성'); ?></button>
                                                 </form>
                                             </details>
                                         <?php } ?>
@@ -441,7 +441,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                             <span><?php echo sr_e('비밀 댓글'); ?></span>
                                                         </label>
                                                     <?php } ?>
-                                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
                                                 </form>
                                             </details>
                                         <?php } ?>
@@ -449,7 +449,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                                <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
                                             </form>
                                         <?php } ?>
                                         <?php if (!is_array($account) && $communityCommentIsGuestAuthor) { ?>
@@ -470,7 +470,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                             <input id="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
                                                         </label>
                                                     </p>
-                                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
+                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></button>
                                                 </form>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
@@ -481,7 +481,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                             <input id="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required>
                                                         </label>
                                                     </p>
-                                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
+                                                    <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.57f509a8')); ?></button>
                                                 </form>
                                             </details>
                                         <?php } ?>
@@ -489,7 +489,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                <button type="submit"><?php echo sr_e('숨기기'); ?></button>
+                                                <button type="submit" class="btn btn-outline-warning"><?php echo sr_e('숨기기'); ?></button>
                                             </form>
                                         <?php } ?>
                                     </div>
@@ -515,7 +515,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                                 <textarea id="modules_community_view_memo_text_2" name="memo_text" rows="3" cols="60"></textarea>
                                             </label>
                                         </p>
-                                        <button type="submit"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
+                                        <button type="submit" class="btn btn-outline-warning"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
                                     </form>
                                 <?php } ?>
                             <?php } ?>
@@ -567,7 +567,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php if (function_exists('sr_antispam_challenge_render')) { ?>
                         <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_0', ['account' => is_array($account ?? null) ? $account : null]); ?>
                     <?php } ?>
-                    <button type="submit"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
                 </form>
             <?php } elseif ($commentUnavailableMessage !== '') { ?>
                 <p><?php echo sr_e($commentUnavailableMessage); ?></p>

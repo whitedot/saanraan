@@ -171,7 +171,7 @@ function sr_site_member_only_public_screen_route(string $moduleKey, string $meth
     }
 
     if ($moduleKey === 'quiz') {
-        return in_array($matchedRoute, ['GET /quiz', 'GET /quiz/*', 'POST /quiz/*'], true);
+        return in_array($matchedRoute, ['GET /quiz', 'GET /quiz/ui-kit', 'GET /quiz/*', 'POST /quiz/*'], true);
     }
 
     if ($moduleKey === 'survey') {

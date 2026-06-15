@@ -49,7 +49,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <textarea id="modules_community_message_write_body_text" name="body_text" rows="10" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
-            <button type="submit"><?php echo sr_e(sr_t('community::ui.text.9aee63bd')); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.text.9aee63bd')); ?></button>
         </form>
     </main>
 <?php sr_public_layout_end(); ?>

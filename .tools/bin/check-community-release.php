@@ -943,13 +943,8 @@ sr_community_release_wrapper_action('modules/community/actions/admin-levels.php'
     '$communitySettingsPage = \'levels\'',
 ], "include SR_ROOT . '/modules/community/actions/admin-settings.php';", 'Community admin levels wrapper');
 
-foreach (sr_community_release_files('modules/community/assets', ['css']) as $assetFile) {
-    if (!str_starts_with(basename($assetFile), 'community-')) {
-        sr_community_release_error('Community CSS asset must use community- prefix: ' . $assetFile);
-    }
-}
 $allowedCommunityScriptFiles = [
-    'modules/community/assets/community-layout.js',
+    'modules/community/assets/layout.js',
 ];
 foreach (sr_community_release_files('modules/community', ['js', 'scss']) as $assetFile) {
     if (!in_array($assetFile, $allowedCommunityScriptFiles, true)) {
@@ -957,6 +952,10 @@ foreach (sr_community_release_files('modules/community', ['js', 'scss']) as $ass
     }
 }
 foreach (sr_community_release_files('modules/community', ['php']) as $phpFile) {
+    if (str_starts_with($phpFile, 'modules/community/views/ui-kit-samples/')) {
+        continue;
+    }
+
     $content = file_get_contents($phpFile);
     if (!is_string($content)) {
         continue;

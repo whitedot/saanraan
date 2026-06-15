@@ -259,8 +259,8 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /assets/public-layout.css 정적 파일 응답과 공통 공개 layout header/main/footer 확인
 /assets/public-layout.js 정적 파일 응답과 공통 공개 layout 스크롤 header 동작 기준 확인
 /assets/public-ui.css 정적 파일 응답과 공개 UI kit scope 및 홈 화면 primitive 확인
-/modules/community/assets/community-public.css 정적 파일 응답과 커뮤니티 화면 wrapper 확인
-/modules/community/assets/community-layout.js 정적 파일 응답과 커뮤니티 layout 스크롤 header 동작 기준 확인
+/modules/community/assets/public.css 정적 파일 응답과 커뮤니티 화면 wrapper 확인
+/modules/community/assets/layout.js 정적 파일 응답과 커뮤니티 layout 스크롤 header 동작 기준 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/community/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인

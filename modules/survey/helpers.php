@@ -361,6 +361,7 @@ function sr_survey_member_group_keys_json(array $groupKeys): string
 function sr_survey_default_settings(): array
 {
     return [
+        'layout_key' => 'survey.basic',
         'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,
@@ -415,6 +416,7 @@ function sr_survey_normalize_settings(array $settings): array
 {
     $defaults = sr_survey_default_settings();
     $normalized = array_merge($defaults, $settings);
+    $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
     $normalized['skin_key'] = sr_survey_skin_key((string) ($normalized['skin_key'] ?? $defaults['skin_key']));
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_survey_statuses(), true) ? (string) $normalized['default_status'] : (string) $defaults['default_status'];
     $normalized['default_login_required'] = !empty($normalized['default_login_required']) ? 1 : 0;
@@ -437,6 +439,7 @@ function sr_survey_settings_from_post(): array
 {
     $skinKey = sr_survey_clean_key(sr_post_string('skin_key', 40), 40);
     $settings = sr_survey_normalize_settings([
+        'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'skin_key' => $skinKey,
         'default_status' => sr_post_string('default_status', 20),
         'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
@@ -452,9 +455,12 @@ function sr_survey_settings_from_post(): array
     return $settings;
 }
 
-function sr_survey_settings_validation_errors(array $settings): array
+function sr_survey_settings_validation_errors(PDO $pdo, array $settings): array
 {
     $errors = [];
+    if (!isset(sr_public_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
+        $errors[] = '설문 공개 레이아웃 값이 올바르지 않습니다.';
+    }
     if (!isset(sr_survey_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
         $errors[] = '설문 스킨 값이 올바르지 않습니다.';
     }
@@ -467,12 +473,32 @@ function sr_survey_settings_validation_errors(array $settings): array
 
 function sr_survey_public_layout_context(array $settings, array $context = []): array
 {
+    $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
+    if ($layoutKey !== '') {
+        $context['layout_key'] = $layoutKey;
+    }
+
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/survey/assets/common.css';
+    $stylesheets[] = '/modules/survey/assets/public-ui.css';
+    $stylesheets[] = '/modules/survey/assets/ui-kit.css';
     $stylesheets[] = '/modules/survey/assets/public.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
     $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
     $context['body_class'] = trim($bodyClass . ' survey-skin-' . $skinKey);
+
+    return $context;
+}
+
+function sr_survey_ui_kit_layout_context(array $settings, array $context = []): array
+{
+    $context = sr_survey_public_layout_context($settings, $context);
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/survey/assets/common.css';
+    $stylesheets[] = '/modules/survey/assets/public-ui.css';
+    $stylesheets[] = '/modules/survey/assets/ui-kit.css';
+    $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;
 }

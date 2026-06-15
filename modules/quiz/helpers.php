@@ -597,8 +597,11 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     }
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/quiz/assets/common.css';
+    $stylesheets[] = '/modules/quiz/assets/public-ui.css';
+    $stylesheets[] = '/modules/quiz/assets/ui-kit.css';
     $stylesheets[] = '/modules/quiz/assets/public.css';
-    $context['stylesheets'] = $stylesheets;
+    $context['stylesheets'] = array_values(array_unique($stylesheets));
     $skinKey = sr_quiz_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
     $context['body_class'] = trim($bodyClass . ' sr-quiz-skin-' . $skinKey . ' quiz-skin-' . $skinKey);
@@ -608,6 +611,18 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
         $siteMenus[$slotKey] = sr_quiz_clean_layout_menu_key((string) ($settings[$settingKey] ?? ($slotKey === 'primary' ? 'header' : '')));
     }
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
+
+    return $context;
+}
+
+function sr_quiz_ui_kit_layout_context(array $settings, array $context = []): array
+{
+    $context = sr_quiz_public_layout_context($settings, $context);
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/quiz/assets/common.css';
+    $stylesheets[] = '/modules/quiz/assets/public-ui.css';
+    $stylesheets[] = '/modules/quiz/assets/ui-kit.css';
+    $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;
 }

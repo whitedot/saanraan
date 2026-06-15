@@ -79,7 +79,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <span><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></span>
                     <input id="modules_community_list_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($keyword); ?>">
                 </label>
-                <button type="submit"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
+                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
                 <?php if ($keyword !== '') { ?>
                     <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.893f3d94')); ?></a>
                 <?php } ?>

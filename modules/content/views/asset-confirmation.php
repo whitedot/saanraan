@@ -28,7 +28,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <?php if ($assetConfirmationContentId > 0) { ?>
                 <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
             <?php } ?>
-            <button type="submit"><?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.text.ac5b575f')); ?></button>
         </form>
     </article>
 </main>

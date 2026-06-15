@@ -23,13 +23,8 @@ $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayou
     ? $contentLayoutSettings
     : sr_content_settings($pdo);
 
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
-    'style_profile' => 'kit',
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_ui_kit_layout_context($contentLayoutSettings, [
     'include_installed_layout_options' => true,
-    'stylesheets' => [
-        '/assets/public-ui-kit.css',
-        '/modules/content/assets/ui-kit.css',
-    ],
 ]));
 ?>
 

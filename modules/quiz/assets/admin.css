@@ -22,13 +22,6 @@
     border-top:0;
 }
 
-.quiz-manual-page .form-label{
-    color:var(--color-default-800);
-    font-weight:var(--font-weight-semibold);
-    line-height:1.55;
-    padding-top:.1rem;
-}
-
 .quiz-manual-page .admin-form-field{
     display:grid;
     gap:calc(var(--spacing) * 2);

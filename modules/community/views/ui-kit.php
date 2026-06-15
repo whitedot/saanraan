@@ -23,13 +23,8 @@ $communityLayoutSettings = isset($communityLayoutSettings) && is_array($communit
     ? $communityLayoutSettings
     : sr_community_settings($pdo);
 
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
-    'style_profile' => 'kit',
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_ui_kit_layout_context($communityLayoutSettings, [
     'include_installed_layout_options' => true,
-    'stylesheets' => [
-        '/assets/public-ui-kit.css',
-        '/modules/community/assets/community-ui-kit.css',
-    ],
 ]));
 ?>
 

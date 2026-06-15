@@ -227,7 +227,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php if (!isset($postIdField) && function_exists('sr_antispam_challenge_render')) { ?>
                 <?php echo sr_antispam_challenge_render($pdo, 'community.post.guest', 'community_post_' . (string) (int) $board['id'], $antispamPostContext ?? ['account' => null]); ?>
             <?php } ?>
-            <button type="submit"><?php echo sr_e($submitLabel); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($submitLabel); ?></button>
         </form>
 
         <?php echo sr_render_output_slot($pdo, [

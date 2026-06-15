@@ -15,13 +15,14 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $reactionPresetOptions = function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$surveyLayoutOptions = sr_public_layout_options($pdo);
 $settings = sr_survey_settings($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), $permissionPath, 'edit');
     $settings = sr_survey_settings_from_post();
-    $errors = sr_survey_settings_validation_errors($settings);
+    $errors = sr_survey_settings_validation_errors($pdo, $settings);
     if ($errors === []) {
         sr_survey_save_settings($pdo, $settings);
         sr_audit_log($pdo, [

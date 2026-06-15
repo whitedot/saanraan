@@ -30,21 +30,21 @@ $uiKitTableRows = [
         <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base ui-kit-space-after-base">
             <form class="filtering filtering-plain" action="#" method="get">
                 <div class="filtering-fields">
-                    <label class="filtering-field" for="admin_ui_filtering_plain_status">
+                    <label class="filtering-field" for="public_ui_filtering_plain_status">
                         <span class="form-label">상태</span>
-                        <select id="admin_ui_filtering_plain_status" class="form-select" name="status">
+                        <select id="public_ui_filtering_plain_status" class="form-select" name="status">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="filtering-field" for="admin_ui_filtering_plain_condition">
-                        <span class="form-label">검색조건</span>
-                        <select id="admin_ui_filtering_plain_condition" class="form-select" name="condition">
+                    <label class="filtering-field" for="public_ui_filtering_plain_condition">
+                        <span class="form-label">검색 조건</span>
+                        <select id="public_ui_filtering_plain_condition" class="form-select" name="condition">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="filtering-field-fill" for="admin_ui_filtering_plain_keyword">
+                    <label class="filtering-field-fill" for="public_ui_filtering_plain_keyword">
                         <span class="form-label">검색어</span>
-                        <input id="admin_ui_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
+                        <input id="public_ui_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
                     </label>
                 </div>
                 <div class="filtering-actions">
@@ -54,48 +54,39 @@ $uiKitTableRows = [
 
             <form class="filtering filtering-card" action="#" method="get" data-filtering>
                 <div class="filtering-fields">
-                    <label class="filtering-field" for="admin_ui_filtering_card_status">
+                    <label class="filtering-field" for="public_ui_filtering_card_status">
                         <span class="form-label">상태</span>
-                        <select id="admin_ui_filtering_card_status" class="form-select" name="status">
+                        <select id="public_ui_filtering_card_status" class="form-select" name="status">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="filtering-field" for="admin_ui_filtering_card_condition">
-                        <span class="form-label">검색조건</span>
-                        <select id="admin_ui_filtering_card_condition" class="form-select" name="condition">
+                    <label class="filtering-field" for="public_ui_filtering_card_condition">
+                        <span class="form-label">검색 조건</span>
+                        <select id="public_ui_filtering_card_condition" class="form-select" name="condition">
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="filtering-field-fill" for="admin_ui_filtering_card_keyword">
+                    <label class="filtering-field-fill" for="public_ui_filtering_card_keyword">
                         <span class="form-label">검색어</span>
-                        <input id="admin_ui_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
+                        <input id="public_ui_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
                     </label>
                 </div>
-                <div id="admin_ui_filtering_card_detail" class="filtering-body" data-filtering-body hidden>
-                    <div class="filtering-field">
+                <div id="public_ui_filtering_card_detail" class="filtering-body" data-filtering-body hidden>
+                    <label class="filtering-field" for="public_ui_filtering_card_category">
                         <span class="form-label">분류</span>
-                        <div id="content_ui_filtering_card_category" class="filtering-toggle-group filtering-radio-toggle-group" data-filtering-radio-toggle-group>
-                            <span class="filtering-toggle-item">
-                                <input id="content_ui_filtering_card_category_all" type="radio" name="category" value="" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice checked>
-                                <label for="content_ui_filtering_card_category_all" class="btn btn-choice-light btn-group-start">전체</label>
-                            </span>
-                            <span class="filtering-toggle-item">
-                                <input id="content_ui_filtering_card_category_notice" type="radio" name="category" value="공지" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice>
-                                <label for="content_ui_filtering_card_category_notice" class="btn btn-choice-light btn-group-middle">공지</label>
-                            </span>
-                            <span class="filtering-toggle-item">
-                                <input id="content_ui_filtering_card_category_guide" type="radio" name="category" value="가이드" class="form-choice-toggle-input sr-only" data-filtering-radio-toggle-choice>
-                                <label for="content_ui_filtering_card_category_guide" class="btn btn-choice-light btn-group-end">가이드</label>
-                            </span>
-                        </div>
-                    </div>
-                    <label class="filtering-field" for="admin_ui_filtering_card_author">
+                        <select id="public_ui_filtering_card_category" class="form-select" name="category">
+                            <option value="">전체</option>
+                            <option>공지</option>
+                            <option>가이드</option>
+                        </select>
+                    </label>
+                    <label class="filtering-field" for="public_ui_filtering_card_author">
                         <span class="form-label">작성자</span>
-                        <input id="admin_ui_filtering_card_author" type="text" class="form-input" name="author">
+                        <input id="public_ui_filtering_card_author" type="text" class="form-input" name="author">
                     </label>
                 </div>
                 <div class="filtering-actions">
-                    <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="false" aria-controls="admin_ui_filtering_card_detail">상세검색</button>
+                    <button type="button" class="btn btn-solid-light filtering-toggle" data-filtering-toggle aria-expanded="false" aria-controls="public_ui_filtering_card_detail">상세검색</button>
                     <button type="button" class="btn btn-outline-light" data-filtering-reset><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>초기화</button>
                     <button type="submit" class="btn btn-solid-primary filtering-submit">검색</button>
                 </div>

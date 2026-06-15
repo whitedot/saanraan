@@ -22,7 +22,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
             <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
-            <button type="submit"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
+            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.text.ac5b575f')); ?></button>
         </form>
     </article>
 </main>

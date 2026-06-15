@@ -248,8 +248,11 @@ function sr_community_public_layout_context(array $settings, array $context = []
         $context['layout_key'] = $layoutKey;
     }
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = '/modules/community/assets/community-public.css';
-    $context['stylesheets'] = $stylesheets;
+    $stylesheets[] = '/modules/community/assets/common.css';
+    $stylesheets[] = '/modules/community/assets/public-ui.css';
+    $stylesheets[] = '/modules/community/assets/ui-kit.css';
+    $stylesheets[] = '/modules/community/assets/public.css';
+    $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     $siteMenus = [];
     foreach (sr_community_layout_menu_slots() as $slotKey => $settingKey) {
@@ -257,6 +260,18 @@ function sr_community_public_layout_context(array $settings, array $context = []
     }
 
     $context['site_menus'] = array_merge(is_array($context['site_menus'] ?? null) ? $context['site_menus'] : [], $siteMenus);
+
+    return $context;
+}
+
+function sr_community_ui_kit_layout_context(array $settings, array $context = []): array
+{
+    $context = sr_community_public_layout_context($settings, $context);
+    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets[] = '/modules/community/assets/common.css';
+    $stylesheets[] = '/modules/community/assets/public-ui.css';
+    $stylesheets[] = '/modules/community/assets/ui-kit.css';
+    $context['stylesheets'] = array_values(array_unique($stylesheets));
 
     return $context;
 }

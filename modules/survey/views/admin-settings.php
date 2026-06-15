@@ -10,6 +10,14 @@ $surveySettingsHelpBodyHtml = static function (array $items): string {
     return $html;
 };
 $surveySettingsHelp = [
+    'layout_key' => [
+        'id' => 'survey-settings-help-layout-key',
+        'title' => '설문 공개 레이아웃',
+        'body_html' => $surveySettingsHelpBodyHtml([
+            '설문 목록, 응답, 완료 화면에 적용할 공개 레이아웃입니다.',
+            '기본 레이아웃은 설문 모듈 CSS 호출 기준을 따르고, 다른 레이아웃을 선택하면 해당 레이아웃의 호출 정책을 따릅니다.',
+        ]),
+    ],
     'default_status' => [
         'id' => 'survey-settings-help-default-status',
         'title' => '기본 상태',
@@ -94,6 +102,19 @@ $surveySettingsHelp = [
             <h2 class="card-title">공개 화면/새 설문 기본값</h2>
         </div>
         <div class="admin-form-grid">
+            <div class="admin-form-row">
+                <?php echo sr_admin_form_label_help_html('survey_settings_layout_key', '설문 공개 레이아웃', $surveySettingsHelp['layout_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <div class="admin-form-field">
+                    <select id="survey_settings_layout_key" name="layout_key" class="form-select" required>
+                        <?php foreach ($surveyLayoutOptions as $layoutKey => $layoutOption) { ?>
+                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($settings['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="admin-form-help">설문 공개 화면의 바깥 레이아웃입니다.</p>
+                </div>
+            </div>
             <div class="admin-form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_skin_key', '설문 스킨', $surveySettingsHelp['skin_key']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">

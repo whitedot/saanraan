@@ -38,8 +38,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, ['style_profile' => 'k
                 <textarea id="account_content_body" name="body_text" rows="12"><?php echo sr_e((string) ($formSubmission['body_text'] ?? '')); ?></textarea>
             </p>
             <p>
-                <button type="submit" name="intent" value="draft">임시저장</button>
-                <button type="submit" name="intent" value="submit">제출</button>
+                <button type="submit" name="intent" value="draft" class="btn btn-solid-light">임시저장</button>
+                <button type="submit" name="intent" value="submit" class="btn btn-solid-primary">제출</button>
             </p>
         </form>
     <?php } ?>

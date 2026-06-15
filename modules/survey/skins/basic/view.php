@@ -152,6 +152,7 @@ foreach (['research_purpose', 'methodology_disclosure', 'target_population', 'fi
 if ((int) ($survey['estimated_minutes'] ?? 0) > 0 || (int) ($survey['target_sample_size'] ?? 0) > 0) {
     $hasSurveyInfo = true;
 }
+$surveyShareUrl = sr_absolute_url($site ?? null, '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
     'body_class' => 'sr-survey-page',
     'stylesheets' => ['/modules/reaction/assets/public.css'],
@@ -293,7 +294,64 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                 <?php endif; ?>
             <?php endif; ?>
             <?php if ($submittedScreen || $submitResult !== null): ?>
-                <p><a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/survey')); ?>">설문 메인으로 돌아가기</a></p>
+                <p>
+                    <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/survey')); ?>">메인으로</a>
+                    <label class="sr-only" for="survey_share_url">공유 주소</label>
+                    <input id="survey_share_url" type="url" value="<?php echo sr_e($surveyShareUrl); ?>" readonly data-sr-share-url>
+                    <button type="button" class="btn btn-solid-light" data-sr-share-copy="<?php echo sr_e($surveyShareUrl); ?>">공유 주소 복사</button>
+                </p>
+                <script>
+                (function () {
+                    var buttons = document.querySelectorAll('[data-sr-share-copy]');
+                    if (!buttons.length) {
+                        return;
+                    }
+                    document.querySelectorAll('[data-sr-share-url]').forEach(function (input) {
+                        input.addEventListener('focus', function () {
+                            input.select();
+                        });
+                        input.addEventListener('click', function () {
+                            input.select();
+                        });
+                    });
+                    function fallbackCopy(text) {
+                        var input = document.createElement('textarea');
+                        input.value = text;
+                        input.setAttribute('readonly', 'readonly');
+                        input.style.position = 'fixed';
+                        input.style.left = '-9999px';
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(input);
+                    }
+                    buttons.forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            var shareUrl = button.getAttribute('data-sr-share-copy') || '';
+                            var originalText = button.getAttribute('data-sr-copy-original') || button.textContent;
+                            if (shareUrl === '') {
+                                return;
+                            }
+                            button.setAttribute('data-sr-copy-original', originalText);
+                            var done = function () {
+                                button.textContent = '복사됨';
+                                window.setTimeout(function () {
+                                    button.textContent = originalText;
+                                }, 1800);
+                            };
+                            if (navigator.clipboard && window.isSecureContext) {
+                                navigator.clipboard.writeText(shareUrl).then(done).catch(function () {
+                                    fallbackCopy(shareUrl);
+                                    done();
+                                });
+                                return;
+                            }
+                            fallbackCopy(shareUrl);
+                            done();
+                        });
+                    });
+                }());
+                </script>
             <?php endif; ?>
             <?php if ($surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)): ?>
                 <section id="survey-comments" class="sr-survey-comments">

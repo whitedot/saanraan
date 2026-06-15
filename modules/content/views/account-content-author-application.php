@@ -33,7 +33,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, ['style_profile' => 'k
                 <label for="content_author_application_note">신청 사유</label><br>
                 <textarea id="content_author_application_note" name="application_note" rows="8" maxlength="2000"><?php echo sr_e((string) ($authorApplication['application_note'] ?? '')); ?></textarea>
             </p>
-            <p><button type="submit">신청하기</button></p>
+            <p><button type="submit" class="btn btn-solid-primary">신청하기</button></p>
         </form>
     <?php } ?>
 </main>

@@ -69,7 +69,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $scrap['post_id']); ?>">
                                     <input type="hidden" name="intent" value="remove">
-                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.text.293182ec')); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('community::ui.text.293182ec')); ?></button>
                                 </form>
                             </td>
                         </tr>
@@ -121,7 +121,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <input type="hidden" name="target_type" value="series">
                                     <input type="hidden" name="series_id" value="<?php echo sr_e((string) $seriesScrap['series_id']); ?>">
                                     <input type="hidden" name="intent" value="remove">
-                                    <button type="submit"><?php echo sr_e(sr_t('community::ui.text.293182ec')); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('community::ui.text.293182ec')); ?></button>
                                 </form>
                             </td>
                         </tr>

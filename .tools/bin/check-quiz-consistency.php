@@ -158,6 +158,7 @@ function sr_quiz_check_paths_and_admin(): void
 {
     sr_quiz_check_file_contains('modules/quiz/paths.php', [
         'GET /quiz',
+        'GET /quiz/ui-kit',
         'GET /quiz/*',
         'POST /quiz/comment',
         'POST /quiz/comment/edit',
@@ -170,6 +171,17 @@ function sr_quiz_check_paths_and_admin(): void
         'GET /admin/quiz/comments',
         'POST /admin/quiz/comments',
     ]);
+    $quizPaths = include 'modules/quiz/paths.php';
+    if (!is_array($quizPaths)) {
+        sr_quiz_check_error('Quiz paths.php must return an array.');
+    } else {
+        $quizRouteKeys = array_keys($quizPaths);
+        $uiKitIndex = array_search('GET /quiz/ui-kit', $quizRouteKeys, true);
+        $wildcardIndex = array_search('GET /quiz/*', $quizRouteKeys, true);
+        if (!is_int($uiKitIndex) || !is_int($wildcardIndex) || $uiKitIndex > $wildcardIndex) {
+            sr_quiz_check_error('Quiz UI kit route must be registered before wildcard public path.');
+        }
+    }
     sr_quiz_check_file_contains('modules/quiz/admin-menu.php', [
         '/admin/quiz',
         '/admin/quiz/attempts',

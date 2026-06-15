@@ -18,7 +18,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <p><label>제목 <input type="text" name="title" maxlength="160" required></label></p>
             <p><label>공개 범위 <select name="visibility"><option value="public">public</option><option value="member">member</option><option value="private">private</option></select></label></p>
             <p><label>설명 <textarea name="description" rows="3" cols="60"></textarea></label></p>
-            <button type="submit">저장</button>
+            <button type="submit" class="btn btn-solid-primary">저장</button>
         </form>
     </section>
     <section>

@@ -369,7 +369,7 @@ $checks = [
     ],
     [
         'label' => 'community public stylesheet',
-        'path' => '/modules/community/assets/community-public.css',
+        'path' => '/modules/community/assets/public.css',
         'allowed_statuses' => [200],
         'must_contain' => [
             '.community-screen',
@@ -377,7 +377,7 @@ $checks = [
     ],
     [
         'label' => 'community layout script',
-        'path' => '/modules/community/assets/community-layout.js',
+        'path' => '/modules/community/assets/layout.js',
         'allowed_statuses' => [200],
         'must_contain' => [
             '[data-community-scroll-header]',

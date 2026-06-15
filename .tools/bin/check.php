@@ -520,6 +520,128 @@ function sr_check_module_route_conflicts(): void
     }
 }
 
+function sr_check_module_ui_kit_routes(): void
+{
+    foreach (sr_check_module_dirs() as $moduleDir) {
+        $moduleKey = basename($moduleDir);
+        $uiKitAction = $moduleDir . '/actions/ui-kit.php';
+        if (!is_file($uiKitAction)) {
+            continue;
+        }
+
+        $pathsFile = $moduleDir . '/paths.php';
+        if (!is_file($pathsFile)) {
+            sr_check_add_error('Module UI kit action requires paths.php: ' . $moduleDir);
+            continue;
+        }
+
+        $paths = include $pathsFile;
+        if (!is_array($paths)) {
+            sr_check_add_error('Module paths.php must return an array: ' . $pathsFile);
+            continue;
+        }
+
+        $routeKeys = array_map('strval', array_keys($paths));
+        $uiKitRoute = 'GET /' . $moduleKey . '/ui-kit';
+        $wildcardRoute = 'GET /' . $moduleKey . '/*';
+        $uiKitIndex = array_search($uiKitRoute, $routeKeys, true);
+        if (!is_int($uiKitIndex)) {
+            sr_check_add_error('Module UI kit route is missing from paths.php: ' . $moduleDir . ' ' . $uiKitRoute);
+            continue;
+        }
+
+        $wildcardIndex = array_search($wildcardRoute, $routeKeys, true);
+        if (is_int($wildcardIndex) && $uiKitIndex > $wildcardIndex) {
+            sr_check_add_error('Module UI kit route must be registered before wildcard route: ' . $moduleDir . ' ' . $uiKitRoute);
+        }
+
+        if ((string) ($paths[$uiKitRoute] ?? '') !== 'actions/ui-kit.php') {
+            sr_check_add_error('Module UI kit route must map to actions/ui-kit.php: ' . $moduleDir . ' ' . $uiKitRoute);
+        }
+    }
+}
+
+function sr_check_module_public_ui_kit_stylesheets(): void
+{
+    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+        $copiedStylesheets = [
+            'common.css' => 'assets/common.css',
+            'public-ui.css' => 'assets/public-ui.css',
+            'ui-kit.css' => 'assets/public-ui-kit.css',
+        ];
+        foreach ($copiedStylesheets as $moduleStylesheet => $sourceStylesheet) {
+            $moduleStylesheetPath = 'modules/' . $moduleKey . '/assets/' . $moduleStylesheet;
+            $source = is_file($sourceStylesheet) ? file_get_contents($sourceStylesheet) : false;
+            $copy = is_file($moduleStylesheetPath) ? file_get_contents($moduleStylesheetPath) : false;
+            if (!is_string($source) || !is_string($copy) || $source !== $copy) {
+                sr_check_add_error('Module UI kit stylesheet copy must match source: ' . $moduleStylesheetPath . ' -> ' . $sourceStylesheet);
+            }
+        }
+
+        $helperFile = $moduleKey === 'community'
+            ? 'modules/community/helpers/levels.php'
+            : 'modules/' . $moduleKey . '/helpers.php';
+        $source = is_file($helperFile) ? file_get_contents($helperFile) : false;
+        if (!is_string($source)) {
+            sr_check_add_error('Module public layout helper cannot be read: ' . $helperFile);
+            continue;
+        }
+
+        $functionName = 'sr_' . $moduleKey . '_public_layout_context';
+        $pattern = '/function\s+' . preg_quote($functionName, '/') . '\s*\([^)]*\):\s*array(?<body>.*?)(?=\nfunction\s+sr_|\z)/s';
+        if (preg_match($pattern, $source, $matches) !== 1) {
+            sr_check_add_error('Module public layout context helper is missing: ' . $helperFile . ' ' . $functionName);
+            continue;
+        }
+
+        $body = (string) ($matches['body'] ?? '');
+        $expectedOrder = [
+            "'/modules/" . $moduleKey . "/assets/common.css'",
+            "'/modules/" . $moduleKey . "/assets/public-ui.css'",
+            "'/modules/" . $moduleKey . "/assets/ui-kit.css'",
+            "'/modules/" . $moduleKey . "/assets/public.css'",
+        ];
+        $lastIndex = -1;
+        foreach ($expectedOrder as $marker) {
+            $index = strpos($body, $marker);
+            if ($index === false || $index < $lastIndex) {
+                sr_check_add_error('Module public layout context stylesheet order is invalid: ' . $helperFile . ' ' . $marker);
+                break;
+            }
+            $lastIndex = $index;
+        }
+    }
+}
+
+function sr_check_module_ui_kit_samples_match_public(): void
+{
+    $publicSampleDir = 'layouts/public/basic/ui-kit-samples';
+    $publicSampleFiles = is_dir($publicSampleDir) ? glob($publicSampleDir . '/*.php') : false;
+    if ($publicSampleFiles === false || $publicSampleFiles === []) {
+        sr_check_add_error('Public UI kit sample files are missing.');
+        return;
+    }
+
+    sort($publicSampleFiles, SORT_STRING);
+    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+        $moduleSampleDir = 'modules/' . $moduleKey . '/views/ui-kit-samples';
+        foreach ($publicSampleFiles as $publicSampleFile) {
+            $basename = basename($publicSampleFile);
+            $moduleSampleFile = $moduleSampleDir . '/' . $basename;
+            if (!is_file($moduleSampleFile)) {
+                sr_check_add_error('Module UI kit sample file is missing: ' . $moduleSampleFile);
+                continue;
+            }
+
+            $publicSource = file_get_contents($publicSampleFile);
+            $moduleSource = file_get_contents($moduleSampleFile);
+            if (!is_string($publicSource) || !is_string($moduleSource) || $publicSource !== $moduleSource) {
+                sr_check_add_error('Module UI kit sample must match public UI kit sample: ' . $moduleSampleFile);
+            }
+        }
+    }
+}
+
 function sr_check_valid_module_route(string $route): bool
 {
     if (preg_match('/\A(GET|POST) (\/[^\x00-\x1F\x7F\\\\]*)\z/', $route, $matches) !== 1) {
@@ -741,6 +863,9 @@ sr_check_module_contract_files();
 sr_check_module_versions_and_updates();
 sr_check_admin_menu_paths();
 sr_check_module_route_conflicts();
+sr_check_module_ui_kit_routes();
+sr_check_module_public_ui_kit_stylesheets();
+sr_check_module_ui_kit_samples_match_public();
 sr_check_admin_anchor_tabs_scroll_spy();
 sr_check_quiz_survey_skin_files();
 sr_check_php_lint();
