@@ -37,4 +37,8 @@ return [
             'notification-events.php',
         ],
     ],
+    'settings' => [
+        'refund_requests_enabled' => false,
+        'refund_allowed_group_keys_json' => '[]',
+    ],
 ];
