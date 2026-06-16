@@ -333,9 +333,12 @@ function sr_community_public_post_count(PDO $pdo, int $boardId, string $keyword 
     return sr_community_board_post_count($pdo, $boardId, $keyword, $categoryId);
 }
 
-function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0): array
+function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0, ?array $bodySearchBoardIds = null): array
 {
     $boardIds = array_values(array_unique(array_filter(array_map('intval', $boardIds), static fn (int $boardId): bool => $boardId > 0)));
+    $bodySearchBoardIds = $bodySearchBoardIds === null
+        ? $boardIds
+        : array_values(array_intersect($boardIds, array_unique(array_filter(array_map('intval', $bodySearchBoardIds), static fn (int $boardId): bool => $boardId > 0))));
     $keyword = trim($keyword);
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
@@ -346,11 +349,16 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
     $boardPlaceholders = [];
     $params = [
         'title_keyword' => sr_community_search_like_pattern($keyword),
-        'body_keyword' => sr_community_search_like_pattern($keyword),
     ];
     foreach ($boardIds as $index => $boardId) {
         $placeholder = 'board_id_' . (string) $index;
         $boardPlaceholders[] = ':' . $placeholder;
+        $params[$placeholder] = $boardId;
+    }
+    $bodyBoardPlaceholders = [];
+    foreach ($bodySearchBoardIds as $index => $boardId) {
+        $placeholder = 'body_board_id_' . (string) $index;
+        $bodyBoardPlaceholders[] = ':' . $placeholder;
         $params[$placeholder] = $boardId;
     }
     $categorySupported = sr_community_categories_supported($pdo);
@@ -362,6 +370,11 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
     $secretBodyCondition = sr_community_post_secret_column_exists($pdo)
         ? "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '!'"
         : "p.body_text LIKE :body_keyword ESCAPE '!'";
+    $searchCondition = "p.title LIKE :title_keyword ESCAPE '!'";
+    if ($bodyBoardPlaceholders !== []) {
+        $params['body_keyword'] = sr_community_search_like_pattern($keyword);
+        $searchCondition .= ' OR (p.board_id IN (' . implode(', ', $bodyBoardPlaceholders) . ') AND (' . $secretBodyCondition . '))';
+    }
 
     $stmt = $pdo->prepare(
         'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ', p.author_account_id, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . " p.status, p.view_count, p.created_at, p.updated_at,
@@ -372,7 +385,7 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
          WHERE p.status = 'published'
            AND b.status = 'enabled'
            AND p.board_id IN (" . implode(', ', $boardPlaceholders) . ")
-           AND (p.title LIKE :title_keyword ESCAPE '!' OR (" . $secretBodyCondition . "))
+           AND (" . $searchCondition . ")
          ORDER BY p.id DESC
          LIMIT :limit_value OFFSET :offset_value"
     );

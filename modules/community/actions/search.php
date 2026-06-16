@@ -14,13 +14,20 @@ $page = preg_match('/\A[1-9][0-9]*\z/', $pageValue) === 1 ? (int) $pageValue : 1
 $page = min($page, 50);
 $perPage = 20;
 $searchableBoardIds = [];
+$bodySearchableBoardIds = [];
 $searchableBoardsById = [];
+$paidReadRequiredByBoardId = [];
 
 foreach (sr_community_enabled_boards($pdo) as $board) {
     if (sr_community_account_can_read_board($pdo, $board, is_array($account) ? $account : null)) {
         $boardId = (int) $board['id'];
         $searchableBoardIds[] = $boardId;
         $searchableBoardsById[$boardId] = $board;
+        $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
+        $paidReadRequiredByBoardId[$boardId] = sr_community_asset_event_required($paidReadConfig);
+        if (!$paidReadRequiredByBoardId[$boardId]) {
+            $bodySearchableBoardIds[] = $boardId;
+        }
     }
 }
 
@@ -29,19 +36,14 @@ $keywordTooShort = $keyword !== '' && $keywordLength < 2;
 $posts = [];
 $hasNextPage = false;
 if ($keyword !== '' && !$keywordTooShort) {
-    $posts = sr_community_search_posts($pdo, $searchableBoardIds, $keyword, $perPage + 1, ($page - 1) * $perPage);
+    $posts = sr_community_search_posts($pdo, $searchableBoardIds, $keyword, $perPage + 1, ($page - 1) * $perPage, $bodySearchableBoardIds);
     $hasNextPage = count($posts) > $perPage;
     if ($hasNextPage) {
         $posts = array_slice($posts, 0, $perPage);
     }
 }
 foreach ($posts as $postIndex => $post) {
-    $postBoard = $searchableBoardsById[(int) ($post['board_id'] ?? 0)] ?? null;
-    $paidReadRequired = false;
-    if (is_array($postBoard)) {
-        $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
-        $paidReadRequired = sr_community_asset_event_required($paidReadConfig);
-    }
+    $paidReadRequired = !empty($paidReadRequiredByBoardId[(int) ($post['board_id'] ?? 0)]);
     $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) > 0 && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
     $hasPaidReadSession = is_array($account) && sr_community_has_paid_read_session((int) ($account['id'] ?? 0), (int) ($post['id'] ?? 0));
     $posts[$postIndex]['search_excerpt_allowed'] = !$paidReadRequired || $isAuthor || $hasPaidReadSession;
