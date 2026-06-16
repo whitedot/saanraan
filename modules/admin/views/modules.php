@@ -8,6 +8,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php
+$adminModuleCardIconHtml = static function (PDO $pdo, string $moduleKey): string {
+    $category = sr_admin_module_menu_category_key($moduleKey);
+    $icon = sr_admin_module_menu_icon($moduleKey, $category);
+    if ($icon === []) {
+        $icon = sr_admin_default_menu_icon($category);
+    }
+
+    if ((string) ($icon['type'] ?? '') === 'asset') {
+        $url = trim((string) ($icon['url'] ?? ''));
+        if ($url !== '') {
+            return '<span class="admin-module-card-icon" aria-hidden="true"><img class="admin-module-card-icon-image" src="' . sr_e($url) . '" alt=""></span>';
+        }
+    }
+
+    $symbolName = trim((string) ($icon['name'] ?? $icon['symbol'] ?? ''));
+    if ($symbolName === '') {
+        $symbolName = sr_admin_default_menu_icon_id($category);
+    }
+
+    $renderIcon = sr_admin_icon_render_icon($pdo, $symbolName);
+    if ((string) ($renderIcon['type'] ?? '') === 'asset') {
+        $url = trim((string) ($renderIcon['url'] ?? ''));
+        if ($url !== '') {
+            return '<span class="admin-module-card-icon" aria-hidden="true"><img class="admin-module-card-icon-image" src="' . sr_e($url) . '" alt=""></span>';
+        }
+    }
+
+    return '<span class="admin-module-card-icon" aria-hidden="true">' . sr_material_icon_html((string) ($renderIcon['name'] ?? 'extension'), 'admin-module-card-symbol') . '</span>';
+};
+
 $installableSections = [
     [
         'title' => '설치 가능 모듈',
@@ -72,9 +102,12 @@ $installedSections = [
             <?php $canInstall = $moduleErrors === []; ?>
             <article class="admin-card admin-module-card card admin-list-form">
                 <div class="admin-module-card-header">
-                    <div>
-                        <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
-                        <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></p>
+                    <div class="admin-module-card-title">
+                        <?php echo $adminModuleCardIconHtml($pdo, $moduleKey); ?>
+                        <div class="admin-module-card-title-text">
+                            <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
+                            <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) $module['type'], 'module_type')); ?></p>
+                        </div>
                     </div>
                     <span class="admin-status <?php echo $canInstall ? 'is-normal' : 'is-blocked'; ?>">
                         <?php echo sr_e($canInstall ? sr_t('admin::ui.text.24a5a830') : sr_t('admin::ui.text.944c1818')); ?>
@@ -244,9 +277,12 @@ $installedSections = [
         <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-normal' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-left' : 'is-blocked'); ?>
         <article class="admin-card admin-module-card card admin-list-form">
             <div class="admin-module-card-header">
-                <div>
-                    <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
-                    <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) ($module['code_type'] ?? 'module'), 'module_type')); ?></p>
+                <div class="admin-module-card-title">
+                    <?php echo $adminModuleCardIconHtml($pdo, $moduleKey); ?>
+                    <div class="admin-module-card-title-text">
+                        <h3><?php echo sr_e(sr_admin_module_name_label((string) $module['name'])); ?></h3>
+                        <p>관리용 키: <?php echo sr_e($moduleKey); ?> · <?php echo sr_e(sr_admin_code_label((string) ($module['code_type'] ?? 'module'), 'module_type')); ?></p>
+                    </div>
                 </div>
                 <span class="admin-status <?php echo sr_e($moduleStatusClass); ?>">
                     <?php echo sr_e(sr_admin_code_label($moduleStatus, 'module_status')); ?>

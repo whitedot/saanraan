@@ -543,6 +543,11 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-module-installable-grid{grid-template-columns:repeat(auto-fill,minmax(18rem,22rem));justify-content:start}
 .admin-module-card{border:1px solid var(--color-default-300);box-shadow:var(--shadow-sm);min-width:0;overflow:visible}
 .admin-module-card-header{justify-content:space-between;align-items:flex-start;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding:calc(var(--spacing) * 4);display:flex}
+.admin-module-card-title{align-items:flex-start;gap:calc(var(--spacing) * 3);min-width:0;display:flex}
+.admin-module-card-title-text{min-width:0}
+.admin-module-card-icon{width:2.25rem;height:2.25rem;border:1px solid var(--color-default-300);border-radius:var(--radius-md);background:var(--color-default-100);color:var(--color-default-700);font-size:1.2rem;justify-content:center;align-items:center;flex:0 0 auto;display:inline-flex;overflow:hidden}
+.admin-module-card-icon-image{width:100%;height:100%;object-fit:contain;display:block}
+.admin-module-card-symbol{font-size:1.2rem}
 .admin-module-card-header h3{margin:0;color:var(--text-strong);font-size:var(--type-card-title-size);line-height:var(--type-card-title-line-height);font-weight:var(--font-weight-semibold)}
 .admin-module-card-header p{margin:.25rem 0 0;color:var(--text-muted);font-size:var(--type-small-size);line-height:var(--type-small-line-height);overflow-wrap:anywhere}
 .admin-module-card-body{gap:calc(var(--spacing) * 3);padding:calc(var(--spacing) * 4);display:grid}
