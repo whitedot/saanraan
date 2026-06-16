@@ -176,7 +176,7 @@ if ($path === '/admin/assets/reconciliation' && $_SERVER['REQUEST_METHOD'] === '
         return;
     }
     header('Content-Type: text/html; charset=UTF-8');
-    echo '<main><h1>자산 원장 정합성</h1><p>read-only fixture</p></main>';
+    echo '<main><h1>포인트/금액 정합성 점검</h1><p>read-only fixture</p></main>';
     return;
 }
 

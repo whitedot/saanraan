@@ -1335,7 +1335,7 @@ $gates[] = sr_release_gate_status_readonly_command_gate(
 $gates[] = sr_release_gate_status_admin_readonly_gate(
     '/admin/assets/reconciliation',
     '/admin/assets/reconciliation',
-    '자산 원장 정합성',
+    '포인트/금액 정합성 점검',
     $baseUrl,
     $adminSmokeCredentialStatus,
     $runAdminReadonly,

@@ -53,7 +53,7 @@ php .tools/bin/ops-status.php
 php .tools/bin/run-notification-deliveries.php
 ```
 
-## 자산 원장 정합성
+## 포인트/금액 정합성 점검
 
 포인트, 적립금, 예치금 원장은 설치된 환경에서 다음 read-only 명령으로 잔액 행, 거래 합계, 마지막 거래 `balance_after`, 거래별 `balance_after` 연쇄를 비교한다.
 
@@ -61,7 +61,7 @@ php .tools/bin/run-notification-deliveries.php
 php .tools/bin/reconcile-assets.php
 ```
 
-관리자 화면에서는 `/admin/assets/reconciliation`의 `자산 원장 정합성` 화면에서 같은 기준을 확인한다. 이 화면은 데이터를 바꾸지 않고 불일치 유형, 계정 ID, 거래별 잔액 연쇄가 처음 깨진 transaction ID와 기대/실제 `balance_after`를 보여준다. 완료 환전 묶음 정정은 환전 모듈 소유 흐름으로 분리해 `/admin/asset-exchange/logs`의 CSRF/edit 권한 기반 action에서 반대 원장 거래와 감사 로그를 남긴다. 일반 원장 불일치 자동 정정은 별도 관리자 action, 승인 기준, 감사 로그가 준비된 뒤에만 추가한다.
+관리자 화면에서는 `/admin/assets/reconciliation`의 `포인트/금액 정합성 점검` 화면에서 같은 기준을 확인한다. 이 화면은 데이터를 바꾸지 않고 불일치 유형, 계정 ID, 거래별 잔액 연쇄가 처음 깨진 transaction ID와 기대/실제 `balance_after`를 보여준다. 완료 환전 묶음 정정은 환전 모듈 소유 흐름으로 분리해 `/admin/asset-exchange/logs`의 CSRF/edit 권한 기반 action에서 반대 원장 거래와 감사 로그를 남긴다. 일반 원장 불일치 자동 정정은 별도 관리자 action, 승인 기준, 감사 로그가 준비된 뒤에만 추가한다.
 
 ### 자산 불일치 대응 절차
 

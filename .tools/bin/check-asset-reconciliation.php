@@ -83,7 +83,8 @@ sr_asset_reconciliation_check_file_contains('modules/asset_ledger/paths.php', [
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/asset_ledger/admin-menu.php', [
-    '원장 정합성',
+    '포인트/금액 점검',
+    '정합성 점검',
     '/admin/assets/reconciliation',
 ]);
 
@@ -105,13 +106,13 @@ sr_asset_reconciliation_check_file_contains('modules/asset_ledger/actions/admin-
 ]);
 
 sr_asset_reconciliation_check_file_contains('modules/asset_ledger/views/admin-reconciliation.php', [
-    '자산 원장 정합성',
+    '포인트/금액 정합성 점검',
     'sr_asset_reconciliation_summary($reconciliationResults)',
     '점검 요약',
     '잔액 행 없음',
     '거래별 잔액 연쇄 불일치',
     '연쇄 오류 거래',
-    '표시 행 수',
+    '포인트/금액 항목',
 ]);
 
 sr_asset_reconciliation_check_file_contains('docs/verification-status.md', [
@@ -121,7 +122,7 @@ sr_asset_reconciliation_check_file_contains('docs/verification-status.md', [
 
 sr_asset_reconciliation_check_file_contains('docs/operational-status.md', [
     '/admin/assets/reconciliation',
-    '자산 원장 정합성',
+    '포인트/금액 정합성 점검',
 ]);
 
 if (class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers(), true)) {
