@@ -390,6 +390,7 @@ return [
     'ui.login.6d253673' => '로그인',
     'ui.login.status.29a71548' => '로그인
                                                         상태 유지',
+    'ui.logout.2bbdc014' => '로그아웃',
     'ui.md.all.72277b49' => 'md 미만에서 전체 화면',
     'ui.member.295b31c3' => '처음이신가요? 회원가입',
     'ui.member.4f210836' => '조건에 맞는 회원이 없습니다.',
@@ -807,6 +808,7 @@ return [
     'ui.text.3ac6c97f' => '적용한 업데이트',
     'ui.text.3c34d590' => '전자제품',
     'ui.text.3d1bf22c' => '다크 모드 전환',
+    'ui.text.3d4bcbb8' => '내 정보',
     'ui.text.3d54da9c' => '링크',
     'ui.text.3da662af' => '업데이트 적용',
     'ui.text.3e05543f' => '읽기 전용 값',
