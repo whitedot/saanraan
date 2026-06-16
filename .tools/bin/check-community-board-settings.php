@@ -214,17 +214,17 @@ function sr_check_community_board_settings_runtime(): void
         ]);
     }
 
-    if (sr_community_board_post_body_min_length($pdo, $board) !== 3) {
-        sr_check_community_board_settings_error('community board group fallback min length failed.');
+    if (sr_community_board_post_body_min_length($pdo, $board) !== 0) {
+        sr_check_community_board_settings_error('community board must not use group fallback min length.');
     }
     if (sr_community_board_post_body_max_length($pdo, $board) !== 0) {
         sr_check_community_board_settings_error('community board zero value override failed.');
     }
-    if (sr_community_board_list_per_page($pdo, $board, ['posts_per_page' => 20]) !== 2) {
-        sr_check_community_board_settings_error('community board list per page group fallback failed.');
+    if (sr_community_board_list_per_page($pdo, $board, ['posts_per_page' => 20]) !== 20) {
+        sr_check_community_board_settings_error('community board list per page must not use group fallback.');
     }
-    if (sr_community_board_list_default_sort($pdo, $board) !== 'comments') {
-        sr_check_community_board_settings_error('community board list default sort group fallback failed.');
+    if (sr_community_board_list_default_sort($pdo, $board) !== 'latest') {
+        sr_check_community_board_settings_error('community board list default sort must not use group fallback.');
     }
 
     $commentSortedIds = array_map('intval', array_column(sr_community_public_posts($pdo, 10, 10, 0, '', 0, 'comments'), 'id'));
@@ -241,8 +241,8 @@ function sr_check_community_board_settings_runtime(): void
     if (sr_community_post_locked_by_comments($pdo, $board, 1, 'delete')) {
         sr_check_community_board_settings_error('community delete lock threshold runtime check failed.');
     }
-    if (sr_community_validate_post_body_length($pdo, $board, ['body_text' => 'ab', 'body_format' => 'plain']) === []) {
-        sr_check_community_board_settings_error('community post body minimum runtime validation failed.');
+    if (sr_community_validate_post_body_length($pdo, $board, ['body_text' => 'ab', 'body_format' => 'plain']) !== []) {
+        sr_check_community_board_settings_error('community post body minimum must not use group fallback.');
     }
     if (sr_community_validate_comment_body_length($pdo, $board, ['body_text' => 'abcde']) === []) {
         sr_check_community_board_settings_error('community comment body maximum runtime validation failed.');
@@ -288,19 +288,6 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-boar
     'sr_community_board_list_sort_key($listDefaultSortInput)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
 ]), 'community board admin setting save');
-sr_check_community_board_settings_contains('modules/community/actions/admin-board-groups.php', [
-    'group_post_edit_lock_comment_count',
-    'group_post_delete_lock_comment_count',
-    'group_post_body_min_length',
-    'group_post_body_max_length',
-    'group_comment_body_min_length',
-    'group_comment_body_max_length',
-    'group_list_excerpt_enabled',
-    'group_list_excerpt_length',
-    'group_list_per_page',
-    'group_list_default_sort',
-    '게시판 그룹의 댓글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
-], 'community board group admin setting save');
 sr_check_community_board_settings_contains('modules/community/actions/list.php', [
     'sr_community_board_list_per_page',
     'sr_community_board_list_default_sort',

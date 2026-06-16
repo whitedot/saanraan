@@ -42,10 +42,6 @@ $files = [
         'data-admin-required-selection-mode="any"' => 'Community settings consent target row must require at least one document selection on the client.',
         'data-community-privacy-consent-required' => 'Community settings consent required label must stay conditional.',
     ],
-    'modules/community/views/admin-board-groups.php' => [
-        'data-admin-required-selection-mode="any"' => 'Community board group consent target row must require at least one document selection on the client.',
-        'data-community-privacy-consent-required' => 'Community board group consent required label must stay conditional.',
-    ],
     'modules/community/views/admin-boards.php' => [
         'data-admin-required-selection-mode="any"' => 'Community board consent target row must require at least one document selection on the client.',
         'data-community-privacy-consent-required' => 'Community board consent required label must stay conditional.',

@@ -102,26 +102,15 @@ $mustContain('modules/community/views/admin-settings.php', [
 $mustNotContain('modules/community/views/admin-settings.php', [
     'data-community-privacy-consent-target',
 ]);
-$mustContain('modules/community/actions/admin-board-groups.php', [
-    'group_privacy_consent_enabled',
-    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
-    'array_key_exists(\'group_\' . $privacyConsentDocumentSettingKey, $_POST)',
-    'sr_community_privacy_consent_policy_snapshot($pdo, $targetDocumentKey)',
-    'privacy_consent_require_post',
-    '개인정보 수집 및 이용동의 적용 대상을 하나 이상 선택해 주세요.',
-]);
 $mustNotContain('modules/community/actions/admin-board-groups.php', [
+    'group_privacy_consent_enabled',
     '개인정보 수집 및 이용동의 본문을 입력해 주세요.',
     '개인정보 수집 및 이용동의 버전을 입력해 주세요.',
     'reset(array_filter',
 ]);
-$mustContain('modules/community/views/admin-board-groups.php', [
-    'community-board-group-section-privacy-consent',
-    'sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)',
-    'community-privacy-consent-document-row',
-    'sr_community_privacy_consent_target_keys',
-]);
 $mustNotContain('modules/community/views/admin-board-groups.php', [
+    'community-board-group-section-privacy-consent',
+    'community-privacy-consent-document-row',
     'data-community-privacy-consent-target',
 ]);
 $mustContain('modules/community/views/admin-boards.php', [
@@ -381,7 +370,7 @@ function sr_community_privacy_consent_check_schema(PDO $pdo): void
          VALUES (21, 11, 7, "동의 댓글", "published", :created_at, :updated_at)'
     )->execute(['created_at' => $now, 'updated_at' => $now]);
     $stmt = $pdo->prepare(
-        'INSERT INTO sr_community_board_group_settings (group_id, setting_key, setting_value, value_type, created_at, updated_at)
+        'INSERT INTO sr_community_board_settings (board_id, setting_key, setting_value, value_type, created_at, updated_at)
          VALUES (1, :setting_key, :setting_value, :value_type, :created_at, :updated_at)'
     );
     foreach ([
@@ -432,10 +421,10 @@ function sr_community_privacy_consent_check_runtime(): void
     $board = ['id' => 1, 'board_group_id' => 1, 'board_key' => 'free'];
 
     $config = sr_community_effective_privacy_consent_config($pdo, $board);
-    sr_community_privacy_consent_check_assert(($config['enabled'] ?? null) === true, 'group privacy consent setting must enable board consent through fallback.');
-    sr_community_privacy_consent_check_assert(($config['title'] ?? '') === '기본 커뮤니티 동의', 'group privacy consent title must come from policy document.');
-    sr_community_privacy_consent_check_assert(in_array('post', (array) ($config['targets'] ?? []), true), 'group privacy consent post target must be effective.');
-    sr_community_privacy_consent_check_assert(in_array('comment', (array) ($config['targets'] ?? []), true), 'group privacy consent comment target must be effective.');
+    sr_community_privacy_consent_check_assert(($config['enabled'] ?? null) === true, 'board privacy consent setting must enable board consent.');
+    sr_community_privacy_consent_check_assert(($config['title'] ?? '') === '기본 커뮤니티 동의', 'board privacy consent title must come from policy document.');
+    sr_community_privacy_consent_check_assert(in_array('post', (array) ($config['targets'] ?? []), true), 'board privacy consent post target must be effective.');
+    sr_community_privacy_consent_check_assert(in_array('comment', (array) ($config['targets'] ?? []), true), 'board privacy consent comment target must be effective.');
     sr_community_privacy_consent_check_assert(!in_array('attachment_upload', (array) ($config['targets'] ?? []), true), 'disabled attachment consent target must remain disabled.');
     sr_community_privacy_consent_check_assert(sr_community_privacy_consent_required_actions($pdo, $board, ['attachment_upload']) === [], 'disabled attachment consent target must stay disabled even with a document key.');
 
@@ -478,11 +467,14 @@ function sr_community_privacy_consent_check_runtime(): void
 
     $now = sr_now();
     $pdo->prepare(
-        'INSERT INTO sr_community_board_settings (board_id, setting_key, setting_value, value_type, created_at, updated_at)
-         VALUES (1, "privacy_consent_document_key", "community_privacy_board", "string", :created_at, :updated_at)'
-    )->execute(['created_at' => $now, 'updated_at' => $now]);
+        'UPDATE sr_community_board_settings
+         SET setting_value = "community_privacy_board",
+             updated_at = :updated_at
+         WHERE board_id = 1
+           AND setting_key = "privacy_consent_document_key"'
+    )->execute(['updated_at' => $now]);
     $overrideConfig = sr_community_effective_privacy_consent_config($pdo, $board);
-    sr_community_privacy_consent_check_assert(($overrideConfig['title'] ?? '') === '게시판 커뮤니티 동의', 'board privacy consent setting must override group document key.');
+    sr_community_privacy_consent_check_assert(($overrideConfig['title'] ?? '') === '게시판 커뮤니티 동의', 'board privacy consent setting must update document key.');
 }
 
 sr_community_privacy_consent_check_runtime();

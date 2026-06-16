@@ -707,11 +707,6 @@ sr_community_release_file_contains('modules/community/actions/admin-boards.php',
     '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
     '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
 ], 'Community admin board extra field definition validation');
-sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
-    '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
-    '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
-    'sr_community_sync_group_board_field_definitions(',
-], 'Community admin board group extra field definition validation');
 sr_community_release_file_contains('modules/community/actions/edit.php', [
     'sr_community_account_can_edit_post($post, $account)',
     '$submittedPostId !== $postId',
@@ -844,14 +839,8 @@ sr_community_release_file_contains('modules/community/views/admin-boards.php', [
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'edit')",
-    '$allowedReadPolicies = sr_community_policy_values(\'read\')',
-    '$allowedWritePolicies = sr_community_policy_values(\'write\')',
-    '$allowedCommentPolicies = sr_community_policy_values(\'comment\')',
-    'sr_community_set_board_group_setting($pdo, $groupId, \'read_group_keys\', sr_community_board_group_keys_setting_value($readGroupKeys), \'json\')',
-    'sr_community_set_board_group_setting($pdo, $groupId, \'write_group_keys\', sr_community_board_group_keys_setting_value($writeGroupKeys), \'json\')',
-    'sr_community_set_board_group_setting($pdo, $groupId, \'comment_group_keys\', sr_community_board_group_keys_setting_value($commentGroupKeys), \'json\')',
     "'target_type' => 'community_board_group'",
-], 'Community admin board group policy');
+], 'Community admin board group basic save');
 sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communitySettingsPermissionPath, 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$communitySettingsPermissionPath, 'edit')",

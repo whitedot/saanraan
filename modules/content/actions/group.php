@@ -11,11 +11,7 @@ if (!is_array($pageGroup)) {
 }
 
 $groupContents = sr_content_published_contents_for_group($pdo, (int) $pageGroup['id']);
-$pageGroupSettings = sr_content_group_settings($pdo, (int) $pageGroup['id']);
-$pageGroupLayoutKey = sr_public_layout_normalize_key((string) ($pageGroupSettings['layout_key'] ?? ''));
-if ($pageGroupLayoutKey === '' || !isset(sr_public_layout_options($pdo)[$pageGroupLayoutKey])) {
-    $pageGroupLayoutKey = sr_content_default_layout_key($pdo, $site ?? null);
-}
+$pageGroupLayoutKey = sr_content_default_layout_key($pdo, $site ?? null);
 $pageTitle = (string) ($pageGroup['title'] ?? '콘텐츠 그룹');
 $pageDescription = (string) ($pageGroup['description'] ?? '');
 

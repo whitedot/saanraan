@@ -299,13 +299,13 @@ function sr_content_file_values_from_post(int $fileId): array
 function sr_content_file_asset_values_from_group(PDO $pdo, int $groupId): array
 {
     return sr_content_normalize_file_asset_values([
-        'asset_download_enabled' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_enabled') ?? 0),
-        'asset_module' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_module') ?? ''),
-        'asset_download_amount' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_amount') ?? 0),
-        'asset_download_amounts_json' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_amounts_json') ?? ''),
-        'asset_download_group_policies_json' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_group_policies_json') ?? ''),
-        'asset_download_policy_set_id' => (int) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_download_policy_set_id') ?? 0),
-        'asset_charge_policy' => (string) (sr_content_group_setting_value($pdo, $groupId, 'file_asset_charge_policy') ?? 'once'),
+        'asset_download_enabled' => 0,
+        'asset_module' => '',
+        'asset_download_amount' => 0,
+        'asset_download_amounts_json' => '',
+        'asset_download_group_policies_json' => '',
+        'asset_download_policy_set_id' => 0,
+        'asset_charge_policy' => 'once',
     ]);
 }
 

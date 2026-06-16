@@ -225,8 +225,7 @@ if ($pageAdminPage === 'form') {
             $newContentGroupId = 0;
         }
 
-        $newContentGroupSettings = $newContentGroupId > 0 ? sr_content_group_settings($pdo, $newContentGroupId) : [];
-        $values = sr_content_default_values($pdo, $site ?? null, $newContentGroupSettings);
+        $values = sr_content_default_values($pdo, $site ?? null);
         $values['content_group_id'] = $newContentGroupId;
     }
 } else {

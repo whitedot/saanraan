@@ -272,9 +272,9 @@ $communitySettingsSectionNavItems = [
                 <div class="admin-form-field">
                     <label class="admin-form-check form-label" for="community_admin_settings_privacy_consent_enabled">
                         <input id="community_admin_settings_privacy_consent_enabled" type="checkbox" name="privacy_consent_enabled" value="1" class="form-switch form-choice-dark"<?php echo !empty($settings['privacy_consent_enabled']) ? ' checked' : ''; ?> data-community-privacy-consent-enabled>
-                        <?php echo sr_admin_choice_label_html('새 게시판과 그룹 기본값에서 개인정보 수집 및 이용동의를 사용'); ?>
+                        <?php echo sr_admin_choice_label_html('새 게시판 기본값에서 개인정보 수집 및 이용동의를 사용'); ?>
                     </label>
-                    <p class="admin-form-help">게시판 개별 설정이나 게시판 그룹 설정에서 다른 값으로 재정의할 수 있습니다.</p>
+                    <p class="admin-form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
                 </div>
             </div>
             <div class="admin-form-row" data-admin-required-selection-mode="any">
@@ -475,7 +475,7 @@ $communitySettingsSectionNavItems = [
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="admin-form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
-                <p class="admin-form-help">새 게시판 그룹과 새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
+                <p class="admin-form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다.</p>
             </div>
         </div>
         <div class="admin-form-row">

@@ -38,10 +38,6 @@ if (!function_exists('sr_content_reaction_content_result')) {
         $canView = $status === 'active' && sr_content_can_access_body_file($pdo, $row, $account);
         $settings = sr_content_settings($pdo);
         $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $row['reaction_preset_key'] ?? '') : '';
-        if ($presetKey === '' && (int) ($row['content_group_id'] ?? 0) > 0) {
-            $groupSettings = sr_content_group_settings($pdo, (int) $row['content_group_id']);
-            $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $groupSettings['reaction_preset_key'] ?? '') : '';
-        }
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_preset_key'] ?? '');
         }
@@ -104,10 +100,6 @@ if (!function_exists('sr_content_reaction_comment_result')) {
             && sr_content_account_can_view_comment_body($comment, $page, $account, $pdo);
         $settings = sr_content_settings($pdo);
         $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
-        if ($presetKey === '' && (int) ($row['content_group_id'] ?? 0) > 0) {
-            $groupSettings = sr_content_group_settings($pdo, (int) $row['content_group_id']);
-            $presetKey = function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $groupSettings['reaction_comment_preset_key'] ?? '') : '';
-        }
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_comment_preset_key'] ?? '');
         }

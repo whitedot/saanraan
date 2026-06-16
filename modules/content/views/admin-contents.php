@@ -427,7 +427,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <?php echo $pageGroupScopeRadioHtml('content_group_scope', (string) ($values['content_group_scope'] ?? 'here_only')); ?>
-                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 그룹은 운영 묶음입니다. 목록 페이지, 메뉴 후보, 새 콘텐츠 기본값, 그룹/전체 복사 범위를 관리하며 읽기 순서나 회차 내비게이션은 만들지 않습니다.'); ?></p>
+                    <p class="admin-form-help"><?php echo sr_e('콘텐츠 그룹은 운영 묶음입니다. 목록 페이지와 메뉴 후보를 관리하며 읽기 순서나 회차 내비게이션은 만들지 않습니다.'); ?></p>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.select.list.menu.10a1aa2a')); ?></p>
                     <p class="admin-form-help"><?php echo sr_e(sr_t('content::ui.scope.copy_help')); ?></p>
                 </div>

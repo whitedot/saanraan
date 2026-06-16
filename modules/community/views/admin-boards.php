@@ -206,10 +206,7 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
 };
 $selectedBoard = is_array($editBoard ?? null) ? $editBoard : [];
 $newBoardGroupId = isset($newBoardGroupId) ? (int) $newBoardGroupId : 0;
-$newBoardDefaults = sr_community_board_default_settings(
-    $settings,
-    $newBoardGroupId > 0 && is_array($boardGroupSettings[$newBoardGroupId] ?? null) ? $boardGroupSettings[$newBoardGroupId] : []
-);
+$newBoardDefaults = sr_community_board_default_settings($settings);
 $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : array_merge($newBoardDefaults, [
     'board_group_id' => $newBoardGroupId,
     'board_key' => '',
@@ -510,7 +507,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <?php echo $settingSourceRadioHtml('source_post_editor', $boardSettingSource($formBoard, 'post_editor')); ?>
-                    <p class="admin-form-help">저장한 뒤에는 커뮤니티 환경설정이나 게시판 그룹 설정 변경의 영향을 받지 않습니다.</p>
+                    <p class="admin-form-help">저장한 뒤에는 커뮤니티 환경설정이나 게시판 그룹 변경의 영향을 받지 않습니다.</p>
                 </div>
             </div>
         </section>
@@ -828,7 +825,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <?php echo $settingSourceRadioHtml('source_reaction_post_preset_key', $boardSettingSource($formBoard, 'reaction_post_preset_key')); ?>
-                    <p class="admin-form-help">비어 있으면 게시판 그룹 설정을, 그룹 설정도 비어 있으면 커뮤니티 환경설정을 사용합니다.</p>
+                    <p class="admin-form-help">비어 있으면 커뮤니티 환경설정을 사용합니다.</p>
                 </div>
             </div>
             <div class="admin-form-row">
@@ -862,13 +859,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="community-privacy-consent-document-list">
                         <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
                             <?php $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey); ?>
-                            <div>
-                                <label class="community-privacy-consent-document-row" for="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>">
-                                    <span><?php echo sr_e(sr_community_privacy_consent_admin_label($privacyConsentTargetKey)); ?></span>
-                                    <select id="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select" data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
-                                        <?php echo $privacyConsentDocumentSelectOptionsHtml(sr_community_privacy_consent_admin_document_key_from_settings($formBoard, $privacyConsentTargetKey)); ?>
-                                    </select>
-                                </label>
+                            <div class="community-privacy-consent-document-row">
+                                <label for="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>"><?php echo sr_e(sr_community_privacy_consent_admin_label($privacyConsentTargetKey)); ?></label>
+                                <select id="<?php echo sr_e('community_admin_boards_' . $privacyConsentDocumentSettingKey); ?>" name="<?php echo sr_e($privacyConsentDocumentSettingKey); ?>" class="form-select" data-community-privacy-consent-document="<?php echo sr_e($privacyConsentTargetKey); ?>">
+                                    <?php echo $privacyConsentDocumentSelectOptionsHtml(sr_community_privacy_consent_admin_document_key_from_settings($formBoard, $privacyConsentTargetKey)); ?>
+                                </select>
                                 <?php echo $settingSourceRadioHtml('source_' . $privacyConsentDocumentSettingKey, $boardSettingSource($formBoard, $privacyConsentDocumentSettingKey)); ?>
                             </div>
                         <?php } ?>

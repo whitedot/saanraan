@@ -233,11 +233,6 @@ function sr_community_board_default_settings(array $settings, array $groupSettin
     $defaults['status'] = (string) ($settings['board_status'] ?? 'enabled');
     $defaults['skin_key'] = 'basic';
 
-    foreach (sr_community_board_group_copy_setting_keys_for_new_board() as $settingKey) {
-        if (array_key_exists((string) $settingKey, $groupSettings)) {
-            $defaults[(string) $settingKey] = (string) $groupSettings[(string) $settingKey];
-        }
-    }
     $defaults['reaction_post_preset_key'] = '';
     $defaults['reaction_comment_preset_key'] = '';
 
@@ -1211,14 +1206,6 @@ function sr_community_effective_board_setting(PDO $pdo, array $board, string $se
     $boardValue = sr_community_board_setting_value($pdo, $boardId, $settingKey);
     if (is_string($boardValue) && $boardValue !== '') {
         return $boardValue;
-    }
-
-    $groupId = (int) ($board['board_group_id'] ?? 0);
-    if ($groupId > 0) {
-        $groupValue = sr_community_board_group_setting_value($pdo, $groupId, $settingKey);
-        if (is_string($groupValue) && $groupValue !== '') {
-            return $groupValue;
-        }
     }
 
     return (string) $default;

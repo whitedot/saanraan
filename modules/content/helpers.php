@@ -609,11 +609,6 @@ function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null
 function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array $groupSettings = []): array
 {
     $defaults = sr_content_group_default_settings($site, $pdo);
-    foreach (sr_content_group_setting_keys() as $settingKey) {
-        if (array_key_exists((string) $settingKey, $groupSettings)) {
-            $defaults[(string) $settingKey] = (string) $groupSettings[(string) $settingKey];
-        }
-    }
 
     $values = [
         'title' => '',

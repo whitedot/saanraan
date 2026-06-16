@@ -107,7 +107,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </option>
                     <?php } ?>
                 </select>
-                <p class="admin-form-help">새 콘텐츠와 새 콘텐츠 그룹을 만들 때 먼저 채울 공개 레이아웃입니다. 기존 콘텐츠와 그룹은 자동 변경되지 않습니다.</p>
+                <p class="admin-form-help">새 콘텐츠를 만들 때 먼저 채울 공개 레이아웃입니다. 기존 콘텐츠 값은 자동 변경되지 않습니다.</p>
             </div>
         </div>
         <?php foreach ($contentLayoutMenuFields as $contentLayoutMenuSettingKey => $contentLayoutMenuField) { ?>
