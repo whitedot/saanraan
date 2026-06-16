@@ -76,6 +76,7 @@ $mustContain('modules/community/actions/admin-boards.php', [
 $mustNotContain('modules/community/actions/admin-boards.php', [
     '개인정보 수집 및 이용동의 본문을 입력해 주세요.',
     '개인정보 수집 및 이용동의 버전을 입력해 주세요.',
+    'reset(array_filter',
 ]);
 $mustContain('modules/community/actions/admin-settings.php', [
     'privacy_consent_enabled',
@@ -89,6 +90,7 @@ $mustContain('modules/community/actions/admin-settings.php', [
 $mustNotContain('modules/community/actions/admin-settings.php', [
     '개인정보 수집 및 이용동의 본문을 입력해 주세요.',
     '개인정보 수집 및 이용동의 버전을 입력해 주세요.',
+    'reset(array_filter',
 ]);
 $mustContain('modules/community/views/admin-settings.php', [
     'community-settings-section-privacy-consent',
@@ -111,6 +113,7 @@ $mustContain('modules/community/actions/admin-board-groups.php', [
 $mustNotContain('modules/community/actions/admin-board-groups.php', [
     '개인정보 수집 및 이용동의 본문을 입력해 주세요.',
     '개인정보 수집 및 이용동의 버전을 입력해 주세요.',
+    'reset(array_filter',
 ]);
 $mustContain('modules/community/views/admin-board-groups.php', [
     'community-board-group-section-privacy-consent',

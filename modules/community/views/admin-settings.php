@@ -278,7 +278,7 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="admin-form-row">
-                <span class="form-label">동의 적용 대상</span>
+                <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo !empty($settings['privacy_consent_enabled']) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                 <div class="admin-form-field" data-community-privacy-consent-controls>
                     <div class="community-privacy-consent-document-list">
                         <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
@@ -563,6 +563,10 @@ $communitySettingsSectionNavItems = [
     }
 
     function syncPrivacyConsentControls() {
+        var requiredLabel = controls.parentNode ? controls.parentNode.querySelector('[data-community-privacy-consent-required]') : null;
+        if (requiredLabel) {
+            requiredLabel.hidden = !enabled.checked;
+        }
         Array.prototype.slice.call(controls.querySelectorAll('[data-community-privacy-consent-document]')).forEach(function (select) {
             select.disabled = !enabled.checked;
             select.required = false;

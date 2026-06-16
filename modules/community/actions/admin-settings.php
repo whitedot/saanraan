@@ -81,7 +81,8 @@ if (sr_request_method() === 'POST') {
                 : sr_community_privacy_consent_admin_document_key_from_settings($settings, $privacyConsentTargetKey);
             $privacyConsentRequires[$privacyConsentTargetKey] = $privacyConsentDocumentKeys[$privacyConsentTargetKey] !== '';
         }
-        $privacyConsentDocumentKey = (string) (reset(array_filter($privacyConsentDocumentKeys, static fn (string $value): bool => $value !== '')) ?: ($settings['privacy_consent_document_key'] ?? 'community_privacy_default'));
+        $selectedPrivacyConsentDocumentKeys = array_filter($privacyConsentDocumentKeys, static fn (string $value): bool => $value !== '');
+        $privacyConsentDocumentKey = (string) (reset($selectedPrivacyConsentDocumentKeys) ?: ($settings['privacy_consent_document_key'] ?? 'community_privacy_default'));
         $privacyConsentRequirePost = !empty($privacyConsentRequires['post']);
         $privacyConsentRequireComment = !empty($privacyConsentRequires['comment']);
         $privacyConsentRequireAttachmentUpload = !empty($privacyConsentRequires['attachment_upload']);

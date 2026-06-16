@@ -668,7 +668,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="admin-form-row">
-                    <span class="form-label">동의 적용 대상</span>
+                    <span class="form-label">동의 적용 대상 <span class="sr-required-label" data-community-privacy-consent-required<?php echo in_array($groupSettingValue($formGroupSettings, 'privacy_consent_enabled', '0'), ['1', 'true', 'yes', 'on'], true) ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                     <div class="admin-form-field" data-community-privacy-consent-controls>
                         <div class="community-privacy-consent-document-list">
                             <?php foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) { ?>
@@ -916,6 +916,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var privacyConsentControls = document.querySelector('[data-community-privacy-consent-controls]');
     if (privacyConsentEnabled && privacyConsentControls) {
         function syncPrivacyConsentControls() {
+            var requiredLabel = privacyConsentControls.parentNode ? privacyConsentControls.parentNode.querySelector('[data-community-privacy-consent-required]') : null;
+            if (requiredLabel) {
+                requiredLabel.hidden = !privacyConsentEnabled.checked;
+            }
             Array.prototype.slice.call(privacyConsentControls.querySelectorAll('[data-community-privacy-consent-document]')).forEach(function (select) {
                 select.disabled = !privacyConsentEnabled.checked;
                 select.required = false;
