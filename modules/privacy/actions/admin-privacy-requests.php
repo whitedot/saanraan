@@ -13,9 +13,23 @@ $allowedStatuses = sr_admin_privacy_request_statuses();
 $allowedTypes = sr_privacy_request_types();
 $errors = [];
 $notice = '';
+$privacyRequestCreateDraftSessionKey = 'sr_privacy_request_create_draft';
+$privacyRequestCreateDraft = [];
+$privacyRequestCreateErrors = [];
+$privacyRequestCreateModalOpen = false;
 $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
+
+if (session_status() === PHP_SESSION_ACTIVE) {
+    $storedCreateDraft = $_SESSION[$privacyRequestCreateDraftSessionKey] ?? null;
+    unset($_SESSION[$privacyRequestCreateDraftSessionKey]);
+    if (is_array($storedCreateDraft)) {
+        $privacyRequestCreateDraft = isset($storedCreateDraft['values']) && is_array($storedCreateDraft['values']) ? $storedCreateDraft['values'] : [];
+        $privacyRequestCreateErrors = isset($storedCreateDraft['errors']) && is_array($storedCreateDraft['errors']) ? array_values(array_map('strval', $storedCreateDraft['errors'])) : [];
+        $privacyRequestCreateModalOpen = true;
+    }
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -24,6 +38,22 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     if ($intent === 'create_request') {
         $postResult = sr_admin_handle_privacy_request_create_post($pdo, $account, $allowedTypes);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            if (($postResult['errors'] ?? []) !== []) {
+                $_SESSION[$privacyRequestCreateDraftSessionKey] = [
+                    'errors' => $postResult['errors'],
+                    'values' => [
+                        'account_id' => sr_privacy_create_draft_value('account_id', 20),
+                        'requester_snapshot' => sr_privacy_create_draft_value('requester_snapshot', 255),
+                        'request_type' => sr_privacy_create_draft_value('request_type', 40),
+                        'request_message' => sr_privacy_create_draft_value('request_message', 2000),
+                        'admin_note' => sr_privacy_create_draft_value('admin_note', 2000),
+                    ],
+                ];
+            } else {
+                unset($_SESSION[$privacyRequestCreateDraftSessionKey]);
+            }
+        }
     } else {
         $postResult = sr_admin_handle_privacy_request_post($pdo, $account, $allowedStatuses);
     }
@@ -56,3 +86,22 @@ if (sr_request_method() === 'GET') {
 }
 
 include SR_ROOT . '/modules/privacy/views/admin-privacy-requests.php';
+
+function sr_privacy_create_draft_value(string $key, int $maxLength): string
+{
+    $value = $_POST[$key] ?? '';
+    if (is_array($value)) {
+        return '';
+    }
+
+    $text = trim((string) $value);
+    if ($maxLength < 1) {
+        return '';
+    }
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($text, 0, $maxLength);
+    }
+
+    return substr($text, 0, $maxLength);
+}

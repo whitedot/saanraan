@@ -175,7 +175,7 @@
 
 | 표면 | 기준 |
 | --- | --- |
-| 입력 가이드 | `/admin/privacy-requests`의 생성/상태 변경 메모 도움말은 처리 근거와 결과만 남기도록 안내한다. |
+| 입력 가이드 | `/admin/privacy-requests`의 생성 모달은 요청 내용과 관리자 메모 도움말에서 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰 입력 금지를 안내하고, 상태 변경 메모 도움말은 처리 근거와 결과만 남기도록 안내한다. |
 | 저장 전 처리 | `sr_admin_privacy_request_admin_note_sanitize()`가 secret류 문자열, 이메일, 휴대폰 번호, 주민등록번호 형태를 redaction한다. |
 | export 처리 | 개인정보 요청 export와 계정 전체 export의 `privacy_requests.admin_note`는 저장된 기존 row라도 같은 redaction helper를 거쳐 제공한다. |
 | 감사 metadata | 감사 로그 metadata는 `sr_audit_metadata_sanitize()`로 저장 전 처리하고 `/admin/audit-logs` 표시 전에도 `sr_admin_audit_log_display_metadata()`를 거친다. |

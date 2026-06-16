@@ -13,12 +13,19 @@ $privacyRequestListFilters = isset($privacyRequestListFilters) && is_array($priv
 $privacyRequestStatusCounts = isset($privacyRequestStatusCounts) && is_array($privacyRequestStatusCounts) ? $privacyRequestStatusCounts : [];
 $privacyRequestSort = isset($privacyRequestSort) && is_array($privacyRequestSort) ? $privacyRequestSort : sr_admin_privacy_request_default_sort();
 $allowedTypes = isset($allowedTypes) && is_array($allowedTypes) ? $allowedTypes : [];
+$privacyRequestCreateDraft = isset($privacyRequestCreateDraft) && is_array($privacyRequestCreateDraft) ? $privacyRequestCreateDraft : [];
+$privacyRequestCreateErrors = isset($privacyRequestCreateErrors) && is_array($privacyRequestCreateErrors) ? array_values(array_map('strval', $privacyRequestCreateErrors)) : [];
+$privacyRequestCreateModalOpen = !empty($privacyRequestCreateModalOpen);
 $selectedPrivacyRequestStatuses = is_array($privacyRequestListFilters['status'] ?? null) ? $privacyRequestListFilters['status'] : [];
 $selectedPrivacyRequestTypes = is_array($privacyRequestListFilters['request_type'] ?? null) ? $privacyRequestListFilters['request_type'] : [];
 $totalPrivacyRequests = (int) ($privacyRequestStatusCounts['total'] ?? count($requests ?? []));
 $privacyRequestCurrentQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');
 $privacyRequestActionSuffix = $privacyRequestCurrentQuery !== '' ? '?' . $privacyRequestCurrentQuery : '';
 $privacyRequestHasSearch = $selectedPrivacyRequestStatuses !== [] || $selectedPrivacyRequestTypes !== [] || trim((string) ($privacyRequestListFilters['q'] ?? '')) !== '';
+$privacyRequestCreateModalId = 'privacy-request-create-modal';
+$privacyRequestCreateOverlayClass = $privacyRequestCreateModalOpen
+    ? 'modal-overlay modal-overlay-fade overlay overlay-open open'
+    : 'modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/privacy-requests');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -78,54 +85,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<section class="admin-card card admin-form-card">
-    <div class="card-header">
-        <h2 class="card-title">대응 기록 추가</h2>
-    </div>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests' . $privacyRequestActionSuffix)); ?>" class="admin-form ui-form-theme">
-        <?php echo sr_csrf_field(); ?>
-        <input type="hidden" name="intent" value="create_request">
-        <div class="admin-form-grid">
-            <label for="privacy_create_account_id">
-                <span>계정 ID</span>
-                <input id="privacy_create_account_id" type="number" name="account_id" class="form-input" min="1" inputmode="numeric">
-                <small class="admin-form-help">회원 계정과 연결할 때만 입력하세요.</small>
-            </label>
-            <label for="privacy_create_requester_snapshot">
-                <span>요청자</span>
-                <input id="privacy_create_requester_snapshot" type="text" name="requester_snapshot" class="form-input" maxlength="255" autocomplete="off">
-                <small class="admin-form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요.</small>
-            </label>
-            <label for="privacy_create_request_type">
-                <span>요청 유형 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
-                <select id="privacy_create_request_type" name="request_type" class="form-select" required>
-                    <option value="">선택</option>
-                    <?php foreach ($allowedTypes as $requestType) { ?>
-                        <option value="<?php echo sr_e($requestType); ?>"><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
-                    <?php } ?>
-                </select>
-                <small class="admin-form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
-            </label>
-        </div>
-        <label for="privacy_create_request_message">
-            <span>요청 내용 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
-            <textarea id="privacy_create_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required></textarea>
-            <small class="admin-form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요.</small>
-        </label>
-        <label for="privacy_create_admin_note">
-            <span>관리자 메모</span>
-            <textarea id="privacy_create_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"></textarea>
-            <small class="admin-form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
-        </label>
-        <div class="admin-form-actions">
-            <button type="submit" class="btn btn-solid-primary">기록 추가</button>
-        </div>
-    </form>
-</section>
-
 <section class="admin-card admin-list-card card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('privacy::ui.privacy.list.ba466a40')); ?></h2>
+        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="<?php echo $privacyRequestCreateModalOpen ? 'true' : 'false'; ?>" aria-controls="<?php echo sr_e($privacyRequestCreateModalId); ?>" data-overlay="#<?php echo sr_e($privacyRequestCreateModalId); ?>">
+            기록 추가
+        </button>
     </div>
     <div class="admin-list-summary-row">
         <?php if (empty($privacyRequestSort['is_default'])) { ?>
@@ -230,6 +195,125 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
 </section>
+
+<div id="<?php echo sr_e($privacyRequestCreateModalId); ?>" class="<?php echo sr_e($privacyRequestCreateOverlayClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($privacyRequestCreateModalId); ?>_title" aria-hidden="<?php echo $privacyRequestCreateModalOpen ? 'false' : 'true'; ?>"<?php echo $privacyRequestCreateModalOpen ? '' : ' inert'; ?>>
+    <div class="modal-dialog modal-dialog-lg">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests' . $privacyRequestActionSuffix)); ?>" class="modal-content ui-form-theme" data-sr-validate-form data-privacy-create-form>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="create_request">
+            <div class="modal-header">
+                <h2 id="<?php echo sr_e($privacyRequestCreateModalId); ?>_title" class="modal-title">대응 기록 추가</h2>
+                <button type="button" class="modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($privacyRequestCreateModalId); ?>">
+                    <?php echo sr_material_icon_html('close'); ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <?php if ($privacyRequestCreateErrors !== []) { ?>
+                    <div class="alert alert-danger alert-block privacy-request-create-error-summary" tabindex="-1" data-overlay-focus>
+                        <strong>입력값을 확인하세요.</strong>
+                        <ul>
+                            <?php foreach ($privacyRequestCreateErrors as $createError) { ?>
+                                <li><?php echo sr_e($createError); ?></li>
+                            <?php } ?>
+                        </ul>
+                    </div>
+                <?php } ?>
+                <div class="admin-form-row">
+                    <label class="form-label" for="privacy_create_account_id">계정 ID</label>
+                    <div class="admin-form-field">
+                        <input id="privacy_create_account_id" type="number" name="account_id" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['account_id'] ?? '')); ?>" class="form-input" min="1" inputmode="numeric" data-privacy-create-account data-validation-message="계정 ID 또는 요청자 중 하나를 입력하세요."<?php echo $privacyRequestCreateErrors === [] ? ' data-overlay-focus' : ''; ?>>
+                        <small class="admin-form-help">회원 계정과 연결할 때만 입력하세요.</small>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="privacy_create_requester_snapshot">요청자</label>
+                    <div class="admin-form-field">
+                        <input id="privacy_create_requester_snapshot" type="text" name="requester_snapshot" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['requester_snapshot'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="off" data-privacy-create-requester data-validation-message="계정 ID 또는 요청자 중 하나를 입력하세요.">
+                        <small class="admin-form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요.</small>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="privacy_create_request_type">요청 유형 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <select id="privacy_create_request_type" name="request_type" class="form-select" required data-validation-message="요청 유형을 선택하세요.">
+                            <option value="">선택</option>
+                            <?php foreach ($allowedTypes as $requestType) { ?>
+                                <option value="<?php echo sr_e($requestType); ?>"<?php echo (string) ($privacyRequestCreateDraft['request_type'] ?? '') === $requestType ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
+                            <?php } ?>
+                        </select>
+                        <small class="admin-form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="privacy_create_request_message">요청 내용 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
+                    <div class="admin-form-field">
+                        <textarea id="privacy_create_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required data-validation-message="요청 내용을 입력하세요."><?php echo sr_e((string) ($privacyRequestCreateDraft['request_message'] ?? '')); ?></textarea>
+                        <small class="admin-form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요. 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰은 넣지 마세요.</small>
+                    </div>
+                </div>
+                <div class="admin-form-row">
+                    <label class="form-label" for="privacy_create_admin_note">관리자 메모</label>
+                    <div class="admin-form-field">
+                        <textarea id="privacy_create_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"><?php echo sr_e((string) ($privacyRequestCreateDraft['admin_note'] ?? '')); ?></textarea>
+                        <small class="admin-form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($privacyRequestCreateModalId); ?>"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                <button type="submit" class="btn btn-solid-primary modal-action">기록 추가</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<noscript>
+    <section class="admin-card card admin-form-card">
+        <div class="card-header">
+            <h2 class="card-title">대응 기록 추가</h2>
+        </div>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests' . $privacyRequestActionSuffix)); ?>" class="admin-form ui-form-theme">
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="intent" value="create_request">
+            <div class="admin-form-grid">
+                <label for="privacy_create_nojs_account_id">
+                    <span>계정 ID</span>
+                    <input id="privacy_create_nojs_account_id" type="number" name="account_id" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['account_id'] ?? '')); ?>" class="form-input" min="1" inputmode="numeric">
+                    <small class="admin-form-help">회원 계정과 연결할 때만 입력하세요.</small>
+                </label>
+                <label for="privacy_create_nojs_requester_snapshot">
+                    <span>요청자</span>
+                    <input id="privacy_create_nojs_requester_snapshot" type="text" name="requester_snapshot" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['requester_snapshot'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="off">
+                    <small class="admin-form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요. 계정 ID 또는 요청자 중 하나는 서버에서 필수로 확인합니다.</small>
+                </label>
+                <label for="privacy_create_nojs_request_type">
+                    <span>요청 유형 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
+                    <select id="privacy_create_nojs_request_type" name="request_type" class="form-select" required>
+                        <option value="">선택</option>
+                        <?php foreach ($allowedTypes as $requestType) { ?>
+                            <option value="<?php echo sr_e($requestType); ?>"<?php echo (string) ($privacyRequestCreateDraft['request_type'] ?? '') === $requestType ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
+                        <?php } ?>
+                    </select>
+                    <small class="admin-form-help">요청 유형은 대응 기록입니다. 정정, 처리 제한, 동의 철회는 실제 모듈 데이터를 자동 변경하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
+                </label>
+            </div>
+            <label for="privacy_create_nojs_request_message">
+                <span>요청 내용 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></span>
+                <textarea id="privacy_create_nojs_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required><?php echo sr_e((string) ($privacyRequestCreateDraft['request_message'] ?? '')); ?></textarea>
+                <small class="admin-form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요. 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰은 넣지 마세요.</small>
+            </label>
+            <label for="privacy_create_nojs_admin_note">
+                <span>관리자 메모</span>
+                <textarea id="privacy_create_nojs_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"><?php echo sr_e((string) ($privacyRequestCreateDraft['admin_note'] ?? '')); ?></textarea>
+                <small class="admin-form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
+            </label>
+            <div class="admin-form-actions">
+                <button type="submit" class="btn btn-solid-primary">기록 추가</button>
+            </div>
+        </form>
+    </section>
+</noscript>
+
 <?php echo sr_admin_pagination_html($privacyRequestPagination, '개인정보 대응 기록 목록 페이지'); ?>
 
 <script>
@@ -277,6 +361,33 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     syncPrivacyRequestForm(form);
                 }
             });
+        });
+    });
+
+    function syncPrivacyCreateIdentity(form) {
+        var account = form.querySelector('[data-privacy-create-account]');
+        var requester = form.querySelector('[data-privacy-create-requester]');
+        if (!account || !requester) {
+            return true;
+        }
+
+        var hasIdentity = account.value.trim() !== '' || requester.value.trim() !== '';
+        var message = hasIdentity ? '' : '계정 ID 또는 요청자 중 하나를 입력하세요.';
+        account.setCustomValidity(message);
+        requester.setCustomValidity(message);
+
+        return hasIdentity;
+    }
+
+    document.querySelectorAll('[data-privacy-create-form]').forEach(function (form) {
+        syncPrivacyCreateIdentity(form);
+        form.addEventListener('input', function (event) {
+            if (event.target && event.target.matches('[data-privacy-create-account], [data-privacy-create-requester]')) {
+                syncPrivacyCreateIdentity(form);
+            }
+        });
+        form.addEventListener('submit', function () {
+            syncPrivacyCreateIdentity(form);
         });
     });
 })();
