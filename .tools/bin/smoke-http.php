@@ -428,6 +428,26 @@ $checks = [
         ],
     ],
     [
+        'label' => 'quiz layout stylesheet',
+        'path' => '/modules/quiz/assets/layout.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.public-layout-header',
+            '.public-layout-main',
+            '.public-layout-footer',
+        ],
+    ],
+    [
+        'label' => 'survey layout stylesheet',
+        'path' => '/modules/survey/assets/layout.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.survey-layout-header',
+            '.survey-layout-main',
+            '.survey-layout-footer',
+        ],
+    ],
+    [
         'label' => 'community layout script',
         'path' => '/modules/community/assets/layout.js',
         'allowed_statuses' => [200],

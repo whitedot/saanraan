@@ -500,7 +500,6 @@
 }
 
 .community-layout-main {
-    min-height: calc(100vh - 132px);
     min-width: 0;
 }
 

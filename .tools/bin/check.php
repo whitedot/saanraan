@@ -631,7 +631,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             sr_check_add_error('Module public stylesheet must not own skin selectors: ' . $moduleCssPath);
         }
 
-        if (in_array($moduleKey, ['content', 'community'], true) && !is_file('modules/' . $moduleKey . '/assets/layout.css')) {
+        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true) && !is_file('modules/' . $moduleKey . '/assets/layout.css')) {
             sr_check_add_error('Module public layout stylesheet is missing: modules/' . $moduleKey . '/assets/layout.css');
         }
 
@@ -656,7 +656,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         }
 
         $body = (string) ($matches['body'] ?? '');
-        $layoutMarker = in_array($moduleKey, ['content', 'community'], true)
+        $layoutMarker = in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)
             ? "'/modules/" . $moduleKey . "/assets/layout.css'"
             : "'/assets/layout.css'";
         $expectedOrder = [

@@ -484,12 +484,7 @@
 }
 
 .survey-layout-main {
-    min-height: calc(100vh - 132px);
     min-width: 0;
-}
-
-.survey-layout-body.survey-layout-home .survey-layout-main {
-    min-height: calc(100vh - 166px);
 }
 
 .survey-layout-footer {

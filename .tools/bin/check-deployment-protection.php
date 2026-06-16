@@ -154,6 +154,8 @@ foreach ([
     '/modules/community/assets/module.css',
     '/modules/community/assets/layout.js',
     '/modules/community/skins/compact/skin.css',
+    '/modules/quiz/assets/layout.css',
+    '/modules/survey/assets/layout.css',
     '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
 ] as $path) {
     if ($doc !== '' && !str_contains($doc, $path)) {
