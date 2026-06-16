@@ -45,6 +45,20 @@ $modules = $viewData['modules'];
 $installableModules = $viewData['installable_modules'];
 $showFoundationModules = $viewData['show_foundation_modules'];
 
+$sortDisabledFirst = static function (array $rows): array {
+    usort($rows, static function (array $left, array $right): int {
+        $leftDisabled = (string) ($left['status'] ?? '') === 'disabled' ? 0 : 1;
+        $rightDisabled = (string) ($right['status'] ?? '') === 'disabled' ? 0 : 1;
+        if ($leftDisabled !== $rightDisabled) {
+            return $leftDisabled <=> $rightDisabled;
+        }
+
+        return ((int) ($left['id'] ?? 0)) <=> ((int) ($right['id'] ?? 0));
+    });
+
+    return $rows;
+};
+
 $installableModulePagination = sr_admin_paginate_array($pdo, array_values(array_filter($installableModules, static function (array $module): bool {
     return (string) ($module['type'] ?? 'module') === 'module';
 })), 'installable_module_page');
@@ -57,15 +71,15 @@ $installablePluginPagination = sr_admin_paginate_array($pdo, array_values(array_
 $installablePlugins = $installablePluginPagination['rows'];
 $installablePluginPagination = $installablePluginPagination['pagination'];
 
-$modulePagination = sr_admin_paginate_array($pdo, array_values(array_filter($modules, static function (array $module): bool {
+$modulePagination = sr_admin_paginate_array($pdo, $sortDisabledFirst(array_values(array_filter($modules, static function (array $module): bool {
     return (string) ($module['code_type'] ?? 'module') === 'module';
-})), 'module_page');
+}))), 'module_page');
 $modules = $modulePagination['rows'];
 $modulePagination = $modulePagination['pagination'];
 
-$pluginPagination = sr_admin_paginate_array($pdo, array_values(array_filter($viewData['modules'], static function (array $module): bool {
+$pluginPagination = sr_admin_paginate_array($pdo, $sortDisabledFirst(array_values(array_filter($viewData['modules'], static function (array $module): bool {
     return (string) ($module['code_type'] ?? 'module') === 'plugin';
-})), 'plugin_page');
+}))), 'plugin_page');
 $plugins = $pluginPagination['rows'];
 $pluginPagination = $pluginPagination['pagination'];
 
