@@ -236,6 +236,7 @@ function sr_quiz_check_paths_and_admin(): void
         "\$normalized['default_reward_enabled'] = \$normalized['default_reward_provider'] !== 'none';",
         "\$provider === 'none'",
         'sr_public_layout_module_stylesheet($layoutKey)',
+        "'/modules/quiz/assets/module.js'",
         'sr_quiz_optional_option_key_from_post',
         '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',
         'skin_key = :skin_key',

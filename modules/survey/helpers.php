@@ -488,6 +488,9 @@ function sr_survey_public_layout_context(array $settings, array $context = []): 
     }
     $stylesheets[] = '/modules/survey/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
+    $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
+    $scripts[] = '/modules/survey/assets/module.js';
+    $context['scripts'] = array_values(array_unique($scripts));
     $skinKey = sr_survey_skin_key((string) ($settings['skin_key'] ?? 'basic'));
     $bodyClass = sr_ui_icon_class_attr((string) ($context['body_class'] ?? ''));
     $context['body_class'] = trim($bodyClass . ' survey-skin-' . $skinKey);

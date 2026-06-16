@@ -6,11 +6,16 @@ $layoutContent = is_string($contentHtml ?? null) ? $contentHtml : '';
 $layoutPdo = $pdo instanceof PDO ? $pdo : null;
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : [];
 $layoutContextStylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
+$layoutContextScripts = is_array($layoutContext['scripts'] ?? null) ? $layoutContext['scripts'] : [];
 $layoutStylesheets = ['/assets/layout.css'];
+$layoutScripts = ['/assets/common-ui.js', '/assets/mention-input.js', '/assets/public-layout.js'];
 $layoutStyleProfile = is_string($layoutContext['style_profile'] ?? null) ? (string) $layoutContext['style_profile'] : 'minimal';
 $layoutBodyClass = sr_ui_icon_class_attr((string) ($layoutContext['body_class'] ?? ''));
 foreach ($layoutContextStylesheets as $layoutContextStylesheet) {
     $layoutStylesheets[] = $layoutContextStylesheet;
+}
+foreach ($layoutContextScripts as $layoutContextScript) {
+    $layoutScripts[] = $layoutContextScript;
 }
 $layoutSiteMenus = is_array($layoutContext['site_menus'] ?? null) ? $layoutContext['site_menus'] : [];
 $layoutCleanMenuKey = static function (string $value): string {
@@ -317,9 +322,7 @@ if (
         <?php } ?>
         <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
     </footer>
-    <script src="<?php echo sr_e(sr_asset_url('/assets/common-ui.js')); ?>" defer></script>
-    <script src="<?php echo sr_e(sr_asset_url('/assets/mention-input.js')); ?>" defer></script>
-    <script src="<?php echo sr_e(sr_asset_url('/assets/public-layout.js')); ?>" defer></script>
+    <?php echo sr_script_tags($layoutScripts); ?>
     <?php echo $layoutPrivacyCookieConsentHtml; ?>
     <?php echo sr_pwa_registration_script(); ?>
 </body>

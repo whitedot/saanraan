@@ -67,6 +67,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - When a public module screen lets administrators choose a layout, load the layout shell stylesheet owned by the selected `layout_key` provider, not necessarily the current screen's module. For example, a community screen using `content.*` must load `/modules/content/assets/layout.css`.
 - If a module public screen is rendered inside the common public layout, let the common layout own `/assets/layout.css`, header markup, footer markup, and public layout script. The module should add only its reset, UI kit, module body, and skin styles needed inside the selected layout shell.
 - Keep module layout shell CSS, markup, and JavaScript aligned by namespace. For example, a `quiz.*` layout should use `quiz-layout-*` selectors and `/modules/quiz/assets/layout.css`, while `common.*` should use the common `public-layout-*` shell.
+- For modules that provide public layouts, keep layout JavaScript and module/page JavaScript in separate files. The layout template owns `/modules/{provider}/assets/layout.js`; public module screens add their own `/modules/{module_key}/assets/module.js` through the layout context.
 
 ## Documentation
 

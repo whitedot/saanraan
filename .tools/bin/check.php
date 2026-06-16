@@ -621,6 +621,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         if (!is_file('modules/' . $moduleKey . '/assets/module.css')) {
             sr_check_add_error('Module public stylesheet is missing: modules/' . $moduleKey . '/assets/module.css');
         }
+        if (!is_file('modules/' . $moduleKey . '/assets/module.js')) {
+            sr_check_add_error('Module public script is missing: modules/' . $moduleKey . '/assets/module.js');
+        }
 
         $moduleCssPath = 'modules/' . $moduleKey . '/assets/module.css';
         $moduleCss = is_file($moduleCssPath) ? file_get_contents($moduleCssPath) : false;
@@ -643,6 +646,11 @@ function sr_check_module_public_ui_kit_stylesheets(): void
                 if ($moduleKey !== 'public' && str_contains($moduleLayoutCss, '.public-layout-')) {
                     sr_check_add_error('Module public layout stylesheet must not use public layout selectors: ' . $moduleLayoutCssPath);
                 }
+            }
+
+            $moduleLayoutScriptPath = 'modules/' . $moduleKey . '/assets/layout.js';
+            if (!is_file($moduleLayoutScriptPath)) {
+                sr_check_add_error('Module public layout script is missing: ' . $moduleLayoutScriptPath);
             }
         }
 
@@ -676,6 +684,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             if (!str_contains($body, 'sr_public_layout_module_stylesheet($layoutKey)') || !str_contains($body, '$stylesheets[] = $layoutStylesheet')) {
                 sr_check_add_error('Module public layout context selected layout stylesheet helper is missing: ' . $helperFile);
             }
+            if (!str_contains($body, "'/modules/" . $moduleKey . "/assets/module.js'") || !str_contains($body, '$context[\'scripts\']')) {
+                sr_check_add_error('Module public layout context module script is missing: ' . $helperFile);
+            }
         }
         $lastIndex = -1;
         foreach ($expectedOrder as $marker) {
@@ -706,6 +717,29 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         $uiKitLayoutMarker = "'/modules/" . $moduleKey . "/assets/ui-kit-layout.css'";
         if (!str_contains($source, $uiKitLayoutMarker)) {
             sr_check_add_error('Module UI kit layout stylesheet is missing from helper: ' . $helperFile . ' ' . $uiKitLayoutMarker);
+        }
+    }
+
+    foreach ([
+        'layouts/public/basic/layout.php' => '/assets/public-layout.js',
+        'modules/content/layouts/basic/layout.php' => '/modules/content/assets/layout.js',
+        'modules/community/layouts/basic/layout.php' => '/modules/community/assets/layout.js',
+        'modules/quiz/layouts/basic/layout.php' => '/modules/quiz/assets/layout.js',
+        'modules/survey/layouts/basic/layout.php' => '/modules/survey/assets/layout.js',
+    ] as $layoutFile => $layoutScript) {
+        $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
+        if (!is_string($layoutSource)) {
+            sr_check_add_error('Public layout template cannot be read: ' . $layoutFile);
+            continue;
+        }
+        if (!str_contains($layoutSource, '$layoutContextScripts') || !str_contains($layoutSource, 'sr_script_tags($layoutScripts)')) {
+            sr_check_add_error('Public layout template context script rendering is missing: ' . $layoutFile);
+        }
+        if (!str_contains($layoutSource, $layoutScript)) {
+            sr_check_add_error('Public layout template layout script is missing: ' . $layoutFile . ' ' . $layoutScript);
+        }
+        if (str_contains($layoutSource, '/assets/quiz-layout.js')) {
+            sr_check_add_error('Public layout template uses legacy quiz layout script path: ' . $layoutFile);
         }
     }
 }

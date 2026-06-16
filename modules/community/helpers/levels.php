@@ -255,6 +255,9 @@ function sr_community_public_layout_context(array $settings, array $context = []
     }
     $stylesheets[] = '/modules/community/assets/module.css';
     $context['stylesheets'] = array_values(array_unique($stylesheets));
+    $scripts = is_array($context['scripts'] ?? null) ? $context['scripts'] : [];
+    $scripts[] = '/modules/community/assets/module.js';
+    $context['scripts'] = array_values(array_unique($scripts));
 
     $siteMenus = [];
     foreach (sr_community_layout_menu_slots() as $slotKey => $settingKey) {

@@ -457,12 +457,28 @@ $checks = [
         ],
     ],
     [
+        'label' => 'content module script',
+        'path' => '/modules/content/assets/module.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            "'use strict'",
+        ],
+    ],
+    [
         'label' => 'quiz layout script',
         'path' => '/modules/quiz/assets/layout.js',
         'allowed_statuses' => [200],
         'must_contain' => [
             '[data-quiz-scroll-header]',
             'is-quiz-layout-header-hidden',
+        ],
+    ],
+    [
+        'label' => 'quiz module script',
+        'path' => '/modules/quiz/assets/module.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            "'use strict'",
         ],
     ],
     [
@@ -475,12 +491,28 @@ $checks = [
         ],
     ],
     [
+        'label' => 'survey module script',
+        'path' => '/modules/survey/assets/module.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            "'use strict'",
+        ],
+    ],
+    [
         'label' => 'community layout script',
         'path' => '/modules/community/assets/layout.js',
         'allowed_statuses' => [200],
         'must_contain' => [
             '[data-community-scroll-nav]',
             'is-community-layout-nav-hidden',
+        ],
+    ],
+    [
+        'label' => 'community module script',
+        'path' => '/modules/community/assets/module.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            "'use strict'",
         ],
     ],
     [

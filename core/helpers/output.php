@@ -977,6 +977,26 @@ function sr_stylesheet_tag(array $stylesheets = [], ?PDO $pdo = null, array $opt
     return implode(PHP_EOL, $tags);
 }
 
+function sr_script_tags(array $scripts = []): string
+{
+    $tags = [];
+    $scriptPaths = [];
+
+    foreach ($scripts as $script) {
+        if (!is_string($script) || !sr_is_safe_relative_url($script)) {
+            continue;
+        }
+
+        $scriptPaths[$script] = $script;
+    }
+
+    foreach ($scriptPaths as $script) {
+        $tags[] = '<script src="' . sr_e(sr_asset_url($script)) . '" defer></script>';
+    }
+
+    return implode(PHP_EOL, $tags);
+}
+
 function sr_asset_url(string $path): string
 {
     $url = sr_url($path);

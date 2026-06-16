@@ -945,6 +945,7 @@ sr_community_release_wrapper_action('modules/community/actions/admin-levels.php'
 
 $allowedCommunityScriptFiles = [
     'modules/community/assets/layout.js',
+    'modules/community/assets/module.js',
 ];
 foreach (sr_community_release_files('modules/community', ['js', 'scss']) as $assetFile) {
     if (!in_array($assetFile, $allowedCommunityScriptFiles, true)) {
