@@ -216,38 +216,70 @@ function sr_admin_thumbnail_cache_filter_end_timestamp(string $date): int
     return is_int($timestamp) ? $timestamp : 0;
 }
 
-function sr_admin_thumbnail_cache_cleanup(array $filters = []): array
+function sr_admin_thumbnail_cache_cleanup_limit(): int
 {
-    $scan = sr_admin_thumbnail_cache_scan($filters);
+    return 200;
+}
+
+function sr_admin_thumbnail_cache_cleanup(array $filters = [], int $limit = 0): array
+{
+    $root = sr_admin_thumbnail_cache_root();
     $deletedCount = 0;
     $deletedBytes = 0;
     $errors = [];
-    $rootRealPath = realpath(sr_admin_thumbnail_cache_root());
+    $processedCount = 0;
+    $limit = $limit > 0 ? $limit : sr_admin_thumbnail_cache_cleanup_limit();
+    $limitReached = false;
+    $rootRealPath = realpath($root);
     if (!is_string($rootRealPath)) {
         return [
             'deleted_count' => 0,
             'deleted_bytes' => 0,
             'errors' => [],
+            'limit' => $limit,
+            'limit_reached' => false,
         ];
     }
 
-    foreach ($scan['rows'] as $row) {
-        if (!is_array($row)) {
+    $fromTimestamp = sr_admin_thumbnail_cache_filter_start_timestamp((string) ($filters['date_from'] ?? ''));
+    $toTimestamp = sr_admin_thumbnail_cache_filter_end_timestamp((string) ($filters['date_to'] ?? ''));
+    $moduleFilter = sr_admin_thumbnail_cache_module_filter((string) ($filters['module_key'] ?? ''));
+    $prefix = rtrim($rootRealPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($rootRealPath, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $fileInfo) {
+        if (!$fileInfo instanceof SplFileInfo || !$fileInfo->isFile()) {
             continue;
         }
 
-        $relative = (string) ($row['relative_path'] ?? '');
-        if (sr_admin_thumbnail_cache_parse_relative_path($relative) === null) {
+        $path = $fileInfo->getPathname();
+        $relative = sr_admin_thumbnail_cache_relative_path($rootRealPath, $path);
+        $parsed = sr_admin_thumbnail_cache_parse_relative_path($relative);
+        if ($parsed === null) {
+            continue;
+        }
+        if ($moduleFilter !== '' && (string) ($parsed['module_key'] ?? '') !== $moduleFilter) {
             continue;
         }
 
-        $path = $rootRealPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+        $mtime = (int) $fileInfo->getMTime();
+        if (($fromTimestamp > 0 && $mtime < $fromTimestamp) || ($toTimestamp > 0 && $mtime > $toTimestamp)) {
+            continue;
+        }
+
         $realPath = realpath($path);
-        $prefix = rtrim($rootRealPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         if (!is_string($realPath) || !str_starts_with($realPath, $prefix) || !is_file($realPath)) {
             continue;
         }
 
+        if ($processedCount >= $limit) {
+            $limitReached = true;
+            break;
+        }
+
+        $processedCount++;
         $sizeBytes = max(0, (int) filesize($realPath));
         if (@unlink($realPath)) {
             $deletedCount++;
@@ -263,6 +295,8 @@ function sr_admin_thumbnail_cache_cleanup(array $filters = []): array
         'deleted_count' => $deletedCount,
         'deleted_bytes' => $deletedBytes,
         'errors' => $errors,
+        'limit' => $limit,
+        'limit_reached' => $limitReached,
     ];
 }
 

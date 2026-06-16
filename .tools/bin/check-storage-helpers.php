@@ -334,6 +334,38 @@ sr_storage_helper_assert(
     'Admin thumbnail cache cleanup must delete matching generated cache files.'
 );
 
+$adminCacheLimitFixtureDir = $root . '/storage/cache/thumbnails/community/cd';
+if (!is_dir($adminCacheLimitFixtureDir)) {
+    @mkdir($adminCacheLimitFixtureDir, 0755, true);
+}
+$adminCacheLimitFixturePaths = [];
+foreach (['1', '2', '3'] as $index) {
+    $relative = 'community/cd/' . str_repeat($index, 64) . '_w160_h90_cover_q82_source_' . str_repeat('e', 16) . '.jpg';
+    $path = $adminCacheLimitFixtureDir . '/' . basename($relative);
+    file_put_contents($path, 'thumbnail-cache-limit-fixture');
+    touch($path, strtotime('2001-01-03 12:00:00'));
+    $adminCacheLimitFixturePaths[] = $path;
+}
+$adminCacheLimitedCleanup = sr_admin_thumbnail_cache_cleanup([
+    'date_from' => '2001-01-03',
+    'date_to' => '2001-01-03',
+    'module_key' => 'community',
+], 2);
+sr_storage_helper_assert(
+    (int) ($adminCacheLimitedCleanup['deleted_count'] ?? 0) === 2 && !empty($adminCacheLimitedCleanup['limit_reached']),
+    'Admin thumbnail cache cleanup must stop at the per-request limit and report remaining work.'
+);
+$adminCacheRemainingLimitFixtures = array_values(array_filter($adminCacheLimitFixturePaths, static fn (string $path): bool => is_file($path)));
+sr_storage_helper_assert(
+    count($adminCacheRemainingLimitFixtures) === 1,
+    'Admin thumbnail cache limited cleanup must leave files beyond the per-request limit.'
+);
+sr_admin_thumbnail_cache_cleanup([
+    'date_from' => '2001-01-03',
+    'date_to' => '2001-01-03',
+    'module_key' => 'community',
+], 10);
+
 if ($errors !== []) {
     fwrite(STDERR, "storage helper checks failed:\n");
     foreach ($errors as $error) {

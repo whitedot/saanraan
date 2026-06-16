@@ -31,11 +31,16 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($postErrors === []) {
-        $cleanupResult = sr_admin_thumbnail_cache_cleanup($postFilters);
+        $cleanupLimit = sr_admin_thumbnail_cache_cleanup_limit();
+        $cleanupResult = sr_admin_thumbnail_cache_cleanup($postFilters, $cleanupLimit);
         $deletedCount = (int) ($cleanupResult['deleted_count'] ?? 0);
         $deletedBytes = (int) ($cleanupResult['deleted_bytes'] ?? 0);
+        $limitReached = !empty($cleanupResult['limit_reached']);
         $cleanupErrors = isset($cleanupResult['errors']) && is_array($cleanupResult['errors']) ? $cleanupResult['errors'] : [];
         $postNotice = '썸네일 캐시 ' . number_format($deletedCount) . '개, ' . sr_format_bytes($deletedBytes) . '를 정리했습니다.';
+        if ($limitReached) {
+            $postNotice .= ' 한 번에 최대 ' . number_format($cleanupLimit) . '개씩 처리합니다. 남은 파일이 있으면 다시 정리해 주세요.';
+        }
         if ($cleanupErrors !== []) {
             $postErrors[] = '일부 캐시 파일을 삭제하지 못했습니다: ' . implode(', ', array_slice(array_map('strval', $cleanupErrors), 0, 5));
         }
@@ -53,6 +58,8 @@ if (sr_request_method() === 'POST') {
                 'date_to' => (string) $postFilters['date_to'],
                 'deleted_count' => $deletedCount,
                 'deleted_bytes' => $deletedBytes,
+                'cleanup_limit' => $cleanupLimit,
+                'limit_reached' => $limitReached,
                 'failed_count' => count($cleanupErrors),
             ],
         ]);

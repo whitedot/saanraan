@@ -13,6 +13,7 @@ $dateBytes = isset($cacheSummary['date_bytes']) && is_array($cacheSummary['date_
 $variantCounts = isset($cacheSummary['variant_counts']) && is_array($cacheSummary['variant_counts']) ? $cacheSummary['variant_counts'] : [];
 $cleanupTargetCount = (int) ($cacheSummary['total_count'] ?? 0);
 $cleanupTargetBytes = (int) ($cacheSummary['total_bytes'] ?? 0);
+$cleanupLimit = sr_admin_thumbnail_cache_cleanup_limit();
 $currentQuery = http_build_query(array_filter($filters, static fn (string $value): bool => $value !== ''));
 ?>
 
@@ -184,7 +185,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
                                 <dd><?php echo sr_e(sr_format_bytes($cleanupTargetBytes)); ?></dd>
                             </div>
                         </dl>
-                        <p>정리 실행 시점에 캐시 파일을 다시 확인하므로 실제 삭제 결과는 위 숫자와 다를 수 있습니다.</p>
+                        <p>정리는 한 번에 최대 <?php echo sr_e(number_format($cleanupLimit)); ?>개씩 처리합니다. 실행 시점에 캐시 파일을 다시 확인하므로 실제 삭제 결과는 위 숫자와 다를 수 있습니다.</p>
                     </div>
                     <div class="admin-form-row">
                         <label class="form-label" for="admin_storage_cache_cleanup_confirm_text">확인 문구 <span class="sr-required-label">(필수)</span></label>
@@ -202,7 +203,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-storage-cache-cleanup-modal">닫기</button>
-                    <button type="submit" class="btn btn-outline-danger modal-action">정리</button>
+                    <button type="submit" class="btn btn-outline-danger modal-action" data-admin-storage-cache-cleanup-submit data-ready-label="정리" data-busy-label="정리 중">정리</button>
                 </div>
             </form>
         </div>
@@ -219,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var input = form.querySelector('[data-admin-confirm-phrase]');
     var errorNote = form.querySelector('[data-admin-confirm-phrase-error]');
     var errorIcon = form.querySelector('[data-admin-confirm-phrase-icon]');
+    var submitButton = form.querySelector('[data-admin-storage-cache-cleanup-submit]');
     if (!input) {
         return;
     }
@@ -278,6 +280,17 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         input.focus();
         input.reportValidity();
+        return;
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (event.defaultPrevented) {
+            return;
+        }
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = submitButton.getAttribute('data-busy-label') || '정리 중';
+        }
     });
 });
 </script>
