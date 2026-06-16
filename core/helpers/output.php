@@ -1358,74 +1358,43 @@ function sr_public_layout_member_action_rows(PDO $pdo, int $accountId): array
 
     $rows = [];
 
-    if (sr_module_enabled($pdo, 'reward') && is_file(SR_ROOT . '/modules/reward/helpers.php')) {
-        require_once SR_ROOT . '/modules/reward/helpers.php';
-        try {
-            if (
-                function_exists('sr_reward_withdrawal_requests_enabled')
-                && function_exists('sr_reward_account_can_request_withdrawal')
-                && function_exists('sr_reward_withdrawal_available_amount')
-                && function_exists('sr_reward_withdrawal_min_amount')
-                && sr_reward_withdrawal_requests_enabled($pdo)
-                && sr_reward_account_can_request_withdrawal($pdo, $accountId)
-            ) {
-                $availableAmount = sr_reward_withdrawal_available_amount($pdo, $accountId);
-                if ($availableAmount >= sr_reward_withdrawal_min_amount()) {
-                    $rows[] = [
-                        'label' => '적립금 출금 신청',
-                        'value' => number_format($availableAmount) . '원 가능',
-                        'url' => sr_url('/account/rewards#reward-withdrawal-request'),
-                    ];
-                }
-            }
-        } catch (Throwable $exception) {
-            if (function_exists('sr_log_exception')) {
-                sr_log_exception($exception, 'public_member_reward_action_row');
-            }
+    foreach (sr_enabled_module_contract_files($pdo, 'member-action-rows.php') as $moduleKey => $contractFile) {
+        $contract = sr_load_module_contract_file($moduleKey, $contractFile);
+        $provider = is_callable($contract) ? $contract : ($contract['rows_function'] ?? null);
+        if (!is_callable($provider)) {
+            continue;
         }
-    }
 
-    if (sr_module_enabled($pdo, 'deposit') && is_file(SR_ROOT . '/modules/deposit/helpers.php')) {
-        require_once SR_ROOT . '/modules/deposit/helpers.php';
         try {
-            if (
-                function_exists('sr_deposit_refund_requests_enabled')
-                && function_exists('sr_deposit_account_can_request_refund')
-                && function_exists('sr_deposit_refund_available_amount')
-                && function_exists('sr_deposit_refund_min_amount')
-                && sr_deposit_refund_requests_enabled($pdo)
-                && sr_deposit_account_can_request_refund($pdo, $accountId)
-            ) {
-                $availableAmount = sr_deposit_refund_available_amount($pdo, $accountId);
-                if ($availableAmount >= sr_deposit_refund_min_amount()) {
-                    $rows[] = [
-                        'label' => '예치금 환불 신청',
-                        'value' => number_format($availableAmount) . '원 가능',
-                        'url' => sr_url('/account/deposits#deposit-refund-request'),
-                    ];
-                }
-            }
+            $moduleRows = $provider($pdo, $accountId);
         } catch (Throwable $exception) {
             if (function_exists('sr_log_exception')) {
-                sr_log_exception($exception, 'public_member_deposit_action_row');
+                sr_log_exception($exception, 'public_member_action_rows_' . $moduleKey);
             }
+            continue;
         }
-    }
 
-    if (sr_module_enabled($pdo, 'asset_exchange') && is_file(SR_ROOT . '/modules/asset_exchange/helpers.php')) {
-        require_once SR_ROOT . '/modules/asset_exchange/helpers.php';
-        try {
-            if (function_exists('sr_asset_exchange_member_has_available_policy') && sr_asset_exchange_member_has_available_policy($pdo, $accountId)) {
-                $rows[] = [
-                    'label' => '환전 신청',
-                    'value' => '가능',
-                    'url' => sr_url('/account/asset-exchange#asset-exchange-request'),
-                ];
+        if (!is_array($moduleRows)) {
+            continue;
+        }
+
+        foreach ($moduleRows as $row) {
+            if (!is_array($row)) {
+                continue;
             }
-        } catch (Throwable $exception) {
-            if (function_exists('sr_log_exception')) {
-                sr_log_exception($exception, 'public_member_asset_exchange_action_row');
+
+            $label = trim((string) ($row['label'] ?? ''));
+            $value = trim((string) ($row['value'] ?? ''));
+            $url = trim((string) ($row['url'] ?? ''));
+            if ($label === '' || $value === '' || !sr_is_safe_relative_url($url)) {
+                continue;
             }
+
+            $rows[] = [
+                'label' => $label,
+                'value' => $value,
+                'url' => sr_url($url),
+            ];
         }
     }
 
