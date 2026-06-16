@@ -22,6 +22,7 @@ return [
         'modules' => ['member', 'admin'],
     ],
     'settings' => [
+        'layout_key' => 'survey.basic',
         'skin_key' => 'basic',
         'default_status' => 'draft',
         'default_login_required' => 1,
