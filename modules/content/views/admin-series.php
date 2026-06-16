@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '콘텐츠 시리즈';
-$adminPageSubtitle = '콘텐츠의 공개 회차 흐름을 관리합니다.';
+$adminPageSubtitle = '콘텐츠의 회차 목록과 이전·다음 이동 순서를 관리합니다.';
 $adminContainerClass = 'admin-content-series-list admin-ui-scope';
 $seriesFilters = isset($seriesFilters) && is_array($seriesFilters) ? $seriesFilters : ['status' => '', 'visibility' => '', 'field' => 'all', 'q' => ''];
 $seriesSortOptions = isset($seriesSortOptions) && is_array($seriesSortOptions) ? $seriesSortOptions : sr_content_admin_series_sort_options();

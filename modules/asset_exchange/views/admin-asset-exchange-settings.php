@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '포인트/금액 환전 환경설정';
-$adminPageSubtitle = '새 환전 정책을 등록할 때 사용할 기본값을 정합니다.';
+$adminPageSubtitle = '새 환전 규칙을 만들 때 기본으로 들어갈 값을 정합니다.';
 $settings = isset($settings) && is_array($settings) ? sr_asset_exchange_normalize_settings($settings) : sr_asset_exchange_default_settings();
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
 $roundingModeLabels = ['floor' => '버림', 'round' => '반올림', 'ceil' => '올림'];

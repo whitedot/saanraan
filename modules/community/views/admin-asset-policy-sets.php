@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '커뮤니티 회원 그룹별 설정';
-$adminPageSubtitle = '커뮤니티 적립, 차감, 유료 열람, 첨부 다운로드에서 회원 그룹별 최종 금액을 설정하는 규칙입니다.';
+$adminPageSubtitle = '커뮤니티 활동의 적립, 차감, 유료 열람 금액을 회원 그룹별로 관리합니다.';
 $adminContainerClass = 'admin-community-asset-policy-sets admin-ui-scope';
 $policySetPage = isset($policySetPage) ? (string) $policySetPage : 'list';
 $policySetSort = isset($policySetSort) && is_array($policySetSort) ? $policySetSort : sr_community_asset_policy_set_default_sort();

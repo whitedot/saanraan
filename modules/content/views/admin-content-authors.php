@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '콘텐츠 작성자 승인';
-$adminPageSubtitle = '개별 회원 콘텐츠 제출 권한을 관리합니다.';
+$adminPageSubtitle = '콘텐츠를 등록할 수 있는 회원과 권한 상태를 관리합니다.';
 $adminContainerClass = 'admin-page-content-authors admin-ui-scope';
 $canEditContentAuthors = !empty($canEditContentAuthors);
 $authorReturnTo = sr_admin_current_get_url('/admin/content/authors');

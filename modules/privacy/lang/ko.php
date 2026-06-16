@@ -43,7 +43,7 @@ return [
     'ui.privacy.guidance.title' => '개인정보 안내',
     'ui.privacy.list.ba466a40' => '개인정보 대응 기록',
     'ui.privacy.privacy.733631a5' => '관리자 전용 개인정보 사본 제공과 처리 보조 도구 모듈입니다.',
-    'ui.privacy.status.18ec0f1a' => '운영자 문의로 접수한 개인정보 대응 기록을 확인하고 필요한 처리 자료를 내려받습니다.',
+    'ui.privacy.status.18ec0f1a' => '개인정보 관련 요청의 접수 상태를 확인하고 처리에 필요한 자료를 내려받습니다.',
     'ui.required.1f227c67' => '(필수)',
     'ui.save.5fb92622' => '저장',
     'ui.search.4b8d541e' => '검색',

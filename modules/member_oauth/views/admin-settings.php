@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '회원 OAuth 설정';
-$adminPageSubtitle = 'OAuth/OIDC 로그인 제공자와 계정 연결 정책을 관리합니다.';
+$adminPageSubtitle = '소셜 로그인 제공자와 기존 계정 연결 방식을 설정합니다.';
 $callbackUrl = sr_absolute_url($site ?? [], '/oauth/callback');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

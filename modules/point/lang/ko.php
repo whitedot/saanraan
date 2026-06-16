@@ -95,7 +95,7 @@ return [
     'ui.settings.expire_due_help' => '만료 대상 포인트를 바로 처리합니다. 위 환경설정 입력값은 함께 저장하지 않습니다.',
     'ui.settings.menu' => '포인트 환경설정',
     'ui.settings.save' => '환경설정 저장',
-    'ui.settings.subtitle' => '포인트 항목의 표시 이름, 단위, 만료 정책을 관리합니다.',
+    'ui.settings.subtitle' => '회원 화면에 보일 포인트 이름, 단위, 기본 만료 기간을 설정합니다.',
     'ui.settings.title' => '포인트 환경설정',
     'ui.settings.unit_label' => '단위명',
     'ui.settings.unit_label_help' => '수량 뒤에 붙는 짧은 단위입니다. 비워 두면 P를 사용합니다.',

@@ -59,7 +59,7 @@ return [
     'ui.public_symbol.list_label' => '심볼',
     'ui.public_symbol.no' => '아니오',
     'ui.public_symbol.yes' => '사용',
-    'ui.text.52f5a11e' => '용도별 로고와 적용 기간을 관리합니다.',
+    'ui.text.52f5a11e' => '관리자 화면과 공개 화면에 사용할 로고와 적용 기간을 관리합니다.',
     'ui.text.65bdaefd' => '시작 시각',
     'ui.text.8789bbce' => '등록된 로고 없음',
     'ui.text.8902fb48' => '상시',

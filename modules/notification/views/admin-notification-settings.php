@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '알림 환경설정';
-$adminPageSubtitle = '메일 발송과 외부 운영 푸시 환경을 관리합니다.';
+$adminPageSubtitle = '사이트 알림 발송에 사용할 메일과 운영자 알림 연결 정보를 설정합니다.';
 $emailTransportOptions = sr_notification_email_transport_options();
 $emailEncryptionOptions = sr_notification_email_encryption_options();
 include SR_ROOT . '/modules/admin/views/layout-header.php';

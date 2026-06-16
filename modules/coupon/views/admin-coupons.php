@@ -7,15 +7,15 @@ if (!in_array($couponAdminPage, ['definitions', 'issues', 'redemptions'], true))
 $couponAdminPageMeta = [
     'definitions' => [
         'title' => '쿠폰 관리',
-        'subtitle' => '지급할 쿠폰 종류를 관리합니다.',
+        'subtitle' => '회원에게 지급할 쿠폰 종류와 사용 조건을 관리합니다.',
     ],
     'issues' => [
         'title' => '지급 내역',
-        'subtitle' => '쿠폰 지급 내역을 확인하고 상태를 관리합니다.',
+        'subtitle' => '회원에게 지급된 쿠폰의 상태와 사용 가능 여부를 확인합니다.',
     ],
     'redemptions' => [
         'title' => '사용 내역',
-        'subtitle' => '쿠폰 사용 내역을 확인하고 환불을 관리합니다.',
+        'subtitle' => '쿠폰 사용 기록을 확인하고 필요한 경우 수동 환불을 처리합니다.',
     ],
 ];
 $adminPageTitle = $couponAdminPageMeta[$couponAdminPage]['title'];

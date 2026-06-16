@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '게시판 복사';
-$adminPageSubtitle = '게시판 설정 또는 운영 데이터를 새 disabled 게시판으로 복사합니다.';
+$adminPageSubtitle = '기존 게시판 설정이나 운영 데이터를 새 사용 중지 게시판으로 복사합니다.';
 $adminContainerClass = 'admin-community-board-form admin-ui-scope';
 $communityBoardCopySeriesSuggestions = sr_community_board_copy_series_suggestions($pdo, (int) $sourceBoard['id']);
 $communityBoardCopyStorageWarnings = sr_community_board_copy_storage_warnings($copyCounts);

@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '콘텐츠 회원 그룹별 설정';
-$adminPageSubtitle = '콘텐츠 유료 열람, 다운로드, 완료 버튼에서 회원 그룹별 최종 금액을 설정하는 규칙입니다.';
+$adminPageSubtitle = '콘텐츠 열람, 다운로드, 완료 버튼에 적용할 그룹별 금액 정책을 관리합니다.';
 $adminContainerClass = 'admin-content-asset-policy-sets admin-ui-scope';
 $policySetPage = isset($policySetPage) ? (string) $policySetPage : 'list';
 $policySetSort = isset($policySetSort) && is_array($policySetSort) ? $policySetSort : sr_content_asset_policy_set_default_sort();

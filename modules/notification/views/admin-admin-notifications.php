@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '운영 알림';
-$adminPageSubtitle = '관리자 모드에서 조치하거나 확인해야 하는 운영 이벤트를 확인합니다.';
+$adminPageSubtitle = '운영자가 확인하거나 처리해야 할 알림을 모아 봅니다.';
 $adminContainerClass = 'admin-page-admin-notifications admin-ui-scope';
 $adminNotificationFilters = isset($adminNotificationFilters) && is_array($adminNotificationFilters) ? $adminNotificationFilters : ['status' => ['open'], 'severity' => [], 'notification_id' => 0, 'field' => 'all', 'q' => ''];
 $adminNotificationStatusCounts = isset($adminNotificationStatusCounts) && is_array($adminNotificationStatusCounts) ? $adminNotificationStatusCounts : [];

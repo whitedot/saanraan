@@ -489,7 +489,7 @@ foreach ([
 
 foreach ([
     '지연/실패 신호',
-    '지연되었거나 실패한 작업을 확인만 하는 화면입니다.',
+    '지연되었거나 실패한 항목은 해당 관리 화면에서 처리해 주세요.',
     '지연 초과',
     '허용 지연',
     'sr_admin_time_html($operationStatusCheckedAt)',

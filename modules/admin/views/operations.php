@@ -3,7 +3,7 @@
 $adminPageTitle = '운영 상태';
 $adminPageSubtitle = [
     '예약 작업과 발송 대기 상태를 확인합니다.',
-    '지연되었거나 실패한 작업을 확인만 하는 화면입니다. 다시 실행하거나 취소해야 하는 작업은 각 관리 화면에서 처리해 주세요.',
+    '지연되었거나 실패한 항목은 해당 관리 화면에서 처리해 주세요.',
 ];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
