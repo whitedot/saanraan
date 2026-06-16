@@ -74,8 +74,36 @@
     });
   }
 
+  function handleSearchFormSubmit(event) {
+    var form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-community-layout-search-form')) {
+      return;
+    }
+
+    var input = form.querySelector('[data-community-layout-search-input]');
+    var keyword = input instanceof HTMLInputElement ? input.value.trim() : '';
+    var minLength = parseInt(form.getAttribute('data-community-layout-search-min-length') || '2', 10);
+    var alertMessage = form.getAttribute('data-community-layout-search-alert') || '검색어는 2글자 이상 입력해 주세요.';
+
+    if (!Number.isFinite(minLength) || minLength < 1) {
+      minLength = 2;
+    }
+
+    if (keyword.length >= minLength) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.alert(alertMessage);
+    if (input instanceof HTMLInputElement) {
+      input.focus();
+    }
+  }
+
   function init() {
     Array.prototype.slice.call(document.querySelectorAll(SCROLL_NAV_SELECTOR)).forEach(bindScrollNav);
+    document.addEventListener('submit', handleSearchFormSubmit, true);
     bindHeaderMenus();
   }
 

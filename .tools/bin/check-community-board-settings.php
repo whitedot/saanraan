@@ -315,6 +315,20 @@ sr_check_community_board_settings_contains('modules/community/actions/delete.php
 sr_check_community_board_settings_contains('modules/community/actions/comment.php', ['sr_community_validate_comment_body_length'], 'community comment create length validation');
 sr_check_community_board_settings_contains('modules/community/actions/comment-edit.php', ['sr_community_validate_comment_body_length'], 'community comment edit length validation');
 sr_check_community_board_settings_contains('modules/community/skins/basic/list.php', ['sr_community_body_excerpt'], 'community basic list excerpt rendering');
+sr_check_community_board_settings_contains('modules/community/layouts/basic/layout.php', [
+    'data-community-layout-search-form',
+    'data-community-layout-search-input',
+    'data-community-layout-search-min-length="2"',
+    'data-community-layout-search-alert',
+], 'community layout search form frontend hook');
+sr_check_community_board_settings_contains('modules/community/assets/layout.js', [
+    'function handleSearchFormSubmit(event)',
+    "form.hasAttribute('data-community-layout-search-form')",
+    'keyword.length >= minLength',
+    'window.alert(alertMessage);',
+    'event.stopImmediatePropagation();',
+    'event.preventDefault();',
+], 'community layout search frontend guard');
 
 if (sr_community_board_list_sort_key('views') !== 'views' || sr_community_board_list_sort_key('bad') !== 'latest') {
     sr_check_community_board_settings_error('community list sort key normalization failed.');

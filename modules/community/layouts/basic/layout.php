@@ -323,9 +323,9 @@ if (
                 <?php } ?>
                 <span class="community-layout-module-name"><?php echo sr_e('커뮤니티'); ?></span>
             </a>
-            <form class="community-layout-search" method="get" action="<?php echo sr_e(sr_url('/community/search')); ?>" role="search">
+            <form class="community-layout-search" method="get" action="<?php echo sr_e(sr_url('/community/search')); ?>" role="search" data-community-layout-search-form data-community-layout-search-min-length="2" data-community-layout-search-alert="<?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?>">
                 <label for="community_layout_search_q"><?php echo sr_e('커뮤니티 검색'); ?></label>
-                <input id="community_layout_search_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($layoutSearchKeyword); ?>" placeholder="<?php echo sr_e('검색'); ?>" autocomplete="off">
+                <input id="community_layout_search_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($layoutSearchKeyword); ?>" placeholder="<?php echo sr_e('검색'); ?>" autocomplete="off" data-community-layout-search-input>
                 <button type="submit" aria-label="<?php echo sr_e('검색'); ?>">
                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>search</span>
                 </button>
