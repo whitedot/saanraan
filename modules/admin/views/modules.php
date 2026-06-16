@@ -15,6 +15,7 @@ $installableSections = [
         'pagination' => $installableModulePagination,
         'empty' => '설치 가능한 모듈이 없습니다.',
         'pagination_label' => '설치 가능 모듈 목록 페이지',
+        'show_foundation_toggle' => true,
     ],
     [
         'title' => '설치 가능 플러그인',
@@ -22,6 +23,7 @@ $installableSections = [
         'pagination' => $installablePluginPagination,
         'empty' => '설치 가능한 플러그인이 없습니다.',
         'pagination_label' => '설치 가능 플러그인 목록 페이지',
+        'show_foundation_toggle' => false,
     ],
 ];
 $installedSections = [
@@ -45,9 +47,11 @@ $installedSections = [
     <?php $installablePagination = $installableSection['pagination']; ?>
 <div class="admin-section-heading">
     <h2><?php echo sr_e((string) $installableSection['title']); ?></h2>
-    <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url($showFoundationModules ? '/admin/modules' : '/admin/modules?show_foundations=1')); ?>">
-        <?php echo sr_e($showFoundationModules ? '기반 모듈 숨기기' : '기반 모듈 보기'); ?>
-    </a>
+    <?php if (!empty($installableSection['show_foundation_toggle'])) { ?>
+        <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url($showFoundationModules ? '/admin/modules' : '/admin/modules?show_foundations=1')); ?>">
+            <?php echo sr_e($showFoundationModules ? '기반 모듈 숨기기' : '기반 모듈 보기'); ?>
+        </a>
+    <?php } ?>
     <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="module-upload-modal" data-overlay="#module-upload-modal" hidden>
         <?php echo sr_material_icon_html('upload'); ?>
         <span><?php echo sr_e(sr_t('admin::ui.zip.580feeda')); ?></span>
