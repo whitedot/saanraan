@@ -172,6 +172,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('community_series_status', array_combine(sr_community_series_statuses(), array_map('sr_community_series_status_label', sr_community_series_statuses())) ?: [], [], '시리즈 상태 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('community_series_visibility', array_combine(sr_community_series_visibility_values(), array_map('sr_community_series_visibility_label', sr_community_series_visibility_values())) ?: [], [], '공개 범위 설명'); ?>
 </section>
 <?php echo sr_admin_pagination_html($seriesPagination, '커뮤니티 시리즈 목록 페이지'); ?>
 

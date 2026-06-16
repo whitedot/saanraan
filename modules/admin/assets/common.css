@@ -133,6 +133,15 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .card .card-body{padding:calc(var(--spacing) * 5);flex:auto}
 .card .card-footer{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-top:1px solid var(--color-light);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .card-title{font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
+.card-description-block{border-top:1px solid var(--color-default-200);margin-top:calc(var(--spacing) * 4);padding:calc(var(--spacing) * 4)}
+.card-description-title{margin:0 0 calc(var(--spacing) * 2);color:var(--text-strong);font-size:var(--type-card-title-size);line-height:var(--type-card-title-line-height);font-weight:var(--font-weight-semibold)}
+.card-description-list{background-color:var(--color-default-100);border-radius:var(--radius-sm);color:var(--text-muted);font-size:.875rem;line-height:1.6;margin:0;padding:calc(var(--spacing) * 3) calc(var(--spacing) * 4)}
+.card-description-list>div{margin:0;min-width:0;padding-left:calc(var(--spacing) * 4);position:relative}
+.card-description-list>div+div{margin-top:calc(var(--spacing) * 1.5)}
+.card-description-list>div:before{background-color:currentColor;border-radius:999px;content:"";height:.3rem;left:calc(var(--spacing) * 1);opacity:.75;position:absolute;top:.68em;width:.3rem}
+.card-description-list dt{display:inline;margin:0;color:var(--text-strong);font-weight:var(--font-weight-semibold)}
+.card-description-list dt:after{content:": "}
+.card-description-list dd{display:inline;margin:0}
 .card-header .card-title{font-weight:var(--font-weight-bold)}
 .admin-list-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px dashed var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
 .admin-list-card>.card-header>.card-title{margin:calc(var(--spacing) * 0);font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}

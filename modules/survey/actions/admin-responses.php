@@ -208,6 +208,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('survey_quality_status', array_combine(sr_survey_quality_statuses(), array_map('sr_survey_quality_status_label', sr_survey_quality_statuses())) ?: []); ?>
 </section>
 <?php echo sr_admin_pagination_html($pagination, '설문 응답 목록 페이지'); ?>
 

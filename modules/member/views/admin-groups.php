@@ -430,6 +430,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                 <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></span>
             <?php } ?>
         </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
 	    </section>
 
     <?php echo $memberGroupReferenceModals; ?>

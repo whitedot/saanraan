@@ -226,6 +226,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
     <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('travel_explore'); ?> 참조 현황</span>
 </div>
+<?php echo sr_admin_status_description_list_html('coupon_definition_status', $definitionStatusLabels); ?>
 </section>
 
 <?php echo $couponDefinitionReferenceModals; ?>
@@ -690,6 +691,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('coupon_issue_status', $issueStatusLabels); ?>
     <?php echo sr_admin_pagination_html($issuePagination, '쿠폰 지급 내역 목록 페이지'); ?>
 </section>
 <?php } ?>
@@ -818,6 +820,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('coupon_redemption_status', $redemptionStatusLabels); ?>
     <?php echo sr_admin_pagination_html($redemptionPagination, '쿠폰 사용 내역 목록 페이지'); ?>
 </section>
 

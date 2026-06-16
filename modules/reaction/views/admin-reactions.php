@@ -176,6 +176,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('reaction_target_status', array_combine(array_keys($reactionTargetStatusClasses), array_keys($reactionTargetStatusClasses)) ?: [], [], '대상 상태 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('reaction_status', ['active' => '사용', 'disabled' => '중지'], [], '리액션 상태 설명'); ?>
 </section>
 <?php } ?>
 
@@ -246,6 +248,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
     </div>
+    <?php echo sr_admin_status_description_list_html('reaction_status', ['active' => '사용', 'disabled' => '중지']); ?>
 </section>
 
 <section class="admin-card admin-list-card card admin-list-form">
@@ -364,6 +367,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
     </div>
+    <?php echo sr_admin_status_description_list_html('reaction_status', ['active' => '사용', 'disabled' => '중지']); ?>
 </section>
 <?php } ?>
 

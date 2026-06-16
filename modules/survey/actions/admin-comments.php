@@ -158,6 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('survey_comment_status', array_combine(sr_survey_comment_statuses(), array_map('sr_survey_comment_status_label', sr_survey_comment_statuses())) ?: []); ?>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

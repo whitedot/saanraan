@@ -121,6 +121,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('community_publisher_reward_status', array_combine(sr_community_publisher_reward_statuses(), array_map('sr_community_publisher_reward_status_label', sr_community_publisher_reward_statuses())) ?: []); ?>
 </section>
 
 <?php echo sr_admin_pagination_html($publisherRewardPagination, '게시자 리워드 로그 페이지'); ?>

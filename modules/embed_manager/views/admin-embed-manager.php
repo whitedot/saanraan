@@ -86,6 +86,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
+        <?php echo sr_admin_status_description_list_html('embed_manager_status'); ?>
     </section>
 <?php } ?>
 

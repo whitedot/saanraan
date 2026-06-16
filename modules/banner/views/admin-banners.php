@@ -534,6 +534,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('content_copy'); ?> 복사</span>
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('banner::ui.delete.6139b6c3')); ?></span>
         </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
 	    </section>
     <?php echo $bannerCopyModals; ?>
     <?php echo $bannerReferenceModals; ?>

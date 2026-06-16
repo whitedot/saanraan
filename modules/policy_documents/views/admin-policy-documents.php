@@ -259,6 +259,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
     </section>
 
     <?php foreach ($documents as $document) { ?>
@@ -327,6 +328,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </tbody>
                                 </table>
                             </div>
+                            <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['published', 'draft', 'archived'], 'content_status')); ?>
                         </section>
                     </div>
                     <div class="modal-footer">
@@ -383,6 +385,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
+        <?php echo sr_admin_status_description_list_html('policy_document_mail_status', ['queued' => '대기', 'sent' => '발송 완료', 'failed' => '실패']); ?>
     </section>
 <?php } ?>
 

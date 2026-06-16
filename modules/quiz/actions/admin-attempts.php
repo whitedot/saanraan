@@ -247,6 +247,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('quiz_attempt_status', [
+        'submitted' => sr_quiz_attempt_status_label('submitted'),
+        'scored' => sr_quiz_attempt_status_label('scored'),
+        'rewarded' => sr_quiz_attempt_status_label('rewarded'),
+        'failed' => sr_quiz_attempt_status_label('failed'),
+    ], [], '응시 상태 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('quiz_reward_grant_status', [
+        'pending' => sr_quiz_reward_grant_status_label('pending'),
+        'granted' => sr_quiz_reward_grant_status_label('granted'),
+        'failed' => sr_quiz_reward_grant_status_label('failed'),
+        'duplicate' => sr_quiz_reward_grant_status_label('duplicate'),
+        'cancelled' => sr_quiz_reward_grant_status_label('cancelled'),
+    ], [], '보상 상태 설명'); ?>
 </section>
 
 <?php foreach ($attemptReclaimModals as $reclaimModal) { ?>

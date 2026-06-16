@@ -13,10 +13,22 @@ $assetIssueLabels = [
     'nonzero_balance_without_transactions' => '거래 없는 잔액',
     'balance_after_sequence_mismatch' => '거래별 잔액 연쇄 불일치',
 ];
+$assetIssueDescriptions = [
+    'missing_balance_row' => '거래는 있지만 해당 계정의 잔액 행이 없습니다.',
+    'balance_sum_mismatch' => '현재 저장된 잔액과 거래 금액 합계가 다릅니다.',
+    'last_balance_after_mismatch' => '마지막 거래에 기록된 거래 후 잔액과 현재 저장 잔액이 다릅니다.',
+    'nonzero_balance_without_transactions' => '거래가 없는데 현재 잔액이 0이 아닙니다.',
+    'balance_after_sequence_mismatch' => '거래 순서대로 계산한 기대 잔액과 거래의 balance_after 값이 처음으로 어긋난 지점입니다.',
+];
 $assetStatusLabels = [
     'checked' => '점검 완료',
     'skipped' => '건너뜀',
     'error' => '오류',
+];
+$assetStatusDescriptions = [
+    'checked' => '잔액 행과 거래 원장을 대조했습니다. 불일치 수가 0이면 해당 항목은 현재 기준으로 정상입니다.',
+    'skipped' => '모듈이 설치되지 않았거나 점검에 필요한 테이블/계약을 확인할 수 없어 읽기 전용 대조를 수행하지 않았습니다.',
+    'error' => '점검 중 예외가 발생했습니다. 메모와 운영 로그를 확인한 뒤 같은 화면 또는 CLI 점검을 다시 실행하세요.',
 ];
 $assetTotals = sr_asset_reconciliation_summary($reconciliationResults);
 
@@ -69,6 +81,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('asset_reconciliation_status', $assetStatusLabels, $assetStatusDescriptions, '상태 설명'); ?>
 </section>
 
 <?php foreach ($reconciliationResults as $assetResult) { ?>
@@ -134,6 +147,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php if (!empty($assetResult['truncated'])) { ?>
             <p class="admin-list-summary">표시 한도 50건을 초과한 불일치가 있습니다. 전체 결과는 CLI 점검 도구로 확인하세요.</p>
         <?php } ?>
+        <?php echo sr_admin_status_description_list_html('asset_reconciliation_issue', $assetIssueLabels, $assetIssueDescriptions, '불일치 유형 설명'); ?>
     </section>
 <?php } ?>
 

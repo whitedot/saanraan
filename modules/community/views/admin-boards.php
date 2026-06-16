@@ -369,6 +369,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('content_copy'); ?> 복사</span>
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 게시판 삭제</span>
         </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
 	    </section>
     <?php echo sr_admin_pagination_html($boardPagination, '게시판 목록 페이지'); ?>
     <?php $communityStorageCleanupFailures = is_array($communityStorageCleanupFailures ?? null) ? $communityStorageCleanupFailures : []; ?>

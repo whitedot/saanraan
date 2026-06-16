@@ -253,6 +253,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
     </div>
+    <?php echo sr_admin_status_description_list_html('asset_exchange_policy_status', $policyStatusLabels); ?>
 </section>
 
 <div id="<?php echo sr_e($policyModalId); ?>" class="<?php echo sr_e($policyModalClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($policyModalId); ?>_title" aria-hidden="<?php echo sr_e($policyModalAriaHidden); ?>"<?php echo $policyModalInert; ?>>

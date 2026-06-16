@@ -81,6 +81,7 @@ $statusClass = static function (string $status): string {
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('operational_status', ['ok' => '정상', 'warning' => '주의', 'overdue' => '지연', 'skipped' => '건너뜀', 'error' => '오류']); ?>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

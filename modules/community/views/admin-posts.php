@@ -221,6 +221,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options($postStatusDisplayOrder, 'content_status')); ?>
 </section>
 <?php echo sr_admin_pagination_html($postPagination, '게시글 목록 페이지'); ?>
 <?php } ?>
@@ -384,6 +385,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options($commentStatusDisplayOrder, 'content_status')); ?>
 </section>
 <?php echo sr_admin_pagination_html($commentPagination, '댓글 목록 페이지'); ?>
 <?php } ?>

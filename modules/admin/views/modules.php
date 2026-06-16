@@ -248,6 +248,7 @@ $installedSections = [
             <?php } ?>
         <?php } ?>
     </div>
+    <?php echo sr_admin_status_description_list_html('module_installable_status', ['installable' => '설치 가능', 'blocked' => '설치 불가'], [], '설치 가능 상태 설명'); ?>
     <?php echo sr_admin_pagination_html($installablePagination, (string) $installableSection['pagination_label']); ?>
 <?php } ?>
 <?php } ?>
@@ -513,6 +514,7 @@ $installedSections = [
         <?php } ?>
     <?php } ?>
 </div>
+<?php echo sr_admin_status_description_list_html('module_status'); ?>
 <?php echo sr_admin_pagination_html($installedPagination, (string) $installedSection['pagination_label']); ?>
 <?php } ?>
 <?php } ?>

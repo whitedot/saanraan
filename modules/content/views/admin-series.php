@@ -206,6 +206,8 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('save'); ?> 저장</span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 콘텐츠 시리즈 삭제</span>
     </div>
+    <?php echo sr_admin_status_description_list_html('content_series_status', array_combine(sr_content_series_statuses(), array_map('sr_content_series_status_label', sr_content_series_statuses())) ?: [], [], '시리즈 상태 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('content_series_visibility', array_combine(sr_content_series_visibility_values(), array_map('sr_content_series_visibility_label', sr_content_series_visibility_values())) ?: [], [], '공개 범위 설명'); ?>
 </section>
 <?php echo sr_admin_pagination_html($seriesPagination, '콘텐츠 시리즈 목록 페이지'); ?>
 

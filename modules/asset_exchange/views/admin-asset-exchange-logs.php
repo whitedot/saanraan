@@ -119,6 +119,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('asset_exchange_log_status', $logStatusLabels); ?>
 </section>
 
 <?php echo sr_admin_pagination_html($pagination, '포인트/금액 환전 로그 페이지'); ?>

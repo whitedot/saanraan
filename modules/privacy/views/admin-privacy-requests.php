@@ -194,6 +194,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </tbody>
     </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('privacy_request_status'); ?>
 </section>
 
 <div id="<?php echo sr_e($privacyRequestCreateModalId); ?>" class="<?php echo sr_e($privacyRequestCreateOverlayClass); ?>" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($privacyRequestCreateModalId); ?>_title" aria-hidden="<?php echo $privacyRequestCreateModalOpen ? 'false' : 'true'; ?>"<?php echo $privacyRequestCreateModalOpen ? '' : ' inert'; ?>>

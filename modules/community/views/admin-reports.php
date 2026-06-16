@@ -267,6 +267,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('open_in_new'); ?> 바로가기</span>
     <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('fact_check'); ?> <?php echo sr_e(sr_t('community::ui.text.16f64fe4')); ?></span>
 </div>
+<?php echo sr_admin_status_description_list_html('report_status'); ?>
 </section>
 <?php if ($reports !== []) { ?>
     <?php foreach ($reports as $report) { ?>

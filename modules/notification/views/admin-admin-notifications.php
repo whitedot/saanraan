@@ -207,6 +207,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
     <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('open_in_new'); ?> 바로가기 새 탭에서 열기</span>
 </div>
+<?php echo sr_admin_status_description_list_html('admin_notification_status', $adminNotificationStatusLabels, [], '알림 상태 설명'); ?>
+<?php echo sr_admin_status_description_list_html('admin_notification_severity', $adminNotificationSeverityLabels, [], '심각도 설명'); ?>
 </section>
 
 <?php echo sr_admin_pagination_html($adminNotificationPagination, '운영 알림 목록 페이지'); ?>

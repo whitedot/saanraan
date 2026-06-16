@@ -106,6 +106,33 @@
 
                         <div class="card">
                             <div class="card-header">
+                                <h4 class="card-title">설명 목록 카드</h4>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="ui-kit-space-after-4">상태가 있는 목록 하단에서 쓰는 공통 설명 목록입니다.</p>
+                                <div class="card-description-block" aria-label="상태 설명 예시">
+                                    <h5 class="card-description-title">상태 설명</h5>
+                                    <dl class="card-description-list">
+                                        <div>
+                                            <dt>점검 완료</dt>
+                                            <dd>현재 기준으로 읽기 전용 대조를 마쳤습니다.</dd>
+                                        </div>
+                                        <div>
+                                            <dt>건너뜀</dt>
+                                            <dd>필요한 모듈이나 테이블이 없어 점검하지 않았습니다.</dd>
+                                        </div>
+                                        <div>
+                                            <dt>오류</dt>
+                                            <dd>운영 로그를 확인한 뒤 다시 점검해야 합니다.</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.95fef11e')); ?></h4>
                             </div>
 

@@ -457,6 +457,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?></span>
     </div>
+    <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
 	    <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="admin-form-actions admin-form-sticky-actions admin-site-menu-form-actions">
         <?php echo sr_csrf_field(); ?>
         <input type="hidden" name="intent" value="save_item_order">

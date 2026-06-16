@@ -332,6 +332,159 @@ function sr_admin_code_label_options(array $values, string $type): array
     return $options;
 }
 
+function sr_admin_status_description_options(string $context, array $labels = [], array $descriptions = []): array
+{
+    $defaultDescriptions = [
+        'active' => '현재 사용할 수 있는 정상 상태입니다.',
+        'enabled' => '관리자 설정과 공개/운영 흐름에서 사용됩니다.',
+        'disabled' => '사용하지 않도록 중지된 상태입니다.',
+        'hidden' => '공개 화면이나 일반 흐름에서 숨겨진 상태입니다.',
+        'deleted' => '삭제 처리되어 일반 흐름에서 제외된 상태입니다.',
+        'pending' => '처리나 확인을 기다리는 상태입니다.',
+        'draft' => '아직 공개 또는 사용 흐름에 들어가지 않은 임시 상태입니다.',
+        'scheduled' => '예약 시각이나 조건에 따라 이후 적용될 상태입니다.',
+        'published' => '공개 화면 또는 사용 흐름에 노출되는 상태입니다.',
+        'archived' => '보관되어 일반 사용 흐름에서는 분리된 상태입니다.',
+        'failed' => '처리 실패 상태입니다. 오류 내용과 후속 조치가 필요합니다.',
+        'completed' => '요청한 처리가 완료된 상태입니다.',
+        'rejected' => '검토 결과 거절된 상태입니다.',
+        'cancelled' => '요청 또는 처리가 취소된 상태입니다.',
+        'canceled' => '요청 또는 처리가 취소된 상태입니다.',
+        'queued' => '작업 또는 발송을 기다리는 대기 상태입니다.',
+        'processing' => '현재 처리 중인 상태입니다.',
+        'sent' => '외부 발송이 완료된 상태입니다.',
+        'dead' => '자동 재시도 한도를 넘겨 별도 확인이 필요한 상태입니다.',
+        'open' => '새로 접수되어 조치가 필요한 상태입니다.',
+        'reviewing' => '관리자가 내용을 검토 중인 상태입니다.',
+        'resolved' => '검토와 조치가 끝난 상태입니다.',
+        'dismissed' => '검토 결과 조치하지 않기로 한 상태입니다.',
+        'suspended' => '이용이 제한된 상태입니다.',
+        'withdrawn' => '회원 탈퇴가 처리된 상태입니다.',
+        'anonymized' => '개인 식별 정보가 익명화된 상태입니다.',
+        'requested' => '회원 또는 관리자가 처리를 요청한 상태입니다.',
+        'installing' => '설치 또는 적용 절차가 진행 중인 상태입니다.',
+        'removed' => '원본 대상이 제거되어 일반 표시에서 제외된 상태입니다.',
+        'broken' => '대상 연결이 깨져 확인이 필요한 상태입니다.',
+        'private' => '비공개 대상이라 일반 공개 흐름에서 제한되는 상태입니다.',
+        'revoked' => '부여된 권한이나 이용권이 회수된 상태입니다.',
+        'expired' => '유효 기간이 지나 더 이상 사용할 수 없는 상태입니다.',
+    ];
+
+    $contextDescriptions = [
+        'module_status' => [
+            'enabled' => '설치되어 관리자와 런타임에서 사용할 수 있는 모듈입니다.',
+            'disabled' => '설치되어 있지만 관리자와 런타임 사용이 중지된 모듈입니다.',
+            'installing' => '설치 절차가 진행 중이거나 완료 확인이 필요한 모듈입니다.',
+            'failed' => '설치 또는 업데이트 중 오류가 발생해 확인이 필요한 모듈입니다.',
+        ],
+        'member_status' => [
+            'active' => '로그인과 서비스 이용이 가능한 정상 회원입니다.',
+            'pending' => '가입 또는 관리 확인을 기다리는 회원입니다.',
+            'suspended' => '관리 정책에 따라 이용이 제한된 회원입니다.',
+            'withdrawn' => '탈퇴 처리되어 일반 이용 대상에서 제외된 회원입니다.',
+            'anonymized' => '재식별 가능한 회원 정보가 제거된 계정 기록입니다.',
+        ],
+        'content_status' => [
+            'draft' => '작성 중인 임시 상태로 공개되지 않습니다.',
+            'scheduled' => '예약 기준에 따라 이후 공개 또는 적용됩니다.',
+            'enabled' => '사용 가능하도록 켜진 상태입니다.',
+            'disabled' => '사용하지 않도록 꺼진 상태입니다.',
+            'archived' => '보관 상태로 일반 관리 흐름에서 분리됩니다.',
+            'published' => '공개 화면이나 사용 흐름에 노출됩니다.',
+            'hidden' => '공개 화면이나 일반 목록에서 숨겨집니다.',
+            'deleted' => '삭제 처리되어 일반 흐름에서 제외됩니다.',
+            'pending' => '승인, 검토, 처리 대기 상태입니다.',
+        ],
+        'notification_status' => [
+            'queued' => '알림 등록이나 발송 준비를 기다립니다.',
+            'active' => '알림이 등록되어 대상자에게 표시될 수 있습니다.',
+            'deleted' => '삭제 처리되어 일반 알림 흐름에서 제외됩니다.',
+        ],
+        'delivery_status' => [
+            'queued' => '외부 채널 발송을 기다립니다.',
+            'processing' => '발송 runner가 처리 중입니다.',
+            'sent' => '외부 채널 발송이 완료되었습니다.',
+            'failed' => '발송 실패 후 재시도 또는 확인이 필요합니다.',
+            'canceled' => '관리자 또는 정책에 의해 발송이 취소되었습니다.',
+            'dead' => '최대 시도 이후 자동 재시도에서 제외된 상태입니다.',
+        ],
+        'privacy_request_status' => [
+            'requested' => '회원 개인정보 요청이 접수되었습니다.',
+            'reviewing' => '관리자가 요청 내용을 검토 중입니다.',
+            'completed' => '요청 처리가 완료되었습니다.',
+            'rejected' => '검토 결과 요청을 거절했습니다.',
+            'cancelled' => '요청이 취소되어 더 처리하지 않습니다.',
+        ],
+        'report_status' => [
+            'open' => '신고가 접수되어 조치가 필요합니다.',
+            'reviewing' => '관리자가 신고 내용을 검토 중입니다.',
+            'resolved' => '신고 검토와 조치가 완료되었습니다.',
+            'dismissed' => '조치하지 않기로 판단한 신고입니다.',
+        ],
+        'embed_manager_status' => [
+            'active' => '임베드 참조가 정상적으로 연결되어 있습니다.',
+            'removed' => '원본 또는 참조가 제거된 상태입니다.',
+            'broken' => '참조 대상 연결이 깨져 확인이 필요합니다.',
+            'private' => '비공개 대상이라 공개 렌더링이 제한됩니다.',
+            'deleted' => '삭제된 대상으로 일반 렌더링에서 제외됩니다.',
+        ],
+    ];
+
+    if ($labels === []) {
+        $contextLabels = sr_admin_code_label_context_options();
+        $labels = isset($contextLabels[$context]) && is_array($contextLabels[$context]) ? $contextLabels[$context] : [];
+    }
+
+    $items = [];
+    foreach ($labels as $value => $label) {
+        $key = (string) $value;
+        if ($key === '') {
+            continue;
+        }
+
+        $description = (string) ($descriptions[$key] ?? $contextDescriptions[$context][$key] ?? $defaultDescriptions[$key] ?? '');
+        if ($description === '') {
+            $description = '현재 목록에서 "' . (string) $label . '"(으)로 분류된 항목입니다.';
+        }
+
+        $items[$key] = [
+            'label' => (string) $label,
+            'description' => $description,
+        ];
+    }
+
+    return $items;
+}
+
+function sr_admin_card_description_list_html(string $title, array $items, string $ariaLabel = ''): string
+{
+    if ($items === []) {
+        return '';
+    }
+
+    $blockAria = $ariaLabel !== '' ? $ariaLabel : $title;
+    $html = '<div class="card-description-block" aria-label="' . sr_e($blockAria) . '">';
+    $html .= '<h3 class="card-description-title">' . sr_e($title) . '</h3>';
+    $html .= '<dl class="card-description-list">';
+
+    foreach ($items as $item) {
+        $label = is_array($item) ? (string) ($item['label'] ?? '') : '';
+        $description = is_array($item) ? (string) ($item['description'] ?? '') : '';
+        if ($label === '' || $description === '') {
+            continue;
+        }
+
+        $html .= '<div><dt>' . sr_e($label) . '</dt><dd>' . sr_e($description) . '</dd></div>';
+    }
+
+    return $html . '</dl></div>';
+}
+
+function sr_admin_status_description_list_html(string $context, array $labels = [], array $descriptions = [], string $title = '상태 설명'): string
+{
+    return sr_admin_card_description_list_html($title, sr_admin_status_description_options($context, $labels, $descriptions), $title);
+}
+
 function sr_admin_radio_toggle_group_html(string $idBase, string $name, array $options, string $selectedValue, bool $required = false, string $inputAttributes = ''): string
 {
     $idBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim($idBase));

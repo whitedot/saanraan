@@ -305,6 +305,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete_forever'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.favicon_purge')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('logo_manager::ui.icon_legend.delete')); ?></span>
     </div>
+    <?php echo sr_admin_status_description_list_html('logo_manager_status', ['active' => sr_logo_manager_status_label('active'), 'disabled' => sr_logo_manager_status_label('disabled')]); ?>
 </section>
 <?php echo sr_admin_pagination_html($logoPagination, '로고 배치 목록 페이지'); ?>
 

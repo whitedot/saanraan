@@ -401,6 +401,7 @@ foreach ($allowedStatuses as $status) {
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('rule'); ?> <?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?></span>
     </div>
+    <?php echo sr_admin_status_description_list_html('member_status'); ?>
 </section>
 
 <?php echo sr_admin_pagination_html($memberPagination, '회원 목록 페이지'); ?>

@@ -887,6 +887,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 삭제</span>
         </div>
+        <?php echo sr_admin_status_description_list_html('survey_status', array_combine(sr_survey_statuses(), array_map('sr_survey_status_label', sr_survey_statuses())) ?: [], [], '설문 상태 설명'); ?>
+        <?php echo sr_admin_status_description_list_html('survey_qa_status', array_combine(sr_survey_qa_statuses(), array_map('sr_survey_qa_status_label', sr_survey_qa_statuses())) ?: [], [], '점검 상태 설명'); ?>
+        <?php echo sr_admin_status_description_list_html('survey_reward_enabled', ['enabled' => '사용', 'disabled' => '미사용'], [], '보상 사용 설명'); ?>
     </section>
 <?php else: ?>
     <?php

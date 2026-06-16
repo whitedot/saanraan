@@ -1015,6 +1015,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('content_copy'); ?> 복사</span>
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?></span>
         </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['published', 'draft', 'scheduled', 'hidden'], 'content_status')); ?>
     </section>
     <?php echo $contentCopyModals; ?>
     <?php echo sr_admin_pagination_html($pagePagination, '콘텐츠 목록 페이지'); ?>

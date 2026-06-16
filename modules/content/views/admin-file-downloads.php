@@ -175,6 +175,8 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_status_description_list_html('content_file_download_type', ['free' => '무료', 'paid' => '유료'], [], '다운로드 유형 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('content_file_download_refund_status', $refundStatusOptions, [], '환불 처리 상태 설명'); ?>
 </section>
 
 <?php echo sr_admin_pagination_html($downloadLogPagination, '파일 다운로드 내역 페이지'); ?>

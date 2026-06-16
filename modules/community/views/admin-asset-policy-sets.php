@@ -110,6 +110,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
         </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
     </section>
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/asset-policy-sets')); ?>" class="admin-form ui-form-theme">

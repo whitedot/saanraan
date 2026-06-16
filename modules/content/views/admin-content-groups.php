@@ -197,6 +197,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?></span>
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 콘텐츠 그룹 삭제</span>
         </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
     </section>
     <?php echo sr_admin_pagination_html($pageGroupPagination, '콘텐츠 그룹 목록 페이지'); ?>
     <?php $contentStorageCleanupFailures = is_array($contentStorageCleanupFailures ?? null) ? $contentStorageCleanupFailures : []; ?>
