@@ -39,6 +39,8 @@ return [
         'provider_timeout_seconds' => 3,
         'provider_failure_policy' => 'fail_closed',
         'verify_remote_ip_enabled' => false,
+        'provider_action_check_enabled' => true,
+        'provider_hostname_check_enabled' => true,
         'surface_member_register' => 'always',
         'surface_community_post_guest' => 'guest',
         'surface_community_comment_guest' => 'guest',
