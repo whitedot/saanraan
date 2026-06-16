@@ -258,28 +258,42 @@ function sr_install_module_definition_lookup(string $moduleKey, array $requiredM
 function sr_install_foundation_dependency_keys(array $moduleKeys, array $availableModuleKeys): array
 {
     $available = array_fill_keys($availableModuleKeys, true);
-    $queued = array_values(array_unique(array_map('strval', $moduleKeys)));
-    $seen = array_fill_keys($queued, true);
     $foundations = [];
+    $visited = [];
+    $visiting = [];
 
-    while ($queued !== []) {
-        $moduleKey = array_shift($queued);
+    $visit = static function (string $moduleKey) use (&$visit, &$available, &$foundations, &$visited, &$visiting): void {
+        if (isset($visited[$moduleKey])) {
+            return;
+        }
+
+        if (isset($visiting[$moduleKey])) {
+            return;
+        }
+
+        $visiting[$moduleKey] = true;
         foreach (sr_module_foundation_dependencies((string) $moduleKey) as $foundationModuleKey) {
             $foundationModuleKey = (string) $foundationModuleKey;
-            if ($foundationModuleKey === '' || !isset($available[$foundationModuleKey])) {
+            if ($foundationModuleKey === '') {
+                continue;
+            }
+
+            if (!isset($available[$foundationModuleKey])) {
                 $foundations[$foundationModuleKey] = $foundationModuleKey;
                 continue;
             }
 
+            $visit($foundationModuleKey);
             if (!isset($foundations[$foundationModuleKey])) {
                 $foundations[$foundationModuleKey] = $foundationModuleKey;
             }
-
-            if (!isset($seen[$foundationModuleKey])) {
-                $seen[$foundationModuleKey] = true;
-                $queued[] = $foundationModuleKey;
-            }
         }
+        unset($visiting[$moduleKey]);
+        $visited[$moduleKey] = true;
+    };
+
+    foreach (array_values(array_unique(array_map('strval', $moduleKeys))) as $moduleKey) {
+        $visit((string) $moduleKey);
     }
 
     return array_values($foundations);
@@ -321,14 +335,25 @@ foreach (array_keys($optionalModules) as $moduleKey) {
 $availableInstallModuleKeys = array_keys($requiredModules + $foundationModules + $optionalModules);
 foreach ($optionalModules as $moduleKey => $module) {
     $foundationLabels = [];
+    $foundationErrors = [];
     foreach (sr_install_foundation_dependency_keys([(string) $moduleKey], $availableInstallModuleKeys) as $foundationModuleKey) {
         if (!isset($foundationModules[$foundationModuleKey])) {
+            $foundationErrors[] = (string) $foundationModuleKey . ' 기반 모듈을 찾을 수 없습니다.';
             continue;
         }
 
         $foundationLabels[] = (string) ($foundationModules[$foundationModuleKey]['label'] ?? $foundationModuleKey);
+        $foundationModuleErrors = isset($foundationModules[$foundationModuleKey]['metadata_errors']) && is_array($foundationModules[$foundationModuleKey]['metadata_errors'])
+            ? $foundationModules[$foundationModuleKey]['metadata_errors']
+            : [];
+        foreach ($foundationModuleErrors as $foundationModuleError) {
+            $foundationErrors[] = (string) ($foundationModules[$foundationModuleKey]['label'] ?? $foundationModuleKey)
+                . '(' . (string) $foundationModuleKey . ') 기반 모듈 확인 필요: '
+                . (string) $foundationModuleError;
+        }
     }
     $optionalModules[$moduleKey]['foundation_dependency_labels'] = array_values(array_unique($foundationLabels));
+    $optionalModules[$moduleKey]['foundation_dependency_errors'] = array_values(array_unique($foundationErrors));
 }
 
 $selectedOptionalModuleKeys = [];

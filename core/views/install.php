@@ -381,7 +381,9 @@ $selectedOptionalModuleLabels = array_values(array_unique(array_merge($selectedO
                         </label>
                         <div class="sr-install-module-grid">
                             <?php foreach ($optionalModules as $moduleKey => $module) { ?>
-                                <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                                <?php $moduleOwnErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
+                                <?php $moduleFoundationErrors = isset($module['foundation_dependency_errors']) && is_array($module['foundation_dependency_errors']) ? $module['foundation_dependency_errors'] : []; ?>
+                                <?php $moduleErrors = array_values(array_unique(array_merge(array_map('strval', $moduleOwnErrors), array_map('strval', $moduleFoundationErrors)))); ?>
                                 <?php $moduleFoundationLabels = isset($module['foundation_dependency_labels']) && is_array($module['foundation_dependency_labels']) ? array_values(array_map('strval', $module['foundation_dependency_labels'])) : []; ?>
                                 <?php $moduleMainPageOption = $mainPageOptionsByModule[(string) $moduleKey] ?? null; ?>
                                 <?php $moduleCheckboxId = 'optional_module_' . preg_replace('/[^a-z0-9_]/', '_', (string) $moduleKey); ?>
