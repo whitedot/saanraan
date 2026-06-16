@@ -111,7 +111,7 @@ function sr_content_default_settings(): array
         'layout_quaternary_menu_key' => '',
         'layout_quinary_menu_key' => '',
         'member_submission_enabled' => false,
-        'member_submission_default_review_required' => true,
+        'member_submission_default_review_required' => false,
         'member_submission_author_reward_enabled' => false,
         'member_submission_author_reward_asset_module' => '',
         'member_submission_author_reward_amount' => 0,
@@ -194,7 +194,7 @@ function sr_content_settings(PDO $pdo): array
         $settings[$settingKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
     $settings['member_submission_enabled'] = sr_content_bool_setting($settings['member_submission_enabled'] ?? false);
-    $settings['member_submission_default_review_required'] = sr_content_bool_setting($settings['member_submission_default_review_required'] ?? true);
+    $settings['member_submission_default_review_required'] = sr_content_bool_setting($settings['member_submission_default_review_required'] ?? false);
     $rewardAssetModule = sr_content_clean_slug((string) ($settings['member_submission_author_reward_asset_module'] ?? ''));
     $settings['member_submission_author_reward_asset_module'] = isset(sr_content_asset_modules($pdo)[$rewardAssetModule]) ? $rewardAssetModule : '';
     $settings['member_submission_author_reward_amount'] = min(999999999, max(0, (int) ($settings['member_submission_author_reward_amount'] ?? 0)));

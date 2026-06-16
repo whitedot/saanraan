@@ -172,22 +172,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-form-help">콘텐츠 그룹별 제출 허용과 작성자 승인/회원 그룹 조건을 함께 만족해야 합니다.</p>
             </div>
         </div>
-        <div class="admin-form-row">
+        <?php $memberSubmissionEnabled = !empty($settings['member_submission_enabled']); ?>
+        <div class="admin-form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
             <span class="form-label">기본 검수</span>
             <div class="admin-form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_member_submission_default_review_required', 'member_submission_default_review_required', '1', !empty($settings['member_submission_default_review_required']), '회원 제출 콘텐츠는 기본적으로 검수 후 공개'); ?>
             </div>
         </div>
-        <div class="admin-form-row">
-            <span class="form-label">작성자 리워드</span>
+        <div class="admin-form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
+            <span class="form-label">리워드</span>
             <div class="admin-form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_member_submission_author_reward_enabled', 'member_submission_author_reward_enabled', '1', !empty($settings['member_submission_author_reward_enabled']), '회원 제출 콘텐츠 승인 시 작성자에게 리워드 지급'); ?>
                 <p class="admin-form-help">제출본이 승인되어 콘텐츠로 공개될 때 제출 회원에게 한 번만 지급합니다. 지급 실패는 로그에 남기고 승인 처리는 유지합니다.</p>
             </div>
         </div>
         <?php $authorRewardAssetSelected = (string) ($settings['member_submission_author_reward_asset_module'] ?? '') !== ''; ?>
-        <div class="admin-form-row">
-            <label class="form-label" for="content_admin_settings_member_submission_author_reward_asset_module">작성자 리워드 포인트/금액 항목</label>
+        <div class="admin-form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
+            <label class="form-label" for="content_admin_settings_member_submission_author_reward_asset_module">리워드 설정</label>
             <div class="admin-form-field">
                 <select id="content_admin_settings_member_submission_author_reward_asset_module" name="member_submission_author_reward_asset_module" class="form-select">
                     <option value="">선택안함</option>
@@ -199,10 +200,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </select>
             </div>
         </div>
-        <div class="admin-form-row" data-admin-visible-when-select="#content_admin_settings_member_submission_author_reward_asset_module"<?php echo $authorRewardAssetSelected ? '' : ' hidden'; ?>>
-            <label class="form-label" for="content_admin_settings_member_submission_author_reward_amount">작성자 리워드 금액 <span class="sr-required-label" data-admin-required-label-when-visible<?php echo $authorRewardAssetSelected ? '' : ' hidden'; ?>>(필수)</span></label>
+        <div class="admin-form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled" data-admin-visible-when-select="#content_admin_settings_member_submission_author_reward_asset_module"<?php echo $memberSubmissionEnabled && $authorRewardAssetSelected ? '' : ' hidden'; ?>>
+            <label class="form-label" for="content_admin_settings_member_submission_author_reward_amount">작성자 리워드 금액 <span class="sr-required-label" data-admin-required-label-when-visible<?php echo $memberSubmissionEnabled && $authorRewardAssetSelected ? '' : ' hidden'; ?>>(필수)</span></label>
             <div class="admin-form-field">
-                <?php echo sr_content_asset_single_amount_input_group_html('member_submission_author_reward_amount', (int) ($settings['member_submission_author_reward_amount'] ?? 0), $assetModuleOptions, (string) ($settings['member_submission_author_reward_asset_module'] ?? ''), '작성자 리워드 금액', 'content_admin_settings_member_submission_author_reward_amount', false, 'member_submission_author_reward_asset_module', ' data-admin-required-when-visible data-admin-clear-when-hidden="1"' . ($authorRewardAssetSelected ? ' required' : '')); ?>
+                <?php echo sr_content_asset_single_amount_input_group_html('member_submission_author_reward_amount', (int) ($settings['member_submission_author_reward_amount'] ?? 0), $assetModuleOptions, (string) ($settings['member_submission_author_reward_asset_module'] ?? ''), '작성자 리워드 금액', 'content_admin_settings_member_submission_author_reward_amount', false, 'member_submission_author_reward_asset_module', ' data-admin-required-when-visible data-admin-clear-when-hidden="1"' . ($memberSubmissionEnabled && $authorRewardAssetSelected ? ' required' : '')); ?>
             </div>
         </div>
     </section>

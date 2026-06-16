@@ -910,15 +910,18 @@ window.AdminShell = {
             });
         };
 
-        const syncConditionalSelectSection = root => {
+        const syncConditionalSection = root => {
             if (!root || !root.getAttribute) {
                 return;
             }
 
-            const selector = root.getAttribute('data-admin-visible-when-select') || '';
             const form = root.closest('form') || document;
-            const source = selector !== '' ? form.querySelector(selector) || document.querySelector(selector) : null;
-            const visible = !!(source && source.value);
+            const selectSelector = root.getAttribute('data-admin-visible-when-select') || '';
+            const checkedSelector = root.getAttribute('data-admin-visible-when-checked') || '';
+            const selectSource = selectSelector !== '' ? form.querySelector(selectSelector) || document.querySelector(selectSelector) : null;
+            const checkedSource = checkedSelector !== '' ? form.querySelector(checkedSelector) || document.querySelector(checkedSelector) : null;
+            const visible = (selectSelector === '' || !!(selectSource && selectSource.value))
+                && (checkedSelector === '' || !!(checkedSource && checkedSource.checked));
             root.hidden = !visible;
             Array.prototype.slice.call(root.querySelectorAll('[data-admin-required-when-visible]')).forEach(control => {
                 control.required = visible;
@@ -1848,7 +1851,7 @@ window.AdminShell = {
             markAssetEnableTargetTouched(event.target);
             syncAssetAmountGroupsNear(event.target);
             syncAssetUnitGroupsNear(event.target);
-            document.querySelectorAll('[data-admin-visible-when-select]').forEach(syncConditionalSelectSection);
+            document.querySelectorAll('[data-admin-visible-when-select],[data-admin-visible-when-checked]').forEach(syncConditionalSection);
         });
 
         document.querySelectorAll('[data-filtering-toggle-group]').forEach(syncFilteringToggleGroup);
@@ -1856,7 +1859,7 @@ window.AdminShell = {
         document.querySelectorAll('[data-admin-asset-amount-sync]').forEach(root => syncAssetAmountGroup(root));
         document.querySelectorAll('[data-admin-asset-unit-group]').forEach(syncAssetUnitGroup);
         document.querySelectorAll('[data-admin-setting-source-group]').forEach(syncSettingSourceGroup);
-        document.querySelectorAll('[data-admin-visible-when-select]').forEach(syncConditionalSelectSection);
+        document.querySelectorAll('[data-admin-visible-when-select],[data-admin-visible-when-checked]').forEach(syncConditionalSection);
 
         document.addEventListener('submit', event => {
             const validationForm = event.target && event.target.closest
