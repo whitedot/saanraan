@@ -37,4 +37,8 @@ return [
             'notification-events.php',
         ],
     ],
+    'settings' => [
+        'withdrawal_requests_enabled' => false,
+        'withdrawal_allowed_group_keys_json' => '[]',
+    ],
 ];
