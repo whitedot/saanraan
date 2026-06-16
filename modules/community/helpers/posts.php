@@ -333,6 +333,64 @@ function sr_community_public_post_count(PDO $pdo, int $boardId, string $keyword 
     return sr_community_board_post_count($pdo, $boardId, $keyword, $categoryId);
 }
 
+function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0): array
+{
+    $boardIds = array_values(array_unique(array_filter(array_map('intval', $boardIds), static fn (int $boardId): bool => $boardId > 0)));
+    $keyword = trim($keyword);
+    $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
+    if ($boardIds === [] || $keyword === '') {
+        return [];
+    }
+
+    $boardPlaceholders = [];
+    $params = [
+        'title_keyword' => sr_community_search_like_pattern($keyword),
+        'body_keyword' => sr_community_search_like_pattern($keyword),
+    ];
+    foreach ($boardIds as $index => $boardId) {
+        $placeholder = 'board_id_' . (string) $index;
+        $boardPlaceholders[] = ':' . $placeholder;
+        $params[$placeholder] = $boardId;
+    }
+    $categorySupported = sr_community_categories_supported($pdo);
+    $categorySelectSql = $categorySupported
+        ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
+        : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $secretPostSelectSql = sr_community_post_secret_column_exists($pdo) ? 'p.is_secret,' : '0 AS is_secret,';
+    $secretBodyCondition = sr_community_post_secret_column_exists($pdo)
+        ? "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '!'"
+        : "p.body_text LIKE :body_keyword ESCAPE '!'";
+
+    $stmt = $pdo->prepare(
+        'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ', p.author_account_id, p.title, p.body_text, p.body_format, ' . $secretPostSelectSql . " p.status, p.view_count, p.created_at, p.updated_at,
+                (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = 'published') AS published_comment_count
+         FROM sr_community_posts p
+         INNER JOIN sr_community_boards b ON b.id = p.board_id
+         " . $categoryJoinSql . "
+         WHERE p.status = 'published'
+           AND b.status = 'enabled'
+           AND p.board_id IN (" . implode(', ', $boardPlaceholders) . ")
+           AND (p.title LIKE :title_keyword ESCAPE '!' OR (" . $secretBodyCondition . "))
+         ORDER BY p.id DESC
+         LIMIT :limit_value OFFSET :offset_value"
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, str_starts_with($key, 'board_id_') ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function sr_community_search_like_pattern(string $keyword): string
+{
+    return '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($keyword)) . '%';
+}
+
 function sr_community_like_pattern(string $keyword): string
 {
     return '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($keyword)) . '%';

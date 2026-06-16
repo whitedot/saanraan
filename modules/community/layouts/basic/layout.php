@@ -33,6 +33,8 @@ $layoutBrandLogoHtml = '';
 $layoutMobileBrandLogoHtml = '';
 $layoutBrandUsesPublicSymbol = false;
 $layoutBrandLinkUrl = sr_url('/community');
+$layoutSearchKeywordValue = sr_get_string_without_truncation('q', 100);
+$layoutSearchKeyword = is_string($layoutSearchKeywordValue) ? trim(preg_replace('/\s+/', ' ', $layoutSearchKeywordValue) ?? '') : '';
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutFooterNavigationHtml = [];
@@ -321,6 +323,13 @@ if (
                 <?php } ?>
                 <span class="community-layout-module-name"><?php echo sr_e('커뮤니티'); ?></span>
             </a>
+            <form class="community-layout-search" method="get" action="<?php echo sr_e(sr_url('/community/search')); ?>" role="search">
+                <label for="community_layout_search_q"><?php echo sr_e('커뮤니티 검색'); ?></label>
+                <input id="community_layout_search_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($layoutSearchKeyword); ?>" placeholder="<?php echo sr_e('검색'); ?>" autocomplete="off">
+                <button type="submit" aria-label="<?php echo sr_e('검색'); ?>">
+                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>search</span>
+                </button>
+            </form>
             <div class="community-layout-actions">
             <?php if ($layoutNotificationEnabled) { ?>
                 <details class="community-layout-notification-menu">
