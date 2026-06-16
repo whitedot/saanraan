@@ -1404,10 +1404,6 @@ body.admin-sidebar-condensed #gnb .gnb_scrollbar{display:none}
         flex-direction: column;
     }
 
-    .admin-permission-action-group.filtering-toggle-group {
-        flex-direction: row;
-    }
-
     .admin-permission-action-cell {
         justify-content: flex-start;
     }
