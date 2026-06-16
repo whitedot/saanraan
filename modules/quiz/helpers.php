@@ -317,9 +317,15 @@ function sr_quiz_reward_providers(): array
     return ['ledger_asset', 'coupon'];
 }
 
+function sr_quiz_default_reward_providers(): array
+{
+    return ['none', ...sr_quiz_reward_providers()];
+}
+
 function sr_quiz_reward_provider_label(string $provider): string
 {
     return [
+        'none' => '지급안함',
         'ledger_asset' => '포인트/금액',
         'coupon' => '쿠폰 발급',
     ][$provider] ?? $provider;
@@ -466,10 +472,10 @@ function sr_quiz_normalize_settings(array $settings): array
     $normalized['default_attempt_limit_period_seconds'] = (string) $normalized['default_attempt_limit_policy'] === 'per_period'
         ? (trim((string) $normalized['default_attempt_limit_period_seconds']) === '' ? '' : (string) max(1, (int) $normalized['default_attempt_limit_period_seconds']))
         : '';
-    $normalized['default_reward_enabled'] = true;
-    $normalized['default_reward_provider'] = in_array((string) $normalized['default_reward_provider'], sr_quiz_reward_providers(), true)
+    $normalized['default_reward_provider'] = in_array((string) $normalized['default_reward_provider'], sr_quiz_default_reward_providers(), true)
         ? (string) $normalized['default_reward_provider']
         : (string) $defaults['default_reward_provider'];
+    $normalized['default_reward_enabled'] = $normalized['default_reward_provider'] !== 'none';
     $normalized['default_reward_module'] = sr_quiz_clean_key((string) $normalized['default_reward_module'], 40);
     $normalized['default_reward_coupon_definition_id'] = (string) max(0, (int) $normalized['default_reward_coupon_definition_id']);
     if ($normalized['default_reward_coupon_definition_id'] === '0') {
@@ -482,6 +488,11 @@ function sr_quiz_normalize_settings(array $settings): array
     $normalized['default_reward_dedupe_scope'] = in_array((string) $normalized['default_reward_dedupe_scope'], sr_quiz_reward_dedupe_scopes(), true)
         ? (string) $normalized['default_reward_dedupe_scope']
         : (string) $defaults['default_reward_dedupe_scope'];
+    if ($normalized['default_reward_provider'] === 'none') {
+        $normalized['default_reward_module'] = '';
+        $normalized['default_reward_coupon_definition_id'] = '';
+        $normalized['default_reward_amount'] = '';
+    }
     $normalized['default_cta_label'] = sr_quiz_clean_single_line((string) $normalized['default_cta_label'], 120);
     if ($normalized['default_cta_label'] === '') {
         $normalized['default_cta_label'] = (string) $defaults['default_cta_label'];
@@ -537,7 +548,9 @@ function sr_quiz_settings_from_post(): array
     ]);
     $settings['skin_key'] = $skinKey;
     $settings['default_reward_provider'] = $rewardProvider;
-    $settings['default_reward_dedupe_scope'] = $rewardDedupeScope;
+    if ($rewardProvider !== 'none') {
+        $settings['default_reward_dedupe_scope'] = $rewardDedupeScope;
+    }
 
     return $settings;
 }
@@ -566,10 +579,13 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
     }
+    $provider = (string) ($settings['default_reward_provider'] ?? '');
+    if ($provider === 'none') {
+        return array_values(array_unique($errors));
+    }
     if (!in_array((string) ($settings['default_reward_dedupe_scope'] ?? ''), sr_quiz_reward_dedupe_scopes(), true)) {
         $errors[] = '기본 중복 지급 기준 값이 올바르지 않습니다.';
     }
-    $provider = (string) ($settings['default_reward_provider'] ?? '');
     if ($provider === 'ledger_asset') {
         $moduleKey = (string) ($settings['default_reward_module'] ?? '');
         if ($moduleKey === '' || !isset($assetOptions[$moduleKey])) {

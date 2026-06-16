@@ -231,6 +231,10 @@ function sr_quiz_check_paths_and_admin(): void
         'member_group_keys_json',
         'comments_enabled',
         'sr_quiz_display_settings_for_quiz',
+        'sr_quiz_default_reward_providers',
+        "'none' => '지급안함'",
+        "\$normalized['default_reward_enabled'] = \$normalized['default_reward_provider'] !== 'none';",
+        "\$provider === 'none'",
         'sr_quiz_optional_option_key_from_post',
         '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',
         'skin_key = :skin_key',
@@ -291,6 +295,12 @@ function sr_quiz_check_paths_and_admin(): void
         'passed_count',
         'reward_module',
         'content_source_ids',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/views/admin-settings.php', [
+        'sr_quiz_default_reward_providers',
+        'data-quiz-settings-reward-policy-row',
+        'var rewardSelected = ledgerSelected || couponSelected;',
+        'setRowsHidden(rewardPolicyRows, !rewardSelected);',
     ]);
     sr_quiz_check_file_contains('modules/quiz/skins/basic/result.php', [
         '$submitResult[\'display_score\']',

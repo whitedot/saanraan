@@ -98,6 +98,7 @@ Avoid generic prefixes such as `core_` or module-only prefixes such as `member_`
 - For admin key text inputs such as `*_key`, `module_key`, and `menu_key`, enforce lowercase letters, digits, and `_` with `data-admin-key-input` plus matching browser attributes, and normalize again in the save action before domain validation. Treat public slugs that allow hyphens as a separate field type.
 - If a visible control only derives hidden POST fields, validate the actual hidden POST result on the server as well. For example, a picker that turns `1차/2차/권한` choices into `permission_keys[]` must reject an empty or invalid `permission_keys[]` payload server-side.
 - Conditional required fields should still display only the short `(필수)` label. Toggle that label and any browser validation as the condition changes, and enforce the same condition on the server. This includes paired fields such as reference type/reference ID, target/match type/subject ID, policy/member-group choices, and terminal status/admin note.
+- Admin POST save actions should use Post/Redirect/Get for both success and validation failure paths whenever the form does not need to preserve unsaved field values inline. Use flash result helpers for messages so browser refresh does not resubmit the form.
 - Do not mark search filters, lookup-only controls, or helper selectors as required unless their value is directly required by the save action.
 
 ## Commit Messages

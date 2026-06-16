@@ -50,6 +50,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '퀴즈 환경설정 저장 중 오류가 발생했습니다.';
         }
     }
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, ''), $permissionPath);
 }
 
 $adminPageTitle = '퀴즈 환경설정';

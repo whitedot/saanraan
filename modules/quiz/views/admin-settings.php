@@ -400,7 +400,7 @@ $quizSettingsSectionNavItems = [
                 <div class="admin-form-field">
                     <?php
                     $quizRewardProviderToggleOptions = [];
-                    foreach (sr_quiz_reward_providers() as $provider) {
+                    foreach (sr_quiz_default_reward_providers() as $provider) {
                         $quizRewardProviderToggleOptions[$provider] = sr_quiz_reward_provider_label($provider);
                     }
                     echo sr_admin_radio_toggle_group_html('quiz_settings_default_reward_provider', 'default_reward_provider', $quizRewardProviderToggleOptions, (string) ($settings['default_reward_provider'] ?? 'ledger_asset'), true, ' data-quiz-settings-reward-provider');
@@ -448,7 +448,7 @@ $quizSettingsSectionNavItems = [
                     <input id="quiz_settings_default_reward_amount" type="number" name="default_reward_amount" value="<?php echo sr_e((string) ($settings['default_reward_amount'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-settings-reward-ledger-control>
                 </div>
             </div>
-            <div class="admin-form-row" data-quiz-settings-reward-row>
+            <div class="admin-form-row" data-quiz-settings-reward-row data-quiz-settings-reward-policy-row>
                 <?php echo sr_admin_form_label_help_html('quiz_settings_default_reward_dedupe_scope', '기본 중복 지급 기준', $quizSettingsHelp['default_reward_dedupe_scope']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="admin-form-field">
                     <?php
@@ -518,6 +518,7 @@ $quizSettingsSectionNavItems = [
 
     var rewardProviderControls = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-provider]'));
     var rewardRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-row]'));
+    var rewardPolicyRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-policy-row]'));
     var ledgerRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-ledger-row]'));
     var couponRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-coupon-row]'));
     var rewardControls = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-control]'));
@@ -552,13 +553,15 @@ $quizSettingsSectionNavItems = [
         var rewardProvider = checkedValue('default_reward_provider', 'ledger_asset');
         var ledgerSelected = rewardProvider === 'ledger_asset';
         var couponSelected = rewardProvider === 'coupon';
+        var rewardSelected = ledgerSelected || couponSelected;
         setRowsHidden(rewardRows, false);
+        setRowsHidden(rewardPolicyRows, !rewardSelected);
         setRowsHidden(ledgerRows, !ledgerSelected);
         setRowsHidden(couponRows, !couponSelected);
         rewardProviderControls.forEach(function (control) {
             control.disabled = false;
         });
-        setControlsEnabled(rewardControls, true);
+        setControlsEnabled(rewardControls, rewardSelected);
         setControlsEnabled(ledgerControls, ledgerSelected);
         setControlsEnabled(couponControls, couponSelected);
         setControlsRequired(ledgerControls, ledgerSelected);

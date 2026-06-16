@@ -86,8 +86,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="admin-form-row">
             <span class="form-label">기본 보상</span>
             <div class="admin-form-field">
-                <p>새 퀴즈마다 같은 보상을 자주 설정한다면 기본 보상 항목과 금액 또는 쿠폰을 미리 정해 둡니다.</p>
+                <p>새 퀴즈의 보상 기본값을 정합니다. 보상을 기본으로 쓰지 않으려면 지급안함을 선택합니다.</p>
                 <ul class="quiz-manual-list">
+                    <li><strong>지급안함</strong>: 새 퀴즈의 보상 사용을 꺼 둔 상태로 시작합니다.</li>
                     <li><strong>포인트/금액</strong>: 지급 항목과 금액을 입력합니다.</li>
                     <li><strong>쿠폰 발급</strong>: 현재 사용할 수 있는 쿠폰 중 하나를 선택합니다.</li>
                     <li><strong>쿠폰이 안 보일 때</strong>: 쿠폰 관리에서 활성 상태와 사용 기간을 먼저 확인합니다.</li>
