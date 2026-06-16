@@ -162,9 +162,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     'stylesheets' => ['/modules/reaction/assets/module.css'],
 ]));
 ?>
-<main class="sr-public-main">
-    <section class="sr-public-section">
-        <div class="sr-public-container">
+<main class="survey-page-main">
+    <section class="survey-page-section">
+        <div class="survey-page-container">
             <h1><?php echo sr_e((string) $survey['title']); ?></h1>
             <?php echo sr_survey_cover_image_html($survey, 'sr-survey-cover-image', (string) ($survey['title'] ?? '')); ?>
             <?php if ((string) ($survey['description'] ?? '') !== ''): ?>

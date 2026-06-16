@@ -398,7 +398,7 @@ $checks = [
         'path' => '/modules/community/assets/ui-kit.css',
         'allowed_statuses' => [200],
         'must_contain' => [
-            '.public-ui-scope',
+            '.community-ui-scope',
         ],
     ],
     [
@@ -424,7 +424,7 @@ $checks = [
         'path' => '/modules/community/assets/ui-kit-layout.css',
         'allowed_statuses' => [200],
         'must_contain' => [
-            '.public-ui-kit',
+            '.community-ui-kit',
         ],
     ],
     [

@@ -3,14 +3,14 @@
  * Owns this module public service screen styles.
  */
 .content-home,
-.content-public,
+.content-page,
 .content-group {
     color: var(--text-strong, #242424);
     font-family: var(--font-body);
     width: min(100%, 100%);
 }
 
-.content-public {
+.content-page {
     background: #ffffff;
     padding: 0 0 72px;
 }
@@ -300,7 +300,7 @@
     padding: 16px 18px 14px;
 }
 
-.content-public :is(input, select, textarea):focus-visible {
+.content-page :is(input, select, textarea):focus-visible {
     outline: 2px solid #242424;
     outline-offset: 2px;
 }
@@ -1342,7 +1342,7 @@
  */
 
 .content-home,
-.content-public,
+.content-page,
 .content-group {
     --content-surface: var(--color-card);
     --content-surface-soft: var(--color-default-100);
@@ -1452,7 +1452,7 @@
     border-bottom-color: var(--content-border);
 }
 
-.content-public :is(input, select, textarea):focus-visible {
+.content-page :is(input, select, textarea):focus-visible {
     outline-color: var(--color-primary);
 }
 

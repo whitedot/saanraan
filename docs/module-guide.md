@@ -148,6 +148,7 @@ modules/board/
 - 번들 `content.basic`과 `community.basic`은 공통 레이아웃 파일을 공유하지 않는다. 콘텐츠는 `modules/content/layouts/basic/layout.php`, 커뮤니티는 `modules/community/layouts/basic/layout.php`를 사용한다. 헤더/푸터처럼 같은 시각 언어를 쓰더라도 모듈 전용 레이아웃 CSS를 사용해 모듈 경계를 유지한다.
 - 모듈 layout은 모듈 홈이나 섹션 첫 화면처럼 모듈 단위의 큰 정보 배치를 담당한다.
 - 모듈 skin은 목록, 상세, 작성 폼, 배너 item, 팝업 layer처럼 특정 기능 단위의 표시를 담당한다.
+- 공개 레이아웃을 제공하는 모듈의 layout, UI-KIT, module, skin 파일은 `public-*`, `public-ui-*`, `sr-public-*` class/data namespace를 쓰지 않고 `content-*`, `community-*`, `quiz-*`, `survey-*`처럼 소유 모듈 namespace를 사용한다. `public-layout-*`와 `public-ui-*`는 공통 공개 레이아웃과 루트 공개 UI-KIT만 소유한다.
 - 관리자 화면은 각 모듈 view가 본문을 만들고, 관리자 shell과 공통 관리자 asset은 admin 모듈의 skin이 담당한다. 관리자 shell은 화면 구성 편의를 위해 렌더 후 DOM을 다시 해석해 class나 레이블을 주입하지 않으므로, 폼 행과 선택 항목의 접근성 텍스트는 view가 최종 마크업으로 직접 출력한다. 보안 정화나 외부 HTML 변환처럼 렌더 후 DOM 처리가 정말 필요한 경우는 별도 helper나 모듈 책임으로 명확히 분리하고 테스트한다.
 
 모듈은 DB에 view 파일 경로를 저장하지 않는다. `public_layout_key`, `layout_key`, `skin_key`, `{module_key}_skin_key` 같은 key만 저장하고, 실제 파일 경로는 모듈 helper의 allowlist나 `layout-options.php` 계약에서 결정한다. 기존 공개 레이아웃 `basic` 값은 `common.basic`으로 정규화한다. 알 수 없는 사이트 공통 레이아웃 key는 기본 공통 레이아웃으로 fallback한다. 사이트 설정의 공통 레이아웃 선택지는 기본 공통 레이아웃을 먼저 표시하고, 모듈 제공 레이아웃은 관리자 사이드바의 모듈 순서대로 정렬한다. 콘텐츠, 커뮤니티, 퀴즈처럼 공개 레이아웃을 설정하는 모듈은 모듈 환경설정의 레이아웃 key를 메인, 그룹/게시판, 상세 하위 화면 전체에 적용한다.

@@ -168,9 +168,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
     'stylesheets' => ['/modules/reaction/assets/module.css'],
 ]));
 ?>
-<main class="sr-public-main">
-    <section class="sr-public-section">
-        <div class="sr-public-container">
+<main class="quiz-page-main">
+    <section class="quiz-page-section">
+        <div class="quiz-page-container">
             <h1><?php echo sr_e((string) $quiz['title']); ?></h1>
             <?php echo sr_quiz_cover_image_html($quiz, 'sr-quiz-cover-image', (string) ($quiz['title'] ?? '')); ?>
             <?php if ((string) ($quiz['description'] ?? '') !== ''): ?>

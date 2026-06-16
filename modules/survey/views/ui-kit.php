@@ -28,13 +28,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_ui_kit_layou
 ]));
 ?>
 
-    <main class="public-ui-kit survey-ui-kit">
-        <section class="card public-ui-kit-summary">
+    <main class="survey-ui-kit">
+        <section class="card survey-ui-kit-summary">
             <div class="card-header">
                 <h1 class="card-title">설문 UI Kit</h1>
             </div>
             <div class="card-body">
-                <p class="public-ui-kit-subtitle">설문 모듈이 실제 공개 화면에서 쓰는 UI 기준입니다.</p>
+                <p class="survey-ui-kit-subtitle">설문 모듈이 실제 공개 화면에서 쓰는 UI 기준입니다.</p>
                 <nav class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2" aria-label="설문 UI Kit 샘플">
                     <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
                         <a class="btn btn-sm btn-soft-default" href="#ui-kit-<?php echo sr_e($sampleKey); ?>"><?php echo sr_e($sampleLabel); ?></a>
@@ -43,10 +43,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_ui_kit_layou
             </div>
         </section>
 
-        <div class="ui-kit-sample-body public-ui-kit-samples survey-ui-kit-samples ui-form-theme">
+        <div class="ui-kit-sample-body survey-ui-kit-samples ui-form-theme">
             <?php foreach ($uiKitSamples as $sampleKey => $sampleLabel) { ?>
-                <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="public-ui-kit-section ui-kit-space-before-base" aria-labelledby="ui-kit-title-<?php echo sr_e($sampleKey); ?>">
-                    <h2 id="ui-kit-title-<?php echo sr_e($sampleKey); ?>" class="public-ui-kit-section-title"><?php echo sr_e($sampleLabel); ?></h2>
+                <section id="ui-kit-<?php echo sr_e($sampleKey); ?>" class="survey-ui-kit-section ui-kit-space-before-base" aria-labelledby="ui-kit-title-<?php echo sr_e($sampleKey); ?>">
+                    <h2 id="ui-kit-title-<?php echo sr_e($sampleKey); ?>" class="survey-ui-kit-section-title"><?php echo sr_e($sampleLabel); ?></h2>
                     <?php
                     $sampleFile = SR_ROOT . '/modules/survey/views/ui-kit-samples/' . $sampleKey . '.php';
                     if (is_file($sampleFile)) {

@@ -3,7 +3,7 @@
  * Owns selectable quiz public skin adjustments only.
  */
 
-.sr-quiz-skin-card .sr-public-main .sr-public-container {
+.sr-quiz-skin-card .quiz-page-main .quiz-page-container {
     padding: clamp(22px, 4vw, 42px);
     border: 1px solid var(--color-default-300);
     border-radius: var(--radius);
@@ -31,12 +31,12 @@
     background: transparent;
 }
 
-.sr-quiz-skin-focus.sr-quiz-page .sr-public-main h1,
-.sr-quiz-skin-focus.sr-quiz-page .sr-public-main h2 {
+.sr-quiz-skin-focus.sr-quiz-page .quiz-page-main h1,
+.sr-quiz-skin-focus.sr-quiz-page .quiz-page-main h2 {
     color: #fff;
 }
 
-.sr-quiz-skin-focus.sr-quiz-page .sr-public-main p {
+.sr-quiz-skin-focus.sr-quiz-page .quiz-page-main p {
     color: #d6deef;
 }
 
@@ -67,7 +67,7 @@
 }
 
 @media (max-width: 640px) {
-    .sr-quiz-skin-card .sr-public-main .sr-public-container {
+    .sr-quiz-skin-card .quiz-page-main .quiz-page-container {
         padding: 18px;
     }
 }

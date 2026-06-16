@@ -3,22 +3,22 @@
  * Owns this module public service screen styles.
  */
 
-.sr-survey-page .sr-public-main {
+.sr-survey-page .survey-page-main {
     background: #ffffff;
     padding: clamp(28px, 5vw, 72px) 16px 78px;
 }
 
-.sr-survey-page .sr-public-section {
+.sr-survey-page .survey-page-section {
     width: min(1360px, 100%);
     margin: 0 auto;
 }
 
-.sr-survey-page .sr-public-container {
+.sr-survey-page .survey-page-container {
     display: grid;
     gap: 24px;
 }
 
-.sr-survey-page .sr-public-main h1 {
+.sr-survey-page .survey-page-main h1 {
     margin: 0;
     color: var(--text-strong, var(--color-default-900));
     font-family: var(--font-secondary);
@@ -27,7 +27,7 @@
     letter-spacing: 0;
 }
 
-.sr-survey-page .sr-public-main h2 {
+.sr-survey-page .survey-page-main h2 {
     margin: 0 0 12px;
     color: var(--text-strong, var(--color-default-900));
     font-family: var(--font-secondary);
@@ -36,7 +36,7 @@
     letter-spacing: 0;
 }
 
-.sr-survey-page .sr-public-main p {
+.sr-survey-page .survey-page-main p {
     margin: 0;
     color: var(--text-muted, var(--color-default-600));
     line-height: 1.7;
@@ -373,11 +373,11 @@
 }
 
 @media (max-width: 640px) {
-    .sr-survey-page .sr-public-main {
+    .sr-survey-page .survey-page-main {
         padding: 22px 12px 42px;
     }
 
-    .sr-survey-page .sr-public-main h1 {
+    .sr-survey-page .survey-page-main h1 {
         font-size: 2rem;
     }
 

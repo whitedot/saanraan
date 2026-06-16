@@ -59,22 +59,22 @@
     margin: 0;
 }
 
-.sr-quiz-page .sr-public-main {
+.sr-quiz-page .quiz-page-main {
     background: #ffffff;
     padding: clamp(28px, 5vw, 72px) 16px 78px;
 }
 
-.sr-quiz-page .sr-public-section {
+.sr-quiz-page .quiz-page-section {
     width: min(1360px, 100%);
     margin: 0 auto;
 }
 
-.sr-quiz-page .sr-public-container {
+.sr-quiz-page .quiz-page-container {
     display: grid;
     gap: 24px;
 }
 
-.sr-quiz-page .sr-public-main h1 {
+.sr-quiz-page .quiz-page-main h1 {
     margin: 0;
     color: var(--text-strong, var(--color-default-900));
     font-family: var(--font-secondary);
@@ -83,7 +83,7 @@
     letter-spacing: 0;
 }
 
-.sr-quiz-page .sr-public-main h2 {
+.sr-quiz-page .quiz-page-main h2 {
     margin: 0 0 12px;
     color: var(--text-strong, var(--color-default-900));
     font-family: var(--font-secondary);
@@ -92,7 +92,7 @@
     letter-spacing: 0;
 }
 
-.sr-quiz-page .sr-public-main p {
+.sr-quiz-page .quiz-page-main p {
     margin: 0;
     color: var(--text-muted, var(--color-default-600));
     line-height: 1.7;
@@ -397,11 +397,11 @@
 }
 
 @media (max-width: 640px) {
-    .sr-quiz-page .sr-public-main {
+    .sr-quiz-page .quiz-page-main {
         padding: 22px 12px 42px;
     }
 
-    .sr-quiz-page .sr-public-main h1 {
+    .sr-quiz-page .quiz-page-main h1 {
         font-size: 2rem;
     }
 }

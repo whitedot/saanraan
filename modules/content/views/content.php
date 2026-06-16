@@ -58,7 +58,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     'stylesheets' => $contentStylesheets,
 ]));
 ?>
-<main class="content-public content-public-basic">
+<main class="content-page content-page-basic">
     <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>
         <?php echo sr_popup_layer_render_public_layer($pdo, (int) ($page['popup_layer_id'] ?? 0)); ?>
     <?php } ?>

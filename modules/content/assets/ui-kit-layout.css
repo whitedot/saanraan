@@ -8,7 +8,7 @@
  * Keeps only sample layout helpers local to this preview stylesheet.
  */
 
-.public-ui-kit {
+.content-ui-kit {
     display: grid;
     gap: calc(var(--spacing) * 5);
     margin-inline: auto;
@@ -18,42 +18,42 @@
 }
 
 @media (min-width: 64rem) {
-    .public-ui-kit {
+    .content-ui-kit {
         padding-inline: calc(var(--spacing) * 8);
     }
 }
 
-.public-ui-kit-summary {
+.content-ui-kit-summary {
     margin-bottom: 0;
 }
 
-.public-ui-kit-summary .card-header {
+.content-ui-kit-summary .card-header {
     align-items: center;
 }
 
-.public-ui-kit-subtitle {
+.content-ui-kit-subtitle {
     margin: 0 0 calc(var(--spacing) * 4);
     color: var(--color-default-500);
     font-size: var(--text-sm);
     line-height: var(--text-sm--line-height);
 }
 
-.public-ui-kit-samples {
+.content-ui-kit-samples {
     display: grid;
     gap: 0;
     padding: 0;
 }
 
-.public-ui-kit-section,
+.content-ui-kit-section,
 .ui-kit-sample-section {
     min-width: 0;
 }
 
-.public-ui-kit-section {
+.content-ui-kit-section {
     scroll-margin-top: 1rem;
 }
 
-.public-ui-kit-section-title {
+.content-ui-kit-section-title {
     margin: 0 0 calc(var(--spacing) * 3);
     color: var(--color-body-color);
     font-size: var(--text-lg);
@@ -61,35 +61,35 @@
     font-weight: var(--font-weight-bold);
 }
 
-.public-ui-kit-samples .card-header.ui-kit-block-flow {
+.content-ui-kit-samples .card-header.ui-kit-block-flow {
     display: block;
 }
 
-.public-ui-kit-samples .card-header.ui-kit-block-flow .card-title {
+.content-ui-kit-samples .card-header.ui-kit-block-flow .card-title {
     margin-bottom: calc(var(--spacing) * 1.25);
 }
 
-.public-ui-kit .table-list {
+.content-ui-kit .table-list {
     background: transparent;
 }
 
-.public-ui-kit .table-list th,
-.public-ui-kit .table-list td {
+.content-ui-kit .table-list th,
+.content-ui-kit .table-list td {
     border-inline-width: 0;
     border-top-width: 0;
     text-align: inherit;
     vertical-align: middle;
 }
 
-.public-ui-kit .table-list thead th {
+.content-ui-kit .table-list thead th {
     border-bottom: 1px solid var(--color-default-300);
 }
 
-.public-ui-kit .table-list tbody td {
+.content-ui-kit .table-list tbody td {
     border-bottom: 1px solid var(--color-default-300);
 }
 
-.public-ui-kit .table-list tbody tr:last-child td {
+.content-ui-kit .table-list tbody tr:last-child td {
     border-bottom-width: 0;
 }
 

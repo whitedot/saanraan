@@ -593,22 +593,27 @@ function sr_check_module_public_ui_kit_stylesheets(): void
     }
 
     foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
-        $copiedStylesheets = [
-            'reset.css' => 'assets/reset.css',
-            'ui-kit.css' => 'assets/ui-kit.css',
-            'ui-kit-layout.css' => 'assets/ui-kit-layout.css',
-        ];
-        foreach ($copiedStylesheets as $moduleStylesheet => $sourceStylesheet) {
-            $moduleStylesheetPath = 'modules/' . $moduleKey . '/assets/' . $moduleStylesheet;
-            $source = is_file($sourceStylesheet) ? file_get_contents($sourceStylesheet) : false;
-            $copy = is_file($moduleStylesheetPath) ? file_get_contents($moduleStylesheetPath) : false;
-            if ($moduleStylesheet === 'reset.css' && is_string($source) && is_string($copy)) {
-                $source = str_replace('url("fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $source);
-                $copy = str_replace('url("../../../assets/fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $copy);
-            }
-            if (!is_string($source) || !is_string($copy) || $source !== $copy) {
-                sr_check_add_error('Module UI kit stylesheet copy must match source: ' . $moduleStylesheetPath . ' -> ' . $sourceStylesheet);
-            }
+        $moduleResetStylesheetPath = 'modules/' . $moduleKey . '/assets/reset.css';
+        $sourceReset = is_file('assets/reset.css') ? file_get_contents('assets/reset.css') : false;
+        $moduleReset = is_file($moduleResetStylesheetPath) ? file_get_contents($moduleResetStylesheetPath) : false;
+        if (is_string($sourceReset) && is_string($moduleReset)) {
+            $sourceReset = str_replace('url("fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $sourceReset);
+            $moduleReset = str_replace('url("../../../assets/fonts/material-symbols-outlined.ttf")', 'url("__SR_MATERIAL_SYMBOLS_FONT__")', $moduleReset);
+        }
+        if (!is_string($sourceReset) || !is_string($moduleReset) || $sourceReset !== $moduleReset) {
+            sr_check_add_error('Module reset stylesheet copy must match source: ' . $moduleResetStylesheetPath . ' -> assets/reset.css');
+        }
+
+        $moduleUiStylesheetPath = 'modules/' . $moduleKey . '/assets/ui-kit.css';
+        $moduleUiStylesheet = is_file($moduleUiStylesheetPath) ? file_get_contents($moduleUiStylesheetPath) : false;
+        if (!is_string($moduleUiStylesheet) || !str_contains($moduleUiStylesheet, '.' . $moduleKey . '-ui-scope') || str_contains($moduleUiStylesheet, '.public-ui-') || str_contains($moduleUiStylesheet, '--public-ui-')) {
+            sr_check_add_error('Module UI kit stylesheet must use module UI namespace: ' . $moduleUiStylesheetPath);
+        }
+
+        $moduleUiKitLayoutPath = 'modules/' . $moduleKey . '/assets/ui-kit-layout.css';
+        $moduleUiKitLayout = is_file($moduleUiKitLayoutPath) ? file_get_contents($moduleUiKitLayoutPath) : false;
+        if (!is_string($moduleUiKitLayout) || !str_contains($moduleUiKitLayout, '.' . $moduleKey . '-ui-kit') || str_contains($moduleUiKitLayout, '.public-ui-kit')) {
+            sr_check_add_error('Module UI kit layout stylesheet must use module UI kit namespace: ' . $moduleUiKitLayoutPath);
         }
 
         foreach (['common.css', 'public-ui.css', 'public.css'] as $oldStylesheet) {
@@ -652,6 +657,36 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             if (!is_file($moduleLayoutScriptPath)) {
                 sr_check_add_error('Module public layout script is missing: ' . $moduleLayoutScriptPath);
             }
+        }
+
+        foreach ([
+            'modules/' . $moduleKey . '/assets',
+            'modules/' . $moduleKey . '/layouts',
+            'modules/' . $moduleKey . '/skins',
+        ] as $modulePublicNamespaceRoot) {
+            foreach (sr_check_files($modulePublicNamespaceRoot, 'php') as $modulePublicNamespaceFile) {
+                $modulePublicNamespaceSource = file_get_contents($modulePublicNamespaceFile);
+                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
+                    sr_check_add_error('Module public asset must not use public-prefixed classes: ' . $modulePublicNamespaceFile);
+                }
+            }
+            foreach (sr_check_files($modulePublicNamespaceRoot, 'css') as $modulePublicNamespaceFile) {
+                $modulePublicNamespaceSource = file_get_contents($modulePublicNamespaceFile);
+                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
+                    sr_check_add_error('Module public asset must not use public-prefixed classes: ' . $modulePublicNamespaceFile);
+                }
+            }
+            foreach (sr_check_files($modulePublicNamespaceRoot, 'js') as $modulePublicNamespaceFile) {
+                $modulePublicNamespaceSource = file_get_contents($modulePublicNamespaceFile);
+                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
+                    sr_check_add_error('Module public asset must not use public-prefixed classes: ' . $modulePublicNamespaceFile);
+                }
+            }
+        }
+        $moduleUiKitView = 'modules/' . $moduleKey . '/views/ui-kit.php';
+        $moduleUiKitViewSource = is_file($moduleUiKitView) ? file_get_contents($moduleUiKitView) : false;
+        if (is_string($moduleUiKitViewSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $moduleUiKitViewSource) === 1) {
+            sr_check_add_error('Module UI kit view must not use public-prefixed classes: ' . $moduleUiKitView);
         }
 
         if ($moduleKey === 'quiz' && !is_file('modules/quiz/assets/skin.css')) {
@@ -717,6 +752,10 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         $uiKitLayoutMarker = "'/modules/" . $moduleKey . "/assets/ui-kit-layout.css'";
         if (!str_contains($source, $uiKitLayoutMarker)) {
             sr_check_add_error('Module UI kit layout stylesheet is missing from helper: ' . $helperFile . ' ' . $uiKitLayoutMarker);
+        }
+
+        if (preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $source) === 1) {
+            sr_check_add_error('Module public layout helper must not use public-prefixed classes: ' . $helperFile);
         }
     }
 

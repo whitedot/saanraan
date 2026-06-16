@@ -13,9 +13,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     'body_class' => 'sr-survey-page',
 ]));
 ?>
-<main class="sr-public-main">
-    <section class="sr-public-section sr-survey-home">
-        <div class="sr-public-container">
+<main class="survey-page-main">
+    <section class="survey-page-section sr-survey-home">
+        <div class="survey-page-container">
             <header class="sr-survey-home-header">
                 <h1>설문</h1>
             </header>

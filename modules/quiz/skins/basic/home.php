@@ -18,9 +18,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
     'body_class' => 'sr-quiz-page',
 ]));
 ?>
-<main class="sr-public-main">
-    <section class="sr-public-section sr-quiz-home">
-        <div class="sr-public-container">
+<main class="quiz-page-main">
+    <section class="quiz-page-section sr-quiz-home">
+        <div class="quiz-page-container">
             <header class="sr-quiz-home-header">
                 <h1>퀴즈</h1>
             </header>

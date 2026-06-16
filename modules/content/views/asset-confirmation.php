@@ -15,7 +15,7 @@ $seo = [
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings));
 ?>
-<main class="content-public content-public-basic">
+<main class="content-page content-page-basic">
     <article class="content-article">
         <header class="content-header">
             <h1><?php echo sr_e($assetConfirmationTitle); ?></h1>
