@@ -484,7 +484,12 @@
 }
 
 .public-layout-main {
+    min-height: calc(100vh - 132px);
     min-width: 0;
+}
+
+.public-layout-body.public-layout-home .public-layout-main {
+    min-height: calc(100vh - 166px);
 }
 
 .public-layout-footer {
